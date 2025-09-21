@@ -46,30 +46,34 @@ zakapp is a secure, privacy-focused application that helps Muslims calculate the
 ### Development Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/slimatic/zakapp.git
    cd zakapp
    ```
 
 2. **Start development environment**
+
    ```bash
    docker-compose up -d
    ```
 
 3. **Install dependencies**
+
    ```bash
    # Frontend
    cd frontend && npm install
-   
+
    # Backend
    cd ../backend && npm install
    ```
 
 4. **Start development servers**
+
    ```bash
    # Terminal 1 - Backend
    cd backend && npm run dev
-   
+
    # Terminal 2 - Frontend
    cd frontend && npm run dev
    ```
@@ -81,6 +85,7 @@ zakapp is a secure, privacy-focused application that helps Muslims calculate the
 ### Production Deployment
 
 1. **Build the application**
+
    ```bash
    docker-compose -f docker-compose.prod.yml build
    ```
@@ -164,6 +169,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 For questions, issues, or contributions:
+
 - Open an issue on GitHub
 - Follow the development plan in [development-plan.md](development-plan.md)
 - Review the user stories in [user-stories.md](user-stories.md)

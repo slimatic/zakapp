@@ -47,7 +47,14 @@ export interface AuthResponse {
 }
 
 // Asset Types
-export type AssetCategoryType = 'cash' | 'gold' | 'silver' | 'business' | 'property' | 'stocks' | 'crypto';
+export type AssetCategoryType =
+  | 'cash'
+  | 'gold'
+  | 'silver'
+  | 'business'
+  | 'property'
+  | 'stocks'
+  | 'crypto';
 
 export interface Asset {
   assetId: string;

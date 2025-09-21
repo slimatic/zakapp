@@ -7,16 +7,44 @@
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd backend && npm run dev",
     "client:dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "build:shared": "cd shared && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
     "start": "cd backend && npm start",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "install:all": "npm install && cd shared && npm install && cd ../backend && npm install && cd ../frontend && npm install",
+    "lint": "npm run lint:shared && npm run lint:backend && npm run lint:frontend",
+    "lint:shared": "cd shared && npm run lint",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:fix": "npm run lint:fix:shared && npm run lint:fix:backend && npm run lint:fix:frontend",
+    "lint:fix:shared": "cd shared && npm run lint:fix",
+    "lint:fix:backend": "cd backend && npm run lint:fix",
+    "lint:fix:frontend": "cd frontend && npm run lint:fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "npm run type-check:shared && npm run type-check:backend && npm run type-check:frontend",
+    "type-check:shared": "cd shared && npm run type-check",
+    "type-check:backend": "cd backend && npm run type-check",
+    "type-check:frontend": "cd frontend && npm run type-check",
+    "test": "npm run test:shared && npm run test:backend && npm run test:frontend",
+    "test:shared": "cd shared && npm run test",
+    "test:backend": "cd backend && npm run test",
+    "test:frontend": "cd frontend && npm run test",
     "docker:build": "docker build -t zakapp .",
     "docker:run": "docker run -p 3000:3000 -v zakapp-data:/app/data zakapp"
   },
-  "keywords": ["zakat", "islam", "calculator", "self-hosted", "finance"],
+  "keywords": [
+    "zakat",
+    "islam",
+    "calculator",
+    "self-hosted",
+    "finance"
+  ],
   "author": "zakapp contributors",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "prettier": "^3.0.3"
   }
 }

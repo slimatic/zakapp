@@ -33,6 +33,7 @@ This guide provides comprehensive instructions for deploying zakapp in various e
 ### Installation Commands
 
 **Ubuntu/Debian:**
+
 ```bash
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -53,6 +54,7 @@ sudo apt install git
 ```
 
 **CentOS/RHEL:**
+
 ```bash
 # Install Docker
 sudo yum install -y yum-utils
@@ -72,18 +74,21 @@ sudo usermod -aG docker $USER
 ### Quick Start
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/slimatic/zakapp.git
    cd zakapp
    ```
 
 2. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    # Edit .env file with your configuration
    ```
 
 3. **Start development environment**
+
    ```bash
    docker-compose up -d
    ```
@@ -96,6 +101,7 @@ sudo usermod -aG docker $USER
 ### Development Configuration
 
 **docker-compose.yml** (already configured):
+
 ```yaml
 version: '3.8'
 
@@ -105,7 +111,7 @@ services:
       context: ./frontend
       dockerfile: ../docker/Dockerfile.frontend
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -118,7 +124,7 @@ services:
       context: ./backend
       dockerfile: ../docker/Dockerfile.backend
     ports:
-      - "3001:3001"
+      - '3001:3001'
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -134,66 +140,71 @@ services:
 ### Single Server Deployment
 
 1. **Prepare the server**
+
    ```bash
    # Create application directory
    sudo mkdir -p /opt/zakapp
    sudo chown $USER:$USER /opt/zakapp
    cd /opt/zakapp
-   
+
    # Clone the repository
    git clone https://github.com/slimatic/zakapp.git .
    ```
 
 2. **Create production configuration**
+
    ```bash
    # Copy production compose file
    cp docker-compose.prod.yml.example docker-compose.prod.yml
-   
+
    # Create environment file
    cp .env.prod.example .env.prod
    ```
 
 3. **Configure environment variables**
+
    ```bash
    # Edit production environment file
    nano .env.prod
    ```
 
    Required production variables:
+
    ```env
    NODE_ENV=production
    JWT_SECRET=your-very-secure-jwt-secret-here
    ENCRYPTION_KEY=your-32-character-encryption-key
    DATA_DIR=/app/data
    BACKUP_DIR=/app/backups
-   
+
    # Database settings (if using database in future)
    # DATABASE_URL=your-database-connection-string
-   
+
    # Email settings (for notifications)
    SMTP_HOST=your-smtp-host
    SMTP_PORT=587
    SMTP_USER=your-smtp-username
    SMTP_PASS=your-smtp-password
-   
+
    # Security settings
    CORS_ORIGIN=https://your-domain.com
    RATE_LIMIT_MAX=100
    RATE_LIMIT_WINDOW=15
-   
+
    # SSL/TLS settings
    SSL_CERT_PATH=/app/ssl/cert.pem
    SSL_KEY_PATH=/app/ssl/key.pem
    ```
 
 4. **Generate SSL certificates**
+
    ```bash
    # Create SSL directory
    mkdir -p ssl
-   
+
    # Option 1: Self-signed certificate (for testing)
    openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes
-   
+
    # Option 2: Let's Encrypt (recommended for production)
    # Install certbot first
    sudo apt install certbot
@@ -204,13 +215,14 @@ services:
    ```
 
 5. **Build and deploy**
+
    ```bash
    # Build production images
    docker-compose -f docker-compose.prod.yml build
-   
+
    # Start production services
    docker-compose -f docker-compose.prod.yml up -d
-   
+
    # Verify deployment
    docker-compose -f docker-compose.prod.yml ps
    docker-compose -f docker-compose.prod.yml logs
@@ -219,6 +231,7 @@ services:
 ### Production Docker Compose Configuration
 
 **docker-compose.prod.yml:**
+
 ```yaml
 version: '3.8'
 
@@ -231,9 +244,9 @@ services:
     environment:
       - NODE_ENV=production
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.zakapp-frontend.rule=Host(`your-domain.com`)"
-      - "traefik.http.routers.zakapp-frontend.tls=true"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.zakapp-frontend.rule=Host(`your-domain.com`)'
+      - 'traefik.http.routers.zakapp-frontend.tls=true'
 
   backend:
     build:
@@ -249,26 +262,26 @@ services:
     env_file:
       - .env.prod
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.zakapp-backend.rule=Host(`api.your-domain.com`)"
-      - "traefik.http.routers.zakapp-backend.tls=true"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.zakapp-backend.rule=Host(`api.your-domain.com`)'
+      - 'traefik.http.routers.zakapp-backend.tls=true'
 
   traefik:
     image: traefik:v2.10
     command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.email=admin@your-domain.com"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - '--api.dashboard=true'
+      - '--providers.docker=true'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--certificatesresolvers.letsencrypt.acme.tlschallenge=true'
+      - '--certificatesresolvers.letsencrypt.acme.email=admin@your-domain.com'
+      - '--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json'
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./letsencrypt:/letsencrypt"
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - './letsencrypt:/letsencrypt'
     restart: unless-stopped
 
 volumes:
@@ -280,6 +293,7 @@ volumes:
 If using Nginx instead of Traefik:
 
 **nginx.conf:**
+
 ```nginx
 server {
     listen 80;
@@ -321,6 +335,7 @@ server {
 ### Environment Variables
 
 **Development (.env):**
+
 ```env
 NODE_ENV=development
 JWT_SECRET=dev-jwt-secret
@@ -331,6 +346,7 @@ BACKEND_URL=http://localhost:3001
 ```
 
 **Production (.env.prod):**
+
 ```env
 NODE_ENV=production
 JWT_SECRET=your-production-jwt-secret-very-long-and-secure
@@ -346,6 +362,7 @@ SSL_KEY_PATH=/app/ssl/key.pem
 ### Security Configuration
 
 1. **Generate secure secrets**
+
    ```bash
    # Generate JWT secret (64 characters)
    openssl rand -hex 32
@@ -355,14 +372,15 @@ SSL_KEY_PATH=/app/ssl/key.pem
    ```
 
 2. **Set proper file permissions**
+
    ```bash
    # Secure environment files
    chmod 600 .env.prod
-   
+
    # Secure SSL certificates
    chmod 600 ssl/key.pem
    chmod 644 ssl/cert.pem
-   
+
    # Secure data directory
    chmod 700 data/
    ```
@@ -372,6 +390,7 @@ SSL_KEY_PATH=/app/ssl/key.pem
 ### Automated Backup Script
 
 **scripts/backup.sh:**
+
 ```bash
 #!/bin/bash
 
@@ -416,16 +435,18 @@ crontab -e
 ### Recovery Procedure
 
 1. **Stop the application**
+
    ```bash
    docker-compose -f docker-compose.prod.yml down
    ```
 
 2. **Restore data**
+
    ```bash
    # Extract backup
    cd /opt/zakapp
    tar -xzf backups/zakapp_backup_YYYYMMDD_HHMMSS/data.tar.gz -C data/
-   
+
    # Restore configuration
    cp backups/zakapp_backup_YYYYMMDD_HHMMSS/.env.prod .
    cp backups/zakapp_backup_YYYYMMDD_HHMMSS/docker-compose.prod.yml .
@@ -441,6 +462,7 @@ crontab -e
 ### Health Checks
 
 **Health check script:**
+
 ```bash
 #!/bin/bash
 
@@ -480,6 +502,7 @@ sudo nano /etc/logrotate.d/zakapp
 ```
 
 **Log rotation configuration:**
+
 ```
 /var/log/zakapp/*.log {
     daily
@@ -497,16 +520,19 @@ sudo nano /etc/logrotate.d/zakapp
 ### Update Procedure
 
 1. **Backup current version**
+
    ```bash
    ./scripts/backup.sh
    ```
 
 2. **Pull latest changes**
+
    ```bash
    git pull origin main
    ```
 
 3. **Rebuild and deploy**
+
    ```bash
    docker-compose -f docker-compose.prod.yml build
    docker-compose -f docker-compose.prod.yml up -d
@@ -523,6 +549,7 @@ sudo nano /etc/logrotate.d/zakapp
 ### Common Issues
 
 **1. Container fails to start**
+
 ```bash
 # Check logs
 docker-compose -f docker-compose.prod.yml logs service-name
@@ -535,6 +562,7 @@ docker-compose -f docker-compose.prod.yml restart service-name
 ```
 
 **2. Permission issues with data directory**
+
 ```bash
 # Fix ownership
 sudo chown -R 1000:1000 data/
@@ -544,6 +572,7 @@ chmod -R 755 data/
 ```
 
 **3. SSL certificate issues**
+
 ```bash
 # Check certificate validity
 openssl x509 -in ssl/cert.pem -text -noout
@@ -553,6 +582,7 @@ sudo certbot renew
 ```
 
 **4. Memory issues**
+
 ```bash
 # Check memory usage
 docker stats
@@ -567,20 +597,23 @@ sudo swapon /swapfile
 ### Performance Optimization
 
 1. **Enable Docker BuildKit**
+
    ```bash
    export DOCKER_BUILDKIT=1
    ```
 
 2. **Optimize images**
+
    ```bash
    # Prune unused images
    docker image prune -a
-   
+
    # Prune unused volumes
    docker volume prune
    ```
 
 3. **Monitor resource usage**
+
    ```bash
    # Real-time monitoring
    docker stats
@@ -593,6 +626,7 @@ sudo swapon /swapfile
 ### Security Hardening
 
 1. **Regular updates**
+
    ```bash
    # Update system packages
    sudo apt update && sudo apt upgrade
@@ -603,17 +637,18 @@ sudo swapon /swapfile
    ```
 
 2. **Firewall configuration**
+
    ```bash
    # Enable UFW
    sudo ufw enable
-   
+
    # Allow SSH
    sudo ufw allow ssh
-   
+
    # Allow HTTP/HTTPS
    sudo ufw allow 80
    sudo ufw allow 443
-   
+
    # Block direct access to application ports
    sudo ufw deny 3000
    sudo ufw deny 3001
