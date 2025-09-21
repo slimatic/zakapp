@@ -6,7 +6,7 @@ services:
       context: ./frontend
       dockerfile: ../docker/Dockerfile.frontend
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -22,7 +22,7 @@ services:
       context: ./backend
       dockerfile: ../docker/Dockerfile.backend
     ports:
-      - "3001:3001"
+      - '3001:3001'
     volumes:
       - ./backend:/app
       - /app/node_modules

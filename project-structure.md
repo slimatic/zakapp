@@ -188,6 +188,7 @@ backend/data/
 ## Key Architecture Decisions
 
 ### Frontend Architecture
+
 - **Single Page Application**: React with client-side routing
 - **State Management**: Zustand for lightweight, type-safe state management
 - **Styling**: Tailwind CSS for utility-first styling approach
@@ -195,6 +196,7 @@ backend/data/
 - **Build Tool**: Vite for fast development and optimized builds
 
 ### Backend Architecture
+
 - **RESTful API**: Express.js with TypeScript for type safety
 - **Authentication**: JWT-based stateless authentication
 - **Data Storage**: Encrypted JSON files with structured organization
@@ -202,6 +204,7 @@ backend/data/
 - **Service Layer**: Separation of business logic from route handlers
 
 ### Security Architecture
+
 - **Client-Side Encryption**: WebCrypto API for sensitive data encryption
 - **Server-Side Encryption**: Node.js crypto for data at rest
 - **Key Management**: User password-derived keys for data encryption
@@ -209,6 +212,7 @@ backend/data/
 - **Data Validation**: Comprehensive input validation on both client and server
 
 ### Development Architecture
+
 - **Monorepo Structure**: Organized by feature and layer
 - **Shared Types**: Common type definitions between frontend and backend
 - **Hot Reloading**: Development environment with instant feedback
