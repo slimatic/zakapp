@@ -1,0 +1,28 @@
+# Backend Dockerfile for development
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Create data directory
+RUN mkdir -p /app/data/users /app/data/backups
+
+# Expose port
+EXPOSE 3001
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start development server
+CMD ["npm", "run", "dev"]
