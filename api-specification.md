@@ -12,9 +12,11 @@ This document defines the RESTful API specification for the zakapp backend servi
 ## Authentication Endpoints
 
 ### POST /auth/register
+
 Register a new user account.
 
 **Request Body:**
+
 ```json
 {
   "username": "string (3-50 chars)",
@@ -25,6 +27,7 @@ Register a new user account.
 ```
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -38,9 +41,11 @@ Register a new user account.
 ```
 
 ### POST /auth/login
+
 Authenticate user and receive access token.
 
 **Request Body:**
+
 ```json
 {
   "username": "string",
@@ -49,6 +54,7 @@ Authenticate user and receive access token.
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -66,14 +72,17 @@ Authenticate user and receive access token.
 ```
 
 ### POST /auth/refresh
+
 Refresh authentication token.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -85,14 +94,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### POST /auth/logout
+
 Logout user and invalidate token.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -103,14 +115,17 @@ Authorization: Bearer <jwt_token>
 ## User Management Endpoints
 
 ### GET /users/profile
+
 Get current user profile information.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -131,14 +146,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### PUT /users/profile
+
 Update user profile information.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "email": "string (optional)",
@@ -152,14 +170,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### POST /users/change-password
+
 Change user password.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "currentPassword": "string",
@@ -171,18 +192,22 @@ Authorization: Bearer <jwt_token>
 ## Asset Management Endpoints
 
 ### GET /assets
+
 Get all user assets.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Query Parameters:**
+
 - `category` (optional): Filter by asset category
 - `year` (optional): Filter by year
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -208,14 +233,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### POST /assets
+
 Create a new asset.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "string",
@@ -229,14 +257,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### PUT /assets/:assetId
+
 Update an existing asset.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "string (optional)",
@@ -247,14 +278,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### DELETE /assets/:assetId
+
 Delete an asset.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -263,9 +297,11 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### GET /assets/categories
+
 Get available asset categories and subcategories.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -291,14 +327,17 @@ Get available asset categories and subcategories.
 ## Zakat Calculation Endpoints
 
 ### POST /zakat/calculate
+
 Calculate Zakat for current assets.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "calculationDate": "string (ISO date)",
@@ -310,6 +349,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -343,19 +383,23 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### GET /zakat/history
+
 Get Zakat calculation history.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Query Parameters:**
+
 - `year` (optional): Filter by specific year
 - `limit` (optional): Number of records to return
 - `offset` (optional): Pagination offset
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -381,14 +425,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### GET /zakat/calculation/:calculationId
+
 Get detailed Zakat calculation.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -433,14 +480,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### POST /zakat/payment
+
 Record a Zakat payment.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "calculationId": "string",
@@ -454,14 +504,17 @@ Authorization: Bearer <jwt_token>
 ## Data Management Endpoints
 
 ### GET /data/export
+
 Export all user data.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -478,14 +531,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### POST /data/import
+
 Import user data.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "userData": {
@@ -498,14 +554,17 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### POST /data/backup
+
 Create a data backup.
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -520,6 +579,7 @@ Authorization: Bearer <jwt_token>
 ## Error Responses
 
 ### Standard Error Format
+
 ```json
 {
   "success": false,
@@ -532,6 +592,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### Common Error Codes
+
 - `INVALID_REQUEST` (400): Malformed request data
 - `UNAUTHORIZED` (401): Invalid or missing authentication
 - `FORBIDDEN` (403): Insufficient permissions
@@ -540,6 +601,7 @@ Authorization: Bearer <jwt_token>
 - `INTERNAL_ERROR` (500): Server internal error
 
 ### Validation Error Format
+
 ```json
 {
   "success": false,
@@ -564,6 +626,7 @@ Authorization: Bearer <jwt_token>
 ## Security Headers
 
 All responses include the following security headers:
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `X-XSS-Protection: 1; mode=block`
