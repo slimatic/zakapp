@@ -2,74 +2,21 @@
   "name": "zakapp",
   "version": "1.0.0",
   "description": "A user-friendly, self-hosted Zakat application with modern UI",
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend",
-    "shared"
-  ],
+  "main": "backend/index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cd backend && npm run dev",
-    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
-    "build:frontend": "cd frontend && npm run build",
-    "build:backend": "cd backend && npm run build",
-    "build:shared": "cd shared && npm run build",
-    "test": "npm run test:shared && npm run test:backend && npm run test:frontend",
-    "test:frontend": "cd frontend && npm run test",
-    "test:backend": "cd backend && npm run test",
-    "test:shared": "cd shared && npm run test",
-    "test:e2e": "cd tests && npm run test:e2e",
-    "lint": "npm run lint:frontend && npm run lint:backend && npm run lint:shared",
-    "lint:frontend": "cd frontend && npm run lint",
-    "lint:backend": "cd backend && npm run lint",
-    "lint:shared": "cd shared && npm run lint",
-    "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
-    "setup": "npm install && npm run install:all",
-    "install:all": "cd frontend && npm install && cd ../backend && npm install && cd ../shared && npm install",
-    "clean": "rm -rf frontend/node_modules backend/node_modules shared/node_modules frontend/dist backend/dist shared/dist",
-    "docker:dev": "docker-compose up -d",
-    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
-    "docker:build": "docker-compose -f docker-compose.prod.yml build"
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd backend && npm run dev",
+    "client:dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "docker:build": "docker build -t zakapp .",
+    "docker:run": "docker run -p 3000:3000 -v zakapp-data:/app/data zakapp"
   },
-  "devDependencies": {
-    "concurrently": "^8.2.2",
-    "prettier": "^3.0.3",
-    "husky": "^8.0.3",
-    "lint-staged": "^15.0.2"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
-  },
-  "keywords": [
-    "zakat",
-    "islamic-finance",
-    "calculator",
-    "self-hosted",
-    "privacy",
-    "muslim",
-    "charity"
-  ],
+  "keywords": ["zakat", "islam", "calculator", "self-hosted", "finance"],
   "author": "zakapp contributors",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/slimatic/zakapp.git"
-  },
-  "bugs": {
-    "url": "https://github.com/slimatic/zakapp/issues"
-  },
-  "homepage": "https://github.com/slimatic/zakapp#readme"
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
 }
