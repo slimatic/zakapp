@@ -1,17 +1,42 @@
 import React, { useState } from 'react';
-import { Menu, X, Calculator, Moon, Sun } from 'lucide-react';
+import { Menu, X, Calculator, Moon, Sun, LogOut, User } from 'lucide-react';
+import { useAuth } from '../auth';
+
+type AppView = 'dashboard' | 'assets' | 'calculate' | 'history';
 
 interface HeaderProps {
   isDarkMode?: boolean;
   onToggleDarkMode?: () => void;
+  currentView?: AppView;
+  onNavigate?: (view: AppView) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isDarkMode = false, onToggleDarkMode }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  isDarkMode = false, 
+  onToggleDarkMode,
+  currentView = 'dashboard',
+  onNavigate 
+}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout, isAuthenticated } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  const handleNavigation = (view: AppView) => {
+    onNavigate?.(view);
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsMobileMenuOpen(false);
+  };
+
+  if (!isAuthenticated) {
+    return null; // Don't show header when not authenticated
+  }
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-neutral-200/50">
@@ -30,21 +55,46 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode = false, onToggleDark
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#dashboard" className="text-neutral-700 hover:text-primary-600 font-medium transition-colors">
+            <button
+              onClick={() => handleNavigation('dashboard')}
+              className={`font-medium transition-colors ${
+                currentView === 'dashboard' 
+                  ? 'text-primary-600' 
+                  : 'text-neutral-700 hover:text-primary-600'
+              }`}
+            >
               Dashboard
-            </a>
-            <a href="#calculate" className="text-neutral-700 hover:text-primary-600 font-medium transition-colors">
+            </button>
+            <button
+              onClick={() => handleNavigation('calculate')}
+              className={`font-medium transition-colors ${
+                currentView === 'calculate' 
+                  ? 'text-primary-600' 
+                  : 'text-neutral-700 hover:text-primary-600'
+              }`}
+            >
               Calculate
-            </a>
-            <a href="#assets" className="text-neutral-700 hover:text-primary-600 font-medium transition-colors">
+            </button>
+            <button
+              onClick={() => handleNavigation('assets')}
+              className={`font-medium transition-colors ${
+                currentView === 'assets' 
+                  ? 'text-primary-600' 
+                  : 'text-neutral-700 hover:text-primary-600'
+              }`}
+            >
               Assets
-            </a>
-            <a href="#history" className="text-neutral-700 hover:text-primary-600 font-medium transition-colors">
+            </button>
+            <button
+              onClick={() => handleNavigation('history')}
+              className={`font-medium transition-colors ${
+                currentView === 'history' 
+                  ? 'text-primary-600' 
+                  : 'text-neutral-700 hover:text-primary-600'
+              }`}
+            >
               History
-            </a>
-            <a href="#help" className="text-neutral-700 hover:text-primary-600 font-medium transition-colors">
-              Help
-            </a>
+            </button>
           </nav>
 
           {/* Right Actions */}
@@ -64,10 +114,20 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode = false, onToggleDark
               </button>
             )}
 
-            {/* Get Started Button */}
-            <button className="hidden sm:inline-flex btn-primary">
-              Get Started
-            </button>
+            {/* User Menu */}
+            <div className="hidden sm:flex items-center space-x-3">
+              <div className="flex items-center space-x-2 text-sm text-neutral-600">
+                <User className="w-4 h-4" />
+                <span>Hello, {user?.username}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-1 text-sm text-neutral-600 hover:text-red-600 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
+            </div>
 
             {/* Mobile Menu Button */}
             <button
@@ -88,47 +148,56 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode = false, onToggleDark
         {isMobileMenuOpen && (
           <div className="md:hidden animate-fade-in">
             <div className="px-2 pt-2 pb-3 space-y-1 border-t border-neutral-200/50 bg-white/50 backdrop-blur-sm">
-              <a
-                href="#dashboard"
-                className="block px-3 py-2 rounded-lg text-neutral-700 hover:text-primary-600 hover:bg-neutral-100 font-medium transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button
+                onClick={() => handleNavigation('dashboard')}
+                className={`block w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  currentView === 'dashboard'
+                    ? 'text-primary-600 bg-primary-50'
+                    : 'text-neutral-700 hover:text-primary-600 hover:bg-neutral-100'
+                }`}
               >
                 Dashboard
-              </a>
-              <a
-                href="#calculate"
-                className="block px-3 py-2 rounded-lg text-neutral-700 hover:text-primary-600 hover:bg-neutral-100 font-medium transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+              </button>
+              <button
+                onClick={() => handleNavigation('calculate')}
+                className={`block w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  currentView === 'calculate'
+                    ? 'text-primary-600 bg-primary-50'
+                    : 'text-neutral-700 hover:text-primary-600 hover:bg-neutral-100'
+                }`}
               >
                 Calculate Zakat
-              </a>
-              <a
-                href="#assets"
-                className="block px-3 py-2 rounded-lg text-neutral-700 hover:text-primary-600 hover:bg-neutral-100 font-medium transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+              </button>
+              <button
+                onClick={() => handleNavigation('assets')}
+                className={`block w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  currentView === 'assets'
+                    ? 'text-primary-600 bg-primary-50'
+                    : 'text-neutral-700 hover:text-primary-600 hover:bg-neutral-100'
+                }`}
               >
                 Manage Assets
-              </a>
-              <a
-                href="#history"
-                className="block px-3 py-2 rounded-lg text-neutral-700 hover:text-primary-600 hover:bg-neutral-100 font-medium transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+              </button>
+              <button
+                onClick={() => handleNavigation('history')}
+                className={`block w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  currentView === 'history'
+                    ? 'text-primary-600 bg-primary-50'
+                    : 'text-neutral-700 hover:text-primary-600 hover:bg-neutral-100'
+                }`}
               >
                 History
-              </a>
-              <a
-                href="#help"
-                className="block px-3 py-2 rounded-lg text-neutral-700 hover:text-primary-600 hover:bg-neutral-100 font-medium transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Help & Guide
-              </a>
+              </button>
               <div className="pt-2 border-t border-neutral-200/50">
+                <div className="px-3 py-2 text-sm text-neutral-600">
+                  Logged in as {user?.username}
+                </div>
                 <button
-                  className="w-full btn-primary"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
-                  Get Started
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
                 </button>
               </div>
             </div>

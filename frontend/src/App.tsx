@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import './styles/App.css';
-import { Header, Dashboard } from './components/ui';
+import { Header, Dashboard, AssetManagement } from './components/ui';
+import { AuthProvider, useAuth, AuthForms } from './components/auth';
 
-function App() {
+type AppView = 'dashboard' | 'assets' | 'calculate' | 'history';
+
+function AppContent() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [currentView, setCurrentView] = useState<AppView>('dashboard');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const toggleDarkMode = () => {
@@ -10,12 +15,44 @@ function App() {
     // TODO: Implement actual dark mode functionality
   };
 
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-neutral-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth forms if not authenticated
+  if (!isAuthenticated) {
+    return <AuthForms />;
+  }
+
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'assets':
+        return <AssetManagement />;
+      case 'dashboard':
+      default:
+        return <Dashboard onNavigate={setCurrentView} />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-neutral-50">
-      <Header isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
+      <Header 
+        isDarkMode={isDarkMode} 
+        onToggleDarkMode={toggleDarkMode}
+        currentView={currentView}
+        onNavigate={setCurrentView}
+      />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <Dashboard />
+        {renderCurrentView()}
       </main>
 
       {/* Footer */}
@@ -56,6 +93,14 @@ function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
