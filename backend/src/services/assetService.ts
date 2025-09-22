@@ -7,8 +7,6 @@ import {
 import { CreateAssetRequest, UpdateAssetRequest } from '../utils/validation.js';
 import { StoredAsset, AssetFilters, AssetHistory, AssetSummary } from '../models/index.js';
 
-
-
 class AssetService {
   private readonly ASSETS_FILE = 'assets.json';
   private readonly ASSET_HISTORY_FILE = 'asset_history.json';
