@@ -204,7 +204,15 @@ Authorization: Bearer <jwt_token>
 **Query Parameters:**
 
 - `category` (optional): Filter by asset category
+- `subCategory` (optional): Filter by asset subcategory  
 - `year` (optional): Filter by year
+- `zakatEligible` (optional): Filter by zakat eligibility (true/false)
+- `currency` (optional): Filter by currency code
+- `search` (optional): Search in asset names and descriptions
+- `minValue` (optional): Filter by minimum value
+- `maxValue` (optional): Filter by maximum value
+- `dateFrom` (optional): Filter by creation date from (ISO date)
+- `dateTo` (optional): Filter by creation date to (ISO date)
 
 **Response (200):**
 
@@ -216,7 +224,7 @@ Authorization: Bearer <jwt_token>
       {
         "assetId": "string",
         "name": "string",
-        "category": "cash|gold|silver|business|property|stocks|crypto",
+        "category": "cash|gold|silver|business|property|stocks|crypto|debts",
         "subCategory": "string",
         "value": "number",
         "currency": "string",
@@ -247,7 +255,7 @@ Authorization: Bearer <jwt_token>
 ```json
 {
   "name": "string",
-  "category": "cash|gold|silver|business|property|stocks|crypto",
+  "category": "cash|gold|silver|business|property|stocks|crypto|debts",
   "subCategory": "string",
   "value": "number",
   "currency": "string",
@@ -318,6 +326,217 @@ Get available asset categories and subcategories.
             "zakatRate": 2.5
           }
         ]
+      }
+    ]
+  }
+}
+```
+
+### GET /assets/:assetId
+
+Get a single asset by ID.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "asset": {
+      "assetId": "string",
+      "name": "string",
+      "category": "cash|gold|silver|business|property|stocks|crypto|debts",
+      "subCategory": "string",
+      "value": "number",
+      "currency": "string",
+      "description": "string",
+      "zakatEligible": "boolean",
+      "createdAt": "string (ISO date)",
+      "updatedAt": "string (ISO date)"
+    }
+  }
+}
+```
+
+**Response (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Asset not found"
+  }
+}
+```
+
+### GET /assets/history
+
+Get history for all user assets.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "history": [
+      {
+        "historyId": "string",
+        "assetId": "string",
+        "action": "created|updated|deleted",
+        "timestamp": "string (ISO date)",
+        "newData": "object",
+        "oldData": "object (optional)"
+      }
+    ]
+  }
+}
+```
+
+### GET /assets/:assetId/history
+
+Get history for a specific asset.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "history": [
+      {
+        "historyId": "string",
+        "assetId": "string",
+        "action": "created|updated|deleted",
+        "timestamp": "string (ISO date)",
+        "newData": "object",
+        "oldData": "object (optional)"
+      }
+    ]
+  }
+}
+```
+
+**Response (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Asset not found"
+  }
+}
+```
+
+### GET /assets/statistics
+
+Get comprehensive asset statistics including category and currency breakdown.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "statistics": {
+      "totalAssets": "number",
+      "totalValue": "number", 
+      "totalZakatEligible": "number",
+      "assetsByCategory": {
+        "cash": {
+          "count": "number",
+          "totalValue": "number",
+          "zakatEligibleValue": "number"
+        }
+      },
+      "assetsByCurrency": {
+        "USD": {
+          "count": "number",
+          "totalValue": "number"
+        }
+      }
+    }
+  }
+}
+```
+
+### GET /assets/grouped
+
+Get assets grouped by category.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "groupedAssets": {
+      "cash": [
+        {
+          "assetId": "string",
+          "name": "string",
+          "category": "cash",
+          "subCategory": "string",
+          "value": "number",
+          "currency": "string",
+          "description": "string",
+          "zakatEligible": "boolean",
+          "createdAt": "string (ISO date)",
+          "updatedAt": "string (ISO date)"
+        }
+      ]
+    }
+  }
+}
+```
+
+### GET /assets/categories/:category/subcategories
+
+Get available subcategories for a specific asset category.
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "subcategories": [
+      {
+        "id": "string",
+        "name": "string",
+        "zakatRate": "number"
       }
     ]
   }
