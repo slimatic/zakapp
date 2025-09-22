@@ -163,6 +163,79 @@ export interface AssetSubCategory {
   specificFields?: string[]; // Optional fields specific to this subcategory
 }
 
+// Specific asset type interfaces for better type safety
+export interface CashAsset extends Asset {
+  category: 'cash';
+  subCategory: 'savings' | 'checking' | 'cash_on_hand' | 'certificates_of_deposit' | 'money_market';
+  interestRate?: number;
+  maturityDate?: string;
+}
+
+export interface GoldAsset extends Asset {
+  category: 'gold';
+  subCategory: 'jewelry' | 'coins' | 'bars' | 'ornaments';
+  weight?: number; // in grams
+  purity?: number; // in karats (e.g., 24, 22, 18)
+}
+
+export interface SilverAsset extends Asset {
+  category: 'silver';
+  subCategory: 'jewelry' | 'coins' | 'bars' | 'ornaments' | 'utensils';
+  weight?: number; // in grams
+  purity?: number; // percentage (e.g., 92.5 for sterling silver)
+}
+
+export interface BusinessAsset extends Asset {
+  category: 'business';
+  subCategory: 'inventory' | 'trade_goods' | 'raw_materials' | 'finished_goods' | 'work_in_progress';
+  businessType?: string;
+  holdingPeriod?: number; // in months
+}
+
+export interface PropertyAsset extends Asset {
+  category: 'property';
+  subCategory: 'residential_investment' | 'commercial' | 'land' | 'agricultural' | 'industrial';
+  propertyType?: string;
+  location?: string;
+  rentalIncome?: number; // monthly
+}
+
+export interface StocksAsset extends Asset {
+  category: 'stocks';
+  subCategory: 'individual_stocks' | 'mutual_funds' | 'etfs' | 'bonds' | 'index_funds';
+  ticker?: string;
+  shares?: number;
+  dividendYield?: number;
+}
+
+export interface CryptoAsset extends Asset {
+  category: 'crypto';
+  subCategory: 'bitcoin' | 'ethereum' | 'altcoins' | 'stablecoins' | 'defi_tokens';
+  coinSymbol?: string;
+  quantity?: number;
+  stakingRewards?: number;
+}
+
+export interface DebtAsset extends Asset {
+  category: 'debts';
+  subCategory: 'accounts_receivable' | 'personal_loans_given' | 'business_loans_given' | 'promissory_notes';
+  debtor?: string;
+  dueDate?: string;
+  interestRate?: number;
+  repaymentSchedule?: 'lump_sum' | 'installments' | 'on_demand';
+}
+
+// Union type for all specific asset types
+export type SpecificAsset = 
+  | CashAsset 
+  | GoldAsset 
+  | SilverAsset 
+  | BusinessAsset 
+  | PropertyAsset 
+  | StocksAsset 
+  | CryptoAsset 
+  | DebtAsset;
+
 // Zakat Calculation Types
 export interface ZakatCalculation {
   calculationId: string;
