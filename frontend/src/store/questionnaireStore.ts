@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { Asset, AssetCategoryType } from '@zakapp/shared';
-import { AssetFormData } from '../components/ui/AssetForm';
+import { AssetFormData } from '@zakapp/shared';
 
 export interface QuestionnaireStep {
   id: string;
