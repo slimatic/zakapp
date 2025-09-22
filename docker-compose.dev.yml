@@ -1,0 +1,59 @@
+services:
+  # Containerized npm environment - eliminates host OS npm issues
+  npm-env:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/shared/node_modules  
+      - /app/backend/node_modules
+      - /app/frontend/node_modules
+      - ./backend/data:/app/backend/data
+    environment:
+      - NODE_ENV=development
+    working_dir: /app
+    profiles: ["npm-tools"]
+    command: ["tail", "-f", "/dev/null"]  # Keep container running
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend:/app/frontend
+      - ./shared:/app/shared
+      - /app/frontend/node_modules
+      - /app/shared/node_modules
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:3001
+    depends_on:
+      - backend
+    command: npm run dev
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./backend:/app/backend
+      - ./shared:/app/shared
+      - /app/backend/node_modules
+      - /app/shared/node_modules
+      - ./backend/data:/app/backend/data
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - JWT_SECRET=your-jwt-secret-change-in-production
+      - DATA_DIR=/app/backend/data
+    command: npm run dev
+
+networks:
+  default:
+    name: zakapp-dev
