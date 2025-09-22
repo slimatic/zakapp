@@ -8,7 +8,7 @@ export const useAsync = <T>(asyncFunction: () => Promise<T>, deps: unknown[] = [
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const memoizedAsyncFunction = useCallback(asyncFunction, [asyncFunction, ...deps]);
+  const memoizedAsyncFunction = useCallback(asyncFunction, deps);
 
   useEffect(() => {
     let isMounted = true;
