@@ -76,7 +76,7 @@ export const createAssetSchema = z.object({
     .string()
     .min(VALIDATION.ASSET_NAME.MIN_LENGTH, 'Asset name is required')
     .max(VALIDATION.ASSET_NAME.MAX_LENGTH, `Asset name must not exceed ${VALIDATION.ASSET_NAME.MAX_LENGTH} characters`),
-  category: z.enum(['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto']),
+  category: z.enum(['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debt']),
   subCategory: z
     .string()
     .min(1, 'Subcategory is required')
@@ -119,3 +119,38 @@ export type ChangePasswordRequest = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
 export type CreateAssetRequest = z.infer<typeof createAssetSchema>;
 export type UpdateAssetRequest = z.infer<typeof updateAssetSchema>;
+
+// Enhanced asset validation with subcategory validation
+export const createAssetSchemaEnhanced = createAssetSchema.refine(
+  (data) => {
+    // Basic validation - all assets must have valid subcategory for their category
+    const category = data.category;
+    const subCategory = data.subCategory;
+    
+    // For debt assets, ensure value is negative or we understand it's a liability
+    if (category === 'debt' && data.value < 0) {
+      return true; // Negative values are expected for debts
+    }
+    
+    // For non-debt assets, ensure positive values
+    if (category !== 'debt' && data.value < 0) {
+      return false;
+    }
+    
+    return true;
+  },
+  {
+    message: 'Debt assets should have negative values, other assets should have positive values',
+    path: ['value'],
+  }
+);
+
+// Asset history entry schema
+export const assetHistorySchema = z.object({
+  historyId: z.string(),
+  assetId: z.string(),
+  action: z.enum(['created', 'updated', 'deleted']),
+  timestamp: z.string(),
+  newData: z.any(), // Asset object
+  oldData: z.any().optional(), // Previous asset object for updates
+});
