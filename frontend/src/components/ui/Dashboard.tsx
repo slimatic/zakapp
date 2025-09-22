@@ -1,5 +1,7 @@
 import React from 'react';
-import { TrendingUp, DollarSign, Calendar, Users, Calculator, Plus, ArrowRight } from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar, Users, Calculator, Plus, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { useAssetStatistics, useGroupedAssets } from '../../hooks';
+import { ASSET_CATEGORIES } from '@zakapp/shared';
 
 interface StatsCardProps {
   title: string;
@@ -87,6 +89,8 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const currentYear = new Date().getFullYear();
+  const { data: statistics, loading: statsLoading, error: statsError } = useAssetStatistics();
+  const { data: groupedAssets, loading: groupedLoading, error: groupedError } = useGroupedAssets();
   
   const handleCalculateZakat = () => {
     onNavigate?.('calculate');
@@ -103,6 +107,56 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const handleAddAsset = () => {
     onNavigate?.('assets');
   };
+
+  // Helper to format currency
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount);
+  };
+
+  // Calculate Zakat due (2.5% of Zakat-eligible assets)
+  const zakatDue = statistics ? statistics.totalZakatEligible * 0.025 : 0;
+
+  // Prepare category data for visualization
+  const categoryData = statistics && groupedAssets ? 
+    Object.entries(statistics.assetsByCategory).map(([categoryId, stats]) => {
+      const category = ASSET_CATEGORIES[categoryId as keyof typeof ASSET_CATEGORIES];
+      return {
+        id: categoryId,
+        name: category?.name || categoryId,
+        amount: stats.totalValue,
+        zakatEligible: stats.zakatEligibleValue,
+        count: stats.count,
+        percentage: statistics.totalValue > 0 ? Math.round((stats.totalValue / statistics.totalValue) * 100) : 0,
+      };
+    }).filter(cat => cat.count > 0).sort((a, b) => b.amount - a.amount)
+    : [];
+
+  if (statsError || groupedError) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="card">
+          <div className="card-body text-center py-12">
+            <div className="text-red-500 mb-4">
+              <AlertCircle className="w-12 h-12 mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-neutral-900 mb-2">Unable to Load Asset Data</h3>
+            <p className="text-neutral-600 mb-4">
+              {statsError || groupedError}
+            </p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="btn-primary"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -136,28 +190,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Total Assets"
-          value="$24,580"
+          value={statsLoading ? "Loading..." : formatCurrency(statistics?.totalValue || 0)}
           subtitle="Across all categories"
-          icon={<DollarSign className="w-4 h-4 text-primary-600" />}
-          trend={{ value: "+12.5%", isPositive: true }}
+          icon={statsLoading ? <Loader2 className="w-4 h-4 text-primary-600 animate-spin" /> : <DollarSign className="w-4 h-4 text-primary-600" />}
         />
         <StatsCard
           title="Zakat Due"
-          value="$615"
+          value={statsLoading ? "Loading..." : formatCurrency(zakatDue)}
           subtitle={`For ${currentYear}`}
-          icon={<Calculator className="w-4 h-4 text-primary-600" />}
+          icon={statsLoading ? <Loader2 className="w-4 h-4 text-primary-600 animate-spin" /> : <Calculator className="w-4 h-4 text-primary-600" />}
         />
         <StatsCard
-          title="Last Calculation"
-          value="Oct 15"
-          subtitle="3 days ago"
-          icon={<Calendar className="w-4 h-4 text-primary-600" />}
+          title="Zakat Eligible"
+          value={statsLoading ? "Loading..." : formatCurrency(statistics?.totalZakatEligible || 0)}
+          subtitle="Total eligible assets"
+          icon={statsLoading ? <Loader2 className="w-4 h-4 text-primary-600 animate-spin" /> : <TrendingUp className="w-4 h-4 text-primary-600" />}
         />
         <StatsCard
           title="Asset Categories"
-          value="5"
+          value={statsLoading ? "Loading..." : (categoryData.length.toString())}
           subtitle="Active categories"
-          icon={<Users className="w-4 h-4 text-primary-600" />}
+          icon={statsLoading ? <Loader2 className="w-4 h-4 text-primary-600 animate-spin" /> : <Users className="w-4 h-4 text-primary-600" />}
         />
       </div>
 
@@ -193,30 +246,49 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <p className="text-sm text-neutral-600 mt-1">Overview of your Zakat-eligible assets</p>
         </div>
         <div className="card-body">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { name: 'Cash & Bank Accounts', amount: '$8,450', percentage: 34 },
-              { name: 'Gold', amount: '$6,200', percentage: 25 },
-              { name: 'Silver', amount: '$1,800', percentage: 7 },
-              { name: 'Business Assets', amount: '$5,500', percentage: 22 },
-              { name: 'Investment Property', amount: '$2,100', percentage: 9 },
-              { name: 'Stocks & Securities', amount: '$530', percentage: 3 },
-            ].map((category) => (
-              <div key={category.name} className="p-4 border border-neutral-200 rounded-lg hover:border-primary-300 transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-medium text-neutral-900 text-sm">{category.name}</h4>
-                  <span className="text-xs text-neutral-500">{category.percentage}%</span>
+          {groupedLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+              <span className="ml-2 text-neutral-600">Loading asset categories...</span>
+            </div>
+          ) : categoryData.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {categoryData.map((category) => (
+                <div key={category.id} className="p-4 border border-neutral-200 rounded-lg hover:border-primary-300 transition-colors cursor-pointer">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-medium text-neutral-900 text-sm">{category.name}</h4>
+                    <span className="text-xs text-neutral-500">{category.percentage}%</span>
+                  </div>
+                  <p className="text-lg font-semibold text-primary-600">{formatCurrency(category.amount)}</p>
+                  <div className="mt-1 text-xs text-neutral-500">
+                    {category.count} asset{category.count !== 1 ? 's' : ''} • {formatCurrency(category.zakatEligible)} Zakat eligible
+                  </div>
+                  <div className="mt-2 bg-neutral-200 rounded-full h-1.5">
+                    <div 
+                      className="bg-primary-500 h-1.5 rounded-full transition-all duration-500"
+                      style={{ width: `${category.percentage}%` }}
+                    />
+                  </div>
                 </div>
-                <p className="text-lg font-semibold text-primary-600">{category.amount}</p>
-                <div className="mt-2 bg-neutral-200 rounded-full h-1.5">
-                  <div 
-                    className="bg-primary-500 h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${category.percentage}%` }}
-                  />
-                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-neutral-300 mb-4">
+                <DollarSign className="w-16 h-16 mx-auto" />
               </div>
-            ))}
-          </div>
+              <h3 className="text-lg font-medium text-neutral-900 mb-2">No assets found</h3>
+              <p className="text-neutral-600 mb-4">
+                Start by adding your first asset to see the overview here.
+              </p>
+              <button 
+                onClick={handleAddAsset}
+                className="btn-primary"
+              >
+                Add Your First Asset
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
