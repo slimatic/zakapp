@@ -3,17 +3,30 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy shared package files first
+COPY shared/package*.json ./shared/
 
-# Install dependencies
-RUN npm ci
+# Install shared dependencies 
+RUN cd shared && npm ci
 
-# Copy source code
-COPY . .
+# Copy shared source and build
+COPY shared/ ./shared/
+RUN cd shared && npm run build
+
+# Copy backend package files
+COPY backend/package*.json ./backend/
+
+# Install backend dependencies
+RUN cd backend && npm ci
+
+# Copy backend source code
+COPY backend/ ./backend/
 
 # Create data directory
-RUN mkdir -p /app/data/users /app/data/backups
+RUN mkdir -p /app/backend/data/users /app/backend/data/backups
+
+# Set working directory to backend
+WORKDIR /app/backend
 
 # Expose port
 EXPOSE 3001
