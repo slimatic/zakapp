@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AssetManagement } from './AssetManagement';
-import { AssetFormData } from './AssetForm';
+import { AssetFormData } from '@zakapp/shared';
 import { assetService } from '../../services/assetService';
 import { Asset } from '@zakapp/shared';
 
