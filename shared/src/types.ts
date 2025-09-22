@@ -54,7 +54,8 @@ export type AssetCategoryType =
   | 'business'
   | 'property'
   | 'stocks'
-  | 'crypto';
+  | 'crypto'
+  | 'debt';
 
 export interface Asset {
   assetId: string;
