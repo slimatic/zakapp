@@ -34,7 +34,7 @@ const AssetHistory: React.FC<AssetHistoryProps> = ({ onNavigate }) => {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch('/api/assets/history', {
+      const response = await fetch('http://localhost:3001/api/v1/assets/history', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

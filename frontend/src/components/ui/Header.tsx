@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X, Calculator, Moon, Sun, LogOut, User } from 'lucide-react';
+import { useAuth } from '../auth';
 
 type AppView = 'dashboard' | 'assets' | 'calculate' | 'history';
 
@@ -25,20 +26,11 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // Try to use auth context, fallback to props for demo mode
-  let user, isAuthenticated, logout;
-  try {
-    const { useAuth } = require('../auth');
-    const auth = useAuth();
-    user = propUser || auth.user;
-    isAuthenticated = propIsAuthenticated !== undefined ? propIsAuthenticated : auth.isAuthenticated;
-    logout = propOnLogout || auth.logout;
-  } catch {
-    // Auth context not available, use props
-    user = propUser;
-    isAuthenticated = propIsAuthenticated || false;
-    logout = propOnLogout || (() => {});
-  }
+  // Use auth context if available, fallback to props for demo mode
+  const auth = useAuth();
+  const user = propUser || auth.user;
+  const isAuthenticated = propIsAuthenticated !== undefined ? propIsAuthenticated : auth.isAuthenticated;
+  const logout = propOnLogout || auth.logout;
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
