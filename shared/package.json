@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && tsc --build",
+    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src --ext .ts",
@@ -15,7 +15,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "prebuild": "npm run clean"
   },
   "dependencies": {
