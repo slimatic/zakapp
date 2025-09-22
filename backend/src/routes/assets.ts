@@ -201,7 +201,7 @@ router.get('/categories', async (req, res) => {
   try {
     const categories = Object.values(ASSET_CATEGORIES).map(category => ({
       ...category,
-      subCategories: [], // TODO: Implement subcategories
+      subCategories: category.subCategories, // Include the actual subcategories
     }));
 
     res.json({

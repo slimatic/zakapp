@@ -37,7 +37,7 @@ class AssetService {
       return assets;
     } catch (error) {
       // If file doesn't exist, return empty array
-      if ((error as any).code === 'ENOENT') {
+      if ((error as any).code === 'ENOENT' || (error as Error).message.includes('not found')) {
         return [];
       }
       throw error;
