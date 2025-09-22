@@ -220,4 +220,51 @@ router.get('/categories', async (req, res) => {
   }
 });
 
+/**
+ * GET /assets/:assetId
+ * Get a single asset by ID
+ */
+router.get('/:assetId', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { assetId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.UNAUTHORIZED,
+          message: 'User authentication required',
+        },
+      });
+    }
+
+    const asset = await assetService.getAssetById(userId, assetId);
+
+    if (!asset) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.NOT_FOUND,
+          message: 'Asset not found',
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { asset },
+    });
+  } catch (error) {
+    console.error('Get asset error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to retrieve asset',
+      },
+    });
+  }
+});
+
 export { router as assetsRouter };
