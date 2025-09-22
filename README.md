@@ -40,47 +40,49 @@ zakapp is a secure, privacy-focused application that helps Muslims calculate the
 ### Prerequisites
 
 - Docker and Docker Compose
-- Node.js 18+ (for development)
+- Node.js 18+ (for local development, optional if using containerized approach)
 - Git
 
 ### Development Setup
 
-1. **Clone the repository**
+#### Option 1: Containerized Setup (Recommended)
 
-   ```bash
-   git clone https://github.com/slimatic/zakapp.git
-   cd zakapp
-   ```
+Eliminates npm permission issues and ensures consistent environment:
 
-2. **Start development environment**
+```bash
+# Clone the repository
+git clone https://github.com/slimatic/zakapp.git
+cd zakapp
 
-   ```bash
-   docker-compose up -d
-   ```
+# Setup with containerized npm (no host npm required)
+./scripts/setup-npm.sh --docker
 
-3. **Install dependencies**
+# Start development environment
+npm run docker:dev
+```
 
-   ```bash
-   # Frontend
-   cd frontend && npm install
+#### Option 2: Local Setup
 
-   # Backend
-   cd ../backend && npm install
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/slimatic/zakapp.git
+cd zakapp
 
-4. **Start development servers**
+# Install dependencies with proper build order
+npm run install:all
 
-   ```bash
-   # Terminal 1 - Backend
-   cd backend && npm run dev
+# Start development servers
+npm run dev
+```
 
-   # Terminal 2 - Frontend
-   cd frontend && npm run dev
-   ```
+### Access the Application
 
-5. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+
+### Troubleshooting npm Issues
+
+If you encounter npm permission errors or shared package resolution issues, see our [npm Issues Guide](docs/npm-issues-guide.md) for detailed solutions.
 
 ### Production Deployment
 
@@ -113,6 +115,16 @@ zakapp/
 ### Development Commands
 
 ```bash
+# Containerized development (recommended)
+npm run docker:dev       # Start containerized development
+npm run docker:dev:logs  # View container logs
+npm run docker:dev:down  # Stop development containers
+npm run docker:npm:install  # Install dependencies in container
+
+# Local development
+npm run dev              # Start local development servers
+npm run install:all      # Install all dependencies with proper order
+
 # Backend development
 cd backend
 npm run dev          # Start development server
