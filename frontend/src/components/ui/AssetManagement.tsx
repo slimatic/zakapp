@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Asset, AssetCategoryType, ASSET_CATEGORIES } from '@zakapp/shared';
-import { AssetForm, AssetFormData } from './AssetForm';
+import { Asset, AssetCategoryType, ASSET_CATEGORIES, AssetFormData } from '@zakapp/shared';
+import { AssetForm } from './AssetForm';
 import { AssetList } from './AssetList';
 import { AssetCategoryView } from './AssetCategoryView';
 import { AssetQuestionnaire } from './AssetQuestionnaire';
