@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Asset, AssetCategoryType, ASSET_CATEGORIES } from '@zakapp/shared';
 import { AssetForm, AssetFormData } from './AssetForm';
 import { AssetList } from './AssetList';
-import { Plus, Search, Filter } from 'lucide-react';
+import { AssetCategoryView } from './AssetCategoryView';
+import { Plus, Search, Filter, List, PieChart } from 'lucide-react';
 
 interface AssetManagementProps {
   // These would be connected to your API/state management
@@ -17,7 +18,7 @@ const mockAssets: Asset[] = [
     assetId: '1',
     name: 'Primary Savings Account',
     category: 'cash',
-    subCategory: 'Savings',
+    subCategory: 'savings',
     value: 25000,
     currency: 'USD',
     description: 'Main savings account for emergency fund',
@@ -29,7 +30,7 @@ const mockAssets: Asset[] = [
     assetId: '2', 
     name: 'Gold Jewelry Collection',
     category: 'gold',
-    subCategory: '22k Gold',
+    subCategory: 'jewelry',
     value: 12000,
     currency: 'USD',
     description: 'Family gold jewelry collection',
@@ -41,13 +42,61 @@ const mockAssets: Asset[] = [
     assetId: '3',
     name: 'Bitcoin Investment',
     category: 'crypto',
-    subCategory: 'Bitcoin',
+    subCategory: 'bitcoin',
     value: 8500,
     currency: 'USD',
     zakatEligible: true,
     createdAt: '2024-01-05T10:00:00Z',
     updatedAt: '2024-01-05T10:00:00Z',
   },
+  {
+    assetId: '4',
+    name: 'Checking Account',
+    category: 'cash',
+    subCategory: 'checking',
+    value: 3500,
+    currency: 'USD',
+    description: 'Daily transactions account',
+    zakatEligible: true,
+    createdAt: '2024-01-12T10:00:00Z',
+    updatedAt: '2024-01-12T10:00:00Z',
+  },
+  {
+    assetId: '5',
+    name: 'Apple Stock',
+    category: 'stocks',
+    subCategory: 'individual_stocks',
+    value: 15000,
+    currency: 'USD',
+    description: 'AAPL shares investment',
+    zakatEligible: true,
+    createdAt: '2024-01-08T10:00:00Z',
+    updatedAt: '2024-01-08T10:00:00Z',
+  },
+  {
+    assetId: '6',
+    name: 'Silver Coins',
+    category: 'silver',
+    subCategory: 'coins',
+    value: 2800,
+    currency: 'USD',
+    description: 'Silver eagle coins collection',
+    zakatEligible: true,
+    createdAt: '2024-01-03T10:00:00Z',
+    updatedAt: '2024-01-03T10:00:00Z',
+  },
+  {
+    assetId: '7',
+    name: 'Business Inventory',
+    category: 'business',
+    subCategory: 'inventory',
+    value: 45000,
+    currency: 'USD',
+    description: 'Restaurant kitchen equipment and supplies',
+    zakatEligible: true,
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
+  }
 ];
 
 export const AssetManagement: React.FC<AssetManagementProps> = ({
@@ -61,6 +110,7 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<AssetCategoryType | 'all'>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'categories'>('list');
 
   // Filter assets based on search and category
   const filteredAssets = assets.filter(asset => {
@@ -197,56 +247,95 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-3 flex-1">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search assets..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
+      {/* View Tabs and Controls */}
+      <div className="flex flex-col gap-4">
+        {/* View Mode Tabs */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center bg-neutral-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-white text-neutral-900 shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <List className="w-4 h-4" />
+              List View
+            </button>
+            <button
+              onClick={() => setViewMode('categories')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+                viewMode === 'categories'
+                  ? 'bg-white text-neutral-900 shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <PieChart className="w-4 h-4" />
+              By Category
+            </button>
           </div>
 
-          {/* Category Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
-            <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value as AssetCategoryType | 'all')}
-              className="pl-10 pr-8 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
-            >
-              <option value="all">All Categories</option>
-              {Object.values(ASSET_CATEGORIES).map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Add Asset Button */}
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Asset
+          </button>
         </div>
 
-        {/* Add Asset Button */}
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Asset
-        </button>
+        {/* Controls (only show for list view) */}
+        {viewMode === 'list' && (
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search assets..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value as AssetCategoryType | 'all')}
+                className="pl-10 pr-8 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
+              >
+                <option value="all">All Categories</option>
+                {Object.values(ASSET_CATEGORIES).map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Asset List */}
-      <AssetList
-        assets={filteredAssets}
-        onEdit={handleEditAsset}
-        onDelete={handleDeleteAsset}
-        isLoading={isLoading}
-      />
+      {/* Asset Display */}
+      {viewMode === 'list' ? (
+        <AssetList
+          assets={filteredAssets}
+          onEdit={handleEditAsset}
+          onDelete={handleDeleteAsset}
+          isLoading={isLoading}
+        />
+      ) : (
+        <AssetCategoryView
+          assets={assets}
+          onEditAsset={handleEditAsset}
+          onDeleteAsset={handleDeleteAsset}
+        />
+      )}
     </div>
   );
 };
