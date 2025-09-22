@@ -3,7 +3,8 @@ import { Asset, AssetCategoryType, ASSET_CATEGORIES } from '@zakapp/shared';
 import { AssetForm, AssetFormData } from './AssetForm';
 import { AssetList } from './AssetList';
 import { AssetCategoryView } from './AssetCategoryView';
-import { Plus, Search, Filter, List, PieChart } from 'lucide-react';
+import { AssetQuestionnaire } from './AssetQuestionnaire';
+import { Plus, Search, Filter, List, PieChart, HelpCircle } from 'lucide-react';
 import { useUserAssets } from '../../hooks';
 
 interface AssetManagementProps {
@@ -110,6 +111,7 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
   const { data: fetchedAssets } = useUserAssets();
   const [assets, setAssets] = useState<Asset[]>(propsAssets || mockAssets);
   const [showForm, setShowForm] = useState(false);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -213,6 +215,11 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
     setEditingAsset(null);
   };
 
+  const handleQuestionnaireAssetCreated = (asset: Asset) => {
+    setAssets(prev => [...prev, asset]);
+    setShowQuestionnaire(false);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -287,14 +294,23 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
             </button>
           </div>
 
-          {/* Add Asset Button */}
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Asset
-          </button>
+          {/* Add Asset Button Group */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowQuestionnaire(true)}
+              className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+            >
+              <HelpCircle className="w-4 h-4" />
+              Guided Setup
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 border border-primary-600 text-primary-600 px-4 py-2 rounded-lg hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Quick Add
+            </button>
+          </div>
         </div>
 
         {/* Controls (only show for list view) */}
@@ -347,6 +363,13 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
           onDeleteAsset={handleDeleteAsset}
         />
       )}
+
+      {/* Asset Questionnaire */}
+      <AssetQuestionnaire
+        isOpen={showQuestionnaire}
+        onClose={() => setShowQuestionnaire(false)}
+        onAssetCreated={handleQuestionnaireAssetCreated}
+      />
     </div>
   );
 };
