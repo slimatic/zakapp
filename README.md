@@ -68,7 +68,15 @@ npm run docker:dev
 git clone https://github.com/slimatic/zakapp.git
 cd zakapp
 
-# Install dependencies with proper build order
+# Start development servers (auto-setup on first run)
+npm run dev
+```
+
+> **Note**: On first run, `npm run dev` will automatically install dependencies and build the shared package. This may take a few minutes.
+
+Alternative manual setup:
+```bash
+# Manual dependency installation (optional)
 npm run install:all
 
 # Start development servers
@@ -223,11 +231,17 @@ If Docker containers fail to start:
 
 If you see "Cannot find package '@zakapp/shared'" errors:
 
-1. **Rebuild the shared package**:
+> **Note**: As of the latest update, `npm run dev` automatically handles setup. Try running `npm run dev` first - it will detect missing dependencies and set them up automatically.
+
+**Manual troubleshooting** (if automatic setup fails):
+
+1. **Force clean setup**:
    ```bash
-   cd shared
-   npm install
-   npm run build
+   # Clean all builds and dependencies
+   rm -rf shared/dist shared/node_modules backend/node_modules frontend/node_modules
+   
+   # Run complete setup
+   npm run install:all
    ```
 
 2. **Verify package linking**:
@@ -235,6 +249,12 @@ If you see "Cannot find package '@zakapp/shared'" errors:
    # Check if the shared package is properly linked
    cd frontend && npm ls @zakapp/shared
    cd backend && npm ls @zakapp/shared
+   ```
+
+3. **Check shared package build**:
+   ```bash
+   cd shared && npm run build
+   ls -la dist/  # Should contain compiled files
    ```
 
 ## 🤝 Contributing

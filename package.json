@@ -4,7 +4,8 @@
   "description": "A user-friendly, self-hosted Zakat application with modern UI",
   "main": "backend/index.js",
   "scripts": {
-    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "dev": "node scripts/check-setup.js && concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "dev:force": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd backend && npm run dev",
     "client:dev": "cd frontend && npm run dev",
     "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
