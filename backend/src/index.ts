@@ -7,6 +7,7 @@ import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { usersRouter } from './routes/users.js';
 import { dataRouter } from './routes/data.js';
+import { assetsRouter } from './routes/assets.js';
 import { API_ENDPOINTS } from '@zakapp/shared';
 
 // Load environment variables
@@ -34,6 +35,7 @@ app.use('/api/health', healthRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/data', dataRouter);
+app.use('/api/v1/assets', assetsRouter);
 
 // Basic API endpoint
 app.get('/api', (req, res) => {

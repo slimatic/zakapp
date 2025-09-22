@@ -79,27 +79,29 @@ const ActionCard: React.FC<ActionCardProps> = ({ title, description, icon, butto
   );
 };
 
-export const Dashboard: React.FC = () => {
+type AppView = 'dashboard' | 'assets' | 'calculate' | 'history';
+
+interface DashboardProps {
+  onNavigate?: (view: AppView) => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const currentYear = new Date().getFullYear();
   
   const handleCalculateZakat = () => {
-    // TODO: Navigate to calculation page
-    console.log('Navigate to Zakat calculation');
+    onNavigate?.('calculate');
   };
 
   const handleManageAssets = () => {
-    // TODO: Navigate to assets page
-    console.log('Navigate to asset management');
+    onNavigate?.('assets');
   };
 
   const handleViewHistory = () => {
-    // TODO: Navigate to history page
-    console.log('Navigate to history');
+    onNavigate?.('history');
   };
 
   const handleAddAsset = () => {
-    // TODO: Open add asset modal
-    console.log('Open add asset modal');
+    onNavigate?.('assets');
   };
 
   return (
