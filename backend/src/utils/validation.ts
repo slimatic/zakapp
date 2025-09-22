@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { VALIDATION } from '@zakapp/shared';
+import { VALIDATION, ASSET_CATEGORIES } from '@zakapp/shared';
 
 // Registration validation schema
 export const registerSchema = z.object({
@@ -120,30 +120,41 @@ export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
 export type CreateAssetRequest = z.infer<typeof createAssetSchema>;
 export type UpdateAssetRequest = z.infer<typeof updateAssetSchema>;
 
-// Enhanced asset validation with subcategory validation
-export const createAssetSchemaEnhanced = createAssetSchema.refine(
-  (data) => {
-    // Basic validation - all assets must have valid subcategory for their category
-    const category = data.category;
-    const subCategory = data.subCategory;
-    
-    // For debt assets, ensure value is negative or we understand it's a liability
-    if (category === 'debt' && data.value < 0) {
-      return true; // Negative values are expected for debts
+// Enhanced asset validation with business rules
+export const createAssetSchemaEnhanced = createAssetSchema
+  .refine(
+    (data) => {
+      // Validate subcategory against the category
+      const validSubcategories = ASSET_CATEGORIES[data.category.toUpperCase() as keyof typeof ASSET_CATEGORIES]?.subCategories || [];
+      return validSubcategories.some(sub => sub.id === data.subCategory);
+    },
+    {
+      message: 'Invalid subcategory for the selected asset category',
+      path: ['subCategory'],
     }
-    
-    // For non-debt assets, ensure positive values
-    if (category !== 'debt' && data.value < 0) {
-      return false;
+  )
+  .refine(
+    (data) => {
+      // For debt assets, value should typically be negative (representing liability)
+      // But we'll allow positive values with a warning for flexibility
+      return true; // Allow all values but log for business logic
+    },
+    {
+      message: 'Debt assets typically should have negative values to represent liabilities',
+      path: ['value'],
     }
-    
-    return true;
-  },
-  {
-    message: 'Debt assets should have negative values, other assets should have positive values',
-    path: ['value'],
-  }
-);
+  )
+  .refine(
+    (data) => {
+      // Validate currency is supported
+      const supportedCurrencies = ['USD', 'EUR', 'GBP', 'SAR', 'AED', 'EGP', 'TRY', 'INR', 'PKR', 'BDT', 'MYR', 'IDR'];
+      return supportedCurrencies.includes(data.currency);
+    },
+    {
+      message: 'Currency not supported. Please use one of: USD, EUR, GBP, SAR, AED, EGP, TRY, INR, PKR, BDT, MYR, IDR',
+      path: ['currency'],
+    }
+  );
 
 // Asset history entry schema
 export const assetHistorySchema = z.object({

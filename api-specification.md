@@ -216,7 +216,7 @@ Authorization: Bearer <jwt_token>
       {
         "assetId": "string",
         "name": "string",
-        "category": "cash|gold|silver|business|property|stocks|crypto",
+        "category": "cash|gold|silver|business|property|stocks|crypto|debt",
         "subCategory": "string",
         "value": "number",
         "currency": "string",
@@ -247,7 +247,7 @@ Authorization: Bearer <jwt_token>
 ```json
 {
   "name": "string",
-  "category": "cash|gold|silver|business|property|stocks|crypto",
+  "category": "cash|gold|silver|business|property|stocks|crypto|debt",
   "subCategory": "string",
   "value": "number",
   "currency": "string",
@@ -320,6 +320,122 @@ Get available asset categories and subcategories.
         ]
       }
     ]
+  }
+}
+```
+
+### GET /assets/:assetId
+
+Get a single asset by ID.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "asset": {
+      "assetId": "string",
+      "name": "string",
+      "category": "cash|gold|silver|business|property|stocks|crypto|debt",
+      "subCategory": "string",
+      "value": "number",
+      "currency": "string",
+      "description": "string",
+      "zakatEligible": "boolean",
+      "createdAt": "string (ISO date)",
+      "updatedAt": "string (ISO date)"
+    }
+  }
+}
+```
+
+**Response (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Asset not found"
+  }
+}
+```
+
+### GET /assets/history
+
+Get history for all user assets.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "history": [
+      {
+        "historyId": "string",
+        "assetId": "string",
+        "action": "created|updated|deleted",
+        "timestamp": "string (ISO date)",
+        "newData": "object",
+        "oldData": "object (optional)"
+      }
+    ]
+  }
+}
+```
+
+### GET /assets/:assetId/history
+
+Get history for a specific asset.
+
+**Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "history": [
+      {
+        "historyId": "string",
+        "assetId": "string",
+        "action": "created|updated|deleted",
+        "timestamp": "string (ISO date)",
+        "newData": "object",
+        "oldData": "object (optional)"
+      }
+    ]
+  }
+}
+```
+
+**Response (404):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Asset not found"
   }
 }
 ```
