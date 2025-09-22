@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
     const response = await fetch(`${baseUrl}/api/v1${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
