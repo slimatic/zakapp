@@ -27,6 +27,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const storedToken = localStorage.getItem('zakapp_token');
     const storedUser = localStorage.getItem('zakapp_user');
     
+    // Development mode - bypass auth
+    if (import.meta.env.DEV) {
+      setToken('dev-token');
+      setUser({
+        userId: 'dev-user',
+        username: 'developer',
+        email: 'dev@zakapp.com',
+        createdAt: new Date().toISOString(),
+        preferences: {
+          currency: 'USD',
+          language: 'en',
+          zakatMethod: 'standard',
+          calendarType: 'lunar',
+        },
+      });
+      setIsLoading(false);
+      return;
+    }
+    
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
