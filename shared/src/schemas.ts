@@ -141,6 +141,36 @@ export const assetCategorySchema = z.object({
   nisabApplicable: z.boolean(),
 });
 
+// Form validation schema for frontend forms
+export const assetFormSchema = z.object({
+  name: z.string().min(1, "Asset name is required").max(100, "Asset name must be 100 characters or less"),
+  category: z.enum(['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debts']),
+  subCategory: z.string().min(1, "Subcategory is required").max(50, "Subcategory must be 50 characters or less"),
+  value: z.number().min(0, "Value must be non-negative").max(999999999999, "Value exceeds maximum limit"),
+  currency: z.string().length(3, "Currency must be a 3-letter code"),
+  description: z.string().max(500, "Description must be 500 characters or less").optional(),
+  zakatEligible: z.boolean(),
+  // Optional specific fields based on category
+  interestRate: z.number().min(0, "Interest rate must be non-negative").max(100, "Interest rate cannot exceed 100%").optional(),
+  maturityDate: z.string().datetime("Invalid date format").optional(),
+  weight: z.number().min(0, "Weight must be non-negative").optional(),
+  purity: z.number().min(0, "Purity must be non-negative").max(100, "Purity cannot exceed 100%").optional(),
+  businessType: z.string().max(100, "Business type must be 100 characters or less").optional(),
+  holdingPeriod: z.number().min(0, "Holding period must be non-negative").optional(),
+  propertyType: z.string().max(100, "Property type must be 100 characters or less").optional(),
+  location: z.string().max(200, "Location must be 200 characters or less").optional(),
+  rentalIncome: z.number().min(0, "Rental income must be non-negative").optional(),
+  ticker: z.string().max(20, "Ticker must be 20 characters or less").optional(),
+  shares: z.number().min(0, "Shares must be non-negative").optional(),
+  dividendYield: z.number().min(0, "Dividend yield must be non-negative").max(100, "Dividend yield cannot exceed 100%").optional(),
+  coinSymbol: z.string().max(20, "Coin symbol must be 20 characters or less").optional(),
+  quantity: z.number().min(0, "Quantity must be non-negative").optional(),
+  stakingRewards: z.number().min(0, "Staking rewards must be non-negative").optional(),
+  debtor: z.string().max(100, "Debtor name must be 100 characters or less").optional(),
+  dueDate: z.string().datetime("Invalid date format").optional(),
+  repaymentSchedule: z.enum(['lump_sum', 'installments', 'on_demand']).optional(),
+});
+
 // Request/response schemas for API operations
 export const createAssetRequestSchema = genericAssetSchema;
 export const updateAssetRequestSchema = genericAssetSchema.partial().omit({ 
@@ -158,6 +188,7 @@ export type CryptoAssetZod = z.infer<typeof cryptoAssetSchema>;
 export type DebtsAssetZod = z.infer<typeof debtsAssetSchema>;
 export type AssetUnion = z.infer<typeof assetSchema>;
 export type GenericAsset = z.infer<typeof genericAssetSchema>;
+export type AssetFormData = z.infer<typeof assetFormSchema>;
 export type CreateAssetRequest = z.infer<typeof createAssetRequestSchema>;
 export type UpdateAssetRequest = z.infer<typeof updateAssetRequestSchema>;
 export type AssetCategoryData = z.infer<typeof assetCategorySchema>;
