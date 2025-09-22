@@ -307,7 +307,7 @@ class AssetService {
   /**
    * Get available subcategories for a specific category
    */
-  getSubcategoriesForCategory(category: string): readonly {id: string, name: string, zakatRate: number}[] {
+  getSubcategoriesForCategory(category: string) {
     const categoryKey = category.toUpperCase() as keyof typeof ASSET_CATEGORIES;
     const categoryData = ASSET_CATEGORIES[categoryKey];
     return categoryData?.subCategories || [];

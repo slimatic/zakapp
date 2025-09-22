@@ -76,7 +76,7 @@ export const createAssetSchema = z.object({
     .string()
     .min(VALIDATION.ASSET_NAME.MIN_LENGTH, 'Asset name is required')
     .max(VALIDATION.ASSET_NAME.MAX_LENGTH, `Asset name must not exceed ${VALIDATION.ASSET_NAME.MAX_LENGTH} characters`),
-  category: z.enum(['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debt']),
+  category: z.enum(['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debts']),
   subCategory: z
     .string()
     .min(1, 'Subcategory is required')
@@ -135,12 +135,11 @@ export const createAssetSchemaEnhanced = createAssetSchema
   )
   .refine(
     (data) => {
-      // For debt assets, value should typically be negative (representing liability)
-      // But we'll allow positive values with a warning for flexibility
-      return true; // Allow all values but log for business logic
+      // For debt assets, allow any value since they represent receivables
+      return true; // Allow all values - debts are money owed TO you, not liabilities
     },
     {
-      message: 'Debt assets typically should have negative values to represent liabilities',
+      message: 'Invalid asset value',
       path: ['value'],
     }
   )
