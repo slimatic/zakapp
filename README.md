@@ -160,6 +160,83 @@ npm run test:e2e
 - **No Database**: Encrypted JSON files eliminate database security concerns
 - **Regular Updates**: Automated security dependency updates
 
+## 🔧 Troubleshooting
+
+### npm install permission issues
+
+If you encounter `EACCES` permission errors during `npm install`:
+
+1. **For Docker development (recommended)**: Use Docker Compose to avoid permission issues:
+   ```bash
+   docker-compose up
+   ```
+
+2. **For local development**: Check Node.js and npm setup:
+   ```bash
+   # Check your Node.js and npm version
+   node --version
+   npm --version
+   
+   # Use npm ci instead of npm install for clean installs
+   npm ci
+   
+   # If using nvm, make sure permissions are correct
+   npm config get prefix
+   ```
+
+3. **Fix npm permissions** (if needed):
+   ```bash
+   # Option 1: Use npm's built-in fix
+   npx npm-check-updates -g
+   
+   # Option 2: Change npm's default directory
+   mkdir ~/.npm-global
+   npm config set prefix '~/.npm-global'
+   # Add to your ~/.bashrc or ~/.zshrc:
+   # export PATH=~/.npm-global/bin:$PATH
+   ```
+
+### Docker issues
+
+If Docker containers fail to start:
+
+1. **Ensure Docker is running**:
+   ```bash
+   docker --version
+   docker-compose --version
+   ```
+
+2. **Clean Docker state**:
+   ```bash
+   docker-compose down
+   docker system prune -f
+   docker-compose up --build
+   ```
+
+3. **Check shared package build**:
+   ```bash
+   cd shared && npm run build
+   ls -la dist/  # Should contain compiled files
+   ```
+
+### Module resolution errors
+
+If you see "Cannot find package '@zakapp/shared'" errors:
+
+1. **Rebuild the shared package**:
+   ```bash
+   cd shared
+   npm install
+   npm run build
+   ```
+
+2. **Verify package linking**:
+   ```bash
+   # Check if the shared package is properly linked
+   cd frontend && npm ls @zakapp/shared
+   cd backend && npm ls @zakapp/shared
+   ```
+
 ## 🤝 Contributing
 
 1. Fork the repository
