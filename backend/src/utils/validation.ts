@@ -70,7 +70,52 @@ export const updateProfileSchema = z.object({
   }).partial().optional(),
 });
 
+// Asset validation schemas
+export const createAssetSchema = z.object({
+  name: z
+    .string()
+    .min(VALIDATION.ASSET_NAME.MIN_LENGTH, 'Asset name is required')
+    .max(VALIDATION.ASSET_NAME.MAX_LENGTH, `Asset name must not exceed ${VALIDATION.ASSET_NAME.MAX_LENGTH} characters`),
+  category: z.enum(['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto']),
+  subCategory: z
+    .string()
+    .min(1, 'Subcategory is required')
+    .max(50, 'Subcategory must not exceed 50 characters'),
+  value: z
+    .number()
+    .min(VALIDATION.AMOUNT.MIN_VALUE, 'Value must be greater than or equal to 0')
+    .max(VALIDATION.AMOUNT.MAX_VALUE, 'Value is too large'),
+  currency: z
+    .string()
+    .length(3, 'Currency must be a 3-letter code'),
+  description: z
+    .string()
+    .max(500, 'Description must not exceed 500 characters')
+    .optional(),
+  zakatEligible: z.boolean(),
+});
+
+export const updateAssetSchema = z.object({
+  name: z
+    .string()
+    .min(VALIDATION.ASSET_NAME.MIN_LENGTH, 'Asset name is required')
+    .max(VALIDATION.ASSET_NAME.MAX_LENGTH, `Asset name must not exceed ${VALIDATION.ASSET_NAME.MAX_LENGTH} characters`)
+    .optional(),
+  value: z
+    .number()
+    .min(VALIDATION.AMOUNT.MIN_VALUE, 'Value must be greater than or equal to 0')
+    .max(VALIDATION.AMOUNT.MAX_VALUE, 'Value is too large')
+    .optional(),
+  description: z
+    .string()
+    .max(500, 'Description must not exceed 500 characters')
+    .optional(),
+  zakatEligible: z.boolean().optional(),
+});
+
 export type RegisterRequest = z.infer<typeof registerSchema>;
 export type LoginRequest = z.infer<typeof loginSchema>;
 export type ChangePasswordRequest = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
+export type CreateAssetRequest = z.infer<typeof createAssetSchema>;
+export type UpdateAssetRequest = z.infer<typeof updateAssetSchema>;
