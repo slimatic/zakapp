@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Menu, X, Calculator, Moon, Sun, LogOut, User } from 'lucide-react';
-import { useAuth } from '../auth';
 
 type AppView = 'dashboard' | 'assets' | 'calculate' | 'history';
 
@@ -9,16 +8,37 @@ interface HeaderProps {
   onToggleDarkMode?: () => void;
   currentView?: AppView;
   onNavigate?: (view: AppView) => void;
+  // Optional props for demo mode
+  user?: { username: string };
+  isAuthenticated?: boolean;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   isDarkMode = false, 
   onToggleDarkMode,
   currentView = 'dashboard',
-  onNavigate 
+  onNavigate,
+  user: propUser,
+  isAuthenticated: propIsAuthenticated,
+  onLogout: propOnLogout
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout, isAuthenticated } = useAuth();
+  
+  // Try to use auth context, fallback to props for demo mode
+  let user, isAuthenticated, logout;
+  try {
+    const { useAuth } = require('../auth');
+    const auth = useAuth();
+    user = propUser || auth.user;
+    isAuthenticated = propIsAuthenticated !== undefined ? propIsAuthenticated : auth.isAuthenticated;
+    logout = propOnLogout || auth.logout;
+  } catch {
+    // Auth context not available, use props
+    user = propUser;
+    isAuthenticated = propIsAuthenticated || false;
+    logout = propOnLogout || (() => {});
+  }
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
