@@ -159,7 +159,7 @@ class AssetService {
       return history;
     } catch (error) {
       // If file doesn't exist, return empty array
-      if ((error as any).code === 'ENOENT') {
+      if ((error as any).code === 'ENOENT' || (error as Error).message.includes('not found')) {
         return [];
       }
       throw error;
@@ -177,7 +177,14 @@ class AssetService {
     oldData?: Asset
   ): Promise<void> {
     try {
-      const historyData = await readUserFile(userId, this.ASSET_HISTORY_FILE);
+      let historyData: any;
+      try {
+        historyData = await readUserFile(userId, this.ASSET_HISTORY_FILE);
+      } catch (error) {
+        // File doesn't exist, create empty history
+        historyData = { history: [] };
+      }
+      
       const history: any[] = Array.isArray(historyData.history) ? historyData.history : [];
 
       const historyEntry = {
@@ -210,7 +217,15 @@ class AssetService {
     totalAssets: number;
     totalValue: number;
     totalZakatEligible: number;
-    assetsByCategory: Record<string, number>;
+    assetsByCategory: Record<string, {
+      count: number;
+      totalValue: number;
+      zakatEligibleValue: number;
+    }>;
+    assetsByCurrency: Record<string, {
+      count: number;
+      totalValue: number;
+    }>;
   }> {
     const assets = await this.getUserAssets(userId);
 
@@ -220,13 +235,45 @@ class AssetService {
       totalZakatEligible: assets
         .filter(asset => asset.zakatEligible)
         .reduce((sum, asset) => sum + asset.value, 0),
-      assetsByCategory: {} as Record<string, number>,
+      assetsByCategory: {} as Record<string, {
+        count: number;
+        totalValue: number;
+        zakatEligibleValue: number;
+      }>,
+      assetsByCurrency: {} as Record<string, {
+        count: number;
+        totalValue: number;
+      }>,
     };
 
-    // Group by category
+    // Group by category and currency
     assets.forEach(asset => {
       const category = asset.category;
-      statistics.assetsByCategory[category] = (statistics.assetsByCategory[category] || 0) + asset.value;
+      const currency = asset.currency;
+
+      // Category statistics
+      if (!statistics.assetsByCategory[category]) {
+        statistics.assetsByCategory[category] = {
+          count: 0,
+          totalValue: 0,
+          zakatEligibleValue: 0,
+        };
+      }
+      statistics.assetsByCategory[category].count += 1;
+      statistics.assetsByCategory[category].totalValue += asset.value;
+      if (asset.zakatEligible) {
+        statistics.assetsByCategory[category].zakatEligibleValue += asset.value;
+      }
+
+      // Currency statistics
+      if (!statistics.assetsByCurrency[currency]) {
+        statistics.assetsByCurrency[currency] = {
+          count: 0,
+          totalValue: 0,
+        };
+      }
+      statistics.assetsByCurrency[currency].count += 1;
+      statistics.assetsByCurrency[currency].totalValue += asset.value;
     });
 
     return statistics;

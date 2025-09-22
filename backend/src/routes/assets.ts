@@ -221,6 +221,155 @@ router.get('/categories', async (req, res) => {
 });
 
 /**
+ * GET /assets/history
+ * Get history for all user assets
+ */
+router.get('/history', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.UNAUTHORIZED,
+          message: 'User authentication required',
+        },
+      });
+    }
+
+    const history = await assetService.getAssetHistory(userId);
+
+    res.json({
+      success: true,
+      data: { history },
+    });
+  } catch (error) {
+    console.error('Get asset history error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to retrieve asset history',
+      },
+    });
+  }
+});
+
+/**
+ * GET /assets/statistics
+ * Get comprehensive asset statistics
+ */
+router.get('/statistics', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.UNAUTHORIZED,
+          message: 'User authentication required',
+        },
+      });
+    }
+
+    const statistics = await assetService.getAssetStatistics(userId);
+
+    res.json({
+      success: true,
+      data: { statistics },
+    });
+  } catch (error) {
+    console.error('Get asset statistics error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to retrieve asset statistics',
+      },
+    });
+  }
+});
+
+/**
+ * GET /assets/grouped
+ * Get assets grouped by category
+ */
+router.get('/grouped', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.UNAUTHORIZED,
+          message: 'User authentication required',
+        },
+      });
+    }
+
+    const assets = await assetService.getUserAssets(userId);
+    const groupedAssets: Record<string, any[]> = {};
+
+    // Group assets by category
+    assets.forEach(asset => {
+      if (!groupedAssets[asset.category]) {
+        groupedAssets[asset.category] = [];
+      }
+      groupedAssets[asset.category].push(asset);
+    });
+
+    res.json({
+      success: true,
+      data: { groupedAssets },
+    });
+  } catch (error) {
+    console.error('Get grouped assets error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to retrieve grouped assets',
+      },
+    });
+  }
+});
+
+/**
+ * GET /assets/categories/:category/subcategories
+ * Get subcategories for a specific asset category
+ */
+router.get('/categories/:category/subcategories', async (req, res) => {
+  try {
+    const { category } = req.params;
+    const categoryData = Object.values(ASSET_CATEGORIES).find(cat => cat.id === category);
+
+    if (!categoryData) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.NOT_FOUND,
+          message: 'Category not found',
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { subcategories: categoryData.subCategories },
+    });
+  } catch (error) {
+    console.error('Get subcategories error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to retrieve subcategories',
+      },
+    });
+  }
+});
+
+/**
  * GET /assets/:assetId
  * Get a single asset by ID
  */
@@ -262,6 +411,55 @@ router.get('/:assetId', authenticateToken, async (req: AuthenticatedRequest, res
       error: {
         code: ERROR_CODES.INTERNAL_ERROR,
         message: 'Failed to retrieve asset',
+      },
+    });
+  }
+});
+
+/**
+ * GET /assets/:assetId/history
+ * Get history for a specific asset
+ */
+router.get('/:assetId/history', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { assetId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.UNAUTHORIZED,
+          message: 'User authentication required',
+        },
+      });
+    }
+
+    // First check if asset exists
+    const asset = await assetService.getAssetById(userId, assetId);
+    if (!asset) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.NOT_FOUND,
+          message: 'Asset not found',
+        },
+      });
+    }
+
+    const history = await assetService.getAssetHistory(userId, assetId);
+
+    res.json({
+      success: true,
+      data: { history },
+    });
+  } catch (error) {
+    console.error('Get asset history error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to retrieve asset history',
       },
     });
   }
