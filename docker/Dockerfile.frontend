@@ -3,14 +3,27 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy shared package files first
+COPY shared/package*.json ./shared/
 
-# Install dependencies
-RUN npm ci
+# Install shared dependencies 
+RUN cd shared && npm ci
 
-# Copy source code
-COPY . .
+# Copy shared source and build
+COPY shared/ ./shared/
+RUN cd shared && npm run build
+
+# Copy frontend package files
+COPY frontend/package*.json ./frontend/
+
+# Install frontend dependencies
+RUN cd frontend && npm ci
+
+# Copy frontend source code
+COPY frontend/ ./frontend/
+
+# Set working directory to frontend
+WORKDIR /app/frontend
 
 # Expose port
 EXPOSE 3000
