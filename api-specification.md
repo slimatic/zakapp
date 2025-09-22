@@ -224,7 +224,7 @@ Authorization: Bearer <jwt_token>
       {
         "assetId": "string",
         "name": "string",
-        "category": "cash|gold|silver|business|property|stocks|crypto|debt",
+        "category": "cash|gold|silver|business|property|stocks|crypto|debts",
         "subCategory": "string",
         "value": "number",
         "currency": "string",
@@ -255,7 +255,7 @@ Authorization: Bearer <jwt_token>
 ```json
 {
   "name": "string",
-  "category": "cash|gold|silver|business|property|stocks|crypto|debt",
+  "category": "cash|gold|silver|business|property|stocks|crypto|debts",
   "subCategory": "string",
   "value": "number",
   "currency": "string",
@@ -351,7 +351,7 @@ Authorization: Bearer <jwt_token>
     "asset": {
       "assetId": "string",
       "name": "string",
-      "category": "cash|gold|silver|business|property|stocks|crypto|debt",
+      "category": "cash|gold|silver|business|property|stocks|crypto|debts",
       "subCategory": "string",
       "value": "number",
       "currency": "string",
