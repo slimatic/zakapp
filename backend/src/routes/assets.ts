@@ -8,7 +8,7 @@ import {
   CreateAssetRequest,
   UpdateAssetRequest,
 } from '../utils/validation.js';
-import { ERROR_CODES, ASSET_CATEGORIES } from '@zakapp/shared';
+import { ERROR_CODES, ASSET_CATEGORIES, AssetCategoryType } from '@zakapp/shared';
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
 
     const { category, year } = req.query;
     const assets = await assetService.getUserAssets(userId, {
-      category: category as string,
+      category: category as AssetCategoryType,
       year: year as string,
     });
 
@@ -201,7 +201,7 @@ router.get('/categories', async (req, res) => {
   try {
     const categories = Object.values(ASSET_CATEGORIES).map(category => ({
       ...category,
-      subCategories: [], // TODO: Implement subcategories
+      subCategories: category.subCategories, // Include the actual subcategories
     }));
 
     res.json({
