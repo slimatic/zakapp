@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './styles/App.css';
-import { Header, Dashboard, AssetManagement, AssetHistory } from './components/ui';
+import { Header, Dashboard, AssetManagementContainer, AssetHistory } from './components/ui';
 import { AuthProvider, useAuth, AuthForms } from './components/auth';
 
 type AppView = 'dashboard' | 'assets' | 'calculate' | 'history';
@@ -35,7 +35,7 @@ function AppContent() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'assets':
-        return <AssetManagement />;
+        return <AssetManagementContainer />;
       case 'history':
         return <AssetHistory onNavigate={setCurrentView} />;
       case 'dashboard':

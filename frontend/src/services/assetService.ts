@@ -72,6 +72,17 @@ const apiRequest = async <T>(endpoint: string, options: {
   return data.data as T;
 };
 
+// Asset form data interface
+export interface AssetFormData {
+  name: string;
+  category: AssetCategoryType;
+  subCategory: string;
+  value: number;
+  currency: string;
+  description?: string;
+  zakatEligible: boolean;
+}
+
 export const assetService = {
   // Get all user assets
   async getUserAssets(): Promise<Asset[]> {
@@ -95,5 +106,39 @@ export const assetService = {
   async getAssetsByCategory(category: AssetCategoryType): Promise<Asset[]> {
     const response = await apiRequest<{ assets: Asset[] }>(`/api/v1/assets?category=${category}`);
     return response.assets;
+  },
+
+  // Create a new asset
+  async createAsset(assetData: AssetFormData): Promise<Asset> {
+    const response = await apiRequest<{ asset: Asset }>('/api/v1/assets', {
+      method: 'POST',
+      body: JSON.stringify(assetData),
+    });
+    return response.asset;
+  },
+
+  // Update an existing asset
+  async updateAsset(assetId: string, assetData: AssetFormData): Promise<Asset> {
+    const response = await apiRequest<{ asset: Asset }>(`/api/v1/assets/${assetId}`, {
+      method: 'PUT',
+      body: JSON.stringify(assetData),
+    });
+    return response.asset;
+  },
+
+  // Delete an asset
+  async deleteAsset(assetId: string): Promise<void> {
+    await apiRequest<void>(`/api/v1/assets/${assetId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Get asset history
+  async getAssetHistory(assetId?: string): Promise<any[]> {
+    const endpoint = assetId 
+      ? `/api/v1/assets/history?assetId=${assetId}`
+      : '/api/v1/assets/history';
+    const response = await apiRequest<{ history: any[] }>(endpoint);
+    return response.history;
   },
 };
