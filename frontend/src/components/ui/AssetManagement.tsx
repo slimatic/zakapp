@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Asset, AssetCategoryType, ASSET_CATEGORIES } from '@zakapp/shared';
 import { AssetForm, AssetFormData } from './AssetForm';
 import { AssetList } from './AssetList';
 import { AssetCategoryView } from './AssetCategoryView';
 import { Plus, Search, Filter, List, PieChart } from 'lucide-react';
+import { useUserAssets } from '../../hooks';
 
 interface AssetManagementProps {
   // These would be connected to your API/state management
+  assets?: Asset[]; // Optional - if not provided, will fetch from API
   onCreateAsset?: (assetData: AssetFormData) => Promise<void>;
   onUpdateAsset?: (assetId: string, assetData: AssetFormData) => Promise<void>;
   onDeleteAsset?: (assetId: string) => Promise<void>;
@@ -100,17 +102,26 @@ const mockAssets: Asset[] = [
 ];
 
 export const AssetManagement: React.FC<AssetManagementProps> = ({
+  assets: propsAssets,
   onCreateAsset,
   onUpdateAsset,
   onDeleteAsset,
 }) => {
-  const [assets, setAssets] = useState<Asset[]>(mockAssets);
+  const { data: fetchedAssets } = useUserAssets();
+  const [assets, setAssets] = useState<Asset[]>(propsAssets || mockAssets);
   const [showForm, setShowForm] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<AssetCategoryType | 'all'>('all');
   const [viewMode, setViewMode] = useState<'list' | 'categories'>('list');
+
+  // Use fetched assets if no props assets provided
+  useEffect(() => {
+    if (!propsAssets && fetchedAssets) {
+      setAssets(fetchedAssets);
+    }
+  }, [fetchedAssets, propsAssets]);
 
   // Filter assets based on search and category
   const filteredAssets = assets.filter(asset => {
