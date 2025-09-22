@@ -36,6 +36,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('zakapp_token');
         localStorage.removeItem('zakapp_user');
       }
+    } else {
+      // TEMPORARY: Mock authentication for demo
+      const mockUser: User = {
+        userId: 'demo-user',
+        username: 'demo',
+        email: 'demo@example.com',
+        createdAt: new Date().toISOString(),
+        preferences: {
+          currency: 'USD',
+          language: 'en',
+          zakatMethod: 'standard',
+          calendarType: 'lunar'
+        }
+      };
+      setUser(mockUser);
+      setToken('demo-token');
+      localStorage.setItem('zakapp_token', 'demo-token');
+      localStorage.setItem('zakapp_user', JSON.stringify(mockUser));
     }
     
     setIsLoading(false);
