@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { VALIDATION, ASSET_CATEGORIES } from '@zakapp/shared';
+import { VALIDATION, createAssetRequestSchema, updateAssetRequestSchema } from '@zakapp/shared';
 
 // Registration validation schema
 export const registerSchema = z.object({
@@ -70,48 +70,9 @@ export const updateProfileSchema = z.object({
   }).partial().optional(),
 });
 
-// Asset validation schemas
-export const createAssetSchema = z.object({
-  name: z
-    .string()
-    .min(VALIDATION.ASSET_NAME.MIN_LENGTH, 'Asset name is required')
-    .max(VALIDATION.ASSET_NAME.MAX_LENGTH, `Asset name must not exceed ${VALIDATION.ASSET_NAME.MAX_LENGTH} characters`),
-  category: z.enum(['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debts']),
-  subCategory: z
-    .string()
-    .min(1, 'Subcategory is required')
-    .max(50, 'Subcategory must not exceed 50 characters'),
-  value: z
-    .number()
-    .min(VALIDATION.AMOUNT.MIN_VALUE, 'Value must be greater than or equal to 0')
-    .max(VALIDATION.AMOUNT.MAX_VALUE, 'Value is too large'),
-  currency: z
-    .string()
-    .length(3, 'Currency must be a 3-letter code'),
-  description: z
-    .string()
-    .max(500, 'Description must not exceed 500 characters')
-    .optional(),
-  zakatEligible: z.boolean(),
-});
-
-export const updateAssetSchema = z.object({
-  name: z
-    .string()
-    .min(VALIDATION.ASSET_NAME.MIN_LENGTH, 'Asset name is required')
-    .max(VALIDATION.ASSET_NAME.MAX_LENGTH, `Asset name must not exceed ${VALIDATION.ASSET_NAME.MAX_LENGTH} characters`)
-    .optional(),
-  value: z
-    .number()
-    .min(VALIDATION.AMOUNT.MIN_VALUE, 'Value must be greater than or equal to 0')
-    .max(VALIDATION.AMOUNT.MAX_VALUE, 'Value is too large')
-    .optional(),
-  description: z
-    .string()
-    .max(500, 'Description must not exceed 500 characters')
-    .optional(),
-  zakatEligible: z.boolean().optional(),
-});
+// Asset validation schemas - now using shared schemas
+export const createAssetSchema = createAssetRequestSchema;
+export const updateAssetSchema = updateAssetRequestSchema;
 
 export type RegisterRequest = z.infer<typeof registerSchema>;
 export type LoginRequest = z.infer<typeof loginSchema>;
@@ -119,48 +80,3 @@ export type ChangePasswordRequest = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
 export type CreateAssetRequest = z.infer<typeof createAssetSchema>;
 export type UpdateAssetRequest = z.infer<typeof updateAssetSchema>;
-
-// Enhanced asset validation with business rules
-export const createAssetSchemaEnhanced = createAssetSchema
-  .refine(
-    (data) => {
-      // Validate subcategory against the category
-      const validSubcategories = ASSET_CATEGORIES[data.category.toUpperCase() as keyof typeof ASSET_CATEGORIES]?.subCategories || [];
-      return validSubcategories.some(sub => sub.id === data.subCategory);
-    },
-    {
-      message: 'Invalid subcategory for the selected asset category',
-      path: ['subCategory'],
-    }
-  )
-  .refine(
-    (data) => {
-      // For debt assets, allow any value since they represent receivables
-      return true; // Allow all values - debts are money owed TO you, not liabilities
-    },
-    {
-      message: 'Invalid asset value',
-      path: ['value'],
-    }
-  )
-  .refine(
-    (data) => {
-      // Validate currency is supported
-      const supportedCurrencies = ['USD', 'EUR', 'GBP', 'SAR', 'AED', 'EGP', 'TRY', 'INR', 'PKR', 'BDT', 'MYR', 'IDR'];
-      return supportedCurrencies.includes(data.currency);
-    },
-    {
-      message: 'Currency not supported. Please use one of: USD, EUR, GBP, SAR, AED, EGP, TRY, INR, PKR, BDT, MYR, IDR',
-      path: ['currency'],
-    }
-  );
-
-// Asset history entry schema
-export const assetHistorySchema = z.object({
-  historyId: z.string(),
-  assetId: z.string(),
-  action: z.enum(['created', 'updated', 'deleted']),
-  timestamp: z.string(),
-  newData: z.any(), // Asset object
-  oldData: z.any().optional(), // Previous asset object for updates
-});

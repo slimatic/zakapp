@@ -1,28 +1,11 @@
-import { Asset, AssetCategoryType, ASSET_CATEGORIES } from '@zakapp/shared';
+import { Asset, AssetCategoryType } from '@zakapp/shared';
 import {
   readUserFile,
   writeUserFile,
   generateUserId,
 } from '../utils/fileSystem.js';
 import { CreateAssetRequest, UpdateAssetRequest } from '../utils/validation.js';
-
-// Asset storage interface
-interface StoredAsset extends Asset {
-  userId: string;
-}
-
-interface AssetFilters {
-  category?: string;
-  subCategory?: string;
-  year?: string;
-  zakatEligible?: boolean;
-  currency?: string;
-  search?: string; // Search in asset names and descriptions
-  minValue?: number;
-  maxValue?: number;
-  dateFrom?: string; // ISO date string
-  dateTo?: string; // ISO date string
-}
+import { StoredAsset, AssetFilters, AssetHistory, AssetSummary } from '../models/index.js';
 
 class AssetService {
   private readonly ASSETS_FILE = 'assets.json';
@@ -41,10 +24,6 @@ class AssetService {
         assets = assets.filter(asset => asset.category === filters.category);
       }
 
-      if (filters.subCategory) {
-        assets = assets.filter(asset => asset.subCategory === filters.subCategory);
-      }
-
       if (filters.year) {
         const year = parseInt(filters.year);
         assets = assets.filter(asset => {
@@ -53,44 +32,10 @@ class AssetService {
         });
       }
 
-      if (filters.zakatEligible !== undefined) {
-        assets = assets.filter(asset => asset.zakatEligible === filters.zakatEligible);
-      }
-
-      if (filters.currency) {
-        assets = assets.filter(asset => asset.currency === filters.currency);
-      }
-
-      if (filters.search) {
-        const searchTerm = filters.search.toLowerCase();
-        assets = assets.filter(asset => 
-          asset.name.toLowerCase().includes(searchTerm) ||
-          (asset.description && asset.description.toLowerCase().includes(searchTerm))
-        );
-      }
-
-      if (filters.minValue !== undefined) {
-        assets = assets.filter(asset => asset.value >= filters.minValue!);
-      }
-
-      if (filters.maxValue !== undefined) {
-        assets = assets.filter(asset => asset.value <= filters.maxValue!);
-      }
-
-      if (filters.dateFrom) {
-        const fromDate = new Date(filters.dateFrom);
-        assets = assets.filter(asset => new Date(asset.createdAt) >= fromDate);
-      }
-
-      if (filters.dateTo) {
-        const toDate = new Date(filters.dateTo);
-        assets = assets.filter(asset => new Date(asset.createdAt) <= toDate);
-      }
-
       return assets;
     } catch (error) {
       // If file doesn't exist, return empty array
-      if ((error as any).code === 'ENOENT') {
+      if ((error as any).code === 'ENOENT' || (error as Error).message.includes('not found')) {
         return [];
       }
       throw error;
@@ -285,80 +230,6 @@ class AssetService {
     });
 
     return statistics;
-  }
-
-  /**
-   * Get assets grouped by category
-   */
-  async getAssetsGroupedByCategory(userId: string): Promise<Record<string, Asset[]>> {
-    const assets = await this.getUserAssets(userId);
-    const grouped: Record<string, Asset[]> = {};
-    
-    assets.forEach(asset => {
-      if (!grouped[asset.category]) {
-        grouped[asset.category] = [];
-      }
-      grouped[asset.category].push(asset);
-    });
-    
-    return grouped;
-  }
-
-  /**
-   * Get available subcategories for a specific category
-   */
-  getSubcategoriesForCategory(category: string) {
-    const categoryKey = category.toUpperCase() as keyof typeof ASSET_CATEGORIES;
-    const categoryData = ASSET_CATEGORIES[categoryKey];
-    return categoryData?.subCategories || [];
-  }
-
-  /**
-   * Get enhanced asset statistics with category breakdown
-   */
-  async getEnhancedAssetStatistics(userId: string): Promise<{
-    totalAssets: number;
-    totalValue: number;
-    totalZakatEligible: number;
-    assetsByCategory: Record<string, {count: number, totalValue: number, zakatEligibleValue: number}>;
-    assetsByCurrency: Record<string, {count: number, totalValue: number}>;
-  }> {
-    const assets = await this.getUserAssets(userId);
-    
-    const stats = {
-      totalAssets: assets.length,
-      totalValue: assets.reduce((sum, asset) => sum + asset.value, 0),
-      totalZakatEligible: assets
-        .filter(asset => asset.zakatEligible)
-        .reduce((sum, asset) => sum + asset.value, 0),
-      assetsByCategory: {} as Record<string, {count: number, totalValue: number, zakatEligibleValue: number}>,
-      assetsByCurrency: {} as Record<string, {count: number, totalValue: number}>,
-    };
-
-    // Group by category
-    assets.forEach(asset => {
-      const category = asset.category;
-      if (!stats.assetsByCategory[category]) {
-        stats.assetsByCategory[category] = { count: 0, totalValue: 0, zakatEligibleValue: 0 };
-      }
-      stats.assetsByCategory[category].count++;
-      stats.assetsByCategory[category].totalValue += asset.value;
-      if (asset.zakatEligible) {
-        stats.assetsByCategory[category].zakatEligibleValue += asset.value;
-      }
-    });
-
-    // Group by currency  
-    assets.forEach(asset => {
-      const currency = asset.currency;
-      if (!stats.assetsByCurrency[currency]) {
-        stats.assetsByCurrency[currency] = { count: 0, totalValue: 0 };
-      }
-      stats.assetsByCurrency[currency].count++;
-      stats.assetsByCurrency[currency].totalValue += asset.value;
-    });
-
-    return stats;
   }
 }
 
