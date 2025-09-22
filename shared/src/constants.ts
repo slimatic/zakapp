@@ -29,7 +29,7 @@ export const CURRENCIES = [
   { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp' },
 ] as const;
 
-// Asset categories with their details
+// Asset categories with their details and subcategories
 export const ASSET_CATEGORIES = {
   CASH: {
     id: 'cash',
@@ -37,6 +37,12 @@ export const ASSET_CATEGORIES = {
     description: 'Liquid cash, savings, and checking accounts',
     zakatRate: ZAKAT_RATES.STANDARD_RATE,
     zakatEligible: true,
+    subCategories: [
+      { id: 'savings', name: 'Savings Account', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'checking', name: 'Checking Account', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'cash_hand', name: 'Cash on Hand', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'money_market', name: 'Money Market Account', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+    ],
   },
   GOLD: {
     id: 'gold',
@@ -44,6 +50,11 @@ export const ASSET_CATEGORIES = {
     description: 'Gold jewelry, coins, and bars',
     zakatRate: ZAKAT_RATES.STANDARD_RATE,
     zakatEligible: true,
+    subCategories: [
+      { id: 'jewelry', name: 'Gold Jewelry', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'coins', name: 'Gold Coins', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'bars', name: 'Gold Bars/Bullion', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+    ],
   },
   SILVER: {
     id: 'silver',
@@ -51,6 +62,11 @@ export const ASSET_CATEGORIES = {
     description: 'Silver jewelry, coins, and bars',
     zakatRate: ZAKAT_RATES.STANDARD_RATE,
     zakatEligible: true,
+    subCategories: [
+      { id: 'jewelry', name: 'Silver Jewelry', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'coins', name: 'Silver Coins', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'bars', name: 'Silver Bars/Bullion', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+    ],
   },
   BUSINESS: {
     id: 'business',
@@ -58,6 +74,12 @@ export const ASSET_CATEGORIES = {
     description: 'Business inventory, trade goods, and commercial assets',
     zakatRate: ZAKAT_RATES.STANDARD_RATE,
     zakatEligible: true,
+    subCategories: [
+      { id: 'inventory', name: 'Business Inventory', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'trade_goods', name: 'Trade Goods', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'accounts_receivable', name: 'Accounts Receivable', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'business_cash', name: 'Business Cash', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+    ],
   },
   PROPERTY: {
     id: 'property',
@@ -65,6 +87,11 @@ export const ASSET_CATEGORIES = {
     description: 'Real estate held for investment purposes',
     zakatRate: ZAKAT_RATES.STANDARD_RATE,
     zakatEligible: true,
+    subCategories: [
+      { id: 'rental', name: 'Rental Property', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'commercial', name: 'Commercial Property', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'land', name: 'Investment Land', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+    ],
   },
   STOCKS: {
     id: 'stocks',
@@ -72,6 +99,12 @@ export const ASSET_CATEGORIES = {
     description: 'Shares, bonds, and other securities',
     zakatRate: ZAKAT_RATES.STANDARD_RATE,
     zakatEligible: true,
+    subCategories: [
+      { id: 'stocks', name: 'Individual Stocks', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'mutual_funds', name: 'Mutual Funds', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'bonds', name: 'Bonds', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'etf', name: 'ETFs', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+    ],
   },
   CRYPTO: {
     id: 'crypto',
@@ -79,6 +112,25 @@ export const ASSET_CATEGORIES = {
     description: 'Digital currencies and crypto assets',
     zakatRate: ZAKAT_RATES.STANDARD_RATE,
     zakatEligible: true,
+    subCategories: [
+      { id: 'bitcoin', name: 'Bitcoin', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'ethereum', name: 'Ethereum', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'altcoins', name: 'Other Cryptocurrencies', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+      { id: 'stablecoins', name: 'Stablecoins', zakatRate: ZAKAT_RATES.STANDARD_RATE },
+    ],
+  },
+  DEBT: {
+    id: 'debt',
+    name: 'Debts & Liabilities',
+    description: 'Outstanding debts and liabilities that reduce zakat obligation',
+    zakatRate: 0, // Debts reduce zakat obligation rather than incur it
+    zakatEligible: false,
+    subCategories: [
+      { id: 'personal_loans', name: 'Personal Loans', zakatRate: 0 },
+      { id: 'credit_cards', name: 'Credit Card Debt', zakatRate: 0 },
+      { id: 'mortgages', name: 'Mortgage Debt', zakatRate: 0 },
+      { id: 'business_loans', name: 'Business Loans', zakatRate: 0 },
+    ],
   },
 } as const;
 

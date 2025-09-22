@@ -9,9 +9,6 @@ module.exports = {
       useESM: true,
     }],
   },
-  moduleNameMapping: {
-    '^(\\.{1,2}/.*)\\.js$': '$1.ts',
-  },
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/__tests__/**',
