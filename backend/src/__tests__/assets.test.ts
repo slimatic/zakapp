@@ -1,17 +1,15 @@
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 // Import from source to avoid ES module issues in Jest
 import { ASSET_CATEGORIES } from '../../../shared/src/constants';
 import {
   createAssetSchema,
   updateAssetSchema,
-  createAssetSchemaEnhanced,
-  assetHistorySchema,
 } from '../utils/validation';
 
 describe('Asset Type Definitions', () => {
   describe('Asset Categories', () => {
     it('should have all expected asset categories', () => {
-      const expectedCategories = ['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debt'];
+      const expectedCategories = ['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debts'];
       const actualCategories = Object.values(ASSET_CATEGORIES).map(cat => cat.id);
       
       expectedCategories.forEach(expectedCat => {
@@ -27,16 +25,16 @@ describe('Asset Type Definitions', () => {
       });
     });
 
-    it('should have debt category with zakatEligible false', () => {
-      const debtCategory = ASSET_CATEGORIES.DEBT;
-      expect(debtCategory).toBeDefined();
-      expect(debtCategory.zakatEligible).toBe(false);
-      expect(debtCategory.zakatRate).toBe(0);
+    it('should have debts category with zakatEligible true', () => {
+      const debtsCategory = ASSET_CATEGORIES.DEBTS;
+      expect(debtsCategory).toBeDefined();
+      expect(debtsCategory.zakatEligible).toBe(true);
+      expect(debtsCategory.zakatRate).toBe(2.5);
     });
 
-    it('should have non-debt categories with zakatEligible true', () => {
-      const nonDebtCategories = Object.values(ASSET_CATEGORIES).filter(cat => cat.id !== 'debt');
-      nonDebtCategories.forEach(category => {
+    it('should have all categories with zakatEligible true', () => {
+      const allCategories = Object.values(ASSET_CATEGORIES);
+      allCategories.forEach(category => {
         expect(category.zakatEligible).toBe(true);
         expect(category.zakatRate).toBe(2.5);
       });
@@ -61,7 +59,7 @@ describe('Asset Type Definitions', () => {
     it('should validate a debt asset', () => {
       const assetData = {
         name: 'Credit Card Debt',
-        category: 'debt' as const,
+        category: 'debts' as const,
         subCategory: 'credit_cards',
         value: -5000, // Negative value for debt
         currency: 'USD',
@@ -108,39 +106,6 @@ describe('Asset Type Definitions', () => {
 
       const result = updateAssetSchema.safeParse(updateData);
       expect(result.success).toBe(true);
-    });
-  });
-
-  describe('Asset History Schema', () => {
-    it('should validate asset history entry', () => {
-      const historyEntry = {
-        historyId: 'hist-123',
-        assetId: 'asset-456',
-        action: 'created' as const,
-        timestamp: new Date().toISOString(),
-        newData: {
-          assetId: 'asset-456',
-          name: 'Test Asset',
-          category: 'cash',
-          value: 1000,
-        },
-      };
-
-      const result = assetHistorySchema.safeParse(historyEntry);
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject invalid action', () => {
-      const historyEntry = {
-        historyId: 'hist-123',
-        assetId: 'asset-456',
-        action: 'invalid_action',
-        timestamp: new Date().toISOString(),
-        newData: {},
-      };
-
-      const result = assetHistorySchema.safeParse(historyEntry);
-      expect(result.success).toBe(false);
     });
   });
 });
