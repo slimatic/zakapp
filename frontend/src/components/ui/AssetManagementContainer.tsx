@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AssetManagement } from './AssetManagement';
 import { AssetFormData } from '@zakapp/shared';
 import { assetService } from '../../services/assetService';
 import { Asset } from '@zakapp/shared';
-import { mockAssets } from '../../data/mockData';
 
 /**
  * Container component that connects AssetManagement to the actual API service
  * This provides the actual CRUD operations instead of mock implementations
  */
 export const AssetManagementContainer: React.FC = () => {
-  const [assets, setAssets] = useState<Asset[]>(mockAssets);
+  const [assets, setAssets] = useState<Asset[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load assets from API on component mount
+  useEffect(() => {
+    const loadAssets = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const fetchedAssets = await assetService.getUserAssets();
+        setAssets(fetchedAssets);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to load assets';
+        setError(errorMessage);
+        // Keep empty array if loading fails
+        setAssets([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAssets();
+  }, []);
 
   // Create asset handler
   const handleCreateAsset = async (assetData: AssetFormData): Promise<void> => {
@@ -23,15 +45,7 @@ export const AssetManagementContainer: React.FC = () => {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to create asset';
       setError(errorMessage);
-
-      // For testing purposes, create a mock asset when API fails
-      const mockAsset: Asset = {
-        assetId: Date.now().toString(),
-        ...assetData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setAssets(prevAssets => [...prevAssets, mockAsset]);
+      throw err; // Re-throw to let the form handle the error
     }
   };
 
@@ -52,15 +66,7 @@ export const AssetManagementContainer: React.FC = () => {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to update asset';
       setError(errorMessage);
-
-      // For testing purposes, update the mock asset when API fails
-      setAssets(prevAssets =>
-        prevAssets.map(asset =>
-          asset.assetId === assetId
-            ? { ...asset, ...assetData, updatedAt: new Date().toISOString() }
-            : asset
-        )
-      );
+      throw err; // Re-throw to let the form handle the error
     }
   };
 
@@ -76,11 +82,7 @@ export const AssetManagementContainer: React.FC = () => {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to delete asset';
       setError(errorMessage);
-
-      // For testing purposes, delete the mock asset when API fails
-      setAssets(prevAssets =>
-        prevAssets.filter(asset => asset.assetId !== assetId)
-      );
+      throw err; // Re-throw to let the UI handle the error
     }
   };
 
@@ -124,12 +126,21 @@ export const AssetManagementContainer: React.FC = () => {
           </div>
         </div>
       )}
-      <AssetManagement
-        assets={assets}
-        onCreateAsset={handleCreateAsset}
-        onUpdateAsset={handleUpdateAsset}
-        onDeleteAsset={handleDeleteAsset}
-      />
+      {loading ? (
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-600">Loading assets...</p>
+          </div>
+        </div>
+      ) : (
+        <AssetManagement
+          assets={assets}
+          onCreateAsset={handleCreateAsset}
+          onUpdateAsset={handleUpdateAsset}
+          onDeleteAsset={handleDeleteAsset}
+        />
+      )}
     </>
   );
 };
