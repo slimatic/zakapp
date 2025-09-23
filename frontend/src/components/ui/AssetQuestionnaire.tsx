@@ -10,7 +10,7 @@ import { Asset } from '@zakapp/shared';
 interface AssetQuestionnaireProps {
   isOpen: boolean;
   onClose: () => void;
-  onAssetCreated?: (asset: Asset) => void;
+  onAssetCreated?: (asset: Asset) => Promise<void>;
 }
 
 export const AssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
@@ -61,13 +61,18 @@ export const AssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
     setHelpContext({});
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     // Use the real validation with error handling when completing
     if (validateCurrentStep()) {
       const asset = completeQuestionnaire();
       if (asset && onAssetCreated) {
-        onAssetCreated(asset);
-        handleClose();
+        try {
+          await onAssetCreated(asset);
+          handleClose();
+        } catch (error) {
+          console.error('Error creating asset from questionnaire:', error);
+          // Don't close on error to allow retry
+        }
       }
     }
   };
