@@ -19,7 +19,7 @@ RUN cd shared && npm run build
 # Copy frontend package files
 COPY frontend/package*.json ./frontend/
 
-# Install frontend dependencies
+# Install frontend dependencies (this will link to ../shared)
 RUN cd frontend && npm ci
 
 # Copy frontend source code
