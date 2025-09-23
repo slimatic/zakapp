@@ -204,7 +204,7 @@ Authorization: Bearer <jwt_token>
 **Query Parameters:**
 
 - `category` (optional): Filter by asset category
-- `subCategory` (optional): Filter by asset subcategory  
+- `subCategory` (optional): Filter by asset subcategory
 - `year` (optional): Filter by year
 - `zakatEligible` (optional): Filter by zakat eligibility (true/false)
 - `currency` (optional): Filter by currency code
@@ -466,7 +466,7 @@ Authorization: Bearer <jwt_token>
   "data": {
     "statistics": {
       "totalAssets": "number",
-      "totalValue": "number", 
+      "totalValue": "number",
       "totalZakatEligible": "number",
       "assetsByCategory": {
         "cash": {

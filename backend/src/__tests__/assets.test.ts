@@ -1,17 +1,25 @@
 import { describe, it, expect } from '@jest/globals';
 // Import from source to avoid ES module issues in Jest
 import { ASSET_CATEGORIES } from '../../../shared/src/constants';
-import {
-  createAssetSchema,
-  updateAssetSchema,
-} from '../utils/validation';
+import { createAssetSchema, updateAssetSchema } from '../utils/validation';
 
 describe('Asset Type Definitions', () => {
   describe('Asset Categories', () => {
     it('should have all expected asset categories', () => {
-      const expectedCategories = ['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debts'];
-      const actualCategories = Object.values(ASSET_CATEGORIES).map(cat => cat.id);
-      
+      const expectedCategories = [
+        'cash',
+        'gold',
+        'silver',
+        'business',
+        'property',
+        'stocks',
+        'crypto',
+        'debts',
+      ];
+      const actualCategories = Object.values(ASSET_CATEGORIES).map(
+        cat => cat.id
+      );
+
       expectedCategories.forEach(expectedCat => {
         expect(actualCategories).toContain(expectedCat);
       });

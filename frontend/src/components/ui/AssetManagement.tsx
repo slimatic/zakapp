@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Asset, AssetCategoryType, ASSET_CATEGORIES, AssetFormData } from '@zakapp/shared';
+import {
+  Asset,
+  AssetCategoryType,
+  ASSET_CATEGORIES,
+  AssetFormData,
+} from '@zakapp/shared';
 import { AssetForm } from './AssetForm';
 import { AssetList } from './AssetList';
 import { AssetCategoryView } from './AssetCategoryView';
@@ -29,7 +34,9 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState<AssetCategoryType | 'all'>('all');
+  const [filterCategory, setFilterCategory] = useState<
+    AssetCategoryType | 'all'
+  >('all');
   const [viewMode, setViewMode] = useState<'list' | 'categories'>('list');
 
   // Use fetched assets if no props assets provided
@@ -41,9 +48,11 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
 
   // Filter assets based on search and category
   const filteredAssets = assets.filter(asset => {
-    const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         asset.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || asset.category === filterCategory;
+    const matchesSearch =
+      asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      filterCategory === 'all' || asset.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -77,18 +86,20 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
 
   const handleUpdateAsset = async (assetData: AssetFormData) => {
     if (!editingAsset) return;
-    
+
     setIsLoading(true);
     try {
       if (onUpdateAsset) {
         await onUpdateAsset(editingAsset.assetId, assetData);
       } else {
         // Mock implementation
-        setAssets(prev => prev.map(asset => 
-          asset.assetId === editingAsset.assetId 
-            ? { ...asset, ...assetData, updatedAt: new Date().toISOString() }
-            : asset
-        ));
+        setAssets(prev =>
+          prev.map(asset =>
+            asset.assetId === editingAsset.assetId
+              ? { ...asset, ...assetData, updatedAt: new Date().toISOString() }
+              : asset
+          )
+        );
       }
       setEditingAsset(null);
       setShowForm(false);
@@ -100,7 +111,11 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
   };
 
   const handleDeleteAsset = async (assetId: string) => {
-    if (!confirm('Are you sure you want to delete this asset? This action cannot be undone.')) {
+    if (
+      !confirm(
+        'Are you sure you want to delete this asset? This action cannot be undone.'
+      )
+    ) {
       return;
     }
 
@@ -160,19 +175,25 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
       <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-2xl p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-900 mb-2">Asset Management</h1>
+            <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+              Asset Management
+            </h1>
             <p className="text-neutral-600">
               Track and manage your assets for accurate Zakat calculations
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-neutral-900">{assets.length}</div>
+              <div className="text-2xl font-bold text-neutral-900">
+                {assets.length}
+              </div>
               <div className="text-sm text-neutral-600">Total Assets</div>
             </div>
             <div className="bg-white rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{formatCurrency(zakatEligibleValue)}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(zakatEligibleValue)}
+              </div>
               <div className="text-sm text-neutral-600">Zakat Eligible</div>
             </div>
           </div>
@@ -237,7 +258,7 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
                 type="text"
                 placeholder="Search assets..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
@@ -247,7 +268,9 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
               <select
                 value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value as AssetCategoryType | 'all')}
+                onChange={e =>
+                  setFilterCategory(e.target.value as AssetCategoryType | 'all')
+                }
                 className="pl-10 pr-8 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
               >
                 <option value="all">All Categories</option>
