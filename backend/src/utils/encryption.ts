@@ -6,7 +6,9 @@ const KEY_LENGTH = 32; // 256 bits
 const IV_LENGTH = 16; // 128 bits
 
 // Get encryption key from environment or generate a fallback
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'fallback-dev-key-change-in-production-32chars!!';
+const ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY ||
+  'fallback-dev-key-change-in-production-32chars!!';
 
 /**
  * Generate a secure encryption key
@@ -27,20 +29,24 @@ export function deriveKey(password: string, salt: Buffer): Buffer {
  */
 export function encryptData(data: string, userKey?: string): string {
   try {
-    const key = userKey ? Buffer.from(userKey, 'base64') : Buffer.from(ENCRYPTION_KEY.padEnd(KEY_LENGTH, '0').slice(0, KEY_LENGTH));
+    const key = userKey
+      ? Buffer.from(userKey, 'base64')
+      : Buffer.from(
+          ENCRYPTION_KEY.padEnd(KEY_LENGTH, '0').slice(0, KEY_LENGTH)
+        );
     const iv = crypto.randomBytes(IV_LENGTH);
-    
+
     const cipher = crypto.createCipher(ALGORITHM, key);
-    
+
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     // Combine IV and encrypted data
     const result = {
       iv: iv.toString('hex'),
       data: encrypted,
     };
-    
+
     return Buffer.from(JSON.stringify(result)).toString('base64');
   } catch (error) {
     throw new Error('Encryption failed');
@@ -52,16 +58,22 @@ export function encryptData(data: string, userKey?: string): string {
  */
 export function decryptData(encryptedData: string, userKey?: string): string {
   try {
-    const key = userKey ? Buffer.from(userKey, 'base64') : Buffer.from(ENCRYPTION_KEY.padEnd(KEY_LENGTH, '0').slice(0, KEY_LENGTH));
-    
-    const parsed = JSON.parse(Buffer.from(encryptedData, 'base64').toString('utf8'));
+    const key = userKey
+      ? Buffer.from(userKey, 'base64')
+      : Buffer.from(
+          ENCRYPTION_KEY.padEnd(KEY_LENGTH, '0').slice(0, KEY_LENGTH)
+        );
+
+    const parsed = JSON.parse(
+      Buffer.from(encryptedData, 'base64').toString('utf8')
+    );
     const encrypted = parsed.data;
-    
+
     const decipher = crypto.createDecipher(ALGORITHM, key);
-    
+
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   } catch (error) {
     throw new Error('Decryption failed');
@@ -106,21 +118,19 @@ export function generateSecureToken(length: number = 32): string {
  */
 export function encryptFileData(data: Buffer, userKey?: string): Buffer {
   try {
-    const key = userKey ? Buffer.from(userKey, 'base64') : Buffer.from(ENCRYPTION_KEY.padEnd(KEY_LENGTH, '0').slice(0, KEY_LENGTH));
+    const key = userKey
+      ? Buffer.from(userKey, 'base64')
+      : Buffer.from(
+          ENCRYPTION_KEY.padEnd(KEY_LENGTH, '0').slice(0, KEY_LENGTH)
+        );
     const iv = crypto.randomBytes(IV_LENGTH);
-    
+
     const cipher = crypto.createCipher(ALGORITHM, key);
-    
-    const encrypted = Buffer.concat([
-      cipher.update(data),
-      cipher.final(),
-    ]);
-    
+
+    const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
+
     // Combine IV and encrypted data
-    return Buffer.concat([
-      iv,
-      encrypted,
-    ]);
+    return Buffer.concat([iv, encrypted]);
   } catch (error) {
     throw new Error('File encryption failed');
   }
@@ -129,23 +139,30 @@ export function encryptFileData(data: Buffer, userKey?: string): Buffer {
 /**
  * Decrypt file data
  */
-export function decryptFileData(encryptedData: Buffer, userKey?: string): Buffer {
+export function decryptFileData(
+  encryptedData: Buffer,
+  userKey?: string
+): Buffer {
   try {
-    const key = userKey ? Buffer.from(userKey, 'base64') : Buffer.from(ENCRYPTION_KEY.padEnd(KEY_LENGTH, '0').slice(0, KEY_LENGTH));
-    
-    // Extract IV
-    const iv = encryptedData.slice(0, IV_LENGTH);
-    
+    const key = userKey
+      ? Buffer.from(userKey, 'base64')
+      : Buffer.from(
+          ENCRYPTION_KEY.padEnd(KEY_LENGTH, '0').slice(0, KEY_LENGTH)
+        );
+
+    // Extract IV (currently unused but kept for format consistency)
+    // const iv = encryptedData.slice(0, IV_LENGTH);
+
     // Extract encrypted data
     const encrypted = encryptedData.slice(IV_LENGTH);
-    
+
     const decipher = crypto.createDecipher(ALGORITHM, key);
-    
+
     const decrypted = Buffer.concat([
       decipher.update(encrypted),
       decipher.final(),
     ]);
-    
+
     return decrypted;
   } catch (error) {
     throw new Error('File decryption failed');
@@ -155,7 +172,10 @@ export function decryptFileData(encryptedData: Buffer, userKey?: string): Buffer
 /**
  * Create encryption key for user (derived from user password)
  */
-export function createUserEncryptionKey(userId: string, password: string): string {
+export function createUserEncryptionKey(
+  userId: string,
+  password: string
+): string {
   const salt = crypto.createHash('sha256').update(userId).digest();
   const key = deriveKey(password, salt);
   return key.toString('base64');
