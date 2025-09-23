@@ -134,6 +134,9 @@ npm run docker:npm:install  # Install dependencies in container
 npm run dev              # Start local development servers
 npm run install:all      # Install all dependencies with proper order
 
+# Development database reset
+npm run reset:db         # Clear all user data and database files for testing
+
 # Backend development
 cd backend
 npm run dev          # Start development server
@@ -148,6 +151,35 @@ npm run build        # Build for production
 npm run test         # Run tests
 npm run lint         # Run ESLint
 ```
+
+#### Database Reset for Testing
+
+The `reset:db` command provides a safe way to clear all development data for testing:
+
+```bash
+npm run reset:db
+```
+
+**What it does:**
+
+- Removes all user directories and data files from `backend/data/users/`
+- Clears all backup files from `backend/data/backups/`
+- Removes session files from `backend/data/sessions/`
+- Recreates empty directories for clean state
+
+**Safety features:**
+
+- ❌ Cannot run in production (NODE_ENV=production)
+- ⚠️ Requires interactive confirmation before deletion
+- 📊 Shows current data state before clearing
+- 📝 Provides detailed logging of what was deleted
+
+This is particularly useful when:
+
+- Testing user registration and data flows
+- Debugging issues related to stale user data
+- Resetting environment between test scenarios
+- Preparing clean state for development
 
 ### Testing
 

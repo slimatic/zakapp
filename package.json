@@ -38,6 +38,7 @@
     "test:shared": "cd shared && npm run test",
     "test:backend": "cd backend && npm run test",
     "test:frontend": "cd frontend && npm run test",
+    "reset:db": "node scripts/reset-db.js",
     "docker:build": "docker build -t zakapp .",
     "docker:run": "docker run -p 3000:3000 -v zakapp-data:/app/data zakapp"
   },
