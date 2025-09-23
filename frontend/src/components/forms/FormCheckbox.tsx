@@ -11,8 +11,23 @@ interface FormCheckboxProps {
   className?: string;
 }
 
-export const FormCheckbox = React.forwardRef<HTMLInputElement, FormCheckboxProps>(
-  ({ label, name, description, required, error, disabled, className, ...props }, ref) => {
+export const FormCheckbox = React.forwardRef<
+  HTMLInputElement,
+  FormCheckboxProps
+>(
+  (
+    {
+      label,
+      name,
+      description,
+      required,
+      error,
+      disabled,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <div className={className}>
         <div className="flex items-start">
@@ -30,7 +45,10 @@ export const FormCheckbox = React.forwardRef<HTMLInputElement, FormCheckboxProps
             />
           </div>
           <div className="ml-3">
-            <label htmlFor={name} className="text-sm font-medium text-neutral-700">
+            <label
+              htmlFor={name}
+              className="text-sm font-medium text-neutral-700"
+            >
               {label} {required && <span className="text-red-500">*</span>}
             </label>
             {description && (
@@ -38,9 +56,7 @@ export const FormCheckbox = React.forwardRef<HTMLInputElement, FormCheckboxProps
             )}
           </div>
         </div>
-        {error && (
-          <p className="mt-1 text-sm text-red-600">{error.message}</p>
-        )}
+        {error && <p className="mt-1 text-sm text-red-600">{error.message}</p>}
       </div>
     );
   }

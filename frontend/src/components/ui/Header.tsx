@@ -15,21 +15,24 @@ interface HeaderProps {
   onLogout?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ 
-  isDarkMode = false, 
+export const Header: React.FC<HeaderProps> = ({
+  isDarkMode = false,
   onToggleDarkMode,
   currentView = 'dashboard',
   onNavigate,
   user: propUser,
   isAuthenticated: propIsAuthenticated,
-  onLogout: propOnLogout
+  onLogout: propOnLogout,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // Use auth context if available, fallback to props for demo mode
   const auth = useAuth();
   const user = propUser || auth.user;
-  const isAuthenticated = propIsAuthenticated !== undefined ? propIsAuthenticated : auth.isAuthenticated;
+  const isAuthenticated =
+    propIsAuthenticated !== undefined
+      ? propIsAuthenticated
+      : auth.isAuthenticated;
   const logout = propOnLogout || auth.logout;
 
   const toggleMobileMenu = () => {
@@ -60,8 +63,12 @@ export const Header: React.FC<HeaderProps> = ({
               <Calculator className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-xl font-bold text-neutral-900 leading-none">zakapp</h1>
-              <p className="text-xs text-neutral-600 leading-none">Zakat Calculator</p>
+              <h1 className="text-xl font-bold text-neutral-900 leading-none">
+                zakapp
+              </h1>
+              <p className="text-xs text-neutral-600 leading-none">
+                Zakat Calculator
+              </p>
             </div>
           </div>
 
@@ -70,8 +77,8 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => handleNavigation('dashboard')}
               className={`font-medium transition-colors ${
-                currentView === 'dashboard' 
-                  ? 'text-primary-600' 
+                currentView === 'dashboard'
+                  ? 'text-primary-600'
                   : 'text-neutral-700 hover:text-primary-600'
               }`}
             >
@@ -80,8 +87,8 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => handleNavigation('calculate')}
               className={`font-medium transition-colors ${
-                currentView === 'calculate' 
-                  ? 'text-primary-600' 
+                currentView === 'calculate'
+                  ? 'text-primary-600'
                   : 'text-neutral-700 hover:text-primary-600'
               }`}
             >
@@ -90,8 +97,8 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => handleNavigation('assets')}
               className={`font-medium transition-colors ${
-                currentView === 'assets' 
-                  ? 'text-primary-600' 
+                currentView === 'assets'
+                  ? 'text-primary-600'
                   : 'text-neutral-700 hover:text-primary-600'
               }`}
             >
@@ -100,8 +107,8 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => handleNavigation('history')}
               className={`font-medium transition-colors ${
-                currentView === 'history' 
-                  ? 'text-primary-600' 
+                currentView === 'history'
+                  ? 'text-primary-600'
                   : 'text-neutral-700 hover:text-primary-600'
               }`}
             >
