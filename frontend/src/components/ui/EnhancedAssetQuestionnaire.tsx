@@ -8,8 +8,6 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Check, 
-  AlertCircle, 
-  HelpCircle,
   DollarSign,
   Coins,
   Building,
@@ -19,7 +17,7 @@ import {
   Bitcoin,
   Receipt
 } from 'lucide-react';
-import { Asset, AssetCategoryType, ASSET_CATEGORIES } from '@zakapp/shared';
+import { Asset, AssetCategoryType } from '@zakapp/shared';
 
 interface AssetQuestionnaireProps {
   isOpen: boolean;
@@ -410,7 +408,6 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
         value: state.answers.business_value,
         currency: 'USD',
         zakatEligible: true,
-        businessType: state.answers.business_type,
       });
     }
 

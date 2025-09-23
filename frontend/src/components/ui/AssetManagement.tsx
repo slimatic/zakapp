@@ -11,7 +11,7 @@ import { AssetCategoryView } from './AssetCategoryView';
 import { AssetQuestionnaire } from './AssetQuestionnaire';
 import { EnhancedAssetQuestionnaire } from './EnhancedAssetQuestionnaire';
 import { AssetBulkOperations } from './AssetBulkOperations';
-import { Plus, Search, Filter, List, PieChart, HelpCircle, Upload, Download } from 'lucide-react';
+import { Plus, Search, Filter, List, PieChart, HelpCircle, Upload } from 'lucide-react';
 import { useUserAssets } from '../../hooks';
 import { mockAssets } from '../../data/mockData';
 
