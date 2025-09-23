@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Check, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  Check,
   DollarSign,
   Coins,
   Building,
@@ -15,7 +15,7 @@ import {
   Landmark,
   Briefcase,
   Bitcoin,
-  Receipt
+  Receipt,
 } from 'lucide-react';
 import { Asset, AssetCategoryType } from '@zakapp/shared';
 
@@ -60,7 +60,7 @@ const questionnaireSteps: QuestionnaireStep[] = [
   {
     id: 'cash',
     title: 'Cash & Bank Accounts',
-    description: 'Let\'s start with your cash holdings and bank accounts',
+    description: "Let's start with your cash holdings and bank accounts",
     category: 'cash',
     icon: DollarSign,
     questions: [
@@ -157,7 +157,8 @@ const questionnaireSteps: QuestionnaireStep[] = [
       {
         id: 'has_silver',
         type: 'boolean',
-        question: 'Do you own any silver jewelry, coins, or other silver items?',
+        question:
+          'Do you own any silver jewelry, coins, or other silver items?',
         required: true,
       },
       {
@@ -189,12 +190,19 @@ const questionnaireSteps: QuestionnaireStep[] = [
         question: 'What type of business assets do you have?',
         dependsOn: 'has_business',
         dependsOnValue: true,
-        options: ['Retail inventory', 'Manufacturing materials', 'Trade goods', 'Agricultural products', 'Other'],
+        options: [
+          'Retail inventory',
+          'Manufacturing materials',
+          'Trade goods',
+          'Agricultural products',
+          'Other',
+        ],
       },
       {
         id: 'business_value',
         type: 'number',
-        question: 'What is the current value of your business inventory/assets?',
+        question:
+          'What is the current value of your business inventory/assets?',
         dependsOn: 'has_business',
         dependsOnValue: true,
         validation: { min: 0 },
@@ -212,13 +220,15 @@ const questionnaireSteps: QuestionnaireStep[] = [
         id: 'has_investment_property',
         type: 'boolean',
         question: 'Do you own any property for investment purposes?',
-        description: 'Include rental properties, land, or commercial real estate',
+        description:
+          'Include rental properties, land, or commercial real estate',
         required: true,
       },
       {
         id: 'property_value',
         type: 'number',
-        question: 'What is the current market value of your investment property?',
+        question:
+          'What is the current market value of your investment property?',
         dependsOn: 'has_investment_property',
         dependsOnValue: true,
         validation: { min: 0 },
@@ -265,7 +275,8 @@ const questionnaireSteps: QuestionnaireStep[] = [
       {
         id: 'crypto_value',
         type: 'number',
-        question: 'What is the current total value of your cryptocurrency holdings?',
+        question:
+          'What is the current total value of your cryptocurrency holdings?',
         dependsOn: 'has_crypto',
         dependsOnValue: true,
         validation: { min: 0 },
@@ -283,7 +294,8 @@ const questionnaireSteps: QuestionnaireStep[] = [
         id: 'has_receivables',
         type: 'boolean',
         question: 'Does anyone owe you money?',
-        description: 'Include personal loans, business receivables, or other debts',
+        description:
+          'Include personal loans, business receivables, or other debts',
         required: true,
       },
       {
@@ -322,14 +334,17 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
     }));
   }, []);
 
-  const shouldShowQuestion = useCallback((question: Question): boolean => {
-    if (!question.dependsOn) return true;
-    return state.answers[question.dependsOn] === question.dependsOnValue;
-  }, [state.answers]);
+  const shouldShowQuestion = useCallback(
+    (question: Question): boolean => {
+      if (!question.dependsOn) return true;
+      return state.answers[question.dependsOn] === question.dependsOnValue;
+    },
+    [state.answers]
+  );
 
   const generateAssetsFromAnswers = useCallback((): Partial<Asset>[] => {
     const assets: Partial<Asset>[] = [];
-    
+
     // Cash assets
     if (state.answers.has_savings && state.answers.savings_amount) {
       assets.push({
@@ -341,7 +356,7 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
         zakatEligible: true,
       });
     }
-    
+
     if (state.answers.has_checking && state.answers.checking_amount) {
       assets.push({
         name: 'Checking Account',
@@ -352,7 +367,7 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
         zakatEligible: true,
       });
     }
-    
+
     if (state.answers.has_cash_hand && state.answers.cash_hand_amount) {
       assets.push({
         name: 'Cash on Hand',
@@ -375,7 +390,7 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
         zakatEligible: true,
       });
     }
-    
+
     if (state.answers.has_gold_coins && state.answers.gold_coins_value) {
       assets.push({
         name: 'Gold Coins/Bars',
@@ -493,7 +508,8 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
       if (assetData.value && assetData.value > 0) {
         // Here you would typically call an API to create the asset
         const asset: Asset = {
-          assetId: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          assetId:
+            Date.now().toString() + Math.random().toString(36).substr(2, 9),
           name: assetData.name!,
           category: assetData.category!,
           subCategory: assetData.subCategory!,
@@ -523,7 +539,9 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
             <div>
               <h4 className="font-medium text-gray-900">{question.question}</h4>
               {question.description && (
-                <p className="text-sm text-gray-500 mt-1">{question.description}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {question.description}
+                </p>
               )}
             </div>
             <div className="flex space-x-4">
@@ -552,7 +570,9 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
             <div>
               <h4 className="font-medium text-gray-900">{question.question}</h4>
               {question.description && (
-                <p className="text-sm text-gray-500 mt-1">{question.description}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {question.description}
+                </p>
               )}
             </div>
             <div className="relative">
@@ -560,7 +580,9 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
               <input
                 type="number"
                 value={value || ''}
-                onChange={(e) => handleAnswer(question.id, parseFloat(e.target.value) || 0)}
+                onChange={e =>
+                  handleAnswer(question.id, parseFloat(e.target.value) || 0)
+                }
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="0.00"
                 min={question.validation?.min}
@@ -576,16 +598,18 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
             <div>
               <h4 className="font-medium text-gray-900">{question.question}</h4>
               {question.description && (
-                <p className="text-sm text-gray-500 mt-1">{question.description}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {question.description}
+                </p>
               )}
             </div>
             <select
               value={value || ''}
-              onChange={(e) => handleAnswer(question.id, e.target.value)}
+              onChange={e => handleAnswer(question.id, e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Select an option</option>
-              {question.options?.map((option) => (
+              {question.options?.map(option => (
                 <option key={option} value={option}>
                   {option}
                 </option>
@@ -601,12 +625,15 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
 
   const isStepComplete = useCallback(() => {
     if (!currentStepData) return false;
-    
+
     return currentStepData.questions
       .filter(shouldShowQuestion)
       .every(question => {
         const answer = state.answers[question.id];
-        if (question.required && (answer === undefined || answer === null || answer === '')) {
+        if (
+          question.required &&
+          (answer === undefined || answer === null || answer === '')
+        ) {
           return false;
         }
         return true;
@@ -619,15 +646,19 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogTitle>Asset Discovery Questionnaire</DialogTitle>
-        
+
         <div className="space-y-6">
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">
-                {showResults ? 'Review Results' : `Step ${state.currentStep + 1} of ${questionnaireSteps.length}`}
+                {showResults
+                  ? 'Review Results'
+                  : `Step ${state.currentStep + 1} of ${questionnaireSteps.length}`}
               </span>
-              <span className="text-gray-600">{Math.round(progress)}% Complete</span>
+              <span className="text-gray-600">
+                {Math.round(progress)}% Complete
+              </span>
             </div>
             <Progress value={progress} className="w-full" />
           </div>
@@ -640,7 +671,12 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
                   Assets Discovered
                 </h3>
                 <p className="text-gray-600 mt-1">
-                  Based on your answers, we found {state.discoveredAssets.filter(a => a.value && a.value > 0).length} assets
+                  Based on your answers, we found{' '}
+                  {
+                    state.discoveredAssets.filter(a => a.value && a.value > 0)
+                      .length
+                  }{' '}
+                  assets
                 </p>
               </div>
 
@@ -652,9 +688,12 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium text-gray-900">{asset.name}</h4>
+                            <h4 className="font-medium text-gray-900">
+                              {asset.name}
+                            </h4>
                             <p className="text-sm text-gray-500 capitalize">
-                              {asset.category} • {asset.subCategory?.replace('_', ' ')}
+                              {asset.category} •{' '}
+                              {asset.subCategory?.replace('_', ' ')}
                             </p>
                           </div>
                           <div className="text-right">
@@ -675,7 +714,8 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
 
               <div className="text-center space-y-4">
                 <p className="text-sm text-gray-600">
-                  These assets will be added to your portfolio for Zakat calculation.
+                  These assets will be added to your portfolio for Zakat
+                  calculation.
                 </p>
                 <div className="flex space-x-4 justify-center">
                   <Button onClick={handlePrevious} variant="outline">
@@ -701,7 +741,9 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
                         <currentStepData.icon className="h-6 w-6 text-blue-600" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg">{currentStepData.title}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {currentStepData.title}
+                        </CardTitle>
                         <p className="text-sm text-gray-600 mt-1">
                           {currentStepData.description}
                         </p>
@@ -725,11 +767,8 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
                     <ChevronLeft className="h-4 w-4 mr-2" />
                     Previous
                   </Button>
-                  
-                  <Button
-                    onClick={handleNext}
-                    disabled={!isStepComplete()}
-                  >
+
+                  <Button onClick={handleNext} disabled={!isStepComplete()}>
                     {state.currentStep === questionnaireSteps.length - 1 ? (
                       <>
                         <Check className="h-4 w-4 mr-2" />

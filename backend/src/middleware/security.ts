@@ -77,7 +77,11 @@ export const fileUploadRateLimit = rateLimit({
  * Security headers middleware
  * Adds various security headers to responses
  */
-export function securityHeaders(req: Request, res: Response, next: NextFunction): void {
+export function securityHeaders(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   // Content Security Policy
   res.setHeader(
     'Content-Security-Policy',
@@ -109,7 +113,11 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
  * Input sanitization middleware
  * Sanitizes request data to prevent injection attacks
  */
-export function sanitizeInput(req: Request, res: Response, next: NextFunction): void {
+export function sanitizeInput(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   // Recursively sanitize strings in an object
   function sanitizeObject(obj: any): any {
     if (typeof obj === 'string') {
@@ -122,11 +130,11 @@ export function sanitizeInput(req: Request, res: Response, next: NextFunction): 
         .replace(/'/g, '&#x27;')
         .replace(/\//g, '&#x2F;');
     }
-    
+
     if (Array.isArray(obj)) {
       return obj.map(sanitizeObject);
     }
-    
+
     if (obj && typeof obj === 'object') {
       const sanitized: any = {};
       for (const key in obj) {
@@ -136,7 +144,7 @@ export function sanitizeInput(req: Request, res: Response, next: NextFunction): 
       }
       return sanitized;
     }
-    
+
     return obj;
   }
 
@@ -159,11 +167,11 @@ export function sanitizeInput(req: Request, res: Response, next: NextFunction): 
 export function requestSizeLimit(maxSize: string = '10mb') {
   return (req: Request, res: Response, next: NextFunction): void => {
     const contentLength = req.headers['content-length'];
-    
+
     if (contentLength) {
       const sizeInBytes = parseInt(contentLength, 10);
       const maxSizeInBytes = parseSize(maxSize);
-      
+
       if (sizeInBytes > maxSizeInBytes) {
         res.status(413).json({
           success: false,
@@ -175,7 +183,7 @@ export function requestSizeLimit(maxSize: string = '10mb') {
         return;
       }
     }
-    
+
     next();
   };
 }
@@ -190,14 +198,14 @@ function parseSize(size: string): number {
     mb: 1024 * 1024,
     gb: 1024 * 1024 * 1024,
   };
-  
+
   const match = size.toLowerCase().match(/^(\d+(?:\.\d+)?)\s*(kb|mb|gb|b)?$/);
   if (!match) {
     throw new Error(`Invalid size format: ${size}`);
   }
-  
+
   const value = parseFloat(match[1]);
   const unit = match[2] || 'b';
-  
+
   return Math.floor(value * units[unit]);
 }

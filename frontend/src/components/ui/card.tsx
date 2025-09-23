@@ -17,7 +17,11 @@ interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
   children: React.ReactNode;
 }
 
-export const Card: React.FC<CardProps> = ({ className, children, ...props }) => {
+export const Card: React.FC<CardProps> = ({
+  className,
+  children,
+  ...props
+}) => {
   return (
     <div className={clsx('card', className)} {...props}>
       {children}
@@ -25,7 +29,11 @@ export const Card: React.FC<CardProps> = ({ className, children, ...props }) => 
   );
 };
 
-export const CardHeader: React.FC<CardHeaderProps> = ({ className, children, ...props }) => {
+export const CardHeader: React.FC<CardHeaderProps> = ({
+  className,
+  children,
+  ...props
+}) => {
   return (
     <div className={clsx('card-header', className)} {...props}>
       {children}
@@ -33,7 +41,11 @@ export const CardHeader: React.FC<CardHeaderProps> = ({ className, children, ...
   );
 };
 
-export const CardContent: React.FC<CardContentProps> = ({ className, children, ...props }) => {
+export const CardContent: React.FC<CardContentProps> = ({
+  className,
+  children,
+  ...props
+}) => {
   return (
     <div className={clsx('card-body', className)} {...props}>
       {children}
@@ -41,9 +53,16 @@ export const CardContent: React.FC<CardContentProps> = ({ className, children, .
   );
 };
 
-export const CardTitle: React.FC<CardTitleProps> = ({ className, children, ...props }) => {
+export const CardTitle: React.FC<CardTitleProps> = ({
+  className,
+  children,
+  ...props
+}) => {
   return (
-    <h3 className={clsx('text-lg font-semibold text-neutral-900', className)} {...props}>
+    <h3
+      className={clsx('text-lg font-semibold text-neutral-900', className)}
+      {...props}
+    >
       {children}
     </h3>
   );
