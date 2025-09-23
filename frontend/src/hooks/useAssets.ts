@@ -56,9 +56,9 @@ export const useAssetStatistics = () => {
     try {
       return await assetService.getAssetStatistics();
     } catch (error) {
-      // Use mock data as fallback when API fails
+      // Only use mock data as fallback when API fails (not when returns empty data)
       console.warn('API failed, using mock statistics:', error);
-      return generateMockStatistics();
+      return generateMockStatistics([]);
     }
   });
 };
@@ -69,9 +69,9 @@ export const useGroupedAssets = () => {
     try {
       return await assetService.getGroupedAssets();
     } catch (error) {
-      // Use mock data as fallback when API fails
+      // Only use mock data as fallback when API fails (not when returns empty data)
       console.warn('API failed, using mock grouped assets:', error);
-      return generateMockGroupedAssets();
+      return generateMockGroupedAssets([]);
     }
   });
 };
@@ -82,9 +82,9 @@ export const useUserAssets = () => {
     try {
       return await assetService.getUserAssets();
     } catch (error) {
-      // Use mock data as fallback when API fails
+      // Only use mock data as fallback when API fails (not when returns empty data)
       console.warn('API failed, using mock assets:', error);
-      return mockAssets;
+      return [];
     }
   });
 };
@@ -95,13 +95,13 @@ export const useAssetsByCategory = (category: AssetCategoryType) => {
     try {
       return await assetService.getAssetsByCategory(category);
     } catch (error) {
-      // Use mock data as fallback when API fails
+      // Only use mock data as fallback when API fails (not when returns empty data)
       console.warn(
-        'API failed, using mock assets for category:',
+        'API failed, using empty assets for category:',
         category,
         error
       );
-      return mockAssets.filter(asset => asset.category === category);
+      return [];
     }
   }, [category]);
 };
