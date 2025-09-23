@@ -5,6 +5,7 @@ This document addresses common npm installation issues in the zakapp project and
 ## Common Issues
 
 ### 1. Permission Denied Errors (EACCES)
+
 ```
 npm error code EACCES
 npm error syscall mkdir
@@ -14,11 +15,13 @@ npm error Error: EACCES: permission denied
 ```
 
 ### 2. Shared Package Resolution Failures
+
 ```
 Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@zakapp/shared/'
 ```
 
 ### 3. Node Version Compatibility Issues
+
 - Different Node.js versions across development environments
 - npm version mismatches
 - Package compatibility issues
@@ -41,6 +44,7 @@ npm run docker:dev
 ```
 
 Benefits:
+
 - ✅ No permission issues
 - ✅ Consistent Node.js/npm versions
 - ✅ Isolated from host OS
@@ -103,16 +107,18 @@ cd frontend && npm run dev
 ### If you get permission errors:
 
 1. **First, try containerized approach:**
+
    ```bash
    ./scripts/setup-npm.sh --docker
    ```
 
 2. **If you must use local npm:**
+
    ```bash
    # Create .npmrc in your home directory
    echo "cache=/tmp/.npm" >> ~/.npmrc
    echo "tmp=/tmp" >> ~/.npmrc
-   
+
    # Or use different cache directory
    npm install --cache /tmp/.npm
    ```
@@ -120,6 +126,7 @@ cd frontend && npm run dev
 ### If shared package isn't found:
 
 1. **Ensure shared package is built:**
+
    ```bash
    cd shared
    npm run build
@@ -135,6 +142,7 @@ cd frontend && npm run dev
 ### If Docker build fails:
 
 1. **Clean Docker cache:**
+
    ```bash
    docker system prune -f
    docker compose build --no-cache
@@ -151,15 +159,17 @@ cd frontend && npm run dev
 ### From Manual Setup to Containerized
 
 1. **Stop any running services:**
+
    ```bash
    # Stop local services
    pkill -f "npm run dev"
-   
+
    # Stop existing Docker containers
    docker compose down
    ```
 
 2. **Clean existing node_modules:**
+
    ```bash
    rm -rf node_modules */node_modules
    ```
@@ -173,6 +183,7 @@ cd frontend && npm run dev
 ### From Old Docker Setup to New
 
 1. **Update Docker files:**
+
    ```bash
    git pull origin main  # Get latest Docker improvements
    ```
@@ -186,13 +197,13 @@ cd frontend && npm run dev
 
 ## npm Scripts Reference
 
-| Script | Purpose | Environment |
-|--------|---------|-------------|
-| `npm run docker:dev` | Start containerized development | Docker |
-| `npm run docker:npm:install` | Install deps in container | Docker |
-| `npm run npm:containerized` | Run npm commands in container | Docker |
-| `npm run install:all` | Install all deps with proper order | Local |
-| `npm run dev` | Start local development | Local |
+| Script                       | Purpose                            | Environment |
+| ---------------------------- | ---------------------------------- | ----------- |
+| `npm run docker:dev`         | Start containerized development    | Docker      |
+| `npm run docker:npm:install` | Install deps in container          | Docker      |
+| `npm run npm:containerized`  | Run npm commands in container      | Docker      |
+| `npm run install:all`        | Install all deps with proper order | Local       |
+| `npm run dev`                | Start local development            | Local       |
 
 ## Best Practices
 
