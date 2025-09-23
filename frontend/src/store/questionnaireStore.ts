@@ -11,7 +11,8 @@ export interface QuestionnaireStep {
   isActive: boolean;
 }
 
-export interface AssetQuestionnaireData extends Omit<AssetFormData, 'category' | 'subCategory'> {
+export interface AssetQuestionnaireData
+  extends Omit<AssetFormData, 'category' | 'subCategory'> {
   category?: AssetCategoryType;
   subCategory?: string;
 }
@@ -21,15 +22,15 @@ export interface QuestionnaireState {
   currentStepIndex: number;
   steps: QuestionnaireStep[];
   isCompleted: boolean;
-  
+
   // Asset data being collected
   assetData: AssetQuestionnaireData;
-  
+
   // UI state
   showHelp: boolean;
   errors: Record<string, string>;
   isLoading: boolean;
-  
+
   // Actions
   nextStep: () => void;
   previousStep: () => void;
@@ -48,7 +49,7 @@ const initialSteps: QuestionnaireStep[] = [
   {
     id: 'welcome',
     title: 'Welcome',
-    description: 'Let\'s help you add your assets for Zakat calculation',
+    description: "Let's help you add your assets for Zakat calculation",
     isCompleted: false,
     isActive: true,
   },
@@ -98,15 +99,15 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(
       // Navigation actions
       nextStep: () => {
         const { currentStepIndex, steps, validateCurrentStep } = get();
-        
+
         // Validate current step before proceeding
         if (!validateCurrentStep()) {
           return;
         }
-        
+
         if (currentStepIndex < steps.length - 1) {
           const newIndex = currentStepIndex + 1;
-          set((state) => ({
+          set(state => ({
             currentStepIndex: newIndex,
             steps: state.steps.map((step, index) => ({
               ...step,
@@ -121,7 +122,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(
         const { currentStepIndex } = get();
         if (currentStepIndex > 0) {
           const newIndex = currentStepIndex - 1;
-          set((state) => ({
+          set(state => ({
             currentStepIndex: newIndex,
             steps: state.steps.map((step, index) => ({
               ...step,
@@ -135,7 +136,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(
       goToStep: (stepIndex: number) => {
         const { steps } = get();
         if (stepIndex >= 0 && stepIndex < steps.length) {
-          set((state) => ({
+          set(state => ({
             currentStepIndex: stepIndex,
             steps: state.steps.map((step, index) => ({
               ...step,
@@ -148,20 +149,20 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(
 
       // Data management actions
       updateAssetData: (data: Partial<AssetQuestionnaireData>) => {
-        set((state) => ({
+        set(state => ({
           assetData: { ...state.assetData, ...data },
         }));
       },
 
       // Error management
       setError: (field: string, error: string) => {
-        set((state) => ({
+        set(state => ({
           errors: { ...state.errors, [field]: error },
         }));
       },
 
       clearError: (field: string) => {
-        set((state) => {
+        set(state => {
           const newErrors = { ...state.errors };
           delete newErrors[field];
           return { errors: newErrors };
@@ -174,7 +175,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(
 
       // UI actions
       toggleHelp: () => {
-        set((state) => ({ showHelp: !state.showHelp }));
+        set(state => ({ showHelp: !state.showHelp }));
       },
 
       // Reset and completion
@@ -192,7 +193,7 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(
 
       completeQuestionnaire: (): Asset | null => {
         const { assetData, validateCurrentStep } = get();
-        
+
         if (!validateCurrentStep()) {
           return null;
         }
@@ -231,24 +232,25 @@ export const useQuestionnaireStore = create<QuestionnaireState>()(
             }
             return true;
 
-          case 2: {// Details step
+          case 2: {
+            // Details step
             let isValid = true;
-            
+
             if (!assetData.name?.trim()) {
               setError('name', 'Asset name is required');
               isValid = false;
             }
-            
+
             if (assetData.value <= 0) {
               setError('value', 'Asset value must be greater than 0');
               isValid = false;
             }
-            
+
             if (!assetData.subCategory) {
               setError('subCategory', 'Please select a subcategory');
               isValid = false;
             }
-            
+
             return isValid;
           }
 

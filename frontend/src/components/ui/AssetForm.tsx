@@ -1,14 +1,19 @@
 import React, { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Asset, ASSET_CATEGORIES, assetFormSchema, AssetFormData } from '@zakapp/shared';
-import { 
-  FormInput, 
-  FormSelect, 
-  FormTextarea, 
-  FormCheckbox, 
+import {
+  Asset,
+  ASSET_CATEGORIES,
+  assetFormSchema,
+  AssetFormData,
+} from '@zakapp/shared';
+import {
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  FormCheckbox,
   CurrencyInput,
-  DateInput 
+  DateInput,
 } from '../forms';
 
 interface AssetFormProps {
@@ -27,7 +32,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   const defaultValues: AssetFormData = useMemo(() => {
     const baseAsset = asset || {};
     const extendedAsset = baseAsset as Asset & Record<string, unknown>;
-    
+
     return {
       name: asset?.name || '',
       category: asset?.category || 'cash',
@@ -54,7 +59,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({
       stakingRewards: extendedAsset.stakingRewards as number | undefined,
       debtor: extendedAsset.debtor as string | undefined,
       dueDate: extendedAsset.dueDate as string | undefined,
-      repaymentSchedule: extendedAsset.repaymentSchedule as 'lump_sum' | 'installments' | 'on_demand' | undefined,
+      repaymentSchedule: extendedAsset.repaymentSchedule as
+        | 'lump_sum'
+        | 'installments'
+        | 'on_demand'
+        | undefined,
     };
   }, [asset]);
 
@@ -62,11 +71,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     register,
     handleSubmit,
     watch,
-    formState: { errors }
+    formState: { errors },
   } = useForm<AssetFormData>({
     resolver: zodResolver(assetFormSchema),
     defaultValues,
-    mode: 'onChange'
+    mode: 'onChange',
   });
 
   const selectedCategory = watch('category');
@@ -74,27 +83,36 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   // Get category options
   const categoryOptions = Object.values(ASSET_CATEGORIES).map(category => ({
     value: category.id,
-    label: category.name
+    label: category.name,
   }));
 
   // Get subcategory options based on selected category
   const subCategoryOptions = useMemo(() => {
-    const category = Object.values(ASSET_CATEGORIES).find(cat => cat.id === selectedCategory);
-    return category?.subCategories.map(sub => ({
-      value: sub.id,
-      label: sub.name
-    })) || [];
+    const category = Object.values(ASSET_CATEGORIES).find(
+      cat => cat.id === selectedCategory
+    );
+    return (
+      category?.subCategories.map(sub => ({
+        value: sub.id,
+        label: sub.name,
+      })) || []
+    );
   }, [selectedCategory]);
 
   const onFormSubmit = (data: AssetFormData) => {
     // Convert date strings to proper format if needed
     const formattedData = { ...data };
-    
+
     // Format maturityDate if present
-    if (formattedData.maturityDate && !formattedData.maturityDate.includes('T')) {
-      formattedData.maturityDate = new Date(formattedData.maturityDate).toISOString();
+    if (
+      formattedData.maturityDate &&
+      !formattedData.maturityDate.includes('T')
+    ) {
+      formattedData.maturityDate = new Date(
+        formattedData.maturityDate
+      ).toISOString();
     }
-    
+
     // Format dueDate if present
     if (formattedData.dueDate && !formattedData.dueDate.includes('T')) {
       formattedData.dueDate = new Date(formattedData.dueDate).toISOString();
@@ -130,7 +148,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             />
           </>
         );
-      
+
       case 'gold':
       case 'silver':
         return (
@@ -160,7 +178,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             />
           </>
         );
-      
+
       case 'business':
         return (
           <>
@@ -184,7 +202,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             />
           </>
         );
-      
+
       case 'property':
         return (
           <>
@@ -217,7 +235,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             />
           </>
         );
-      
+
       case 'stocks':
         return (
           <>
@@ -254,7 +272,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             />
           </>
         );
-      
+
       case 'crypto':
         return (
           <>
@@ -290,7 +308,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             />
           </>
         );
-      
+
       case 'debts':
         return (
           <>
@@ -327,7 +345,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
               options={[
                 { value: 'lump_sum', label: 'Lump Sum' },
                 { value: 'installments', label: 'Installments' },
-                { value: 'on_demand', label: 'On Demand' }
+                { value: 'on_demand', label: 'On Demand' },
               ]}
               placeholder="Select repayment schedule"
               error={errors.repaymentSchedule}
@@ -336,7 +354,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             />
           </>
         );
-      
+
       default:
         return null;
     }
@@ -349,7 +367,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({
           {asset ? 'Edit Asset' : 'Add New Asset'}
         </h2>
         <p className="text-neutral-600">
-          {asset ? 'Update your asset information' : 'Add a new asset to your portfolio'}
+          {asset
+            ? 'Update your asset information'
+            : 'Add a new asset to your portfolio'}
         </p>
       </div>
 
@@ -359,7 +379,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
           <h3 className="text-lg font-semibold text-neutral-900 border-b border-neutral-200 pb-2">
             Basic Information
           </h3>
-          
+
           <FormInput
             {...register('name')}
             label="Asset Name"
@@ -440,14 +460,32 @@ export const AssetForm: React.FC<AssetFormProps> = ({
           >
             {isLoading ? (
               <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 {asset ? 'Updating...' : 'Creating...'}
               </span>
+            ) : asset ? (
+              'Update Asset'
             ) : (
-              asset ? 'Update Asset' : 'Add Asset'
+              'Add Asset'
             )}
           </button>
           <button

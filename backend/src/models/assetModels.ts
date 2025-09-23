@@ -3,7 +3,7 @@ import {
   Asset,
   AssetCategoryType,
   SpecificAsset,
-  
+
   // Specific asset types
   CashAsset,
   GoldAsset,
@@ -13,24 +13,24 @@ import {
   StocksAsset,
   CryptoAsset,
   DebtAsset,
-  
+
   // Category and subcategory types
   AssetCategory,
   AssetSubCategory,
-  
+
   // Schema types
   CreateAssetRequest,
   UpdateAssetRequest,
   GenericAsset,
   AssetCategoryData,
-  
+
   // Zod schemas
   assetSchema,
   createAssetRequestSchema,
   updateAssetRequestSchema,
   genericAssetSchema,
   assetCategorySchema,
-  
+
   // Specific asset schemas
   cashAssetSchema,
   goldAssetSchema,
@@ -71,11 +71,14 @@ export interface AssetSummary {
   totalAssets: number;
   totalValue: number;
   totalZakatEligible: number;
-  assetsByCategory: Record<AssetCategoryType, {
-    count: number;
-    totalValue: number;
-    zakatEligibleValue: number;
-  }>;
+  assetsByCategory: Record<
+    AssetCategoryType,
+    {
+      count: number;
+      totalValue: number;
+      zakatEligibleValue: number;
+    }
+  >;
 }
 
 // Database model interfaces (if using a proper database later)
