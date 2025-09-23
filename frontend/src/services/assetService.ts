@@ -34,17 +34,10 @@ export interface ApiResponse<T> {
   };
 }
 
-// Helper to get auth token (placeholder for now)
+// Helper to get auth token
 const getAuthToken = (): string | null => {
   // Use the same token key as the auth context
-  const token = localStorage.getItem('zakapp_token');
-  if (!token) {
-    // Set a mock token for development
-    const mockToken = 'mock-dev-token-user1';
-    localStorage.setItem('zakapp_token', mockToken);
-    return mockToken;
-  }
-  return token;
+  return localStorage.getItem('zakapp_token');
 };
 
 // Helper to make authenticated API requests
