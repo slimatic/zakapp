@@ -8,6 +8,13 @@ import { authRouter } from './routes/auth.js';
 import { usersRouter } from './routes/users.js';
 import { dataRouter } from './routes/data.js';
 import { assetsRouter } from './routes/assets.js';
+import { 
+  generalRateLimit, 
+  securityHeaders, 
+  sanitizeInput, 
+  requestSizeLimit 
+} from './middleware/security.js';
+import { initializeSessions } from './utils/session.js';
 import { API_ENDPOINTS } from '@zakapp/shared';
 
 // Load environment variables
@@ -17,8 +24,30 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
-// Security middleware
-app.use(helmet());
+// Initialize session management
+initializeSessions().catch(console.error);
+
+// Security middleware (applied early)
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:"],
+      fontSrc: ["'self'"],
+      connectSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+
+app.use(securityHeaders);
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
@@ -26,9 +55,16 @@ app.use(
   })
 );
 
+// Request size and rate limiting
+app.use(requestSizeLimit('10mb'));
+app.use(generalRateLimit);
+
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Input sanitization
+app.use(sanitizeInput);
 
 // Routes
 app.use('/api/health', healthRouter);
