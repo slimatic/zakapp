@@ -160,14 +160,60 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
     setEditingAsset(null);
   };
 
-  const handleQuestionnaireAssetCreated = (asset: Asset) => {
-    setAssets(prev => [...prev, asset]);
-    setShowQuestionnaire(false);
+  const handleQuestionnaireAssetCreated = async (asset: Asset) => {
+    setIsLoading(true);
+    try {
+      if (onCreateAsset) {
+        // Use the API-backed creation method instead of just local state
+        const assetData: AssetFormData = {
+          name: asset.name,
+          category: asset.category,
+          subCategory: asset.subCategory,
+          value: asset.value,
+          currency: asset.currency,
+          description: asset.description,
+          zakatEligible: asset.zakatEligible,
+        };
+        await onCreateAsset(assetData);
+      } else {
+        // Fallback for local state management (standalone usage)
+        setAssets(prev => [...prev, asset]);
+      }
+      setShowQuestionnaire(false);
+    } catch (error) {
+      console.error('Error creating asset from questionnaire:', error);
+      // Don't close questionnaire on error so user can retry
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleEnhancedQuestionnaireAssetCreated = (asset: Asset) => {
-    setAssets(prev => [...prev, asset]);
-    setShowEnhancedQuestionnaire(false);
+  const handleEnhancedQuestionnaireAssetCreated = async (asset: Asset) => {
+    setIsLoading(true);
+    try {
+      if (onCreateAsset) {
+        // Use the API-backed creation method instead of just local state
+        const assetData: AssetFormData = {
+          name: asset.name,
+          category: asset.category,
+          subCategory: asset.subCategory,
+          value: asset.value,
+          currency: asset.currency,
+          description: asset.description,
+          zakatEligible: asset.zakatEligible,
+        };
+        await onCreateAsset(assetData);
+      } else {
+        // Fallback for local state management (standalone usage)
+        setAssets(prev => [...prev, asset]);
+      }
+      setShowEnhancedQuestionnaire(false);
+    } catch (error) {
+      console.error('Error creating asset from questionnaire:', error);
+      // Don't close questionnaire on error so user can retry
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBulkAssetsImported = (newAssets: Asset[]) => {
