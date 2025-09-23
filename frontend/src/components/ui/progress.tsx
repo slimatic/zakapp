@@ -7,14 +7,14 @@ interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
-export const Progress: React.FC<ProgressProps> = ({ 
-  value, 
-  max = 100, 
-  className, 
-  ...props 
+export const Progress: React.FC<ProgressProps> = ({
+  value,
+  max = 100,
+  className,
+  ...props
 }) => {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
-  
+
   return (
     <div
       className={clsx(

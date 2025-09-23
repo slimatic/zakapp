@@ -25,7 +25,7 @@ router.post(
         });
       }
 
-      const { assets, encrypted = false, mergeStrategy = 'merge' } = req.body;
+      const { assets, mergeStrategy = 'merge' } = req.body;
 
       if (!assets || !Array.isArray(assets)) {
         return res.status(400).json({
@@ -64,7 +64,10 @@ router.post(
               });
             } else {
               // Create new asset if doesn't exist
-              const newAsset = await assetService.createAsset(userId, assetData);
+              const newAsset = await assetService.createAsset(
+                userId,
+                assetData
+              );
               results.push({
                 status: 'created',
                 asset: newAsset,
@@ -156,7 +159,10 @@ router.get(
       // Set appropriate headers for download
       if (format === 'download') {
         const filename = `zakapp-assets-${new Date().toISOString().split('T')[0]}.json`;
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="${filename}"`
+        );
         res.setHeader('Content-Type', 'application/json');
       }
 
@@ -220,8 +226,14 @@ router.post(
         const assetData = assetsData[i];
         try {
           // Basic validation - you can enhance this with more sophisticated validation
-          if (!assetData.name || !assetData.category || !assetData.subCategory) {
-            throw new Error('Missing required fields: name, category, or subCategory');
+          if (
+            !assetData.name ||
+            !assetData.category ||
+            !assetData.subCategory
+          ) {
+            throw new Error(
+              'Missing required fields: name, category, or subCategory'
+            );
           }
 
           if (typeof assetData.value !== 'number' || assetData.value < 0) {
@@ -242,7 +254,10 @@ router.post(
           validationResults.push({
             index: i,
             status: 'invalid',
-            error: error instanceof Error ? error.message : 'Unknown validation error',
+            error:
+              error instanceof Error
+                ? error.message
+                : 'Unknown validation error',
             asset: assetData,
           });
           invalidCount++;
