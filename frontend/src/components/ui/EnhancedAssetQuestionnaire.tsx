@@ -22,7 +22,7 @@ import { Asset, AssetCategoryType } from '@zakapp/shared';
 interface AssetQuestionnaireProps {
   isOpen: boolean;
   onClose: () => void;
-  onAssetCreated: (asset: Asset) => void;
+  onAssetCreated: (asset: Asset) => Promise<void>;
 }
 
 interface QuestionnaireStep {
@@ -54,6 +54,8 @@ interface QuestionnaireState {
   currentStep: number;
   answers: Record<string, any>;
   discoveredAssets: Partial<Asset>[];
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 const questionnaireSteps: QuestionnaireStep[] = [
@@ -319,6 +321,8 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
     currentStep: 0,
     answers: {},
     discoveredAssets: [],
+    isLoading: false,
+    error: null,
   });
 
   const currentStepData = questionnaireSteps[state.currentStep];
@@ -504,28 +508,38 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
   }, [state.currentStep]);
 
   const handleComplete = useCallback(async () => {
-    // Create assets from discovered data
-    for (const assetData of state.discoveredAssets) {
-      if (assetData.value && assetData.value > 0) {
-        // Here you would typically call an API to create the asset
-        const asset: Asset = {
-          assetId:
-            Date.now().toString() + Math.random().toString(36).substr(2, 9),
-          name: assetData.name!,
-          category: assetData.category!,
-          subCategory: assetData.subCategory!,
-          value: assetData.value,
-          currency: assetData.currency!,
-          description: assetData.description,
-          zakatEligible: assetData.zakatEligible!,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          ...assetData,
-        };
-        onAssetCreated(asset);
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    
+    try {
+      // Create assets from discovered data
+      for (const assetData of state.discoveredAssets) {
+        if (assetData.value && assetData.value > 0) {
+          const asset: Asset = {
+            assetId:
+              Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            name: assetData.name!,
+            category: assetData.category!,
+            subCategory: assetData.subCategory!,
+            value: assetData.value,
+            currency: assetData.currency!,
+            description: assetData.description,
+            zakatEligible: assetData.zakatEligible!,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            ...assetData,
+          };
+          await onAssetCreated(asset);
+        }
       }
+      onClose();
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to save assets',
+      }));
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
     }
-    onClose();
   }, [state.discoveredAssets, onAssetCreated, onClose]);
 
   const renderQuestion = (question: Question) => {
@@ -714,18 +728,46 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
               </div>
 
               <div className="text-center space-y-4">
+                {state.error && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                    <div className="flex">
+                      <div className="text-red-400">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-red-800">Error</h3>
+                        <p className="mt-1 text-sm text-red-700">{state.error}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <p className="text-sm text-gray-600">
                   These assets will be added to your portfolio for Zakat
                   calculation.
                 </p>
                 <div className="flex space-x-4 justify-center">
-                  <Button onClick={handlePrevious} variant="outline">
+                  <Button onClick={handlePrevious} variant="outline" disabled={state.isLoading}>
                     <ChevronLeft className="h-4 w-4 mr-2" />
                     Back to Review
                   </Button>
-                  <Button onClick={handleComplete}>
-                    <Check className="h-4 w-4 mr-2" />
-                    Add Assets
+                  <Button onClick={handleComplete} disabled={state.isLoading}>
+                    {state.isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Saving Assets...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        Add Assets
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
