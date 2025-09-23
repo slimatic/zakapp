@@ -1,4 +1,4 @@
-import { Asset, AssetCategoryType } from '@zakapp/shared';
+import { Asset, AssetCategoryType, AssetFormData } from '@zakapp/shared';
 
 // Base API configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -82,17 +82,6 @@ const apiRequest = async <T>(
 
   return data.data as T;
 };
-
-// Asset form data interface
-export interface AssetFormData {
-  name: string;
-  category: AssetCategoryType;
-  subCategory: string;
-  value: number;
-  currency: string;
-  description?: string;
-  zakatEligible: boolean;
-}
 
 export const assetService = {
   // Get all user assets
