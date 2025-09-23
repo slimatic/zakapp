@@ -51,12 +51,16 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
   >('all');
   const [viewMode, setViewMode] = useState<'list' | 'categories'>('list');
 
-  // Use fetched assets if no props assets provided
+  // Sync local state with props or fetched assets
   useEffect(() => {
-    if (!propsAssets && fetchedAssets) {
+    if (propsAssets) {
+      // Always update local state when props change
+      setAssets(propsAssets);
+    } else if (fetchedAssets) {
+      // Fallback to fetched assets when no props provided
       setAssets(fetchedAssets);
     }
-  }, [fetchedAssets, propsAssets]);
+  }, [propsAssets, fetchedAssets]);
 
   // Filter assets based on search and category
   const filteredAssets = assets.filter(asset => {
