@@ -484,10 +484,11 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
         currentStep: prev.currentStep + 1,
       }));
     } else {
-      // Final step - generate assets
+      // Final step - generate assets and advance to results view
       const discoveredAssets = generateAssetsFromAnswers();
       setState(prev => ({
         ...prev,
+        currentStep: prev.currentStep + 1, // This is the key fix - advance to results view
         discoveredAssets,
       }));
     }
@@ -644,10 +645,10 @@ export const EnhancedAssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogTitle>Asset Discovery Questionnaire</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-auto">
+        <DialogTitle className="text-center">Asset Discovery Questionnaire</DialogTitle>
 
-        <div className="space-y-6">
+        <div className="space-y-6 p-4">
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
