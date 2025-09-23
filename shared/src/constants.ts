@@ -487,6 +487,8 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
+    DEMO_STATUS: '/auth/demo-status',
+    DEMO_USERS: '/auth/demo-users',
   },
   USERS: {
     PROFILE: '/users/profile',

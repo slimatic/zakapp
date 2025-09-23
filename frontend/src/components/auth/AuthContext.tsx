@@ -33,23 +33,78 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for stored auth on mount
+  // Check for stored auth on mount and handle demo users
   useEffect(() => {
-    const storedToken = localStorage.getItem('zakapp_token');
-    const storedUser = localStorage.getItem('zakapp_user');
-
-    if (storedToken && storedUser) {
+    const initializeAuth = async () => {
       try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        // Clear invalid stored data
-        localStorage.removeItem('zakapp_token');
-        localStorage.removeItem('zakapp_user');
-      }
-    }
+        // First, check if there are demo users in the system
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const demoStatusResponse = await fetch(`${baseUrl}/api/v1/auth/demo-status`);
+        
+        if (demoStatusResponse.ok) {
+          const demoData = await demoStatusResponse.json();
+          if (demoData.success && demoData.data.hasDemoUsers) {
+            console.log('Demo users found in system:', demoData.data.demoUsers);
+            
+            // Clear any existing auth data if demo users are present
+            localStorage.removeItem('zakapp_token');
+            localStorage.removeItem('zakapp_user');
+            
+            // Show startup page instead of auto-login
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        // Check for stored auth data only if no demo users exist
+        const storedToken = localStorage.getItem('zakapp_token');
+        const storedUser = localStorage.getItem('zakapp_user');
 
-    setIsLoading(false);
+        if (storedToken && storedUser) {
+          try {
+            const userData = JSON.parse(storedUser);
+            
+            // Verify this isn't a demo user
+            const isDemoUser = ['john_doe', 'demo', 'demo_user', 'test_user']
+              .some(demoUsername => 
+                userData.username?.toLowerCase() === demoUsername.toLowerCase()
+              );
+              
+            if (isDemoUser) {
+              console.warn('Demo user found in stored auth data. Clearing and showing startup page.');
+              localStorage.removeItem('zakapp_token');
+              localStorage.removeItem('zakapp_user');
+            } else {
+              setToken(storedToken);
+              setUser(userData);
+            }
+          } catch (error) {
+            // Clear invalid stored data
+            localStorage.removeItem('zakapp_token');
+            localStorage.removeItem('zakapp_user');
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to check demo user status:', error);
+        // Continue with normal auth flow if demo check fails
+        const storedToken = localStorage.getItem('zakapp_token');
+        const storedUser = localStorage.getItem('zakapp_user');
+
+        if (storedToken && storedUser) {
+          try {
+            setToken(storedToken);
+            setUser(JSON.parse(storedUser));
+          } catch (error) {
+            localStorage.removeItem('zakapp_token');
+            localStorage.removeItem('zakapp_user');
+          }
+        }
+      }
+
+      setIsLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
