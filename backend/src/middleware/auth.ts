@@ -62,10 +62,10 @@ export function authenticateToken(
   try {
     const decoded = verifyToken(token);
     (req as AuthenticatedRequest).user = decoded;
-    
+
     // Update session activity asynchronously
     updateSessionActivity(decoded.userId).catch(console.error);
-    
+
     next();
   } catch (error) {
     let message = 'Invalid or expired token';
@@ -112,7 +112,7 @@ export function optionalAuthentication(
       try {
         const decoded = verifyToken(token);
         (req as AuthenticatedRequest).user = decoded;
-        
+
         // Update session activity asynchronously
         updateSessionActivity(decoded.userId).catch(console.error);
       } catch (error) {
