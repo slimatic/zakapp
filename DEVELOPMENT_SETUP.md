@@ -29,20 +29,37 @@ BCRYPT_ROUNDS=12
 
 ## Development Authentication
 
-When `NODE_ENV=development`, the backend accepts mock tokens for testing:
-
-- `mock-dev-token-user1` - Maps to a development user
-- `demo-token` - Maps to a demo user
-
-These tokens allow you to test the API without going through the full authentication flow.
+For development, you will need to register and login to get a valid JWT token for testing. The application uses proper JWT authentication even in development mode.
 
 ## Testing the API
 
-You can test asset creation directly:
+To test the API, first register a user and login to get a valid token:
+
+```bash
+# Register a test user
+curl -X POST http://localhost:3001/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "TestPass123!",
+    "confirmPassword": "TestPass123!"
+  }'
+
+# Login to get a JWT token
+curl -X POST http://localhost:3001/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "password": "TestPass123!"
+  }'
+```
+
+Use the returned JWT token to test asset creation:
 
 ```bash
 curl -X POST http://localhost:3001/api/v1/assets \
-  -H "Authorization: Bearer mock-dev-token-user1" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE" \
   -H "Content-Type: application/json" \
   -d '{
     "name":"Test Asset",
