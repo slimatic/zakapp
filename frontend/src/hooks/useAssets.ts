@@ -1,10 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AssetCategoryType } from '@zakapp/shared';
-import { assetService } from '../services/assetService';
-import {
-  generateMockStatistics,
-  generateMockGroupedAssets,
-} from '../data/mockData';
+import { assetService, AssetStatistics } from '../services/assetService';
+
+// Generate empty statistics for fallback
+const generateEmptyStatistics = (): AssetStatistics => ({
+  totalAssets: 0,
+  totalValue: 0,
+  totalZakatEligible: 0,
+  assetsByCategory: {},
+  assetsByCurrency: {},
+});
+
+// Generate empty grouped assets for fallback
+const generateEmptyGroupedAssets = (): Record<string, never> => ({});
 
 // Hook for loading states
 export const useAsync = <T>(
@@ -55,9 +63,9 @@ export const useAssetStatistics = () => {
     try {
       return await assetService.getAssetStatistics();
     } catch (error) {
-      // Only use mock data as fallback when API fails (not when returns empty data)
-      console.warn('API failed, using mock statistics:', error);
-      return generateMockStatistics([]);
+      // Return empty statistics when API fails
+      console.warn('API failed, returning empty statistics:', error);
+      return generateEmptyStatistics();
     }
   });
 };
@@ -68,9 +76,9 @@ export const useGroupedAssets = () => {
     try {
       return await assetService.getGroupedAssets();
     } catch (error) {
-      // Only use mock data as fallback when API fails (not when returns empty data)
-      console.warn('API failed, using mock grouped assets:', error);
-      return generateMockGroupedAssets([]);
+      // Return empty grouped assets when API fails
+      console.warn('API failed, returning empty grouped assets:', error);
+      return generateEmptyGroupedAssets();
     }
   });
 };
@@ -81,8 +89,8 @@ export const useUserAssets = () => {
     try {
       return await assetService.getUserAssets();
     } catch (error) {
-      // Only use mock data as fallback when API fails (not when returns empty data)
-      console.warn('API failed, using mock assets:', error);
+      // Return empty array when API fails
+      console.warn('API failed, returning empty assets:', error);
       return [];
     }
   });
@@ -94,9 +102,9 @@ export const useAssetsByCategory = (category: AssetCategoryType) => {
     try {
       return await assetService.getAssetsByCategory(category);
     } catch (error) {
-      // Only use mock data as fallback when API fails (not when returns empty data)
+      // Return empty array when API fails
       console.warn(
-        'API failed, using empty assets for category:',
+        'API failed, returning empty assets for category:',
         category,
         error
       );
