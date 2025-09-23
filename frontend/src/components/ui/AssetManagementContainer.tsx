@@ -3,46 +3,7 @@ import { AssetManagement } from './AssetManagement';
 import { AssetFormData } from '@zakapp/shared';
 import { assetService } from '../../services/assetService';
 import { Asset } from '@zakapp/shared';
-
-// Mock assets for testing edit/delete functionality
-const mockAssets: Asset[] = [
-  {
-    assetId: '1',
-    name: 'Primary Savings Account',
-    category: 'cash',
-    subCategory: 'savings',
-    value: 25000,
-    currency: 'USD',
-    description: 'Main savings account for emergency fund',
-    zakatEligible: true,
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z',
-  },
-  {
-    assetId: '2',
-    name: 'Gold Investment',
-    category: 'gold',
-    subCategory: 'jewelry',
-    value: 15000,
-    currency: 'USD',
-    description: 'Gold jewelry and investment pieces',
-    zakatEligible: true,
-    createdAt: '2024-01-10T09:00:00Z',
-    updatedAt: '2024-01-10T09:00:00Z',
-  },
-  {
-    assetId: '3',
-    name: 'Stock Portfolio',
-    category: 'stocks',
-    subCategory: 'shares',
-    value: 45000,
-    currency: 'USD',
-    description: 'Diversified stock portfolio',
-    zakatEligible: true,
-    createdAt: '2024-01-05T14:30:00Z',
-    updatedAt: '2024-01-20T11:15:00Z',
-  },
-];
+import { mockAssets } from '../../data/mockData';
 
 /**
  * Container component that connects AssetManagement to the actual API service
