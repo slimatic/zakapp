@@ -1,10 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AssetCategoryType } from '@zakapp/shared';
 import { assetService } from '../services/assetService';
-import { mockAssets, generateMockStatistics, generateMockGroupedAssets } from '../data/mockData';
+import {
+  mockAssets,
+  generateMockStatistics,
+  generateMockGroupedAssets,
+} from '../data/mockData';
 
 // Hook for loading states
-export const useAsync = <T>(asyncFunction: () => Promise<T>, deps: unknown[] = []) => {
+export const useAsync = <T>(
+  asyncFunction: () => Promise<T>,
+  deps: unknown[] = []
+) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,7 +20,7 @@ export const useAsync = <T>(asyncFunction: () => Promise<T>, deps: unknown[] = [
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const loadData = async () => {
       try {
         setLoading(true);
@@ -89,7 +96,11 @@ export const useAssetsByCategory = (category: AssetCategoryType) => {
       return await assetService.getAssetsByCategory(category);
     } catch (error) {
       // Use mock data as fallback when API fails
-      console.warn('API failed, using mock assets for category:', category, error);
+      console.warn(
+        'API failed, using mock assets for category:',
+        category,
+        error
+      );
       return mockAssets.filter(asset => asset.category === category);
     }
   }, [category]);

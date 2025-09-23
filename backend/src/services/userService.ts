@@ -48,13 +48,16 @@ class UserService {
    */
   private async loadUserIndex(): Promise<void> {
     const indexPath = path.join(process.cwd(), 'data', 'users', 'index.json');
-    
+
     try {
       if (await fs.pathExists(indexPath)) {
         this.userIndex = await fs.readJson(indexPath);
       }
     } catch (error) {
-      console.warn('Failed to load user index, starting with empty index:', error);
+      console.warn(
+        'Failed to load user index, starting with empty index:',
+        error
+      );
       this.userIndex = {};
     }
   }
@@ -72,7 +75,10 @@ class UserService {
    */
   async userExists(username: string, email: string): Promise<boolean> {
     await this.initialize();
-    return !!(this.userIndex[username.toLowerCase()] || this.userIndex[email.toLowerCase()]);
+    return !!(
+      this.userIndex[username.toLowerCase()] ||
+      this.userIndex[email.toLowerCase()]
+    );
   }
 
   /**
@@ -121,7 +127,7 @@ class UserService {
 
     // Create user directory and save user data
     await createUserDirectory(userId);
-    
+
     // Store user profile data as JSON for now (unencrypted for simplicity)
     const profilePath = getUserFilePath(userId, 'profile.json');
     await fs.writeJson(profilePath, storedUser, { spaces: 2 });
@@ -143,7 +149,10 @@ class UserService {
   /**
    * Authenticate user with username/email and password
    */
-  async authenticateUser(usernameOrEmail: string, password: string): Promise<User | null> {
+  async authenticateUser(
+    usernameOrEmail: string,
+    password: string
+  ): Promise<User | null> {
     await this.initialize();
 
     const userId = await this.getUserId(usernameOrEmail);
@@ -159,8 +168,11 @@ class UserService {
 
       // Get stored user data for password verification
       const storedUser = await this.getStoredUser(userId);
-      const isValidPassword = await verifyPassword(password, storedUser.passwordHash);
-      
+      const isValidPassword = await verifyPassword(
+        password,
+        storedUser.passwordHash
+      );
+
       if (!isValidPassword) {
         return null;
       }
@@ -187,7 +199,7 @@ class UserService {
       }
 
       const storedUser = await this.getStoredUser(userId);
-      
+
       return {
         userId: storedUser.userId,
         username: storedUser.username,
@@ -233,27 +245,32 @@ class UserService {
       // Update email in index if changed
       if (updates.email && updates.email !== user.email) {
         // Check if new email already exists
-        if (this.userIndex[updates.email.toLowerCase()] && 
-            this.userIndex[updates.email.toLowerCase()] !== userId) {
+        if (
+          this.userIndex[updates.email.toLowerCase()] &&
+          this.userIndex[updates.email.toLowerCase()] !== userId
+        ) {
           throw new Error('Email already exists');
         }
 
         // Remove old email from index and add new one
         delete this.userIndex[user.email.toLowerCase()];
         this.userIndex[updates.email.toLowerCase()] = userId;
-        
+
         storedUser.email = updates.email;
       }
 
       // Update preferences
       if (updates.preferences) {
-        storedUser.preferences = { ...storedUser.preferences, ...updates.preferences };
+        storedUser.preferences = {
+          ...storedUser.preferences,
+          ...updates.preferences,
+        };
       }
 
       // Save updated user data
       const profilePath = getUserFilePath(userId, 'profile.json');
       await fs.writeJson(profilePath, storedUser, { spaces: 2 });
-      
+
       if (updates.email) {
         await this.saveUserIndex();
       }
@@ -268,24 +285,31 @@ class UserService {
   /**
    * Change user password
    */
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<boolean> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> {
     await this.initialize();
 
     try {
       const storedUser = await this.getStoredUser(userId);
-      
+
       // Verify current password
-      const isValidPassword = await verifyPassword(currentPassword, storedUser.passwordHash);
+      const isValidPassword = await verifyPassword(
+        currentPassword,
+        storedUser.passwordHash
+      );
       if (!isValidPassword) {
         return false;
       }
 
       // Hash new password
       const newPasswordHash = await hashPassword(newPassword);
-      
+
       // Update stored user data
       storedUser.passwordHash = newPasswordHash;
-      
+
       const profilePath = getUserFilePath(userId, 'profile.json');
       await fs.writeJson(profilePath, storedUser, { spaces: 2 });
 
@@ -303,7 +327,7 @@ class UserService {
     try {
       const storedUser = await this.getStoredUser(userId);
       storedUser.lastLogin = new Date().toISOString();
-      
+
       const profilePath = getUserFilePath(userId, 'profile.json');
       await fs.writeJson(profilePath, storedUser, { spaces: 2 });
     } catch (error) {

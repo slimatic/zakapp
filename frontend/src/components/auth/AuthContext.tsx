@@ -1,5 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, LoginRequest, RegisterRequest, API_ENDPOINTS } from '@zakapp/shared';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
+import {
+  User,
+  LoginRequest,
+  RegisterRequest,
+  API_ENDPOINTS,
+} from '@zakapp/shared';
 
 interface AuthContextType {
   user: User | null;
@@ -26,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const storedToken = localStorage.getItem('zakapp_token');
     const storedUser = localStorage.getItem('zakapp_user');
-    
+
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
@@ -47,15 +58,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           currency: 'USD',
           language: 'en',
           zakatMethod: 'standard',
-          calendarType: 'lunar'
-        }
+          calendarType: 'lunar',
+        },
       };
       setUser(mockUser);
       setToken('demo-token');
       localStorage.setItem('zakapp_token', 'demo-token');
       localStorage.setItem('zakapp_user', JSON.stringify(mockUser));
     }
-    
+
     setIsLoading(false);
   }, []);
 
@@ -71,8 +82,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Network error' }));
-      throw new Error(errorData.error?.message || errorData.message || 'Request failed');
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: 'Network error' }));
+      throw new Error(
+        errorData.error?.message || errorData.message || 'Request failed'
+      );
     }
 
     return response.json();
@@ -90,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { user: userData, token: authToken } = response.data;
         setUser(userData);
         setToken(authToken);
-        
+
         // Store in localStorage
         localStorage.setItem('zakapp_token', authToken);
         localStorage.setItem('zakapp_user', JSON.stringify(userData));
@@ -112,7 +127,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (response.success) {
         // Auto-login after successful registration
-        await login({ username: userData.username, password: userData.password });
+        await login({
+          username: userData.username,
+          password: userData.password,
+        });
       } else {
         throw new Error(response.error?.message || 'Registration failed');
       }
@@ -126,7 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setToken(null);
     localStorage.removeItem('zakapp_token');
     localStorage.removeItem('zakapp_user');
-    
+
     // Optionally call logout endpoint
     if (token) {
       apiCall(API_ENDPOINTS.AUTH.LOGOUT, { method: 'POST' }).catch(() => {
@@ -145,11 +163,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user && !!token,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

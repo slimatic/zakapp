@@ -16,11 +16,15 @@ interface HelpContent {
   tips?: string[];
 }
 
-const getHelpContent = (category?: AssetCategoryType, field?: string): HelpContent => {
+const getHelpContent = (
+  category?: AssetCategoryType,
+  field?: string
+): HelpContent => {
   if (!category) {
     return {
       title: 'Getting Started',
-      description: 'Choose the type of asset you want to add. Each category has specific fields to help ensure accurate Zakat calculation.',
+      description:
+        'Choose the type of asset you want to add. Each category has specific fields to help ensure accurate Zakat calculation.',
       examples: [
         'Cash & Bank Accounts: Savings, checking accounts',
         'Gold & Silver: Jewelry, coins, bars',
@@ -31,12 +35,15 @@ const getHelpContent = (category?: AssetCategoryType, field?: string): HelpConte
     };
   }
 
-  const categoryData = Object.values(ASSET_CATEGORIES).find(cat => cat.id === category);
-  
+  const categoryData = Object.values(ASSET_CATEGORIES).find(
+    cat => cat.id === category
+  );
+
   if (!categoryData) {
     return {
       title: 'Asset Information',
-      description: 'Please provide accurate information about your asset for proper Zakat calculation.',
+      description:
+        'Please provide accurate information about your asset for proper Zakat calculation.',
     };
   }
 
@@ -46,7 +53,8 @@ const getHelpContent = (category?: AssetCategoryType, field?: string): HelpConte
       case 'name':
         return {
           title: 'Asset Name',
-          description: 'Give your asset a descriptive name to help you identify it later.',
+          description:
+            'Give your asset a descriptive name to help you identify it later.',
           examples: [
             'Primary Savings Account',
             'Wedding Gold Jewelry',
@@ -55,11 +63,12 @@ const getHelpContent = (category?: AssetCategoryType, field?: string): HelpConte
           ],
           tips: ['Use clear, specific names', 'Include location if relevant'],
         };
-      
+
       case 'value':
         return {
           title: 'Asset Value',
-          description: 'Enter the current market value of your asset in your chosen currency.',
+          description:
+            'Enter the current market value of your asset in your chosen currency.',
           tips: [
             'Use current market prices for precious metals',
             'For property, use fair market value',
@@ -67,18 +76,19 @@ const getHelpContent = (category?: AssetCategoryType, field?: string): HelpConte
             'Include only the portion you own',
           ],
         };
-      
+
       case 'zakatEligible':
         return {
           title: 'Zakat Eligibility',
-          description: 'Determine whether this asset is subject to Zakat based on Islamic principles.',
+          description:
+            'Determine whether this asset is subject to Zakat based on Islamic principles.',
           tips: [
             'Personal-use items are typically not eligible',
             'Investment assets are usually eligible',
             'Consult a scholar if unsure',
           ],
         };
-      
+
       default:
         break;
     }
@@ -88,11 +98,17 @@ const getHelpContent = (category?: AssetCategoryType, field?: string): HelpConte
   return {
     title: categoryData.name,
     description: categoryData.description,
-    examples: categoryData.subCategories.map(sub => `${sub.name}: ${sub.description}`),
+    examples: categoryData.subCategories.map(
+      sub => `${sub.name}: ${sub.description}`
+    ),
     tips: [
       `Zakat rate: ${categoryData.zakatRate}%`,
-      categoryData.nisabApplicable ? 'Subject to Nisab threshold' : 'Not subject to Nisab',
-      categoryData.defaultZakatEligible ? 'Generally Zakat eligible' : 'Zakat eligibility varies',
+      categoryData.nisabApplicable
+        ? 'Subject to Nisab threshold'
+        : 'Not subject to Nisab',
+      categoryData.defaultZakatEligible
+        ? 'Generally Zakat eligible'
+        : 'Zakat eligibility varies',
     ],
   };
 };
@@ -164,7 +180,8 @@ export const ContextualHelp: React.FC<ContextualHelpProps> = ({
         {/* Footer */}
         <div className="px-6 py-4 bg-neutral-50 border-t border-neutral-200 rounded-b-xl">
           <p className="text-sm text-neutral-600">
-            Need more help? Consider consulting with a qualified Islamic scholar for specific guidance on your situation.
+            Need more help? Consider consulting with a qualified Islamic scholar
+            for specific guidance on your situation.
           </p>
         </div>
       </div>

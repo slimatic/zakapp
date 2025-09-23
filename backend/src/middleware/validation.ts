@@ -12,11 +12,11 @@ export function validateBody(schema: ZodSchema) {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors = error.errors.map((err) => ({
+        const validationErrors = error.errors.map(err => ({
           field: err.path.join('.'),
           message: err.message,
         }));
-        
+
         res.status(400).json({
           success: false,
           error: {
@@ -27,7 +27,7 @@ export function validateBody(schema: ZodSchema) {
         });
         return;
       }
-      
+
       res.status(400).json({
         success: false,
         error: {
@@ -49,11 +49,11 @@ export function validateQuery(schema: ZodSchema) {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors = error.errors.map((err) => ({
+        const validationErrors = error.errors.map(err => ({
           field: err.path.join('.'),
           message: err.message,
         }));
-        
+
         res.status(400).json({
           success: false,
           error: {
@@ -64,7 +64,7 @@ export function validateQuery(schema: ZodSchema) {
         });
         return;
       }
-      
+
       res.status(400).json({
         success: false,
         error: {
@@ -86,11 +86,11 @@ export function validateParams(schema: ZodSchema) {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors = error.errors.map((err) => ({
+        const validationErrors = error.errors.map(err => ({
           field: err.path.join('.'),
           message: err.message,
         }));
-        
+
         res.status(400).json({
           success: false,
           error: {
@@ -101,7 +101,7 @@ export function validateParams(schema: ZodSchema) {
         });
         return;
       }
-      
+
       res.status(400).json({
         success: false,
         error: {

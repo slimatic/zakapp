@@ -5,14 +5,13 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.test.ts'],
   extensionsToTreatAsEsm: ['.ts'],
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
-      useESM: true,
-    }],
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
   },
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/__tests__/**',
-    '!src/index.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/__tests__/**', '!src/index.ts'],
   testTimeout: 15000,
 };
