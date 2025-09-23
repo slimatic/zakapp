@@ -9,7 +9,9 @@ import { AssetForm } from './AssetForm';
 import { AssetList } from './AssetList';
 import { AssetCategoryView } from './AssetCategoryView';
 import { AssetQuestionnaire } from './AssetQuestionnaire';
-import { Plus, Search, Filter, List, PieChart, HelpCircle } from 'lucide-react';
+import { EnhancedAssetQuestionnaire } from './EnhancedAssetQuestionnaire';
+import { AssetBulkOperations } from './AssetBulkOperations';
+import { Plus, Search, Filter, List, PieChart, HelpCircle, Upload, Download } from 'lucide-react';
 import { useUserAssets } from '../../hooks';
 import { mockAssets } from '../../data/mockData';
 
@@ -31,6 +33,8 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
   const [assets, setAssets] = useState<Asset[]>(propsAssets || mockAssets);
   const [showForm, setShowForm] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [showEnhancedQuestionnaire, setShowEnhancedQuestionnaire] = useState(false);
+  const [showBulkOperations, setShowBulkOperations] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -149,6 +153,16 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
     setShowQuestionnaire(false);
   };
 
+  const handleEnhancedQuestionnaireAssetCreated = (asset: Asset) => {
+    setAssets(prev => [...prev, asset]);
+    setShowEnhancedQuestionnaire(false);
+  };
+
+  const handleBulkAssetsImported = (newAssets: Asset[]) => {
+    setAssets(prev => [...prev, ...newAssets]);
+    setShowBulkOperations(false);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -232,18 +246,25 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
           {/* Add Asset Button Group */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowQuestionnaire(true)}
+              onClick={() => setShowBulkOperations(true)}
+              className="flex items-center gap-2 bg-secondary-600 text-white px-4 py-2 rounded-lg hover:bg-secondary-700 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2 transition-colors"
+            >
+              <Upload className="w-4 h-4" />
+              Bulk Import
+            </button>
+            <button
+              onClick={() => setShowEnhancedQuestionnaire(true)}
               className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
             >
               <HelpCircle className="w-4 h-4" />
-              Guided Setup
+              Asset Discovery
             </button>
             <button
               onClick={() => setShowForm(true)}
               className="flex items-center gap-2 border border-primary-600 text-primary-600 px-4 py-2 rounded-lg hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Quick Add
+              Manual Add
             </button>
           </div>
         </div>
@@ -306,6 +327,21 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
         isOpen={showQuestionnaire}
         onClose={() => setShowQuestionnaire(false)}
         onAssetCreated={handleQuestionnaireAssetCreated}
+      />
+
+      {/* Enhanced Asset Questionnaire */}
+      <EnhancedAssetQuestionnaire
+        isOpen={showEnhancedQuestionnaire}
+        onClose={() => setShowEnhancedQuestionnaire(false)}
+        onAssetCreated={handleEnhancedQuestionnaireAssetCreated}
+      />
+
+      {/* Bulk Operations */}
+      <AssetBulkOperations
+        isOpen={showBulkOperations}
+        onClose={() => setShowBulkOperations(false)}
+        onAssetsImported={handleBulkAssetsImported}
+        userAssets={assets}
       />
     </div>
   );
