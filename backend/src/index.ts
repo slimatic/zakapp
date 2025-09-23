@@ -9,6 +9,7 @@ import { usersRouter } from './routes/users.js';
 import { dataRouter } from './routes/data.js';
 import { assetsRouter } from './routes/assets.js';
 import { assetBulkRouter } from './routes/assetBulk.js';
+import zakatRouter from './routes/zakat.js';
 import {
   generalRateLimit,
   securityHeaders,
@@ -76,6 +77,7 @@ app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/data', dataRouter);
 app.use('/api/v1/assets', assetsRouter);
 app.use('/api/v1/assets/bulk', assetBulkRouter);
+app.use('/api/v1/zakat', zakatRouter);
 
 // Basic API endpoint
 app.get('/api', (req, res) => {
