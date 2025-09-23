@@ -12,13 +12,6 @@ export interface AuthenticatedRequest extends Request {
   user?: JWTPayload;
 }
 
-// Development user for mock authentication
-const DEV_USER: JWTPayload = {
-  userId: 'dev-user-1',
-  username: 'dev-user',
-  email: 'dev@zakapp.local',
-};
-
 /**
  * Authentication middleware to verify JWT tokens
  */
@@ -37,13 +30,6 @@ export function authenticateToken(
         message: 'Access token is required',
       },
     });
-    return;
-  }
-
-  // Handle development mock token
-  if (process.env.NODE_ENV === 'development' && (token === 'mock-dev-token-user1' || token === 'demo-token')) {
-    (req as AuthenticatedRequest).user = DEV_USER;
-    next();
     return;
   }
 
@@ -101,13 +87,6 @@ export function optionalAuthentication(
   const token = extractTokenFromHeader(req.headers.authorization);
 
   if (token) {
-    // Handle development mock token
-    if (process.env.NODE_ENV === 'development' && (token === 'mock-dev-token-user1' || token === 'demo-token')) {
-      (req as AuthenticatedRequest).user = DEV_USER;
-      next();
-      return;
-    }
-
     if (!isTokenBlacklisted(token)) {
       try {
         const decoded = verifyToken(token);

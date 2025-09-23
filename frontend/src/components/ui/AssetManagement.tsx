@@ -21,7 +21,6 @@ import {
   Upload,
 } from 'lucide-react';
 import { useUserAssets } from '../../hooks';
-import { mockAssets } from '../../data/mockData';
 
 interface AssetManagementProps {
   // These would be connected to your API/state management
@@ -38,7 +37,7 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
   onDeleteAsset,
 }) => {
   const { data: fetchedAssets } = useUserAssets();
-  const [assets, setAssets] = useState<Asset[]>(propsAssets || mockAssets);
+  const [assets, setAssets] = useState<Asset[]>(propsAssets || []);
   const [showForm, setShowForm] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [showEnhancedQuestionnaire, setShowEnhancedQuestionnaire] =
@@ -80,7 +79,7 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
       if (onCreateAsset) {
         await onCreateAsset(assetData);
       } else {
-        // Mock implementation
+        // Fallback implementation for local state management
         const newAsset: Asset = {
           assetId: Date.now().toString(),
           ...assetData,
@@ -105,7 +104,7 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
       if (onUpdateAsset) {
         await onUpdateAsset(editingAsset.assetId, assetData);
       } else {
-        // Mock implementation
+        // Fallback implementation for local state management
         setAssets(prev =>
           prev.map(asset =>
             asset.assetId === editingAsset.assetId
@@ -137,7 +136,7 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
       if (onDeleteAsset) {
         await onDeleteAsset(assetId);
       } else {
-        // Mock implementation
+        // Fallback implementation for local state management
         setAssets(prev => prev.filter(asset => asset.assetId !== assetId));
       }
     } catch (error) {
