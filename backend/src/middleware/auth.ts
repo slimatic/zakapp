@@ -119,6 +119,8 @@ export function optionalAuthentication(
         // Silently fail for optional authentication
         // User will be undefined
       }
-      
+    }
+  }
+  
   next();
 }
