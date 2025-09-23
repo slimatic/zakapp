@@ -42,7 +42,7 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
           type={inputType}
           id={name}
           name={name}
-          placeholder={placeholder}
+          placeholder={placeholder || (inputType === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM')}
           disabled={disabled}
           className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
             error
@@ -51,6 +51,11 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
           } ${disabled ? 'bg-neutral-50 cursor-not-allowed' : ''}`}
           {...props}
         />
+        {!error && inputType === 'date' && (
+          <p className="mt-1 text-xs text-neutral-500">
+            Enter date in YYYY-MM-DD format (e.g., 2025-09-23)
+          </p>
+        )}
         {error && <p className="mt-1 text-sm text-red-600">{error.message}</p>}
       </div>
     );
