@@ -5,12 +5,12 @@ import {
   generateUserId,
 } from '../utils/fileSystem.js';
 import { CreateAssetRequest, UpdateAssetRequest } from '../utils/validation.js';
-import {
-  StoredAsset,
-  AssetFilters,
-  AssetHistory,
-  AssetSummary,
-} from '../models/index.js';
+import { AssetFilters } from '../models/index.js';
+
+// Define StoredAsset interface locally to fix unused import
+interface StoredAsset extends Asset {
+  userId: string;
+}
 
 class AssetService {
   private readonly ASSETS_FILE = 'assets.json';

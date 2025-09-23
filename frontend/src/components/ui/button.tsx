@@ -2,7 +2,13 @@ import React from 'react';
 import { clsx } from 'clsx';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost';
+  variant?:
+    | 'default'
+    | 'primary'
+    | 'secondary'
+    | 'accent'
+    | 'outline'
+    | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
 }
@@ -15,13 +21,14 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseClasses = 'btn';
-  
+
   const variantClasses = {
     default: 'btn-primary',
     primary: 'btn-primary',
     secondary: 'btn-secondary',
     accent: 'btn-accent',
-    outline: 'border border-neutral-300 bg-transparent text-neutral-700 hover:bg-neutral-50',
+    outline:
+      'border border-neutral-300 bg-transparent text-neutral-700 hover:bg-neutral-50',
     ghost: 'bg-transparent text-neutral-700 hover:bg-neutral-100',
   };
 

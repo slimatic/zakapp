@@ -11,7 +11,15 @@ import { AssetCategoryView } from './AssetCategoryView';
 import { AssetQuestionnaire } from './AssetQuestionnaire';
 import { EnhancedAssetQuestionnaire } from './EnhancedAssetQuestionnaire';
 import { AssetBulkOperations } from './AssetBulkOperations';
-import { Plus, Search, Filter, List, PieChart, HelpCircle, Upload } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Filter,
+  List,
+  PieChart,
+  HelpCircle,
+  Upload,
+} from 'lucide-react';
 import { useUserAssets } from '../../hooks';
 import { mockAssets } from '../../data/mockData';
 
@@ -33,7 +41,8 @@ export const AssetManagement: React.FC<AssetManagementProps> = ({
   const [assets, setAssets] = useState<Asset[]>(propsAssets || mockAssets);
   const [showForm, setShowForm] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
-  const [showEnhancedQuestionnaire, setShowEnhancedQuestionnaire] = useState(false);
+  const [showEnhancedQuestionnaire, setShowEnhancedQuestionnaire] =
+    useState(false);
   const [showBulkOperations, setShowBulkOperations] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isLoading, setIsLoading] = useState(false);

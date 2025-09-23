@@ -1,12 +1,12 @@
 import express from 'express';
 import { userService } from '../services/userService.js';
-import { generateToken, getTokenExpirationInfo, extractTokenFromHeader } from '../utils/auth.js';
-import { 
-  generateTokenPair, 
-  refreshAccessToken, 
-  createSession, 
-  deleteSession, 
-  blacklistToken 
+import { extractTokenFromHeader } from '../utils/auth.js';
+import {
+  generateTokenPair,
+  refreshAccessToken,
+  createSession,
+  deleteSession,
+  blacklistToken,
 } from '../utils/session.js';
 import { validateBody, authRateLimit } from '../middleware/index.js';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
@@ -89,7 +89,7 @@ router.post('/login', validateBody(loginSchema), async (req, res) => {
 
     // Generate JWT tokens with session management
     const { accessToken, refreshToken, expiresIn } = generateTokenPair(user);
-    
+
     // Create session record
     await createSession(user);
 

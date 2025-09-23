@@ -9,11 +9,11 @@ import { usersRouter } from './routes/users.js';
 import { dataRouter } from './routes/data.js';
 import { assetsRouter } from './routes/assets.js';
 import { assetBulkRouter } from './routes/assetBulk.js';
-import { 
-  generalRateLimit, 
-  securityHeaders, 
-  sanitizeInput, 
-  requestSizeLimit 
+import {
+  generalRateLimit,
+  securityHeaders,
+  sanitizeInput,
+  requestSizeLimit,
 } from './middleware/security.js';
 import { initializeSessions } from './utils/session.js';
 import { API_ENDPOINTS } from '@zakapp/shared';
@@ -29,24 +29,26 @@ const PORT = process.env.PORT || 3001;
 initializeSessions().catch(console.error);
 
 // Security middleware (applied early)
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:"],
-      fontSrc: ["'self'"],
-      connectSrc: ["'self'"],
-      frameAncestors: ["'none'"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:'],
+        fontSrc: ["'self'"],
+        connectSrc: ["'self'"],
+        frameAncestors: ["'none'"],
+      },
     },
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true,
-  },
-}));
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+);
 
 app.use(securityHeaders);
 app.use(
