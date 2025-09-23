@@ -25,6 +25,13 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
+// Log port configuration
+console.log(`🔧 Server configuration:`);
+console.log(`   Port: ${PORT} ${process.env.PORT ? '(from environment)' : '(default)'}`);
+console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`   CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
+console.log('');
+
 // Initialize session management
 initializeSessions().catch(console.error);
 
@@ -115,11 +122,50 @@ app.use(
   }
 );
 
-// Start server
+// Start server with error handling
 server.listen(PORT, () => {
   console.log(`🚀 Backend server running on http://localhost:${PORT}`);
   console.log(`📝 API documentation: http://localhost:${PORT}/api`);
   console.log(`✅ Shared package integration working!`);
+});
+
+// Handle server startup errors
+server.on('error', (error: Error & { code?: string }) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use!`);
+    console.error('');
+    console.error('To fix this issue, you can:');
+    console.error(`• Set a different port: PORT=3002 npm run dev`);
+    console.error(`• Or set PORT environment variable: export PORT=3002`);
+    console.error(`• Or kill the process using port ${PORT}:`);
+    console.error(`  - Find the process: lsof -ti:${PORT}`);
+    console.error(`  - Kill the process: kill -9 $(lsof -ti:${PORT})`);
+    console.error('');
+    console.error('If using Docker:');
+    console.error('• Make sure to update the port mapping in docker-compose.yml');
+    console.error(`• Change "3001:3001" to "${PORT}:${PORT}" in the backend service`);
+    process.exit(1);
+  } else {
+    console.error('Server startup failed:', error);
+    process.exit(1);
+  }
+});
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n🛑 Gracefully shutting down server...');
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n🛑 Received SIGTERM, shutting down server...');
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
 });
 
 export default app;
