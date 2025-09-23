@@ -19,7 +19,7 @@ RUN cd shared && npm run build
 # Copy backend package files
 COPY backend/package*.json ./backend/
 
-# Install backend dependencies
+# Install backend dependencies (this will link to ../shared)
 RUN cd backend && npm ci
 
 # Copy backend source code
