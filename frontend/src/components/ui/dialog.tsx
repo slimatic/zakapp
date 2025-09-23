@@ -15,7 +15,11 @@ interface DialogTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
   children: React.ReactNode;
 }
 
-export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
+export const Dialog: React.FC<DialogProps> = ({
+  open,
+  onOpenChange,
+  children,
+}) => {
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,7 +61,11 @@ export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) 
   );
 };
 
-export const DialogContent: React.FC<DialogContentProps> = ({ className, children, ...props }) => {
+export const DialogContent: React.FC<DialogContentProps> = ({
+  className,
+  children,
+  ...props
+}) => {
   return (
     <div
       className={clsx(
@@ -65,7 +73,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({ className, childre
         'animate-scale-in',
         className
       )}
-      onClick={(e) => e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
       {...props}
     >
       {children}
@@ -73,7 +81,11 @@ export const DialogContent: React.FC<DialogContentProps> = ({ className, childre
   );
 };
 
-export const DialogTitle: React.FC<DialogTitleProps> = ({ className, children, ...props }) => {
+export const DialogTitle: React.FC<DialogTitleProps> = ({
+  className,
+  children,
+  ...props
+}) => {
   return (
     <h2
       className={clsx(
