@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useQuestionnaireStore } from '../../store';
 import QuestionnaireProgress from './QuestionnaireProgress';
@@ -42,9 +42,6 @@ export const AssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
     field?: string;
   }>({});
 
-  // Don't render if not open
-  if (!isOpen) return null;
-
   const handleClose = () => {
     resetQuestionnaire();
     onClose();
@@ -65,15 +62,39 @@ export const AssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
   };
 
   const handleComplete = () => {
-    const asset = completeQuestionnaire();
-    if (asset && onAssetCreated) {
-      onAssetCreated(asset);
-      handleClose();
+    // Use the real validation with error handling when completing
+    if (validateCurrentStep()) {
+      const asset = completeQuestionnaire();
+      if (asset && onAssetCreated) {
+        onAssetCreated(asset);
+        handleClose();
+      }
     }
   };
 
   const currentStep = steps[currentStepIndex];
-  const canProceed = validateCurrentStep();
+  
+  // Memoize canProceed to prevent infinite loop from validateCurrentStep
+  const canProceed = useMemo(() => {
+    // Create a read-only validation that doesn't modify state during render
+    switch (currentStepIndex) {
+      case 0: // Welcome step
+        return true;
+      case 1: // Category step
+        return !!assetData.category;
+      case 2: // Details step
+        return !!assetData.name?.trim() && assetData.value > 0 && !!assetData.subCategory;
+      case 3: // Review step
+        return true;
+      default:
+        return true;
+    }
+  }, [currentStepIndex, assetData.category, assetData.name, assetData.value, assetData.subCategory]);
+
+  // Don't render if not open
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-40">

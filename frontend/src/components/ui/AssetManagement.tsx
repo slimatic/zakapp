@@ -6,6 +6,7 @@ import { AssetCategoryView } from './AssetCategoryView';
 import { AssetQuestionnaire } from './AssetQuestionnaire';
 import { Plus, Search, Filter, List, PieChart, HelpCircle } from 'lucide-react';
 import { useUserAssets } from '../../hooks';
+import { mockAssets } from '../../data/mockData';
 
 interface AssetManagementProps {
   // These would be connected to your API/state management
@@ -14,93 +15,6 @@ interface AssetManagementProps {
   onUpdateAsset?: (assetId: string, assetData: AssetFormData) => Promise<void>;
   onDeleteAsset?: (assetId: string) => Promise<void>;
 }
-
-// Mock data for demonstration - in real app this would come from API
-const mockAssets: Asset[] = [
-  {
-    assetId: '1',
-    name: 'Primary Savings Account',
-    category: 'cash',
-    subCategory: 'savings',
-    value: 25000,
-    currency: 'USD',
-    description: 'Main savings account for emergency fund',
-    zakatEligible: true,
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z',
-  },
-  {
-    assetId: '2', 
-    name: 'Gold Jewelry Collection',
-    category: 'gold',
-    subCategory: 'jewelry',
-    value: 12000,
-    currency: 'USD',
-    description: 'Family gold jewelry collection',
-    zakatEligible: true,
-    createdAt: '2024-01-10T10:00:00Z',
-    updatedAt: '2024-01-10T10:00:00Z',
-  },
-  {
-    assetId: '3',
-    name: 'Bitcoin Investment',
-    category: 'crypto',
-    subCategory: 'bitcoin',
-    value: 8500,
-    currency: 'USD',
-    zakatEligible: true,
-    createdAt: '2024-01-05T10:00:00Z',
-    updatedAt: '2024-01-05T10:00:00Z',
-  },
-  {
-    assetId: '4',
-    name: 'Checking Account',
-    category: 'cash',
-    subCategory: 'checking',
-    value: 3500,
-    currency: 'USD',
-    description: 'Daily transactions account',
-    zakatEligible: true,
-    createdAt: '2024-01-12T10:00:00Z',
-    updatedAt: '2024-01-12T10:00:00Z',
-  },
-  {
-    assetId: '5',
-    name: 'Apple Stock',
-    category: 'stocks',
-    subCategory: 'individual_stocks',
-    value: 15000,
-    currency: 'USD',
-    description: 'AAPL shares investment',
-    zakatEligible: true,
-    createdAt: '2024-01-08T10:00:00Z',
-    updatedAt: '2024-01-08T10:00:00Z',
-  },
-  {
-    assetId: '6',
-    name: 'Silver Coins',
-    category: 'silver',
-    subCategory: 'coins',
-    value: 2800,
-    currency: 'USD',
-    description: 'Silver eagle coins collection',
-    zakatEligible: true,
-    createdAt: '2024-01-03T10:00:00Z',
-    updatedAt: '2024-01-03T10:00:00Z',
-  },
-  {
-    assetId: '7',
-    name: 'Business Inventory',
-    category: 'business',
-    subCategory: 'inventory',
-    value: 45000,
-    currency: 'USD',
-    description: 'Restaurant kitchen equipment and supplies',
-    zakatEligible: true,
-    createdAt: '2024-01-01T10:00:00Z',
-    updatedAt: '2024-01-01T10:00:00Z',
-  }
-];
 
 export const AssetManagement: React.FC<AssetManagementProps> = ({
   assets: propsAssets,
