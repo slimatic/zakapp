@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AssetCategoryType } from '@zakapp/shared';
 import { assetService } from '../services/assetService';
+import { mockAssets, generateMockStatistics, generateMockGroupedAssets } from '../data/mockData';
 
 // Hook for loading states
 export const useAsync = <T>(asyncFunction: () => Promise<T>, deps: unknown[] = []) => {
@@ -42,22 +43,54 @@ export const useAsync = <T>(asyncFunction: () => Promise<T>, deps: unknown[] = [
   return { data, loading, error, refetch: () => setLoading(true) };
 };
 
-// Hook for asset statistics
+// Hook for asset statistics with fallback
 export const useAssetStatistics = () => {
-  return useAsync(() => assetService.getAssetStatistics());
+  return useAsync(async () => {
+    try {
+      return await assetService.getAssetStatistics();
+    } catch (error) {
+      // Use mock data as fallback when API fails
+      console.warn('API failed, using mock statistics:', error);
+      return generateMockStatistics();
+    }
+  });
 };
 
-// Hook for grouped assets
+// Hook for grouped assets with fallback
 export const useGroupedAssets = () => {
-  return useAsync(() => assetService.getGroupedAssets());
+  return useAsync(async () => {
+    try {
+      return await assetService.getGroupedAssets();
+    } catch (error) {
+      // Use mock data as fallback when API fails
+      console.warn('API failed, using mock grouped assets:', error);
+      return generateMockGroupedAssets();
+    }
+  });
 };
 
-// Hook for all user assets
+// Hook for all user assets with fallback
 export const useUserAssets = () => {
-  return useAsync(() => assetService.getUserAssets());
+  return useAsync(async () => {
+    try {
+      return await assetService.getUserAssets();
+    } catch (error) {
+      // Use mock data as fallback when API fails
+      console.warn('API failed, using mock assets:', error);
+      return mockAssets;
+    }
+  });
 };
 
-// Hook for assets by category
+// Hook for assets by category with fallback
 export const useAssetsByCategory = (category: AssetCategoryType) => {
-  return useAsync(() => assetService.getAssetsByCategory(category), [category]);
+  return useAsync(async () => {
+    try {
+      return await assetService.getAssetsByCategory(category);
+    } catch (error) {
+      // Use mock data as fallback when API fails
+      console.warn('API failed, using mock assets for category:', category, error);
+      return mockAssets.filter(asset => asset.category === category);
+    }
+  }, [category]);
 };
