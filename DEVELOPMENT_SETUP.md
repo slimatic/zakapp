@@ -8,6 +8,8 @@ For development and testing, create a `.env` file in the `backend/` directory wi
 # Backend Environment Configuration
 
 # Server Configuration
+# The port the server will listen on. If not set, defaults to 3001.
+# Change this if you get "EADDRINUSE" errors or need to run multiple instances.
 PORT=3001
 NODE_ENV=development
 
@@ -25,6 +27,45 @@ DATA_DIR=./data
 # Security Settings
 # Password hashing rounds (higher = more secure but slower)
 BCRYPT_ROUNDS=12
+```
+
+## Port Configuration
+
+The backend server supports flexible port configuration to avoid common "address already in use" errors:
+
+### Setting the Port
+
+You can configure the server port in several ways:
+
+1. **Environment Variable**: Set `PORT=3002` in your `.env` file
+2. **Command Line**: `PORT=3002 npm run dev`
+3. **Export**: `export PORT=3002 && npm run dev`
+
+### Handling Port Conflicts
+
+If you encounter an "EADDRINUSE" error, the server will provide helpful guidance:
+
+```
+❌ Port 3001 is already in use!
+
+To fix this issue, you can:
+• Set a different port: PORT=3002 npm run dev
+• Or set PORT environment variable: export PORT=3002
+• Or kill the process using port 3001:
+  - Find the process: lsof -ti:3001
+  - Kill the process: kill -9 $(lsof -ti:3001)
+```
+
+### Docker Configuration
+
+When using Docker, make sure to update your `docker-compose.yml` if you change the port:
+
+```yaml
+backend:
+  ports:
+    - '3002:3002'  # Change both port numbers if using a different port
+  environment:
+    - PORT=3002
 ```
 
 ## Development Authentication
