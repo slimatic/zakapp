@@ -1,0 +1,235 @@
+import { 
+  ZAKAT_RATES, 
+  NISAB_THRESHOLDS, 
+  ZAKAT_METHODS, 
+  CALENDAR_TYPES,
+  ASSET_CATEGORIES 
+} from '@zakapp/shared';
+import type { 
+  ZakatCalculation, 
+  ZakatCalculationRequest, 
+  ZakatAsset, 
+  NisabInfo, 
+  ZakatTotals,
+  Asset 
+} from '@zakapp/shared';
+import { randomUUID } from 'crypto';
+
+export interface ZakatCalculationService {
+  calculateZakat(request: ZakatCalculationRequest, assets: Asset[]): Promise<ZakatCalculation>;
+  calculateNisab(goldPricePerGram: number, silverPricePerGram: number, method: string): NisabInfo;
+  isEligibleForZakat(assetValue: number, nisab: number): boolean;
+  calculateAssetZakat(asset: Asset, method: string): ZakatAsset;
+}
+
+export class ZakatService implements ZakatCalculationService {
+  
+  /**
+   * Calculate Zakat for given assets and parameters
+   */
+  async calculateZakat(request: ZakatCalculationRequest, assets: Asset[]): Promise<ZakatCalculation> {
+    try {
+      // Filter assets based on request
+      const includedAssets = assets.filter(asset => 
+        request.includeAssets.includes(asset.assetId) && asset.zakatEligible
+      );
+
+      // Calculate current gold and silver prices (for now using default values)
+      // In a real implementation, these would come from an external API
+      const goldPricePerGram = 65; // USD per gram - should be fetched from API
+      const silverPricePerGram = 0.8; // USD per gram - should be fetched from API
+
+      // Calculate nisab thresholds
+      const nisab = this.calculateNisab(goldPricePerGram, silverPricePerGram, request.method);
+
+      // Calculate zakat for each asset
+      const zakatAssets = includedAssets.map(asset => 
+        this.calculateAssetZakat(asset, request.method)
+      );
+
+      // Calculate totals
+      const totals = this.calculateTotals(zakatAssets);
+
+      // Check if total assets meet nisab threshold
+      const meetsNisab = this.isEligibleForZakat(totals.totalZakatableAssets, nisab.effectiveNisab);
+
+      // If nisab is not met, zero out all zakat due amounts
+      if (!meetsNisab) {
+        zakatAssets.forEach(asset => {
+          asset.zakatDue = 0;
+        });
+        totals.totalZakatDue = 0;
+      }
+
+      return {
+        calculationId: randomUUID(),
+        calculationDate: request.calculationDate,
+        calendarType: request.calendarType,
+        method: request.method,
+        nisab,
+        assets: zakatAssets,
+        totals,
+        meetsNisab,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+
+    } catch (error) {
+      throw new Error(`Zakat calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Calculate nisab thresholds based on current gold and silver prices
+   */
+  calculateNisab(goldPricePerGram: number, silverPricePerGram: number, method: string): NisabInfo {
+    const goldNisab = NISAB_THRESHOLDS.GOLD_GRAMS * goldPricePerGram;
+    const silverNisab = NISAB_THRESHOLDS.SILVER_GRAMS * silverPricePerGram;
+
+    // Different methods use different nisab calculations
+    let effectiveNisab: number;
+
+    switch (method) {
+      case ZAKAT_METHODS.HANAFI.id:
+        // Hanafi method typically uses silver nisab (lower threshold)
+        effectiveNisab = silverNisab;
+        break;
+      case ZAKAT_METHODS.STANDARD.id:
+      default:
+        // Standard method uses the lower of gold or silver nisab
+        effectiveNisab = Math.min(goldNisab, silverNisab);
+        break;
+    }
+
+    return {
+      goldNisab,
+      silverNisab,
+      effectiveNisab
+    };
+  }
+
+  /**
+   * Check if asset value meets nisab threshold
+   */
+  isEligibleForZakat(assetValue: number, nisab: number): boolean {
+    return assetValue >= nisab;
+  }
+
+  /**
+   * Calculate zakat for a single asset
+   */
+  calculateAssetZakat(asset: Asset, method: string): ZakatAsset {
+    // Get the asset category configuration
+    const categoryConfig = this.getAssetCategoryConfig(asset.category);
+    
+    // Calculate zakatable amount (usually same as value for most assets)
+    const zakatableAmount = this.calculateZakatableAmount(asset);
+    
+    // Calculate zakat due based on the method and asset type
+    const zakatRate = this.getZakatRate(asset.category, method);
+    const zakatDue = (zakatableAmount * zakatRate) / 100;
+
+    return {
+      assetId: asset.assetId,
+      name: asset.name,
+      category: asset.category,
+      value: asset.value,
+      zakatableAmount,
+      zakatDue
+    };
+  }
+
+  /**
+   * Calculate the zakatable amount for an asset
+   * Some assets may have deductions or special calculations
+   */
+  private calculateZakatableAmount(asset: Asset): number {
+    // For most assets, the entire value is zakatable
+    // Special cases can be handled here (e.g., business assets might deduct liabilities)
+    
+    switch (asset.category) {
+      case 'business':
+        // For business assets, we might subtract liabilities
+        // This would require more complex logic based on asset details
+        return asset.value;
+      
+      case 'property':
+        // Investment property is zakatable, but personal residence is not
+        // This determination would be based on asset subcategory
+        return asset.value;
+      
+      default:
+        return asset.value;
+    }
+  }
+
+  /**
+   * Get the zakat rate for a specific asset category and method
+   */
+  private getZakatRate(category: string, method: string): number {
+    // Most assets use the standard 2.5% rate
+    // Agricultural assets have different rates
+    
+    switch (category) {
+      case 'agricultural':
+        // This would need more sophisticated logic based on irrigation method
+        return ZAKAT_RATES.AGRICULTURAL_RAIN_FED; // Default to rain-fed rate
+      
+      default:
+        return ZAKAT_RATES.STANDARD_RATE;
+    }
+  }
+
+  /**
+   * Get asset category configuration
+   */
+  private getAssetCategoryConfig(categoryId: string) {
+    return Object.values(ASSET_CATEGORIES).find(cat => cat.id === categoryId);
+  }
+
+  /**
+   * Calculate totals from zakat assets
+   */
+  private calculateTotals(zakatAssets: ZakatAsset[]): ZakatTotals {
+    return {
+      totalAssets: zakatAssets.reduce((sum, asset) => sum + asset.value, 0),
+      totalZakatableAssets: zakatAssets.reduce((sum, asset) => sum + asset.zakatableAmount, 0),
+      totalZakatDue: zakatAssets.reduce((sum, asset) => sum + asset.zakatDue, 0)
+    };
+  }
+
+  /**
+   * Validate calculation request
+   */
+  validateCalculationRequest(request: ZakatCalculationRequest): void {
+    if (!request.calculationDate) {
+      throw new Error('Calculation date is required');
+    }
+
+    if (!request.calendarType || !Object.values(CALENDAR_TYPES).some(type => type.id === request.calendarType)) {
+      throw new Error('Valid calendar type is required');
+    }
+
+    if (!request.method || !Object.values(ZAKAT_METHODS).some(method => method.id === request.method)) {
+      throw new Error('Valid calculation method is required');
+    }
+
+    if (!request.includeAssets || request.includeAssets.length === 0) {
+      throw new Error('At least one asset must be included in calculation');
+    }
+
+    // Validate date format
+    const date = new Date(request.calculationDate);
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid calculation date format');
+    }
+
+    // Validate custom nisab if provided
+    if (request.customNisab !== undefined && (request.customNisab < 0 || !isFinite(request.customNisab))) {
+      throw new Error('Custom nisab must be a positive number');
+    }
+  }
+}
+
+// Export singleton instance
+export const zakatService = new ZakatService();
