@@ -11,9 +11,21 @@ const { execSync } = require('child_process');
 function checkSetup() {
   const projectRoot = path.resolve(__dirname, '..');
   const sharedDistPath = path.join(projectRoot, 'shared', 'dist');
-  const sharedNodeModulesPath = path.join(projectRoot, 'shared', 'node_modules');
-  const backendNodeModulesPath = path.join(projectRoot, 'backend', 'node_modules');
-  const frontendNodeModulesPath = path.join(projectRoot, 'frontend', 'node_modules');
+  const sharedNodeModulesPath = path.join(
+    projectRoot,
+    'shared',
+    'node_modules'
+  );
+  const backendNodeModulesPath = path.join(
+    projectRoot,
+    'backend',
+    'node_modules'
+  );
+  const frontendNodeModulesPath = path.join(
+    projectRoot,
+    'frontend',
+    'node_modules'
+  );
 
   let needsSetup = false;
   const missing = [];

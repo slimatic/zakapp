@@ -35,7 +35,8 @@ export const AssetCategorySelector: React.FC<AssetCategorySelectorProps> = ({
           What type of asset would you like to add?
         </h2>
         <p className="text-neutral-600">
-          Select the category that best describes your asset. You can click the help icon for more information.
+          Select the category that best describes your asset. You can click the
+          help icon for more information.
         </p>
       </div>
 
@@ -46,17 +47,18 @@ export const AssetCategorySelector: React.FC<AssetCategorySelectorProps> = ({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {categories.map((category) => {
+        {categories.map(category => {
           const isSelected = selectedCategory === category.id;
-          
+
           return (
             <div
               key={category.id}
               className={`
                 relative group border-2 rounded-xl p-6 cursor-pointer transition-all duration-200
-                ${isSelected 
-                  ? 'border-primary-600 bg-primary-50 shadow-lg' 
-                  : 'border-neutral-200 hover:border-primary-300 hover:shadow-md'
+                ${
+                  isSelected
+                    ? 'border-primary-600 bg-primary-50 shadow-lg'
+                    : 'border-neutral-200 hover:border-primary-300 hover:shadow-md'
                 }
               `}
               onClick={() => onCategorySelect(category.id as AssetCategoryType)}
@@ -64,15 +66,23 @@ export const AssetCategorySelector: React.FC<AssetCategorySelectorProps> = ({
               {/* Selection Indicator */}
               {isSelected && (
                 <div className="absolute top-3 right-3 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
               )}
 
               {/* Help Button */}
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onShowHelp(category.id as AssetCategoryType);
                 }}
@@ -89,46 +99,64 @@ export const AssetCategorySelector: React.FC<AssetCategorySelectorProps> = ({
 
                 <div className="flex-1 min-w-0">
                   {/* Title */}
-                  <h3 className={`text-lg font-semibold mb-2 ${
-                    isSelected ? 'text-primary-900' : 'text-neutral-900'
-                  }`}>
+                  <h3
+                    className={`text-lg font-semibold mb-2 ${
+                      isSelected ? 'text-primary-900' : 'text-neutral-900'
+                    }`}
+                  >
                     {category.name}
                   </h3>
 
                   {/* Description */}
-                  <p className={`text-sm leading-relaxed ${
-                    isSelected ? 'text-primary-700' : 'text-neutral-600'
-                  }`}>
+                  <p
+                    className={`text-sm leading-relaxed ${
+                      isSelected ? 'text-primary-700' : 'text-neutral-600'
+                    }`}
+                  >
                     {category.description}
                   </p>
 
                   {/* Zakat Info */}
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center space-x-4 text-xs">
-                      <span className={`
+                      <span
+                        className={`
                         px-2 py-1 rounded-full 
-                        ${category.zakatEligible 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-neutral-100 text-neutral-600'
+                        ${
+                          category.zakatEligible
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-neutral-100 text-neutral-600'
                         }
-                      `}>
-                        {category.zakatEligible ? 'Zakat Eligible' : 'Check Eligibility'}
+                      `}
+                      >
+                        {category.zakatEligible
+                          ? 'Zakat Eligible'
+                          : 'Check Eligibility'}
                       </span>
                       <span className="text-neutral-500">
                         Rate: {category.zakatRate}%
                       </span>
                     </div>
 
-                    <ChevronRight className={`w-5 h-5 transition-transform ${
-                      isSelected ? 'text-primary-600 transform rotate-90' : 'text-neutral-400'
-                    }`} />
+                    <ChevronRight
+                      className={`w-5 h-5 transition-transform ${
+                        isSelected
+                          ? 'text-primary-600 transform rotate-90'
+                          : 'text-neutral-400'
+                      }`}
+                    />
                   </div>
 
                   {/* Subcategories Preview */}
                   <div className="mt-3">
                     <p className="text-xs text-neutral-500 mb-1">
-                      Includes: {category.subCategories.slice(0, 3).map(sub => sub.name).join(', ')}
-                      {category.subCategories.length > 3 && `... +${category.subCategories.length - 3} more`}
+                      Includes:{' '}
+                      {category.subCategories
+                        .slice(0, 3)
+                        .map(sub => sub.name)
+                        .join(', ')}
+                      {category.subCategories.length > 3 &&
+                        `... +${category.subCategories.length - 3} more`}
                     </p>
                   </div>
                 </div>

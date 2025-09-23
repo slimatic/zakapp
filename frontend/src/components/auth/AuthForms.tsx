@@ -8,9 +8,9 @@ interface AuthFormsProps {
   onModeChange?: (mode: 'login' | 'register') => void;
 }
 
-export const AuthForms: React.FC<AuthFormsProps> = ({ 
+export const AuthForms: React.FC<AuthFormsProps> = ({
   mode: initialMode = 'login',
-  onModeChange 
+  onModeChange,
 }) => {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [showPassword, setShowPassword] = useState(false);
@@ -72,7 +72,7 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
@@ -92,7 +92,7 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
     } else {
       setRegisterData(prev => ({ ...prev, [field]: value }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -113,8 +113,8 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h2>
           <p className="text-neutral-600">
-            {mode === 'login' 
-              ? 'Sign in to access your Zakat calculations' 
+            {mode === 'login'
+              ? 'Sign in to access your Zakat calculations'
               : 'Join thousands managing their Zakat with confidence'}
           </p>
         </div>
@@ -158,14 +158,19 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
           <div className="space-y-4">
             {/* Username */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-neutral-700 mb-2"
+              >
                 Username
               </label>
               <input
                 id="username"
                 type="text"
-                value={mode === 'login' ? loginData.username : registerData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
+                value={
+                  mode === 'login' ? loginData.username : registerData.username
+                }
+                onChange={e => handleInputChange('username', e.target.value)}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
                   errors.username ? 'border-red-300' : 'border-neutral-300'
                 }`}
@@ -180,14 +185,17 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
             {/* Email (Register only) */}
             {mode === 'register' && (
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-neutral-700 mb-2"
+                >
                   Email Address
                 </label>
                 <input
                   id="email"
                   type="email"
                   value={registerData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={e => handleInputChange('email', e.target.value)}
                   className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
                     errors.email ? 'border-red-300' : 'border-neutral-300'
                   }`}
@@ -202,15 +210,22 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-neutral-700 mb-2"
+              >
                 Password
               </label>
               <div className="relative">
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  value={mode === 'login' ? loginData.password : registerData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  value={
+                    mode === 'login'
+                      ? loginData.password
+                      : registerData.password
+                  }
+                  onChange={e => handleInputChange('password', e.target.value)}
                   className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
                     errors.password ? 'border-red-300' : 'border-neutral-300'
                   }`}
@@ -222,7 +237,11 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
               {errors.password && (
@@ -233,7 +252,10 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
             {/* Confirm Password (Register only) */}
             {mode === 'register' && (
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 mb-2">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-neutral-700 mb-2"
+                >
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -241,9 +263,13 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={registerData.confirmPassword}
-                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                    onChange={e =>
+                      handleInputChange('confirmPassword', e.target.value)
+                    }
                     className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                      errors.confirmPassword ? 'border-red-300' : 'border-neutral-300'
+                      errors.confirmPassword
+                        ? 'border-red-300'
+                        : 'border-neutral-300'
                     }`}
                     placeholder="Confirm your password"
                     disabled={isLoading}
@@ -253,11 +279,17 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                   >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.confirmPassword}
+                  </p>
                 )}
               </div>
             )}
@@ -271,14 +303,32 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
           >
             {isLoading ? (
               <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 {mode === 'login' ? 'Signing in...' : 'Creating account...'}
               </span>
+            ) : mode === 'login' ? (
+              'Sign In'
             ) : (
-              mode === 'login' ? 'Sign In' : 'Create Account'
+              'Create Account'
             )}
           </button>
         </form>
@@ -286,12 +336,19 @@ export const AuthForms: React.FC<AuthFormsProps> = ({
         {/* Footer */}
         <div className="text-center text-sm text-neutral-600">
           <p>
-            By {mode === 'login' ? 'signing in' : 'creating an account'}, you agree to our{' '}
-            <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
+            By {mode === 'login' ? 'signing in' : 'creating an account'}, you
+            agree to our{' '}
+            <a
+              href="#"
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
+            <a
+              href="#"
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
               Privacy Policy
             </a>
           </p>

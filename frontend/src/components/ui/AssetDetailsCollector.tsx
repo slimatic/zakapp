@@ -1,5 +1,9 @@
 import React from 'react';
-import { AssetCategoryType, ASSET_CATEGORIES, CURRENCIES } from '@zakapp/shared';
+import {
+  AssetCategoryType,
+  ASSET_CATEGORIES,
+  CURRENCIES,
+} from '@zakapp/shared';
 import { HelpCircle } from 'lucide-react';
 import { AssetQuestionnaireData } from '../../store';
 
@@ -20,12 +24,16 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
   errors,
   onClearError,
 }) => {
-  const categoryData = Object.values(ASSET_CATEGORIES).find(cat => cat.id === category);
-  
+  const categoryData = Object.values(ASSET_CATEGORIES).find(
+    cat => cat.id === category
+  );
+
   if (!categoryData) {
     return (
       <div className="text-center text-neutral-500">
-        <p>Invalid category selected. Please go back and select a valid category.</p>
+        <p>
+          Invalid category selected. Please go back and select a valid category.
+        </p>
       </div>
     );
   }
@@ -39,8 +47,10 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
 
   const getSpecificFields = (subCategoryId?: string) => {
     if (!subCategoryId) return [];
-    
-    const subCategory = categoryData.subCategories.find(sub => sub.id === subCategoryId);
+
+    const subCategory = categoryData.subCategories.find(
+      sub => sub.id === subCategoryId
+    );
     return subCategory?.specificFields || [];
   };
 
@@ -53,7 +63,8 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
           {categoryData.name} Details
         </h2>
         <p className="text-neutral-600">
-          Please provide specific information about your {categoryData.name.toLowerCase()}.
+          Please provide specific information about your{' '}
+          {categoryData.name.toLowerCase()}.
         </p>
       </div>
 
@@ -61,7 +72,10 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
         {/* Asset Name */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label htmlFor="name" className="block text-sm font-medium text-neutral-700">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-neutral-700"
+            >
               Asset Name *
             </label>
             <button
@@ -75,7 +89,7 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
             id="name"
             type="text"
             value={assetData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
+            onChange={e => handleInputChange('name', e.target.value)}
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
               errors.name ? 'border-red-300' : 'border-neutral-300'
             }`}
@@ -89,7 +103,10 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
         {/* Subcategory */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label htmlFor="subCategory" className="block text-sm font-medium text-neutral-700">
+            <label
+              htmlFor="subCategory"
+              className="block text-sm font-medium text-neutral-700"
+            >
               Subcategory *
             </label>
             <button
@@ -102,7 +119,7 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
           <select
             id="subCategory"
             value={assetData.subCategory || ''}
-            onChange={(e) => handleInputChange('subCategory', e.target.value)}
+            onChange={e => handleInputChange('subCategory', e.target.value)}
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
               errors.subCategory ? 'border-red-300' : 'border-neutral-300'
             }`}
@@ -119,7 +136,11 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
           )}
           {assetData.subCategory && (
             <p className="mt-1 text-sm text-neutral-600">
-              {categoryData.subCategories.find(sub => sub.id === assetData.subCategory)?.description}
+              {
+                categoryData.subCategories.find(
+                  sub => sub.id === assetData.subCategory
+                )?.description
+              }
             </p>
           )}
         </div>
@@ -128,7 +149,10 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="value" className="block text-sm font-medium text-neutral-700">
+              <label
+                htmlFor="value"
+                className="block text-sm font-medium text-neutral-700"
+              >
                 Current Value *
               </label>
               <button
@@ -144,7 +168,9 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
               min="0"
               step="0.01"
               value={assetData.value || ''}
-              onChange={(e) => handleInputChange('value', parseFloat(e.target.value) || 0)}
+              onChange={e =>
+                handleInputChange('value', parseFloat(e.target.value) || 0)
+              }
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
                 errors.value ? 'border-red-300' : 'border-neutral-300'
               }`}
@@ -156,13 +182,16 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
           </div>
 
           <div>
-            <label htmlFor="currency" className="block text-sm font-medium text-neutral-700 mb-2">
+            <label
+              htmlFor="currency"
+              className="block text-sm font-medium text-neutral-700 mb-2"
+            >
               Currency
             </label>
             <select
               id="currency"
               value={assetData.currency}
-              onChange={(e) => handleInputChange('currency', e.target.value)}
+              onChange={e => handleInputChange('currency', e.target.value)}
               className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               {CURRENCIES.map(currency => (
@@ -177,12 +206,15 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
         {/* Specific Fields based on subcategory */}
         {specificFields.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-neutral-900">Additional Information</h3>
-            
+            <h3 className="text-lg font-medium text-neutral-900">
+              Additional Information
+            </h3>
+
             {specificFields.map(field => (
               <div key={field}>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  {field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+                  {field.charAt(0).toUpperCase() +
+                    field.slice(1).replace(/([A-Z])/g, ' $1')}
                 </label>
                 {field === 'weight' ? (
                   <div className="flex space-x-2">
@@ -263,19 +295,25 @@ export const AssetDetailsCollector: React.FC<AssetDetailsCollectorProps> = ({
             </label>
           </div>
           <p className="mt-2 text-xs text-neutral-500">
-            Default for {categoryData.name}: {categoryData.defaultZakatEligible ? 'Eligible' : 'Check eligibility'}
+            Default for {categoryData.name}:{' '}
+            {categoryData.defaultZakatEligible
+              ? 'Eligible'
+              : 'Check eligibility'}
           </p>
         </div>
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-neutral-700 mb-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-neutral-700 mb-2"
+          >
             Description (Optional)
           </label>
           <textarea
             id="description"
             value={assetData.description || ''}
-            onChange={(e) => handleInputChange('description', e.target.value)}
+            onChange={e => handleInputChange('description', e.target.value)}
             rows={3}
             className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             placeholder="Add any additional notes or details about this asset..."

@@ -42,19 +42,32 @@ export const mockAssets: Asset[] = [
 ];
 
 // Generate mock statistics from mock assets
-export const generateMockStatistics = (assets: Asset[] = mockAssets): AssetStatistics => {
+export const generateMockStatistics = (
+  assets: Asset[] = mockAssets
+): AssetStatistics => {
   const totalAssets = assets.length;
   const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
-  const totalZakatEligible = assets.filter(asset => asset.zakatEligible)
+  const totalZakatEligible = assets
+    .filter(asset => asset.zakatEligible)
     .reduce((sum, asset) => sum + asset.value, 0);
 
-  const assetsByCategory: Record<string, { count: number; totalValue: number; zakatEligibleValue: number; }> = {};
-  const assetsByCurrency: Record<string, { count: number; totalValue: number; }> = {};
+  const assetsByCategory: Record<
+    string,
+    { count: number; totalValue: number; zakatEligibleValue: number }
+  > = {};
+  const assetsByCurrency: Record<
+    string,
+    { count: number; totalValue: number }
+  > = {};
 
   assets.forEach(asset => {
     // By category
     if (!assetsByCategory[asset.category]) {
-      assetsByCategory[asset.category] = { count: 0, totalValue: 0, zakatEligibleValue: 0 };
+      assetsByCategory[asset.category] = {
+        count: 0,
+        totalValue: 0,
+        zakatEligibleValue: 0,
+      };
     }
     assetsByCategory[asset.category].count++;
     assetsByCategory[asset.category].totalValue += asset.value;
@@ -81,8 +94,11 @@ export const generateMockStatistics = (assets: Asset[] = mockAssets): AssetStati
 
 // Generate mock grouped assets
 export const generateMockGroupedAssets = (assets: Asset[] = mockAssets) => {
-  const grouped: Record<AssetCategoryType, Asset[]> = {} as Record<AssetCategoryType, Asset[]>;
-  
+  const grouped: Record<AssetCategoryType, Asset[]> = {} as Record<
+    AssetCategoryType,
+    Asset[]
+  >;
+
   assets.forEach(asset => {
     if (!grouped[asset.category]) {
       grouped[asset.category] = [];

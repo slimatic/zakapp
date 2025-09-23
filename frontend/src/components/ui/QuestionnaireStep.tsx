@@ -42,19 +42,22 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
             <div className="mx-auto w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center mb-8">
               <span className="text-3xl">🏦</span>
             </div>
-            
+
             <div>
               <h2 className="text-3xl font-bold text-neutral-900 mb-4">
                 Add Your Asset
               </h2>
               <p className="text-lg text-neutral-600 max-w-2xl mx-auto leading-relaxed">
-                Welcome to the asset questionnaire! We&apos;ll guide you through adding your asset 
-                information step by step to ensure accurate Zakat calculation.
+                Welcome to the asset questionnaire! We&apos;ll guide you through
+                adding your asset information step by step to ensure accurate
+                Zakat calculation.
               </p>
             </div>
 
             <div className="bg-primary-50 border border-primary-200 rounded-lg p-6 max-w-2xl mx-auto">
-              <h3 className="font-semibold text-primary-900 mb-3">What you&apos;ll need:</h3>
+              <h3 className="font-semibold text-primary-900 mb-3">
+                What you&apos;ll need:
+              </h3>
               <ul className="text-left space-y-2 text-primary-800">
                 <li className="flex items-center space-x-2">
                   <Check className="w-5 h-5 text-primary-600" />
@@ -87,8 +90,8 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
         return (
           <AssetCategorySelector
             selectedCategory={assetData.category}
-            onCategorySelect={(category) => onDataChange({ category })}
-            onShowHelp={(category) => onShowHelp(category)}
+            onCategorySelect={category => onDataChange({ category })}
+            onShowHelp={category => onShowHelp(category)}
             error={errors.category}
           />
         );
@@ -106,7 +109,7 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
             category={assetData.category}
             assetData={assetData}
             onDataChange={onDataChange}
-            onShowHelp={(field) => onShowHelp(assetData.category, field)}
+            onShowHelp={field => onShowHelp(assetData.category, field)}
             errors={errors}
             onClearError={onClearError}
           />
@@ -114,13 +117,18 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
       }
 
       case 'review': {
-        const categoryData = assetData.category 
-          ? Object.values(ASSET_CATEGORIES).find(cat => cat.id === assetData.category)
+        const categoryData = assetData.category
+          ? Object.values(ASSET_CATEGORIES).find(
+              cat => cat.id === assetData.category
+            )
           : null;
-        
-        const subCategoryData = categoryData && assetData.subCategory
-          ? categoryData.subCategories.find(sub => sub.id === assetData.subCategory)
-          : null;
+
+        const subCategoryData =
+          categoryData && assetData.subCategory
+            ? categoryData.subCategories.find(
+                sub => sub.id === assetData.subCategory
+              )
+            : null;
 
         return (
           <div className="space-y-6">
@@ -129,7 +137,8 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
                 Review Your Asset
               </h2>
               <p className="text-neutral-600">
-                Please review your asset information before saving. You can go back to make changes if needed.
+                Please review your asset information before saving. You can go
+                back to make changes if needed.
               </p>
             </div>
 
@@ -138,14 +147,23 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
                   <span className="text-2xl">
-                    {assetData.category === 'cash' ? '💰' :
-                     assetData.category === 'gold' ? '🪙' :
-                     assetData.category === 'silver' ? '🥈' :
-                     assetData.category === 'business' ? '🏢' :
-                     assetData.category === 'property' ? '🏠' :
-                     assetData.category === 'stocks' ? '📈' :
-                     assetData.category === 'crypto' ? '₿' :
-                     assetData.category === 'debts' ? '📋' : '📊'}
+                    {assetData.category === 'cash'
+                      ? '💰'
+                      : assetData.category === 'gold'
+                        ? '🪙'
+                        : assetData.category === 'silver'
+                          ? '🥈'
+                          : assetData.category === 'business'
+                            ? '🏢'
+                            : assetData.category === 'property'
+                              ? '🏠'
+                              : assetData.category === 'stocks'
+                                ? '📈'
+                                : assetData.category === 'crypto'
+                                  ? '₿'
+                                  : assetData.category === 'debts'
+                                    ? '📋'
+                                    : '📊'}
                   </span>
                 </div>
                 <div className="flex-1">
@@ -161,7 +179,9 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
               {/* Asset Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium text-neutral-900 mb-3">Financial Details</h4>
+                  <h4 className="font-medium text-neutral-900 mb-3">
+                    Financial Details
+                  </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-neutral-600">Value:</span>
@@ -178,9 +198,13 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-neutral-600">Zakat Eligible:</span>
-                      <span className={`font-medium ${
-                        assetData.zakatEligible ? 'text-green-600' : 'text-red-600'
-                      }`}>
+                      <span
+                        className={`font-medium ${
+                          assetData.zakatEligible
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                        }`}
+                      >
                         {assetData.zakatEligible ? 'Yes' : 'No'}
                       </span>
                     </div>
@@ -188,14 +212,20 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-neutral-900 mb-3">Zakat Information</h4>
+                  <h4 className="font-medium text-neutral-900 mb-3">
+                    Zakat Information
+                  </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-neutral-600">Rate:</span>
-                      <span className="font-medium">{categoryData?.zakatRate}%</span>
+                      <span className="font-medium">
+                        {categoryData?.zakatRate}%
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-neutral-600">Nisab Applicable:</span>
+                      <span className="text-neutral-600">
+                        Nisab Applicable:
+                      </span>
                       <span className="font-medium">
                         {categoryData?.nisabApplicable ? 'Yes' : 'No'}
                       </span>
@@ -207,7 +237,11 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
                           {new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: assetData.currency,
-                          }).format(assetData.value * (categoryData?.zakatRate || 2.5) / 100)}
+                          }).format(
+                            (assetData.value *
+                              (categoryData?.zakatRate || 2.5)) /
+                              100
+                          )}
                         </span>
                       </div>
                     )}
@@ -218,7 +252,9 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
               {/* Description */}
               {assetData.description && (
                 <div>
-                  <h4 className="font-medium text-neutral-900 mb-2">Description</h4>
+                  <h4 className="font-medium text-neutral-900 mb-2">
+                    Description
+                  </h4>
                   <p className="text-neutral-600 bg-neutral-50 p-3 rounded-lg">
                     {assetData.description}
                   </p>
@@ -237,9 +273,7 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
   return (
     <div className="space-y-8">
       {/* Step Content */}
-      <div className="min-h-[400px]">
-        {renderStepContent()}
-      </div>
+      <div className="min-h-[400px]">{renderStepContent()}</div>
 
       {/* Navigation */}
       <div className="flex justify-between items-center pt-6 border-t border-neutral-200">
@@ -248,9 +282,10 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
           disabled={stepIndex === 0}
           className={`
             flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors
-            ${stepIndex === 0
-              ? 'text-neutral-400 cursor-not-allowed'
-              : 'text-neutral-700 hover:bg-neutral-100'
+            ${
+              stepIndex === 0
+                ? 'text-neutral-400 cursor-not-allowed'
+                : 'text-neutral-700 hover:bg-neutral-100'
             }
           `}
         >
@@ -268,9 +303,10 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
             disabled={!canProceed}
             className={`
               flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors
-              ${canProceed
-                ? 'bg-primary-600 text-white hover:bg-primary-700'
-                : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
+              ${
+                canProceed
+                  ? 'bg-primary-600 text-white hover:bg-primary-700'
+                  : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
               }
             `}
           >
@@ -283,9 +319,10 @@ export const QuestionnaireStepComponent: React.FC<QuestionnaireStepProps> = ({
             disabled={!canProceed}
             className={`
               flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors
-              ${canProceed
-                ? 'bg-primary-600 text-white hover:bg-primary-700'
-                : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
+              ${
+                canProceed
+                  ? 'bg-primary-600 text-white hover:bg-primary-700'
+                  : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
               }
             `}
           >

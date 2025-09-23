@@ -40,7 +40,10 @@ export const AssetList: React.FC<AssetListProps> = ({
     return (
       <div className="space-y-4">
         {[...Array(3)].map((_, index) => (
-          <div key={index} className="bg-white rounded-lg border border-neutral-200 p-6 animate-pulse">
+          <div
+            key={index}
+            className="bg-white rounded-lg border border-neutral-200 p-6 animate-pulse"
+          >
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="h-4 bg-neutral-200 rounded w-1/3 mb-2"></div>
@@ -59,9 +62,12 @@ export const AssetList: React.FC<AssetListProps> = ({
     return (
       <div className="text-center py-12 bg-white rounded-lg border border-neutral-200">
         <DollarSign className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-neutral-900 mb-2">No assets yet</h3>
+        <h3 className="text-lg font-medium text-neutral-900 mb-2">
+          No assets yet
+        </h3>
         <p className="text-neutral-600 mb-6 max-w-sm mx-auto">
-          Start building your asset portfolio by adding your first asset. This will help you track your Zakat obligations.
+          Start building your asset portfolio by adding your first asset. This
+          will help you track your Zakat obligations.
         </p>
       </div>
     );
@@ -69,7 +75,7 @@ export const AssetList: React.FC<AssetListProps> = ({
 
   return (
     <div className="space-y-4">
-      {assets.map((asset) => {
+      {assets.map(asset => {
         const categoryInfo = getCategoryInfo(asset.category);
         return (
           <div
@@ -89,10 +95,12 @@ export const AssetList: React.FC<AssetListProps> = ({
                       </span>
                     )}
                   </div>
-                  
+
                   <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600 mb-3">
                     <span className="flex items-center gap-1">
-                      <span className="font-medium">{categoryInfo?.name || asset.category}</span>
+                      <span className="font-medium">
+                        {categoryInfo?.name || asset.category}
+                      </span>
                       <span>•</span>
                       <span>{asset.subCategory}</span>
                     </span>
@@ -112,7 +120,7 @@ export const AssetList: React.FC<AssetListProps> = ({
                     <div className="text-2xl font-bold text-neutral-900">
                       {formatCurrency(asset.value, asset.currency)}
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onEdit(asset)}
@@ -133,7 +141,7 @@ export const AssetList: React.FC<AssetListProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {onViewDetails && (
               <div className="px-6 pb-4">
                 <button

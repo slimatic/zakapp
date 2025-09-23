@@ -110,78 +110,86 @@ router.post('/login', validateBody(loginSchema), async (req, res) => {
  * POST /auth/refresh
  * Refresh authentication token
  */
-router.post('/refresh', authenticateToken, async (req: AuthenticatedRequest, res) => {
-  try {
-    const user = req.user;
+router.post(
+  '/refresh',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
 
-    if (!user) {
-      return res.status(401).json({
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: ERROR_CODES.UNAUTHORIZED,
+            message: 'User authentication required',
+          },
+        });
+      }
+
+      // Get fresh user data
+      const freshUser = await userService.getUserById(user.userId);
+
+      if (!freshUser) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: ERROR_CODES.UNAUTHORIZED,
+            message: 'User not found',
+          },
+        });
+      }
+
+      // Generate new token
+      const token = generateToken(freshUser);
+      const { expiresIn } = getTokenExpirationInfo(token);
+
+      res.json({
+        success: true,
+        data: {
+          token,
+          expiresIn,
+        },
+      });
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      res.status(500).json({
         success: false,
         error: {
-          code: ERROR_CODES.UNAUTHORIZED,
-          message: 'User authentication required',
+          code: ERROR_CODES.INTERNAL_ERROR,
+          message: 'Failed to refresh token',
         },
       });
     }
-
-    // Get fresh user data
-    const freshUser = await userService.getUserById(user.userId);
-
-    if (!freshUser) {
-      return res.status(401).json({
-        success: false,
-        error: {
-          code: ERROR_CODES.UNAUTHORIZED,
-          message: 'User not found',
-        },
-      });
-    }
-
-    // Generate new token
-    const token = generateToken(freshUser);
-    const { expiresIn } = getTokenExpirationInfo(token);
-
-    res.json({
-      success: true,
-      data: {
-        token,
-        expiresIn,
-      },
-    });
-  } catch (error) {
-    console.error('Token refresh error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: ERROR_CODES.INTERNAL_ERROR,
-        message: 'Failed to refresh token',
-      },
-    });
   }
-});
+);
 
 /**
  * POST /auth/logout
  * Logout user and invalidate token
  */
-router.post('/logout', authenticateToken, async (req: AuthenticatedRequest, res) => {
-  try {
-    // For now, just return success since we're using stateless JWT
-    // In a production system, you might want to blacklist tokens
-    res.json({
-      success: true,
-      message: 'Logged out successfully',
-    });
-  } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: ERROR_CODES.INTERNAL_ERROR,
-        message: 'Failed to logout',
-      },
-    });
+router.post(
+  '/logout',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      // For now, just return success since we're using stateless JWT
+      // In a production system, you might want to blacklist tokens
+      res.json({
+        success: true,
+        message: 'Logged out successfully',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.INTERNAL_ERROR,
+          message: 'Failed to logout',
+        },
+      });
+    }
   }
-});
+);
 
 export { router as authRouter };

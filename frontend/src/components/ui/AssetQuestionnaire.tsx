@@ -73,7 +73,7 @@ export const AssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
   };
 
   const currentStep = steps[currentStepIndex];
-  
+
   // Memoize canProceed to prevent infinite loop from validateCurrentStep
   const canProceed = useMemo(() => {
     // Create a read-only validation that doesn't modify state during render
@@ -83,13 +83,23 @@ export const AssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
       case 1: // Category step
         return !!assetData.category;
       case 2: // Details step
-        return !!assetData.name?.trim() && assetData.value > 0 && !!assetData.subCategory;
+        return (
+          !!assetData.name?.trim() &&
+          assetData.value > 0 &&
+          !!assetData.subCategory
+        );
       case 3: // Review step
         return true;
       default:
         return true;
     }
-  }, [currentStepIndex, assetData.category, assetData.name, assetData.value, assetData.subCategory]);
+  }, [
+    currentStepIndex,
+    assetData.category,
+    assetData.name,
+    assetData.value,
+    assetData.subCategory,
+  ]);
 
   // Don't render if not open
   if (!isOpen) {
@@ -144,7 +154,8 @@ export const AssetQuestionnaire: React.FC<AssetQuestionnaireProps> = ({
                     Asset Added Successfully!
                   </h2>
                   <p className="text-neutral-600">
-                    Your asset has been added and is ready for Zakat calculation.
+                    Your asset has been added and is ready for Zakat
+                    calculation.
                   </p>
                 </div>
                 <button
