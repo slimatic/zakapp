@@ -77,12 +77,12 @@ This document outlines the user stories for the zakapp application, organized by
 
 **Acceptance Criteria:**
 
-- [ ] Interactive questionnaire asks about different asset types
-- [ ] Questions are in simple, clear language
-- [ ] Progress indicator shows completion status
-- [ ] User can skip and return to sections
-- [ ] Recommendations are provided based on answers
-- [ ] Results are saved automatically
+- [x] Interactive questionnaire asks about different asset types
+- [x] Questions are in simple, clear language
+- [x] Progress indicator shows completion status
+- [x] User can skip and return to sections
+- [x] Recommendations are provided based on answers
+- [x] Results are saved automatically
 
 ### Story 2.2: Manual Asset Entry
 
@@ -92,12 +92,12 @@ This document outlines the user stories for the zakapp application, organized by
 
 **Acceptance Criteria:**
 
-- [ ] User can add assets by category (cash, gold, business, etc.)
-- [ ] Form validation ensures correct data entry
-- [ ] Asset values can be entered in different currencies
-- [ ] User can mark assets as Zakat-eligible or exempt
-- [ ] Assets can be categorized and tagged
-- [ ] Bulk import option is available
+- [x] User can add assets by category (cash, gold, business, etc.)
+- [x] Form validation ensures correct data entry
+- [x] Asset values can be entered in different currencies
+- [x] User can mark assets as Zakat-eligible or exempt
+- [x] Assets can be categorized and tagged
+- [x] Bulk import option is available
 
 ### Story 2.3: Asset Management
 
@@ -107,12 +107,12 @@ This document outlines the user stories for the zakapp application, organized by
 
 **Acceptance Criteria:**
 
-- [ ] User can view all assets in a clear list/grid format
-- [ ] Assets can be filtered and sorted by various criteria
-- [ ] Individual assets can be edited or deleted
-- [ ] Asset history and changes are tracked
-- [ ] Total asset values are calculated and displayed
-- [ ] Export functionality is available
+- [x] User can view all assets in a clear list/grid format
+- [x] Assets can be filtered and sorted by various criteria
+- [x] Individual assets can be edited or deleted
+- [x] Asset history and changes are tracked
+- [x] Total asset values are calculated and displayed
+- [x] Export functionality is available
 
 ### Story 2.4: Asset Categories and Types
 
@@ -122,11 +122,11 @@ This document outlines the user stories for the zakapp application, organized by
 
 **Acceptance Criteria:**
 
-- [ ] Clear asset categories are provided (cash, gold, silver, business, etc.)
-- [ ] Subcategories help with specific asset types
-- [ ] Help text explains what belongs in each category
-- [ ] Different calculation methods are applied per category
-- [ ] User can see Zakat rates for each category
+- [x] Clear asset categories are provided (cash, gold, silver, business, etc.)
+- [x] Subcategories help with specific asset types
+- [x] Help text explains what belongs in each category
+- [x] Different calculation methods are applied per category
+- [x] User can see Zakat rates for each category
 
 ## Epic 3: Zakat Calculation
 
