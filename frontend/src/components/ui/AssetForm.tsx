@@ -79,6 +79,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   });
 
   const selectedCategory = watch('category');
+  const selectedSubCategory = watch('subCategory');
 
   // Get category options
   const categoryOptions = Object.values(ASSET_CATEGORIES).map(category => ({
@@ -127,25 +128,36 @@ export const AssetForm: React.FC<AssetFormProps> = ({
       case 'cash':
         return (
           <>
-            <FormInput
-              {...register('interestRate', { valueAsNumber: true })}
-              label="Interest Rate (%)"
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
-              placeholder="0.00"
-              error={errors.interestRate}
-              disabled={isLoading}
-              className="md:col-span-1"
-            />
-            <DateInput
-              {...register('maturityDate')}
-              label="Maturity Date"
-              error={errors.maturityDate}
-              disabled={isLoading}
-              className="md:col-span-1"
-            />
+            {/* Only show interest rate for savings, CDs, and money market accounts */}
+            {selectedSubCategory && 
+             ['savings', 'certificates_of_deposit', 'money_market'].includes(selectedSubCategory) && (
+              <FormInput
+                {...register('interestRate', { 
+                  valueAsNumber: true,
+                  setValueAs: (value) => value === '' || isNaN(value) ? undefined : value
+                })}
+                label="Interest Rate (%)"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                placeholder="0.00"
+                error={errors.interestRate}
+                disabled={isLoading}
+                className="md:col-span-1"
+              />
+            )}
+            {/* Only show maturity date for CDs and money market accounts */}
+            {selectedSubCategory && 
+             ['certificates_of_deposit', 'money_market'].includes(selectedSubCategory) && (
+              <DateInput
+                {...register('maturityDate')}
+                label="Maturity Date"
+                error={errors.maturityDate}
+                disabled={isLoading}
+                className="md:col-span-1"
+              />
+            )}
           </>
         );
 

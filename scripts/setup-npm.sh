@@ -65,15 +65,15 @@ setup_containerized() {
     
     # Build the npm container
     log_info "Building containerized npm environment..."
-    docker compose --profile npm-tools build npm-env
+    docker compose -f docker-compose.dev.yml --profile npm-tools build npm-env
     
     # Start the npm container
     log_info "Starting npm container..."
-    docker compose --profile npm-tools up -d npm-env
+    docker compose -f docker-compose.dev.yml --profile npm-tools up -d npm-env
     
     # Install all dependencies in container
     log_info "Installing dependencies in container (this may take a few minutes)..."
-    docker compose --profile npm-tools exec npm-env npm run install:all
+    docker compose -f docker-compose.dev.yml --profile npm-tools exec npm-env npm run install:all
     
     log_success "Containerized setup complete!"
 }

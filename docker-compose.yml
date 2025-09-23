@@ -9,6 +9,7 @@ services:
       - ./frontend:/app/frontend
       - ./shared:/app/shared
       - /app/frontend/node_modules
+      - /app/shared/node_modules
     environment:
       - NODE_ENV=development
       - REACT_APP_API_URL=http://localhost:3001
@@ -26,6 +27,7 @@ services:
       - ./backend:/app/backend
       - ./shared:/app/shared
       - /app/backend/node_modules
+      - /app/shared/node_modules
       - ./backend/data:/app/backend/data
     environment:
       - NODE_ENV=development
