@@ -90,6 +90,68 @@ class UserService {
   }
 
   /**
+   * Check if a user is a demo user
+   */
+  isDemoUser(username: string): boolean {
+    const demoUsernames = ['john_doe', 'demo', 'demo_user', 'test_user'];
+    return demoUsernames.some(demoUsername => 
+      username.toLowerCase() === demoUsername.toLowerCase()
+    );
+  }
+
+  /**
+   * Get all demo users in the system
+   */
+  async getDemoUsers(): Promise<string[]> {
+    await this.initialize();
+    const demoUsers: string[] = [];
+    
+    Object.keys(this.userIndex).forEach(key => {
+      if (this.isDemoUser(key)) {
+        demoUsers.push(key);
+      }
+    });
+    
+    return demoUsers;
+  }
+
+  /**
+   * Remove demo users from the system
+   */
+  async removeDemoUsers(): Promise<{ removed: string[], errors: string[] }> {
+    await this.initialize();
+    const removed: string[] = [];
+    const errors: string[] = [];
+    
+    const demoUsers = await this.getDemoUsers();
+    
+    for (const demoUsername of demoUsers) {
+      try {
+        const userId = this.userIndex[demoUsername];
+        if (userId) {
+          // Remove user directory
+          if (await userDirectoryExists(userId)) {
+            await fs.remove(path.join(process.cwd(), 'data', 'users', userId));
+          }
+          
+          // Remove from user index
+          delete this.userIndex[demoUsername];
+          removed.push(demoUsername);
+        }
+      } catch (error) {
+        console.error(`Error removing demo user ${demoUsername}:`, error);
+        errors.push(`${demoUsername}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+    
+    if (removed.length > 0) {
+      await this.saveUserIndex();
+    }
+    
+    return { removed, errors };
+  }
+
+  /**
    * Create a new user
    */
   async createUser(
@@ -155,6 +217,12 @@ class UserService {
   ): Promise<User | null> {
     await this.initialize();
 
+    // Check if this is a demo user and prevent authentication
+    if (this.isDemoUser(usernameOrEmail)) {
+      console.warn(`Attempted login with demo user: ${usernameOrEmail}. Demo user logins are disabled.`);
+      return null;
+    }
+
     const userId = await this.getUserId(usernameOrEmail);
     if (!userId) {
       return null;
@@ -163,6 +231,12 @@ class UserService {
     try {
       const user = await this.getUserById(userId);
       if (!user) {
+        return null;
+      }
+
+      // Double-check the user isn't a demo user
+      if (this.isDemoUser(user.username)) {
+        console.warn(`Demo user found in system: ${user.username}. Authentication blocked.`);
         return null;
       }
 
