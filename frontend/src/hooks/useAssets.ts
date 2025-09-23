@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { AssetCategoryType } from '@zakapp/shared';
 import { assetService } from '../services/assetService';
 import {
-  mockAssets,
   generateMockStatistics,
   generateMockGroupedAssets,
 } from '../data/mockData';
