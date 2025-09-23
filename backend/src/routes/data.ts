@@ -1,11 +1,11 @@
 import express from 'express';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
+import { dataExportRateLimit } from '../middleware/security.js';
 import { userService } from '../services/userService.js';
 import {
   listUserFiles,
   readUserFile,
   writeUserFile,
-  getUserDirectory,
   createUserDirectory,
 } from '../utils/fileSystem.js';
 import { ERROR_CODES } from '@zakapp/shared';
@@ -20,6 +20,7 @@ const router = express.Router();
  */
 router.get(
   '/export',
+  dataExportRateLimit,
   authenticateToken,
   async (req: AuthenticatedRequest, res) => {
     try {
