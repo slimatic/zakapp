@@ -1,17 +1,45 @@
 import request from 'supertest';
 import app from '../index';
 import { userService } from '../services/userService';
+import fs from 'fs-extra';
+import path from 'path';
+
+// Test database cleanup
+const TEST_DATA_DIR = path.join(process.cwd(), 'data_test_zakat');
+
+beforeAll(async () => {
+  // Set up test data directory
+  process.env.DATA_DIR = TEST_DATA_DIR;
+});
+
+afterAll(async () => {
+  // Clean up test data
+  if (await fs.pathExists(TEST_DATA_DIR)) {
+    await fs.remove(TEST_DATA_DIR);
+  }
+});
 
 describe('Zakat API Endpoints', () => {
   let authToken: string;
   let userId: string;
+
+  beforeEach(async () => {
+    // Clean up test data before each test
+    if (await fs.pathExists(TEST_DATA_DIR)) {
+      await fs.remove(TEST_DATA_DIR);
+    }
+    // Reset userService
+    (userService as any).initialized = false;
+    (userService as any).userIndex = {};
+  });
 
   beforeAll(async () => {
     // Create a test user and get auth token
     const testUser = {
       username: 'zakatuser',
       email: 'zakat@test.com',
-      password: 'TestPassword123!'
+      password: 'TestPassword123!',
+      confirmPassword: 'TestPassword123!'
     };
 
     // Register user
@@ -20,7 +48,7 @@ describe('Zakat API Endpoints', () => {
       .send(testUser);
 
     if (registerResponse.status !== 201) {
-      console.log('Registration failed:', registerResponse.status, registerResponse.body);
+      console.log('Registration failed:', registerResponse.status, JSON.stringify(registerResponse.body, null, 2));
     }
     expect(registerResponse.status).toBe(201);
 
@@ -75,10 +103,7 @@ describe('Zakat API Endpoints', () => {
     }
   });
 
-  afterAll(async () => {
-    // Test cleanup handled by test environment
-    // Individual tests should clean up after themselves if needed
-  });
+
 
   describe('GET /api/v1/zakat/nisab', () => {
     it('should get current nisab thresholds', async () => {
