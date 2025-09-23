@@ -226,8 +226,20 @@ export const assetFormSchema = z.object({
     .number()
     .min(0, 'Interest rate must be non-negative')
     .max(100, 'Interest rate cannot exceed 100%')
-    .optional(),
-  maturityDate: z.string().datetime('Invalid date format').optional(),
+    .optional()
+    .or(z.nan().transform(() => undefined)),
+  maturityDate: z
+    .string()
+    .optional()
+    .refine((val) => {
+      if (!val || val === '') return true; // Allow empty
+      try {
+        const date = new Date(val);
+        return !isNaN(date.getTime());
+      } catch {
+        return false;
+      }
+    }, 'Invalid date format'),
   weight: z.number().min(0, 'Weight must be non-negative').optional(),
   purity: z
     .number()
