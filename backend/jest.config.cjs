@@ -12,6 +12,13 @@ module.exports = {
       },
     ],
   },
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^@zakapp/shared$': '<rootDir>/../shared/src/index.ts',
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@zakapp/shared)/)',
+  ],
   collectCoverageFrom: ['src/**/*.ts', '!src/__tests__/**', '!src/index.ts'],
   testTimeout: 15000,
 };
