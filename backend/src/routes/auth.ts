@@ -1,7 +1,14 @@
 import express from 'express';
 import { userService } from '../services/userService.js';
-import { generateToken, getTokenExpirationInfo } from '../utils/auth.js';
-import { validateBody } from '../middleware/validation.js';
+import { generateToken, getTokenExpirationInfo, extractTokenFromHeader } from '../utils/auth.js';
+import { 
+  generateTokenPair, 
+  refreshAccessToken, 
+  createSession, 
+  deleteSession, 
+  blacklistToken 
+} from '../utils/session.js';
+import { validateBody, authRateLimit } from '../middleware/index.js';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
 import {
   registerSchema,
@@ -12,6 +19,9 @@ import {
 import { ERROR_CODES } from '@zakapp/shared';
 
 const router = express.Router();
+
+// Apply rate limiting to auth endpoints
+router.use(authRateLimit);
 
 /**
  * POST /auth/register
@@ -77,9 +87,11 @@ router.post('/login', validateBody(loginSchema), async (req, res) => {
       });
     }
 
-    // Generate JWT token
-    const token = generateToken(user);
-    const { expiresIn } = getTokenExpirationInfo(token);
+    // Generate JWT tokens with session management
+    const { accessToken, refreshToken, expiresIn } = generateTokenPair(user);
+    
+    // Create session record
+    await createSession(user);
 
     res.json({
       success: true,
@@ -90,7 +102,8 @@ router.post('/login', validateBody(loginSchema), async (req, res) => {
           username: user.username,
           email: user.email,
         },
-        token,
+        accessToken,
+        refreshToken,
         expiresIn,
       },
     });
@@ -110,59 +123,50 @@ router.post('/login', validateBody(loginSchema), async (req, res) => {
  * POST /auth/refresh
  * Refresh authentication token
  */
-router.post(
-  '/refresh',
-  authenticateToken,
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const user = req.user;
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
 
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          error: {
-            code: ERROR_CODES.UNAUTHORIZED,
-            message: 'User authentication required',
-          },
-        });
-      }
-
-      // Get fresh user data
-      const freshUser = await userService.getUserById(user.userId);
-
-      if (!freshUser) {
-        return res.status(401).json({
-          success: false,
-          error: {
-            code: ERROR_CODES.UNAUTHORIZED,
-            message: 'User not found',
-          },
-        });
-      }
-
-      // Generate new token
-      const token = generateToken(freshUser);
-      const { expiresIn } = getTokenExpirationInfo(token);
-
-      res.json({
-        success: true,
-        data: {
-          token,
-          expiresIn,
-        },
-      });
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      res.status(500).json({
+    if (!refreshToken) {
+      return res.status(400).json({
         success: false,
         error: {
-          code: ERROR_CODES.INTERNAL_ERROR,
-          message: 'Failed to refresh token',
+          code: ERROR_CODES.INVALID_REQUEST,
+          message: 'Refresh token is required',
         },
       });
     }
+
+    const result = refreshAccessToken(refreshToken);
+
+    if (!result) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: ERROR_CODES.UNAUTHORIZED,
+          message: 'Invalid or expired refresh token',
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        accessToken: result.accessToken,
+        expiresIn: result.expiresIn,
+      },
+    });
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to refresh token',
+      },
+    });
   }
-);
+});
 
 /**
  * POST /auth/logout
@@ -173,8 +177,25 @@ router.post(
   authenticateToken,
   async (req: AuthenticatedRequest, res) => {
     try {
-      // For now, just return success since we're using stateless JWT
-      // In a production system, you might want to blacklist tokens
+      const user = req.user;
+      const token = extractTokenFromHeader(req.headers.authorization);
+
+      if (!user || !token) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: ERROR_CODES.UNAUTHORIZED,
+            message: 'User authentication required',
+          },
+        });
+      }
+
+      // Blacklist the current token
+      blacklistToken(token);
+
+      // Delete session
+      await deleteSession(user.userId);
+
       res.json({
         success: true,
         message: 'Logged out successfully',
