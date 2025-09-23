@@ -27,13 +27,16 @@ interface SessionData {
 }
 
 // Session storage - file-based for simplicity (use Redis in production)
-const sessionsDir = path.join(DATA_DIR, 'sessions');
+function getSessionsDir(): string {
+  const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+  return path.join(DATA_DIR, 'sessions');
+}
 
 /**
  * Initialize session management
  */
 export async function initializeSessions(): Promise<void> {
-  await fs.ensureDir(sessionsDir);
+  await fs.ensureDir(getSessionsDir());
 }
 
 /**
@@ -136,8 +139,47 @@ export async function createSession(user: {
     lastActivity: new Date().toISOString(),
   };
 
-  const sessionPath = path.join(sessionsDir, `${user.userId}.json`);
-  await fs.writeJson(sessionPath, sessionData, { spaces: 2 });
+  const sessionPath = path.join(getSessionsDir(), `${user.userId}.json`);
+  await atomicWriteSessionJson(sessionPath, sessionData);
+}
+
+/**
+ * Safe read JSON with corruption handling
+ */
+async function safeReadSessionJson(sessionPath: string): Promise<SessionData | null> {
+  try {
+    return await fs.readJson(sessionPath);
+  } catch (error: any) {
+    if (error instanceof SyntaxError || error?.name === 'SyntaxError') {
+      // Handle malformed JSON by removing the corrupted file
+      console.warn(`Corrupted session file detected: ${sessionPath}. Removing corrupted file.`);
+      try {
+        await fs.remove(sessionPath);
+      } catch (removeError) {
+        console.error('Failed to remove corrupted session file:', removeError);
+      }
+    }
+    return null;
+  }
+}
+
+/**
+ * Atomic write for session data to prevent corruption
+ */
+async function atomicWriteSessionJson(sessionPath: string, sessionData: SessionData): Promise<void> {
+  const tempPath = `${sessionPath}.tmp`;
+  try {
+    // Write to temporary file first
+    await fs.writeJson(tempPath, sessionData, { spaces: 2 });
+    // Atomically move temp file to final location, overwriting if exists
+    await fs.move(tempPath, sessionPath, { overwrite: true });
+  } catch (error) {
+    // Clean up temp file if it exists
+    if (await fs.pathExists(tempPath)) {
+      await fs.remove(tempPath);
+    }
+    throw error;
+  }
 }
 
 /**
@@ -145,12 +187,14 @@ export async function createSession(user: {
  */
 export async function updateSessionActivity(userId: string): Promise<void> {
   try {
-    const sessionPath = path.join(sessionsDir, `${userId}.json`);
+    const sessionPath = path.join(getSessionsDir(), `${userId}.json`);
 
     if (await fs.pathExists(sessionPath)) {
-      const sessionData = await fs.readJson(sessionPath);
-      sessionData.lastActivity = new Date().toISOString();
-      await fs.writeJson(sessionPath, sessionData, { spaces: 2 });
+      const sessionData = await safeReadSessionJson(sessionPath);
+      if (sessionData) {
+        sessionData.lastActivity = new Date().toISOString();
+        await atomicWriteSessionJson(sessionPath, sessionData);
+      }
     }
   } catch (error) {
     console.error('Failed to update session activity:', error);
@@ -162,10 +206,10 @@ export async function updateSessionActivity(userId: string): Promise<void> {
  */
 export async function getSession(userId: string): Promise<SessionData | null> {
   try {
-    const sessionPath = path.join(sessionsDir, `${userId}.json`);
+    const sessionPath = path.join(getSessionsDir(), `${userId}.json`);
 
     if (await fs.pathExists(sessionPath)) {
-      return await fs.readJson(sessionPath);
+      return await safeReadSessionJson(sessionPath);
     }
 
     return null;
@@ -180,7 +224,7 @@ export async function getSession(userId: string): Promise<SessionData | null> {
  */
 export async function deleteSession(userId: string): Promise<void> {
   try {
-    const sessionPath = path.join(sessionsDir, `${userId}.json`);
+    const sessionPath = path.join(getSessionsDir(), `${userId}.json`);
 
     if (await fs.pathExists(sessionPath)) {
       await fs.remove(sessionPath);
@@ -249,16 +293,17 @@ function cleanupBlacklist(): void {
  */
 export async function cleanupExpiredSessions(): Promise<void> {
   try {
-    const sessionFiles = await fs.readdir(sessionsDir);
+    const sessionFiles = await fs.readdir(getSessionsDir());
 
     for (const file of sessionFiles) {
       if (file.endsWith('.json')) {
-        const sessionPath = path.join(sessionsDir, file);
-        const sessionData = await fs.readJson(sessionPath);
+        const sessionPath = path.join(getSessionsDir(), file);
+        const sessionData = await safeReadSessionJson(sessionPath);
 
-        if (isSessionExpired(sessionData)) {
+        if (sessionData && isSessionExpired(sessionData)) {
           await fs.remove(sessionPath);
         }
+        // Note: corrupted files are already removed by safeReadSessionJson
       }
     }
   } catch (error) {
