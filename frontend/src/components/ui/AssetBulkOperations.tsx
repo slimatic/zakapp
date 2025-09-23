@@ -5,9 +5,16 @@ import {
   FileText, 
   AlertCircle, 
   CheckCircle,
-  RefreshCw
+  RefreshCw,
+  Shield,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Asset } from '@zakapp/shared';
+import { Dialog, DialogContent, DialogTitle } from './dialog';
+import { Button } from './button';
+import { Card, CardContent, CardHeader, CardTitle } from './card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 
 interface AssetBulkOperationsProps {
   isOpen: boolean;
