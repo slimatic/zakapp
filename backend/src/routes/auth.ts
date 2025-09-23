@@ -216,4 +216,71 @@ router.post(
   }
 );
 
+/**
+ * GET /auth/demo-status
+ * Check if there are demo users in the system
+ */
+router.get('/demo-status', async (req, res) => {
+  try {
+    const demoUsers = await userService.getDemoUsers();
+    
+    res.json({
+      success: true,
+      data: {
+        hasDemoUsers: demoUsers.length > 0,
+        demoUsers: demoUsers,
+        count: demoUsers.length
+      }
+    });
+  } catch (error) {
+    console.error('Demo status check error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to check demo user status',
+      },
+    });
+  }
+});
+
+/**
+ * DELETE /auth/demo-users
+ * Remove demo users from the system
+ */
+router.delete('/demo-users', async (req, res) => {
+  try {
+    const result = await userService.removeDemoUsers();
+    
+    if (result.removed.length === 0 && result.errors.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No demo users found to remove',
+        data: {
+          removed: [],
+          errors: []
+        }
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: `Removed ${result.removed.length} demo user(s)`,
+      data: {
+        removed: result.removed,
+        errors: result.errors
+      }
+    });
+  } catch (error) {
+    console.error('Demo user removal error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to remove demo users',
+      },
+    });
+  }
+});
+
 export { router as authRouter };
