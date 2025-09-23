@@ -4,9 +4,13 @@ import path from 'path';
 import { JWTPayload } from './auth.js';
 
 // JWT configuration with session timeout
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-dev-secret-change-in-production';
+const JWT_SECRET =
+  process.env.JWT_SECRET || 'fallback-dev-secret-change-in-production';
 const SESSION_TIMEOUT = parseInt(process.env.SESSION_TIMEOUT || '86400', 10); // 24 hours in seconds
-const REFRESH_TOKEN_TIMEOUT = parseInt(process.env.REFRESH_TOKEN_TIMEOUT || '604800', 10); // 7 days in seconds
+const REFRESH_TOKEN_TIMEOUT = parseInt(
+  process.env.REFRESH_TOKEN_TIMEOUT || '604800',
+  10
+); // 7 days in seconds
 const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
 
 // In-memory token blacklist (in production, use Redis or database)
@@ -35,14 +39,18 @@ export async function initializeSessions(): Promise<void> {
 /**
  * Generate access and refresh tokens
  */
-export function generateTokenPair(user: { userId: string; username: string; email: string }): {
+export function generateTokenPair(user: {
+  userId: string;
+  username: string;
+  email: string;
+}): {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
   refreshExpiresIn: number;
 } {
   const now = Math.floor(Date.now() / 1000);
-  
+
   // Access token payload
   const accessPayload: JWTPayload = {
     userId: user.userId,
@@ -85,13 +93,13 @@ export function refreshAccessToken(refreshToken: string): {
     }
 
     const decoded = jwt.verify(refreshToken, JWT_SECRET) as any;
-    
+
     if (decoded.type !== 'refresh') {
       return null;
     }
 
     const now = Math.floor(Date.now() / 1000);
-    
+
     // Generate new access token
     const accessPayload: JWTPayload = {
       userId: decoded.userId,
@@ -115,7 +123,11 @@ export function refreshAccessToken(refreshToken: string): {
 /**
  * Create a session record
  */
-export async function createSession(user: { userId: string; username: string; email: string }): Promise<void> {
+export async function createSession(user: {
+  userId: string;
+  username: string;
+  email: string;
+}): Promise<void> {
   const sessionData: SessionData = {
     userId: user.userId,
     username: user.username,
@@ -134,7 +146,7 @@ export async function createSession(user: { userId: string; username: string; em
 export async function updateSessionActivity(userId: string): Promise<void> {
   try {
     const sessionPath = path.join(sessionsDir, `${userId}.json`);
-    
+
     if (await fs.pathExists(sessionPath)) {
       const sessionData = await fs.readJson(sessionPath);
       sessionData.lastActivity = new Date().toISOString();
@@ -151,11 +163,11 @@ export async function updateSessionActivity(userId: string): Promise<void> {
 export async function getSession(userId: string): Promise<SessionData | null> {
   try {
     const sessionPath = path.join(sessionsDir, `${userId}.json`);
-    
+
     if (await fs.pathExists(sessionPath)) {
       return await fs.readJson(sessionPath);
     }
-    
+
     return null;
   } catch (error) {
     console.error('Failed to get session:', error);
@@ -169,7 +181,7 @@ export async function getSession(userId: string): Promise<SessionData | null> {
 export async function deleteSession(userId: string): Promise<void> {
   try {
     const sessionPath = path.join(sessionsDir, `${userId}.json`);
-    
+
     if (await fs.pathExists(sessionPath)) {
       await fs.remove(sessionPath);
     }
@@ -185,7 +197,7 @@ export function isSessionExpired(sessionData: SessionData): boolean {
   const lastActivity = new Date(sessionData.lastActivity);
   const now = new Date();
   const diffInSeconds = (now.getTime() - lastActivity.getTime()) / 1000;
-  
+
   return diffInSeconds > SESSION_TIMEOUT;
 }
 
@@ -194,7 +206,7 @@ export function isSessionExpired(sessionData: SessionData): boolean {
  */
 export function blacklistToken(token: string): void {
   tokenBlacklist.add(token);
-  
+
   // Clean up expired tokens periodically
   if (tokenBlacklist.size > 10000) {
     cleanupBlacklist();
@@ -213,7 +225,7 @@ export function isTokenBlacklisted(token: string): boolean {
  */
 function cleanupBlacklist(): void {
   const tokensToRemove: string[] = [];
-  
+
   for (const token of tokenBlacklist) {
     try {
       const decoded = jwt.decode(token) as any;
@@ -228,7 +240,7 @@ function cleanupBlacklist(): void {
       tokensToRemove.push(token);
     }
   }
-  
+
   tokensToRemove.forEach(token => tokenBlacklist.delete(token));
 }
 
@@ -238,12 +250,12 @@ function cleanupBlacklist(): void {
 export async function cleanupExpiredSessions(): Promise<void> {
   try {
     const sessionFiles = await fs.readdir(sessionsDir);
-    
+
     for (const file of sessionFiles) {
       if (file.endsWith('.json')) {
         const sessionPath = path.join(sessionsDir, file);
         const sessionData = await fs.readJson(sessionPath);
-        
+
         if (isSessionExpired(sessionData)) {
           await fs.remove(sessionPath);
         }
@@ -255,7 +267,10 @@ export async function cleanupExpiredSessions(): Promise<void> {
 }
 
 // Start periodic cleanup
-setInterval(() => {
-  cleanupBlacklist();
-  cleanupExpiredSessions().catch(console.error);
-}, 60 * 60 * 1000); // Every hour
+setInterval(
+  () => {
+    cleanupBlacklist();
+    cleanupExpiredSessions().catch(console.error);
+  },
+  60 * 60 * 1000
+); // Every hour

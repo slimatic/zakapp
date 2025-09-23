@@ -1,11 +1,15 @@
 import request from 'supertest';
 import app from '../index.js';
-import { generateEncryptionKey, encryptData, decryptData } from '../utils/encryption.js';
-import { 
-  generateTokenPair, 
-  refreshAccessToken, 
-  blacklistToken, 
-  isTokenBlacklisted 
+import {
+  generateEncryptionKey,
+  encryptData,
+  decryptData,
+} from '../utils/encryption.js';
+import {
+  generateTokenPair,
+  refreshAccessToken,
+  blacklistToken,
+  isTokenBlacklisted,
 } from '../utils/session.js';
 import fs from 'fs-extra';
 import path from 'path';
@@ -45,7 +49,7 @@ describe('Security Features', () => {
       const testData = 'This is sensitive user data';
       const encrypted = encryptData(testData);
       const decrypted = decryptData(encrypted);
-      
+
       expect(encrypted).not.toBe(testData);
       expect(decrypted).toBe(testData);
     });
@@ -53,10 +57,10 @@ describe('Security Features', () => {
     it('should encrypt and decrypt with custom key', () => {
       const testData = 'Custom key encryption test';
       const customKey = generateEncryptionKey();
-      
+
       const encrypted = encryptData(testData, customKey);
       const decrypted = decryptData(encrypted, customKey);
-      
+
       expect(decrypted).toBe(testData);
     });
 
@@ -64,9 +68,9 @@ describe('Security Features', () => {
       const testData = 'Secret data';
       const key1 = generateEncryptionKey();
       const key2 = generateEncryptionKey();
-      
+
       const encrypted = encryptData(testData, key1);
-      
+
       expect(() => {
         decryptData(encrypted, key2);
       }).toThrow('Decryption failed');
@@ -82,7 +86,7 @@ describe('Security Features', () => {
 
     it('should generate token pair', () => {
       const tokens = generateTokenPair(testUser);
-      
+
       expect(tokens.accessToken).toBeDefined();
       expect(tokens.refreshToken).toBeDefined();
       expect(tokens.expiresIn).toBeGreaterThan(0);
@@ -92,7 +96,7 @@ describe('Security Features', () => {
     it('should refresh access token with valid refresh token', () => {
       const tokens = generateTokenPair(testUser);
       const result = refreshAccessToken(tokens.refreshToken);
-      
+
       expect(result).toBeDefined();
       expect(result?.accessToken).toBeDefined();
       expect(result?.expiresIn).toBeGreaterThan(0);
@@ -105,36 +109,29 @@ describe('Security Features', () => {
 
     it('should blacklist tokens', () => {
       const tokens = generateTokenPair(testUser);
-      
+
       expect(isTokenBlacklisted(tokens.accessToken)).toBe(false);
-      
+
       blacklistToken(tokens.accessToken);
-      
+
       expect(isTokenBlacklisted(tokens.accessToken)).toBe(true);
     });
   });
 
   describe('Rate Limiting', () => {
-    const testUser = {
-      username: 'ratetest',
-      email: 'ratetest@example.com',
-      password: 'TestPass123!',
-      confirmPassword: 'TestPass123!',
-    };
-
     it('should apply rate limiting to auth endpoints', async () => {
       // Make multiple rapid requests to trigger rate limit
-      const requests = Array(6).fill(0).map(() => 
-        request(app)
-          .post('/api/v1/auth/login')
-          .send({
+      const requests = Array(6)
+        .fill(0)
+        .map(() =>
+          request(app).post('/api/v1/auth/login').send({
             username: 'nonexistent',
             password: 'wrongpassword',
           })
-      );
-      
+        );
+
       const responses = await Promise.all(requests);
-      
+
       // First 5 should be normal auth failures, 6th should be rate limited
       expect(responses[4].status).toBe(401); // Auth failure
       expect(responses[5].status).toBe(429); // Rate limited
@@ -143,14 +140,14 @@ describe('Security Features', () => {
 
   describe('Security Headers', () => {
     it('should include security headers in responses', async () => {
-      const response = await request(app)
-        .get('/api/health')
-        .expect(200);
+      const response = await request(app).get('/api/health').expect(200);
 
       expect(response.headers['x-content-type-options']).toBe('nosniff');
       expect(response.headers['x-frame-options']).toBe('DENY');
       expect(response.headers['x-xss-protection']).toBe('1; mode=block');
-      expect(response.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+      expect(response.headers['referrer-policy']).toBe(
+        'strict-origin-when-cross-origin'
+      );
     });
   });
 
