@@ -47,24 +47,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('zakapp_token');
         localStorage.removeItem('zakapp_user');
       }
-    } else {
-      // TEMPORARY: Mock authentication for demo
-      const mockUser: User = {
-        userId: 'demo-user',
-        username: 'demo',
-        email: 'demo@example.com',
-        createdAt: new Date().toISOString(),
-        preferences: {
-          currency: 'USD',
-          language: 'en',
-          zakatMethod: 'standard',
-          calendarType: 'lunar',
-        },
-      };
-      setUser(mockUser);
-      setToken('demo-token');
-      localStorage.setItem('zakapp_token', 'demo-token');
-      localStorage.setItem('zakapp_user', JSON.stringify(mockUser));
     }
 
     setIsLoading(false);
@@ -72,25 +54,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${baseUrl}/api/v1${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
-      ...options,
-    });
+    try {
+      const response = await fetch(`${baseUrl}/api/v1${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+          ...options.headers,
+        },
+        ...options,
+      });
 
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: 'Network error' }));
-      throw new Error(
-        errorData.error?.message || errorData.message || 'Request failed'
-      );
+      // Always try to parse the JSON response
+      const data = await response.json().catch(() => ({ 
+        success: false, 
+        error: { message: 'Invalid response format' } 
+      }));
+
+      // If the request failed but we got a proper error response, return it
+      // This allows us to handle API errors gracefully
+      if (!response.ok && data.success === false) {
+        return data;
+      }
+
+      // If the request failed and we don't have a proper error response, throw
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      // Handle network errors or other fetch failures
+      if (error instanceof TypeError) {
+        throw new Error('Network error - please check your connection');
+      }
+      throw error;
     }
-
-    return response.json();
   };
 
   const login = async (credentials: LoginRequest) => {
@@ -102,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (response.success) {
-        const { user: userData, token: authToken } = response.data;
+        const { user: userData, accessToken: authToken } = response.data;
         setUser(userData);
         setToken(authToken);
 
