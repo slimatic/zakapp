@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '../index.js';
-import { Asset, AssetCategoryType } from '@zakapp/shared';
+import { Asset } from '@zakapp/shared';
 
 describe('Enhanced Asset Management', () => {
   let authToken: string;
@@ -13,16 +13,12 @@ describe('Enhanced Asset Management', () => {
 
   beforeAll(async () => {
     // Register and login user for testing
-    await request(app)
-      .post('/api/v1/auth/register')
-      .send(testUser);
+    await request(app).post('/api/v1/auth/register').send(testUser);
 
-    const loginResponse = await request(app)
-      .post('/api/v1/auth/login')
-      .send({
-        username: testUser.username,
-        password: testUser.password,
-      });
+    const loginResponse = await request(app).post('/api/v1/auth/login').send({
+      username: testUser.username,
+      password: testUser.password,
+    });
 
     authToken = loginResponse.body.data.token;
   });
@@ -51,10 +47,10 @@ describe('Enhanced Asset Management', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.asset).toBeDefined();
-      
+
       const asset = response.body.data.asset;
       createdAssetId = asset.assetId;
-      
+
       expect(asset.name).toBe(comprehensiveAsset.name);
       expect(asset.category).toBe(comprehensiveAsset.category);
       expect(asset.subCategory).toBe(comprehensiveAsset.subCategory);
@@ -92,7 +88,9 @@ describe('Enhanced Asset Management', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.asset.value).toBe(updateData.value);
       expect(response.body.data.asset.description).toBe(updateData.description);
-      expect(response.body.data.asset.updatedAt).not.toBe(response.body.data.asset.createdAt);
+      expect(response.body.data.asset.updatedAt).not.toBe(
+        response.body.data.asset.createdAt
+      );
     });
 
     it('should delete the asset', async () => {
@@ -121,7 +119,9 @@ describe('Enhanced Asset Management', () => {
       expect(response.body.data.categories.length).toBeGreaterThan(0);
 
       // Check for expected categories
-      const categoryIds = response.body.data.categories.map((cat: any) => cat.id);
+      const categoryIds = response.body.data.categories.map(
+        (cat: any) => cat.id
+      );
       expect(categoryIds).toContain('cash');
       expect(categoryIds).toContain('gold');
       expect(categoryIds).toContain('silver');
@@ -143,7 +143,9 @@ describe('Enhanced Asset Management', () => {
       expect(response.body.data.subcategories.length).toBeGreaterThan(0);
 
       // Check for expected cash subcategories
-      const subCategoryIds = response.body.data.subcategories.map((sub: any) => sub.id);
+      const subCategoryIds = response.body.data.subcategories.map(
+        (sub: any) => sub.id
+      );
       expect(subCategoryIds).toContain('savings');
       expect(subCategoryIds).toContain('checking');
       expect(subCategoryIds).toContain('cash_on_hand');
@@ -228,7 +230,7 @@ describe('Enhanced Asset Management', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.assets).toBeDefined();
-      
+
       // All returned assets should be cash category
       const assets = response.body.data.assets;
       expect(assets.length).toBeGreaterThanOrEqual(2);
@@ -245,7 +247,7 @@ describe('Enhanced Asset Management', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.groupedAssets).toBeDefined();
-      
+
       const groupedAssets = response.body.data.groupedAssets;
       expect(groupedAssets.cash).toBeDefined();
       expect(groupedAssets.gold).toBeDefined();
@@ -264,7 +266,7 @@ describe('Enhanced Asset Management', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.statistics).toBeDefined();
-      
+
       const stats = response.body.data.statistics;
       expect(stats.totalAssets).toBeGreaterThan(0);
       expect(stats.totalValue).toBeGreaterThan(0);
@@ -308,7 +310,7 @@ describe('Enhanced Asset Management', () => {
       expect(historyResponse.body.data.history).toBeDefined();
       expect(Array.isArray(historyResponse.body.data.history)).toBe(true);
       expect(historyResponse.body.data.history.length).toBeGreaterThan(0);
-      
+
       const createHistory = historyResponse.body.data.history.find(
         (h: any) => h.action === 'created'
       );
@@ -336,7 +338,7 @@ describe('Enhanced Asset Management', () => {
 
       const history = historyResponse.body.data.history;
       expect(history.length).toBeGreaterThanOrEqual(2);
-      
+
       const updateHistory = history.find((h: any) => h.action === 'updated');
       expect(updateHistory).toBeDefined();
     });

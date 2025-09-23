@@ -1,14 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { 
-  Upload, 
-  Download, 
-  FileText, 
-  AlertCircle, 
+import {
+  Upload,
+  Download,
+  FileText,
+  AlertCircle,
   CheckCircle,
   RefreshCw,
   Shield,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 import { Asset } from '@zakapp/shared';
 import { Dialog, DialogContent, DialogTitle } from './dialog';
@@ -92,42 +92,45 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
   });
   const [showEncryptionKey, setShowEncryptionKey] = useState(false);
 
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    setImportState(prev => ({
-      ...prev,
-      file,
-      data: null,
-      validation: null,
-      results: null,
-    }));
+      setImportState(prev => ({
+        ...prev,
+        file,
+        data: null,
+        validation: null,
+        results: null,
+      }));
 
-    // Read file content
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const data = JSON.parse(content);
-        
-        let assetsData = data;
-        if (data.assets) {
-          // Handle full export format
-          assetsData = data.assets;
+      // Read file content
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const content = e.target?.result as string;
+          const data = JSON.parse(content);
+
+          let assetsData = data;
+          if (data.assets) {
+            // Handle full export format
+            assetsData = data.assets;
+          }
+
+          setImportState(prev => ({
+            ...prev,
+            data: Array.isArray(assetsData) ? assetsData : [assetsData],
+          }));
+        } catch (error) {
+          console.error('Error parsing file:', error);
+          alert('Invalid JSON file format');
         }
-
-        setImportState(prev => ({
-          ...prev,
-          data: Array.isArray(assetsData) ? assetsData : [assetsData],
-        }));
-      } catch (error) {
-        console.error('Error parsing file:', error);
-        alert('Invalid JSON file format');
-      }
-    };
-    reader.readAsText(file);
-  }, []);
+      };
+      reader.readAsText(file);
+    },
+    []
+  );
 
   const validateImportData = useCallback(async () => {
     if (!importState.data) return;
@@ -138,7 +141,7 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
           assets: importState.data,
@@ -147,7 +150,7 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         setImportState(prev => ({
           ...prev,
@@ -171,7 +174,7 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
 
       importState.data.forEach((asset, index) => {
         const detail: ValidationDetail = { index, status: 'valid', asset };
-        
+
         if (!asset.name || !asset.category || !asset.subCategory) {
           detail.status = 'invalid';
           detail.error = 'Missing required fields';
@@ -183,7 +186,7 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
         } else {
           validation.valid++;
         }
-        
+
         validation.details.push(detail);
       });
 
@@ -201,7 +204,7 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
           assets: importState.data,
@@ -211,7 +214,7 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         setImportState(prev => ({
           ...prev,
@@ -227,7 +230,7 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
         const createdAssets = result.data.results
           .filter((r: any) => r.status === 'created' && r.asset)
           .map((r: any) => r.asset);
-        
+
         if (createdAssets.length > 0) {
           onAssetsImported(createdAssets);
         }
@@ -247,17 +250,17 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
       const response = await fetch('/api/v1/assets/bulk/export', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         const filename = `zakapp-assets-${new Date().toISOString().split('T')[0]}.json`;
         const dataStr = JSON.stringify(result.data, null, 2);
         const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        
+
         const url = URL.createObjectURL(dataBlob);
         const link = document.createElement('a');
         link.href = url;
@@ -289,7 +292,7 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogTitle>Bulk Asset Operations</DialogTitle>
-        
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="import" className="flex items-center space-x-2">
@@ -352,12 +355,9 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
                         Choose Different File
                       </Button>
                     </div>
-                    
+
                     <div className="flex space-x-4">
-                      <Button 
-                        onClick={validateImportData}
-                        className="flex-1"
-                      >
+                      <Button onClick={validateImportData} className="flex-1">
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Validate Data
                       </Button>
@@ -406,7 +406,10 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
                           {importState.validation.details
                             .filter(d => d.status === 'invalid')
                             .map((detail, index) => (
-                              <div key={index} className="text-sm text-red-600 py-1">
+                              <div
+                                key={index}
+                                className="text-sm text-red-600 py-1"
+                              >
                                 Row {detail.index + 1}: {detail.error}
                               </div>
                             ))}
@@ -418,9 +421,12 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
                       <Button onClick={resetImport} variant="outline">
                         Start Over
                       </Button>
-                      <Button 
+                      <Button
                         onClick={performImport}
-                        disabled={importState.validation.valid === 0 || importState.importing}
+                        disabled={
+                          importState.validation.valid === 0 ||
+                          importState.importing
+                        }
                         className="flex-1"
                       >
                         {importState.importing ? (
@@ -443,12 +449,14 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
                   <div className="space-y-4">
                     <div className="text-center p-4 bg-green-50 rounded-lg">
                       <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                      <h3 className="font-medium text-green-900">Import Complete</h3>
+                      <h3 className="font-medium text-green-900">
+                        Import Complete
+                      </h3>
                       <p className="text-sm text-green-700">
-                        {importState.results.successful} assets imported successfully
-                        {importState.results.failed > 0 && 
-                          `, ${importState.results.failed} failed`
-                        }
+                        {importState.results.successful} assets imported
+                        successfully
+                        {importState.results.failed > 0 &&
+                          `, ${importState.results.failed} failed`}
                       </p>
                     </div>
 
@@ -482,7 +490,10 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
                   <Card>
                     <CardContent className="p-4 text-center">
                       <div className="text-2xl font-bold text-green-600">
-                        ${userAssets.reduce((sum, asset) => sum + asset.value, 0).toLocaleString()}
+                        $
+                        {userAssets
+                          .reduce((sum, asset) => sum + asset.value, 0)
+                          .toLocaleString()}
                       </div>
                       <div className="text-sm text-gray-600">Total Value</div>
                     </CardContent>
@@ -503,32 +514,43 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
                       Export Format
                     </label>
                     <div className="grid grid-cols-2 gap-4">
-                      <Card 
+                      <Card
                         className={`cursor-pointer transition-colors ${
-                          exportState.format === 'json' 
-                            ? 'border-blue-500 bg-blue-50' 
+                          exportState.format === 'json'
+                            ? 'border-blue-500 bg-blue-50'
                             : 'hover:bg-gray-50'
                         }`}
-                        onClick={() => setExportState(prev => ({ ...prev, format: 'json' }))}
+                        onClick={() =>
+                          setExportState(prev => ({ ...prev, format: 'json' }))
+                        }
                       >
                         <CardContent className="p-4 text-center">
                           <FileText className="h-6 w-6 mx-auto mb-2 text-blue-600" />
                           <div className="font-medium">Standard JSON</div>
-                          <div className="text-xs text-gray-500">Human readable format</div>
+                          <div className="text-xs text-gray-500">
+                            Human readable format
+                          </div>
                         </CardContent>
                       </Card>
-                      <Card 
+                      <Card
                         className={`cursor-pointer transition-colors ${
-                          exportState.format === 'encrypted' 
-                            ? 'border-blue-500 bg-blue-50' 
+                          exportState.format === 'encrypted'
+                            ? 'border-blue-500 bg-blue-50'
                             : 'hover:bg-gray-50'
                         }`}
-                        onClick={() => setExportState(prev => ({ ...prev, format: 'encrypted' }))}
+                        onClick={() =>
+                          setExportState(prev => ({
+                            ...prev,
+                            format: 'encrypted',
+                          }))
+                        }
                       >
                         <CardContent className="p-4 text-center">
                           <Shield className="h-6 w-6 mx-auto mb-2 text-green-600" />
                           <div className="font-medium">Encrypted</div>
-                          <div className="text-xs text-gray-500">Secure format</div>
+                          <div className="text-xs text-gray-500">
+                            Secure format
+                          </div>
                         </CardContent>
                       </Card>
                     </div>
@@ -544,16 +566,21 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
                               Encrypted Export
                             </h4>
                             <p className="text-sm text-yellow-700 mt-1">
-                              Your data will be encrypted before export. You'll need the encryption key to import it later.
+                              Your data will be encrypted before export. You'll
+                              need the encryption key to import it later.
                             </p>
                             <div className="mt-3 flex items-center space-x-2">
                               <code className="px-2 py-1 bg-yellow-100 rounded text-xs">
-                                {showEncryptionKey ? 'your-encryption-key-here' : '••••••••••••••••'}
+                                {showEncryptionKey
+                                  ? 'your-encryption-key-here'
+                                  : '••••••••••••••••'}
                               </code>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setShowEncryptionKey(!showEncryptionKey)}
+                                onClick={() =>
+                                  setShowEncryptionKey(!showEncryptionKey)
+                                }
                               >
                                 {showEncryptionKey ? (
                                   <EyeOff className="h-4 w-4" />
@@ -568,7 +595,7 @@ export const AssetBulkOperations: React.FC<AssetBulkOperationsProps> = ({
                     </Card>
                   )}
 
-                  <Button 
+                  <Button
                     onClick={performExport}
                     disabled={exportState.exporting || userAssets.length === 0}
                     className="w-full"
