@@ -13,16 +13,12 @@ describe('Asset Bulk Operations', () => {
 
   beforeAll(async () => {
     // Register and login user for testing
-    await request(app)
-      .post('/api/v1/auth/register')
-      .send(testUser);
+    await request(app).post('/api/v1/auth/register').send(testUser);
 
-    const loginResponse = await request(app)
-      .post('/api/v1/auth/login')
-      .send({
-        username: testUser.username,
-        password: testUser.password,
-      });
+    const loginResponse = await request(app).post('/api/v1/auth/login').send({
+      username: testUser.username,
+      password: testUser.password,
+    });
 
     authToken = loginResponse.body.data.token;
   });
@@ -129,9 +125,9 @@ describe('Asset Bulk Operations', () => {
       const response = await request(app)
         .post('/api/v1/assets/bulk/import')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ 
+        .send({
           assets: validAssets,
-          mergeStrategy: 'merge'
+          mergeStrategy: 'merge',
         })
         .expect(200);
 
@@ -147,7 +143,8 @@ describe('Asset Bulk Operations', () => {
         .expect(200);
 
       const createdAssets = assetsResponse.body.data.assets.filter(
-        (asset: Asset) => asset.name === 'Imported Savings' || asset.name === 'Imported Gold'
+        (asset: Asset) =>
+          asset.name === 'Imported Savings' || asset.name === 'Imported Gold'
       );
       expect(createdAssets).toHaveLength(2);
     });
@@ -239,9 +236,7 @@ describe('Asset Bulk Operations', () => {
     });
 
     it('should require authentication', async () => {
-      await request(app)
-        .get('/api/v1/assets/bulk/export')
-        .expect(401);
+      await request(app).get('/api/v1/assets/bulk/export').expect(401);
     });
   });
 
@@ -264,16 +259,12 @@ describe('Asset Bulk Operations', () => {
         confirmPassword: 'TestPassword123',
       };
 
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send(newUser);
+      await request(app).post('/api/v1/auth/register').send(newUser);
 
-      const newUserLogin = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          username: newUser.username,
-          password: newUser.password,
-        });
+      const newUserLogin = await request(app).post('/api/v1/auth/login').send({
+        username: newUser.username,
+        password: newUser.password,
+      });
 
       const newUserToken = newUserLogin.body.data.token;
 
@@ -283,7 +274,7 @@ describe('Asset Bulk Operations', () => {
         .set('Authorization', `Bearer ${newUserToken}`)
         .send({
           assets: exportedAssets.slice(0, 2), // Import first 2 assets
-          mergeStrategy: 'merge'
+          mergeStrategy: 'merge',
         })
         .expect(200);
 
