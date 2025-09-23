@@ -1,4 +1,7 @@
-import {
+import { Asset, AssetCategoryType } from '@zakapp/shared';
+
+// Export commonly used types and schemas from shared package
+export {
   // Base asset types
   Asset,
   AssetCategoryType,
