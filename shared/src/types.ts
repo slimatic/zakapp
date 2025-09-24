@@ -253,8 +253,6 @@ export interface NisabInfo {
   goldNisab: number;
   silverNisab: number;
   effectiveNisab: number;
-  nisabBasis?: string;
-  calculationMethod?: string;
   nisabBasis: string;
   calculationMethod: string;
 }
@@ -294,6 +292,19 @@ export interface MethodologyInfo {
   debtDeduction: string;
   scholarlyBasis: string[];
   regions: string[];
+}
+
+/**
+ * Educational content interface for zakat methodologies.
+ * Provides comprehensive information for user education and decision-making.
+ */
+export interface MethodologyEducationContent {
+  historicalBackground: string;
+  nisabApproach: string;
+  businessAssetTreatment: string;
+  debtTreatment: string;
+  pros: string[];
+  considerations: string[];
 }
 
 // Payment Types
