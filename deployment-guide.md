@@ -359,6 +359,62 @@ SSL_CERT_PATH=/app/ssl/cert.pem
 SSL_KEY_PATH=/app/ssl/key.pem
 ```
 
+### Port Configuration
+
+The application supports flexible port configuration to prevent "EADDRINUSE" errors and enable multiple instances:
+
+**Backend Port Configuration:**
+
+```bash
+# Method 1: Environment variable in .env file
+PORT=3002
+
+# Method 2: Command line
+PORT=3002 npm run dev
+
+# Method 3: Docker environment
+services:
+  backend:
+    environment:
+      - PORT=3002
+    ports:
+      - '3002:3002'  # Update port mapping accordingly
+```
+
+**Frontend Port Configuration:**
+
+The frontend runs on port 3000 by default. To change it:
+
+```bash
+# Vite development server
+npm run dev -- --port 3010
+
+# Or set in vite.config.ts
+server: {
+  port: 3010
+}
+```
+
+**Handling Port Conflicts:**
+
+If you encounter port conflicts, the backend server provides helpful error messages:
+
+```
+❌ Port 3001 is already in use!
+
+To fix this issue, you can:
+• Set a different port: PORT=3002 npm run dev
+• Or kill the process using port 3001:
+  - Find the process: lsof -ti:3001
+  - Kill the process: kill -9 $(lsof -ti:3001)
+```
+
+**Production Considerations:**
+
+- Use reverse proxy (Nginx/Traefik) to handle external ports (80/443)
+- Internal application ports can be any available port
+- Update load balancer/proxy configuration when changing internal ports
+
 ### Security Configuration
 
 1. **Generate secure secrets**

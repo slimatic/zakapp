@@ -7,15 +7,15 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-      - /app/shared/node_modules  
+      - /app/shared/node_modules
       - /app/backend/node_modules
       - /app/frontend/node_modules
       - ./backend/data:/app/backend/data
     environment:
       - NODE_ENV=development
     working_dir: /app
-    profiles: ["npm-tools"]
-    command: ["tail", "-f", "/dev/null"]  # Keep container running
+    profiles: ['npm-tools']
+    command: ['tail', '-f', '/dev/null'] # Keep container running
 
   frontend:
     build:

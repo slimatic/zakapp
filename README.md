@@ -93,6 +93,21 @@ cd zakapp
 
 # Start with Docker (eliminates npm permission issues)
 npm run docker:dev
+
+# Start development servers (auto-setup on first run)
+npm run dev
+```
+
+> **Note**: On first run, `npm run dev` will automatically install dependencies and build the shared package. This may take a few minutes.
+
+Alternative manual setup:
+
+```bash
+# Manual dependency installation (optional)
+npm run install:all
+
+# Start development servers
+npm run dev
 ```
 
 ### 🌐 Access Points
@@ -136,6 +151,9 @@ npm run docker:npm:install  # Install dependencies in container
 npm run dev              # Start local development servers
 npm run install:all      # Install all dependencies with proper order
 
+# Development database reset
+npm run reset:db         # Clear all user data and database files for testing
+
 # Backend development
 cd backend
 npm run dev          # Start development server
@@ -150,6 +168,35 @@ npm run build        # Build for production
 npm run test         # Run tests
 npm run lint         # Run ESLint
 ```
+
+#### Database Reset for Testing
+
+The `reset:db` command provides a safe way to clear all development data for testing:
+
+```bash
+npm run reset:db
+```
+
+**What it does:**
+
+- Removes all user directories and data files from `backend/data/users/`
+- Clears all backup files from `backend/data/backups/`
+- Removes session files from `backend/data/sessions/`
+- Recreates empty directories for clean state
+
+**Safety features:**
+
+- ❌ Cannot run in production (NODE_ENV=production)
+- ⚠️ Requires interactive confirmation before deletion
+- 📊 Shows current data state before clearing
+- 📝 Provides detailed logging of what was deleted
+
+This is particularly useful when:
+
+- Testing user registration and data flows
+- Debugging issues related to stale user data
+- Resetting environment between test scenarios
+- Preparing clean state for development
 
 ### Testing
 
@@ -178,28 +225,31 @@ npm run test:e2e
 If you encounter `EACCES` permission errors during `npm install`:
 
 1. **For Docker development (recommended)**: Use Docker Compose to avoid permission issues:
+
    ```bash
    docker-compose up
    ```
 
 2. **For local development**: Check Node.js and npm setup:
+
    ```bash
    # Check your Node.js and npm version
    node --version
    npm --version
-   
+
    # Use npm ci instead of npm install for clean installs
    npm ci
-   
+
    # If using nvm, make sure permissions are correct
    npm config get prefix
    ```
 
 3. **Fix npm permissions** (if needed):
+
    ```bash
    # Option 1: Use npm's built-in fix
    npx npm-check-updates -g
-   
+
    # Option 2: Change npm's default directory
    mkdir ~/.npm-global
    npm config set prefix '~/.npm-global'
@@ -212,12 +262,14 @@ If you encounter `EACCES` permission errors during `npm install`:
 If Docker containers fail to start:
 
 1. **Ensure Docker is running**:
+
    ```bash
    docker --version
    docker-compose --version
    ```
 
 2. **Clean Docker state**:
+
    ```bash
    docker-compose down
    docker system prune -f
@@ -239,15 +291,17 @@ If you see "Cannot find package '@zakapp/shared'" errors:
 **Manual troubleshooting** (if automatic setup fails):
 
 1. **Force clean setup**:
+
    ```bash
    # Clean all builds and dependencies
    rm -rf shared/dist shared/node_modules backend/node_modules frontend/node_modules
-   
+
    # Run complete setup
    npm run install:all
    ```
 
 2. **Verify package linking**:
+
    ```bash
    # Check if the shared package is properly linked
    cd frontend && npm ls @zakapp/shared

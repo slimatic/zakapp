@@ -54,7 +54,7 @@ describe('Authentication Endpoints', () => {
 
     it('should reject registration with invalid email', async () => {
       const invalidUser = { ...testUser, email: 'invalid-email' };
-      
+
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send(invalidUser)
@@ -65,8 +65,12 @@ describe('Authentication Endpoints', () => {
     });
 
     it('should reject registration with weak password', async () => {
-      const weakPasswordUser = { ...testUser, password: '123', confirmPassword: '123' };
-      
+      const weakPasswordUser = {
+        ...testUser,
+        password: '123',
+        confirmPassword: '123',
+      };
+
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send(weakPasswordUser)
@@ -77,8 +81,11 @@ describe('Authentication Endpoints', () => {
     });
 
     it('should reject registration with mismatched passwords', async () => {
-      const mismatchedUser = { ...testUser, confirmPassword: 'DifferentPass123!' };
-      
+      const mismatchedUser = {
+        ...testUser,
+        confirmPassword: 'DifferentPass123!',
+      };
+
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send(mismatchedUser)

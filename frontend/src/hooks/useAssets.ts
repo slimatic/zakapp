@@ -1,9 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AssetCategoryType } from '@zakapp/shared';
-import { assetService } from '../services/assetService';
+import { assetService, AssetStatistics } from '../services/assetService';
+
+// Generate empty statistics for fallback
+const generateEmptyStatistics = (): AssetStatistics => ({
+  totalAssets: 0,
+  totalValue: 0,
+  totalZakatEligible: 0,
+  assetsByCategory: {},
+  assetsByCurrency: {},
+});
+
+// Generate empty grouped assets for fallback
+const generateEmptyGroupedAssets = (): Record<string, never> => ({});
 
 // Hook for loading states
-export const useAsync = <T>(asyncFunction: () => Promise<T>, deps: unknown[] = []) => {
+export const useAsync = <T>(
+  asyncFunction: () => Promise<T>,
+  deps: unknown[] = []
+) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +27,7 @@ export const useAsync = <T>(asyncFunction: () => Promise<T>, deps: unknown[] = [
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const loadData = async () => {
       try {
         setLoading(true);
@@ -42,22 +57,58 @@ export const useAsync = <T>(asyncFunction: () => Promise<T>, deps: unknown[] = [
   return { data, loading, error, refetch: () => setLoading(true) };
 };
 
-// Hook for asset statistics
+// Hook for asset statistics with fallback
 export const useAssetStatistics = () => {
-  return useAsync(() => assetService.getAssetStatistics());
+  return useAsync(async () => {
+    try {
+      return await assetService.getAssetStatistics();
+    } catch (error) {
+      // Return empty statistics when API fails
+      console.warn('API failed, returning empty statistics:', error);
+      return generateEmptyStatistics();
+    }
+  });
 };
 
-// Hook for grouped assets
+// Hook for grouped assets with fallback
 export const useGroupedAssets = () => {
-  return useAsync(() => assetService.getGroupedAssets());
+  return useAsync(async () => {
+    try {
+      return await assetService.getGroupedAssets();
+    } catch (error) {
+      // Return empty grouped assets when API fails
+      console.warn('API failed, returning empty grouped assets:', error);
+      return generateEmptyGroupedAssets();
+    }
+  });
 };
 
-// Hook for all user assets
+// Hook for all user assets with fallback
 export const useUserAssets = () => {
-  return useAsync(() => assetService.getUserAssets());
+  return useAsync(async () => {
+    try {
+      return await assetService.getUserAssets();
+    } catch (error) {
+      // Return empty array when API fails
+      console.warn('API failed, returning empty assets:', error);
+      return [];
+    }
+  });
 };
 
-// Hook for assets by category
+// Hook for assets by category with fallback
 export const useAssetsByCategory = (category: AssetCategoryType) => {
-  return useAsync(() => assetService.getAssetsByCategory(category), [category]);
+  return useAsync(async () => {
+    try {
+      return await assetService.getAssetsByCategory(category);
+    } catch (error) {
+      // Return empty array when API fails
+      console.warn(
+        'API failed, returning empty assets for category:',
+        category,
+        error
+      );
+      return [];
+    }
+  }, [category]);
 };

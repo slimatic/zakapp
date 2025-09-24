@@ -19,13 +19,13 @@ RUN cd shared && npm run build
 # Copy backend package files
 COPY backend/package*.json ./backend/
 
-# Install backend dependencies
+# Install backend dependencies (this will link to ../shared)
 RUN cd backend && npm ci
 
 # Copy backend source code
 COPY backend/ ./backend/
 
-# Create data directory
+# Create data directory with proper permissions
 RUN mkdir -p /app/backend/data/users /app/backend/data/backups
 
 # Set working directory to backend
