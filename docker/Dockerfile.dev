@@ -1,53 +1,8 @@
-# Development Dockerfile with npm containerization
+# Development Dockerfile for npm containerization
 FROM node:18-alpine
-
-# Install additional tools for development
-RUN apk add --no-cache git
-
-# Create app user to avoid permission issues
-RUN addgroup -g 1000 appgroup 2>/dev/null || true && \
-    adduser -u 1000 -G appgroup -s /bin/sh -D appuser 2>/dev/null || true
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json files first for better caching
-COPY --chown=appuser:appgroup package*.json ./
-COPY --chown=appuser:appgroup .npmrc ./
-COPY --chown=appuser:appgroup shared/package*.json ./shared/
-COPY --chown=appuser:appgroup frontend/package*.json ./frontend/
-COPY --chown=appuser:appgroup backend/package*.json ./backend/
-
-# Switch to app user
-USER appuser
-
-# Install root dependencies
-RUN npm ci
-
-# Install shared dependencies and build
-COPY --chown=appuser:appgroup shared/ ./shared/
-RUN cd shared && npm ci && npm run build
-
-# Install frontend dependencies  
-RUN cd frontend && npm ci
-
-# Install backend dependencies
-RUN cd backend && npm ci
-
-# Copy remaining source code
-COPY --chown=appuser:appgroup . .
-
-# Create data directories with proper permissions
-USER root
-RUN mkdir -p /app/backend/data/users /app/backend/data/backups && \
-    chown -R appuser:appgroup /app/backend/data
-USER appuser
-
-# Set working directory for development
-WORKDIR /app
-
-# Expose both ports
-EXPOSE 3000 3001
-
-# Default command runs the development environment
-CMD ["npm", "run", "dev"]
+# Default command keeps container running for exec commands
+CMD ["tail", "-f", "/dev/null"]
