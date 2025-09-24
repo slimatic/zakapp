@@ -3,7 +3,9 @@ import {
   NISAB_THRESHOLDS, 
   ZAKAT_METHODS, 
   CALENDAR_TYPES,
-  ASSET_CATEGORIES 
+  ASSET_CATEGORIES,
+  REGIONAL_METHODOLOGY_MAP,
+  METHODOLOGY_EDUCATION
 } from '@zakapp/shared';
 import type { 
   ZakatCalculation, 
@@ -21,6 +23,9 @@ export interface ZakatCalculationService {
   calculateNisab(goldPricePerGram: number, silverPricePerGram: number, method: string): NisabInfo;
   isEligibleForZakat(assetValue: number, nisab: number): boolean;
   calculateAssetZakat(asset: Asset, method: string): ZakatAsset;
+  getMethodologyRecommendations(region?: string): string[];
+  getMethodologyEducation(methodId: string): any;
+  getMethodologyComparison(goldPrice: number, silverPrice: number): any[];
 }
 
 export class ZakatService implements ZakatCalculationService {
@@ -112,6 +117,11 @@ export class ZakatService implements ZakatCalculationService {
         effectiveNisab = silverNisab;
         nisabBasis = 'silver';
         break;
+      case ZAKAT_METHODS.SHAFII.id:
+        // Shafi'i method uses dual minimum approach
+        effectiveNisab = Math.min(goldNisab, silverNisab);
+        nisabBasis = 'dual_minimum';
+        break;
       case ZAKAT_METHODS.STANDARD.id:
         // Standard method uses the lower of gold or silver nisab
         effectiveNisab = Math.min(goldNisab, silverNisab);
@@ -155,6 +165,12 @@ export class ZakatService implements ZakatCalculationService {
     // Calculate zakatable amount (usually same as value for most assets)
     const zakatableAmount = this.calculateZakatableAmount(asset);
     
+    // Calculate zakat due based on the method and asset type
+    const zakatRate = this.getZakatRate(asset.category, method);
+    let zakatDue = (zakatableAmount * zakatRate) / 100;
+
+    // Apply method-specific calculation adjustments
+    zakatDue = this.calculateMethodSpecificZakat(asset, method, zakatDue);
     // Calculate zakat due using method-specific logic
     const zakatDue = this.calculateMethodSpecificZakat(asset, method);
 
@@ -166,6 +182,56 @@ export class ZakatService implements ZakatCalculationService {
       zakatableAmount,
       zakatDue
     };
+  }
+
+  /**
+   * Apply method-specific zakat calculation adjustments
+   */
+  private calculateMethodSpecificZakat(asset: Asset, method: string, baseZakat: number): number {
+    switch (method) {
+      case ZAKAT_METHODS.HANAFI.id:
+        return this.applyHanafiRules(asset, baseZakat);
+      case ZAKAT_METHODS.SHAFII.id:
+        return this.applyShafiiRules(asset, baseZakat);
+      default:
+        return baseZakat;
+    }
+  }
+
+  /**
+   * Apply Hanafi-specific calculation rules
+   */
+  private applyHanafiRules(asset: Asset, baseZakat: number): number {
+    // Hanafi-specific rules:
+    // 1. Include all business assets comprehensively
+    // 2. More comprehensive debt deduction approach
+    // 3. Trade goods at market value
+    
+    if (asset.category === 'business') {
+      // Hanafi method includes all business assets including inventory, receivables, and cash
+      // This is already calculated in the base zakat calculation
+      return baseZakat;
+    }
+    
+    return baseZakat;
+  }
+
+  /**
+   * Apply Shafi'i-specific calculation rules
+   */
+  private applyShafiiRules(asset: Asset, baseZakat: number): number {
+    // Shafi'i-specific rules:
+    // 1. Detailed categorization of assets
+    // 2. Conservative debt treatment
+    // 3. More precise asset classification
+    
+    if (asset.category === 'business') {
+      // Shafi'i method may have more detailed categorization
+      // For now, we use the standard calculation
+      return baseZakat;
+    }
+    
+    return baseZakat;
   }
 
   /**
@@ -307,6 +373,55 @@ export class ZakatService implements ZakatCalculationService {
       totalExpenses,
       netZakatableAssets
     };
+  }
+
+  /**
+   * Get methodology recommendations based on region
+   */
+  getMethodologyRecommendations(region?: string): string[] {
+    if (!region) {
+      return [ZAKAT_METHODS.STANDARD.id, ZAKAT_METHODS.HANAFI.id, ZAKAT_METHODS.SHAFII.id];
+    }
+
+    // Type assertion for the regional map since TypeScript can't infer all possible string keys
+    const recommendations = (REGIONAL_METHODOLOGY_MAP as any)[region];
+    return recommendations || [ZAKAT_METHODS.STANDARD.id];
+  }
+
+  /**
+   * Get educational content for a methodology
+   */
+  getMethodologyEducation(methodId: string) {
+    switch (methodId) {
+      case ZAKAT_METHODS.HANAFI.id:
+        return METHODOLOGY_EDUCATION.HANAFI;
+      case ZAKAT_METHODS.SHAFII.id:
+        return METHODOLOGY_EDUCATION.SHAFII;
+      case ZAKAT_METHODS.CUSTOM.id:
+        return METHODOLOGY_EDUCATION.CUSTOM;
+      case ZAKAT_METHODS.STANDARD.id:
+      default:
+        return METHODOLOGY_EDUCATION.STANDARD;
+    }
+  }
+
+  /**
+   * Get detailed methodology information including calculation differences
+   */
+  getMethodologyComparison(goldPrice: number, silverPrice: number) {
+    const methods = Object.values(ZAKAT_METHODS);
+    return methods.map(method => {
+      const nisab = this.calculateNisab(goldPrice, silverPrice, method.id);
+      const education = this.getMethodologyEducation(method.id);
+      
+      return {
+        ...method,
+        nisab,
+        education,
+        effectiveNisabValue: nisab.effectiveNisab,
+        nisabSource: nisab.nisabBasis
+      };
+    });
   }
 
   /**
