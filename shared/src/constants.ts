@@ -507,19 +507,44 @@ export const ASSET_CATEGORIES = {
 export const ZAKAT_METHODS = {
   STANDARD: {
     id: 'standard',
-    name: 'Standard Method',
-    description: 'Most commonly used calculation method',
+    name: 'Standard Method (AAOIFI)',
+    description: 'Internationally recognized dual nisab method',
+    nisabBasis: 'dual_minimum',
+    businessAssetTreatment: 'market_value',
+    debtDeduction: 'immediate',
+    scholarlyBasis: ['AAOIFI FAS 9', 'Contemporary consensus'],
+    regions: ['International', 'Gulf States', 'Western countries']
   },
   HANAFI: {
     id: 'hanafi',
-    name: 'Hanafi Method',
-    description: 'Calculation according to Hanafi school',
+    name: 'Hanafi School Method',
+    description: 'Silver-based nisab with comprehensive business inclusion',
+    nisabBasis: 'silver',
+    businessAssetTreatment: 'comprehensive',
+    debtDeduction: 'comprehensive',
+    scholarlyBasis: ['Al-Hidayah', 'Classical Hanafi texts'],
+    regions: ['Turkey', 'Central Asia', 'Indian subcontinent']
+  },
+  SHAFII: {
+    id: 'shafii',
+    name: 'Shafi\'i School Method',
+    description: 'Detailed categorization with dual nisab',
+    nisabBasis: 'dual_minimum',
+    businessAssetTreatment: 'categorized',
+    debtDeduction: 'conservative',
+    scholarlyBasis: ['Al-Majmu\'', 'Shafi\'i jurisprudence'],
+    regions: ['Southeast Asia', 'East Africa', 'Parts of Middle East']
   },
   CUSTOM: {
     id: 'custom',
     name: 'Custom Method',
-    description: 'Custom calculation with user-defined parameters',
-  },
+    description: 'User-defined calculation parameters',
+    nisabBasis: 'configurable',
+    businessAssetTreatment: 'configurable',
+    debtDeduction: 'configurable',
+    scholarlyBasis: ['User consultation recommended'],
+    regions: ['User-specific']
+  }
 } as const;
 
 // Calendar types
