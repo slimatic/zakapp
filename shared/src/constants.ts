@@ -503,7 +503,11 @@ export const ASSET_CATEGORIES = {
   },
 } as const;
 
-// Zakat calculation methods
+/**
+ * Zakat calculation methodologies with detailed methodology information.
+ * Each method includes scholarly basis, business asset treatment, debt deduction approach,
+ * and regional usage information to support accurate zakat calculations.
+ */
 export const ZAKAT_METHODS = {
   STANDARD: {
     id: 'standard',
@@ -534,11 +538,6 @@ export const ZAKAT_METHODS = {
     debtDeduction: 'conservative',
     scholarlyBasis: ['Al-Majmu\'', 'Shafi\'i jurisprudence'],
     regions: ['Southeast Asia', 'East Africa', 'Parts of Middle East']
-  },
-  SHAFII: {
-    id: 'shafii',
-    name: 'Shafi\'i Method',
-    description: 'Calculation according to Shafi\'i school with dual nisab',
   },
   CUSTOM: {
     id: 'custom',
@@ -664,7 +663,11 @@ export const DATE_FORMATS = {
   HIJRI: 'DD MMM YYYY AH',
 } as const;
 
-// Educational content for methodologies
+/**
+ * Educational content for zakat calculation methodologies.
+ * Provides historical background, detailed explanations of approaches,
+ * pros/cons analysis, and considerations for each methodology.
+ */
 export const METHODOLOGY_EDUCATION = {
   HANAFI: {
     historicalBackground: 'The Hanafi school, founded by Imam Abu Hanifa (699-767 CE), is one of the four major Sunni schools of Islamic jurisprudence. It emphasizes rational reasoning and is widely followed in Turkey, Central Asia, and the Indian subcontinent.',
@@ -737,7 +740,11 @@ export const METHODOLOGY_EDUCATION = {
   }
 } as const;
 
-// Regional methodology recommendations
+/**
+ * Regional methodology recommendations mapping.
+ * Maps countries/regions to recommended zakat calculation methodologies
+ * based on prevalent Islamic schools of thought and local practices.
+ */
 export const REGIONAL_METHODOLOGY_MAP = {
   // Middle East & Gulf
   'Saudi Arabia': ['standard', 'hanafi'],
