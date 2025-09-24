@@ -99,23 +99,33 @@ export class ZakatService implements ZakatCalculationService {
 
     // Different methods use different nisab calculations
     let effectiveNisab: number;
+    let nisabBasis: string;
 
     switch (method) {
       case ZAKAT_METHODS.HANAFI.id:
         // Hanafi method typically uses silver nisab (lower threshold)
         effectiveNisab = silverNisab;
+        nisabBasis = 'silver';
+        break;
+      case ZAKAT_METHODS.SHAFII.id:
+        // Shafi'i method uses dual minimum approach
+        effectiveNisab = Math.min(goldNisab, silverNisab);
+        nisabBasis = 'dual_minimum';
         break;
       case ZAKAT_METHODS.STANDARD.id:
       default:
         // Standard method uses the lower of gold or silver nisab
         effectiveNisab = Math.min(goldNisab, silverNisab);
+        nisabBasis = goldNisab < silverNisab ? 'gold' : 'silver';
         break;
     }
 
     return {
       goldNisab,
       silverNisab,
-      effectiveNisab
+      effectiveNisab,
+      nisabBasis,
+      calculationMethod: method
     };
   }
 
@@ -138,7 +148,10 @@ export class ZakatService implements ZakatCalculationService {
     
     // Calculate zakat due based on the method and asset type
     const zakatRate = this.getZakatRate(asset.category, method);
-    const zakatDue = (zakatableAmount * zakatRate) / 100;
+    let zakatDue = (zakatableAmount * zakatRate) / 100;
+
+    // Apply method-specific calculation adjustments
+    zakatDue = this.calculateMethodSpecificZakat(asset, method, zakatDue);
 
     return {
       assetId: asset.assetId,
@@ -148,6 +161,56 @@ export class ZakatService implements ZakatCalculationService {
       zakatableAmount,
       zakatDue
     };
+  }
+
+  /**
+   * Apply method-specific zakat calculation adjustments
+   */
+  private calculateMethodSpecificZakat(asset: Asset, method: string, baseZakat: number): number {
+    switch (method) {
+      case ZAKAT_METHODS.HANAFI.id:
+        return this.applyHanafiRules(asset, baseZakat);
+      case ZAKAT_METHODS.SHAFII.id:
+        return this.applyShafiiRules(asset, baseZakat);
+      default:
+        return baseZakat;
+    }
+  }
+
+  /**
+   * Apply Hanafi-specific calculation rules
+   */
+  private applyHanafiRules(asset: Asset, baseZakat: number): number {
+    // Hanafi-specific rules:
+    // 1. Include all business assets comprehensively
+    // 2. More comprehensive debt deduction approach
+    // 3. Trade goods at market value
+    
+    if (asset.category === 'business') {
+      // Hanafi method includes all business assets including inventory, receivables, and cash
+      // This is already calculated in the base zakat calculation
+      return baseZakat;
+    }
+    
+    return baseZakat;
+  }
+
+  /**
+   * Apply Shafi'i-specific calculation rules
+   */
+  private applyShafiiRules(asset: Asset, baseZakat: number): number {
+    // Shafi'i-specific rules:
+    // 1. Detailed categorization of assets
+    // 2. Conservative debt treatment
+    // 3. More precise asset classification
+    
+    if (asset.category === 'business') {
+      // Shafi'i method may have more detailed categorization
+      // For now, we use the standard calculation
+      return baseZakat;
+    }
+    
+    return baseZakat;
   }
 
   /**
