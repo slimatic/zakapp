@@ -535,6 +535,11 @@ export const ZAKAT_METHODS = {
     scholarlyBasis: ['Al-Majmu\'', 'Shafi\'i jurisprudence'],
     regions: ['Southeast Asia', 'East Africa', 'Parts of Middle East']
   },
+  SHAFII: {
+    id: 'shafii',
+    name: 'Shafi\'i Method',
+    description: 'Calculation according to Shafi\'i school with dual nisab',
+  },
   CUSTOM: {
     id: 'custom',
     name: 'Custom Method',

@@ -23,6 +23,8 @@ describe('ZakatService', () => {
       expect(nisab.goldNisab).toBeCloseTo(expectedGoldNisab, 2);
       expect(nisab.silverNisab).toBeCloseTo(expectedSilverNisab, 2);
       expect(nisab.effectiveNisab).toBe(Math.min(expectedGoldNisab, expectedSilverNisab));
+      expect(nisab.nisabBasis).toBe('silver'); // Silver is lower in this case
+      expect(nisab.calculationMethod).toBe('standard');
     });
 
     it('should use silver nisab for Hanafi method', () => {
@@ -41,6 +43,12 @@ describe('ZakatService', () => {
     it('should use dual minimum for Shafi\'i method', () => {
       const goldPricePerGram = 60; // $60 per gram
       const silverPricePerGram = 0.8; // $0.80 per gram
+      expect(nisab.calculationMethod).toBe(ZAKAT_METHODS.HANAFI.id);
+    });
+
+    it('should use dual minimum for Shafi\'i method', () => {
+      const goldPricePerGram = 65;
+      const silverPricePerGram = 0.8;
       
       const nisab = zakatService.calculateNisab(goldPricePerGram, silverPricePerGram, ZAKAT_METHODS.SHAFII.id);
       
@@ -66,6 +74,9 @@ describe('ZakatService', () => {
       expect(nisab.effectiveNisab).toBe(expectedMinimum);
       expect(nisab.nisabBasis).toBe(expectedSilverNisab < expectedGoldNisab ? 'silver' : 'gold');
       expect(nisab.calculationMethod).toBe('standard');
+      expect(nisab.effectiveNisab).toBe(Math.min(expectedGoldNisab, expectedSilverNisab));
+      expect(nisab.nisabBasis).toBe('dual_minimum');
+      expect(nisab.calculationMethod).toBe(ZAKAT_METHODS.SHAFII.id);
     });
   });
 
@@ -237,6 +248,23 @@ describe('ZakatService', () => {
       // Should only include cash and gold assets (zakatable ones)
       expect(calculation.assets).toHaveLength(2);
       expect(calculation.assets.find(a => a.assetId === 'house-1')).toBeUndefined();
+    });
+
+    it('should include calculation breakdown', async () => {
+      const request: ZakatCalculationRequest = {
+        calculationDate: new Date().toISOString(),
+        calendarType: 'lunar',
+        method: 'hanafi',
+        includeAssets: ['cash-1', 'gold-1']
+      };
+
+      const calculation = await zakatService.calculateZakat(request, mockAssets);
+      
+      expect(calculation.breakdown).toBeDefined();
+      expect(calculation.breakdown!.methodology.name).toBe('Hanafi Method');
+      expect(calculation.breakdown!.methodology.nisabBasis).toBe('silver');
+      expect(calculation.breakdown!.steps).toHaveLength(5);
+      expect(calculation.breakdown!.steps[0].step).toBe('1. Nisab Calculation');
     });
 
     it('should filter assets based on includeAssets parameter', async () => {
