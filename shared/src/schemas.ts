@@ -80,10 +80,19 @@ export const stocksAssetSchema = baseAssetSchema.extend({
     'etfs',
     'bonds',
     'index_funds',
+    'retirement_401k',
+    'retirement_ira',
+    'retirement_other',
   ]),
   ticker: z.string().max(20).optional(),
   shares: z.number().min(0).optional(),
   dividendYield: z.number().min(0).max(100).optional(),
+  // Retirement-specific fields
+  employerMatch: z.number().min(0).max(100).optional(), // percentage
+  vestingSchedule: z.string().max(200).optional(),
+  iraType: z.enum(['traditional', 'roth']).optional(),
+  contributionLimit: z.number().min(0).optional(),
+  accountType: z.string().max(100).optional(),
 });
 
 // Crypto asset schema
@@ -118,6 +127,26 @@ export const debtsAssetSchema = baseAssetSchema.extend({
     .optional(),
 });
 
+// Expenses asset schema (for deductible expenses)
+export const expensesAssetSchema = baseAssetSchema.extend({
+  category: z.literal('expenses'),
+  subCategory: z.enum([
+    'debts_owed',
+    'essential_needs',
+    'family_obligations',
+    'business_liabilities',
+  ]),
+  creditor: z.string().max(100).optional(),
+  dueDate: z.string().datetime().optional(),
+  interestRate: z.number().min(0).max(100).optional(),
+  expenseType: z.string().max(100).optional(),
+  frequency: z.enum(['monthly', 'yearly', 'one_time']).optional(),
+  dependentCount: z.number().min(0).optional(),
+  supportType: z.string().max(100).optional(),
+  businessType: z.string().max(100).optional(),
+  liabilityType: z.string().max(100).optional(),
+});
+
 // Union schema for all asset types
 export const assetSchema = z.discriminatedUnion('category', [
   cashAssetSchema,
@@ -128,6 +157,7 @@ export const assetSchema = z.discriminatedUnion('category', [
   stocksAssetSchema,
   cryptoAssetSchema,
   debtsAssetSchema,
+  expensesAssetSchema,
 ]);
 
 // Generic asset schema for creation/update operations
@@ -142,6 +172,7 @@ export const genericAssetSchema = z.object({
     'stocks',
     'crypto',
     'debts',
+    'expenses',
   ]),
   subCategory: z.string().min(1).max(50),
   value: z.number().min(0).max(999999999999),
@@ -169,6 +200,19 @@ export const genericAssetSchema = z.object({
   repaymentSchedule: z
     .enum(['lump_sum', 'installments', 'on_demand'])
     .optional(),
+  // Retirement account fields
+  employerMatch: z.number().min(0).max(100).optional(),
+  vestingSchedule: z.string().max(200).optional(),
+  iraType: z.enum(['traditional', 'roth']).optional(),
+  contributionLimit: z.number().min(0).optional(),
+  accountType: z.string().max(100).optional(),
+  // Expenses fields
+  creditor: z.string().max(100).optional(),
+  expenseType: z.string().max(100).optional(),
+  frequency: z.enum(['monthly', 'yearly', 'one_time']).optional(),
+  dependentCount: z.number().min(0).optional(),
+  supportType: z.string().max(100).optional(),
+  liabilityType: z.string().max(100).optional(),
 });
 
 // Asset category schema
@@ -206,6 +250,7 @@ export const assetFormSchema = z.object({
     'stocks',
     'crypto',
     'debts',
+    'expenses',
   ]),
   subCategory: z
     .string()
@@ -290,6 +335,19 @@ export const assetFormSchema = z.object({
   repaymentSchedule: z
     .enum(['lump_sum', 'installments', 'on_demand'])
     .optional(),
+  // Retirement account fields
+  employerMatch: z.number().min(0).max(100).optional(),
+  vestingSchedule: z.string().max(200).optional(),
+  iraType: z.enum(['traditional', 'roth']).optional(),
+  contributionLimit: z.number().min(0).optional(),
+  accountType: z.string().max(100).optional(),
+  // Expenses fields
+  creditor: z.string().max(100).optional(),
+  expenseType: z.string().max(100).optional(),
+  frequency: z.enum(['monthly', 'yearly', 'one_time']).optional(),
+  dependentCount: z.number().min(0).optional(),
+  supportType: z.string().max(100).optional(),
+  liabilityType: z.string().max(100).optional(),
 });
 
 // Request/response schemas for API operations

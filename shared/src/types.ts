@@ -55,7 +55,8 @@ export type AssetCategoryType =
   | 'property'
   | 'stocks'
   | 'crypto'
-  | 'debts';
+  | 'debts'
+  | 'expenses';
 
 // Base asset interface
 export interface Asset {
@@ -130,10 +131,19 @@ export interface StocksAsset extends Asset {
     | 'mutual_funds'
     | 'etfs'
     | 'bonds'
-    | 'index_funds';
+    | 'index_funds'
+    | 'retirement_401k'
+    | 'retirement_ira'
+    | 'retirement_other';
   ticker?: string;
   shares?: number;
   dividendYield?: number;
+  // Retirement-specific fields
+  employerMatch?: number;
+  vestingSchedule?: string;
+  iraType?: 'traditional' | 'roth';
+  contributionLimit?: number;
+  accountType?: string;
 }
 
 export interface CryptoAsset extends Asset {
@@ -162,6 +172,24 @@ export interface DebtAsset extends Asset {
   repaymentSchedule?: 'lump_sum' | 'installments' | 'on_demand';
 }
 
+export interface ExpensesAsset extends Asset {
+  category: 'expenses';
+  subCategory:
+    | 'debts_owed'
+    | 'essential_needs'
+    | 'family_obligations'
+    | 'business_liabilities';
+  creditor?: string;
+  dueDate?: string;
+  interestRate?: number;
+  expenseType?: string;
+  frequency?: 'monthly' | 'yearly' | 'one_time';
+  dependentCount?: number;
+  supportType?: string;
+  businessType?: string;
+  liabilityType?: string;
+}
+
 // Union type for all specific asset types
 export type SpecificAsset =
   | CashAsset
@@ -171,7 +199,8 @@ export type SpecificAsset =
   | PropertyAsset
   | StocksAsset
   | CryptoAsset
-  | DebtAsset;
+  | DebtAsset
+  | ExpensesAsset;
 
 export interface AssetCategory {
   id: string;
@@ -225,6 +254,8 @@ export interface ZakatTotals {
   totalAssets: number;
   totalZakatableAssets: number;
   totalZakatDue: number;
+  totalExpenses?: number;
+  netZakatableAssets?: number;
 }
 
 export interface ZakatCalculationRequest {

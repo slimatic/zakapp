@@ -29,9 +29,17 @@ export class ZakatService implements ZakatCalculationService {
    */
   async calculateZakat(request: ZakatCalculationRequest, assets: Asset[]): Promise<ZakatCalculation> {
     try {
-      // Filter assets based on request
-      const includedAssets = assets.filter(asset => 
-        request.includeAssets.includes(asset.assetId) && asset.zakatEligible
+      // Separate assets and expenses
+      const includedItems = assets.filter(asset => 
+        request.includeAssets.includes(asset.assetId)
+      );
+      
+      const zakatableAssets = includedItems.filter(asset => 
+        asset.zakatEligible && asset.category !== 'expenses'
+      );
+      
+      const expenses = includedItems.filter(asset => 
+        asset.category === 'expenses'
       );
 
       // Calculate current gold and silver prices (for now using default values)
@@ -43,14 +51,17 @@ export class ZakatService implements ZakatCalculationService {
       const nisab = this.calculateNisab(goldPricePerGram, silverPricePerGram, request.method);
 
       // Calculate zakat for each asset
-      const zakatAssets = includedAssets.map(asset => 
+      const zakatAssets = zakatableAssets.map(asset => 
         this.calculateAssetZakat(asset, request.method)
       );
 
-      // Calculate totals
-      const totals = this.calculateTotals(zakatAssets);
+      // Calculate total expenses for deduction
+      const totalExpenses = expenses.reduce((sum, expense) => sum + expense.value, 0);
 
-      // Check if total assets meet nisab threshold
+      // Calculate totals (with expense deductions)
+      const totals = this.calculateTotals(zakatAssets, totalExpenses);
+
+      // Check if total assets (after deductions) meet nisab threshold
       const meetsNisab = this.isEligibleForZakat(totals.totalZakatableAssets, nisab.effectiveNisab);
 
       // If nisab is not met, zero out all zakat due amounts
@@ -190,11 +201,19 @@ export class ZakatService implements ZakatCalculationService {
   /**
    * Calculate totals from zakat assets
    */
-  private calculateTotals(zakatAssets: ZakatAsset[]): ZakatTotals {
+  private calculateTotals(zakatAssets: ZakatAsset[], totalExpenses: number = 0): ZakatTotals {
+    const grossTotalAssets = zakatAssets.reduce((sum, asset) => sum + asset.value, 0);
+    const grossZakatableAssets = zakatAssets.reduce((sum, asset) => sum + asset.zakatableAmount, 0);
+    
+    // Apply expense deductions to zakatable assets (but not below 0)
+    const netZakatableAssets = Math.max(0, grossZakatableAssets - totalExpenses);
+    
     return {
-      totalAssets: zakatAssets.reduce((sum, asset) => sum + asset.value, 0),
-      totalZakatableAssets: zakatAssets.reduce((sum, asset) => sum + asset.zakatableAmount, 0),
-      totalZakatDue: zakatAssets.reduce((sum, asset) => sum + asset.zakatDue, 0)
+      totalAssets: grossTotalAssets,
+      totalZakatableAssets: netZakatableAssets,
+      totalZakatDue: zakatAssets.reduce((sum, asset) => sum + asset.zakatDue, 0),
+      totalExpenses,
+      netZakatableAssets
     };
   }
 
