@@ -9,7 +9,6 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 import {
   updateSessionActivity,
   createSession,
-  initializeSessions,
 } from '../utils/session.js';
 
 beforeAll(async () => {
