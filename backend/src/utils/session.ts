@@ -11,7 +11,6 @@ const REFRESH_TOKEN_TIMEOUT = parseInt(
   process.env.REFRESH_TOKEN_TIMEOUT || '604800',
   10
 ); // 7 days in seconds
-const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
 
 // In-memory token blacklist (in production, use Redis or database)
 const tokenBlacklist = new Set<string>();
@@ -201,10 +200,15 @@ export async function updateSessionActivity(userId: string): Promise<void> {
     }
   } catch (error) {
     // Check if this is an ENOENT error (file/directory doesn't exist)
-    if (error instanceof Error && (error as any).code === 'ENOENT') {
+    // The error might not be an instance of Error, but could be a plain object with the properties
+    if (error && typeof error === 'object' && (error as any).code === 'ENOENT') {
       // Session file or directory was removed during update - this is expected behavior
+      // This can happen due to:
+      // 1. Concurrent session cleanup operations
+      // 2. Directory removal between operations
+      // 3. Temp file rename failures due to missing destination directory
       // Log as debug info rather than error
-      console.debug(`Session file was removed during update for user ${userId}: ${error.message}`);
+      console.debug(`Session file was removed during update for user ${userId}: ${(error as any).message || error}`);
     } else {
       console.error('Failed to update session activity:', error);
     }
