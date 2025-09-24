@@ -222,31 +222,94 @@ export interface AssetSubCategory {
 }
 
 // Zakat Calculation Types
+/**
+ * Enhanced Zakat calculation interface with comprehensive methodology support.
+ * Includes detailed breakdown, calendar calculations, and regional adjustments.
+ * Maintains backward compatibility while providing extensive transparency.
+ */
 export interface ZakatCalculation {
   calculationId: string;
   calculationDate: string;
   calendarType: 'lunar' | 'solar';
   method: string;
+  // Enhanced method details (optional for backward compatibility)
+  methodInfo?: {
+    name: string;
+    description: string;
+    nisabBasis: string;
+  };
   nisab: NisabInfo;
   assets: ZakatAsset[];
   totals: ZakatTotals;
   meetsNisab: boolean;
   status: 'pending' | 'partial' | 'paid';
   createdAt: string;
+  // Enhanced breakdown with detailed methodology information
   breakdown?: CalculationBreakdown;
+  // Calendar-specific information
+  calendarInfo?: CalendarCalculation;
+  // Regional adjustments if applicable
+  regionalAdjustment?: RegionalAdjustment;
+  // Sources and validation information
+  sources?: string[];
+  validatedBy?: string;
 }
 
+// Asset calculation details for breakdown transparency
+export interface AssetCalculation {
+  assetId: string;
+  name: string;
+  category: string;
+  value: number;
+  zakatableAmount: number;
+  zakatDue: number;
+  methodSpecificRules: string[];
+}
+
+// Deduction rules applied in calculation
+export interface DeductionRule {
+  type: string;
+  description: string;
+  amount: number;
+  applicableAssets: string[];
+}
+
+/**
+ * Enhanced calculation breakdown interface providing detailed transparency
+ * into zakat calculation methodology and steps.
+ * Supports both new detailed format and legacy step-based format for backward compatibility.
+ */
 export interface CalculationBreakdown {
-  methodology: {
-    name: string;
-    description: string;
-    nisabBasis: string;
+  // Method ID (optional for backward compatibility - can be derived from methodology)
+  method?: string;
+  // New enhanced fields (optional for backward compatibility)
+  nisabCalculation?: {
+    goldNisab: number;
+    silverNisab: number;
+    effectiveNisab: number;
+    basis: string;
   };
-  steps: {
+  assetCalculations?: AssetCalculation[];
+  deductionRules?: DeductionRule[];
+  finalCalculation?: {
+    totalAssets: number;
+    totalDeductions: number;
+    zakatableAmount: number;
+    zakatDue: number;
+  };
+  sources?: string[];
+  // Maintain backward compatibility with existing step-based breakdown
+  steps?: {
     step: string;
     description: string;
     value: number;
   }[];
+  // Legacy methodology information (for existing implementations)
+  methodology?: {
+    name: string;
+    description: string;
+    nisabBasis: string;
+  };
 }
 
 export interface NisabInfo {
@@ -283,6 +346,10 @@ export interface ZakatCalculationRequest {
 }
 
 // Methodology Information Interface
+/**
+ * Comprehensive methodology information interface for zakat calculation methods.
+ * Supports multiple Islamic jurisprudence schools and modern standardized approaches.
+ */
 export interface MethodologyInfo {
   id: string;
   name: string;
@@ -292,6 +359,14 @@ export interface MethodologyInfo {
   debtDeduction: string;
   scholarlyBasis: string[];
   regions: string[];
+  // Additional fields for enhanced methodology support
+  zakatRate: number;
+  calendarSupport: ('lunar' | 'solar')[];
+  customRules?: boolean;
+  suitableFor: string[];
+  pros: string[];
+  cons: string[];
+  explanation: string;
 }
 
 /**
@@ -307,6 +382,42 @@ export interface MethodologyEducationContent {
   considerations: string[];
 }
 
+// Calendar system types for lunar/solar calculations
+export interface HijriDate {
+  year: number;
+  month: number;
+  day: number;
+  monthName: string;
+}
+
+export interface CalendarCalculation {
+  gregorianDate: Date;
+  hijriDate: HijriDate;
+  calculationPeriod: 'lunar' | 'solar';
+  adjustmentFactor: number;
+}
+
+// Regional adjustment types for economic factors
+export interface RegionalAdjustment {
+  region: string;
+  economicFactor: number;
+  inflationRate: number;
+  costOfLivingIndex: number;
+  lastUpdated: Date;
+}
+
+// Methodology comparison and selection types
+export interface MethodologyComparison {
+  methodId: string;
+  methodology: MethodologyInfo;
+  sampleCalculation: {
+    totalAssets: number;
+    zakatDue: number;
+    effectiveNisab: number;
+  };
+  differences: string[];
+}
+
 // Payment Types
 export interface ZakatPayment {
   paymentId: string;
@@ -316,6 +427,43 @@ export interface ZakatPayment {
   recipient: string;
   notes?: string;
   createdAt: string;
+}
+
+// Methodology selection and recommendation types
+export interface MethodologyRecommendation {
+  methodId: string;
+  confidence: number;
+  reasons: string[];
+  suitabilityScore: number;
+}
+
+// Alternative calculation result for comparison
+export interface AlternativeCalculation {
+  methodId: string;
+  methodName: string;
+  zakatDue: number;
+  effectiveNisab: number;
+  differences: string[];
+}
+
+// Comprehensive calculation result with alternatives
+export interface ZakatCalculationResult {
+  result: ZakatCalculation;
+  methodology: MethodologyInfo;
+  breakdown: CalculationBreakdown;
+  assumptions: string[];
+  sources: string[];
+  alternatives: AlternativeCalculation[];
+}
+
+// Scholarly sources for calculation validation
+export interface ScholarlySources {
+  title: string;
+  author: string;
+  publication?: string;
+  year?: number;
+  relevantSection?: string;
+  url?: string;
 }
 
 // Data Export/Import Types
