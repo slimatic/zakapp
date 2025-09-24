@@ -233,12 +233,28 @@ export interface ZakatCalculation {
   meetsNisab: boolean;
   status: 'pending' | 'partial' | 'paid';
   createdAt: string;
+  breakdown?: CalculationBreakdown;
+}
+
+export interface CalculationBreakdown {
+  methodology: {
+    name: string;
+    description: string;
+    nisabBasis: string;
+  };
+  steps: {
+    step: string;
+    description: string;
+    value: number;
+  }[];
 }
 
 export interface NisabInfo {
   goldNisab: number;
   silverNisab: number;
   effectiveNisab: number;
+  nisabBasis: string;
+  calculationMethod: string;
 }
 
 export interface ZakatAsset {
