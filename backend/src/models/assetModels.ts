@@ -16,6 +16,7 @@ export {
   StocksAsset,
   CryptoAsset,
   DebtAsset,
+  ExpensesAsset,
 
   // Category and subcategory types
   AssetCategory,
@@ -43,6 +44,7 @@ export {
   stocksAssetSchema,
   cryptoAssetSchema,
   debtsAssetSchema,
+  expensesAssetSchema,
 } from '@zakapp/shared';
 
 // Backend-specific interfaces that extend shared types
