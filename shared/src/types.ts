@@ -294,6 +294,19 @@ export interface MethodologyInfo {
   regions: string[];
 }
 
+/**
+ * Educational content interface for zakat methodologies.
+ * Provides comprehensive information for user education and decision-making.
+ */
+export interface MethodologyEducationContent {
+  historicalBackground: string;
+  nisabApproach: string;
+  businessAssetTreatment: string;
+  debtTreatment: string;
+  pros: string[];
+  considerations: string[];
+}
+
 // Payment Types
 export interface ZakatPayment {
   paymentId: string;
