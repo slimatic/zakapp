@@ -253,8 +253,6 @@ export interface NisabInfo {
   goldNisab: number;
   silverNisab: number;
   effectiveNisab: number;
-  nisabBasis?: string;
-  calculationMethod?: string;
   nisabBasis: string;
   calculationMethod: string;
 }
