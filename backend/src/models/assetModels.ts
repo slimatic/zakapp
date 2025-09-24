@@ -1,9 +1,12 @@
-import {
+import { Asset, AssetCategoryType } from '@zakapp/shared';
+
+// Export commonly used types and schemas from shared package
+export {
   // Base asset types
   Asset,
   AssetCategoryType,
   SpecificAsset,
-  
+
   // Specific asset types
   CashAsset,
   GoldAsset,
@@ -13,24 +16,25 @@ import {
   StocksAsset,
   CryptoAsset,
   DebtAsset,
-  
+  ExpensesAsset,
+
   // Category and subcategory types
   AssetCategory,
   AssetSubCategory,
-  
+
   // Schema types
   CreateAssetRequest,
   UpdateAssetRequest,
   GenericAsset,
   AssetCategoryData,
-  
+
   // Zod schemas
   assetSchema,
   createAssetRequestSchema,
   updateAssetRequestSchema,
   genericAssetSchema,
   assetCategorySchema,
-  
+
   // Specific asset schemas
   cashAssetSchema,
   goldAssetSchema,
@@ -40,6 +44,7 @@ import {
   stocksAssetSchema,
   cryptoAssetSchema,
   debtsAssetSchema,
+  expensesAssetSchema,
 } from '@zakapp/shared';
 
 // Backend-specific interfaces that extend shared types
@@ -71,11 +76,14 @@ export interface AssetSummary {
   totalAssets: number;
   totalValue: number;
   totalZakatEligible: number;
-  assetsByCategory: Record<AssetCategoryType, {
-    count: number;
-    totalValue: number;
-    zakatEligibleValue: number;
-  }>;
+  assetsByCategory: Record<
+    AssetCategoryType,
+    {
+      count: number;
+      totalValue: number;
+      zakatEligibleValue: number;
+    }
+  >;
 }
 
 // Database model interfaces (if using a proper database later)

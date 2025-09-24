@@ -5,6 +5,7 @@ This directory contains the enhanced UI components for the zakapp project.
 ## Components
 
 ### Header (`Header.tsx`)
+
 - Responsive navigation header with mobile hamburger menu
 - Brand logo with calculator icon
 - Dark mode toggle (prepared for future implementation)
@@ -12,6 +13,7 @@ This directory contains the enhanced UI components for the zakapp project.
 - Accessibility features with proper ARIA labels
 
 ### Dashboard (`Dashboard.tsx`)
+
 - Modern dashboard layout with welcome section
 - Statistical cards showing key Zakat metrics
 - Action cards for primary user tasks
@@ -21,17 +23,20 @@ This directory contains the enhanced UI components for the zakapp project.
 ## Design System
 
 ### Color Palette
+
 - **Primary**: Islamic-inspired teal/green (`primary-*`)
 - **Accent**: Warm gold for highlights (`accent-*`)
 - **Neutral**: Modern gray scale for text and backgrounds (`neutral-*`)
 - **Status Colors**: Success, warning, and error states
 
 ### Typography
+
 - **Font**: Inter with multiple weights (300-800)
 - **Hierarchy**: Proper heading levels with responsive sizes
 - **Line Height**: Optimized for readability
 
 ### Components
+
 - **Buttons**: `.btn`, `.btn-primary`, `.btn-secondary`, `.btn-accent`
 - **Cards**: `.card` with `.card-header`, `.card-body`, `.card-footer`
 - **Forms**: `.input`, `.label` with consistent styling
