@@ -253,6 +253,8 @@ export interface NisabInfo {
   goldNisab: number;
   silverNisab: number;
   effectiveNisab: number;
+  nisabBasis?: string;
+  calculationMethod?: string;
   nisabBasis: string;
   calculationMethod: string;
 }
@@ -280,6 +282,18 @@ export interface ZakatCalculationRequest {
   method: string;
   customNisab?: number;
   includeAssets: string[];
+}
+
+// Methodology Information Interface
+export interface MethodologyInfo {
+  id: string;
+  name: string;
+  description: string;
+  nisabBasis: string;
+  businessAssetTreatment: string;
+  debtDeduction: string;
+  scholarlyBasis: string[];
+  regions: string[];
 }
 
 // Payment Types
