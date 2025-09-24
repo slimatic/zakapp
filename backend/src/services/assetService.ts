@@ -58,7 +58,8 @@ class AssetService {
     const assetId = generateUserId(); // Reuse the UUID generator
     const now = new Date().toISOString();
 
-    const asset: Asset = {
+    // Create the base asset with all standard fields
+    const asset: Asset & Record<string, any> = {
       assetId,
       name: assetData.name,
       category: assetData.category,
@@ -70,6 +71,14 @@ class AssetService {
       createdAt: now,
       updatedAt: now,
     };
+
+    // Preserve all additional fields from the request data
+    // This ensures category-specific fields like iraType, contributionLimit, etc. are saved
+    Object.keys(assetData).forEach(key => {
+      if (!(key in asset) && assetData[key as keyof CreateAssetRequest] !== undefined) {
+        asset[key] = assetData[key as keyof CreateAssetRequest];
+      }
+    });
 
     // Get existing assets
     const existingAssets = await this.getUserAssets(userId);
