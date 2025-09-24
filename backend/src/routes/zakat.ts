@@ -166,4 +166,132 @@ router.post('/validate', authenticateToken, async (req: AuthenticatedRequest, re
   }
 });
 
+/**
+ * GET /api/v1/zakat/methodologies
+ * Get information about available zakat calculation methodologies
+ */
+router.get('/methodologies', (req, res) => {
+  try {
+    const { goldPrice = 65, silverPrice = 0.8, region } = req.query;
+    
+    const goldPriceNum = parseFloat(goldPrice as string);
+    const silverPriceNum = parseFloat(silverPrice as string);
+
+    if (isNaN(goldPriceNum) || isNaN(silverPriceNum)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid gold and silver prices are required'
+      });
+    }
+
+    const comparison = zakatService.getMethodologyComparison(goldPriceNum, silverPriceNum);
+    const recommendations = zakatService.getMethodologyRecommendations(region as string);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        methodologies: comparison,
+        recommendations,
+        region: region || 'global',
+        goldPricePerGram: goldPriceNum,
+        silverPricePerGram: silverPriceNum
+      }
+    });
+
+  } catch (error) {
+    console.error('Methodology information error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get methodology information'
+    });
+  }
+});
+
+/**
+ * GET /api/v1/zakat/methodology/:methodId/education
+ * Get educational content for a specific methodology
+ */
+router.get('/methodology/:methodId/education', (req, res) => {
+  try {
+    const { methodId } = req.params;
+    
+    if (!methodId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Method ID is required'
+      });
+    }
+
+    const education = zakatService.getMethodologyEducation(methodId);
+    const methodInfo = Object.values(zakatService.getMethodologyComparison(65, 0.8))
+      .find(m => m.id === methodId);
+
+    if (!methodInfo) {
+      return res.status(404).json({
+        success: false,
+        error: 'Methodology not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        methodId,
+        methodInfo,
+        education,
+        lastUpdated: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('Methodology education error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get methodology education'
+    });
+  }
+});
+
+/**
+ * GET /api/v1/zakat/recommendations
+ * Get methodology recommendations based on region
+ */
+router.get('/recommendations', (req, res) => {
+  try {
+    const { region } = req.query;
+    
+    const recommendations = zakatService.getMethodologyRecommendations(region as string);
+    const methodologies = recommendations.map(methodId => {
+      const education = zakatService.getMethodologyEducation(methodId);
+      const methodInfo = Object.values(zakatService.getMethodologyComparison(65, 0.8))
+        .find(m => m.id === methodId);
+      
+      return {
+        ...methodInfo,
+        education: {
+          historicalBackground: education.historicalBackground,
+          pros: education.pros.slice(0, 3), // Show top 3 pros
+          considerations: education.considerations.slice(0, 2) // Show top 2 considerations
+        }
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        region: region || 'global',
+        recommendations: methodologies,
+        totalRecommendations: recommendations.length
+      }
+    });
+
+  } catch (error) {
+    console.error('Methodology recommendations error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get methodology recommendations'
+    });
+  }
+});
+
 export default router;

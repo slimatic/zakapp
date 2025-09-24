@@ -507,13 +507,33 @@ export const ASSET_CATEGORIES = {
 export const ZAKAT_METHODS = {
   STANDARD: {
     id: 'standard',
-    name: 'Standard Method',
-    description: 'Most commonly used calculation method',
+    name: 'Standard Method (AAOIFI)',
+    description: 'Internationally recognized dual nisab method',
+    nisabBasis: 'dual_minimum',
+    businessAssetTreatment: 'market_value',
+    debtDeduction: 'immediate',
+    scholarlyBasis: ['AAOIFI FAS 9', 'Contemporary consensus'],
+    regions: ['International', 'Gulf States', 'Western countries']
   },
   HANAFI: {
     id: 'hanafi',
-    name: 'Hanafi Method',
-    description: 'Calculation according to Hanafi school',
+    name: 'Hanafi School Method',
+    description: 'Silver-based nisab with comprehensive business inclusion',
+    nisabBasis: 'silver',
+    businessAssetTreatment: 'comprehensive',
+    debtDeduction: 'comprehensive',
+    scholarlyBasis: ['Al-Hidayah', 'Classical Hanafi texts'],
+    regions: ['Turkey', 'Central Asia', 'Indian subcontinent']
+  },
+  SHAFII: {
+    id: 'shafii',
+    name: 'Shafi\'i School Method',
+    description: 'Detailed categorization with dual nisab',
+    nisabBasis: 'dual_minimum',
+    businessAssetTreatment: 'categorized',
+    debtDeduction: 'conservative',
+    scholarlyBasis: ['Al-Majmu\'', 'Shafi\'i jurisprudence'],
+    regions: ['Southeast Asia', 'East Africa', 'Parts of Middle East']
   },
   SHAFII: {
     id: 'shafii',
@@ -523,8 +543,13 @@ export const ZAKAT_METHODS = {
   CUSTOM: {
     id: 'custom',
     name: 'Custom Method',
-    description: 'Custom calculation with user-defined parameters',
-  },
+    description: 'User-defined calculation parameters',
+    nisabBasis: 'configurable',
+    businessAssetTreatment: 'configurable',
+    debtDeduction: 'configurable',
+    scholarlyBasis: ['User consultation recommended'],
+    regions: ['User-specific']
+  }
 } as const;
 
 // Calendar types
@@ -637,4 +662,154 @@ export const DATE_FORMATS = {
   ISO: 'YYYY-MM-DDTHH:mm:ss.sssZ',
   DISPLAY: 'MMM DD, YYYY',
   HIJRI: 'DD MMM YYYY AH',
+} as const;
+
+// Educational content for methodologies
+export const METHODOLOGY_EDUCATION = {
+  HANAFI: {
+    historicalBackground: 'The Hanafi school, founded by Imam Abu Hanifa (699-767 CE), is one of the four major Sunni schools of Islamic jurisprudence. It emphasizes rational reasoning and is widely followed in Turkey, Central Asia, and the Indian subcontinent.',
+    nisabApproach: 'Uses silver-based nisab exclusively, providing a lower threshold that ensures more people can fulfill their zakat obligations. This approach is based on the principle of making zakat more accessible.',
+    businessAssetTreatment: 'Comprehensive inclusion of all business assets including inventory, accounts receivable, and working capital. This reflects the Hanafi emphasis on thorough wealth assessment.',
+    debtTreatment: 'Allows for comprehensive debt deduction, including both immediate and future obligations, providing relief to those with significant financial commitments.',
+    pros: [
+      'Lower nisab threshold ensures broader zakat eligibility',
+      'Comprehensive business asset inclusion',
+      'Flexible debt deduction approach',
+      'Well-established scholarly precedent'
+    ],
+    considerations: [
+      'May result in higher zakat amounts for some individuals',
+      'Requires detailed business asset evaluation',
+      'Complex debt assessment needed'
+    ]
+  },
+  SHAFII: {
+    historicalBackground: 'The Shafi\'i school, founded by Imam al-Shafi\'i (767-820 CE), is known for its systematic methodology and detailed categorization. It is prevalent in Southeast Asia, East Africa, and parts of the Middle East.',
+    nisabApproach: 'Uses the dual minimum approach, taking the lower of gold and silver nisab thresholds. This provides a balanced approach that considers market conditions of both precious metals.',
+    businessAssetTreatment: 'Detailed categorization of business assets with specific rules for different types of commercial activities. Emphasizes precision in asset classification.',
+    debtTreatment: 'Conservative approach to debt deduction, focusing on immediate and certain obligations while being cautious about speculative debts.',
+    pros: [
+      'Balanced nisab calculation approach',
+      'Detailed and precise asset categorization',
+      'Conservative debt treatment provides certainty',
+      'Strong methodological framework'
+    ],
+    considerations: [
+      'More complex asset categorization required',
+      'Conservative debt approach may limit deductions',
+      'Requires good understanding of different asset types'
+    ]
+  },
+  STANDARD: {
+    historicalBackground: 'The Standard method represents a modern consensus approach, incorporating guidelines from contemporary Islamic finance institutions like AAOIFI (Accounting and Auditing Organization for Islamic Financial Institutions).',
+    nisabApproach: 'Uses the dual minimum approach, selecting the lower of gold and silver nisab. This provides flexibility based on current market conditions and ensures accessibility.',
+    businessAssetTreatment: 'Market value-based assessment of business assets with standard accounting principles. Focuses on readily determinable values.',
+    debtTreatment: 'Immediate debt deduction approach, focusing on current and certain obligations while maintaining simplicity in calculation.',
+    pros: [
+      'Modern consensus approach',
+      'Internationally recognized standards',
+      'Simplified calculation process',
+      'Good for diverse geographic regions'
+    ],
+    considerations: [
+      'May not align with specific regional traditions',
+      'Simplified approach may not capture all nuances',
+      'Requires trust in contemporary scholarly consensus'
+    ]
+  },
+  CUSTOM: {
+    historicalBackground: 'Custom methodology allows users to define their own calculation parameters based on personal consultation with qualified Islamic scholars or specific regional requirements.',
+    nisabApproach: 'User-defined nisab threshold based on scholarly consultation or specific circumstances. Provides maximum flexibility for unique situations.',
+    businessAssetTreatment: 'Configurable asset treatment based on individual needs and scholarly guidance. Allows for specialized business considerations.',
+    debtTreatment: 'Flexible debt deduction rules that can be customized based on individual circumstances and scholarly advice.',
+    pros: [
+      'Maximum flexibility for unique situations',
+      'Can accommodate specific regional practices',
+      'Allows for scholarly consultation integration',
+      'Adaptable to changing circumstances'
+    ],
+    considerations: [
+      'Requires qualified scholarly guidance',
+      'May lack standardization benefits',
+      'Responsibility for correctness lies with user',
+      'May be complex to implement properly'
+    ]
+  }
+} as const;
+
+// Regional methodology recommendations
+export const REGIONAL_METHODOLOGY_MAP = {
+  // Middle East & Gulf
+  'Saudi Arabia': ['standard', 'hanafi'],
+  'United Arab Emirates': ['standard', 'hanafi'],
+  'Qatar': ['standard', 'hanafi'],
+  'Kuwait': ['standard', 'hanafi'],
+  'Oman': ['standard', 'shafii'],
+  'Bahrain': ['standard', 'hanafi'],
+  'Iraq': ['hanafi', 'standard'],
+  'Jordan': ['hanafi', 'standard'],
+  'Lebanon': ['hanafi', 'shafii'],
+  'Syria': ['hanafi', 'standard'],
+  'Palestine': ['hanafi', 'shafii'],
+  
+  // North Africa
+  'Egypt': ['hanafi', 'standard'],
+  'Libya': ['hanafi', 'standard'],
+  'Tunisia': ['hanafi', 'standard'],
+  'Algeria': ['hanafi', 'standard'],
+  'Morocco': ['standard', 'hanafi'],
+  'Sudan': ['hanafi', 'standard'],
+  
+  // Southeast Asia
+  'Indonesia': ['shafii', 'standard'],
+  'Malaysia': ['shafii', 'standard'],
+  'Singapore': ['shafii', 'standard'],
+  'Thailand': ['shafii', 'standard'],
+  'Philippines': ['shafii', 'standard'],
+  'Brunei': ['shafii', 'standard'],
+  'Cambodia': ['shafii', 'standard'],
+  
+  // South Asia
+  'Pakistan': ['hanafi', 'standard'],
+  'India': ['hanafi', 'standard'],
+  'Bangladesh': ['hanafi', 'standard'],
+  'Afghanistan': ['hanafi', 'standard'],
+  'Maldives': ['shafii', 'standard'],
+  'Sri Lanka': ['shafii', 'hanafi'],
+  
+  // Central Asia & Caucasus
+  'Turkey': ['hanafi', 'standard'],
+  'Kazakhstan': ['hanafi', 'standard'],
+  'Uzbekistan': ['hanafi', 'standard'],
+  'Turkmenistan': ['hanafi', 'standard'],
+  'Kyrgyzstan': ['hanafi', 'standard'],
+  'Tajikistan': ['hanafi', 'standard'],
+  'Azerbaijan': ['hanafi', 'standard'],
+  
+  // East Africa
+  'Somalia': ['shafii', 'standard'],
+  'Ethiopia': ['shafii', 'standard'],
+  'Kenya': ['shafii', 'standard'],
+  'Tanzania': ['shafii', 'standard'],
+  'Uganda': ['shafii', 'hanafi'],
+  'Djibouti': ['shafii', 'standard'],
+  
+  // West Africa
+  'Nigeria': ['standard', 'hanafi'],
+  'Senegal': ['standard', 'hanafi'],
+  'Mali': ['standard', 'hanafi'],
+  'Burkina Faso': ['standard', 'hanafi'],
+  'Niger': ['standard', 'hanafi'],
+  'Guinea': ['standard', 'hanafi'],
+  'Gambia': ['standard', 'hanafi'],
+  
+  // Western Countries (Diaspora)
+  'United States': ['standard', 'hanafi', 'shafii'],
+  'Canada': ['standard', 'hanafi', 'shafii'],
+  'United Kingdom': ['standard', 'hanafi', 'shafii'],
+  'France': ['standard', 'hanafi'],
+  'Germany': ['standard', 'hanafi'],
+  'Netherlands': ['standard', 'hanafi'],
+  'Australia': ['standard', 'hanafi', 'shafii'],
+  'New Zealand': ['standard', 'shafii']
 } as const;
