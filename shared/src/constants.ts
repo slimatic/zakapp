@@ -46,7 +46,7 @@ export const ASSET_CATEGORIES = {
         description: 'Money in savings accounts',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['interestRate']
+        specificFields: ['interestRate'],
       },
       {
         id: 'checking',
@@ -54,7 +54,7 @@ export const ASSET_CATEGORIES = {
         description: 'Money in checking accounts',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: []
+        specificFields: [],
       },
       {
         id: 'cash_on_hand',
@@ -62,7 +62,7 @@ export const ASSET_CATEGORIES = {
         description: 'Physical cash in possession',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: []
+        specificFields: [],
       },
       {
         id: 'certificates_of_deposit',
@@ -70,7 +70,7 @@ export const ASSET_CATEGORIES = {
         description: 'Time deposits with fixed terms',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['interestRate', 'maturityDate']
+        specificFields: ['interestRate', 'maturityDate'],
       },
       {
         id: 'money_market',
@@ -78,9 +78,9 @@ export const ASSET_CATEGORIES = {
         description: 'High-yield savings with limited transactions',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['interestRate']
-      }
-    ]
+        specificFields: ['interestRate'],
+      },
+    ],
   },
   GOLD: {
     id: 'gold',
@@ -97,7 +97,7 @@ export const ASSET_CATEGORIES = {
         description: 'Gold jewelry for personal use or investment',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['weight', 'purity']
+        specificFields: ['weight', 'purity'],
       },
       {
         id: 'coins',
@@ -105,7 +105,7 @@ export const ASSET_CATEGORIES = {
         description: 'Gold coins for investment',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['weight', 'purity']
+        specificFields: ['weight', 'purity'],
       },
       {
         id: 'bars',
@@ -113,7 +113,7 @@ export const ASSET_CATEGORIES = {
         description: 'Gold bars and bullion',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['weight', 'purity']
+        specificFields: ['weight', 'purity'],
       },
       {
         id: 'ornaments',
@@ -121,9 +121,9 @@ export const ASSET_CATEGORIES = {
         description: 'Decorative gold items',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['weight', 'purity']
-      }
-    ]
+        specificFields: ['weight', 'purity'],
+      },
+    ],
   },
   SILVER: {
     id: 'silver',
@@ -140,7 +140,7 @@ export const ASSET_CATEGORIES = {
         description: 'Silver jewelry for personal use or investment',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['weight', 'purity']
+        specificFields: ['weight', 'purity'],
       },
       {
         id: 'coins',
@@ -148,7 +148,7 @@ export const ASSET_CATEGORIES = {
         description: 'Silver coins for investment',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['weight', 'purity']
+        specificFields: ['weight', 'purity'],
       },
       {
         id: 'bars',
@@ -156,7 +156,7 @@ export const ASSET_CATEGORIES = {
         description: 'Silver bars and bullion',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['weight', 'purity']
+        specificFields: ['weight', 'purity'],
       },
       {
         id: 'ornaments',
@@ -164,7 +164,7 @@ export const ASSET_CATEGORIES = {
         description: 'Decorative silver items',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['weight', 'purity']
+        specificFields: ['weight', 'purity'],
       },
       {
         id: 'utensils',
@@ -172,9 +172,9 @@ export const ASSET_CATEGORIES = {
         description: 'Silver utensils and household items',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['weight', 'purity']
-      }
-    ]
+        specificFields: ['weight', 'purity'],
+      },
+    ],
   },
   BUSINESS: {
     id: 'business',
@@ -191,7 +191,7 @@ export const ASSET_CATEGORIES = {
         description: 'Goods held for sale in ordinary course of business',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['businessType', 'holdingPeriod']
+        specificFields: ['businessType', 'holdingPeriod'],
       },
       {
         id: 'trade_goods',
@@ -199,7 +199,7 @@ export const ASSET_CATEGORIES = {
         description: 'Goods acquired for trading purposes',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['businessType', 'holdingPeriod']
+        specificFields: ['businessType', 'holdingPeriod'],
       },
       {
         id: 'raw_materials',
@@ -207,7 +207,7 @@ export const ASSET_CATEGORIES = {
         description: 'Materials to be used in production',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['businessType']
+        specificFields: ['businessType'],
       },
       {
         id: 'finished_goods',
@@ -215,7 +215,7 @@ export const ASSET_CATEGORIES = {
         description: 'Completed products ready for sale',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['businessType']
+        specificFields: ['businessType'],
       },
       {
         id: 'work_in_progress',
@@ -223,9 +223,9 @@ export const ASSET_CATEGORIES = {
         description: 'Partially completed goods',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['businessType']
-      }
-    ]
+        specificFields: ['businessType'],
+      },
+    ],
   },
   PROPERTY: {
     id: 'property',
@@ -239,10 +239,11 @@ export const ASSET_CATEGORIES = {
       {
         id: 'residential_investment',
         name: 'Residential Investment',
-        description: 'Residential properties held for rental income or appreciation',
+        description:
+          'Residential properties held for rental income or appreciation',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['propertyType', 'location', 'rentalIncome']
+        specificFields: ['propertyType', 'location', 'rentalIncome'],
       },
       {
         id: 'commercial',
@@ -250,7 +251,7 @@ export const ASSET_CATEGORIES = {
         description: 'Office buildings, retail spaces, warehouses',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['propertyType', 'location', 'rentalIncome']
+        specificFields: ['propertyType', 'location', 'rentalIncome'],
       },
       {
         id: 'land',
@@ -258,7 +259,7 @@ export const ASSET_CATEGORIES = {
         description: 'Undeveloped land held for investment',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['location']
+        specificFields: ['location'],
       },
       {
         id: 'agricultural',
@@ -266,7 +267,7 @@ export const ASSET_CATEGORIES = {
         description: 'Farm land and agricultural properties',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['propertyType', 'location']
+        specificFields: ['propertyType', 'location'],
       },
       {
         id: 'industrial',
@@ -274,9 +275,9 @@ export const ASSET_CATEGORIES = {
         description: 'Manufacturing facilities and industrial properties',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['propertyType', 'location', 'rentalIncome']
-      }
-    ]
+        specificFields: ['propertyType', 'location', 'rentalIncome'],
+      },
+    ],
   },
   STOCKS: {
     id: 'stocks',
@@ -293,7 +294,7 @@ export const ASSET_CATEGORIES = {
         description: 'Shares in individual companies',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['ticker', 'shares', 'dividendYield']
+        specificFields: ['ticker', 'shares', 'dividendYield'],
       },
       {
         id: 'mutual_funds',
@@ -301,7 +302,7 @@ export const ASSET_CATEGORIES = {
         description: 'Professionally managed investment funds',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['ticker', 'shares', 'dividendYield']
+        specificFields: ['ticker', 'shares', 'dividendYield'],
       },
       {
         id: 'etfs',
@@ -309,7 +310,7 @@ export const ASSET_CATEGORIES = {
         description: 'Funds that trade like stocks',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['ticker', 'shares', 'dividendYield']
+        specificFields: ['ticker', 'shares', 'dividendYield'],
       },
       {
         id: 'bonds',
@@ -317,7 +318,7 @@ export const ASSET_CATEGORIES = {
         description: 'Government and corporate bonds',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['ticker', 'shares', 'dividendYield']
+        specificFields: ['ticker', 'shares', 'dividendYield'],
       },
       {
         id: 'index_funds',
@@ -325,9 +326,33 @@ export const ASSET_CATEGORIES = {
         description: 'Funds that track market indices',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['ticker', 'shares', 'dividendYield']
-      }
-    ]
+        specificFields: ['ticker', 'shares', 'dividendYield'],
+      },
+      {
+        id: 'retirement_401k',
+        name: '401(k) Retirement Account',
+        description: 'Employer-sponsored retirement savings plan',
+        zakatRate: ZAKAT_RATES.STANDARD_RATE,
+        zakatEligible: true,
+        specificFields: ['employerMatch', 'vestingSchedule'],
+      },
+      {
+        id: 'retirement_ira',
+        name: 'IRA (Individual Retirement Account)',
+        description: 'Individual retirement account (traditional or Roth)',
+        zakatRate: ZAKAT_RATES.STANDARD_RATE,
+        zakatEligible: true,
+        specificFields: ['iraType', 'contributionLimit'],
+      },
+      {
+        id: 'retirement_other',
+        name: 'Other Retirement Accounts',
+        description: 'Other retirement investment accounts (403b, SEP-IRA, etc.)',
+        zakatRate: ZAKAT_RATES.STANDARD_RATE,
+        zakatEligible: true,
+        specificFields: ['accountType'],
+      },
+    ],
   },
   CRYPTO: {
     id: 'crypto',
@@ -344,7 +369,7 @@ export const ASSET_CATEGORIES = {
         description: 'Bitcoin cryptocurrency',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['coinSymbol', 'quantity', 'stakingRewards']
+        specificFields: ['coinSymbol', 'quantity', 'stakingRewards'],
       },
       {
         id: 'ethereum',
@@ -352,7 +377,7 @@ export const ASSET_CATEGORIES = {
         description: 'Ethereum cryptocurrency',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['coinSymbol', 'quantity', 'stakingRewards']
+        specificFields: ['coinSymbol', 'quantity', 'stakingRewards'],
       },
       {
         id: 'altcoins',
@@ -360,7 +385,7 @@ export const ASSET_CATEGORIES = {
         description: 'Other cryptocurrencies besides Bitcoin',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['coinSymbol', 'quantity', 'stakingRewards']
+        specificFields: ['coinSymbol', 'quantity', 'stakingRewards'],
       },
       {
         id: 'stablecoins',
@@ -368,7 +393,7 @@ export const ASSET_CATEGORIES = {
         description: 'Cryptocurrencies pegged to stable assets',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['coinSymbol', 'quantity']
+        specificFields: ['coinSymbol', 'quantity'],
       },
       {
         id: 'defi_tokens',
@@ -376,9 +401,9 @@ export const ASSET_CATEGORIES = {
         description: 'Decentralized Finance protocol tokens',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['coinSymbol', 'quantity', 'stakingRewards']
-      }
-    ]
+        specificFields: ['coinSymbol', 'quantity', 'stakingRewards'],
+      },
+    ],
   },
   DEBTS: {
     id: 'debts',
@@ -395,7 +420,7 @@ export const ASSET_CATEGORIES = {
         description: 'Money owed by customers for goods or services',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['debtor', 'dueDate']
+        specificFields: ['debtor', 'dueDate'],
       },
       {
         id: 'personal_loans_given',
@@ -403,7 +428,12 @@ export const ASSET_CATEGORIES = {
         description: 'Money lent to individuals',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['debtor', 'dueDate', 'interestRate', 'repaymentSchedule']
+        specificFields: [
+          'debtor',
+          'dueDate',
+          'interestRate',
+          'repaymentSchedule',
+        ],
       },
       {
         id: 'business_loans_given',
@@ -411,7 +441,12 @@ export const ASSET_CATEGORIES = {
         description: 'Money lent to businesses',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['debtor', 'dueDate', 'interestRate', 'repaymentSchedule']
+        specificFields: [
+          'debtor',
+          'dueDate',
+          'interestRate',
+          'repaymentSchedule',
+        ],
       },
       {
         id: 'promissory_notes',
@@ -419,9 +454,52 @@ export const ASSET_CATEGORIES = {
         description: 'Written promises to pay specific amounts',
         zakatRate: ZAKAT_RATES.STANDARD_RATE,
         zakatEligible: true,
-        specificFields: ['debtor', 'dueDate', 'interestRate']
-      }
-    ]
+        specificFields: ['debtor', 'dueDate', 'interestRate'],
+      },
+    ],
+  },
+  EXPENSES: {
+    id: 'expenses',
+    name: 'Deductible Expenses',
+    description: 'Expenses that can be deducted from zakat calculation',
+    zakatRate: 0, // Expenses reduce zakat, they don't generate it
+    zakatEligible: false,
+    defaultZakatEligible: false,
+    nisabApplicable: false,
+    subCategories: [
+      {
+        id: 'debts_owed',
+        name: 'Outstanding Debts',
+        description: 'Debts you owe to others (credit cards, loans, mortgages)',
+        zakatRate: 0,
+        zakatEligible: false,
+        specificFields: ['creditor', 'dueDate', 'interestRate'],
+      },
+      {
+        id: 'essential_needs',
+        name: 'Essential Living Expenses',
+        description: 'Basic living expenses for the year (housing, food, clothing)',
+        zakatRate: 0,
+        zakatEligible: false,
+        specificFields: ['expenseType', 'frequency'],
+      },
+      {
+        id: 'family_obligations',
+        name: 'Family Financial Obligations',
+        description: 'Financial support for dependents and family members',
+        zakatRate: 0,
+        zakatEligible: false,
+        specificFields: ['dependentCount', 'supportType'],
+      },
+      {
+        id: 'business_liabilities',
+        name: 'Business Liabilities',
+        description: 'Business-related debts and obligations',
+        zakatRate: 0,
+        zakatEligible: false,
+        specificFields: ['businessType', 'liabilityType'],
+      },
+    ],
   },
 } as const;
 
@@ -476,6 +554,8 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
+    DEMO_STATUS: '/auth/demo-status',
+    DEMO_USERS: '/auth/demo-users',
   },
   USERS: {
     PROFILE: '/users/profile',
@@ -509,6 +589,8 @@ export const ERROR_CODES = {
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   RATE_LIMITED: 'RATE_LIMITED',
+  RATE_LIMIT: 'RATE_LIMIT',
+  PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
 } as const;
 
 // Validation constraints

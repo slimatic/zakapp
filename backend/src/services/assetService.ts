@@ -5,7 +5,7 @@ import {
   generateUserId,
 } from '../utils/fileSystem.js';
 import { CreateAssetRequest, UpdateAssetRequest } from '../utils/validation.js';
-import { StoredAsset, AssetFilters, AssetHistory, AssetSummary } from '../models/index.js';
+import { AssetFilters } from '../models/index.js';
 
 class AssetService {
   private readonly ASSETS_FILE = 'assets.json';
@@ -14,7 +14,10 @@ class AssetService {
   /**
    * Get all assets for a user with optional filtering
    */
-  async getUserAssets(userId: string, filters: AssetFilters = {}): Promise<Asset[]> {
+  async getUserAssets(
+    userId: string,
+    filters: AssetFilters = {}
+  ): Promise<Asset[]> {
     try {
       const assetsData = await readUserFile(userId, this.ASSETS_FILE);
       let assets = (assetsData.assets || []) as Asset[];
@@ -35,7 +38,10 @@ class AssetService {
       return assets;
     } catch (error) {
       // If file doesn't exist, return empty array
-      if ((error as any).code === 'ENOENT' || (error as Error).message.includes('not found')) {
+      if (
+        (error as any).code === 'ENOENT' ||
+        (error as Error).message.includes('not found')
+      ) {
         return [];
       }
       throw error;
@@ -45,11 +51,15 @@ class AssetService {
   /**
    * Create a new asset
    */
-  async createAsset(userId: string, assetData: CreateAssetRequest): Promise<Asset> {
+  async createAsset(
+    userId: string,
+    assetData: CreateAssetRequest
+  ): Promise<Asset> {
     const assetId = generateUserId(); // Reuse the UUID generator
     const now = new Date().toISOString();
 
-    const asset: Asset = {
+    // Create the base asset with all standard fields
+    const asset: Asset & Record<string, any> = {
       assetId,
       name: assetData.name,
       category: assetData.category,
@@ -61,6 +71,14 @@ class AssetService {
       createdAt: now,
       updatedAt: now,
     };
+
+    // Preserve all additional fields from the request data
+    // This ensures category-specific fields like iraType, contributionLimit, etc. are saved
+    Object.keys(assetData).forEach(key => {
+      if (!(key in asset) && assetData[key as keyof CreateAssetRequest] !== undefined) {
+        asset[key] = assetData[key as keyof CreateAssetRequest];
+      }
+    });
 
     // Get existing assets
     const existingAssets = await this.getUserAssets(userId);
@@ -78,9 +96,15 @@ class AssetService {
   /**
    * Update an existing asset
    */
-  async updateAsset(userId: string, assetId: string, updateData: UpdateAssetRequest): Promise<Asset | null> {
+  async updateAsset(
+    userId: string,
+    assetId: string,
+    updateData: UpdateAssetRequest
+  ): Promise<Asset | null> {
     const existingAssets = await this.getUserAssets(userId);
-    const assetIndex = existingAssets.findIndex(asset => asset.assetId === assetId);
+    const assetIndex = existingAssets.findIndex(
+      asset => asset.assetId === assetId
+    );
 
     if (assetIndex === -1) {
       return null;
@@ -101,7 +125,13 @@ class AssetService {
     await writeUserFile(userId, this.ASSETS_FILE, { assets: existingAssets });
 
     // Track history
-    await this.addAssetHistory(userId, assetId, 'updated', updatedAsset, existingAsset);
+    await this.addAssetHistory(
+      userId,
+      assetId,
+      'updated',
+      updatedAsset,
+      existingAsset
+    );
 
     return updatedAsset;
   }
@@ -111,7 +141,9 @@ class AssetService {
    */
   async deleteAsset(userId: string, assetId: string): Promise<boolean> {
     const existingAssets = await this.getUserAssets(userId);
-    const assetIndex = existingAssets.findIndex(asset => asset.assetId === assetId);
+    const assetIndex = existingAssets.findIndex(
+      asset => asset.assetId === assetId
+    );
 
     if (assetIndex === -1) {
       return false;
@@ -140,7 +172,10 @@ class AssetService {
   /**
    * Get assets by category
    */
-  async getAssetsByCategory(userId: string, category: AssetCategoryType): Promise<Asset[]> {
+  async getAssetsByCategory(
+    userId: string,
+    category: AssetCategoryType
+  ): Promise<Asset[]> {
     return this.getUserAssets(userId, { category });
   }
 
@@ -150,7 +185,9 @@ class AssetService {
   async getAssetHistory(userId: string, assetId?: string): Promise<any[]> {
     try {
       const historyData = await readUserFile(userId, this.ASSET_HISTORY_FILE);
-      let history: any[] = Array.isArray(historyData.history) ? historyData.history : [];
+      let history: any[] = Array.isArray(historyData.history)
+        ? historyData.history
+        : [];
 
       if (assetId) {
         history = history.filter((entry: any) => entry.assetId === assetId);
@@ -159,7 +196,10 @@ class AssetService {
       return history;
     } catch (error) {
       // If file doesn't exist, return empty array
-      if ((error as any).code === 'ENOENT' || (error as Error).message.includes('not found')) {
+      if (
+        (error as any).code === 'ENOENT' ||
+        (error as Error).message.includes('not found')
+      ) {
         return [];
       }
       throw error;
@@ -184,8 +224,10 @@ class AssetService {
         // File doesn't exist, create empty history
         historyData = { history: [] };
       }
-      
-      const history: any[] = Array.isArray(historyData.history) ? historyData.history : [];
+
+      const history: any[] = Array.isArray(historyData.history)
+        ? historyData.history
+        : [];
 
       const historyEntry = {
         historyId: generateUserId(),
@@ -200,10 +242,15 @@ class AssetService {
 
       // Keep only last 100 entries per asset to prevent unbounded growth
       const filteredHistory = history
-        .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .sort(
+          (a: any, b: any) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
         .slice(0, 100);
 
-      await writeUserFile(userId, this.ASSET_HISTORY_FILE, { history: filteredHistory });
+      await writeUserFile(userId, this.ASSET_HISTORY_FILE, {
+        history: filteredHistory,
+      });
     } catch (error) {
       console.error('Failed to record asset history:', error);
       // Don't fail the main operation if history recording fails
@@ -217,15 +264,21 @@ class AssetService {
     totalAssets: number;
     totalValue: number;
     totalZakatEligible: number;
-    assetsByCategory: Record<string, {
-      count: number;
-      totalValue: number;
-      zakatEligibleValue: number;
-    }>;
-    assetsByCurrency: Record<string, {
-      count: number;
-      totalValue: number;
-    }>;
+    assetsByCategory: Record<
+      string,
+      {
+        count: number;
+        totalValue: number;
+        zakatEligibleValue: number;
+      }
+    >;
+    assetsByCurrency: Record<
+      string,
+      {
+        count: number;
+        totalValue: number;
+      }
+    >;
   }> {
     const assets = await this.getUserAssets(userId);
 
@@ -235,15 +288,21 @@ class AssetService {
       totalZakatEligible: assets
         .filter(asset => asset.zakatEligible)
         .reduce((sum, asset) => sum + asset.value, 0),
-      assetsByCategory: {} as Record<string, {
-        count: number;
-        totalValue: number;
-        zakatEligibleValue: number;
-      }>,
-      assetsByCurrency: {} as Record<string, {
-        count: number;
-        totalValue: number;
-      }>,
+      assetsByCategory: {} as Record<
+        string,
+        {
+          count: number;
+          totalValue: number;
+          zakatEligibleValue: number;
+        }
+      >,
+      assetsByCurrency: {} as Record<
+        string,
+        {
+          count: number;
+          totalValue: number;
+        }
+      >,
     };
 
     // Group by category and currency

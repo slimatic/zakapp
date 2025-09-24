@@ -48,13 +48,16 @@ class UserService {
    */
   private async loadUserIndex(): Promise<void> {
     const indexPath = path.join(process.cwd(), 'data', 'users', 'index.json');
-    
+
     try {
       if (await fs.pathExists(indexPath)) {
         this.userIndex = await fs.readJson(indexPath);
       }
     } catch (error) {
-      console.warn('Failed to load user index, starting with empty index:', error);
+      console.warn(
+        'Failed to load user index, starting with empty index:',
+        error
+      );
       this.userIndex = {};
     }
   }
@@ -72,7 +75,10 @@ class UserService {
    */
   async userExists(username: string, email: string): Promise<boolean> {
     await this.initialize();
-    return !!(this.userIndex[username.toLowerCase()] || this.userIndex[email.toLowerCase()]);
+    return !!(
+      this.userIndex[username.toLowerCase()] ||
+      this.userIndex[email.toLowerCase()]
+    );
   }
 
   /**
@@ -81,6 +87,68 @@ class UserService {
   async getUserId(usernameOrEmail: string): Promise<string | null> {
     await this.initialize();
     return this.userIndex[usernameOrEmail.toLowerCase()] || null;
+  }
+
+  /**
+   * Check if a user is a demo user
+   */
+  isDemoUser(username: string): boolean {
+    const demoUsernames = ['john_doe', 'demo', 'demo_user', 'test_user'];
+    return demoUsernames.some(demoUsername => 
+      username.toLowerCase() === demoUsername.toLowerCase()
+    );
+  }
+
+  /**
+   * Get all demo users in the system
+   */
+  async getDemoUsers(): Promise<string[]> {
+    await this.initialize();
+    const demoUsers: string[] = [];
+    
+    Object.keys(this.userIndex).forEach(key => {
+      if (this.isDemoUser(key)) {
+        demoUsers.push(key);
+      }
+    });
+    
+    return demoUsers;
+  }
+
+  /**
+   * Remove demo users from the system
+   */
+  async removeDemoUsers(): Promise<{ removed: string[], errors: string[] }> {
+    await this.initialize();
+    const removed: string[] = [];
+    const errors: string[] = [];
+    
+    const demoUsers = await this.getDemoUsers();
+    
+    for (const demoUsername of demoUsers) {
+      try {
+        const userId = this.userIndex[demoUsername];
+        if (userId) {
+          // Remove user directory
+          if (await userDirectoryExists(userId)) {
+            await fs.remove(path.join(process.cwd(), 'data', 'users', userId));
+          }
+          
+          // Remove from user index
+          delete this.userIndex[demoUsername];
+          removed.push(demoUsername);
+        }
+      } catch (error) {
+        console.error(`Error removing demo user ${demoUsername}:`, error);
+        errors.push(`${demoUsername}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+    
+    if (removed.length > 0) {
+      await this.saveUserIndex();
+    }
+    
+    return { removed, errors };
   }
 
   /**
@@ -121,7 +189,7 @@ class UserService {
 
     // Create user directory and save user data
     await createUserDirectory(userId);
-    
+
     // Store user profile data as JSON for now (unencrypted for simplicity)
     const profilePath = getUserFilePath(userId, 'profile.json');
     await fs.writeJson(profilePath, storedUser, { spaces: 2 });
@@ -143,8 +211,17 @@ class UserService {
   /**
    * Authenticate user with username/email and password
    */
-  async authenticateUser(usernameOrEmail: string, password: string): Promise<User | null> {
+  async authenticateUser(
+    usernameOrEmail: string,
+    password: string
+  ): Promise<User | null> {
     await this.initialize();
+
+    // Check if this is a demo user and prevent authentication
+    if (this.isDemoUser(usernameOrEmail)) {
+      console.warn(`Attempted login with demo user: ${usernameOrEmail}. Demo user logins are disabled.`);
+      return null;
+    }
 
     const userId = await this.getUserId(usernameOrEmail);
     if (!userId) {
@@ -157,10 +234,19 @@ class UserService {
         return null;
       }
 
+      // Double-check the user isn't a demo user
+      if (this.isDemoUser(user.username)) {
+        console.warn(`Demo user found in system: ${user.username}. Authentication blocked.`);
+        return null;
+      }
+
       // Get stored user data for password verification
       const storedUser = await this.getStoredUser(userId);
-      const isValidPassword = await verifyPassword(password, storedUser.passwordHash);
-      
+      const isValidPassword = await verifyPassword(
+        password,
+        storedUser.passwordHash
+      );
+
       if (!isValidPassword) {
         return null;
       }
@@ -187,7 +273,7 @@ class UserService {
       }
 
       const storedUser = await this.getStoredUser(userId);
-      
+
       return {
         userId: storedUser.userId,
         username: storedUser.username,
@@ -233,27 +319,32 @@ class UserService {
       // Update email in index if changed
       if (updates.email && updates.email !== user.email) {
         // Check if new email already exists
-        if (this.userIndex[updates.email.toLowerCase()] && 
-            this.userIndex[updates.email.toLowerCase()] !== userId) {
+        if (
+          this.userIndex[updates.email.toLowerCase()] &&
+          this.userIndex[updates.email.toLowerCase()] !== userId
+        ) {
           throw new Error('Email already exists');
         }
 
         // Remove old email from index and add new one
         delete this.userIndex[user.email.toLowerCase()];
         this.userIndex[updates.email.toLowerCase()] = userId;
-        
+
         storedUser.email = updates.email;
       }
 
       // Update preferences
       if (updates.preferences) {
-        storedUser.preferences = { ...storedUser.preferences, ...updates.preferences };
+        storedUser.preferences = {
+          ...storedUser.preferences,
+          ...updates.preferences,
+        };
       }
 
       // Save updated user data
       const profilePath = getUserFilePath(userId, 'profile.json');
       await fs.writeJson(profilePath, storedUser, { spaces: 2 });
-      
+
       if (updates.email) {
         await this.saveUserIndex();
       }
@@ -268,24 +359,31 @@ class UserService {
   /**
    * Change user password
    */
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<boolean> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> {
     await this.initialize();
 
     try {
       const storedUser = await this.getStoredUser(userId);
-      
+
       // Verify current password
-      const isValidPassword = await verifyPassword(currentPassword, storedUser.passwordHash);
+      const isValidPassword = await verifyPassword(
+        currentPassword,
+        storedUser.passwordHash
+      );
       if (!isValidPassword) {
         return false;
       }
 
       // Hash new password
       const newPasswordHash = await hashPassword(newPassword);
-      
+
       // Update stored user data
       storedUser.passwordHash = newPasswordHash;
-      
+
       const profilePath = getUserFilePath(userId, 'profile.json');
       await fs.writeJson(profilePath, storedUser, { spaces: 2 });
 
@@ -303,7 +401,7 @@ class UserService {
     try {
       const storedUser = await this.getStoredUser(userId);
       storedUser.lastLogin = new Date().toISOString();
-      
+
       const profilePath = getUserFilePath(userId, 'profile.json');
       await fs.writeJson(profilePath, storedUser, { spaces: 2 });
     } catch (error) {

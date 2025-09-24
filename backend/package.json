@@ -18,6 +18,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@types/uuid": "^10.0.0",
     "@zakapp/shared": "file:../shared",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -27,6 +28,7 @@
     "fs-extra": "^11.1.1",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "uuid": "^13.0.0",
     "winston": "^3.11.0",
     "zod": "^3.22.4"
   },

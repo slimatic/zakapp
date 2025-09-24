@@ -6,6 +6,12 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
     "dev": "tsc --watch",

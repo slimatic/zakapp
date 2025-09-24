@@ -11,7 +11,7 @@ const BACKUPS_DIR = path.join(DATA_DIR, 'backups');
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
 const KEY_LENGTH = 32; // 256 bits
 const IV_LENGTH = 16; // 128 bits
-const TAG_LENGTH = 16; // 128 bits
+// const TAG_LENGTH = 16; // 128 bits - reserved for future use
 
 /**
  * Initialize data directories
@@ -33,19 +33,28 @@ export function deriveKeyFromPassword(password: string, salt: string): Buffer {
 /**
  * Encrypt data using AES-256-GCM (enhanced encryption for production)
  */
-export function encryptDataSecure(data: string): { encrypted: string; iv: string; authTag: string; key: string } {
+export function encryptDataSecure(data: string): {
+  encrypted: string;
+  iv: string;
+  authTag: string;
+  key: string;
+} {
   const iv = crypto.randomBytes(IV_LENGTH);
   const key = crypto.randomBytes(KEY_LENGTH);
-  
+
   const cipher = crypto.createCipher(ENCRYPTION_ALGORITHM, key);
-  
+
   let encrypted = cipher.update(data, 'utf8', 'hex');
   encrypted += cipher.final('hex');
-  
+
   // For GCM mode, we'd use getAuthTag(), but createCipher doesn't support GCM
   // Let's use a simpler approach for now
-  const authTag = crypto.createHmac('sha256', key).update(encrypted).digest('hex').slice(0, 32);
-  
+  const authTag = crypto
+    .createHmac('sha256', key)
+    .update(encrypted)
+    .digest('hex')
+    .slice(0, 32);
+
   return {
     encrypted,
     iv: iv.toString('hex'),
@@ -55,34 +64,42 @@ export function encryptDataSecure(data: string): { encrypted: string; iv: string
 }
 
 /**
- * Decrypt data 
+ * Decrypt data
  */
 export function decryptDataSecure(
-  encryptedData: string, 
-  iv: string, 
-  authTag: string, 
+  encryptedData: string,
+  iv: string,
+  authTag: string,
   key: string
 ): string {
   const keyBuffer = Buffer.from(key, 'hex');
-  
+
   // Verify auth tag
-  const expectedAuthTag = crypto.createHmac('sha256', keyBuffer).update(encryptedData).digest('hex').slice(0, 32);
+  const expectedAuthTag = crypto
+    .createHmac('sha256', keyBuffer)
+    .update(encryptedData)
+    .digest('hex')
+    .slice(0, 32);
   if (expectedAuthTag !== authTag) {
     throw new Error('Authentication tag verification failed');
   }
-  
+
   const decipher = crypto.createDecipher(ENCRYPTION_ALGORITHM, keyBuffer);
-  
+
   let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
-  
+
   return decrypted;
 }
 
 /**
  * Simple encryption for basic implementation (backward compatible)
  */
-export function encryptData(data: string): { encrypted: string; iv: string; authTag: string } {
+export function encryptData(data: string): {
+  encrypted: string;
+  iv: string;
+  authTag: string;
+} {
   // For now, just base64 encode for development - this maintains backward compatibility
   const encoded = Buffer.from(data).toString('base64');
   return {
@@ -103,16 +120,21 @@ export function decryptData(encryptedData: string): string {
 /**
  * Read encrypted user file (backward compatible)
  */
-export async function readUserFile(userId: string, filename: string): Promise<Record<string, unknown>> {
+export async function readUserFile(
+  userId: string,
+  filename: string
+): Promise<Record<string, unknown>> {
   const filePath = getUserFilePath(userId, `${filename}.enc`);
-  
+
   if (!(await fs.pathExists(filePath))) {
     throw new Error(`File ${filename} not found for user ${userId}`);
   }
-  
+
   const encryptedContent = await fs.readJson(filePath);
-  const decryptedData = decryptData(encryptedContent.encrypted || encryptedContent.data);
-  
+  const decryptedData = decryptData(
+    encryptedContent.encrypted || encryptedContent.data
+  );
+
   return JSON.parse(decryptedData);
 }
 
@@ -126,10 +148,10 @@ export async function writeUserFile(
 ): Promise<void> {
   const userDir = getUserDirectory(userId);
   await fs.ensureDir(userDir);
-  
+
   const jsonData = JSON.stringify(data, null, 2);
   const encrypted = encryptData(jsonData);
-  
+
   const filePath = getUserFilePath(userId, `${filename}.enc`);
   await fs.writeJson(filePath, encrypted, { spaces: 2 });
 }
@@ -137,13 +159,17 @@ export async function writeUserFile(
 /**
  * Read securely encrypted user file
  */
-export async function readUserFileSecure(userId: string, filename: string, encryptionKey: string): Promise<Record<string, unknown>> {
+export async function readUserFileSecure(
+  userId: string,
+  filename: string,
+  encryptionKey: string
+): Promise<Record<string, unknown>> {
   const filePath = getUserFilePath(userId, `${filename}.secure.enc`);
-  
+
   if (!(await fs.pathExists(filePath))) {
     throw new Error(`Secure file ${filename} not found for user ${userId}`);
   }
-  
+
   const encryptedContent = await fs.readJson(filePath);
   const decryptedData = decryptDataSecure(
     encryptedContent.encrypted,
@@ -151,7 +177,7 @@ export async function readUserFileSecure(userId: string, filename: string, encry
     encryptedContent.authTag,
     encryptionKey
   );
-  
+
   return JSON.parse(decryptedData);
 }
 
@@ -165,18 +191,22 @@ export async function writeUserFileSecure(
 ): Promise<string> {
   const userDir = getUserDirectory(userId);
   await fs.ensureDir(userDir);
-  
+
   const jsonData = JSON.stringify(data, null, 2);
   const encrypted = encryptDataSecure(jsonData);
-  
+
   const filePath = getUserFilePath(userId, `${filename}.secure.enc`);
-  await fs.writeJson(filePath, {
-    encrypted: encrypted.encrypted,
-    iv: encrypted.iv,
-    authTag: encrypted.authTag,
-    timestamp: new Date().toISOString(),
-  }, { spaces: 2 });
-  
+  await fs.writeJson(
+    filePath,
+    {
+      encrypted: encrypted.encrypted,
+      iv: encrypted.iv,
+      authTag: encrypted.authTag,
+      timestamp: new Date().toISOString(),
+    },
+    { spaces: 2 }
+  );
+
   // Return the encryption key - in production, this should be derived from user password
   return encrypted.key;
 }
@@ -211,14 +241,15 @@ export async function createUserDirectory(userId: string): Promise<void> {
   await fs.ensureDir(userDir);
 }
 
-
-
 /**
  * Delete user file
  */
-export async function deleteUserFile(userId: string, filename: string): Promise<void> {
+export async function deleteUserFile(
+  userId: string,
+  filename: string
+): Promise<void> {
   const filePath = getUserFilePath(userId, `${filename}.enc`);
-  
+
   if (await fs.pathExists(filePath)) {
     await fs.remove(filePath);
   }
@@ -229,13 +260,15 @@ export async function deleteUserFile(userId: string, filename: string): Promise<
  */
 export async function listUserFiles(userId: string): Promise<string[]> {
   const userDir = getUserDirectory(userId);
-  
+
   if (!(await fs.pathExists(userDir))) {
     return [];
   }
-  
+
   const files = await fs.readdir(userDir);
-  return files.filter(file => file.endsWith('.enc')).map(file => file.replace('.enc', ''));
+  return files
+    .filter(file => file.endsWith('.enc'))
+    .map(file => file.replace('.enc', ''));
 }
 
 /**

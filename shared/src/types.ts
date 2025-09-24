@@ -55,7 +55,8 @@ export type AssetCategoryType =
   | 'property'
   | 'stocks'
   | 'crypto'
-  | 'debts';
+  | 'debts'
+  | 'expenses';
 
 // Base asset interface
 export interface Asset {
@@ -74,7 +75,12 @@ export interface Asset {
 // Specific asset type interfaces for better type safety
 export interface CashAsset extends Asset {
   category: 'cash';
-  subCategory: 'savings' | 'checking' | 'cash_on_hand' | 'certificates_of_deposit' | 'money_market';
+  subCategory:
+    | 'savings'
+    | 'checking'
+    | 'cash_on_hand'
+    | 'certificates_of_deposit'
+    | 'money_market';
   interestRate?: number;
   maturityDate?: string;
 }
@@ -95,14 +101,24 @@ export interface SilverAsset extends Asset {
 
 export interface BusinessAsset extends Asset {
   category: 'business';
-  subCategory: 'inventory' | 'trade_goods' | 'raw_materials' | 'finished_goods' | 'work_in_progress';
+  subCategory:
+    | 'inventory'
+    | 'trade_goods'
+    | 'raw_materials'
+    | 'finished_goods'
+    | 'work_in_progress';
   businessType?: string;
   holdingPeriod?: number; // in months
 }
 
 export interface PropertyAsset extends Asset {
   category: 'property';
-  subCategory: 'residential_investment' | 'commercial' | 'land' | 'agricultural' | 'industrial';
+  subCategory:
+    | 'residential_investment'
+    | 'commercial'
+    | 'land'
+    | 'agricultural'
+    | 'industrial';
   propertyType?: string;
   location?: string;
   rentalIncome?: number; // monthly
@@ -110,15 +126,34 @@ export interface PropertyAsset extends Asset {
 
 export interface StocksAsset extends Asset {
   category: 'stocks';
-  subCategory: 'individual_stocks' | 'mutual_funds' | 'etfs' | 'bonds' | 'index_funds';
+  subCategory:
+    | 'individual_stocks'
+    | 'mutual_funds'
+    | 'etfs'
+    | 'bonds'
+    | 'index_funds'
+    | 'retirement_401k'
+    | 'retirement_ira'
+    | 'retirement_other';
   ticker?: string;
   shares?: number;
   dividendYield?: number;
+  // Retirement-specific fields
+  employerMatch?: number;
+  vestingSchedule?: string;
+  iraType?: 'traditional' | 'roth';
+  contributionLimit?: number;
+  accountType?: string;
 }
 
 export interface CryptoAsset extends Asset {
   category: 'crypto';
-  subCategory: 'bitcoin' | 'ethereum' | 'altcoins' | 'stablecoins' | 'defi_tokens';
+  subCategory:
+    | 'bitcoin'
+    | 'ethereum'
+    | 'altcoins'
+    | 'stablecoins'
+    | 'defi_tokens';
   coinSymbol?: string;
   quantity?: number;
   stakingRewards?: number;
@@ -126,23 +161,46 @@ export interface CryptoAsset extends Asset {
 
 export interface DebtAsset extends Asset {
   category: 'debts';
-  subCategory: 'accounts_receivable' | 'personal_loans_given' | 'business_loans_given' | 'promissory_notes';
+  subCategory:
+    | 'accounts_receivable'
+    | 'personal_loans_given'
+    | 'business_loans_given'
+    | 'promissory_notes';
   debtor?: string;
   dueDate?: string;
   interestRate?: number;
   repaymentSchedule?: 'lump_sum' | 'installments' | 'on_demand';
 }
 
+export interface ExpensesAsset extends Asset {
+  category: 'expenses';
+  subCategory:
+    | 'debts_owed'
+    | 'essential_needs'
+    | 'family_obligations'
+    | 'business_liabilities';
+  creditor?: string;
+  dueDate?: string;
+  interestRate?: number;
+  expenseType?: string;
+  frequency?: 'monthly' | 'yearly' | 'one_time';
+  dependentCount?: number;
+  supportType?: string;
+  businessType?: string;
+  liabilityType?: string;
+}
+
 // Union type for all specific asset types
-export type SpecificAsset = 
-  | CashAsset 
-  | GoldAsset 
-  | SilverAsset 
-  | BusinessAsset 
-  | PropertyAsset 
-  | StocksAsset 
-  | CryptoAsset 
-  | DebtAsset;
+export type SpecificAsset =
+  | CashAsset
+  | GoldAsset
+  | SilverAsset
+  | BusinessAsset
+  | PropertyAsset
+  | StocksAsset
+  | CryptoAsset
+  | DebtAsset
+  | ExpensesAsset;
 
 export interface AssetCategory {
   id: string;
@@ -196,6 +254,8 @@ export interface ZakatTotals {
   totalAssets: number;
   totalZakatableAssets: number;
   totalZakatDue: number;
+  totalExpenses?: number;
+  netZakatableAssets?: number;
 }
 
 export interface ZakatCalculationRequest {
