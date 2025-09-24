@@ -12,6 +12,7 @@ export { AssetDetailsCollector } from './AssetDetailsCollector';
 export { ContextualHelp } from './ContextualHelp';
 export { QuestionnaireProgress } from './QuestionnaireProgress';
 export { default as QuestionnaireStep } from './QuestionnaireStep';
+export { NisabDisplay } from './NisabDisplay';
 
 // UI Components
 export { Button } from './button';

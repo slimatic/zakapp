@@ -18,6 +18,7 @@ const categoryIcons: Record<AssetCategoryType, string> = {
   stocks: '📈',
   crypto: '₿',
   debts: '📋',
+  expenses: '💸',
 };
 
 export const AssetCategorySelector: React.FC<AssetCategorySelectorProps> = ({

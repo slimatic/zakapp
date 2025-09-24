@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAssetStatistics, useGroupedAssets } from '../../hooks';
 import { ASSET_CATEGORIES } from '@zakapp/shared';
+import { NisabDisplay } from './NisabDisplay';
 
 interface StatsCardProps {
   title: string;
@@ -233,6 +234,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           </div>
         </div>
       </div>
+
+      {/* Nisab Information */}
+      <NisabDisplay 
+        className="animate-slide-up"
+        showDetails={true}
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
