@@ -104,13 +104,27 @@ zakapp/
 
 ### Phase 4: Zakat Calculation Engine (Week 8-10)
 
-- [ ] Research and implement Zakat calculation methodologies
+- [x] Research and implement Zakat calculation methodologies
+  - [x] Comprehensive research on Islamic jurisprudence schools (Hanafi, Shafi'i, Maliki, Hanbali)
+  - [x] Analysis of modern Islamic finance standards (AAOIFI, IFSB)
+  - [x] Documentation of regional variations and implementation considerations
+  - [x] Research on asset-specific calculation methodologies
+  - [x] Investigation of nisab calculation approaches
+  - [x] Study of calendar systems impact (Lunar vs Solar)
+- [ ] Implement enhanced calculation methodologies
+  - [ ] Enhanced Standard Method (AAOIFI-compliant)
+  - [ ] Hanafi Method (silver-based nisab)
+  - [ ] Shafi'i Method (dual nisab with detailed categorization)
+  - [ ] Method-specific asset calculation rules
 - [ ] Create configurable calculation rules engine
 - [ ] Implement lunar/solar date selection system
 - [ ] Build net worth calculation logic
 - [ ] Create Zakat due calculation algorithms
 - [ ] Add support for different asset types (cash, gold, silver, business, etc.)
-- [ ] Implement nisab threshold calculations
+- [ ] Implement enhanced nisab threshold calculations
+  - [ ] Dual nisab approach (gold/silver minimum)
+  - [ ] Method-specific nisab selection
+  - [ ] Regional economic adjustments (optional)
 
 ### Phase 5: Year-to-Year Tracking (Week 11-12)
 
@@ -172,12 +186,18 @@ zakapp/
 
 ### Zakat Calculations
 
-- Multiple calculation methodologies
-- Lunar and solar calendar support
-- Nisab threshold calculations
-- Different asset-specific calculation rules
+- Multiple calculation methodologies (Standard, Hanafi, Shafi'i, Custom)
+- AAOIFI standard compliance for institutional users
+- Lunar and solar calendar support with automatic conversions
+- Enhanced nisab threshold calculations (dual nisab approach)
+- Method-specific asset calculation rules
+- Regional economic adjustments (optional)
 - Real-time calculation updates
+- Calculation transparency and breakdown display
+- Educational content for methodology selection
+- Cross-method validation and comparison tools
 - Calculation history and audit trail
+- Scholarly source citations for all calculations
 
 ### User Experience
 
