@@ -3,7 +3,9 @@ import {
   NISAB_THRESHOLDS, 
   ZAKAT_METHODS, 
   CALENDAR_TYPES,
-  ASSET_CATEGORIES 
+  ASSET_CATEGORIES,
+  REGIONAL_METHODOLOGY_MAP,
+  METHODOLOGY_EDUCATION
 } from '@zakapp/shared';
 import type { 
   ZakatCalculation, 
@@ -20,6 +22,9 @@ export interface ZakatCalculationService {
   calculateNisab(goldPricePerGram: number, silverPricePerGram: number, method: string): NisabInfo;
   isEligibleForZakat(assetValue: number, nisab: number): boolean;
   calculateAssetZakat(asset: Asset, method: string): ZakatAsset;
+  getMethodologyRecommendations(region?: string): string[];
+  getMethodologyEducation(methodId: string): any;
+  getMethodologyComparison(goldPrice: number, silverPrice: number): any[];
 }
 
 export class ZakatService implements ZakatCalculationService {
@@ -278,6 +283,55 @@ export class ZakatService implements ZakatCalculationService {
       totalExpenses,
       netZakatableAssets
     };
+  }
+
+  /**
+   * Get methodology recommendations based on region
+   */
+  getMethodologyRecommendations(region?: string): string[] {
+    if (!region) {
+      return [ZAKAT_METHODS.STANDARD.id, ZAKAT_METHODS.HANAFI.id, ZAKAT_METHODS.SHAFII.id];
+    }
+
+    // Type assertion for the regional map since TypeScript can't infer all possible string keys
+    const recommendations = (REGIONAL_METHODOLOGY_MAP as any)[region];
+    return recommendations || [ZAKAT_METHODS.STANDARD.id];
+  }
+
+  /**
+   * Get educational content for a methodology
+   */
+  getMethodologyEducation(methodId: string) {
+    switch (methodId) {
+      case ZAKAT_METHODS.HANAFI.id:
+        return METHODOLOGY_EDUCATION.HANAFI;
+      case ZAKAT_METHODS.SHAFII.id:
+        return METHODOLOGY_EDUCATION.SHAFII;
+      case ZAKAT_METHODS.CUSTOM.id:
+        return METHODOLOGY_EDUCATION.CUSTOM;
+      case ZAKAT_METHODS.STANDARD.id:
+      default:
+        return METHODOLOGY_EDUCATION.STANDARD;
+    }
+  }
+
+  /**
+   * Get detailed methodology information including calculation differences
+   */
+  getMethodologyComparison(goldPrice: number, silverPrice: number) {
+    const methods = Object.values(ZAKAT_METHODS);
+    return methods.map(method => {
+      const nisab = this.calculateNisab(goldPrice, silverPrice, method.id);
+      const education = this.getMethodologyEducation(method.id);
+      
+      return {
+        ...method,
+        nisab,
+        education,
+        effectiveNisabValue: nisab.effectiveNisab,
+        nisabSource: nisab.nisabBasis
+      };
+    });
   }
 
   /**

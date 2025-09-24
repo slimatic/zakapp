@@ -485,4 +485,70 @@ describe('ZakatService', () => {
       expect(calculation.totals.totalZakatDue).toBe(2500); // 2.5% of 100,000
     });
   });
+
+  describe('Methodology Education and Recommendations', () => {
+    it('should get methodology recommendations for specific regions', () => {
+      const pakistanRecommendations = zakatService.getMethodologyRecommendations('Pakistan');
+      expect(pakistanRecommendations).toContain('hanafi');
+      expect(pakistanRecommendations).toContain('standard');
+
+      const indonesiaRecommendations = zakatService.getMethodologyRecommendations('Indonesia');
+      expect(indonesiaRecommendations).toContain('shafii');
+      expect(indonesiaRecommendations).toContain('standard');
+
+      // Test default recommendations for unknown region
+      const unknownRecommendations = zakatService.getMethodologyRecommendations('Unknown Country');
+      expect(unknownRecommendations).toContain('standard');
+    });
+
+    it('should get methodology recommendations for no region specified', () => {
+      const defaultRecommendations = zakatService.getMethodologyRecommendations();
+      expect(defaultRecommendations).toHaveLength(3);
+      expect(defaultRecommendations).toContain('standard');
+      expect(defaultRecommendations).toContain('hanafi');
+      expect(defaultRecommendations).toContain('shafii');
+    });
+
+    it('should get educational content for each methodology', () => {
+      const hanafiEducation = zakatService.getMethodologyEducation(ZAKAT_METHODS.HANAFI.id);
+      expect(hanafiEducation).toBeDefined();
+      expect(hanafiEducation.historicalBackground).toContain('Abu Hanifa');
+      expect(hanafiEducation.pros).toContain('Lower nisab threshold ensures broader zakat eligibility');
+
+      const shafiiEducation = zakatService.getMethodologyEducation(ZAKAT_METHODS.SHAFII.id);
+      expect(shafiiEducation).toBeDefined();
+      expect(shafiiEducation.historicalBackground).toContain('al-Shafi\'i');
+      expect(shafiiEducation.pros).toContain('Balanced nisab calculation approach');
+
+      const standardEducation = zakatService.getMethodologyEducation(ZAKAT_METHODS.STANDARD.id);
+      expect(standardEducation).toBeDefined();
+      expect(standardEducation.historicalBackground).toContain('AAOIFI');
+    });
+
+    it('should get methodology comparison with nisab calculations', () => {
+      const goldPrice = 60;
+      const silverPrice = 0.8;
+      
+      const comparison = zakatService.getMethodologyComparison(goldPrice, silverPrice);
+      
+      expect(comparison).toHaveLength(4); // Standard, Hanafi, Shafi'i, Custom
+      
+      comparison.forEach(method => {
+        expect(method.id).toBeDefined();
+        expect(method.name).toBeDefined();
+        expect(method.nisab).toBeDefined();
+        expect(method.education).toBeDefined();
+        expect(method.effectiveNisabValue).toBeGreaterThan(0);
+        expect(method.nisabSource).toBeDefined();
+      });
+
+      // Verify Hanafi uses silver nisab
+      const hanafiMethod = comparison.find(m => m.id === 'hanafi');
+      expect(hanafiMethod?.nisabSource).toBe('silver');
+
+      // Verify Shafi'i uses dual minimum
+      const shafiiMethod = comparison.find(m => m.id === 'shafii');
+      expect(shafiiMethod?.nisabSource).toBe('dual_minimum');
+    });
+  });
 });
