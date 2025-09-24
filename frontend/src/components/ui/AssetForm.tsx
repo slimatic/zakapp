@@ -64,6 +64,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         | 'installments'
         | 'on_demand'
         | undefined,
+      // Retirement account fields
+      employerMatch: extendedAsset.employerMatch as number | undefined,
+      vestingSchedule: extendedAsset.vestingSchedule as string | undefined,
+      iraType: extendedAsset.iraType as 'traditional' | 'roth' | undefined,
+      contributionLimit: extendedAsset.contributionLimit as number | undefined,
+      accountType: extendedAsset.accountType as string | undefined,
     };
   }, [asset]);
 
