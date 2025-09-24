@@ -169,6 +169,9 @@ async function safeReadSessionJson(sessionPath: string): Promise<SessionData | n
 async function atomicWriteSessionJson(sessionPath: string, sessionData: SessionData): Promise<void> {
   const tempPath = `${sessionPath}.tmp`;
   try {
+    // Ensure the parent directory exists before writing
+    await fs.ensureDir(path.dirname(sessionPath));
+    
     // Write to temporary file first
     await fs.writeJson(tempPath, sessionData, { spaces: 2 });
     // Atomically move temp file to final location, overwriting if exists
@@ -197,7 +200,14 @@ export async function updateSessionActivity(userId: string): Promise<void> {
       }
     }
   } catch (error) {
-    console.error('Failed to update session activity:', error);
+    // Check if this is an ENOENT error (file/directory doesn't exist)
+    if (error instanceof Error && (error as any).code === 'ENOENT') {
+      // Session file or directory was removed during update - this is expected behavior
+      // Log as debug info rather than error
+      console.debug(`Session file was removed during update for user ${userId}: ${error.message}`);
+    } else {
+      console.error('Failed to update session activity:', error);
+    }
   }
 }
 
