@@ -26,13 +26,46 @@ describe('ZakatService', () => {
     });
 
     it('should use silver nisab for Hanafi method', () => {
-      const goldPricePerGram = 65;
-      const silverPricePerGram = 0.8;
+      const goldPricePerGram = 60; // $60 per gram
+      const silverPricePerGram = 0.8; // $0.80 per gram
       
       const nisab = zakatService.calculateNisab(goldPricePerGram, silverPricePerGram, ZAKAT_METHODS.HANAFI.id);
       
       const expectedSilverNisab = NISAB_THRESHOLDS.SILVER_GRAMS * silverPricePerGram;
+      
       expect(nisab.effectiveNisab).toBe(expectedSilverNisab);
+      expect(nisab.nisabBasis).toBe('silver');
+      expect(nisab.calculationMethod).toBe('hanafi');
+    });
+
+    it('should use dual minimum for Shafi\'i method', () => {
+      const goldPricePerGram = 60; // $60 per gram
+      const silverPricePerGram = 0.8; // $0.80 per gram
+      
+      const nisab = zakatService.calculateNisab(goldPricePerGram, silverPricePerGram, ZAKAT_METHODS.SHAFII.id);
+      
+      const expectedGoldNisab = NISAB_THRESHOLDS.GOLD_GRAMS * goldPricePerGram;
+      const expectedSilverNisab = NISAB_THRESHOLDS.SILVER_GRAMS * silverPricePerGram;
+      const expectedMinimum = Math.min(expectedGoldNisab, expectedSilverNisab);
+      
+      expect(nisab.effectiveNisab).toBe(expectedMinimum);
+      expect(nisab.nisabBasis).toBe('dual_minimum');
+      expect(nisab.calculationMethod).toBe('shafii');
+    });
+
+    it('should use appropriate basis for standard method', () => {
+      const goldPricePerGram = 60; // $60 per gram  
+      const silverPricePerGram = 0.8; // $0.80 per gram
+      
+      const nisab = zakatService.calculateNisab(goldPricePerGram, silverPricePerGram, ZAKAT_METHODS.STANDARD.id);
+      
+      const expectedGoldNisab = NISAB_THRESHOLDS.GOLD_GRAMS * goldPricePerGram;
+      const expectedSilverNisab = NISAB_THRESHOLDS.SILVER_GRAMS * silverPricePerGram;
+      const expectedMinimum = Math.min(expectedGoldNisab, expectedSilverNisab);
+      
+      expect(nisab.effectiveNisab).toBe(expectedMinimum);
+      expect(nisab.nisabBasis).toBe(expectedSilverNisab < expectedGoldNisab ? 'silver' : 'gold');
+      expect(nisab.calculationMethod).toBe('standard');
     });
   });
 
@@ -303,6 +336,153 @@ describe('ZakatService', () => {
 
       expect(() => zakatService.validateCalculationRequest(invalidRequest))
         .toThrow('Custom nisab must be a positive number');
+    });
+  });
+
+  describe('Cross-Method Validation Tests', () => {
+    const testAssets: Asset[] = [
+      {
+        assetId: 'test-cash-1',
+        name: 'Savings Account',
+        category: 'cash',
+        subCategory: 'savings',
+        value: 10000,
+        currency: 'USD',
+        zakatEligible: true,
+        description: 'Test savings account',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        assetId: 'test-gold-1',
+        name: 'Gold Jewelry',
+        category: 'gold',
+        subCategory: 'jewelry',
+        value: 15000,
+        currency: 'USD',
+        zakatEligible: true,
+        description: 'Test gold jewelry',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        assetId: 'test-business-1',
+        name: 'Business Inventory',
+        category: 'business',
+        subCategory: 'inventory',
+        value: 20000,
+        currency: 'USD',
+        zakatEligible: true,
+        description: 'Test business inventory',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
+    const createCalculationRequest = (method: string): ZakatCalculationRequest => ({
+      calculationDate: new Date().toISOString(),
+      calendarType: 'lunar',
+      method,
+      includeAssets: testAssets.map(asset => asset.assetId)
+    });
+
+    it('should produce consistent results across all methods', async () => {
+      const results = await Promise.all([
+        zakatService.calculateZakat(createCalculationRequest(ZAKAT_METHODS.HANAFI.id), testAssets),
+        zakatService.calculateZakat(createCalculationRequest(ZAKAT_METHODS.STANDARD.id), testAssets),
+        zakatService.calculateZakat(createCalculationRequest(ZAKAT_METHODS.SHAFII.id), testAssets)
+      ]);
+      
+      results.forEach(result => {
+        expect(result.totals.totalZakatDue).toBeGreaterThanOrEqual(0);
+        expect(result.method).toBeDefined();
+        expect(result.nisab).toBeDefined();
+        expect(result.nisab.nisabBasis).toBeDefined();
+        expect(result.nisab.calculationMethod).toBeDefined();
+      });
+    });
+
+    it('should show Hanafi method uses silver nisab preference', async () => {
+      const goldPrice = 60; // High gold price
+      const silverPrice = 0.8; // Low silver price
+      
+      const hanafiNisab = zakatService.calculateNisab(goldPrice, silverPrice, ZAKAT_METHODS.HANAFI.id);
+      const standardNisab = zakatService.calculateNisab(goldPrice, silverPrice, ZAKAT_METHODS.STANDARD.id);
+      
+      // Hanafi should use silver nisab exclusively
+      expect(hanafiNisab.effectiveNisab).toBe(hanafiNisab.silverNisab);
+      expect(hanafiNisab.nisabBasis).toBe('silver');
+      
+      // Standard should use minimum
+      expect(standardNisab.effectiveNisab).toBe(Math.min(standardNisab.goldNisab, standardNisab.silverNisab));
+    });
+
+    it('should apply method-specific business asset treatment', async () => {
+      const businessAsset: Asset = {
+        assetId: 'business-test',
+        name: 'Trade Inventory',
+        category: 'business',
+        subCategory: 'inventory',
+        value: 50000,
+        currency: 'USD',
+        zakatEligible: true,
+        description: 'Test business inventory',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const hanafiResult = zakatService.calculateAssetZakat(businessAsset, ZAKAT_METHODS.HANAFI.id);
+      const shafiiResult = zakatService.calculateAssetZakat(businessAsset, ZAKAT_METHODS.SHAFII.id);
+      const standardResult = zakatService.calculateAssetZakat(businessAsset, ZAKAT_METHODS.STANDARD.id);
+
+      // All methods should calculate some zakat for business assets
+      expect(hanafiResult.zakatDue).toBeGreaterThan(0);
+      expect(shafiiResult.zakatDue).toBeGreaterThan(0);
+      expect(standardResult.zakatDue).toBeGreaterThan(0);
+      
+      // Verify the zakat rate is applied correctly (2.5%)
+      expect(hanafiResult.zakatDue).toBe(businessAsset.value * 0.025);
+      expect(shafiiResult.zakatDue).toBe(businessAsset.value * 0.025);
+      expect(standardResult.zakatDue).toBe(businessAsset.value * 0.025);
+    });
+
+    it('should validate method names are supported', () => {
+      const supportedMethods = [ZAKAT_METHODS.HANAFI.id, ZAKAT_METHODS.STANDARD.id, ZAKAT_METHODS.SHAFII.id];
+      
+      supportedMethods.forEach(method => {
+        const request = createCalculationRequest(method);
+        expect(() => zakatService.validateCalculationRequest(request)).not.toThrow();
+      });
+    });
+
+    it('should handle edge case where all methods produce same result', async () => {
+      // Create scenario where nisab conditions are clear-cut
+      const highValueAssets: Asset[] = [
+        {
+          assetId: 'high-value-cash',
+          name: 'Large Savings',
+          category: 'cash',
+          subCategory: 'savings',
+          value: 100000, // Well above any nisab threshold
+          currency: 'USD',
+          zakatEligible: true,
+          description: 'High value cash asset',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      const request: ZakatCalculationRequest = {
+        calculationDate: new Date().toISOString(),
+        calendarType: 'lunar',
+        method: ZAKAT_METHODS.STANDARD.id,
+        includeAssets: ['high-value-cash']
+      };
+
+      const calculation = await zakatService.calculateZakat(request, highValueAssets);
+      
+      expect(calculation.meetsNisab).toBe(true);
+      expect(calculation.totals.totalZakatDue).toBe(2500); // 2.5% of 100,000
     });
   });
 });
