@@ -251,37 +251,110 @@ export const AssetForm: React.FC<AssetFormProps> = ({
       case 'stocks':
         return (
           <>
-            <FormInput
-              {...register('ticker')}
-              label="Ticker Symbol"
-              placeholder="e.g., AAPL, MSFT"
-              error={errors.ticker}
-              disabled={isLoading}
-              className="md:col-span-1"
-            />
-            <FormInput
-              {...register('shares', { valueAsNumber: true })}
-              label="Number of Shares"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="100"
-              error={errors.shares}
-              disabled={isLoading}
-              className="md:col-span-1"
-            />
-            <FormInput
-              {...register('dividendYield', { valueAsNumber: true })}
-              label="Dividend Yield (%)"
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
-              placeholder="2.5"
-              error={errors.dividendYield}
-              disabled={isLoading}
-              className="md:col-span-2"
-            />
+            {/* Show ticker/shares/dividend for traditional investments */}
+            {selectedSubCategory && 
+             !['retirement_401k', 'retirement_ira', 'retirement_other'].includes(selectedSubCategory) && (
+              <>
+                <FormInput
+                  {...register('ticker')}
+                  label="Ticker Symbol"
+                  placeholder="e.g., AAPL, MSFT"
+                  error={errors.ticker}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+                <FormInput
+                  {...register('shares', { valueAsNumber: true })}
+                  label="Number of Shares"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="100"
+                  error={errors.shares}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+                <FormInput
+                  {...register('dividendYield', { valueAsNumber: true })}
+                  label="Dividend Yield (%)"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  placeholder="2.5"
+                  error={errors.dividendYield}
+                  disabled={isLoading}
+                  className="md:col-span-2"
+                />
+              </>
+            )}
+            
+            {/* Show retirement-specific fields for 401k */}
+            {selectedSubCategory === 'retirement_401k' && (
+              <>
+                <FormInput
+                  {...register('employerMatch', { valueAsNumber: true })}
+                  label="Employer Match (%)"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  placeholder="50"
+                  error={errors.employerMatch}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+                <FormInput
+                  {...register('vestingSchedule')}
+                  label="Vesting Schedule"
+                  placeholder="e.g., 4 year graded"
+                  error={errors.vestingSchedule}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+              </>
+            )}
+            
+            {/* Show IRA-specific fields */}
+            {selectedSubCategory === 'retirement_ira' && (
+              <>
+                <FormSelect
+                  {...register('iraType')}
+                  label="IRA Type"
+                  options={[
+                    { value: '', label: 'Select IRA Type' },
+                    { value: 'traditional', label: 'Traditional IRA' },
+                    { value: 'roth', label: 'Roth IRA' }
+                  ]}
+                  error={errors.iraType}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+                <FormInput
+                  {...register('contributionLimit', { valueAsNumber: true })}
+                  label="Annual Contribution Limit"
+                  type="number"
+                  step="1"
+                  min="0"
+                  placeholder="6500"
+                  error={errors.contributionLimit}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+              </>
+            )}
+            
+            {/* Show other retirement account fields */}
+            {selectedSubCategory === 'retirement_other' && (
+              <FormInput
+                {...register('accountType')}
+                label="Account Type"
+                placeholder="e.g., 403(b), SEP-IRA, Solo 401(k)"
+                error={errors.accountType}
+                disabled={isLoading}
+                className="md:col-span-2"
+              />
+            )}
           </>
         );
 
@@ -364,6 +437,114 @@ export const AssetForm: React.FC<AssetFormProps> = ({
               disabled={isLoading}
               className="md:col-span-2"
             />
+          </>
+        );
+
+      case 'expenses':
+        return (
+          <>
+            {/* Common fields for all expense types */}
+            {selectedSubCategory === 'debts_owed' && (
+              <>
+                <FormInput
+                  {...register('creditor')}
+                  label="Creditor Name"
+                  placeholder="Name of creditor/lender"
+                  error={errors.creditor}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+                <FormInput
+                  {...register('interestRate', { valueAsNumber: true })}
+                  label="Interest Rate (%)"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  placeholder="18.5"
+                  error={errors.interestRate}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+                <DateInput
+                  {...register('dueDate')}
+                  label="Due Date"
+                  error={errors.dueDate}
+                  disabled={isLoading}
+                  className="md:col-span-2"
+                />
+              </>
+            )}
+            
+            {selectedSubCategory === 'essential_needs' && (
+              <>
+                <FormInput
+                  {...register('expenseType')}
+                  label="Expense Type"
+                  placeholder="e.g., Housing, Food, Clothing"
+                  error={errors.expenseType}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+                <FormSelect
+                  {...register('frequency')}
+                  label="Frequency"
+                  options={[
+                    { value: '', label: 'Select frequency' },
+                    { value: 'monthly', label: 'Monthly' },
+                    { value: 'yearly', label: 'Yearly' },
+                    { value: 'one_time', label: 'One Time' }
+                  ]}
+                  error={errors.frequency}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+              </>
+            )}
+            
+            {selectedSubCategory === 'family_obligations' && (
+              <>
+                <FormInput
+                  {...register('dependentCount', { valueAsNumber: true })}
+                  label="Number of Dependents"
+                  type="number"
+                  min="0"
+                  placeholder="2"
+                  error={errors.dependentCount}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+                <FormInput
+                  {...register('supportType')}
+                  label="Support Type"
+                  placeholder="e.g., Child support, Elder care"
+                  error={errors.supportType}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+              </>
+            )}
+            
+            {selectedSubCategory === 'business_liabilities' && (
+              <>
+                <FormInput
+                  {...register('businessType')}
+                  label="Business Type"
+                  placeholder="e.g., Retail, Consulting"
+                  error={errors.businessType}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+                <FormInput
+                  {...register('liabilityType')}
+                  label="Liability Type"
+                  placeholder="e.g., Equipment loan, Trade payables"
+                  error={errors.liabilityType}
+                  disabled={isLoading}
+                  className="md:col-span-1"
+                />
+              </>
+            )}
           </>
         );
 
