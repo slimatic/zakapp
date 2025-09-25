@@ -504,10 +504,37 @@ export const ASSET_CATEGORIES = {
 } as const;
 
 /**
- * Zakat calculation methodologies with detailed methodology information.
- * Each method includes scholarly basis, business asset treatment, debt deduction approach,
- * regional usage information, and comprehensive educational content to support accurate
- * zakat calculations and informed user decision-making.
+ * Zakat calculation methodologies with comprehensive methodology information.
+ * 
+ * This constant provides detailed information for four main zakat calculation approaches:
+ * - Standard Method (AAOIFI-compliant): Modern international consensus approach
+ * - Hanafi School Method: Silver-based nisab with comprehensive business inclusion
+ * - Shafi'i School Method: Detailed categorization with dual nisab approach
+ * - Custom Method: User-defined parameters for unique circumstances
+ * 
+ * Each methodology includes:
+ * @property {string} id - Unique identifier for the methodology
+ * @property {string} name - Human-readable name of the methodology
+ * @property {string} description - Brief description of the methodology's approach
+ * @property {string} nisabBasis - Nisab calculation approach (silver/dual_minimum/configurable)
+ * @property {string} businessAssetTreatment - How business assets are handled (market_value/comprehensive/categorized/configurable)
+ * @property {string} debtDeduction - Debt deduction approach (immediate/comprehensive/conservative/configurable)
+ * @property {string[]} scholarlyBasis - Scholarly sources and jurisprudential foundations
+ * @property {string[]} regions - Geographic regions where the methodology is commonly used
+ * @property {number} zakatRate - Standard zakat rate percentage (typically 2.5)
+ * @property {('lunar'|'solar')[]} calendarSupport - Supported calendar systems
+ * @property {boolean} [customRules] - Whether the method supports custom rule configuration
+ * @property {string[]} suitableFor - Target user groups and use cases
+ * @property {string[]} pros - Advantages and benefits of using this methodology
+ * @property {string[]} cons - Limitations and considerations
+ * @property {string} explanation - Comprehensive explanation of the methodology's principles and application
+ * 
+ * This structure supports educational content display, methodology comparison,
+ * regional recommendations, and informed user decision-making for zakat calculations.
+ * 
+ * @see {@link MethodologyInfo} for the TypeScript interface definition
+ * @see {@link METHODOLOGY_EDUCATION} for additional educational content
+ * @see {@link REGIONAL_METHODOLOGY_MAP} for regional recommendations
  */
 export const ZAKAT_METHODS = {
   STANDARD: {
