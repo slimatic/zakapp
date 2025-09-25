@@ -639,6 +639,74 @@ export const ZAKAT_METHODS = {
     ],
     explanation: 'The Shafi\'i method, founded by Imam al-Shafi\'i (767-820 CE), emphasizes systematic methodology and detailed asset categorization. It uses a dual minimum nisab approach while requiring precise classification of business assets and conservative debt treatment, making it ideal for those seeking methodical and thorough zakat calculations.'
   },
+  MALIKI: {
+    id: 'maliki',
+    name: 'Maliki School Method',
+    description: 'Community-focused approach with regional adaptation',
+    nisabBasis: 'dual_flexible',
+    businessAssetTreatment: 'comprehensive',
+    debtDeduction: 'community_based',
+    scholarlyBasis: ['Al-Mudawwana', 'Bidayat al-Mujtahid', 'Maliki jurisprudence'],
+    regions: ['North Africa', 'West Africa', 'Sudan', 'Parts of Arabia'],
+    zakatRate: 2.5,
+    calendarSupport: ['lunar', 'solar'],
+    customRules: false,
+    suitableFor: [
+      'Muslims following Maliki jurisprudence',
+      'Residents of North and West Africa',
+      'Agricultural communities',
+      'Those preferring community-centric approaches'
+    ],
+    pros: [
+      'Adapts to local economic conditions',
+      'Strong agricultural asset handling',
+      'Community-centric approach',
+      'Flexible implementation based on regional needs',
+      'Considers broader economic context',
+      'Comprehensive trade goods treatment'
+    ],
+    cons: [
+      'Requires regional economic data',
+      'Complex adjustment mechanisms',
+      'Less standardized across regions',
+      'May be difficult to implement uniformly'
+    ],
+    explanation: 'The Maliki method, based on the jurisprudence of Imam Malik (711-795 CE), emphasizes community benefit and practical application. It allows for nisab adjustments based on regional economic conditions and provides detailed rules for agricultural zakat, making it particularly suitable for agricultural communities and regions with varying economic conditions.'
+  },
+  HANBALI: {
+    id: 'hanbali',
+    name: 'Hanbali School Method',
+    description: 'Conservative gold-based approach with textual emphasis',
+    nisabBasis: 'gold',
+    businessAssetTreatment: 'categorized',
+    debtDeduction: 'conservative',
+    scholarlyBasis: ['Al-Mughni', 'Hanbali classical texts', 'Ibn Taymiyyah works'],
+    regions: ['Saudi Arabia', 'Qatar', 'Parts of Gulf States'],
+    zakatRate: 2.5,
+    calendarSupport: ['lunar', 'solar'],
+    customRules: false,
+    suitableFor: [
+      'Muslims following Hanbali jurisprudence',
+      'Residents of Saudi Arabia and Gulf states',
+      'Those preferring traditional textual approaches',
+      'Users seeking conservative calculations'
+    ],
+    pros: [
+      'Clear precedential basis from Quran and Hadith',
+      'Consistent with traditional interpretations',
+      'Simplified calculation logic',
+      'Stable gold-based reference',
+      'Conservative approach ensures compliance',
+      'Well-established scholarly precedent'
+    ],
+    cons: [
+      'May exclude lower-income individuals due to higher thresholds',
+      'Less adaptive to modern financial instruments',
+      'Limited flexibility for contemporary assets',
+      'May not suit all economic contexts'
+    ],
+    explanation: 'The Hanbali method, founded by Imam Ahmad ibn Hanbal (780-855 CE), emphasizes textual adherence and conservative calculations. It prefers gold-based nisab calculations and takes a conservative approach to debt deductions, making it suitable for those seeking traditional, scripture-based zakat calculations with clear precedential foundations.'
+  },
   CUSTOM: {
     id: 'custom',
     name: 'Custom Method',
@@ -796,72 +864,131 @@ export const DATE_FORMATS = {
  */
 export const METHODOLOGY_EDUCATION = {
   HANAFI: {
-    historicalBackground: 'The Hanafi school, founded by Imam Abu Hanifa (699-767 CE), is one of the four major Sunni schools of Islamic jurisprudence. It emphasizes rational reasoning and is widely followed in Turkey, Central Asia, and the Indian subcontinent.',
-    nisabApproach: 'Uses silver-based nisab exclusively, providing a lower threshold that ensures more people can fulfill their zakat obligations. This approach is based on the principle of making zakat more accessible.',
-    businessAssetTreatment: 'Comprehensive inclusion of all business assets including inventory, accounts receivable, and working capital. This reflects the Hanafi emphasis on thorough wealth assessment.',
-    debtTreatment: 'Allows for comprehensive debt deduction, including both immediate and future obligations, providing relief to those with significant financial commitments.',
+    historicalBackground: 'The Hanafi school, founded by Imam Abu Hanifa (699-767 CE) in Kufa, Iraq, is the oldest and most widely followed Sunni school of Islamic jurisprudence. Known for its emphasis on rational reasoning (ra\'y) and analogy (qiyas), it is predominant in Turkey, Central Asia, the Indian subcontinent, and significant parts of the Arab world. Key sources include Al-Hidayah by al-Marghinani and Fath al-Qadir by Ibn al-Humam.',
+    nisabApproach: 'Uses silver-based nisab exclusively (612.36 grams of silver), providing a lower threshold that ensures broader zakat eligibility. This approach is based on authenticated hadiths and the principle of facilitating zakat obligations for more Muslims, reflecting the school\'s emphasis on accessibility and social welfare.',
+    businessAssetTreatment: 'Comprehensive inclusion of all business assets including inventory, accounts receivable, work-in-progress, and working capital. This thorough wealth assessment methodology reflects the Hanafi emphasis on complete financial transparency and is detailed in classical texts like Al-Hidayah.',
+    debtTreatment: 'Allows for comprehensive debt deduction, including both immediate obligations and reasonable future commitments. This flexible approach provides relief to those with significant financial obligations while maintaining the integrity of zakat calculations, as outlined in Hanafi jurisprudential texts.',
     pros: [
-      'Lower nisab threshold ensures broader zakat eligibility',
-      'Comprehensive business asset inclusion',
-      'Flexible debt deduction approach',
-      'Well-established scholarly precedent'
+      'Lower silver-based nisab threshold ensures broader zakat eligibility',
+      'Comprehensive and transparent business asset inclusion methodology',
+      'Flexible debt deduction approach accommodates modern financial complexities',
+      'Well-established scholarly precedent spanning over 1,200 years',
+      'Rational approach allows for adaptation to contemporary circumstances',
+      'Widely accepted across diverse Muslim communities globally'
     ],
     considerations: [
-      'May result in higher zakat amounts for some individuals',
-      'Requires detailed business asset evaluation',
-      'Complex debt assessment needed'
+      'Silver-based nisab may result in higher zakat amounts when silver prices are low',
+      'Requires detailed business asset evaluation and documentation',
+      'Complex debt assessment may need professional guidance',
+      'Comprehensive approach may be time-intensive for complex portfolios',
+      'Requires good understanding of classical jurisprudential principles'
     ]
   },
   SHAFII: {
-    historicalBackground: 'The Shafi\'i school, founded by Imam al-Shafi\'i (767-820 CE), is known for its systematic methodology and detailed categorization. It is prevalent in Southeast Asia, East Africa, and parts of the Middle East.',
-    nisabApproach: 'Uses the dual minimum approach, taking the lower of gold and silver nisab thresholds. This provides a balanced approach that considers market conditions of both precious metals.',
-    businessAssetTreatment: 'Detailed categorization of business assets with specific rules for different types of commercial activities. Emphasizes precision in asset classification.',
-    debtTreatment: 'Conservative approach to debt deduction, focusing on immediate and certain obligations while being cautious about speculative debts.',
+    historicalBackground: 'The Shafi\'i school, founded by Imam Muhammad ibn Idris al-Shafi\'i (767-820 CE), is renowned for its systematic methodology and detailed legal categorization. It is the dominant school in Southeast Asia, East Africa, parts of the Middle East, and significant Muslim populations worldwide. Key sources include Al-Majmu\' Sharh al-Muhadhdhab by Imam al-Nawawi and Minhaj al-Talibin.',
+    nisabApproach: 'Uses the dual minimum approach, taking the lower of gold nisab (87.48 grams) or silver nisab (612.36 grams). This balanced methodology considers market conditions of both precious metals and ensures accessibility while maintaining traditional nisab principles as established in classical Shafi\'i jurisprudence.',
+    businessAssetTreatment: 'Employs detailed categorization of business assets with specific rules for different types of commercial activities. Emphasizes precision in asset classification according to their intended use and Islamic commercial law principles, as detailed in Al-Majmu\' and other authoritative Shafi\'i texts.',
+    debtTreatment: 'Takes a conservative approach to debt deduction, focusing on immediate and certain obligations while exercising caution with speculative or uncertain debts. This methodology ensures accuracy and religious compliance as outlined in classical Shafi\'i jurisprudential works.',
     pros: [
-      'Balanced nisab calculation approach',
-      'Detailed and precise asset categorization',
-      'Conservative debt treatment provides certainty',
-      'Strong methodological framework'
+      'Balanced dual-minimum nisab approach adapts to market conditions',
+      'Systematic and precise asset categorization reduces calculation errors',
+      'Conservative debt treatment provides certainty and religious confidence',
+      'Strong methodological framework based on established legal principles',
+      'Well-suited for diverse asset types and modern financial instruments',
+      'Comprehensive scholarly documentation spanning centuries'
     ],
     considerations: [
-      'More complex asset categorization required',
-      'Conservative debt approach may limit deductions',
-      'Requires good understanding of different asset types'
+      'More complex asset categorization requires detailed financial knowledge',
+      'Conservative debt approach may limit some legitimate deductions',
+      'Requires good understanding of different asset types and classifications',
+      'Systematic approach may be less accessible for simple portfolios',
+      'May require professional guidance for complex business structures'
     ]
   },
   STANDARD: {
-    historicalBackground: 'The Standard method represents a modern consensus approach, incorporating guidelines from contemporary Islamic finance institutions like AAOIFI (Accounting and Auditing Organization for Islamic Financial Institutions).',
-    nisabApproach: 'Uses the dual minimum approach, selecting the lower of gold and silver nisab. This provides flexibility based on current market conditions and ensures accessibility.',
-    businessAssetTreatment: 'Market value-based assessment of business assets with standard accounting principles. Focuses on readily determinable values.',
-    debtTreatment: 'Immediate debt deduction approach, focusing on current and certain obligations while maintaining simplicity in calculation.',
+    historicalBackground: 'The Standard method represents a contemporary consensus approach developed for global Muslim communities by organizations like AAOIFI (Accounting and Auditing Organization for Islamic Financial Institutions), IFSB (Islamic Financial Services Board), and other international Islamic finance bodies. It incorporates modern financial principles while maintaining religious compliance and scholarly validation.',
+    nisabApproach: 'Uses the dual minimum approach, selecting the lower of gold nisab (87.48 grams) or silver nisab (612.36 grams). This methodology provides flexibility based on current market conditions while ensuring accessibility and follows the principle of choosing the threshold most beneficial to those seeking to fulfill their zakat obligations.',
+    businessAssetTreatment: 'Employs market value-based assessment of business assets using standard international accounting principles adapted for Islamic finance. Focuses on readily determinable values while maintaining compatibility with modern business structures and regulatory requirements across different jurisdictions.',
+    debtTreatment: 'Implements immediate debt deduction approach, focusing on current and certain obligations while maintaining calculation simplicity. This method balances accuracy with practical implementation for diverse global communities while ensuring compliance with contemporary Islamic finance standards.',
     pros: [
-      'Modern consensus approach',
-      'Internationally recognized standards',
-      'Simplified calculation process',
-      'Good for diverse geographic regions'
+      'Modern consensus approach validated by leading Islamic finance institutions',
+      'Internationally recognized standards facilitate cross-border consistency',
+      'Simplified calculation process suitable for diverse user backgrounds',
+      'Excellent compatibility with modern financial systems and regulations',
+      'Supported by contemporary Islamic finance institutions globally',
+      'Flexible dual nisab calculation adapts to market conditions'
     ],
     considerations: [
-      'May not align with specific regional traditions',
-      'Simplified approach may not capture all nuances',
-      'Requires trust in contemporary scholarly consensus'
+      'May not align perfectly with specific regional scholarly traditions',
+      'Simplified approach may not capture all jurisprudential nuances',
+      'Relies on contemporary scholarly consensus rather than classical texts',
+      'Less historical precedent compared to traditional madhhab approaches',
+      'May require ongoing validation as financial instruments evolve'
+    ]
+  },
+  MALIKI: {
+    historicalBackground: 'The Maliki school, founded by Imam Malik ibn Anas (711-795 CE), is one of the four major Sunni schools of Islamic jurisprudence. It emphasizes community benefit (maslaha) and practical application, and is predominant in North Africa, West Africa, and parts of the Arabian Peninsula.',
+    nisabApproach: 'Uses a flexible dual approach that may adjust nisab thresholds based on regional economic conditions and community welfare considerations. This reflects the Maliki emphasis on practical application and community benefit.',
+    businessAssetTreatment: 'Comprehensive treatment of commercial assets with particular emphasis on agricultural goods and trade merchandise. Includes detailed rules for seasonal businesses and agricultural cycles, reflecting the school\'s historical roots in agricultural societies.',
+    debtTreatment: 'Community-based debt assessment that considers both individual circumstances and broader economic conditions. May allow for community-verified debt deductions and considers the debtor\'s overall community standing.',
+    pros: [
+      'Adapts to local economic conditions and community needs',
+      'Strong framework for agricultural asset handling',
+      'Community-centric approach promotes social welfare',
+      'Flexible implementation based on regional requirements',
+      'Comprehensive treatment of trade goods and commerce',
+      'Historical precedent for practical jurisprudence'
+    ],
+    considerations: [
+      'Requires regional economic data for proper implementation',
+      'Complex adjustment mechanisms may be difficult to standardize',
+      'Less standardized across different regions and communities',
+      'May require community consensus for certain calculations',
+      'Implementation complexity may vary by location'
+    ]
+  },
+  HANBALI: {
+    historicalBackground: 'The Hanbali school, founded by Imam Ahmad ibn Hanbal (780-855 CE), is known for its strict adherence to Quranic and Hadith texts. It is the official school of jurisprudence in Saudi Arabia and is followed in parts of the Gulf states, emphasizing traditional and conservative approaches.',
+    nisabApproach: 'Prefers gold-based nisab calculations as the primary standard, based on strong textual precedents from Islamic sources. This conservative approach ensures consistency with traditional interpretations and provides stability in calculations.',
+    businessAssetTreatment: 'Strict categorization of business assets based on classical Islamic commercial law. Emphasizes clear distinctions between different types of commercial activities and applies conservative valuation methods to ensure compliance with traditional interpretations.',
+    debtTreatment: 'Conservative approach to debt deduction, focusing on immediate and certain obligations with clear documentation. Tends to be cautious about speculative or uncertain debts to ensure strict compliance with Islamic principles.',
+    pros: [
+      'Clear precedential basis rooted in Quran and authentic Hadith',
+      'Consistent with traditional Islamic interpretations',
+      'Simplified and stable gold-based calculation logic',
+      'Conservative approach ensures religious compliance',
+      'Well-established scholarly precedent and documentation',
+      'Provides certainty and consistency in calculations'
+    ],
+    considerations: [
+      'Gold-based nisab may exclude lower-income individuals in some contexts',
+      'Less adaptive to modern financial instruments and structures',
+      'Limited flexibility for contemporary business models',
+      'May not suit all regional economic contexts',
+      'Conservative debt treatment may limit legitimate deductions',
+      'Requires careful interpretation for modern applications'
     ]
   },
   CUSTOM: {
-    historicalBackground: 'Custom methodology allows users to define their own calculation parameters based on personal consultation with qualified Islamic scholars or specific regional requirements.',
-    nisabApproach: 'User-defined nisab threshold based on scholarly consultation or specific circumstances. Provides maximum flexibility for unique situations.',
-    businessAssetTreatment: 'Configurable asset treatment based on individual needs and scholarly guidance. Allows for specialized business considerations.',
-    debtTreatment: 'Flexible debt deduction rules that can be customized based on individual circumstances and scholarly advice.',
+    historicalBackground: 'Custom methodology allows users to define their own calculation parameters based on personal consultation with qualified Islamic scholars or specific regional requirements. This approach recognizes the diversity of Islamic jurisprudential opinions and local practices while maintaining the fundamental principles of zakat.',
+    nisabApproach: 'User-defined nisab threshold based on scholarly consultation or specific circumstances. Provides maximum flexibility for unique situations while requiring proper Islamic jurisprudential guidance to ensure religious validity.',
+    businessAssetTreatment: 'Configurable asset treatment based on individual needs and scholarly guidance. Allows for specialized business considerations that may not be covered by standard methodologies while maintaining Islamic compliance principles.',
+    debtTreatment: 'Flexible debt deduction rules that can be customized based on individual circumstances and scholarly advice. Enables accommodation of unique financial situations while ensuring proper Islamic jurisprudential oversight.',
     pros: [
-      'Maximum flexibility for unique situations',
-      'Can accommodate specific regional practices',
-      'Allows for scholarly consultation integration',
-      'Adaptable to changing circumstances'
+      'Maximum flexibility for unique situations and circumstances',
+      'Can accommodate specific regional practices and interpretations',
+      'Allows for direct scholarly consultation integration',
+      'Adaptable to changing circumstances and modern contexts',
+      'Supports specialized business models and structures',
+      'Enables compliance with local Islamic authorities and customs'
     ],
     considerations: [
-      'Requires qualified scholarly guidance',
-      'May lack standardization benefits',
-      'Responsibility for correctness lies with user',
-      'May be complex to implement properly'
+      'Requires qualified scholarly guidance for proper implementation',
+      'May lack standardization benefits of established methods',
+      'Full responsibility for correctness lies with user and advisor',
+      'May be complex to implement properly without expert guidance',
+      'Potential for inconsistent applications across different users',
+      'Requires ongoing scholarly oversight and validation'
     ]
   }
 } as const;
@@ -873,9 +1000,9 @@ export const METHODOLOGY_EDUCATION = {
  */
 export const REGIONAL_METHODOLOGY_MAP = {
   // Middle East & Gulf
-  'Saudi Arabia': ['standard', 'hanafi'],
+  'Saudi Arabia': ['hanbali', 'standard'],
   'United Arab Emirates': ['standard', 'hanafi'],
-  'Qatar': ['standard', 'hanafi'],
+  'Qatar': ['hanbali', 'standard'],
   'Kuwait': ['standard', 'hanafi'],
   'Oman': ['standard', 'shafii'],
   'Bahrain': ['standard', 'hanafi'],
@@ -887,11 +1014,11 @@ export const REGIONAL_METHODOLOGY_MAP = {
   
   // North Africa
   'Egypt': ['hanafi', 'standard'],
-  'Libya': ['hanafi', 'standard'],
-  'Tunisia': ['hanafi', 'standard'],
-  'Algeria': ['hanafi', 'standard'],
-  'Morocco': ['standard', 'hanafi'],
-  'Sudan': ['hanafi', 'standard'],
+  'Libya': ['maliki', 'hanafi'],
+  'Tunisia': ['maliki', 'hanafi'],
+  'Algeria': ['maliki', 'hanafi'],
+  'Morocco': ['maliki', 'standard'],
+  'Sudan': ['maliki', 'hanafi'],
   
   // Southeast Asia
   'Indonesia': ['shafii', 'standard'],
@@ -928,21 +1055,180 @@ export const REGIONAL_METHODOLOGY_MAP = {
   'Djibouti': ['shafii', 'standard'],
   
   // West Africa
-  'Nigeria': ['standard', 'hanafi'],
-  'Senegal': ['standard', 'hanafi'],
-  'Mali': ['standard', 'hanafi'],
-  'Burkina Faso': ['standard', 'hanafi'],
-  'Niger': ['standard', 'hanafi'],
-  'Guinea': ['standard', 'hanafi'],
-  'Gambia': ['standard', 'hanafi'],
+  'Nigeria': ['maliki', 'standard'],
+  'Senegal': ['maliki', 'standard'],
+  'Mali': ['maliki', 'standard'],
+  'Burkina Faso': ['maliki', 'standard'],
+  'Niger': ['maliki', 'standard'],
+  'Guinea': ['maliki', 'standard'],
+  'Gambia': ['maliki', 'standard'],
+  'Mauritania': ['maliki', 'standard'],
+  'Chad': ['maliki', 'standard'],
   
   // Western Countries (Diaspora)
   'United States': ['standard', 'hanafi', 'shafii'],
   'Canada': ['standard', 'hanafi', 'shafii'],
   'United Kingdom': ['standard', 'hanafi', 'shafii'],
-  'France': ['standard', 'hanafi'],
+  'France': ['standard', 'maliki', 'hanafi'],
   'Germany': ['standard', 'hanafi'],
   'Netherlands': ['standard', 'hanafi'],
   'Australia': ['standard', 'hanafi', 'shafii'],
   'New Zealand': ['standard', 'shafii']
+} as const;
+
+/**
+ * Scholarly sources and references for zakat methodologies.
+ * Provides authoritative sources, classical texts, and contemporary validation
+ * for each methodology's jurisprudential foundations.
+ */
+export const METHODOLOGY_SOURCES = {
+  HANAFI: {
+    classicalSources: [
+      {
+        title: 'Al-Hidayah',
+        author: 'Burhan al-Din al-Marghinani',
+        description: 'Primary source for Hanafi methodology and classical jurisprudence foundations',
+        period: '12th century CE'
+      },
+      {
+        title: 'Fath al-Qadir',
+        author: 'Kamal al-Din Ibn al-Humam',
+        description: 'Advanced Hanafi jurisprudence with detailed calculations and examples',
+        period: '15th century CE'
+      }
+    ],
+    contemporarySources: [
+      {
+        title: 'Contemporary Hanafi Fiqh Studies',
+        organization: 'Darul Uloom institutions globally',
+        description: 'Modern applications of Hanafi jurisprudence'
+      }
+    ],
+    regions: ['Turkey', 'Central Asia', 'Indian subcontinent', 'Parts of Middle East']
+  },
+  SHAFII: {
+    classicalSources: [
+      {
+        title: 'Al-Majmu\' Sharh al-Muhadhdhab',
+        author: 'Imam al-Nawawi',
+        description: 'Comprehensive Shafi\'i methodology with detailed asset categorization',
+        period: '13th century CE'
+      },
+      {
+        title: 'Minhaj al-Talibin',
+        author: 'Imam al-Nawawi',
+        description: 'Practical implementation guide for contemporary applications',
+        period: '13th century CE'
+      }
+    ],
+    contemporarySources: [
+      {
+        title: 'AAOIFI Shafi\'i Compliance Guidelines',
+        organization: 'Accounting and Auditing Organization for Islamic Financial Institutions',
+        description: 'Modern financial applications of Shafi\'i principles'
+      }
+    ],
+    regions: ['Southeast Asia', 'East Africa', 'Parts of Middle East']
+  },
+  MALIKI: {
+    classicalSources: [
+      {
+        title: 'Al-Mudawwana',
+        author: 'Imam Malik ibn Anas',
+        description: 'Foundational Maliki jurisprudence with regional adaptation principles',
+        period: '8th century CE'
+      },
+      {
+        title: 'Bidayat al-Mujtahid',
+        author: 'Ibn Rushd (Averroes)',
+        description: 'Comparative jurisprudence approach with cross-school analysis',
+        period: '12th century CE'
+      }
+    ],
+    contemporarySources: [
+      {
+        title: 'North African Fiqh Academies',
+        organization: 'Regional Islamic scholarly institutions',
+        description: 'Modern applications adapted to regional conditions'
+      }
+    ],
+    regions: ['North Africa', 'West Africa', 'Parts of Arabian Peninsula']
+  },
+  HANBALI: {
+    classicalSources: [
+      {
+        title: 'Al-Mughni',
+        author: 'Ibn Qudamah al-Maqdisi',
+        description: 'Comprehensive Hanbali methodology with conservative approaches',
+        period: '12th-13th century CE'
+      },
+      {
+        title: 'Works of Ibn Taymiyyah',
+        author: 'Taqi al-Din Ibn Taymiyyah',
+        description: 'Textual precedent emphasis and jurisprudential analysis',
+        period: '13th-14th century CE'
+      }
+    ],
+    contemporarySources: [
+      {
+        title: 'Saudi Fiqh Academy',
+        organization: 'Islamic Fiqh Academy, Makkah',
+        description: 'Official scholarly guidance for Hanbali applications'
+      }
+    ],
+    regions: ['Saudi Arabia', 'Qatar', 'Parts of Gulf States']
+  },
+  STANDARD: {
+    contemporarySources: [
+      {
+        title: 'AAOIFI Financial Accounting Standard 9 (FAS 9)',
+        organization: 'Accounting and Auditing Organization for Islamic Financial Institutions',
+        description: 'International standard for Zakat calculation and disclosure'
+      },
+      {
+        title: 'IFSB Guidelines',
+        organization: 'Islamic Financial Services Board',
+        description: 'Regulatory guidance for Islamic financial institutions'
+      },
+      {
+        title: 'Islamic Development Bank Research',
+        organization: 'Islamic Development Bank',
+        description: 'Contemporary research on zakat implementation'
+      }
+    ],
+    regions: ['International', 'Global Muslim communities']
+  }
+} as const;
+
+/**
+ * Additional educational resources for zakat calculation methodologies.
+ * Provides comprehensive learning materials, FAQs, and implementation guidance.
+ */
+export const METHODOLOGY_RESOURCES = {
+  commonQuestions: [
+    {
+      question: 'Which methodology should I choose?',
+      answer: 'The choice depends on your regional background, personal preference, and scholarly guidance. Consider your location, the complexity of your assets, and consultation with local Islamic scholars.'
+    },
+    {
+      question: 'Can I switch between methodologies?',
+      answer: 'While possible, it\'s recommended to maintain consistency in your chosen methodology for annual zakat calculations. Consult with qualified scholars before making changes.'
+    },
+    {
+      question: 'How do modern financial instruments fit into classical methodologies?',
+      answer: 'Contemporary scholars have developed guidance for modern assets. The Standard method often provides the most comprehensive framework for contemporary financial instruments.'
+    }
+  ],
+  implementationTips: [
+    'Maintain detailed records of your assets and their categorization',
+    'Consider consulting with Islamic finance professionals for complex portfolios',
+    'Review your chosen methodology annually with qualified scholars',
+    'Keep documentation of scholarly consultations and methodology decisions'
+  ],
+  additionalReading: [
+    'Contemporary Islamic Finance and Zakat Studies',
+    'Regional Fiqh Academy Publications',
+    'Islamic Development Bank Zakat Research',
+    'University Islamic Studies Departments Publications'
+  ]
 } as const;
