@@ -530,22 +530,24 @@ describe('ZakatService', () => {
 
     it('should get methodology recommendations for no region specified', () => {
       const defaultRecommendations = zakatService.getMethodologyRecommendations();
-      expect(defaultRecommendations).toHaveLength(3);
+      expect(defaultRecommendations).toHaveLength(5);
       expect(defaultRecommendations).toContain('standard');
       expect(defaultRecommendations).toContain('hanafi');
       expect(defaultRecommendations).toContain('shafii');
+      expect(defaultRecommendations).toContain('maliki');
+      expect(defaultRecommendations).toContain('hanbali');
     });
 
     it('should get educational content for each methodology', () => {
       const hanafiEducation = zakatService.getMethodologyEducation(ZAKAT_METHODS.HANAFI.id);
       expect(hanafiEducation).toBeDefined();
       expect(hanafiEducation.historicalBackground).toContain('Abu Hanifa');
-      expect(hanafiEducation.pros).toContain('Lower nisab threshold ensures broader zakat eligibility');
+      expect(hanafiEducation.pros).toContain('Lower silver-based nisab threshold ensures broader zakat eligibility');
 
       const shafiiEducation = zakatService.getMethodologyEducation(ZAKAT_METHODS.SHAFII.id);
       expect(shafiiEducation).toBeDefined();
       expect(shafiiEducation.historicalBackground).toContain('al-Shafi\'i');
-      expect(shafiiEducation.pros).toContain('Balanced nisab calculation approach');
+      expect(shafiiEducation.pros).toContain('Balanced dual-minimum nisab approach adapts to market conditions');
 
       const standardEducation = zakatService.getMethodologyEducation(ZAKAT_METHODS.STANDARD.id);
       expect(standardEducation).toBeDefined();
@@ -558,7 +560,7 @@ describe('ZakatService', () => {
       
       const comparison = zakatService.getMethodologyComparison(goldPrice, silverPrice);
       
-      expect(comparison).toHaveLength(4); // Standard, Hanafi, Shafi'i, Custom
+      expect(comparison).toHaveLength(6); // Standard, Hanafi, Shafi'i, Maliki, Hanbali, Custom
       
       comparison.forEach(method => {
         expect(method.id).toBeDefined();
