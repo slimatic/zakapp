@@ -547,6 +547,13 @@ export class ZakatService implements ZakatCalculationService {
           case 'silver':
             rules.push('Silver-based nisab threshold applied');
             break;
+          case 'cash':
+            rules.push('Full cash value considered');
+            rules.push('No discounting applied');
+            break;
+          default:
+            rules.push('Hanafi school methodology applied');
+            break;
         }
         break;
       
@@ -563,6 +570,13 @@ export class ZakatService implements ZakatCalculationService {
           case 'gold':
           case 'silver':
             rules.push('Dual minimum nisab approach');
+            break;
+          case 'cash':
+            rules.push('Full cash value considered');
+            rules.push('Conservative approach applied');
+            break;
+          default:
+            rules.push('Shafi\'i school methodology applied');
             break;
         }
         break;
