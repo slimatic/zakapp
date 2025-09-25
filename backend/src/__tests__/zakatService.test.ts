@@ -252,10 +252,10 @@ describe('ZakatService', () => {
       const calculation = await zakatService.calculateZakat(request, mockAssets);
       
       expect(calculation.breakdown).toBeDefined();
-      expect(calculation.breakdown!.methodology.name).toBe('Hanafi School Method');
-      expect(calculation.breakdown!.methodology.nisabBasis).toBe('silver');
+      expect(calculation.breakdown!.methodology?.name).toBe('Hanafi School Method');
+      expect(calculation.breakdown!.methodology?.nisabBasis).toBe('silver');
       expect(calculation.breakdown!.steps).toHaveLength(5);
-      expect(calculation.breakdown!.steps[0].step).toBe('1. Nisab Calculation');
+      expect(calculation.breakdown!.steps?.[0]?.step).toBe('1. Nisab Calculation');
       
       // Test enhanced breakdown features
       expect(calculation.breakdown!.method).toBe('hanafi');

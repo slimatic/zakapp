@@ -280,9 +280,9 @@ export interface DeductionRule {
  * Supports both new detailed format and legacy step-based format for backward compatibility.
  */
 export interface CalculationBreakdown {
-  // Method ID (optional for backward compatibility - can be derived from methodology)
-  method?: string;
-  // New enhanced fields (optional for backward compatibility)
+  // Method ID (required for transparency and consistency with documentation)
+  method: string;
+  // Enhanced fields for detailed breakdown transparency
   nisabCalculation?: {
     goldNisab: number;
     silverNisab: number;
