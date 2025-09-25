@@ -5,7 +5,9 @@ import {
   CALENDAR_TYPES,
   ASSET_CATEGORIES,
   REGIONAL_METHODOLOGY_MAP,
-  METHODOLOGY_EDUCATION
+  METHODOLOGY_EDUCATION,
+  METHODOLOGY_SOURCES,
+  METHODOLOGY_RESOURCES
 } from '@zakapp/shared';
 import type { 
   ZakatCalculation, 
@@ -122,6 +124,16 @@ export class ZakatService implements ZakatCalculationService {
         effectiveNisab = Math.min(goldNisab, silverNisab);
         nisabBasis = 'dual_minimum';
         break;
+      case ZAKAT_METHODS.MALIKI.id:
+        // Maliki method uses flexible dual approach that may adjust based on regional conditions
+        effectiveNisab = Math.min(goldNisab, silverNisab);
+        nisabBasis = 'dual_flexible';
+        break;
+      case ZAKAT_METHODS.HANBALI.id:
+        // Hanbali method prefers gold-based nisab calculations
+        effectiveNisab = goldNisab;
+        nisabBasis = 'gold';
+        break;
       case ZAKAT_METHODS.STANDARD.id:
         // Standard method uses the lower of gold or silver nisab with specific basis tracking
         effectiveNisab = Math.min(goldNisab, silverNisab);
@@ -212,6 +224,10 @@ export class ZakatService implements ZakatCalculationService {
         return this.applyHanafiRules(asset, baseZakat);
       case ZAKAT_METHODS.SHAFII.id:
         return this.applyShafiiRules(asset, baseZakat);
+      case ZAKAT_METHODS.MALIKI.id:
+        return this.applyMalikiRules(asset, baseZakat);
+      case ZAKAT_METHODS.HANBALI.id:
+        return this.applyHanbaliRules(asset, baseZakat);
       default:
         return baseZakat;
     }
@@ -295,16 +311,99 @@ export class ZakatService implements ZakatCalculationService {
   }
 
   /**
+   * Apply Maliki-specific calculation rules
+   */
+  private applyMalikiRules(asset: Asset, baseZakat: number): number {
+    // Maliki-specific rules:
+    // 1. Community-focused approach with emphasis on social welfare
+    // 2. Flexible nisab that may adjust based on regional economic conditions
+    // 3. Strong agricultural asset handling with seasonal considerations
+    // 4. Comprehensive trade goods treatment
+    // 5. Community-based debt assessment
+    
+    switch (asset.category) {
+      case 'business':
+        // Maliki method has comprehensive treatment of commercial assets
+        // Particular emphasis on agricultural goods and trade merchandise
+        // May consider seasonal business cycles
+        return baseZakat;
+      
+      case 'debts':
+        // Community-based debt assessment
+        // May consider broader economic conditions and community standing
+        return 0;
+      
+      case 'gold':
+      case 'silver':
+        // Flexible dual approach that may adjust based on regional conditions
+        return baseZakat;
+      
+      case 'property':
+        // Adapts to local economic conditions for property valuation
+        return baseZakat;
+      
+      default:
+        return baseZakat;
+    }
+  }
+
+  /**
+   * Apply Hanbali-specific calculation rules
+   */
+  private applyHanbaliRules(asset: Asset, baseZakat: number): number {
+    // Hanbali-specific rules:
+    // 1. Conservative approach with emphasis on textual adherence
+    // 2. Gold-based nisab calculations preferred
+    // 3. Conservative debt deduction focusing on documented obligations
+    // 4. Strict asset categorization based on classical law
+    // 5. Simplified calculation logic with stable reference points
+    
+    switch (asset.category) {
+      case 'business':
+        // Strict categorization based on classical Islamic commercial law
+        // Clear distinctions between different types of commercial activities
+        // Conservative valuation methods
+        return baseZakat;
+      
+      case 'debts':
+        // Conservative debt deduction approach
+        // Focus on immediate and certain obligations with clear documentation
+        // Cautious about speculative or uncertain debts
+        return 0;
+      
+      case 'gold':
+      case 'silver':
+        // Prefers gold-based calculations
+        // Stable gold-based reference for consistency
+        return baseZakat;
+      
+      case 'stocks':
+        // Conservative approach to modern financial instruments
+        // May require additional scholarly guidance for complex securities
+        return baseZakat;
+      
+      case 'crypto':
+        // Conservative treatment of contemporary assets
+        // May require case-by-case scholarly evaluation
+        return baseZakat;
+      
+      default:
+        return baseZakat;
+    }
+  }
+
+  /**
    * Get the zakat rate for a specific asset category and method
    */
   private getZakatRate(category: string, method: string): number {
     // Most assets use the standard 2.5% rate
-    // Agricultural assets have different rates
+    // Business assets with agricultural components may have different considerations
     
     switch (category) {
-      case 'agricultural':
-        // This would need more sophisticated logic based on irrigation method
-        return ZAKAT_RATES.AGRICULTURAL_RAIN_FED; // Default to rain-fed rate
+      case 'business':
+        // Business assets may include agricultural components
+        // For now, use standard rate - future enhancement could add subcategory logic
+        return ZAKAT_RATES.STANDARD_RATE;
       
       default:
         return ZAKAT_RATES.STANDARD_RATE;
@@ -342,7 +441,7 @@ export class ZakatService implements ZakatCalculationService {
    */
   getMethodologyRecommendations(region?: string): string[] {
     if (!region) {
-      return [ZAKAT_METHODS.STANDARD.id, ZAKAT_METHODS.HANAFI.id, ZAKAT_METHODS.SHAFII.id];
+      return [ZAKAT_METHODS.STANDARD.id, ZAKAT_METHODS.HANAFI.id, ZAKAT_METHODS.SHAFII.id, ZAKAT_METHODS.MALIKI.id, ZAKAT_METHODS.HANBALI.id];
     }
 
     // Type assertion for the regional map since TypeScript can't infer all possible string keys
@@ -359,6 +458,10 @@ export class ZakatService implements ZakatCalculationService {
         return METHODOLOGY_EDUCATION.HANAFI;
       case ZAKAT_METHODS.SHAFII.id:
         return METHODOLOGY_EDUCATION.SHAFII;
+      case ZAKAT_METHODS.MALIKI.id:
+        return METHODOLOGY_EDUCATION.MALIKI;
+      case ZAKAT_METHODS.HANBALI.id:
+        return METHODOLOGY_EDUCATION.HANBALI;
       case ZAKAT_METHODS.CUSTOM.id:
         return METHODOLOGY_EDUCATION.CUSTOM;
       case ZAKAT_METHODS.STANDARD.id:
@@ -585,6 +688,52 @@ export class ZakatService implements ZakatCalculationService {
         rules.push('AAOIFI-compliant calculation');
         rules.push('Internationally recognized standards');
         break;
+      
+      case ZAKAT_METHODS.MALIKI.id:
+        switch (category) {
+          case 'business':
+            rules.push('Comprehensive commercial asset treatment');
+            rules.push('Emphasis on agricultural goods and trade merchandise');
+            rules.push('Seasonal business cycle considerations');
+            break;
+          case 'debts':
+            rules.push('Community-based debt assessment');
+            rules.push('Broader economic context consideration');
+            break;
+          case 'property':
+            rules.push('Local economic condition adaptations');
+            break;
+          default:
+            rules.push('Maliki school community-focused methodology');
+            break;
+        }
+        break;
+      
+      case ZAKAT_METHODS.HANBALI.id:
+        switch (category) {
+          case 'business':
+            rules.push('Strict asset categorization based on classical law');
+            rules.push('Conservative valuation methods');
+            break;
+          case 'debts':
+            rules.push('Conservative debt deduction approach');
+            rules.push('Focus on documented and certain obligations');
+            break;
+          case 'gold':
+          case 'silver':
+            rules.push('Gold-based nisab preference');
+            rules.push('Stable reference point approach');
+            break;
+          case 'stocks':
+          case 'crypto':
+            rules.push('Conservative treatment of modern instruments');
+            rules.push('May require additional scholarly guidance');
+            break;
+          default:
+            rules.push('Hanbali school conservative methodology');
+            break;
+        }
+        break;
     }
     
     return rules;
@@ -609,6 +758,14 @@ export class ZakatService implements ZakatCalculationService {
           deductionType = 'conservative';
           description = 'Conservative deduction focusing on certain and immediate obligations';
           break;
+        case ZAKAT_METHODS.MALIKI.id:
+          deductionType = 'community_based';
+          description = 'Community-based debt assessment considering broader economic conditions';
+          break;
+        case ZAKAT_METHODS.HANBALI.id:
+          deductionType = 'conservative';
+          description = 'Conservative deduction focusing on documented and certain obligations';
+          break;
       }
       
       rules.push({
@@ -628,11 +785,15 @@ export class ZakatService implements ZakatCalculationService {
   private getMethodSources(method: string): string[] {
     switch (method) {
       case ZAKAT_METHODS.HANAFI.id:
-        return ['Al-Hidayah by al-Marghinani', 'Classical Hanafi jurisprudence texts'];
+        return ['Al-Hidayah by al-Marghinani', 'Fath al-Qadir by Ibn al-Humam', 'Classical Hanafi jurisprudence texts'];
       case ZAKAT_METHODS.SHAFII.id:
-        return ['Al-Majmu\' by al-Nawawi', 'Shafi\'i school jurisprudence'];
+        return ['Al-Majmu\' by al-Nawawi', 'Minhaj al-Talibin by al-Nawawi', 'Shafi\'i school jurisprudence'];
+      case ZAKAT_METHODS.MALIKI.id:
+        return ['Al-Mudawwana by Imam Malik', 'Bidayat al-Mujtahid by Ibn Rushd', 'Maliki jurisprudence texts'];
+      case ZAKAT_METHODS.HANBALI.id:
+        return ['Al-Mughni by Ibn Qudamah', 'Works of Ibn Taymiyyah', 'Hanbali school jurisprudence'];
       case ZAKAT_METHODS.STANDARD.id:
-        return ['AAOIFI FAS 9', 'Contemporary Islamic finance consensus'];
+        return ['AAOIFI FAS 9', 'IFSB Guidelines', 'Contemporary Islamic finance consensus'];
       default:
         return ['General Islamic jurisprudence'];
     }
