@@ -41,12 +41,6 @@ describe('ZakatService', () => {
     });
 
     it('should use dual minimum for Shafi\'i method', () => {
-      const goldPricePerGram = 60; // $60 per gram
-      const silverPricePerGram = 0.8; // $0.80 per gram
-      expect(nisab.calculationMethod).toBe(ZAKAT_METHODS.HANAFI.id);
-    });
-
-    it('should use dual minimum for Shafi\'i method', () => {
       const goldPricePerGram = 65;
       const silverPricePerGram = 0.8;
       
@@ -74,9 +68,6 @@ describe('ZakatService', () => {
       expect(nisab.effectiveNisab).toBe(expectedMinimum);
       expect(nisab.nisabBasis).toBe(expectedSilverNisab < expectedGoldNisab ? 'silver' : 'gold');
       expect(nisab.calculationMethod).toBe('standard');
-      expect(nisab.effectiveNisab).toBe(Math.min(expectedGoldNisab, expectedSilverNisab));
-      expect(nisab.nisabBasis).toBe('dual_minimum');
-      expect(nisab.calculationMethod).toBe(ZAKAT_METHODS.SHAFII.id);
     });
   });
 
@@ -261,10 +252,18 @@ describe('ZakatService', () => {
       const calculation = await zakatService.calculateZakat(request, mockAssets);
       
       expect(calculation.breakdown).toBeDefined();
-      expect(calculation.breakdown!.methodology.name).toBe('Hanafi Method');
+      expect(calculation.breakdown!.methodology.name).toBe('Hanafi School Method');
       expect(calculation.breakdown!.methodology.nisabBasis).toBe('silver');
       expect(calculation.breakdown!.steps).toHaveLength(5);
       expect(calculation.breakdown!.steps[0].step).toBe('1. Nisab Calculation');
+      
+      // Test enhanced breakdown features
+      expect(calculation.breakdown!.method).toBe('hanafi');
+      expect(calculation.breakdown!.nisabCalculation).toBeDefined();
+      expect(calculation.breakdown!.nisabCalculation!.basis).toBe('silver');
+      expect(calculation.breakdown!.assetCalculations).toBeDefined();
+      expect(calculation.breakdown!.sources).toBeDefined();
+      expect(calculation.breakdown!.sources!.length).toBeGreaterThan(0);
     });
 
     it('should filter assets based on includeAssets parameter', async () => {
@@ -577,6 +576,150 @@ describe('ZakatService', () => {
       // Verify Shafi'i uses dual minimum
       const shafiiMethod = comparison.find(m => m.id === 'shafii');
       expect(shafiiMethod?.nisabSource).toBe('dual_minimum');
+    });
+  });
+
+  describe('Enhanced Method-Specific Logic Tests', () => {
+    const testAssets: Asset[] = [
+      {
+        assetId: 'test-cash-enhanced',
+        name: 'Savings Account',
+        category: 'cash',
+        subCategory: 'savings',
+        value: 50000,
+        currency: 'USD',
+        zakatEligible: true,
+        description: 'Test savings account',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        assetId: 'test-business-enhanced',
+        name: 'Business Inventory',
+        category: 'business',
+        subCategory: 'inventory',
+        value: 30000,
+        currency: 'USD',
+        zakatEligible: true,
+        description: 'Test business inventory',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
+    const createRequest = (method: string): ZakatCalculationRequest => ({
+      calculationDate: new Date().toISOString(),
+      calendarType: 'lunar',
+      method,
+      includeAssets: testAssets.map(asset => asset.assetId)
+    });
+
+    it('should apply Hanafi method-specific rules correctly', async () => {
+      const request = createRequest(ZAKAT_METHODS.HANAFI.id);
+      const calculation = await zakatService.calculateZakat(request, testAssets);
+
+      // Hanafi should use silver-based nisab
+      expect(calculation.nisab.nisabBasis).toBe('silver');
+      expect(calculation.nisab.effectiveNisab).toBe(calculation.nisab.silverNisab);
+      
+      // Should include comprehensive breakdown with method-specific rules
+      expect(calculation.breakdown!.method).toBe('hanafi');
+      expect(calculation.breakdown!.sources).toContain('Al-Hidayah by al-Marghinani');
+    });
+
+    it('should apply Shafi\'i method-specific rules correctly', async () => {
+      const request = createRequest(ZAKAT_METHODS.SHAFII.id);
+      const calculation = await zakatService.calculateZakat(request, testAssets);
+
+      // Shafi'i should use dual minimum nisab
+      expect(calculation.nisab.nisabBasis).toBe('dual_minimum');
+      expect(calculation.nisab.effectiveNisab).toBe(
+        Math.min(calculation.nisab.goldNisab, calculation.nisab.silverNisab)
+      );
+      
+      // Should include comprehensive breakdown with method-specific rules
+      expect(calculation.breakdown!.method).toBe('shafii');
+      expect(calculation.breakdown!.sources).toContain('Al-Majmu\' by al-Nawawi');
+    });
+
+    it('should apply Standard method rules correctly', async () => {
+      const request = createRequest(ZAKAT_METHODS.STANDARD.id);
+      const calculation = await zakatService.calculateZakat(request, testAssets);
+
+      // Standard should use dual minimum with specific basis
+      const goldNisab = calculation.nisab.goldNisab;
+      const silverNisab = calculation.nisab.silverNisab;
+      const expectedBasis = goldNisab < silverNisab ? 'gold' : 'silver';
+      
+      expect(calculation.nisab.nisabBasis).toBe(expectedBasis);
+      expect(calculation.nisab.effectiveNisab).toBe(Math.min(goldNisab, silverNisab));
+      
+      // Should include AAOIFI-compliant breakdown
+      expect(calculation.breakdown!.method).toBe('standard');
+      expect(calculation.breakdown!.sources).toContain('AAOIFI FAS 9');
+    });
+
+    it('should generate detailed asset calculations for transparency', async () => {
+      const request = createRequest(ZAKAT_METHODS.HANAFI.id);
+      const calculation = await zakatService.calculateZakat(request, testAssets);
+
+      expect(calculation.breakdown!.assetCalculations).toBeDefined();
+      expect(calculation.breakdown!.assetCalculations!.length).toBe(testAssets.length);
+      
+      // Each asset calculation should have method-specific rules
+      calculation.breakdown!.assetCalculations!.forEach(assetCalc => {
+        expect(assetCalc.methodSpecificRules).toBeDefined();
+        expect(assetCalc.methodSpecificRules.length).toBeGreaterThan(0);
+        expect(assetCalc.value).toBeGreaterThan(0);
+        expect(assetCalc.zakatableAmount).toBeGreaterThan(0);
+      });
+    });
+
+    it('should include deduction rules information', async () => {
+      const expenseAssets: Asset[] = [
+        ...testAssets,
+        {
+          assetId: 'test-expense',
+          name: 'Outstanding Debt',
+          category: 'expenses',
+          subCategory: 'debts_owed',
+          value: 5000,
+          currency: 'USD',
+          zakatEligible: false,
+          description: 'Test debt',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      const request: ZakatCalculationRequest = {
+        calculationDate: new Date().toISOString(),
+        calendarType: 'lunar',
+        method: ZAKAT_METHODS.HANAFI.id,
+        includeAssets: expenseAssets.map(asset => asset.assetId)
+      };
+
+      const calculation = await zakatService.calculateZakat(request, expenseAssets);
+
+      expect(calculation.breakdown!.deductionRules).toBeDefined();
+      if (calculation.breakdown!.deductionRules!.length > 0) {
+        const rule = calculation.breakdown!.deductionRules![0];
+        expect(rule.type).toBe('comprehensive'); // Hanafi uses comprehensive deduction
+        expect(rule.amount).toBeGreaterThan(0);
+      }
+    });
+
+    it('should provide final calculation summary', async () => {
+      const request = createRequest(ZAKAT_METHODS.STANDARD.id);
+      const calculation = await zakatService.calculateZakat(request, testAssets);
+
+      expect(calculation.breakdown!.finalCalculation).toBeDefined();
+      const final = calculation.breakdown!.finalCalculation!;
+      
+      expect(final.totalAssets).toBe(80000); // 50000 + 30000
+      expect(final.zakatableAmount).toBe(80000);
+      expect(final.zakatDue).toBe(calculation.totals.totalZakatDue);
+      expect(final.zakatDue).toBeGreaterThan(0); // Should meet nisab
     });
   });
 });
