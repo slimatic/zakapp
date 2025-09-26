@@ -57,7 +57,7 @@ test('shows comparison when compare methods button is clicked', () => {
   fireEvent.click(screen.getByText('Compare Methods'));
   
   // Check that comparison section appears
-  expect(screen.getByText('Method Comparison')).toBeInTheDocument();
+  expect(screen.getByText('Methodology Comparison')).toBeInTheDocument();
   expect(screen.getByText(/Compare different zakat calculation methodologies to understand/)).toBeInTheDocument();
 });
 
@@ -73,11 +73,11 @@ test('hides comparison when close button is clicked', () => {
 
   // Open comparison
   fireEvent.click(screen.getByText('Compare Methods'));
-  expect(screen.getByText('Method Comparison')).toBeInTheDocument();
+  expect(screen.getByText('Methodology Comparison')).toBeInTheDocument();
   
   // Close comparison
   fireEvent.click(screen.getByText('Close'));
-  expect(screen.queryByText('Method Comparison')).not.toBeInTheDocument();
+  expect(screen.queryByText('Methodology Comparison')).not.toBeInTheDocument();
 });
 
 test('displays method details in expandable sections', () => {
