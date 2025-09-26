@@ -15,7 +15,12 @@ export interface MethodologyEducationResponse {
   success: boolean;
   data?: {
     methodId: string;
-    methodInfo: any;
+    methodInfo: {
+      id: string;
+      name: string;
+      regions: string[];
+      [key: string]: unknown;
+    };
     education: MethodologyEducationData;
     lastUpdated: string;
   };
