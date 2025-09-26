@@ -276,7 +276,7 @@ export const assetFormSchema = z.object({
   maturityDate: z
     .string()
     .optional()
-    .refine((val) => {
+    .refine((val: string | undefined) => {
       if (!val || val === '') return true; // Allow empty
       try {
         const date = new Date(val);
