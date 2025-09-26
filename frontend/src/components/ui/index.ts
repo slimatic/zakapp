@@ -13,6 +13,7 @@ export { ContextualHelp } from './ContextualHelp';
 export { QuestionnaireProgress } from './QuestionnaireProgress';
 export { default as QuestionnaireStep } from './QuestionnaireStep';
 export { NisabDisplay } from './NisabDisplay';
+export { CalculationBreakdownDisplay } from './CalculationBreakdownDisplay';
 export { MethodologySelector } from '../MethodologySelector';
 export { MethodologyDemo } from './MethodologyDemo';
 

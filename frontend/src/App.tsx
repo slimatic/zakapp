@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import './styles/App.css';
 import {
   Header,
@@ -13,8 +13,36 @@ type AppView = 'dashboard' | 'assets' | 'calculate' | 'history' | 'methodology';
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
-  const [currentView, setCurrentView] = useState<AppView>('dashboard');
+  
+  // Initialize currentView based on URL path
+  const getViewFromPath = (): AppView => {
+    const path = window.location.pathname;
+    if (path.includes('/methodology')) return 'methodology';
+    if (path.includes('/assets')) return 'assets';
+    if (path.includes('/calculate')) return 'calculate';
+    if (path.includes('/history')) return 'history';
+    return 'dashboard';
+  };
+  
+  const [currentView, setCurrentView] = useState<AppView>(getViewFromPath());
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Update URL when view changes
+  const handleNavigate = (view: AppView) => {
+    setCurrentView(view);
+    const basePath = view === 'dashboard' ? '/' : `/${view}`;
+    window.history.pushState(null, '', basePath);
+  };
+
+  // Listen for browser navigation events
+  React.useEffect(() => {
+    const handlePopState = () => {
+      setCurrentView(getViewFromPath());
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -43,12 +71,12 @@ function AppContent() {
       case 'assets':
         return <AssetManagementContainer />;
       case 'history':
-        return <AssetHistory onNavigate={setCurrentView} />;
+        return <AssetHistory onNavigate={handleNavigate} />;
       case 'methodology':
         return <MethodologyDemo />;
       case 'dashboard':
       default:
-        return <Dashboard onNavigate={setCurrentView} />;
+        return <Dashboard onNavigate={handleNavigate} />;
     }
   };
 
@@ -58,7 +86,7 @@ function AppContent() {
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
         currentView={currentView}
-        onNavigate={setCurrentView}
+        onNavigate={handleNavigate}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

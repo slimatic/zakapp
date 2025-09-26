@@ -413,7 +413,7 @@ const MethodologyEducation: React.FC<{method: string}> = ({ method }) => {
 
 1. **Frontend Integration**:
    - [x] Create methodology selector component
-   - [ ] Add calculation transparency display
+   - [x] Add calculation transparency display
    - [ ] Implement methodology comparison tool
    - [ ] Add educational content integration
 
