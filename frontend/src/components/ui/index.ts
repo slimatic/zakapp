@@ -14,6 +14,7 @@ export { QuestionnaireProgress } from './QuestionnaireProgress';
 export { default as QuestionnaireStep } from './QuestionnaireStep';
 export { NisabDisplay } from './NisabDisplay';
 export { MethodologySelector } from '../MethodologySelector';
+export { MethodologyComparison } from '../MethodologyComparison';
 export { MethodologyDemo } from './MethodologyDemo';
 
 // UI Components

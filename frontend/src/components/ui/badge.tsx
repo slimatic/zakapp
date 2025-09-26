@@ -2,7 +2,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'secondary';
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'secondary' | 'outline';
   children: React.ReactNode;
 }
 
@@ -18,6 +18,7 @@ export const Badge: React.FC<BadgeProps> = ({
     warning: 'bg-yellow-100 text-yellow-800',
     error: 'bg-red-100 text-red-800',
     secondary: 'bg-neutral-100 text-neutral-800',
+    outline: 'border border-neutral-300 text-neutral-700',
   };
 
   return (

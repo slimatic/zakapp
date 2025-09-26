@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ZAKAT_METHODS } from '@zakapp/shared';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { MethodologyComparison } from './MethodologyComparison';
 
 interface MethodologySelectorProps {
   selectedMethod?: string;
@@ -136,31 +137,10 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
       </div>
 
       {showComparison && (
-        <div className="mt-6 p-4 border rounded-lg bg-neutral-50">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-md font-semibold">Method Comparison</h4>
-            <Button
-              onClick={() => setShowComparison(false)}
-              variant="ghost"
-              size="sm"
-            >
-              Close
-            </Button>
-          </div>
-          <div className="text-sm text-neutral-600">
-            <p className="mb-2">
-              Compare different zakat calculation methodologies to understand their differences:
-            </p>
-            <ul className="space-y-1">
-              <li>• <strong>Standard Method:</strong> Modern international consensus approach</li>
-              <li>• <strong>Hanafi Method:</strong> Silver-based nisab with comprehensive inclusion</li>
-              <li>• <strong>Shafi&apos;i Method:</strong> Detailed categorization with dual nisab</li>
-              <li>• <strong>Maliki Method:</strong> Community-focused with regional adaptation</li>
-              <li>• <strong>Hanbali Method:</strong> Conservative gold-based approach</li>
-              <li>• <strong>Custom Method:</strong> User-defined parameters</li>
-            </ul>
-          </div>
-        </div>
+        <MethodologyComparison
+          onClose={() => setShowComparison(false)}
+          className="mt-6"
+        />
       )}
     </div>
   );
