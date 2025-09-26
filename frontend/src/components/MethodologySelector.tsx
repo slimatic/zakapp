@@ -3,6 +3,7 @@ import { ZAKAT_METHODS } from '@zakapp/shared';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { MethodologyComparison } from './MethodologyComparison';
+import { MethodologyEducation } from './MethodologyEducation';
 
 interface MethodologySelectorProps {
   selectedMethod?: string;
@@ -94,6 +95,7 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
   className = '',
 }) => {
   const [showComparison, setShowComparison] = useState(false);
+  const [showEducation, setShowEducation] = useState(false);
 
   const methods = Object.values(ZAKAT_METHODS);
 
@@ -129,12 +131,28 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
         </Button>
         
         {selectedMethod && (
+          <Button
+            onClick={() => setShowEducation(!showEducation)}
+            variant="outline"
+            size="md"
+          >
+            {showEducation ? 'Hide Education' : 'Learn More'}
+          </Button>
+        )}
+        
+        {selectedMethod && (
           <div className="flex-1 text-sm text-neutral-600">
             <span className="font-medium">Selected:</span>{' '}
             {ZAKAT_METHODS[selectedMethod.toUpperCase() as keyof typeof ZAKAT_METHODS]?.name || 'Unknown method'}
           </div>
         )}
       </div>
+
+      {showEducation && selectedMethod && (
+        <div className="mt-6">
+          <MethodologyEducation method={selectedMethod} />
+        </div>
+      )}
 
       {showComparison && (
         <MethodologyComparison
