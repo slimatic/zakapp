@@ -5,10 +5,11 @@ import {
   Dashboard,
   AssetManagementContainer,
   AssetHistory,
+  MethodologyDemo,
 } from './components/ui';
 import { AuthProvider, useAuth, AuthForms } from './components/auth';
 
-type AppView = 'dashboard' | 'assets' | 'calculate' | 'history';
+type AppView = 'dashboard' | 'assets' | 'calculate' | 'history' | 'methodology';
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -43,6 +44,8 @@ function AppContent() {
         return <AssetManagementContainer />;
       case 'history':
         return <AssetHistory onNavigate={setCurrentView} />;
+      case 'methodology':
+        return <MethodologyDemo />;
       case 'dashboard':
       default:
         return <Dashboard onNavigate={setCurrentView} />;
