@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Menu, X, Calculator, Moon, Sun, LogOut, User } from 'lucide-react';
 import { useAuth } from '../auth';
 
-type AppView = 'dashboard' | 'assets' | 'calculate' | 'history';
+type AppView = 'dashboard' | 'assets' | 'calculate' | 'history' | 'methodology';
 
 interface HeaderProps {
   isDarkMode?: boolean;
@@ -114,6 +114,16 @@ export const Header: React.FC<HeaderProps> = ({
             >
               History
             </button>
+            <button
+              onClick={() => handleNavigation('methodology')}
+              className={`font-medium transition-colors ${
+                currentView === 'methodology'
+                  ? 'text-primary-600'
+                  : 'text-neutral-700 hover:text-primary-600'
+              }`}
+            >
+              Methods
+            </button>
           </nav>
 
           {/* Right Actions */}
@@ -206,6 +216,16 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 History
+              </button>
+              <button
+                onClick={() => handleNavigation('methodology')}
+                className={`block w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  currentView === 'methodology'
+                    ? 'text-primary-600 bg-primary-50'
+                    : 'text-neutral-700 hover:text-primary-600 hover:bg-neutral-100'
+                }`}
+              >
+                Methods
               </button>
               <div className="pt-2 border-t border-neutral-200/50">
                 <div className="px-3 py-2 text-sm text-neutral-600">
