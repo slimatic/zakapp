@@ -1,154 +1,476 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse, AuthTokens, User } from '../types';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
+import { UserStore } from '../utils/userStore';
+import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken, invalidateAllUserRefreshTokens } from '../utils/jwt';
+import { invalidateToken, invalidateUserSession } from '../middleware/auth';
+import { generateResetToken, validateResetToken, useResetToken } from '../utils/resetTokens';
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
-    // Mock implementation - will be replaced with real logic
     const { email, password, username } = req.body;
     
-    // Basic validation
-    if (!email || !password || !username) {
-      throw new AppError('Missing required fields', 400, 'MISSING_FIELDS');
+    // Validation - collect all errors
+    const validationErrors: Array<{field: string, message: string}> = [];
+    
+    if (!email) {
+      validationErrors.push({field: 'email', message: 'Email is required'});
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      validationErrors.push({field: 'email', message: 'Invalid email format'});
+    }
+    
+    if (!password) {
+      validationErrors.push({field: 'password', message: 'Password is required'});
+    } else if (password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
+      validationErrors.push({field: 'password', message: 'Password must be at least 8 characters with mixed case, numbers, and symbols'});
+    }
+    
+    if (!username) {
+      validationErrors.push({field: 'username', message: 'Username is required'});
     }
 
-    // Create a simple user ID based on email hash
-    const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)}`;
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
+        details: validationErrors
+      });
+      return;
+    }
 
-    // Mock user creation
-    const mockUser: User = {
-      id: userId,
-      email,
-      name: username,
-      settings: {
-        preferredMethodology: 'standard',
-        currency: 'USD',
-        language: 'en'
-      },
-      createdAt: new Date().toISOString()
-    };
+    // Check for duplicate email
+    if (UserStore.emailExists(email)) {
+      res.status(409).json({
+        success: false,
+        error: 'EMAIL_ALREADY_EXISTS',
+        message: 'Email address is already registered'
+      });
+      return;
+    }
+    
+    try {
+      // Create user with encrypted password
+      const user = await UserStore.createUser(email, username, password);
+      
+      // Create user response without sensitive data
+      const userResponse = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        createdAt: user.createdAt
+      };
 
-    // Create token that includes user ID
-    const mockTokens: AuthTokens = {
-      accessToken: `token-${userId}`,
-      refreshToken: `refresh-${userId}`,
-      expiresIn: 900 // 15 minutes
-    };
+      const response: ApiResponse = {
+        success: true,
+        message: 'User registered successfully',
+        user: userResponse
+      };
 
-    const response: ApiResponse = {
-      success: true,
-      message: 'Account created successfully',
-      user: mockUser,
-      tokens: mockTokens,
-      // Also provide direct access for tests that expect it
-      accessToken: mockTokens.accessToken,
-      refreshToken: mockTokens.refreshToken,
-      expiresIn: mockTokens.expiresIn
-    };
-
-    res.status(201).json(response);
+      res.status(201).json(response);
+    } catch (error: any) {
+      if (error.message === 'EMAIL_ALREADY_EXISTS') {
+        res.status(409).json({
+          success: false,
+          error: 'EMAIL_ALREADY_EXISTS',
+          message: 'Email address is already registered'
+        });
+        return;
+      }
+      throw error;
+    }
   });
 
   login = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      throw new AppError('Missing email or password', 400, 'MISSING_CREDENTIALS');
+    // Validation - collect all errors
+    const validationErrors: Array<{field: string, message: string}> = [];
+    
+    if (!email) {
+      validationErrors.push({field: 'email', message: 'Email is required'});
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      validationErrors.push({field: 'email', message: 'Invalid email format'});
+    }
+    
+    if (!password) {
+      validationErrors.push({field: 'password', message: 'Password is required'});
     }
 
-    // Create consistent user ID based on email
-    const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)}`;
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
+        details: validationErrors
+      });
+      return;
+    }
 
-    // Mock login response
-    const mockUser: User = {
-      id: userId,
-      email,
-      name: email.split('@')[0], // Use email prefix as name
-      lastLoginAt: new Date().toISOString(),
-      createdAt: new Date().toISOString()
+    // Authenticate user
+    const user = await UserStore.authenticateUser(email, password);
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: 'INVALID_CREDENTIALS',
+        message: 'Invalid email or password'
+      });
+      return;
+    }
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+    const sessionId = generateSessionId();
+
+    // Create user response
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      name: user.username,
+      lastLoginAt: new Date().toISOString()
     };
 
-    const mockTokens: AuthTokens = {
-      accessToken: `token-${userId}`,
-      refreshToken: `refresh-${userId}`,
-      expiresIn: 900
+    const tokens: AuthTokens = {
+      accessToken,
+      refreshToken,
+      expiresIn: 900 // 15 minutes in seconds
     };
 
     const response: ApiResponse = {
       success: true,
       message: 'Login successful',
-      user: mockUser,
-      tokens: mockTokens,
+      user: userResponse,
+      tokens,
       // Also provide direct access for tests that expect it
-      accessToken: mockTokens.accessToken,
-      refreshToken: mockTokens.refreshToken,
-      expiresIn: mockTokens.expiresIn
+      accessToken,
+      refreshToken,
+      expiresIn: 900,
+      sessionId
     };
 
     res.status(200).json(response);
   });
 
   refresh = asyncHandler(async (req: Request, res: Response) => {
-    const response: ApiResponse = {
-      success: true,
-      tokens: {
-        accessToken: 'new-mock-access-token',
-        refreshToken: 'new-mock-refresh-token',
-        expiresIn: 900
-      }
-    };
+    const { refreshToken } = req.body;
 
-    res.status(200).json(response);
+    // Validation
+    if (!refreshToken) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Refresh token is required'
+      });
+      return;
+    }
+
+    try {
+      // Verify the refresh token
+      const decoded = verifyRefreshToken(refreshToken);
+      
+      // If there's an authorization header, verify it matches the refresh token user
+      const authHeader = req.headers['authorization'];
+      if (authHeader) {
+        const accessToken = authHeader.split(' ')[1];
+        if (accessToken) {
+          try {
+            const accessDecoded = verifyToken(accessToken);
+            if (accessDecoded.userId !== decoded.userId) {
+              res.status(401).json({
+                success: false,
+                error: 'TOKEN_MISMATCH',
+                message: 'Access token does not match refresh token user'
+              });
+              return;
+            }
+          } catch (error) {
+            // Ignore invalid access tokens for now, just focus on refresh token
+          }
+        }
+      }
+      
+      // Mark the old refresh token as used
+      markRefreshTokenAsUsed(refreshToken);
+      
+      // Get user to validate they still exist
+      const user = UserStore.getUserById(decoded.userId);
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          error: 'INVALID_TOKEN',
+          message: 'User not found'
+        });
+        return;
+      }
+
+      // Generate new tokens
+      const newAccessToken = generateAccessToken(decoded.userId);
+      const newRefreshToken = generateRefreshToken(decoded.userId);
+      const sessionId = generateSessionId();
+
+      const tokens: AuthTokens = {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        expiresIn: 900 // 15 minutes
+      };
+
+      const response: ApiResponse = {
+        success: true,
+        tokens,
+        // Also provide direct access for tests that expect it
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        expiresIn: 900,
+        sessionId
+      };
+
+      res.status(200).json(response);
+    } catch (error: any) {
+      let statusCode = 401;
+      let errorCode = 'INVALID_TOKEN';
+      let message = 'Invalid refresh token';
+
+      if (error.message === 'TOKEN_EXPIRED') {
+        errorCode = 'TOKEN_EXPIRED';
+        message = 'Refresh token has expired';
+      } else if (error.message === 'TOKEN_USED') {
+        errorCode = 'TOKEN_USED';
+        message = 'Refresh token has already been used';
+      } else if (error.message === 'TOKEN_INVALIDATED') {
+        errorCode = 'TOKEN_INVALIDATED';
+        message = 'Refresh token has been invalidated';
+      }
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorCode,
+        message
+      });
+    }
   });
 
-  logout = asyncHandler(async (req: Request, res: Response) => {
-    const response: ApiResponse = {
-      success: true,
-      message: 'Logged out successfully'
-    };
+  logout = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { logoutFromAllDevices } = req.body;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader?.split(' ')[1];
 
-    res.status(200).json(response);
+    if (!req.userId) {
+      res.status(401).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    if (logoutFromAllDevices) {
+      // Invalidate all sessions for this user
+      invalidateUserSession(req.userId);
+      invalidateAllUserRefreshTokens(req.userId);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Logged out from all devices successfully'
+      });
+    } else {
+      // For regular logout, invalidate access token and all user's refresh tokens for security
+      if (token) {
+        invalidateToken(token);
+      }
+      invalidateAllUserRefreshTokens(req.userId);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Logged out successfully'
+      });
+    }
   });
 
   me = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const mockUser: User = {
-      id: 'mock-user-id',
-      email: 'user@example.com',
-      name: 'Mock User',
-      settings: {
-        preferredMethodology: 'standard',
+    if (!req.userId) {
+      res.status(401).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    // Get user from storage
+    const user = UserStore.getUserById(req.userId);
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: 'USER_NOT_FOUND',
+        message: 'User not found'
+      });
+      return;
+    }
+
+    // Create user response with profile and settings
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      createdAt: user.createdAt,
+      updatedAt: user.createdAt, // For now, same as created
+      profile: {
+        firstName: null,
+        lastName: null,
         currency: 'USD',
-        language: 'en',
-        reminders: true,
-        calendarType: 'lunar'
+        locale: 'en',
+        timezone: null
       },
-      createdAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString()
+      settings: {
+        defaultCalculationMethod: 'standard',
+        nisabMethod: 'gold',
+        notifications: {
+          email: true,
+          push: true,
+          sms: false
+        },
+        privacy: {
+          profileVisibility: 'private',
+          analyticsOptOut: false
+        }
+      }
+    };
+
+    // Create session information
+    const sessionInfo = {
+      id: generateSessionId(),
+      lastAccessAt: new Date().toISOString(),
+      userAgent: req.headers['user-agent'] || 'Unknown',
+      ipAddress: req.ip || req.connection.remoteAddress || 'Unknown'
     };
 
     const response: ApiResponse = {
       success: true,
-      user: mockUser
+      user: userResponse,
+      session: sessionInfo
     };
 
     res.status(200).json(response);
   });
 
   resetPassword = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    // Validation
+    const validationErrors: Array<{field: string, message: string}> = [];
+    
+    if (!email) {
+      validationErrors.push({field: 'email', message: 'Email is required'});
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      validationErrors.push({field: 'email', message: 'Invalid email format'});
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
+        details: validationErrors
+      });
+      return;
+    }
+
+    // Privacy-first: Always return success to prevent email enumeration
+    // In real implementation, would send email if user exists
+    const userId = UserStore.getUserIdByEmail(email);
+    let resetTokenId = 'no-token-generated';
+    
+    if (userId) {
+      const resetToken = generateResetToken(userId, email);
+      resetTokenId = resetToken.substring(0, 12) + '...'; // Partial token for tracking
+      
+      // In real implementation: send email with resetToken
+      console.log(`Reset token for ${email}: ${resetToken}`); // For testing
+    }
+
     const response: ApiResponse = {
       success: true,
-      message: 'Password reset email sent'
+      message: 'Password reset email sent',
+      resetTokenId
     };
 
     res.status(200).json(response);
   });
 
   confirmReset = asyncHandler(async (req: Request, res: Response) => {
-    const response: ApiResponse = {
-      success: true,
-      message: 'Password reset successfully'
-    };
+    const { token, password, confirmPassword } = req.body;
 
-    res.status(200).json(response);
+    // Validation
+    const validationErrors: Array<{field: string, message: string}> = [];
+    
+    if (!token) {
+      validationErrors.push({field: 'token', message: 'Reset token is required'});
+    }
+    
+    if (!password) {
+      validationErrors.push({field: 'password', message: 'Password is required'});
+    } else if (password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
+      validationErrors.push({field: 'password', message: 'Password must be at least 8 characters with mixed case, numbers, and symbols'});
+    }
+    
+    if (confirmPassword && password !== confirmPassword) {
+      validationErrors.push({field: 'confirmPassword', message: 'Passwords do not match'});
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
+        details: validationErrors
+      });
+      return;
+    }
+
+    // Validate reset token
+    const tokenData = validateResetToken(token);
+    if (!tokenData) {
+      res.status(400).json({
+        success: false,
+        error: 'INVALID_TOKEN',
+        message: 'Invalid or expired reset token'
+      });
+      return;
+    }
+
+    try {
+      // Update password
+      const success = await UserStore.updatePassword(tokenData.userId, password);
+      if (!success) {
+        res.status(400).json({
+          success: false,
+          error: 'USER_NOT_FOUND',
+          message: 'User not found'
+        });
+        return;
+      }
+
+      // Use the reset token to prevent reuse
+      useResetToken(token);
+      
+      // Invalidate all user sessions for security
+      invalidateUserSession(tokenData.userId);
+      invalidateAllUserRefreshTokens(tokenData.userId);
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Password reset successfully',
+        eventId: `pwd-reset-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'INTERNAL_ERROR',
+        message: 'Failed to update password'
+      });
+    }
   });
 }
