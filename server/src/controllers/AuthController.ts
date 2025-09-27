@@ -39,7 +39,11 @@ export class AuthController {
       success: true,
       message: 'Account created successfully',
       user: mockUser,
-      tokens: mockTokens
+      tokens: mockTokens,
+      // Also provide direct access for tests that expect it
+      accessToken: mockTokens.accessToken,
+      refreshToken: mockTokens.refreshToken,
+      expiresIn: mockTokens.expiresIn
     };
 
     res.status(201).json(response);
@@ -74,7 +78,11 @@ export class AuthController {
       success: true,
       message: 'Login successful',
       user: mockUser,
-      tokens: mockTokens
+      tokens: mockTokens,
+      // Also provide direct access for tests that expect it
+      accessToken: mockTokens.accessToken,
+      refreshToken: mockTokens.refreshToken,
+      expiresIn: mockTokens.expiresIn
     };
 
     res.status(200).json(response);
