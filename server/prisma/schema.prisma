@@ -1,0 +1,215 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String   // bcrypt hash
+  profile        String?  // Encrypted JSON blob (name, location, methodology preference)
+  settings       String?  // Encrypted JSON blob (currency, language, calendar type, reminders)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  lastLoginAt    DateTime?
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  assets           Asset[]
+  liabilities      Liability[]
+  calculations     ZakatCalculation[]
+  payments         ZakatPayment[]
+  snapshots        AssetSnapshot[]
+  sessions         UserSession[]
+
+  @@map("users")
+}
+
+model Asset {
+  id              String   @id @default(cuid())
+  userId          String
+  category        String   // cash, gold, silver, business, property, stocks, crypto
+  name            String
+  value           Float
+  currency        String   @default("USD")
+  acquisitionDate DateTime
+  metadata        String?  // Encrypted JSON for category-specific details
+  isActive        Boolean  @default(true)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("assets")
+  @@index([userId])
+  @@index([category])
+}
+
+model Liability {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    // loan, mortgage, credit_card, business_debt, other
+  name      String
+  amount    Float
+  currency  String    @default("USD")
+  creditor  String?
+  dueDate   DateTime?
+  isActive  Boolean   @default(true)
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("liabilities")
+  @@index([userId])
+}
+
+model ZakatCalculation {
+  id                    String   @id @default(cuid())
+  userId                String
+  calculationDate       DateTime
+  methodology           String   // standard, hanafi, shafi_i, custom
+  calendarType          String   // lunar, solar
+  totalAssets           Float
+  totalLiabilities      Float
+  netWorth              Float
+  nisabThreshold        Float
+  nisabSource           String   // gold, silver
+  isZakatObligatory     Boolean
+  zakatAmount           Float
+  zakatRate             Float    @default(0.025) // 2.5%
+  breakdown             String   // JSON with detailed calculation steps
+  assetsIncluded        String   // JSON snapshot of assets used
+  liabilitiesIncluded   String   // JSON snapshot of liabilities used
+  regionalAdjustments   String?  // JSON with local preferences
+  createdAt             DateTime @default(now())
+
+  // Relationships
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments ZakatPayment[]
+
+  @@map("zakat_calculations")
+  @@index([userId])
+  @@index([calculationDate])
+}
+
+model AssetSnapshot {
+  id              String   @id @default(cuid())
+  userId          String
+  snapshotDate    DateTime
+  snapshotType    String   // annual, custom, backup
+  totalValue      Float
+  assetCount      Int
+  assetsData      String   // Complete encrypted JSON of all assets
+  liabilitiesData String   // Complete encrypted JSON of all liabilities
+  exchangeRates   String   // JSON with currency conversion rates
+  notes           String?
+  isLocked        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("asset_snapshots")
+  @@index([userId])
+  @@index([snapshotDate])
+}
+
+model ZakatPayment {
+  id                  String   @id @default(cuid())
+  userId              String
+  calculationId       String?
+  paymentDate         DateTime
+  amount              Float
+  currency            String   @default("USD")
+  recipients          String   // JSON array of payment recipients
+  paymentMethod       String   // cash, bank_transfer, crypto, etc.
+  receiptNumber       String?
+  islamicYear         String   // Hijri year
+  notes               String?
+  status              String   @default("completed") // pending, completed, verified
+  verificationDetails String?  // JSON with supporting documentation
+  createdAt           DateTime @default(now())
+
+  // Relationships
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calculation ZakatCalculation? @relation(fields: [calculationId], references: [id])
+
+  @@map("zakat_payments")
+  @@index([userId])
+  @@index([paymentDate])
+  @@index([islamicYear])
+}
+
+model CalculationMethodology {
+  id                 String  @id @default(cuid())
+  name               String  @unique // Standard, Hanafi, Shafi'i, Custom
+  description        String
+  scholarlySource    String
+  nisabCalculation   String  // JSON rules for nisab determination
+  assetRules         String  // JSON rules for asset handling
+  liabilityRules     String  // JSON rules for liability deduction
+  calendarRules      String  // JSON rules for lunar vs solar
+  zakatRates         String  // JSON mapping of rates by category
+  regionalVariations String  // JSON for local adaptations
+  isActive           Boolean @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("calculation_methodologies")
+}
+
+model NisabThreshold {
+  id                String   @id @default(cuid())
+  effectiveDate     DateTime
+  goldPricePerGram  Float
+  silverPricePerGram Float
+  currency          String   @default("USD")
+  goldNisabGrams    Float    @default(87.48)  // Islamic scholarly consensus
+  silverNisabGrams  Float    @default(612.36) // Islamic scholarly consensus
+  goldNisabValue    Float    // Calculated: goldPricePerGram * goldNisabGrams
+  silverNisabValue  Float    // Calculated: silverPricePerGram * silverNisabGrams
+  priceSource       String   // API, manual entry
+  exchangeRates     String   // JSON with major currency rates
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  @@map("nisab_thresholds")
+  @@index([effectiveDate])
+}
+
+model UserSession {
+  id                 String    @id @default(cuid())
+  userId             String
+  accessToken        String    // JWT access token (short-lived)
+  refreshToken       String    // JWT refresh token (longer-lived)
+  ipAddress          String?
+  userAgent          String?
+  issuedAt           DateTime
+  expiresAt          DateTime
+  refreshedAt        DateTime?
+  isActive           Boolean   @default(true)
+  terminatedAt       DateTime?
+  terminationReason  String?   // logout, expire, security
+  createdAt          DateTime  @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+  @@index([userId])
+  @@index([accessToken])
+  @@index([refreshToken])
+  @@index([expiresAt])
+}
