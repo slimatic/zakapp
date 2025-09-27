@@ -4,6 +4,7 @@ import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { UserStore } from '../utils/userStore';
 import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken, invalidateAllUserRefreshTokens } from '../utils/jwt';
 import { invalidateToken, invalidateUserSession } from '../middleware/auth';
+import { generateResetToken, validateResetToken, useResetToken } from '../utils/resetTokens';
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
@@ -354,20 +355,122 @@ export class AuthController {
   });
 
   resetPassword = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    // Validation
+    const validationErrors: Array<{field: string, message: string}> = [];
+    
+    if (!email) {
+      validationErrors.push({field: 'email', message: 'Email is required'});
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      validationErrors.push({field: 'email', message: 'Invalid email format'});
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
+        details: validationErrors
+      });
+      return;
+    }
+
+    // Privacy-first: Always return success to prevent email enumeration
+    // In real implementation, would send email if user exists
+    const userId = UserStore.getUserIdByEmail(email);
+    let resetTokenId = 'no-token-generated';
+    
+    if (userId) {
+      const resetToken = generateResetToken(userId, email);
+      resetTokenId = resetToken.substring(0, 12) + '...'; // Partial token for tracking
+      
+      // In real implementation: send email with resetToken
+      console.log(`Reset token for ${email}: ${resetToken}`); // For testing
+    }
+
     const response: ApiResponse = {
       success: true,
-      message: 'Password reset email sent'
+      message: 'Password reset email sent',
+      resetTokenId
     };
 
     res.status(200).json(response);
   });
 
   confirmReset = asyncHandler(async (req: Request, res: Response) => {
-    const response: ApiResponse = {
-      success: true,
-      message: 'Password reset successfully'
-    };
+    const { token, password, confirmPassword } = req.body;
 
-    res.status(200).json(response);
+    // Validation
+    const validationErrors: Array<{field: string, message: string}> = [];
+    
+    if (!token) {
+      validationErrors.push({field: 'token', message: 'Reset token is required'});
+    }
+    
+    if (!password) {
+      validationErrors.push({field: 'password', message: 'Password is required'});
+    } else if (password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
+      validationErrors.push({field: 'password', message: 'Password must be at least 8 characters with mixed case, numbers, and symbols'});
+    }
+    
+    if (confirmPassword && password !== confirmPassword) {
+      validationErrors.push({field: 'confirmPassword', message: 'Passwords do not match'});
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
+        details: validationErrors
+      });
+      return;
+    }
+
+    // Validate reset token
+    const tokenData = validateResetToken(token);
+    if (!tokenData) {
+      res.status(400).json({
+        success: false,
+        error: 'INVALID_TOKEN',
+        message: 'Invalid or expired reset token'
+      });
+      return;
+    }
+
+    try {
+      // Update password
+      const success = await UserStore.updatePassword(tokenData.userId, password);
+      if (!success) {
+        res.status(400).json({
+          success: false,
+          error: 'USER_NOT_FOUND',
+          message: 'User not found'
+        });
+        return;
+      }
+
+      // Use the reset token to prevent reuse
+      useResetToken(token);
+      
+      // Invalidate all user sessions for security
+      invalidateUserSession(tokenData.userId);
+      invalidateAllUserRefreshTokens(tokenData.userId);
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Password reset successfully',
+        eventId: `pwd-reset-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'INTERNAL_ERROR',
+        message: 'Failed to update password'
+      });
+    }
   });
 }

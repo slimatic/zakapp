@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { UserStore } from '../src/utils/userStore';
 import { clearUsedTokens } from '../src/utils/jwt';
 import { clearInvalidatedTokens } from '../src/middleware/auth';
+import { clearResetTokens } from '../src/utils/resetTokens';
 
 // Load test environment variables
 dotenv.config({ path: '.env.test' });
@@ -17,4 +18,5 @@ beforeEach(() => {
   UserStore.clear();
   clearUsedTokens();
   clearInvalidatedTokens();
+  clearResetTokens();
 });
