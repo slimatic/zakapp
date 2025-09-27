@@ -287,24 +287,67 @@ export class AuthController {
   });
 
   me = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const mockUser: User = {
-      id: 'mock-user-id',
-      email: 'user@example.com',
-      name: 'Mock User',
-      settings: {
-        preferredMethodology: 'standard',
+    if (!req.userId) {
+      res.status(401).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    // Get user from storage
+    const user = UserStore.getUserById(req.userId);
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: 'USER_NOT_FOUND',
+        message: 'User not found'
+      });
+      return;
+    }
+
+    // Create user response with profile and settings
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      createdAt: user.createdAt,
+      updatedAt: user.createdAt, // For now, same as created
+      profile: {
+        firstName: null,
+        lastName: null,
         currency: 'USD',
-        language: 'en',
-        reminders: true,
-        calendarType: 'lunar'
+        locale: 'en',
+        timezone: null
       },
-      createdAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString()
+      settings: {
+        defaultCalculationMethod: 'standard',
+        nisabMethod: 'gold',
+        notifications: {
+          email: true,
+          push: true,
+          sms: false
+        },
+        privacy: {
+          profileVisibility: 'private',
+          analyticsOptOut: false
+        }
+      }
+    };
+
+    // Create session information
+    const sessionInfo = {
+      id: generateSessionId(),
+      lastAccessAt: new Date().toISOString(),
+      userAgent: req.headers['user-agent'] || 'Unknown',
+      ipAddress: req.ip || req.connection.remoteAddress || 'Unknown'
     };
 
     const response: ApiResponse = {
       success: true,
-      user: mockUser
+      user: userResponse,
+      session: sessionInfo
     };
 
     res.status(200).json(response);
