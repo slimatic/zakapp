@@ -3,7 +3,7 @@ import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 
 // Simple in-memory store for demo - in real app this would be database
-const userAssets: { [userId: string]: any[] } = {};
+export const userAssets: { [userId: string]: any[] } = {};
 
 export class AssetController {
   list = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
