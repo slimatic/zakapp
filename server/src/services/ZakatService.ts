@@ -47,6 +47,7 @@ interface ZakatCalculation {
   zakatableAmount: number;
   zakatOwed: number;
   nisabThreshold: number;
+  nisabMethod: 'GOLD' | 'SILVER' | 'DUAL';
   isAboveNisab: boolean;
   zakatRate: number;
   assetBreakdown: AssetBreakdown[];
@@ -129,16 +130,20 @@ export class ZakatService {
 
     // Determine nisab threshold based on methodology
     let nisabThreshold: number;
+    let nisabMethod: 'GOLD' | 'SILVER' | 'DUAL';
     switch (methodology.nisabMethod) {
       case 'GOLD':
         nisabThreshold = NISAB_VALUES.GOLD;
+        nisabMethod = 'GOLD';
         break;
       case 'SILVER':
         nisabThreshold = NISAB_VALUES.SILVER;
+        nisabMethod = 'SILVER';
         break;
       case 'DUAL':
       default:
         nisabThreshold = NISAB_VALUES.DUAL;
+        nisabMethod = 'DUAL';
         break;
     }
 
@@ -156,6 +161,7 @@ export class ZakatService {
       zakatableAmount,
       zakatOwed,
       nisabThreshold,
+      nisabMethod,
       isAboveNisab,
       zakatRate: methodology.zakatRate,
       assetBreakdown
