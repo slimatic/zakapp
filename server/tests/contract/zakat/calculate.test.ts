@@ -1,23 +1,28 @@
 import request from 'supertest';
 import app from '../../../src/app'; // This will fail until we create the app
+import { clearAllAssets } from '../../../src/controllers/AssetController';
 
 describe('POST /api/zakat/calculate', () => {
   let accessToken: string;
   let userId: string;
 
   beforeEach(async () => {
+    // Clear all assets from previous tests
+    clearAllAssets();
+    
+    const timestamp = Date.now();
     await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'zakat@example.com',
+        email: `zakat${timestamp}@example.com`,
         password: 'SecurePassword123!',
-        username: 'zakatuser'
+        username: `zakatuser${timestamp}`
       });
 
     const loginResponse = await request(app)
       .post('/api/auth/login')
       .send({
-        email: 'zakat@example.com',
+        email: `zakat${timestamp}@example.com`,
         password: 'SecurePassword123!'
       });
 
@@ -102,18 +107,19 @@ describe('POST /api/zakat/calculate', () => {
 
   it('should handle assets below nisab threshold', async () => {
     // Create user with small assets
+    const smallTimestamp = Date.now() + 999; // Make sure it's unique
     await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'smallzakat@example.com',
+        email: `smallzakat${smallTimestamp}@example.com`,
         password: 'SecurePassword123!',
-        username: 'smallzakatuser'
+        username: `smallzakatuser${smallTimestamp}`
       });
 
     const smallUserLogin = await request(app)
       .post('/api/auth/login')
       .send({
-        email: 'smallzakat@example.com',
+        email: `smallzakat${smallTimestamp}@example.com`,
         password: 'SecurePassword123!'
       });
 
@@ -124,7 +130,7 @@ describe('POST /api/zakat/calculate', () => {
       .send({
         type: 'CASH',
         name: 'Small Savings',
-        value: 500.00, // Below nisab threshold
+        value: 300.00, // Below nisab threshold (357 silver nisab)
         currency: 'USD'
       });
 
