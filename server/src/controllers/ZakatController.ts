@@ -1,40 +1,44 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
+import { zakatService } from '../services/ZakatService';
 
 export class ZakatController {
   calculate = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { methodologyId, year, excludeAssets } = req.body;
-
-    if (!methodologyId) {
-      throw new AppError('Methodology ID is required', 400, 'MISSING_METHODOLOGY');
+    const userId = req.userId;
+    if (!userId) {
+      throw new AppError('User not authenticated', 401, 'UNAUTHORIZED');
     }
 
-    // Mock calculation response
-    const mockCalculation = {
-      methodologyId,
-      year: year || new Date().getFullYear(),
-      totalAssetValue: 10000.00,
-      zakatableAmount: 10000.00,
-      zakatOwed: 250.00, // 2.5%
-      isAboveNisab: true,
-      nisabThreshold: 2947.78, // Mock nisab value
-      breakdown: {
-        cash: {
-          totalValue: 10000.00,
-          zakatableAmount: 10000.00,
-          zakatOwed: 250.00
-        }
-      },
-      calculatedAt: new Date().toISOString()
-    };
+    const calculationRequest = req.body;
 
-    const response: ApiResponse = {
-      success: true,
-      calculation: mockCalculation
-    };
+    // Validate request
+    if (!calculationRequest.methodologyId) {
+      throw new AppError('Methodology ID is required', 400, 'VALIDATION_ERROR');
+    }
 
-    res.status(200).json(response);
+    try {
+      // Validate the calculation request
+      zakatService.validateCalculationRequest(calculationRequest);
+
+      // Perform the calculation
+      const calculation = await zakatService.calculateZakat(
+        calculationRequest,
+        userId
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        calculation
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Methodology ID is required')) {
+        throw new AppError('Methodology ID is required', 400, 'VALIDATION_ERROR');
+      }
+      throw error;
+    }
   });
 
   getNisab = asyncHandler(async (req: Request, res: Response) => {
