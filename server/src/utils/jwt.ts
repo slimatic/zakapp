@@ -6,6 +6,8 @@ const REFRESH_EXPIRES_IN = '7d'; // 7 days for refresh token
 
 // Track used refresh tokens to prevent reuse
 const usedRefreshTokens = new Set<string>();
+const invalidatedRefreshTokens = new Set<string>();
+const userRefreshTokens = new Map<string, Set<string>>(); // userId -> Set of refresh tokens
 
 export function generateAccessToken(userId: string): string {
   return jwt.sign(
@@ -16,11 +18,19 @@ export function generateAccessToken(userId: string): string {
 }
 
 export function generateRefreshToken(userId: string): string {
-  return jwt.sign(
+  const token = jwt.sign(
     { userId, type: 'refresh', jti: Math.random().toString(36) },
     JWT_SECRET,
     { expiresIn: REFRESH_EXPIRES_IN }
   );
+  
+  // Track token for this user
+  if (!userRefreshTokens.has(userId)) {
+    userRefreshTokens.set(userId, new Set());
+  }
+  userRefreshTokens.get(userId)!.add(token);
+  
+  return token;
 }
 
 export function verifyToken(token: string): any {
@@ -42,6 +52,10 @@ export function verifyRefreshToken(token: string): any {
     throw new Error('TOKEN_USED');
   }
   
+  if (invalidatedRefreshTokens.has(token)) {
+    throw new Error('TOKEN_INVALIDATED');
+  }
+  
   const decoded = verifyToken(token);
   
   if (decoded.type !== 'refresh') {
@@ -55,10 +69,24 @@ export function markRefreshTokenAsUsed(token: string): void {
   usedRefreshTokens.add(token);
 }
 
+export function invalidateRefreshToken(token: string): void {
+  invalidatedRefreshTokens.add(token);
+}
+
+export function invalidateAllUserRefreshTokens(userId: string): void {
+  const tokens = userRefreshTokens.get(userId);
+  if (tokens) {
+    tokens.forEach(token => invalidatedRefreshTokens.add(token));
+    userRefreshTokens.delete(userId);
+  }
+}
+
 export function generateSessionId(): string {
   return `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 export function clearUsedTokens(): void {
   usedRefreshTokens.clear();
+  invalidatedRefreshTokens.clear();
+  userRefreshTokens.clear();
 }
