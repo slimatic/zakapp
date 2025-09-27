@@ -5,13 +5,20 @@ import { asyncHandler, AppError } from '../middleware/errorHandler';
 // Simple in-memory store for demo - in real app this would be database
 export const userAssets: { [userId: string]: any[] } = {};
 
+// Test helper to clear assets
+export const clearAllAssets = () => {
+  for (const key in userAssets) {
+    delete userAssets[key];
+  }
+};
+
 export class AssetController {
   list = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { type, currency, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     const userId = req.userId!;
 
-    // Get user's assets from store, or create default ones if first time
-    if (!userAssets[userId]) {
+    // Get user's assets from store, or create default ones if first time (skip in test env)
+    if (!userAssets[userId] && process.env.NODE_ENV !== 'test') {
       userAssets[userId] = [
         {
           id: `${userId}-asset-1`,
@@ -51,6 +58,9 @@ export class AssetController {
           updatedAt: new Date(Date.now() - 1000).toISOString()
         }
       ];
+    } else if (!userAssets[userId]) {
+      // Initialize empty array for test environment
+      userAssets[userId] = [];
     }
 
     let assets = [...userAssets[userId]];
