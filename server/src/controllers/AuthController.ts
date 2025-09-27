@@ -12,9 +12,12 @@ export class AuthController {
       throw new AppError('Missing required fields', 400, 'MISSING_FIELDS');
     }
 
+    // Create a simple user ID based on email hash
+    const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)}`;
+
     // Mock user creation
     const mockUser: User = {
-      id: 'mock-user-id',
+      id: userId,
       email,
       name: username,
       settings: {
@@ -25,9 +28,10 @@ export class AuthController {
       createdAt: new Date().toISOString()
     };
 
+    // Create token that includes user ID
     const mockTokens: AuthTokens = {
-      accessToken: 'mock-access-token',
-      refreshToken: 'mock-refresh-token',
+      accessToken: `token-${userId}`,
+      refreshToken: `refresh-${userId}`,
       expiresIn: 900 // 15 minutes
     };
 
@@ -48,18 +52,21 @@ export class AuthController {
       throw new AppError('Missing email or password', 400, 'MISSING_CREDENTIALS');
     }
 
+    // Create consistent user ID based on email
+    const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)}`;
+
     // Mock login response
     const mockUser: User = {
-      id: 'mock-user-id',
+      id: userId,
       email,
-      name: 'Mock User',
+      name: email.split('@')[0], // Use email prefix as name
       lastLoginAt: new Date().toISOString(),
       createdAt: new Date().toISOString()
     };
 
     const mockTokens: AuthTokens = {
-      accessToken: 'mock-access-token',
-      refreshToken: 'mock-refresh-token',
+      accessToken: `token-${userId}`,
+      refreshToken: `refresh-${userId}`,
       expiresIn: 900
     };
 
