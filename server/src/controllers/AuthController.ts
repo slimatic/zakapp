@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse, AuthTokens, User } from '../types';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { UserStore } from '../utils/userStore';
-import { generateAccessToken, generateRefreshToken, generateSessionId } from '../utils/jwt';
+import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken } from '../utils/jwt';
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
@@ -151,16 +151,98 @@ export class AuthController {
   });
 
   refresh = asyncHandler(async (req: Request, res: Response) => {
-    const response: ApiResponse = {
-      success: true,
-      tokens: {
-        accessToken: 'new-mock-access-token',
-        refreshToken: 'new-mock-refresh-token',
-        expiresIn: 900
-      }
-    };
+    const { refreshToken } = req.body;
 
-    res.status(200).json(response);
+    // Validation
+    if (!refreshToken) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Refresh token is required'
+      });
+      return;
+    }
+
+    try {
+      // Verify the refresh token
+      const decoded = verifyRefreshToken(refreshToken);
+      
+      // If there's an authorization header, verify it matches the refresh token user
+      const authHeader = req.headers['authorization'];
+      if (authHeader) {
+        const accessToken = authHeader.split(' ')[1];
+        if (accessToken) {
+          try {
+            const accessDecoded = verifyToken(accessToken);
+            if (accessDecoded.userId !== decoded.userId) {
+              res.status(401).json({
+                success: false,
+                error: 'TOKEN_MISMATCH',
+                message: 'Access token does not match refresh token user'
+              });
+              return;
+            }
+          } catch (error) {
+            // Ignore invalid access tokens for now, just focus on refresh token
+          }
+        }
+      }
+      
+      // Mark the old refresh token as used
+      markRefreshTokenAsUsed(refreshToken);
+      
+      // Get user to validate they still exist
+      const user = UserStore.getUserById(decoded.userId);
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          error: 'INVALID_TOKEN',
+          message: 'User not found'
+        });
+        return;
+      }
+
+      // Generate new tokens
+      const newAccessToken = generateAccessToken(decoded.userId);
+      const newRefreshToken = generateRefreshToken(decoded.userId);
+      const sessionId = generateSessionId();
+
+      const tokens: AuthTokens = {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        expiresIn: 900 // 15 minutes
+      };
+
+      const response: ApiResponse = {
+        success: true,
+        tokens,
+        // Also provide direct access for tests that expect it
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        expiresIn: 900,
+        sessionId
+      };
+
+      res.status(200).json(response);
+    } catch (error: any) {
+      let statusCode = 401;
+      let errorCode = 'INVALID_TOKEN';
+      let message = 'Invalid refresh token';
+
+      if (error.message === 'TOKEN_EXPIRED') {
+        errorCode = 'TOKEN_EXPIRED';
+        message = 'Refresh token has expired';
+      } else if (error.message === 'TOKEN_USED') {
+        errorCode = 'TOKEN_USED';
+        message = 'Refresh token has already been used';
+      }
+
+      res.status(statusCode).json({
+        success: false,
+        error: errorCode,
+        message
+      });
+    }
   });
 
   logout = asyncHandler(async (req: Request, res: Response) => {
