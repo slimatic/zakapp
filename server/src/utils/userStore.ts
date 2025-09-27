@@ -54,6 +54,22 @@ export class UserStore {
     return user;
   }
 
+  static getUserIdByEmail(email: string): string | null {
+    return emailToUserId.get(email) || null;
+  }
+
+  static async updatePassword(userId: string, newPassword: string): Promise<boolean> {
+    const user = users.get(userId);
+    if (!user) {
+      return false;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    user.passwordHash = passwordHash;
+    users.set(userId, user);
+    return true;
+  }
+
   static getUserById(userId: string): StoredUser | null {
     return users.get(userId) || null;
   }

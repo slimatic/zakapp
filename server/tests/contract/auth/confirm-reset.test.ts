@@ -21,9 +21,12 @@ describe('POST /api/auth/confirm-reset', () => {
       .send({ email: 'confirm@example.com' });
 
     resetTokenId = resetResponse.body.resetTokenId;
-    // In real implementation, token would be sent via email
-    // For testing, we'll assume we can access it somehow
-    resetToken = 'mock-reset-token-from-email';
+    
+    // Get the actual reset token from test helper
+    const tokenResponse = await request(app)
+      .get('/api/auth/test/last-reset-token');
+    
+    resetToken = tokenResponse.body.resetToken;
   });
 
   it('should confirm password reset with valid token and new password', async () => {
