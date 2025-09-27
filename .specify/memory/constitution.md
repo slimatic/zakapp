@@ -52,6 +52,33 @@ All contributions follow established processes:
 - Documentation updates accompany all feature additions
 - Transparent issue tracking and feature request management
 
+### Git Workflow and Milestone Commits
+
+**Mandatory milestone commit strategy:**
+- Commit changes after each completed milestone/phase
+- Use logical, descriptive commit messages following conventional commit format
+- Separate commits by functional area (e.g., specifications, dependencies, database, tests)
+- Never commit sensitive data (encrypted files, databases, .env files, user data)
+- Update .gitignore proactively to protect sensitive files
+- Each milestone should represent a complete, reviewable unit of work
+
+**Commit message format:**
+```
+<type>: <description>
+
+<body explaining what was accomplished>
+<specific features, counts, or completion status>
+<security considerations if applicable>
+```
+
+**Required commit types for milestones:**
+- `feat:` for new features and major milestone completions
+- `docs:` for specification and documentation updates  
+- `test:` for test suite additions (TDD phases)
+- `refactor:` for code structure improvements
+- `security:` for security-related changes
+- `data:` for database schema and migration changes
+
 ## Documentation Requirements
 
 Documentation standards:
