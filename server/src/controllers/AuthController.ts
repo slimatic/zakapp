@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse, AuthTokens, User } from '../types';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
+import { UserStore } from '../utils/userStore';
+import { generateAccessToken, generateRefreshToken, generateSessionId } from '../utils/jwt';
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
@@ -35,15 +37,8 @@ export class AuthController {
       return;
     }
 
-    // Check for duplicate email - simple in-memory storage for now
-    const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)}`;
-    
-    // For testing duplicate emails, we track registrations in memory
-    if (!global.registeredEmails) {
-      global.registeredEmails = new Set();
-    }
-    
-    if (global.registeredEmails.has(email)) {
+    // Check for duplicate email
+    if (UserStore.emailExists(email)) {
       res.status(409).json({
         success: false,
         error: 'EMAIL_ALREADY_EXISTS',
@@ -52,59 +47,104 @@ export class AuthController {
       return;
     }
     
-    global.registeredEmails.add(email);
+    try {
+      // Create user with encrypted password
+      const user = await UserStore.createUser(email, username, password);
+      
+      // Create user response without sensitive data
+      const userResponse = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        createdAt: user.createdAt
+      };
 
-    // Create user without sensitive settings exposed
-    const mockUser = {
-      id: userId,
-      email,
-      username,
-      createdAt: new Date().toISOString()
-    };
+      const response: ApiResponse = {
+        success: true,
+        message: 'User registered successfully',
+        user: userResponse
+      };
 
-    const response: ApiResponse = {
-      success: true,
-      message: 'User registered successfully',
-      user: mockUser
-    };
-
-    res.status(201).json(response);
+      res.status(201).json(response);
+    } catch (error: any) {
+      if (error.message === 'EMAIL_ALREADY_EXISTS') {
+        res.status(409).json({
+          success: false,
+          error: 'EMAIL_ALREADY_EXISTS',
+          message: 'Email address is already registered'
+        });
+        return;
+      }
+      throw error;
+    }
   });
 
   login = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      throw new AppError('Missing email or password', 400, 'MISSING_CREDENTIALS');
+    // Validation - collect all errors
+    const validationErrors: Array<{field: string, message: string}> = [];
+    
+    if (!email) {
+      validationErrors.push({field: 'email', message: 'Email is required'});
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      validationErrors.push({field: 'email', message: 'Invalid email format'});
+    }
+    
+    if (!password) {
+      validationErrors.push({field: 'password', message: 'Password is required'});
     }
 
-    // Create consistent user ID based on email
-    const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)}`;
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
+        details: validationErrors
+      });
+      return;
+    }
 
-    // Mock login response
-    const mockUser: User = {
-      id: userId,
-      email,
-      name: email.split('@')[0], // Use email prefix as name
-      lastLoginAt: new Date().toISOString(),
-      createdAt: new Date().toISOString()
+    // Authenticate user
+    const user = await UserStore.authenticateUser(email, password);
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: 'INVALID_CREDENTIALS',
+        message: 'Invalid email or password'
+      });
+      return;
+    }
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+    const sessionId = generateSessionId();
+
+    // Create user response
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      name: user.username,
+      lastLoginAt: new Date().toISOString()
     };
 
-    const mockTokens: AuthTokens = {
-      accessToken: `token-${userId}`,
-      refreshToken: `refresh-${userId}`,
-      expiresIn: 900
+    const tokens: AuthTokens = {
+      accessToken,
+      refreshToken,
+      expiresIn: 900 // 15 minutes in seconds
     };
 
     const response: ApiResponse = {
       success: true,
       message: 'Login successful',
-      user: mockUser,
-      tokens: mockTokens,
+      user: userResponse,
+      tokens,
       // Also provide direct access for tests that expect it
-      accessToken: mockTokens.accessToken,
-      refreshToken: mockTokens.refreshToken,
-      expiresIn: mockTokens.expiresIn
+      accessToken,
+      refreshToken,
+      expiresIn: 900,
+      sessionId
     };
 
     res.status(200).json(response);
