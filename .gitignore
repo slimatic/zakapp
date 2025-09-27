@@ -33,7 +33,20 @@ coverage/
 .nyc_output
 
 # Data directory (contains sensitive user data)
+server/data/
 backend/data/
+**/users/
+*.db
+*.db-journal
+
+# Prisma database files
+server/prisma/data/
+server/prisma/*.db
+server/prisma/*.db-journal
+
+# Encrypted user files
+*.enc
+*.encrypted
 
 # OS generated files
 .DS_Store
