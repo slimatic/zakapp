@@ -33,7 +33,7 @@ coverage/
 .nyc_output
 
 # Data directory (contains sensitive user data)
-backend/data/
+server/data/
 
 # OS generated files
 .DS_Store
