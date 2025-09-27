@@ -4,46 +4,68 @@ import { asyncHandler, AppError } from '../middleware/errorHandler';
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
-    // Mock implementation - will be replaced with real logic
     const { email, password, username } = req.body;
     
-    // Basic validation
-    if (!email || !password || !username) {
-      throw new AppError('Missing required fields', 400, 'MISSING_FIELDS');
+    // Validation - collect all errors
+    const validationErrors: Array<{field: string, message: string}> = [];
+    
+    if (!email) {
+      validationErrors.push({field: 'email', message: 'Email is required'});
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      validationErrors.push({field: 'email', message: 'Invalid email format'});
+    }
+    
+    if (!password) {
+      validationErrors.push({field: 'password', message: 'Password is required'});
+    } else if (password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
+      validationErrors.push({field: 'password', message: 'Password must be at least 8 characters with mixed case, numbers, and symbols'});
+    }
+    
+    if (!username) {
+      validationErrors.push({field: 'username', message: 'Username is required'});
     }
 
-    // Create a simple user ID based on email hash
-    const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)}`;
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
+        details: validationErrors
+      });
+      return;
+    }
 
-    // Mock user creation
-    const mockUser: User = {
+    // Check for duplicate email - simple in-memory storage for now
+    const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)}`;
+    
+    // For testing duplicate emails, we track registrations in memory
+    if (!global.registeredEmails) {
+      global.registeredEmails = new Set();
+    }
+    
+    if (global.registeredEmails.has(email)) {
+      res.status(409).json({
+        success: false,
+        error: 'EMAIL_ALREADY_EXISTS',
+        message: 'Email address is already registered'
+      });
+      return;
+    }
+    
+    global.registeredEmails.add(email);
+
+    // Create user without sensitive settings exposed
+    const mockUser = {
       id: userId,
       email,
-      name: username,
-      settings: {
-        preferredMethodology: 'standard',
-        currency: 'USD',
-        language: 'en'
-      },
+      username,
       createdAt: new Date().toISOString()
-    };
-
-    // Create token that includes user ID
-    const mockTokens: AuthTokens = {
-      accessToken: `token-${userId}`,
-      refreshToken: `refresh-${userId}`,
-      expiresIn: 900 // 15 minutes
     };
 
     const response: ApiResponse = {
       success: true,
-      message: 'Account created successfully',
-      user: mockUser,
-      tokens: mockTokens,
-      // Also provide direct access for tests that expect it
-      accessToken: mockTokens.accessToken,
-      refreshToken: mockTokens.refreshToken,
-      expiresIn: mockTokens.expiresIn
+      message: 'User registered successfully',
+      user: mockUser
     };
 
     res.status(201).json(response);
