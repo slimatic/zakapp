@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse, AuthTokens, User } from '../types';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { UserStore } from '../utils/userStore';
-import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken } from '../utils/jwt';
+import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken, invalidateAllUserRefreshTokens } from '../utils/jwt';
+import { invalidateToken, invalidateUserSession } from '../middleware/auth';
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
@@ -235,6 +236,9 @@ export class AuthController {
       } else if (error.message === 'TOKEN_USED') {
         errorCode = 'TOKEN_USED';
         message = 'Refresh token has already been used';
+      } else if (error.message === 'TOKEN_INVALIDATED') {
+        errorCode = 'TOKEN_INVALIDATED';
+        message = 'Refresh token has been invalidated';
       }
 
       res.status(statusCode).json({
@@ -245,13 +249,41 @@ export class AuthController {
     }
   });
 
-  logout = asyncHandler(async (req: Request, res: Response) => {
-    const response: ApiResponse = {
-      success: true,
-      message: 'Logged out successfully'
-    };
+  logout = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { logoutFromAllDevices } = req.body;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader?.split(' ')[1];
 
-    res.status(200).json(response);
+    if (!req.userId) {
+      res.status(401).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    if (logoutFromAllDevices) {
+      // Invalidate all sessions for this user
+      invalidateUserSession(req.userId);
+      invalidateAllUserRefreshTokens(req.userId);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Logged out from all devices successfully'
+      });
+    } else {
+      // For regular logout, invalidate access token and all user's refresh tokens for security
+      if (token) {
+        invalidateToken(token);
+      }
+      invalidateAllUserRefreshTokens(req.userId);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Logged out successfully'
+      });
+    }
   });
 
   me = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
