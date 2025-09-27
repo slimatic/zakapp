@@ -71,6 +71,25 @@ Authentication, encryption, and privacy enforced at all stages:
 - Security configuration mandatory for all deployment scenarios
 - Regular security audits and vulnerability assessments
 
+## Foundational Resources
+
+zakapp is governed and inspired by the teachings and practical guidance of the Simple Zakat Guide, including its video series. All calculation methodologies, user education, and interface design should reflect the clarity, accuracy, and accessibility promoted by the following resources:
+
+- **Simple Zakat Guide Video Series:**
+    - [001 - Read Along and Explanation](https://www.youtube.com/watch?v=apMf80Osj5U)
+    - [002 - Read Along and Explanation](https://www.youtube.com/watch?v=yJiajXDd9ss)
+    - [003 - Read Along and Explanation](https://www.youtube.com/watch?v=RG3N5wX3AZM)
+    - [004 - Read Along and Explanation](https://www.youtube.com/watch?v=x60-90TpjVk)
+    - [005 - Read Along and Explanation](https://www.youtube.com/watch?v=6qX83hi1sAs)
+    - [006 - Read Along and Explanation](https://www.youtube.com/watch?v=AFssV3NksEM)
+    - [007 - Read Along and Explanation](https://www.youtube.com/watch?v=5EEbUKPDoc0)
+    - [008 - Read Along and Explanation](https://www.youtube.com/watch?v=A6uC8SBahHA)
+    - [009 - Read Along and Explanation](https://www.youtube.com/watch?v=fTNayQyCtgU)
+    - [010 - Read Along and Explanation](https://www.youtube.com/watch?v=rV3vJVx_XmU)
+- **SimpleZakatGuide.com**
+
+All contributors, designers, and reviewers are encouraged to reference these resources when making decisions or implementing features. The Simple Zakat Guide and its materials form the foundational basis for zakapp’s methodologies and user education. However, zakapp is open to support from other practical guidance and teachings. Such sources may be incorporated—provided they are properly cited and documented—to enable modular and flexible interpretation of different Zakat calculation methodologies.
+
 ## Governance
 
 This repository abides by the MIT License. Code ownership defined in .github/CODEOWNERS. All work follows the development plan and roadmap documentation. Constitution compliance verified in all pull requests and architectural decisions.
