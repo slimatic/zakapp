@@ -17,7 +17,7 @@ export const authenticateToken = (
 
   // Mock token verification - extract user ID from token format "token-{userId}"
   if (token.startsWith('token-user-')) {
-    const userId = token.replace('token-', '');
+    const userId = token.replace('token-', ''); // This will be "user-getassetsexa"
     req.userId = userId;
     req.user = {
       id: userId,
