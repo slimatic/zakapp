@@ -31,13 +31,12 @@
     }
   },
   "include": [
-    "src/**/*",
-    "tests/**/*",
-    "../shared/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
+    "tests",
     "**/*.spec.ts",
     "**/*.test.ts"
   ],
