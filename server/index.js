@@ -11,7 +11,7 @@ const zakatRoutes = require('./routes/zakat');
 const assetRoutes = require('./routes/assets');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(helmet());
@@ -31,13 +31,40 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// API Routes
-app.use('/api/auth', authRoutes);
+// API routes
+app.use('/api/auth', (req, res, next) => {
+  console.log('Auth request:', req.method, req.url, 'Body:', JSON.stringify(req.body));
+  next();
+}, authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/zakat', zakatRoutes);
 app.use('/api/assets', assetRoutes);
 
+// API info endpoint
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'ZakApp API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      auth: '/api/auth',
+      assets: '/api/assets',
+      zakat: '/api/zakat',
+      user: '/api/user',
+      health: '/health'
+    }
+  });
+});
+
 // Health check
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0'
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -69,10 +96,28 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 zakapp server running on port ${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔒 Data directory: ${process.env.DATA_DIR || './data'}`);
+});
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use!`);
+    console.error('');
+    console.error('To fix this issue, you can:');
+    console.error('• Set a different port: PORT=5001 npm run dev');
+    console.error('• Or set PORT environment variable: export PORT=5001');
+    console.error('• Or kill the process using the port:');
+    console.error(`  - Find the process: lsof -ti:${PORT}`);
+    console.error(`  - Kill the process: kill -9 $(lsof -ti:${PORT})`);
+    console.error('');
+    process.exit(1);
+  } else {
+    console.error('Server error:', error);
+    process.exit(1);
+  }
 });
 
 module.exports = app;
