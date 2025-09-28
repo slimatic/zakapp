@@ -4,12 +4,15 @@
   "description": "A user-friendly, self-hosted Zakat application with modern UI",
   "main": "server/index.js",
   "scripts": {
-    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "dev": "concurrently --kill-others-on-fail \"npm run server:dev\" \"npm run client:dev\"",
+    "dev:all": "npm run dev",
     "server:dev": "cd server && npm run dev",
     "client:dev": "cd client && npm start",
     "build": "cd client && npm run build",
     "start": "cd server && npm start",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "clean": "pkill -f 'react-scripts' || true && pkill -f 'ts-node' || true",
+    "reset": "npm run clean && npm run dev",
     "docker:build": "docker build -t zakapp .",
     "docker:run": "docker run -p 3000:3000 -v zakapp-data:/app/data zakapp"
   },

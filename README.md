@@ -167,8 +167,9 @@ npm start
 
 ```bash
 # From the root directory
-npm run dev:all
+npm run dev
 # This will start both servers concurrently
+# Alternative: npm run dev:all (alias for the same command)
 ```
 
 ### 🌐 **Step 6: Access the Application**
