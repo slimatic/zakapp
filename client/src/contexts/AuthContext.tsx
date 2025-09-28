@@ -143,7 +143,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
+      console.log('Attempting registration with:', { ...userData, password: '[HIDDEN]' });
       const response = await apiService.register(userData);
+      console.log('Registration response:', { ...response, accessToken: response.accessToken ? '[PRESENT]' : '[MISSING]' });
+      
       if (response.success && response.accessToken && response.user) {
         localStorage.setItem('accessToken', response.accessToken);
         if (response.refreshToken) {
@@ -156,6 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
       }
     } catch (error) {
+      console.error('Registration error:', error);
       dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Registration failed' });
       return false;
     }
