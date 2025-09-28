@@ -5,7 +5,8 @@ export class AppError extends Error {
   constructor(
     public message: string,
     public statusCode: number,
-    public code: string
+    public code: string,
+    public details?: any
   ) {
     super(message);
     this.name = 'AppError';
@@ -21,11 +22,13 @@ export const errorHandler = (
   let statusCode = 500;
   let errorCode = 'INTERNAL_ERROR';
   let message = 'An unexpected error occurred';
+  let details: any = undefined;
 
   if (error instanceof AppError) {
     statusCode = error.statusCode;
     errorCode = error.code;
     message = error.message;
+    details = error.details;
   }
 
   // Log error for debugging (but not in tests)
@@ -36,7 +39,8 @@ export const errorHandler = (
   const response: ErrorResponse = {
     success: false,
     error: errorCode,
-    message
+    message,
+    ...(details && { details })
   };
 
   res.status(statusCode).json(response);
