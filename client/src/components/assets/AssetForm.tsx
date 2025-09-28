@@ -57,24 +57,32 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       return;
     }
 
-    const submitData = isEditing 
-      ? { assetId: asset!.assetId, assetData: formData }
-      : formData;
-
-    mutation.mutate(submitData, {
-      onSuccess: () => {
-        onSuccess?.();
-      },
-      onError: (error) => {
-        console.error('Asset form error:', error);
-        setErrors({ submit: 'Failed to save asset. Please try again.' });
-      }
-    });
+    if (isEditing && asset) {
+      updateMutation.mutate({ assetId: asset.assetId, assetData: formData }, {
+        onSuccess: () => {
+          onSuccess?.();
+        },
+        onError: (error: any) => {
+          console.error('Asset update error:', error);
+          setErrors({ submit: 'Failed to update asset. Please try again.' });
+        }
+      });
+    } else {
+      createMutation.mutate(formData, {
+        onSuccess: () => {
+          onSuccess?.();
+        },
+        onError: (error: any) => {
+          console.error('Asset create error:', error);
+          setErrors({ submit: 'Failed to create asset. Please try again.' });
+        }
+      });
+    }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
+    
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -162,7 +170,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             type="text"
             id="name"
             value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
+            onChange={(e) => handleChange('name', e.target.value)}
             className={errors.name ? 'border-red-500' : ''}
             placeholder="e.g., Chase Savings Account"
           />
@@ -177,7 +185,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           <select
             id="category"
             value={formData.category}
-            onChange={(e) => handleInputChange('category', e.target.value)}
+            onChange={(e) => {
+              handleChange('category', e.target.value);
+              handleChange('subCategory', ''); // Reset subcategory when category changes
+            }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             {categoryOptions.map((option) => (
@@ -197,7 +208,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             <select
               id="subCategory"
               value={formData.subCategory}
-              onChange={(e) => handleInputChange('subCategory', e.target.value)}
+              onChange={(e) => handleChange('subCategory', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select a sub-category</option>
@@ -220,7 +231,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               type="number"
               id="value"
               value={formData.value}
-              onChange={(e) => handleInputChange('value', parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleChange('value', parseFloat(e.target.value) || 0)}
               className={errors.value ? 'border-red-500' : ''}
               min="0"
               step="0.01"
@@ -236,7 +247,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             <select
               id="currency"
               value={formData.currency}
-              onChange={(e) => handleInputChange('currency', e.target.value)}
+              onChange={(e) => handleChange('currency', e.target.value)}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.currency ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -262,7 +273,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           <textarea
             id="description"
             value={formData.description}
-            onChange={(e) => handleInputChange('description', e.target.value)}
+            onChange={(e) => handleChange('description', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows={3}
             placeholder="Additional notes about this asset..."
@@ -275,7 +286,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             <input
               type="checkbox"
               checked={formData.zakatEligible}
-              onChange={(e) => handleInputChange('zakatEligible', e.target.checked)}
+              onChange={(e) => handleChange('zakatEligible', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
             />
             <span className="ml-2 text-sm text-gray-700">

@@ -20,7 +20,7 @@ export const AssetImportExport: React.FC = () => {
   const { data: assetsData } = useAssets();
   const createAssetMutation = useCreateAsset();
 
-  const assets = assetsData?.assets || [];
+  const assets = assetsData?.data || [];
 
   // Export assets to CSV
   const handleExport = () => {
@@ -59,7 +59,7 @@ export const AssetImportExport: React.FC = () => {
       ]);
 
       // Combine headers and rows
-      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      const csvContent = [headers.join(','), ...rows.map((row: string[]) => row.join(','))].join('\n');
 
       // Create and download the file
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
