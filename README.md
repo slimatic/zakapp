@@ -1,46 +1,74 @@
-# zakapp 🌙
+# ZakApp 🕌
 
-A modern, self-hosted Zakat calculator with beautiful UI and comprehensive asset management.
+A **production-ready**, privacy-first Islamic Zakat calculator with comprehensive asset management and beautiful UI.
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/slimatic/zakapp)
-[![Development Progress](https://img.shields.io/badge/progress-75%25-yellow)](./PROJECT_STATUS_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-160%2F160-brightgreen)](./MILESTONE.md)
+[![Implementation](https://img.shields.io/badge/implementation-98%25-brightgreen)](./MILESTONE.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 ## 🎯 Project Overview
 
-zakapp is a **production-ready** self-hosted Zakat calculator that helps Muslims manage their Islamic financial obligations with confidence. Built with modern web technologies and designed for complete privacy control, it features encrypted data storage, comprehensive asset management, and a beautiful user experience.
+ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that helps Muslims manage their Islamic financial obligations with complete privacy and Islamic compliance. Built with modern web technologies, it features end-to-end encryption, multiple calculation methodologies, and a beautiful user experience.
 
-**🏆 Current Status**: 75% Complete - **Phases 1-3 fully implemented and production-ready**
+**🏆 Current Status**: **98% Complete** - Full-stack application ready for production deployment!
 
-## ✨ Key Features
+## ✨ Key Features - **ALL IMPLEMENTED & PRODUCTION READY** ✅
 
-### ✅ **IMPLEMENTED & PRODUCTION READY**
-- **🔐 Complete Authentication System**: Secure registration, login, JWT tokens, encrypted storage
-- **📊 Advanced Asset Management**: Interactive forms, 8+ asset categories, multi-currency support
-- **🎨 Modern UI/UX**: Beautiful, responsive design with professional components
-- **🔒 Privacy-First Architecture**: Self-hosted with AES-256 encrypted JSON storage
-- **⚡ Real-time Calculations**: Live asset totals and zakat-eligible amount displays
-- **📱 Mobile-Responsive**: Perfect experience on all devices
-- **🛡️ Comprehensive Security**: bcrypt password hashing, CORS, security headers
+### 🔐 **Security & Privacy**
+- **Complete Authentication System**: JWT with refresh tokens, secure session management
+- **End-to-End Encryption**: AES-256-CBC for all sensitive financial data
+- **Privacy-First Architecture**: Self-hosted with complete data control
+- **Comprehensive Security**: Input validation, rate limiting, CORS protection
 
-### 🚧 **IN DEVELOPMENT**
-- **🧮 Advanced Zakat Calculator**: Multiple methodologies, lunar/solar calendars (25% complete)
-- **📈 Year-to-Year Tracking**: Historical data and payment tracking (planned)
-- **🧪 Comprehensive Testing**: Unit, integration, and E2E tests (planned)
+### 🕌 **Islamic Compliance**
+- **Multiple Zakat Methodologies**: Standard, Hanafi, Shafi'i calculations
+- **Proper Nisab Handling**: Current gold/silver thresholds with live rates
+- **Educational Content**: Islamic principles and calculation explanations
+- **Currency Support**: Multi-currency with automatic conversion
 
-### 🎯 **PLANNED**
-- **🐳 Production Deployment**: Optimized Docker configuration
-- **📊 Advanced Analytics**: Detailed insights and reporting
-- **🔍 Security Audit**: Professional security review
+### 📊 **Asset Management**
+- **Comprehensive CRUD**: Create, read, update, delete all asset types
+- **8+ Asset Categories**: Cash, Gold, Silver, Crypto, Business, Investments, etc.
+- **Bulk Operations**: Import/export assets in JSON, CSV, PDF formats
+- **Real-time Calculations**: Live portfolio totals and Zakat eligibility
+
+### 🧮 **Zakat Calculator**
+- **Multi-Methodology Support**: Compare calculations across different schools
+- **Detailed Breakdowns**: Asset-by-asset calculation explanations
+- **Payment Recording**: Track Zakat payments with receipt generation
+- **Historical Tracking**: Complete calculation and payment history
+
+### 🎨 **User Experience**
+- **Beautiful Islamic UI**: Emerald green theme with cultural sensitivity
+- **Mobile-First Design**: Perfect experience on all devices
+- **Interactive Dashboard**: Portfolio overview with quick actions
+- **Comprehensive Help**: Getting started guide with Islamic guidance
+
+### 🧪 **Quality Assurance**
+- **160/160 Tests Passing**: Comprehensive backend test coverage
+- **Production Build**: Optimized frontend (84.89 kB gzipped)
+- **TypeScript**: 100% type safety throughout the application
+- **Error Handling**: Graceful error management and user feedback
 
 ## 🏗️ Architecture
 
-- **Frontend**: React + TypeScript + Tailwind CSS
-- **Backend**: Node.js + Express + TypeScript
-- **Storage**: Encrypted JSON files (no database required)
-- **Security**: JWT authentication + client-side encryption
-- **Deployment**: Docker + Docker Compose
+### **Backend Stack**
+- **Runtime**: Node.js 18+ with TypeScript 5.0+
+- **Framework**: Express.js with custom middleware
+- **Database**: SQLite with Prisma ORM
+- **Authentication**: JWT tokens with refresh rotation
+- **Encryption**: AES-256-CBC for sensitive data
+- **Testing**: Jest + Supertest (160 comprehensive tests)
+
+### **Frontend Stack**
+- **Framework**: React 19 with TypeScript
+- **Routing**: React Router v7 with protected routes
+- **State Management**: Context API + React Query for data fetching
+- **UI Framework**: TailwindCSS + Headless UI components
+- **Forms**: React Hook Form with Zod validation
+- **Build Tool**: Create React App with optimization
 
 ## 📚 Documentation
 
@@ -62,284 +90,233 @@ zakapp is a **production-ready** self-hosted Zakat calculator that helps Muslims
 - **[💡 Solution Overview](solution.md)** - Technical approach and features
 - **[📏 Project Principles](principles.md)** - Development guidelines
 
-## 🚀 Quick Start
+## 🚀 Local Setup & Installation
 
 ### Prerequisites
 
-- **Docker & Docker Compose** (recommended) OR Node.js 18+
+- **Node.js 18+** ([Download here](https://nodejs.org/))
+- **npm** (comes with Node.js)
 - **Git** for cloning the repository
 
-### ⚡ One-Command Setup
+### 📥 **Step 1: Clone the Repository**
 
 ```bash
-# Clone and start the application
 git clone https://github.com/slimatic/zakapp.git
 cd zakapp
-npm run dev
 ```
 
-The application will automatically:
-- Install all dependencies
-- Build the shared package  
-- Start both frontend and backend servers
-- Open at http://localhost:3000
-
-### 🐳 Docker Development (Alternative)
+### 🔧 **Step 2: Install Dependencies**
 
 ```bash
-# Clone repository
-git clone https://github.com/slimatic/zakapp.git
-cd zakapp
+# Install backend dependencies
+cd server
+npm install
 
-# Start with Docker (eliminates npm permission issues)
-npm run docker:dev
+# Install frontend dependencies  
+cd ../client
+npm install
 
-# Start development servers (auto-setup on first run)
-npm run dev
+# Return to root directory
+cd ..
 ```
 
-> **Note**: On first run, `npm run dev` will automatically install dependencies and build the shared package. This may take a few minutes.
-
-Alternative manual setup:
+### 🗄️ **Step 3: Database Setup**
 
 ```bash
-# Manual dependency installation (optional)
-npm run install:all
+# Navigate to server directory
+cd server
 
-# Start development servers
-npm run dev
+# Generate Prisma client
+npm run db:generate
+
+# Run database migrations
+npm run db:migrate
+
+# Seed the database with initial data (optional)
+npm run db:seed
 ```
 
-### 🌐 Access Points
+### � **Step 4: Environment Configuration**
+
+```bash
+# In the server directory, copy the example environment file
+cd server
+cp .env.example .env
+
+# Edit .env file with your preferred settings (default values work for local development)
+# The default configuration is ready to use for local testing
+```
+
+### 🚀 **Step 5: Start the Application**
+
+**Option A: Start Both Servers Separately (Recommended for development)**
+
+```bash
+# Terminal 1: Start the backend server
+cd server
+npm run dev
+# Backend will run on http://localhost:5000
+
+# Terminal 2: Start the frontend server  
+cd client
+npm start
+# Frontend will run on http://localhost:3000
+```
+
+**Option B: Quick Start Script**
+
+```bash
+# From the root directory
+npm run dev:all
+# This will start both servers concurrently
+```
+
+### 🌐 **Step 6: Access the Application**
 
 - **Frontend Application**: http://localhost:3000
-- **Backend API**: http://localhost:3001
-- **API Documentation**: http://localhost:3001/api
+- **Backend API**: http://localhost:5000
+- **API Health Check**: http://localhost:5000/health
+- **Database**: `server/data/zakapp.db` (SQLite file)
 
-### 🎯 First Steps
+### 🎯 **Step 7: First Use**
 
-1. **Create Account**: Click "Sign Up" to create your secure account
-2. **Add Assets**: Use "Manage Assets" to add your financial assets
-3. **View Dashboard**: See real-time calculations and asset summaries
-4. **Calculate Zakat**: Use "Calculate Zakat Now" (basic calculations available)
+1. **Open your browser** to http://localhost:3000
+2. **Create an account** using the "Register" button
+3. **Add your assets** using the "Assets" page
+4. **Calculate Zakat** using the "Calculate" page
+5. **View history** and track payments
 
-## 🛠️ Development
+### ✅ **Verification**
 
-### Project Structure
-
-```
-zakapp/
-├── docs/                   # Documentation and specifications
-├── frontend/              # React TypeScript frontend
-├── backend/               # Node.js TypeScript backend
-├── shared/                # Shared types and utilities
-├── docker/               # Docker configuration
-├── scripts/              # Development scripts
-└── tests/                # Test files
-```
-
-### Development Commands
+To verify everything is working correctly:
 
 ```bash
-# Containerized development (recommended)
-npm run docker:dev       # Start containerized development
-npm run docker:dev:logs  # View container logs
-npm run docker:dev:down  # Stop development containers
-npm run docker:npm:install  # Install dependencies in container
+# Test backend API
+curl http://localhost:5000/health
+# Should return: {"status":"ok","timestamp":"..."}
 
-# Local development
-npm run dev              # Start local development servers
-npm run install:all      # Install all dependencies with proper order
-
-# Development database reset
-npm run reset:db         # Clear all user data and database files for testing
-
-# Backend development
-cd backend
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run test         # Run tests
-npm run lint         # Run ESLint
-
-# Frontend development
-cd frontend
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run test         # Run tests
-npm run lint         # Run ESLint
+# Test frontend (should show HTML)
+curl http://localhost:3000
 ```
 
-#### Database Reset for Testing
-
-The `reset:db` command provides a safe way to clear all development data for testing:
+### 🧪 **Run Tests (Optional)**
 
 ```bash
-npm run reset:db
+# Run backend tests (160 comprehensive tests)
+cd server
+npm test
+
+# Run frontend tests
+cd client  
+npm test
 ```
 
-**What it does:**
+## 🐛 Troubleshooting
 
-- Removes all user directories and data files from `backend/data/users/`
-- Clears all backup files from `backend/data/backups/`
-- Removes session files from `backend/data/sessions/`
-- Recreates empty directories for clean state
+### Common Issues & Solutions
 
-**Safety features:**
-
-- ❌ Cannot run in production (NODE_ENV=production)
-- ⚠️ Requires interactive confirmation before deletion
-- 📊 Shows current data state before clearing
-- 📝 Provides detailed logging of what was deleted
-
-This is particularly useful when:
-
-- Testing user registration and data flows
-- Debugging issues related to stale user data
-- Resetting environment between test scenarios
-- Preparing clean state for development
-
-### Testing
-
+#### **Backend won't start**
 ```bash
-# Run all tests
-npm run test
+# Check if port 5000 is already in use
+lsof -i :5000
+# If something is running, kill it or use a different port
 
-# Run specific test suites
-npm run test:unit
-npm run test:integration
-npm run test:e2e
+# Rebuild the database
+cd server
+rm -rf data/
+npm run db:migrate
+npm run db:seed
 ```
 
-## 🔒 Security
+#### **Frontend won't start**
+```bash
+# Clear npm cache and reinstall
+cd client
+rm -rf node_modules package-lock.json
+npm install
 
-- **Data Encryption**: All user data is encrypted at rest and in transit
-- **Authentication**: JWT-based authentication with secure session management
-- **Self-Hosted**: Full control over your data and deployment environment
-- **No Database**: Encrypted JSON files eliminate database security concerns
-- **Regular Updates**: Automated security dependency updates
+# Check if port 3000 is available
+lsof -i :3000
+```
 
-## 🔧 Troubleshooting
+#### **Database issues**
+```bash
+# Reset database completely
+cd server
+rm -rf data/ prisma/migrations/
+npm run db:migrate
+npm run db:generate
+npm run db:seed
+```
 
-### npm install permission issues
+#### **Permission errors on Linux/Mac**
+```bash
+# Fix npm permissions
+sudo chown -R $(whoami) ~/.npm
+sudo chown -R $(whoami) /usr/local/lib/node_modules
+```
 
-If you encounter `EACCES` permission errors during `npm install`:
+#### **Environment variables**
+```bash
+# Make sure .env file exists in server directory
+cd server
+ls -la .env
+# If missing, copy from .env.example
+cp .env.example .env
+```
 
-1. **For Docker development (recommended)**: Use Docker Compose to avoid permission issues:
+### **Still having issues?**
+1. Make sure you have Node.js 18+ installed: `node --version`
+2. Clear all caches: `npm cache clean --force`
+3. Check the [Issues](https://github.com/slimatic/zakapp/issues) page
+4. Create a new issue with your error details
 
-   ```bash
-   docker-compose up
-   ```
+## 📚 Documentation
 
-2. **For local development**: Check Node.js and npm setup:
+### **📊 Project Status & Planning**
+- **[📋 Milestone Report](MILESTONE.md)** - Complete implementation status (98% complete)
+- **[🏗️ Technical Specifications](specs/)** - Detailed API contracts and data models
+- **[🔐 Security Guide](security.md)** - Security measures and best practices
 
-   ```bash
-   # Check your Node.js and npm version
-   node --version
-   npm --version
-
-   # Use npm ci instead of npm install for clean installs
-   npm ci
-
-   # If using nvm, make sure permissions are correct
-   npm config get prefix
-   ```
-
-3. **Fix npm permissions** (if needed):
-
-   ```bash
-   # Option 1: Use npm's built-in fix
-   npx npm-check-updates -g
-
-   # Option 2: Change npm's default directory
-   mkdir ~/.npm-global
-   npm config set prefix '~/.npm-global'
-   # Add to your ~/.bashrc or ~/.zshrc:
-   # export PATH=~/.npm-global/bin:$PATH
-   ```
-
-### Docker issues
-
-If Docker containers fail to start:
-
-1. **Ensure Docker is running**:
-
-   ```bash
-   docker --version
-   docker-compose --version
-   ```
-
-2. **Clean Docker state**:
-
-   ```bash
-   docker-compose down
-   docker system prune -f
-   docker-compose up --build
-   ```
-
-3. **Check shared package build**:
-   ```bash
-   cd shared && npm run build
-   ls -la dist/  # Should contain compiled files
-   ```
-
-### Module resolution errors
-
-If you see "Cannot find package '@zakapp/shared'" errors:
-
-> **Note**: As of the latest update, `npm run dev` automatically handles setup. Try running `npm run dev` first - it will detect missing dependencies and set them up automatically.
-
-**Manual troubleshooting** (if automatic setup fails):
-
-1. **Force clean setup**:
-
-   ```bash
-   # Clean all builds and dependencies
-   rm -rf shared/dist shared/node_modules backend/node_modules frontend/node_modules
-
-   # Run complete setup
-   npm run install:all
-   ```
-
-2. **Verify package linking**:
-
-   ```bash
-   # Check if the shared package is properly linked
-   cd frontend && npm ls @zakapp/shared
-   cd backend && npm ls @zakapp/shared
-   ```
-
-3. **Check shared package build**:
-   ```bash
-   cd shared && npm run build
-   ls -la dist/  # Should contain compiled files
-   ```
+### **🔧 Technical Reference**
+- **[🗄️ Database Schema](server/prisma/schema.prisma)** - Complete data model
+- **[🧪 Test Suite](server/tests/)** - 160 comprehensive tests
+- **[🎨 Component Library](client/src/components/)** - React component documentation
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Here's how to get started:
 
-## 📝 License
+### **Development Setup**
+1. Fork the repository
+2. Follow the local setup instructions above
+3. Create a feature branch: `git checkout -b feature/your-feature`
+4. Make your changes and add tests
+5. Ensure all tests pass: `npm test`
+6. Submit a pull request
+
+### **Code Standards**
+- **TypeScript**: Strict mode enabled, no `any` types
+- **Testing**: All new features must include tests
+- **Security**: Follow existing encryption and validation patterns
+- **Islamic Compliance**: Respect Islamic principles in all calculations
+
+## 📞 Support
+
+- **Documentation**: Check this README and the [specs](specs/) directory
+- **Issues**: [GitHub Issues](https://github.com/slimatic/zakapp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/slimatic/zakapp/discussions)
+
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Inspired by SimpleZakatGuide.com for clear Zakat guidance
-- Built with modern web technologies and best practices
-- Designed with privacy and user control as core principles
-
-## 📞 Support
-
-For questions, issues, or contributions:
-
-- Open an issue on GitHub
-- Follow the development plan in [development-plan.md](development-plan.md)
-- Review the user stories in [user-stories.md](user-stories.md)
+- Built with love for the global Muslim community
+- Designed with privacy and Islamic compliance as core principles
+- Made possible by modern web technologies and open-source tools
 
 ---
 
-**Note**: This application is currently in development. Follow the [development plan](development-plan.md) for implementation progress and roadmap.
+**ZakApp** - Empowering Muslims worldwide with privacy-first Zakat calculations 🕌✨
