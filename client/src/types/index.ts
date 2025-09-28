@@ -35,8 +35,54 @@ export interface ZakatCalculation {
   totalAssets: number;
   nisabThreshold: number;
   zakatDue: number;
-  methodology: string;
+  methodology: ZakatMethodology;
   currency: string;
   calculatedAt: string;
   assets: Asset[];
+  nisabMethod: 'GOLD' | 'SILVER' | 'DUAL';
+  isAboveNisab: boolean;
+  zakatRate: number;
+  assetBreakdown: AssetBreakdown[];
+  reason?: string;
+}
+
+export interface ZakatMethodology {
+  id: string;
+  name: string;
+  description: string;
+  nisabMethod: 'GOLD' | 'SILVER' | 'DUAL';
+  zakatRate: number;
+}
+
+export interface AssetBreakdown {
+  type: AssetType;
+  totalValue: number;
+  count: number;
+  zakatableAmount: number;
+}
+
+export interface NisabInfo {
+  goldPrice: number;
+  silverPrice: number;
+  goldNisab: number;
+  silverNisab: number;
+  effectiveNisab: number;
+  currency: string;
+  lastUpdated: string;
+}
+
+export interface ZakatCalculationRequest {
+  methodologyId: string;
+  assets?: Asset[];
+  includeAllAssets?: boolean;
+}
+
+export interface ZakatPayment {
+  id: string;
+  amount: number;
+  date: string;
+  recipient?: string;
+  method?: string;
+  notes?: string;
+  createdAt: string;
 }
