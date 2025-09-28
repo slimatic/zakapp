@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
 
 export interface LoginRequest {
   username: string;
@@ -144,6 +144,39 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async getAsset(assetId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/assets/${assetId}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateAsset(assetId: string, asset: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/assets/${assetId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(asset)
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteAsset(assetId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/assets/${assetId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateProfile(profileData: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(profileData)
+    });
+    return this.handleResponse(response);
+  }
+
   // Zakat Calculation Methods
   async calculateZakat(data: any): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/calculate`, {
@@ -189,6 +222,29 @@ class ApiService {
   async getSnapshots(): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/snapshots`, {
       headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getZakatHistory(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/history`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getZakatPayments(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/payments`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async saveCalculation(data: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/save-calculation`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
     });
     return this.handleResponse(response);
   }

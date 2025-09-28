@@ -571,6 +571,10 @@ export interface MethodologyInfo {
  * @interface MethodologyEducationContent
  * @since Phase 1
  */
+
+// Type alias for backward compatibility
+export type ZakatMethodology = MethodologyInfo;
+
 export interface MethodologyEducationContent {
   /** Historical background and scholarly foundation of the methodology */
   historicalBackground: string;
