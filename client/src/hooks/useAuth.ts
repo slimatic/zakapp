@@ -1,8 +1,7 @@
 import { useContext, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AuthContext } from '../context/AuthContext';
-import { apiService } from '../services/api';
-import { LoginCredentials, RegisterData } from '../../../shared/types';
+import { AuthContext } from '../contexts/AuthContext';
+import { apiService, LoginRequest, RegisterRequest } from '../services/api';
 
 /**
  * Custom hook for authentication operations
@@ -20,7 +19,7 @@ export const useAuth = () => {
 
   // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
+    mutationFn: async (credentials: LoginRequest) => {
       const response = await apiService.login(credentials);
       return response;
     },
@@ -35,9 +34,9 @@ export const useAuth = () => {
     }
   });
 
-  // Register mutation
+  // Register mutation  
   const registerMutation = useMutation({
-    mutationFn: async (userData: RegisterData) => {
+    mutationFn: async (userData: RegisterRequest) => {
       const response = await apiService.register(userData);
       return response;
     },
@@ -67,12 +66,12 @@ export const useAuth = () => {
   }, [contextLogout, queryClient]);
 
   // Login function
-  const login = useCallback((credentials: LoginCredentials) => {
+  const login = useCallback((credentials: LoginRequest) => {
     return loginMutation.mutate(credentials);
   }, [loginMutation]);
 
   // Register function
-  const register = useCallback((userData: RegisterData) => {
+  const register = useCallback((userData: RegisterRequest) => {
     return registerMutation.mutate(userData);
   }, [registerMutation]);
 
