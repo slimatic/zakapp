@@ -23,11 +23,13 @@ export const useAuth = () => {
       const response = await apiService.login(credentials);
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       // Update auth context with user data
-      contextLogin(data.user, data.token);
-      // Invalidate all queries to refetch with new auth state
-      queryClient.invalidateQueries();
+      if (data?.user && data?.token) {
+        contextLogin(data.user, data.token);
+        // Invalidate all queries to refetch with new auth state
+        queryClient.invalidateQueries();
+      }
     },
     onError: (error: any) => {
       console.error('Login failed:', error);
@@ -40,11 +42,13 @@ export const useAuth = () => {
       const response = await apiService.register(userData);
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       // Update auth context with user data
-      contextLogin(data.user, data.token);
-      // Invalidate all queries to refetch with new auth state
-      queryClient.invalidateQueries();
+      if (data?.user && data?.token) {
+        contextLogin(data.user, data.token);
+        // Invalidate all queries to refetch with new auth state
+        queryClient.invalidateQueries();
+      }
     },
     onError: (error: any) => {
       console.error('Registration failed:', error);

@@ -7,8 +7,8 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
-      retry: (failureCount, error: any) => {
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: (failureCount: number, error: any) => {
         // Don't retry on 401 or 403 errors (authentication issues)
         if (error?.status === 401 || error?.status === 403) {
           return false;
