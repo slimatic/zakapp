@@ -77,7 +77,14 @@ export const Register: React.FC = () => {
     }
 
     const { confirmPassword, ...userData } = formData;
-    await register(userData);
+    const success = await register(userData);
+    
+    // The AuthContext will handle the redirect if registration is successful
+    // If registration fails, the error will be shown via the error state
+    if (success) {
+      // Registration successful, user will be redirected by the Navigate component
+      console.log('Registration successful');
+    }
   };
 
   return (

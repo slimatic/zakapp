@@ -53,21 +53,63 @@ class ApiService {
 
   // Authentication endpoints
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials)
-    });
-    return this.handleResponse(response);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          message: result.message || `Login failed: ${response.status}`
+        };
+      }
+      
+      return {
+        success: true,
+        ...result
+      };
+    } catch (error) {
+      console.error('Login error:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error occurred'
+      };
+    }
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
-    });
-    return this.handleResponse(response);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          message: result.message || `Registration failed: ${response.status}`
+        };
+      }
+      
+      return {
+        success: true,
+        ...result
+      };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error occurred'
+      };
+    }
   }
 
   async logout(): Promise<ApiResponse> {
