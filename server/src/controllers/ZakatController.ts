@@ -234,7 +234,7 @@ export class ZakatController {
 
     const response: ApiResponse = {
       success: true,
-      history: mockHistory
+      calculations: mockHistory
     };
 
     res.status(200).json(response);
