@@ -68,16 +68,53 @@ describe('POST /api/auth/refresh', () => {
   });
 
   it('should return 401 for expired refresh token', async () => {
-    // This would require mocking time or using an expired token
-    const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.invalid';
-    
-    const response = await request(app)
-      .post('/api/auth/refresh')
-      .send({ refreshToken: expiredToken })
-      .expect(401);
+    // Skip the beforeEach setup and create our own user
+    const timestamp = Date.now();
+    const user = {
+      email: `expired-${timestamp}@test.com`,
+      password: 'Test123456!',
+      username: `expired${timestamp}`,
+      firstName: 'Expired',
+      lastName: 'User'
+    };
 
-    expect(response.body).toHaveProperty('success', false);
-    expect(response.body).toHaveProperty('error', 'TOKEN_EXPIRED');
+    // Create user
+    await request(app)
+      .post('/api/auth/register')
+      .send(user)
+      .expect(201);
+
+    // Login to get refresh token
+    const loginResponse = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: user.email,
+        password: user.password
+      })
+      .expect(200);
+
+    // Get a valid refresh token first
+    const validRefreshToken = loginResponse.body.refreshToken;
+
+    // Now set up fake timers to make the token appear expired
+    jest.useFakeTimers();
+    
+    try {
+      // Advance time by 8 days to expire the 7-day refresh token
+      jest.setSystemTime(new Date(Date.now() + 8 * 24 * 60 * 60 * 1000));
+
+      // Try to use the now-expired refresh token
+      const response = await request(app)
+        .post('/api/auth/refresh')
+        .send({ refreshToken: validRefreshToken })
+        .expect(401);
+
+      expect(response.body).toHaveProperty('success', false);
+      expect(response.body).toHaveProperty('error', 'TOKEN_EXPIRED');
+    } finally {
+      // Always clean up timers
+      jest.useRealTimers();
+    }
   });
 
   it('should invalidate old refresh token after successful refresh', async () => {

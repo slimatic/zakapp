@@ -133,14 +133,21 @@ describe('POST /api/auth/confirm-reset', () => {
       .post('/api/auth/confirm-reset')
       .send({
         token: resetToken,
-        password: '123',
-        confirmPassword: '123'
+        password: 'weak',
+        confirmPassword: 'weak'
       })
       .expect(400);
 
     expect(response.body).toHaveProperty('success', false);
     expect(response.body).toHaveProperty('error', 'VALIDATION_ERROR');
-    expect(response.body.details).toContain('Password must be at least 8 characters long');
+    expect(response.body.details).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'password',
+          message: 'Password must be at least 8 characters with mixed case, numbers, and symbols'
+        })
+      ])
+    );
   });
 
   it('should return 400 for invalid reset token', async () => {
@@ -159,9 +166,20 @@ describe('POST /api/auth/confirm-reset', () => {
   });
 
   it('should return 400 for expired reset token', async () => {
-    // Mock expired token
-    const expiredToken = 'expired-reset-token';
+    // Import the reset token utility to create an expired token directly
+    const { generateExpiredResetToken } = require('../../../src/utils/resetTokens');
+    const { UserStore } = require('../../../src/utils/userStore');
     
+    // Get the user ID for the test user
+    const userId = UserStore.getUserIdByEmail('confirm@example.com');
+    
+    if (!userId) {
+      throw new Error('Test user not found');
+    }
+    
+    // Create an already expired token
+    const expiredToken = generateExpiredResetToken(userId, 'confirm@example.com');
+
     const response = await request(app)
       .post('/api/auth/confirm-reset')
       .send({
@@ -230,7 +248,7 @@ describe('POST /api/auth/confirm-reset', () => {
       .expect(401);
 
     expect(meResponse.body).toHaveProperty('success', false);
-    expect(meResponse.body).toHaveProperty('error', 'SESSION_INVALIDATED');
+    expect(meResponse.body).toHaveProperty('error', 'TOKEN_INVALIDATED');
   });
 
   it('should enforce password complexity requirements', async () => {

@@ -187,6 +187,113 @@ export class AssetController {
     res.status(201).json(response);
   });
 
+  bulkCreate = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { assets } = req.body;
+    const userId = req.userId!;
+
+    // Validate that assets array is provided
+    if (!assets || !Array.isArray(assets) || assets.length === 0) {
+      throw new AppError('Assets array is required and cannot be empty', 400, 'VALIDATION_ERROR');
+    }
+
+    const userAssetList = getUserAssets(userId);
+    const results = [];
+    const errors = [];
+    let createdCount = 0;
+
+    // Process each asset
+    for (let i = 0; i < assets.length; i++) {
+      const assetData = assets[i];
+      
+      try {
+        // Validate each asset using the same logic as create
+        const { type, name, value, currency, description, ...otherFields } = assetData;
+
+        // Basic validation
+        if (!type || !name || value === undefined || !currency) {
+          throw new AppError(`Asset ${i + 1}: Missing required fields`, 400, 'VALIDATION_ERROR');
+        }
+
+        // Validate asset type
+        const validTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER'];
+        if (!validTypes.includes(type)) {
+          throw new AppError(`Asset ${i + 1}: Invalid asset type`, 400, 'VALIDATION_ERROR');
+        }
+
+        // Validate value is non-negative
+        if (value < 0) {
+          throw new AppError(`Asset ${i + 1}: Asset value cannot be negative`, 400, 'VALIDATION_ERROR');
+        }
+
+        // Validate currency
+        const validCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD'];
+        if (!validCurrencies.includes(currency)) {
+          throw new AppError(`Asset ${i + 1}: Invalid currency`, 400, 'VALIDATION_ERROR');
+        }
+
+        // Determine if asset is zakatable
+        const zakatableTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'INVESTMENT'];
+        const isZakatable = zakatableTypes.includes(type);
+
+        const newAsset = {
+          id: `${userId}-asset-${Date.now()}-${i}`,
+          userId,
+          type,
+          name,
+          value,
+          currency,
+          description,
+          isZakatable,
+          ...otherFields,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        userAssetList.push(newAsset);
+        results.push({ index: i, success: true, asset: newAsset });
+        createdCount++;
+
+      } catch (error) {
+        const errorMessage = error instanceof AppError ? error.message : `Asset ${i + 1}: Unknown error`;
+        errors.push({ index: i, error: errorMessage });
+        results.push({ index: i, success: false, error: errorMessage });
+      }
+    }
+
+    // Determine response status and format
+    if (errors.length === 0) {
+      // All successful
+      const response: ApiResponse = {
+        success: true,
+        message: 'Assets created successfully',
+        assets: results.map(r => r.asset).filter(Boolean),
+        summary: {
+          total: assets.length,
+          created: createdCount,
+          failed: errors.length
+        }
+      };
+      res.status(201).json(response);
+    } else if (createdCount > 0) {
+      // Partial success - use 207 Multi-Status
+      const response: ApiResponse = {
+        success: false,
+        message: 'Partial success - some assets failed to create',
+        results,
+        summary: {
+          total: assets.length,
+          created: createdCount,
+          failed: errors.length
+        },
+        errors
+      };
+      res.status(207).json(response);
+    } else {
+      // All failed
+      throw new AppError('Failed to create any assets', 400, 'VALIDATION_ERROR', errors);
+    }
+  });
+
   get = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const userId = req.userId!;
@@ -256,17 +363,69 @@ export class AssetController {
   update = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const updateData = req.body;
+    const userId = req.userId!;
 
-    const mockAsset = {
-      id,
+    // Ensure id is provided
+    if (!id) {
+      throw new AppError('Asset ID is required', 400, 'VALIDATION_ERROR');
+    }
+
+    // Validate asset ID format (should be alphanumeric with hyphens)
+    const validIdPattern = /^[a-zA-Z0-9\-_]+$/;
+    if (!validIdPattern.test(id)) {
+      throw new AppError('Invalid asset ID format', 400, 'VALIDATION_ERROR');
+    }
+
+    // Get user's assets
+    const userAssetList = getUserAssets(userId);
+    
+    // Find the asset to update
+    const assetIndex = userAssetList.findIndex(asset => asset.id === id);
+    
+    if (assetIndex === -1) {
+      throw new AppError('Asset not found', 404, 'ASSET_NOT_FOUND');
+    }
+
+    const existingAsset = userAssetList[assetIndex];
+
+    // Validate update data
+    if (updateData.value !== undefined && updateData.value < 0) {
+      throw new AppError('Asset value cannot be negative', 400, 'VALIDATION_ERROR');
+    }
+
+    if (updateData.type && !['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER'].includes(updateData.type)) {
+      throw new AppError('Invalid asset type', 400, 'VALIDATION_ERROR');
+    }
+
+    if (updateData.currency) {
+      const validCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD'];
+      if (!validCurrencies.includes(updateData.currency)) {
+        throw new AppError('Invalid currency', 400, 'VALIDATION_ERROR');
+      }
+    }
+
+    // Update isZakatable if type is being changed
+    let isZakatable = existingAsset.isZakatable;
+    if (updateData.type) {
+      const zakatableTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'INVESTMENT'];
+      isZakatable = zakatableTypes.includes(updateData.type);
+    }
+
+    // Create updated asset
+    const updatedAsset = {
+      ...existingAsset,
       ...updateData,
+      isZakatable,
       updatedAt: new Date().toISOString()
     };
+
+    // Update asset in store
+    userAssetList[assetIndex] = updatedAsset;
 
     const response: ApiResponse = {
       success: true,
       message: 'Asset updated successfully',
-      asset: mockAsset
+      asset: updatedAsset
     };
 
     res.status(200).json(response);
@@ -310,5 +469,208 @@ export class AssetController {
     };
 
     res.status(200).json(response);
+  });
+
+  export = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { format = 'JSON', type } = req.query;
+    const userId = req.userId!;
+
+    // Get user's assets
+    const userAssetList = getUserAssets(userId);
+    let assets = [...userAssetList];
+
+    // Filter by type if specified
+    if (type && typeof type === 'string') {
+      assets = assets.filter(asset => asset.type === type);
+    }
+
+    // Handle different export formats
+    switch (format?.toString().toUpperCase()) {
+      case 'CSV': {
+        // Generate CSV format
+        const headers = 'type,name,value,currency,description,isZakatable,createdAt';
+        const csvRows = assets.map(asset => 
+          `${asset.type},${asset.name},${asset.value},${asset.currency},${asset.description || ''},${asset.isZakatable},${asset.createdAt}`
+        );
+        const csvData = [headers, ...csvRows].join('\n');
+
+        res.status(200).json({
+          success: true,
+          format: 'CSV',
+          data: csvData
+        });
+        break;
+      }
+
+      case 'JSON': {
+        res.status(200).json({
+          success: true,
+          format: 'JSON',
+          data: assets
+        });
+        break;
+      }
+
+      case 'PDF': {
+        // For PDF, return a mock downloadUrl and expiration time
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24); // Expires in 24 hours
+
+        res.status(200).json({
+          success: true,
+          format: 'PDF',
+          downloadUrl: `/api/assets/export/download/${userId}/${Date.now()}.pdf`,
+          expiresAt: expiresAt.toISOString()
+        });
+        break;
+      }
+
+      default: {
+        throw new AppError('Invalid export format. Supported formats: CSV, JSON, PDF', 400, 'VALIDATION_ERROR');
+      }
+    }
+  });
+
+  import = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { format, data } = req.body;
+    const userId = req.userId!;
+
+    if (!format || !data) {
+      throw new AppError('Format and data are required', 400, 'VALIDATION_ERROR');
+    }
+
+    let assetsToImport: any[] = [];
+
+    // Parse data based on format
+    try {
+      if (format.toUpperCase() === 'CSV') {
+        // Parse CSV data
+        const lines = data.split('\n');
+        const headers = lines[0].split(',');
+        
+        for (let i = 1; i < lines.length; i++) {
+          if (lines[i].trim()) {
+            const values = lines[i].split(',');
+            const asset: any = {};
+            headers.forEach((header: string, index: number) => {
+              let value = values[index]?.trim();
+              // Convert numeric values
+              if (header === 'value' && value) {
+                value = parseFloat(value);
+              }
+              asset[header.trim()] = value;
+            });
+            assetsToImport.push(asset);
+          }
+        }
+      } else if (format.toUpperCase() === 'JSON') {
+        assetsToImport = Array.isArray(data) ? data : [data];
+      } else {
+        throw new AppError('Unsupported format. Supported formats: CSV, JSON', 400, 'VALIDATION_ERROR');
+      }
+    } catch (parseError) {
+      throw new AppError('Invalid data format', 400, 'PARSE_ERROR');
+    }
+
+    const userAssetList = getUserAssets(userId);
+    const results = [];
+    const errors = [];
+    let importedCount = 0;
+    let failedCount = 0;
+
+    // Process each asset
+    for (let i = 0; i < assetsToImport.length; i++) {
+      const assetData = assetsToImport[i];
+      
+      try {
+        // Validate each asset using the same logic as create
+        const { type, name, value, currency, description, ...otherFields } = assetData;
+
+        // Basic validation
+        if (!type || !name || value === undefined || !currency) {
+          throw new AppError(`Asset ${i + 1}: Missing required fields`, 400, 'VALIDATION_ERROR');
+        }
+
+        // Validate asset type
+        const validTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER'];
+        if (!validTypes.includes(type)) {
+          throw new AppError(`Asset ${i + 1}: Invalid asset type`, 400, 'VALIDATION_ERROR');
+        }
+
+        // Validate value is non-negative
+        if (value < 0) {
+          throw new AppError(`Asset ${i + 1}: Asset value cannot be negative`, 400, 'VALIDATION_ERROR');
+        }
+
+        // Validate currency
+        const validCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD'];
+        if (!validCurrencies.includes(currency)) {
+          throw new AppError(`Asset ${i + 1}: Invalid currency`, 400, 'VALIDATION_ERROR');
+        }
+
+        // Determine if asset is zakatable
+        const zakatableTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'INVESTMENT'];
+        const isZakatable = zakatableTypes.includes(type);
+
+        const newAsset = {
+          id: `${userId}-asset-${Date.now()}-${i}`,
+          userId,
+          type,
+          name,
+          value,
+          currency,
+          description,
+          isZakatable,
+          ...otherFields,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        // Add to user's assets
+        userAssetList.push(newAsset);
+        results.push({ success: true, asset: newAsset });
+        importedCount++;
+
+      } catch (error) {
+        results.push({ 
+          success: false, 
+          error: error instanceof AppError ? error.message : 'Unknown error',
+          asset: assetData 
+        });
+        errors.push({
+          index: i,
+          error: error instanceof AppError ? error.message : 'Unknown error',
+          asset: assetData
+        });
+        failedCount++;
+      }
+    }
+
+    // Return appropriate response based on results
+    if (failedCount === 0) {
+      // All successful
+      const response: ApiResponse = {
+        success: true,
+        message: `Successfully imported ${importedCount} assets`,
+        imported: importedCount,
+        failed: failedCount,
+        results
+      };
+      res.status(200).json(response);
+    } else if (importedCount > 0) {
+      // Partial success - use 207 Multi-Status
+      const response: ApiResponse = {
+        success: false,
+        message: `Imported ${importedCount} assets, ${failedCount} failed`,
+        imported: importedCount,
+        failed: failedCount,
+        errors,
+        results
+      };
+      res.status(207).json(response);
+    } else {
+      // All failed
+      throw new AppError('All assets failed to import', 400, 'IMPORT_FAILED', errors);
+    }
   });
 }

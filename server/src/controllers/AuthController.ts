@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import { AuthenticatedRequest, ApiResponse, AuthTokens, User } from '../types';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { UserStore } from '../utils/userStore';
 import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken, invalidateAllUserRefreshTokens } from '../utils/jwt';
 import { invalidateToken, invalidateUserSession } from '../middleware/auth';
-import { generateResetToken, validateResetToken, useResetToken } from '../utils/resetTokens';
+import { generateResetToken, validateResetToken, useResetToken, invalidateUserResetTokens } from '../utils/resetTokens';
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
@@ -379,11 +380,15 @@ export class AuthController {
     // Privacy-first: Always return success to prevent email enumeration
     // In real implementation, would send email if user exists
     const userId = UserStore.getUserIdByEmail(email);
-    let resetTokenId = 'no-token-generated';
+    const resetTokenId = crypto.randomUUID(); // Always use UUID format for security
+    const expiresIn = 3600; // 1 hour in seconds
+    const eventId = `pwd_reset_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
     
     if (userId) {
+      // Invalidate any existing reset tokens for this user
+      invalidateUserResetTokens(userId);
+      
       const resetToken = generateResetToken(userId, email);
-      resetTokenId = resetToken.substring(0, 12) + '...'; // Partial token for tracking
       
       // In real implementation: send email with resetToken
       console.log(`Reset token for ${email}: ${resetToken}`); // For testing
@@ -392,7 +397,9 @@ export class AuthController {
     const response: ApiResponse = {
       success: true,
       message: 'Password reset email sent',
-      resetTokenId
+      resetTokenId,
+      expiresIn,
+      eventId
     };
 
     res.status(200).json(response);
@@ -419,6 +426,17 @@ export class AuthController {
     }
 
     if (validationErrors.length > 0) {
+      // If there's only one error and it's password mismatch, use specific message
+      if (validationErrors.length === 1 && validationErrors[0] && validationErrors[0].field === 'confirmPassword') {
+        res.status(400).json({
+          success: false,
+          error: 'VALIDATION_ERROR',
+          message: validationErrors[0].message,
+          details: validationErrors
+        });
+        return;
+      }
+      
       res.status(400).json({
         success: false,
         error: 'VALIDATION_ERROR',
@@ -429,12 +447,38 @@ export class AuthController {
     }
 
     // Validate reset token
-    const tokenData = validateResetToken(token);
-    if (!tokenData) {
+    let tokenData;
+    try {
+      tokenData = validateResetToken(token);
+      if (!tokenData) {
+        res.status(400).json({
+          success: false,
+          error: 'INVALID_TOKEN',
+          message: 'Invalid or expired reset token'
+        });
+        return;
+      }
+    } catch (error: any) {
+      if (error.message === 'TOKEN_EXPIRED') {
+        res.status(400).json({
+          success: false,
+          error: 'TOKEN_EXPIRED',
+          message: 'Reset token has expired'
+        });
+        return;
+      }
+      if (error.message === 'TOKEN_USED') {
+        res.status(400).json({
+          success: false,
+          error: 'TOKEN_USED',
+          message: 'Reset token has already been used'
+        });
+        return;
+      }
       res.status(400).json({
         success: false,
         error: 'INVALID_TOKEN',
-        message: 'Invalid or expired reset token'
+        message: 'Invalid reset token'
       });
       return;
     }
