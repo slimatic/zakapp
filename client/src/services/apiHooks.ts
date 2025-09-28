@@ -162,3 +162,17 @@ export const useRecordPayment = () => {
     },
   });
 };
+
+// Password Reset hooks
+export const useRequestPasswordReset = () => {
+  return useMutation({
+    mutationFn: (email: string) => apiService.requestPasswordReset(email),
+  });
+};
+
+export const useConfirmPasswordReset = () => {
+  return useMutation({
+    mutationFn: ({ resetToken, newPassword }: { resetToken: string; newPassword: string }) => 
+      apiService.confirmPasswordReset(resetToken, newPassword),
+  });
+};
