@@ -86,13 +86,22 @@ export const Login: React.FC = () => {
           <Button
             type="submit"
             disabled={isLoggingIn || !email || !password}
-            loading={isLoggingIn}
+            isLoading={isLoggingIn}
             className="w-full"
           >
             Sign in
           </Button>
 
-          <div className="text-center">
+          <div className="text-center space-y-3">
+            <p className="text-sm">
+              <Link
+                to="/forgot-password"
+                className="font-medium text-green-600 hover:text-green-500"
+              >
+                Forgot your password?
+              </Link>
+            </p>
+            
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
               <Link

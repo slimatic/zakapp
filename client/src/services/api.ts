@@ -192,6 +192,67 @@ class ApiService {
     });
     return this.handleResponse(response);
   }
+
+  // Password Reset Methods
+  async requestPasswordReset(email: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          message: result.message || 'Password reset request failed'
+        };
+      }
+      
+      return {
+        success: true,
+        data: result,
+        message: result.message
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error occurred'
+      };
+    }
+  }
+
+  async confirmPasswordReset(resetToken: string, newPassword: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/confirm-reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resetToken, newPassword })
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          message: result.message || 'Password reset confirmation failed'
+        };
+      }
+      
+      return {
+        success: true,
+        data: result,
+        message: result.message
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error occurred'
+      };
+    }
+  }
 }
 
 export const apiService = new ApiService();
