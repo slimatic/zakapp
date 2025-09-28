@@ -76,8 +76,8 @@ export const Register: React.FC = () => {
       return;
     }
 
-    const { confirmPassword, ...userData } = formData;
-    const success = await register(userData);
+    // Send all form data including confirmPassword for server-side validation
+    const success = await register(formData);
     
     // The AuthContext will handle the redirect if registration is successful
     // If registration fails, the error will be shown via the error state
