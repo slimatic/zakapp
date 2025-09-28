@@ -162,7 +162,7 @@ export const AssetList: React.FC = () => {
                         {asset.name}
                       </h3>
                       <p className="text-sm text-gray-500 capitalize">
-                        {asset.category} {asset.subCategory && \`• \${asset.subCategory}\`}
+                        {asset.category} {asset.subCategory && `• ${asset.subCategory}`}
                       </p>
                     </div>
                   </div>
@@ -197,7 +197,7 @@ export const AssetList: React.FC = () => {
 
                 <div className="mt-6 flex justify-end space-x-3">
                   <Link
-                    to={\`/assets/\${asset.assetId}\`}
+                    to={`/assets/${asset.assetId}`}
                     className="text-blue-600 hover:text-blue-900 text-sm font-medium"
                   >
                     View Details

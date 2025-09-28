@@ -10,7 +10,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { AssetList, AssetImportExport } from './components/assets';
-import { ZakatCalculator } from './components/zakat/ZakatCalculator';
+import { Calculator } from './pages/zakat/Calculator';
 import { History } from './components/history/History';
 import { GettingStarted } from './components/help/GettingStarted';
 
