@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { apiService } from '../services/api';
+import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiService, LoginRequest, RegisterRequest, AuthResponse } from '../services/api';
 
 interface User {
   id: string;
@@ -75,7 +76,7 @@ interface AuthContextType extends AuthState {
   clearError: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
