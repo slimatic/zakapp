@@ -7,6 +7,9 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { AssetList } from './components/assets/AssetList';
+import { ZakatCalculator } from './components/zakat/ZakatCalculator';
+import { History } from './components/history/History';
+import { GettingStarted } from './components/help/GettingStarted';
 
 function App() {
   return (
@@ -32,6 +35,36 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <AssetList />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/calculate" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ZakatCalculator />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/history" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <History />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/help" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <GettingStarted />
                   </Layout>
                 </ProtectedRoute>
               } 

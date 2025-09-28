@@ -102,12 +102,51 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  // Zakat endpoints
+  // Zakat Calculation Methods
   async calculateZakat(data: any): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/calculate`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async getNisab(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/nisab`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getMethodologies(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/methodologies`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async recordPayment(data: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/payment`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async createSnapshot(data: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/snapshot`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async getSnapshots(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/snapshots`, {
+      headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
   }
