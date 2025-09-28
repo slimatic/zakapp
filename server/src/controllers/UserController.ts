@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
+import { UserStore } from '../utils/userStore';
 
 export class UserController {
   getProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -51,6 +53,28 @@ export class UserController {
 
     if (!currentPassword || !newPassword) {
       throw new AppError('Current and new passwords are required', 400, 'MISSING_PASSWORDS');
+    }
+
+    if (!req.userId) {
+      throw new AppError('User not authenticated', 401, 'UNAUTHENTICATED');
+    }
+
+    // Get current user from database
+    const user = UserStore.getUserById(req.userId);
+    if (!user) {
+      throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+    }
+
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValidPassword) {
+      throw new AppError('Current password is incorrect', 400, 'INVALID_PASSWORD');
+    }
+
+    // Update password in database
+    const success = await UserStore.updatePassword(req.userId, newPassword);
+    if (!success) {
+      throw new AppError('Failed to update password', 500, 'PASSWORD_UPDATE_FAILED');
     }
 
     const response: ApiResponse = {

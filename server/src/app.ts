@@ -50,4 +50,14 @@ app.get('/health', (req, res) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
+// Start server if this file is run directly
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 ZakApp Server running on port ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+  });
+}
+
 export default app;
