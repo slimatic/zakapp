@@ -205,7 +205,7 @@ export const Register: React.FC = () => {
           <Button
             type="submit"
             disabled={isRegistering}
-            loading={isRegistering}
+            isLoading={isRegistering}
             className="w-full"
           >
             Create account
