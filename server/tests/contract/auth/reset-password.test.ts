@@ -111,8 +111,8 @@ describe('POST /api/auth/reset-password', () => {
     const responses = await Promise.all(promises);
     
     // First few should succeed, later ones should be rate limited
-    expect(responses[0].status).toBe(200);
-    expect(responses[1].status).toBe(200);
+    expect(responses[0]?.status).toBe(200);
+    expect(responses[1]?.status).toBe(200);
     
     // Later requests should be rate limited
     const rateLimitedResponses = responses.slice(-2);

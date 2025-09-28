@@ -13,10 +13,18 @@
     "docker:build": "docker build -t zakapp .",
     "docker:run": "docker run -p 3000:3000 -v zakapp-data:/app/data zakapp"
   },
-  "keywords": ["zakat", "islam", "calculator", "self-hosted", "finance"],
+  "keywords": [
+    "zakat",
+    "islam",
+    "calculator",
+    "self-hosted",
+    "finance"
+  ],
   "author": "zakapp contributors",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@types/jest": "30.0.0",
+    "concurrently": "^8.2.2",
+    "ts-jest": "29.4.4"
   }
 }

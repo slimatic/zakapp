@@ -1,10 +1,14 @@
 import request from 'supertest';
 import app from '../../../src/app'; // This will fail until we create the app
+import { clearAllAssets } from '../../../src/controllers/AssetController';
 
 describe('GET /api/assets/export', () => {
   let accessToken: string;
 
   beforeEach(async () => {
+    // Clear all assets from previous tests
+    clearAllAssets();
+    
     await request(app)
       .post('/api/auth/register')
       .send({

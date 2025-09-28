@@ -99,16 +99,47 @@ describe('GET /api/auth/me', () => {
   });
 
   it('should return 401 for expired access token', async () => {
-    // Mock expired token scenario
-    const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.invalid';
-    
-    const response = await request(app)
-      .get('/api/auth/me')
-      .set('Authorization', `Bearer ${expiredToken}`)
-      .expect(401);
+    // Register and login to get a valid access token
+    const timestamp = Date.now();
+    const user = {
+      email: `expired-${timestamp}@test.com`,
+      password: 'Test123456!',
+      username: `expired${timestamp}`,
+      firstName: 'Expired',
+      lastName: 'User'
+    };
 
-    expect(response.body).toHaveProperty('success', false);
-    expect(response.body).toHaveProperty('error', 'TOKEN_EXPIRED');
+    await request(app)
+      .post('/api/auth/register')
+      .send(user)
+      .expect(201);
+
+    const loginResponse = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: user.email,
+        password: user.password
+      })
+      .expect(200);
+
+    const validAccessToken = loginResponse.body.accessToken;
+
+    // Use Jest fake timers to make the token appear expired (16 minutes later, access tokens expire in 15 min)
+    jest.useFakeTimers();
+    
+    try {
+      jest.setSystemTime(new Date(Date.now() + 16 * 60 * 1000)); // 16 minutes later
+
+      const response = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${validAccessToken}`)
+        .expect(401);
+
+      expect(response.body).toHaveProperty('success', false);
+      expect(response.body).toHaveProperty('error', 'TOKEN_EXPIRED');
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('should return 401 for revoked/logged out token', async () => {
