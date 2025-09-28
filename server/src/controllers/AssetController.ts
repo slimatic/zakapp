@@ -122,16 +122,62 @@ export class AssetController {
     const { type, name, value, currency, description, ...otherFields } = req.body;
     const userId = req.userId!;
 
-    if (!type || !name || !value || !currency) {
-      throw new AppError('Missing required fields', 400, 'MISSING_FIELDS');
+    // Validate required fields
+    if (!type || !name || value === undefined || !currency) {
+      const missingFields = [];
+      if (!type) missingFields.push('type');
+      if (!name) missingFields.push('name');
+      if (value === undefined) missingFields.push('value');
+      if (!currency) missingFields.push('currency');
+      
+      throw new AppError(
+        'Missing required fields', 
+        400, 
+        'VALIDATION_ERROR', 
+        missingFields.map(field => ({ field, message: `${field} is required` }))
+      );
     }
+
+    // Validate asset type
+    const validTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER'];
+    if (!validTypes.includes(type)) {
+      throw new AppError('Invalid asset type', 400, 'VALIDATION_ERROR');
+    }
+
+    // Validate value is non-negative
+    if (value < 0) {
+      throw new AppError('Asset value cannot be negative', 400, 'VALIDATION_ERROR');
+    }
+
+    // Validate currency
+    const validCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD'];
+    if (!validCurrencies.includes(currency)) {
+      throw new AppError('Invalid currency', 400, 'VALIDATION_ERROR');
+    }
+
+    // Validate asset type specific fields
+    if (type === 'GOLD' || type === 'SILVER') {
+      if (!otherFields.weight || !otherFields.unit) {
+        throw new AppError('Weight and unit are required for precious metals', 400, 'VALIDATION_ERROR');
+      }
+    }
+
+    if (type === 'CRYPTOCURRENCY') {
+      if (!otherFields.cryptoType || !otherFields.quantity) {
+        throw new AppError('Crypto type and quantity are required for cryptocurrency assets', 400, 'VALIDATION_ERROR');
+      }
+    }
+
+    // Determine if asset is zakatable based on Islamic principles
+    const zakatableTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'INVESTMENT'];
+    const isZakatable = zakatableTypes.includes(type);
 
     // Initialize user assets if not exists
     if (!userAssets[userId]) {
       userAssets[userId] = [];
     }
 
-    const mockAsset = {
+    const newAsset = {
       id: `${userId}-asset-${Date.now()}`,
       userId,
       type,
@@ -139,18 +185,19 @@ export class AssetController {
       value,
       currency,
       description,
+      isZakatable,
       ...otherFields,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     // Add to user's assets
-    userAssets[userId].push(mockAsset);
+    userAssets[userId].push(newAsset);
 
     const response: ApiResponse = {
       success: true,
       message: 'Asset created successfully',
-      asset: mockAsset
+      asset: newAsset
     };
 
     res.status(201).json(response);
@@ -158,21 +205,21 @@ export class AssetController {
 
   get = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
+    const userId = req.userId!;
 
-    const mockAsset = {
-      id,
-      type: 'CASH',
-      name: 'Sample Asset',
-      value: 1000.00,
-      currency: 'USD',
-      description: 'Sample asset',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    // Get user's assets
+    const assets = userAssets[userId] || [];
+    
+    // Find the specific asset
+    const asset = assets.find(asset => asset.id === id);
+    
+    if (!asset) {
+      throw new AppError('Asset not found', 404, 'ASSET_NOT_FOUND');
+    }
 
     const response: ApiResponse = {
       success: true,
-      asset: mockAsset
+      asset
     };
 
     res.status(200).json(response);
@@ -199,6 +246,20 @@ export class AssetController {
 
   delete = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
+    const userId = req.userId!;
+
+    // Get user's assets
+    const assets = userAssets[userId] || [];
+    
+    // Find asset index
+    const assetIndex = assets.findIndex(asset => asset.id === id);
+    
+    if (assetIndex === -1) {
+      throw new AppError('Asset not found', 404, 'ASSET_NOT_FOUND');
+    }
+
+    // Remove asset from array
+    assets.splice(assetIndex, 1);
 
     const response: ApiResponse = {
       success: true,
