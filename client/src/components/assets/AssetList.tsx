@@ -1,61 +1,28 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAssets } from '../../services/apiHooks';
-import { Asset } from '../../../../shared/src/types';
+import { Asset, AssetCategoryType } from '../../../../shared/src/types';
+import { LoadingSpinner, ErrorMessage, Button } from '../ui';
 
 export const AssetList: React.FC = () => {
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  
+  const { data: assetsData, isLoading, error } = useAssets();
+  const assets = assetsData?.assets || [];
 
-  useEffect(() => {
-    loadAssets();
-  }, []);
-
-  const loadAssets = async () => {
-    try {
-      setIsLoading(true);
-      const response = await apiService.getAssets();
-      if (response.success && response.data) {
-        setAssets(response.data);
-      } else {
-        setError(response.message || 'Failed to load assets');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load assets');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAddAsset = async (assetData: Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const response = await apiService.createAsset(assetData);
-      if (response.success && response.data) {
-        setAssets(prev => [...prev, response.data]);
-        setShowAddModal(false);
-      } else {
-        setError(response.message || 'Failed to create asset');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create asset');
-    }
-  };
-
-  const getAssetTypeLabel = (type: AssetType): string => {
-    const labels: Record<AssetType, string> = {
-      [AssetType.CASH]: 'Cash',
-      [AssetType.BANK_ACCOUNT]: 'Bank Account',
-      [AssetType.GOLD]: 'Gold',
-      [AssetType.SILVER]: 'Silver',
-      [AssetType.CRYPTOCURRENCY]: 'Cryptocurrency',
-      [AssetType.BUSINESS_ASSETS]: 'Business Assets',
-      [AssetType.INVESTMENT_ACCOUNT]: 'Investment Account',
-      [AssetType.REAL_ESTATE]: 'Real Estate',
-      [AssetType.DEBTS_OWED_TO_YOU]: 'Debts Owed to You',
-      [AssetType.OTHER]: 'Other'
+  const getCategoryIcon = (category: AssetCategoryType): string => {
+    const icons: Record<AssetCategoryType, string> = {
+      cash: '💵',
+      gold: '🪙',
+      silver: '🥈',
+      business: '🏢',
+      property: '🏠',
+      stocks: '📈',
+      crypto: '₿',
+      debts: '📋',
+      expenses: '🧾'
     };
-    return labels[type] || type;
+    return icons[category] || '📦';
   };
 
   const formatCurrency = (amount: number, currency: string): string => {
@@ -65,77 +32,182 @@ export const AssetList: React.FC = () => {
     }).format(amount);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600"></div>
-      </div>
-    );
-  }
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage error={error} />;
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Your Assets</h2>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-        >
-          Add Asset
-        </button>
+      {/* Header with Actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Your Assets</h1>
+          <p className="text-gray-600 mt-1">
+            Manage your assets for accurate Zakat calculation
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to="/assets/import-export"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            📊 Import/Export
+          </Link>
+          <Button
+            variant="primary"
+            onClick={() => setShowAddModal(true)}
+          >
+            ➕ Add Asset
+          </Button>
+        </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
+      {/* Summary Cards */}
+      {assets.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold text-sm">#</span>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Total Assets</dt>
+                    <dd className="text-lg font-medium text-gray-900">{assets.length}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 font-semibold text-sm">✓</span>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Zakat Eligible</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {assets.filter(asset => asset.zakatEligible).length}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <span className="text-yellow-600 font-semibold text-sm">$</span>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Total Value</dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {formatCurrency(
+                        assets.reduce((sum, asset) => sum + asset.value, 0),
+                        'USD'
+                      )}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
+      {/* Asset Grid */}
       {assets.length === 0 ? (
-        <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-            <path d="M8 14v20c0 4.418 7.163 8 16 8 1.381 0 2.721-.087 4-.252M8 14c0 4.418 7.163 8 16 8s16-3.582 16-8M8 14c0-4.418 7.163-8 16-8s16 3.582 16 8m0 0v14m0-4c0 4.418-7.163 8-16 8S8 28.418 8 24m32 10v6c0 2.21-1.79 4-4 4H12c-2.21 0-4-1.79-4-4v-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No assets yet</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Get started by adding your first asset.
-          </p>
-          <div className="mt-6">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
-              Add Asset
-            </button>
+        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+          <div className="mx-auto h-12 w-12 text-gray-400 mb-4">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-full h-full">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
           </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No assets yet</h3>
+          <p className="text-gray-500 mb-6">
+            Start by adding your first asset to begin calculating your Zakat
+          </p>
+          <Button
+            variant="primary"
+            onClick={() => setShowAddModal(true)}
+          >
+            ➕ Add Your First Asset
+          </Button>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {assets.map((asset) => (
-            <div key={asset.id} className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-medium text-gray-900 truncate">
-                      {asset.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {getAssetTypeLabel(asset.type)}
-                    </p>
+            <div key={asset.assetId} className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-200">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-2xl">
+                      {getCategoryIcon(asset.category)}
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                        {asset.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 capitalize">
+                        {asset.category} {asset.subCategory && \`• \${asset.subCategory}\`}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-shrink-0">
-                    <span className="text-lg font-semibold text-green-600">
+                  {asset.zakatEligible && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Zakat Eligible
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-500">Value:</span>
+                    <span className="text-lg font-semibold text-gray-900">
                       {formatCurrency(asset.value, asset.currency)}
                     </span>
                   </div>
-                </div>
-                {asset.description && (
-                  <div className="mt-3">
-                    <p className="text-sm text-gray-600">{asset.description}</p>
+
+                  {asset.description && (
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {asset.description}
+                    </p>
+                  )}
+
+                  <div className="flex justify-between items-center text-xs text-gray-500">
+                    <span>Added {new Date(asset.createdAt).toLocaleDateString()}</span>
+                    {asset.updatedAt !== asset.createdAt && (
+                      <span>Updated {new Date(asset.updatedAt).toLocaleDateString()}</span>
+                    )}
                   </div>
-                )}
-                <div className="mt-3 text-xs text-gray-400">
-                  Added {new Date(asset.createdAt).toLocaleDateString()}
+                </div>
+
+                <div className="mt-6 flex justify-end space-x-3">
+                  <Link
+                    to={\`/assets/\${asset.assetId}\`}
+                    className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                  >
+                    View Details
+                  </Link>
+                  <button
+                    onClick={() => {/* TODO: Edit functionality */}}
+                    className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+                  >
+                    Edit
+                  </button>
                 </div>
               </div>
             </div>
@@ -143,176 +215,42 @@ export const AssetList: React.FC = () => {
         </div>
       )}
 
+      {/* Add Asset Modal */}
       {showAddModal && (
-        <AddAssetModal
-          onClose={() => setShowAddModal(false)}
-          onAdd={handleAddAsset}
-        />
-      )}
-    </div>
-  );
-};
-
-interface AddAssetModalProps {
-  onClose: () => void;
-  onAdd: (asset: Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>) => void;
-}
-
-const AddAssetModal: React.FC<AddAssetModalProps> = ({ onClose, onAdd }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    type: AssetType.CASH,
-    value: '',
-    currency: 'USD',
-    description: '',
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.value) {
-      return;
-    }
-
-    const asset = {
-      name: formData.name,
-      type: formData.type,
-      value: parseFloat(formData.value),
-      currency: formData.currency,
-      description: formData.description || undefined,
-    };
-
-    onAdd(asset);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div className="mt-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Add New Asset</h3>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div 
+              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+              onClick={() => setShowAddModal(false)}
+            />
+            
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  Add New Asset
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  This is a placeholder. The full AssetForm component will be integrated here.
+                </p>
+                <div className="flex justify-end space-x-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => setShowAddModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Link
+                    to="/assets/new"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Go to Add Asset Page
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Asset Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                id="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                placeholder="e.g., Savings Account"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-                Asset Type
-              </label>
-              <select
-                name="type"
-                id="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
-              >
-                {Object.values(AssetType).map((type) => (
-                  <option key={type} value={type}>
-                    {type.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex space-x-4">
-              <div className="flex-1">
-                <label htmlFor="value" className="block text-sm font-medium text-gray-700">
-                  Value
-                </label>
-                <input
-                  type="number"
-                  name="value"
-                  id="value"
-                  required
-                  min="0"
-                  step="0.01"
-                  value={formData.value}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="flex-shrink-0">
-                <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
-                  Currency
-                </label>
-                <select
-                  name="currency"
-                  id="currency"
-                  value={formData.currency}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="SAR">SAR</option>
-                  <option value="AED">AED</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description (Optional)
-              </label>
-              <textarea
-                name="description"
-                id="description"
-                rows={3}
-                value={formData.description}
-                onChange={handleChange}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                placeholder="Additional details about this asset..."
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                Add Asset
-              </button>
-            </div>
-          </form>
         </div>
-      </div>
+      )}
     </div>
   );
 };
