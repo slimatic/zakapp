@@ -11,7 +11,7 @@ const zakatRoutes = require('./routes/zakat');
 const assetRoutes = require('./routes/assets');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(helmet());
@@ -31,13 +31,40 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// API Routes
-app.use('/api/auth', authRoutes);
+// API routes
+app.use('/api/auth', (req, res, next) => {
+  console.log('Auth request:', req.method, req.url, 'Body:', JSON.stringify(req.body));
+  next();
+}, authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/zakat', zakatRoutes);
 app.use('/api/assets', assetRoutes);
 
+// API info endpoint
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'ZakApp API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      auth: '/api/auth',
+      assets: '/api/assets',
+      zakat: '/api/zakat',
+      user: '/api/user',
+      health: '/health'
+    }
+  });
+});
+
 // Health check
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0'
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
