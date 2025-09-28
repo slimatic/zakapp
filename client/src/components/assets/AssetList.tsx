@@ -8,7 +8,7 @@ export const AssetList: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   
   const { data: assetsData, isLoading, error } = useAssets();
-  const assets = assetsData?.assets || [];
+  const assets = assetsData?.data || [];
 
   const getCategoryIcon = (category: AssetCategoryType): string => {
     const icons: Record<AssetCategoryType, string> = {
@@ -95,7 +95,7 @@ export const AssetList: React.FC = () => {
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Zakat Eligible</dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {assets.filter(asset => asset.zakatEligible).length}
+                      {assets.filter((asset: Asset) => asset.zakatEligible).length}
                     </dd>
                   </dl>
                 </div>
@@ -116,7 +116,7 @@ export const AssetList: React.FC = () => {
                     <dt className="text-sm font-medium text-gray-500 truncate">Total Value</dt>
                     <dd className="text-lg font-medium text-gray-900">
                       {formatCurrency(
-                        assets.reduce((sum, asset) => sum + asset.value, 0),
+                        assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0),
                         'USD'
                       )}
                     </dd>
@@ -149,7 +149,7 @@ export const AssetList: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {assets.map((asset) => (
+          {assets.map((asset: Asset) => (
             <div key={asset.assetId} className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-200">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -162,7 +162,7 @@ export const AssetList: React.FC = () => {
                         {asset.name}
                       </h3>
                       <p className="text-sm text-gray-500 capitalize">
-                        {asset.category} {asset.subCategory && \`• \${asset.subCategory}\`}
+                        {asset.category} {asset.subCategory && `• ${asset.subCategory}`}
                       </p>
                     </div>
                   </div>
@@ -197,7 +197,7 @@ export const AssetList: React.FC = () => {
 
                 <div className="mt-6 flex justify-end space-x-3">
                   <Link
-                    to={\`/assets/\${asset.assetId}\`}
+                    to={`/assets/${asset.assetId}`}
                     className="text-blue-600 hover:text-blue-900 text-sm font-medium"
                   >
                     View Details

@@ -14,23 +14,23 @@ export const AssetDetails: React.FC = () => {
   const { data: assetData, isLoading, error, refetch } = useAsset(id!);
   const deleteMutation = useDeleteAsset();
 
-  const asset: Asset | null = assetData?.asset || null;
+  const asset: Asset | null = assetData?.data || null;
 
   const handleDelete = () => {
-    if (!asset) return;
+    if (!safeAsset) return;
 
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${asset.name}"? This action cannot be undone.`
+      `Are you sure you want to delete "${safeAsset.name}"? This action cannot be undone.`
     );
 
     if (confirmed) {
-      deleteMutation.mutate(asset.assetId, {
+      deleteMutation.mutate(safeAsset.assetId, {
         onSuccess: () => {
           navigate('/assets');
         },
         onError: (error: any) => {
           console.error('Failed to delete asset:', error);
-          alert('Failed to delete asset. Please try again.');
+          alert('Failed to delete safeAsset. Please try again.');
         }
       });
     }
@@ -128,27 +128,30 @@ export const AssetDetails: React.FC = () => {
     );
   }
 
+  // TypeScript type narrowing assertion
+  const safeAsset: Asset = asset;
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div className="flex items-center space-x-4">
           <div className="text-4xl">
-            {getCategoryIcon(asset.category)}
+            {getCategoryIcon(safeAsset.category)}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{asset.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{safeAsset.name}</h1>
             <p className="text-lg text-gray-600">
-              {getCategoryLabel(asset.category)}
-              {asset.subCategory && (
-                <span> • {getSubCategoryLabel(asset.subCategory)}</span>
+              {getCategoryLabel(safeAsset.category)}
+              {safeAsset.subCategory && (
+                <span> • {getSubCategoryLabel(safeAsset.subCategory)}</span>
               )}
             </p>
           </div>
         </div>
         
         <div className="flex space-x-2">
-          <Link to={`/assets/${asset.assetId}/edit`}>
+          <Link to={`/assets/${safeAsset.assetId}/edit`}>
             <Button variant="secondary">
               Edit Asset
             </Button>
@@ -170,23 +173,23 @@ export const AssetDetails: React.FC = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Current Value</h3>
           <p className="text-3xl font-bold text-green-600">
-            {formatCurrency(asset.value, asset.currency)}
+            {formatCurrency(safeAsset.value, safeAsset.currency)}
           </p>
-          <p className="text-sm text-gray-500 mt-1">{asset.currency}</p>
+          <p className="text-sm text-gray-500 mt-1">{safeAsset.currency}</p>
         </div>
 
         {/* Zakat Status */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Zakat Status</h3>
           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-            asset.zakatEligible 
+            safeAsset.zakatEligible 
               ? 'bg-green-100 text-green-800' 
               : 'bg-gray-100 text-gray-800'
           }`}>
-            {asset.zakatEligible ? '✓ Zakat Eligible' : '✗ Not Eligible'}
+            {safeAsset.zakatEligible ? '✓ Zakat Eligible' : '✗ Not Eligible'}
           </div>
           <p className="text-sm text-gray-500 mt-2">
-            {asset.zakatEligible 
+            {safeAsset.zakatEligible 
               ? 'This asset will be included in Zakat calculations'
               : 'This asset will be excluded from Zakat calculations'
             }
@@ -198,12 +201,12 @@ export const AssetDetails: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Asset Age</h3>
           <p className="text-2xl font-bold text-blue-600">
             {Math.floor(
-              (new Date().getTime() - new Date(asset.createdAt).getTime()) / 
+              (new Date().getTime() - new Date(safeAsset.createdAt).getTime()) / 
               (1000 * 60 * 60 * 24)
             )} days
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            Added on {formatDate(asset.createdAt)}
+            Added on {formatDate(safeAsset.createdAt)}
           </p>
         </div>
       </div>
@@ -220,22 +223,22 @@ export const AssetDetails: React.FC = () => {
             <dl className="space-y-3">
               <div>
                 <dt className="text-sm font-medium text-gray-900">Name</dt>
-                <dd className="text-sm text-gray-700">{asset.name}</dd>
+                <dd className="text-sm text-gray-700">{safeAsset.name}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-900">Category</dt>
-                <dd className="text-sm text-gray-700">{getCategoryLabel(asset.category)}</dd>
+                <dd className="text-sm text-gray-700">{getCategoryLabel(safeAsset.category)}</dd>
               </div>
-              {asset.subCategory && (
+              {safeAsset.subCategory && (
                 <div>
                   <dt className="text-sm font-medium text-gray-900">Sub-Category</dt>
-                  <dd className="text-sm text-gray-700">{getSubCategoryLabel(asset.subCategory)}</dd>
+                  <dd className="text-sm text-gray-700">{getSubCategoryLabel(safeAsset.subCategory)}</dd>
                 </div>
               )}
               <div>
                 <dt className="text-sm font-medium text-gray-900">Value</dt>
                 <dd className="text-sm text-gray-700">
-                  {formatCurrency(asset.value, asset.currency)}
+                  {formatCurrency(safeAsset.value, safeAsset.currency)}
                 </dd>
               </div>
             </dl>
@@ -248,43 +251,43 @@ export const AssetDetails: React.FC = () => {
             <dl className="space-y-3">
               <div>
                 <dt className="text-sm font-medium text-gray-900">Created</dt>
-                <dd className="text-sm text-gray-700">{formatDate(asset.createdAt)}</dd>
+                <dd className="text-sm text-gray-700">{formatDate(safeAsset.createdAt)}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-900">Last Updated</dt>
-                <dd className="text-sm text-gray-700">{formatDate(asset.updatedAt)}</dd>
+                <dd className="text-sm text-gray-700">{formatDate(safeAsset.updatedAt)}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-900">Asset ID</dt>
-                <dd className="text-sm text-gray-700 font-mono">{asset.assetId}</dd>
+                <dd className="text-sm text-gray-700 font-mono">{safeAsset.assetId}</dd>
               </div>
             </dl>
           </div>
         </div>
 
         {/* Description */}
-        {asset.description && (
+        {safeAsset.description && (
           <div className="mt-6 pt-6 border-t border-gray-200">
             <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">
               Description
             </h4>
-            <p className="text-sm text-gray-700 leading-6">{asset.description}</p>
+            <p className="text-sm text-gray-700 leading-6">{safeAsset.description}</p>
           </div>
         )}
       </div>
 
       {/* Zakat Calculation Info */}
-      {asset.zakatEligible && (
+      {safeAsset.zakatEligible && (
         <div className="bg-green-50 rounded-lg border border-green-200 p-6 mb-6">
           <h3 className="text-xl font-semibold text-green-900 mb-4">
             Zakat Calculation Information
           </h3>
           <div className="space-y-3">
             <p className="text-sm text-green-800">
-              <span className="font-medium">Zakatable Value:</span> {formatCurrency(asset.value, asset.currency)}
+              <span className="font-medium">Zakatable Value:</span> {formatCurrency(safeAsset.value, safeAsset.currency)}
             </p>
             <p className="text-sm text-green-800">
-              <span className="font-medium">Estimated Zakat (2.5%):</span> {formatCurrency(asset.value * 0.025, asset.currency)}
+              <span className="font-medium">Estimated Zakat (2.5%):</span> {formatCurrency(safeAsset.value * 0.025, safeAsset.currency)}
             </p>
             <p className="text-xs text-green-600">
               * This is an estimate. Actual Zakat calculation depends on your total wealth, 
@@ -303,7 +306,7 @@ export const AssetDetails: React.FC = () => {
         </Link>
         
         <div className="flex space-x-3">
-          <Link to={`/calculate?includeAsset=${asset.assetId}`}>
+          <Link to={`/calculate?includeAsset=${safeAsset.assetId}`}>
             <Button variant="primary">
               Calculate Zakat
             </Button>
