@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Asset, AssetType } from '../../types';
-import { apiService } from '../../services/api';
+import React, { useState } from 'react';
+import { useAssets } from '../../services/apiHooks';
+import { Asset } from '../../../../shared/src/types';
 
 export const AssetList: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
