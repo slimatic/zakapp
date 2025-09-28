@@ -4,24 +4,20 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 // Import route modules
-import authRoutes from './routes/auth';
-import assetRoutes from './routes/assets';
-import zakatRoutes from './routes/zakat';
-import userRoutes from './routes/user';
-import dataRoutes from './routes/data';
-import systemRoutes from './routes/system';
-import exportRoutes from './routes/export';
-import importRoutes from './routes/import';
+import authRoutes from '../routes/auth';
+import assetRoutes from '../routes/assets';
+import zakatRoutes from '../routes/zakat';
+import userRoutes from '../routes/user';
 
 // Import middleware
-import { errorHandler } from './middleware/errorHandler';
+import { errorHandler } from '../middleware/errorHandler';
 
 const app = express();
 
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true
 }));
 
@@ -37,10 +33,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/zakat', zakatRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/data', dataRoutes);
-app.use('/api/system', systemRoutes);
-app.use('/api/export', exportRoutes);
-app.use('/api/import', importRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
