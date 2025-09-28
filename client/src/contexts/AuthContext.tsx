@@ -122,7 +122,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      const response = await apiService.login({ email, password });
+      // For login, treat the email input as username since the server expects username
+      const response = await apiService.login({ username: email, password });
       if (response.success && response.accessToken && response.user) {
         localStorage.setItem('accessToken', response.accessToken);
         if (response.refreshToken) {

@@ -96,10 +96,28 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 zakapp server running on port ${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔒 Data directory: ${process.env.DATA_DIR || './data'}`);
+});
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use!`);
+    console.error('');
+    console.error('To fix this issue, you can:');
+    console.error('• Set a different port: PORT=5001 npm run dev');
+    console.error('• Or set PORT environment variable: export PORT=5001');
+    console.error('• Or kill the process using the port:');
+    console.error(`  - Find the process: lsof -ti:${PORT}`);
+    console.error(`  - Kill the process: kill -9 $(lsof -ti:${PORT})`);
+    console.error('');
+    process.exit(1);
+  } else {
+    console.error('Server error:', error);
+    process.exit(1);
+  }
 });
 
 module.exports = app;
