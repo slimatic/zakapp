@@ -54,7 +54,7 @@ export class ZakatController {
 
     const response: ApiResponse = {
       success: true,
-      nisab: mockNisab
+      data: mockNisab
     };
 
     res.status(200).json(response);
@@ -180,23 +180,33 @@ export class ZakatController {
     const mockMethodologies = [
       {
         id: 'standard',
-        name: 'Standard Methodology',
-        description: 'Standard Zakat calculation methodology',
-        nisabThreshold: 'silver',
-        zakatRate: 0.025
+        name: 'Standard Method (AAOIFI)',
+        description: 'Internationally recognized dual nisab method',
+        nisabMethod: 'DUAL',
+        nisabThreshold: 'dual_minimum',
+        zakatRate: 2.5
       },
       {
         id: 'hanafi',
-        name: 'Hanafi Methodology',
-        description: 'Hanafi school methodology',
+        name: 'Hanafi School Method',
+        description: 'Silver-based nisab with comprehensive business inclusion',
+        nisabMethod: 'SILVER',
         nisabThreshold: 'silver',
-        zakatRate: 0.025
+        zakatRate: 2.5
+      },
+      {
+        id: 'shafii',
+        name: 'Shafi\'i School Method',
+        description: 'Detailed categorization with dual nisab',
+        nisabMethod: 'DUAL',
+        nisabThreshold: 'dual_minimum',
+        zakatRate: 2.5
       }
     ];
 
     const response: ApiResponse = {
       success: true,
-      methodologies: mockMethodologies
+      data: mockMethodologies
     };
 
     res.status(200).json(response);
