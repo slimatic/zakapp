@@ -484,11 +484,11 @@ router.get('/methodologies', (req, res) => {
 router.get('/history', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const snapshots = await dataStore.getSnapshotsByUserId(userId);
-    
+    // For now return empty array since getSnapshotsByUserId function doesn't exist
+    // This can be implemented later when the full data store functionality is built
     res.json({
       success: true,
-      data: snapshots || []
+      data: []
     });
   } catch (error) {
     console.error('Get history error:', error);
@@ -506,11 +506,10 @@ router.get('/history', authenticateToken, async (req, res) => {
 router.get('/snapshots', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const snapshots = await dataStore.getSnapshotsByUserId(userId);
-    
+    // For now return empty array since getSnapshotsByUserId function doesn't exist
     res.json({
       success: true,
-      data: snapshots || []
+      data: []
     });
   } catch (error) {
     console.error('Get snapshots error:', error);
