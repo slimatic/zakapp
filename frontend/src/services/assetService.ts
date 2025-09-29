@@ -51,6 +51,9 @@ const apiRequest = async <T>(
 ): Promise<T> => {
   const token = getAuthToken();
 
+  console.log(`🔍 Making API request: ${options.method || 'GET'} ${API_BASE_URL}${endpoint}`);
+  console.log('🔑 Token exists:', !!token);
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: 'GET',
     ...options,
@@ -61,13 +64,17 @@ const apiRequest = async <T>(
     },
   });
 
+  console.log(`📡 Response: ${response.status} ${response.statusText}`);
+
   if (!response.ok) {
+    console.error(`❌ API Error: ${response.status} ${response.statusText} for ${endpoint}`);
     throw new Error(
       `API request failed: ${response.status} ${response.statusText}`
     );
   }
 
   const data: ApiResponse<T> = await response.json();
+  console.log('📦 Response data:', data);
 
   if (!data.success) {
     throw new Error(data.error?.message || 'API request failed');
