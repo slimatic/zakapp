@@ -14,8 +14,6 @@ export const Dashboard: React.FC = () => {
 
   // Calculate dashboard metrics
   const totalAssetValue = assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
-  const zakatEligibleAssets = assets.filter((asset: Asset) => asset.zakatEligible);
-  const totalZakatEligibleValue = zakatEligibleAssets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
   const lastCalculation = history.length > 0 ? history[0] : null;
   const lastZakatAmount = lastCalculation?.zakatAmount || 0;
 
@@ -35,6 +33,10 @@ export const Dashboard: React.FC = () => {
   if (assetsError) {
     return <ErrorMessage error={assetsError} />;
   }
+  
+  // historyError is available but not used in this basic version
+  // We could handle it in the future if needed  
+  void historyError;
   return (
     <>
       {/* Dashboard Header */}

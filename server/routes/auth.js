@@ -7,6 +7,8 @@ const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const { User } = require('../models');
 const dataStore = require('../utils/dataStore');
+const fs = require('fs-extra');
+const path = require('path');
 const { 
   generateToken, 
   generateRefreshToken, 
@@ -15,6 +17,32 @@ const {
 } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Simple user index for basic info (not encrypted)
+const dataDir = process.env.DATA_DIR || path.join(__dirname, '../data');
+const userIndexFile = path.join(dataDir, 'user-index.json');
+
+// Helper to read/write user index
+const readUserIndex = async () => {
+  try {
+    if (await fs.pathExists(userIndexFile)) {
+      return await fs.readJSON(userIndexFile);
+    }
+  } catch (error) {
+    console.error('Error reading user index:', error);
+  }
+  return {};
+};
+
+const writeUserIndex = async (userIndex) => {
+  try {
+    await fs.ensureDir(dataDir);
+    await fs.writeJSON(userIndexFile, userIndex, { spaces: 2 });
+  } catch (error) {
+    console.error('Error writing user index:', error);
+    throw error;
+  }
+};
 
 /**
  * POST /api/auth/register
@@ -90,6 +118,17 @@ router.post('/register', [
       createdAt: new Date().toISOString()
     }, password);
 
+    // Also save basic user info to index (for /me endpoint)
+    const userIndex = await readUserIndex();
+    userIndex[user.id] = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
+    await writeUserIndex(userIndex);
+
     // Generate tokens
     const accessToken = generateToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
@@ -164,6 +203,13 @@ router.post('/login', [
     const accessToken = generateToken(userId);
     const refreshToken = generateRefreshToken(userId);
 
+    // Update user index with latest login
+    const userIndex = await readUserIndex();
+    if (userIndex[userId]) {
+      userIndex[userId].lastLogin = new Date().toISOString();
+      await writeUserIndex(userIndex);
+    }
+
     res.json({
       message: 'Login successful',
       user: new User(userData.user).toJSON(),
@@ -236,24 +282,46 @@ router.get('/me', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     
-    // Return minimal user data in the format expected by the frontend
-    // Since the full user data requires password decryption, we'll return basic info
-    res.json({
-      success: true,
-      data: {
-        userId: userId,
-        username: 'testuser', // For now, we'll use a default since we can't decrypt without password
-        email: 'test@example.com', // Default
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-        preferences: {
-          currency: 'USD',
-          language: 'en',
-          zakatMethod: 'standard',
-          calendarType: 'lunar'
+    // Try to get user info from the user index
+    const userIndex = await readUserIndex();
+    const userInfo = userIndex[userId];
+    
+    if (userInfo) {
+      res.json({
+        success: true,
+        data: {
+          userId: userInfo.id,
+          username: userInfo.username,
+          email: userInfo.email,
+          createdAt: userInfo.createdAt,
+          lastLogin: new Date().toISOString(),
+          preferences: {
+            currency: 'USD',
+            language: 'en',
+            zakatMethod: 'standard',
+            calendarType: 'lunar'
+          }
         }
-      }
-    });
+      });
+    } else {
+      // Fallback to default user data if not found in index
+      res.json({
+        success: true,
+        data: {
+          userId: userId,
+          username: 'User',
+          email: 'user@example.com',
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+          preferences: {
+            currency: 'USD',
+            language: 'en',
+            zakatMethod: 'standard',
+            calendarType: 'lunar'
+          }
+        }
+      });
+    }
 
   } catch (error) {
     console.error('Get user error:', error);
