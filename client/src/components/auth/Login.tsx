@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { isAuthenticated, login, isLoggingIn, loginError } = useAuth();
+  const { isAuthenticated, login, isLoading, error } = useAuth();
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -21,7 +21,7 @@ export const Login: React.FC = () => {
       return;
     }
 
-    login({ username: email, password });
+    await login(email, password);
   };
 
   return (
@@ -50,7 +50,7 @@ export const Login: React.FC = () => {
               placeholder="Username or Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              error={loginError && !email ? 'Email is required' : undefined}
+              error={error && !email ? 'Email is required' : undefined}
             />
 
             <Input
@@ -62,37 +62,35 @@ export const Login: React.FC = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              error={loginError && !password ? 'Password is required' : undefined}
+              error={error && !password ? 'Password is required' : undefined}
             />
           </div>
 
-          {loginError && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    {loginError?.message || 'Login failed. Please check your credentials.'}
-                  </h3>
-                </div>
+        {error && (
+          <div className="rounded-md bg-red-50 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  {error || 'Login failed. Please check your credentials.'}
+                </h3>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          <Button
-            type="submit"
-            disabled={isLoggingIn || !email || !password}
-            isLoading={isLoggingIn}
-            className="w-full"
-          >
-            Sign in
-          </Button>
-
-          <div className="text-center space-y-3">
+        <Button
+          type="submit"
+          disabled={isLoading || !email || !password}
+          isLoading={isLoading}
+          className="w-full"
+        >
+          Sign in
+        </Button>          <div className="text-center space-y-3">
             <p className="text-sm">
               <Link
                 to="/forgot-password"

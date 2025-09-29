@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService, LoginRequest, RegisterRequest, AuthResponse } from '../services/api';
+import React, { createContext, useContext, useEffect, useReducer } from 'react';
+import { apiService } from '../services/api';
 import type { User } from '../../../shared/src/types';
 
 interface AuthState {
@@ -116,8 +115,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
+      console.log('Attempting login with username:', email);
       // For login, treat the email input as username since the server expects username
       const response = await apiService.login({ username: email, password });
+      console.log('Login response:', { ...response, accessToken: response.accessToken ? '[PRESENT]' : '[MISSING]' });
+      
       if (response.success && response.accessToken && response.user) {
         localStorage.setItem('accessToken', response.accessToken);
         if (response.refreshToken) {
