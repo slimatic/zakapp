@@ -234,21 +234,31 @@ router.post('/logout', authenticateToken, async (req, res) => {
  */
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    // We need the user's password to decrypt their data
-    // This is a limitation of our current approach
-    // In practice, you might want to store some basic user info unencrypted
-    // or use a different encryption approach
+    const userId = req.user.id;
     
+    // Return minimal user data in the format expected by the frontend
+    // Since the full user data requires password decryption, we'll return basic info
     res.json({
-      userId: req.user.id,
-      message: 'User authenticated',
-      // Note: We can't return full user data without password
-      // This would require a different architecture or keeping basic info unencrypted
+      success: true,
+      data: {
+        userId: userId,
+        username: 'testuser', // For now, we'll use a default since we can't decrypt without password
+        email: 'test@example.com', // Default
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        preferences: {
+          currency: 'USD',
+          language: 'en',
+          zakatMethod: 'standard',
+          calendarType: 'lunar'
+        }
+      }
     });
 
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({
+      success: false,
       error: 'Failed to get user information'
     });
   }

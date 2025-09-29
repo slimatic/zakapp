@@ -9,7 +9,7 @@ import { ResetPassword } from './pages/auth/ResetPassword';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
 import { Dashboard } from './components/dashboard/Dashboard';
-import { AssetList, AssetImportExport, AssetFormPage } from './components/assets';
+import { AssetList, AssetImportExport, AssetFormPage, AssetDetails } from './components/assets';
 import { ZakatCalculator } from './components/zakat/ZakatCalculator';
 import { History } from './components/history/History';
 import { GettingStarted } from './components/help/GettingStarted';
@@ -61,6 +61,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <AssetImportExport />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/assets/:id" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AssetDetails />
                   </Layout>
                 </ProtectedRoute>
               } 

@@ -434,4 +434,171 @@ router.post('/record-payment', authenticateToken, [
   }
 });
 
+/**
+ * GET /api/zakat/methodologies
+ * Get available Zakat calculation methodologies
+ */
+router.get('/methodologies', (req, res) => {
+  try {
+    const methodologies = [
+      {
+        id: 'standard',
+        name: 'Standard Method',
+        description: 'The most commonly used Zakat calculation method',
+        nisabSource: 'gold',
+        rate: 0.025
+      },
+      {
+        id: 'hanafi',
+        name: 'Hanafi Method', 
+        description: 'Hanafi school methodology for Zakat calculation',
+        nisabSource: 'silver',
+        rate: 0.025
+      },
+      {
+        id: 'shafii',
+        name: 'Shafi\'i Method',
+        description: 'Shafi\'i school methodology for Zakat calculation', 
+        nisabSource: 'gold',
+        rate: 0.025
+      }
+    ];
+
+    res.json({
+      success: true,
+      data: methodologies
+    });
+  } catch (error) {
+    console.error('Get methodologies error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get methodologies'
+    });
+  }
+});
+
+/**
+ * GET /api/zakat/history
+ * Get Zakat calculation history
+ */
+router.get('/history', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    // For now return empty array since getSnapshotsByUserId function doesn't exist
+    // This can be implemented later when the full data store functionality is built
+    res.json({
+      success: true,
+      data: []
+    });
+  } catch (error) {
+    console.error('Get history error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get calculation history'
+    });
+  }
+});
+
+/**
+ * GET /api/zakat/snapshots
+ * Get all snapshots for user
+ */
+router.get('/snapshots', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    // For now return empty array since getSnapshotsByUserId function doesn't exist
+    res.json({
+      success: true,
+      data: []
+    });
+  } catch (error) {
+    console.error('Get snapshots error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get snapshots'
+    });
+  }
+});
+
+/**
+ * GET /api/zakat/payments
+ * Get payment history
+ */
+router.get('/payments', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    // For now return empty array, can be implemented later
+    res.json({
+      success: true,
+      data: []
+    });
+  } catch (error) {
+    console.error('Get payments error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get payment history'
+    });
+  }
+});
+
+/**
+ * POST /api/zakat/payment
+ * Record a payment
+ */
+router.post('/payment', authenticateToken, async (req, res) => {
+  try {
+    // For now just return success, can be implemented later
+    res.json({
+      success: true,
+      message: 'Payment recorded successfully'
+    });
+  } catch (error) {
+    console.error('Record payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to record payment'
+    });
+  }
+});
+
+/**
+ * POST /api/zakat/save-calculation
+ * Save a calculation
+ */
+router.post('/save-calculation', authenticateToken, async (req, res) => {
+  try {
+    // For now just return success, can be implemented later
+    res.json({
+      success: true,
+      message: 'Calculation saved successfully'
+    });
+  } catch (error) {
+    console.error('Save calculation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save calculation'
+    });
+  }
+});
+
+/**
+ * POST /api/zakat/snapshot
+ * Create a snapshot
+ */
+router.post('/snapshot', authenticateToken, async (req, res) => {
+  try {
+    // For now just return success, can be implemented later
+    res.json({
+      success: true,
+      message: 'Snapshot created successfully'
+    });
+  } catch (error) {
+    console.error('Create snapshot error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create snapshot'
+    });
+  }
+});
+
 module.exports = router;

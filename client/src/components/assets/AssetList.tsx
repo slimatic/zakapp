@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { useAssets } from '../../services/apiHooks';
 import { Asset, AssetCategoryType } from '../../../../shared/src/types';
 import { LoadingSpinner, ErrorMessage, Button } from '../ui';
+import { AssetForm } from './AssetForm';
 
 export const AssetList: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   
   const { data: assetsData, isLoading, error } = useAssets();
   const assets = assetsData?.data?.assets || [];
@@ -203,7 +205,7 @@ export const AssetList: React.FC = () => {
                     View Details
                   </Link>
                   <button
-                    onClick={() => {/* TODO: Edit functionality */}}
+                    onClick={() => setEditingAsset(asset)}
                     className="text-gray-600 hover:text-gray-900 text-sm font-medium"
                   >
                     Edit
@@ -246,6 +248,31 @@ export const AssetList: React.FC = () => {
                     Go to Add Asset Page
                   </Link>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Asset Modal */}
+      {editingAsset && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div 
+              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+              onClick={() => setEditingAsset(null)}
+            />
+            
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  Edit Asset: {editingAsset.name}
+                </h3>
+                <AssetForm
+                  asset={editingAsset}
+                  onSuccess={() => setEditingAsset(null)}
+                  onCancel={() => setEditingAsset(null)}
+                />
               </div>
             </div>
           </div>
