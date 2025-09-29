@@ -1,11 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiService } from './api';
-import type { 
-  LoginRequest, 
-  RegisterRequest, 
-  AuthResponse, 
-  ApiResponse 
-} from './api';
 
 // Authentication hooks
 export const useLogin = () => {
@@ -26,6 +20,7 @@ export const useRegister = () => {
     mutationFn: (userData: {
       email: string;
       password: string;
+      confirmPassword: string;
       firstName: string;
       lastName: string;
       username: string;
