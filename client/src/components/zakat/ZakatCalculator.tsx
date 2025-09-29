@@ -237,7 +237,7 @@ export const ZakatCalculator: React.FC = () => {
                     </label>
                     <p className="text-sm text-gray-500">{methodology.description}</p>
                     <p className="text-xs text-gray-400 mt-1">
-                      Nisab Method: {methodology.nisabMethod} • Rate: {methodology.zakatRate}%
+                      Nisab Method: {(methodology as any).nisabMethod || (methodology as any).nisabThreshold || 'N/A'} • Rate: {methodology.zakatRate ? `${methodology.zakatRate}%` : 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -359,10 +359,10 @@ export const ZakatCalculator: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-green-600">Zakat Due</p>
                   <p className="text-3xl font-bold text-green-800">
-                    {formatCurrency(calculation.zakatDue, calculation.currency)}
+                    {formatCurrency((calculation as any).zakatOwed || calculation.zakatDue || 0, 'USD')}
                   </p>
                   <p className="text-sm text-green-600 mt-1">
-                    {calculation.zakatRate}% of zakatable wealth
+                    {calculation.zakatRate || 2.5}% of zakatable wealth
                   </p>
                 </div>
               </div>
@@ -372,13 +372,13 @@ export const ZakatCalculator: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Total Assets:</span>
                   <span className="text-sm font-medium">
-                    {formatCurrency(calculation.totalAssets, calculation.currency)}
+                    {formatCurrency((calculation as any).totalAssetValue || calculation.totalAssets || 0, 'USD')}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Nisab Threshold:</span>
                   <span className="text-sm font-medium">
-                    {formatCurrency(calculation.nisabThreshold, calculation.currency)}
+                    {formatCurrency(calculation.nisabThreshold || 0, 'USD')}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -389,7 +389,7 @@ export const ZakatCalculator: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Methodology:</span>
-                  <span className="text-sm font-medium">{calculation.methodology.name}</span>
+                  <span className="text-sm font-medium">{calculation.methodology?.name || 'Standard'}</span>
                 </div>
               </div>
 
@@ -460,7 +460,7 @@ export const ZakatCalculator: React.FC = () => {
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
-          zakatAmount={(calculation as any).summary?.zakatAmount || (calculation as any).zakatDue || 0}
+          zakatAmount={(calculation as any).zakatOwed || calculation.zakatDue || (calculation as any).summary?.zakatAmount || 0}
           currency="USD" // Default to USD since backend doesn't return currency yet
           onPaymentRecorded={handlePaymentRecorded}
         />
