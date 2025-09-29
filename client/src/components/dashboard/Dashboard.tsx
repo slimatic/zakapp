@@ -7,7 +7,7 @@ import type { Asset } from '../../../../shared/src/types';
 export const Dashboard: React.FC = () => {
   // Fetch assets and zakat history data
   const { data: assetsData, isLoading: assetsLoading, error: assetsError } = useAssets();
-  const { data: historyData, isLoading: historyLoading } = useZakatHistory();
+  const { data: historyData, isLoading: historyLoading, error: historyError } = useZakatHistory();
 
   const assets = assetsData?.data?.assets || [];
   const history = historyData?.data || [];
@@ -33,6 +33,10 @@ export const Dashboard: React.FC = () => {
   if (assetsError) {
     return <ErrorMessage error={assetsError} />;
   }
+  
+  // historyError is available but not used in this basic version
+  // We could handle it in the future if needed  
+  void historyError;
   return (
     <>
       {/* Dashboard Header */}
