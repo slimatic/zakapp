@@ -7,15 +7,13 @@ import type { Asset } from '../../../../shared/src/types';
 export const Dashboard: React.FC = () => {
   // Fetch assets and zakat history data
   const { data: assetsData, isLoading: assetsLoading, error: assetsError } = useAssets();
-  const { data: historyData, isLoading: historyLoading, error: historyError } = useZakatHistory();
+  const { data: historyData, isLoading: historyLoading } = useZakatHistory();
 
   const assets = assetsData?.data?.assets || [];
   const history = historyData?.data || [];
 
   // Calculate dashboard metrics
   const totalAssetValue = assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
-  const zakatEligibleAssets = assets.filter((asset: Asset) => asset.zakatEligible);
-  const totalZakatEligibleValue = zakatEligibleAssets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
   const lastCalculation = history.length > 0 ? history[0] : null;
   const lastZakatAmount = lastCalculation?.zakatAmount || 0;
 
