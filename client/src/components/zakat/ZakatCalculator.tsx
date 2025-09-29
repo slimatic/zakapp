@@ -29,8 +29,8 @@ export const ZakatCalculator: React.FC = () => {
 
       if (assetsResponse.success && assetsResponse.data) {
         setAssets(assetsResponse.data.assets || []);
-        // Select all assets by default
-        setSelectedAssets((assetsResponse.data.assets || []).map((asset: Asset) => asset.id));
+        // Select all assets by default - use assetId since that's what the backend API returns
+        setSelectedAssets((assetsResponse.data.assets || []).map((asset: any) => asset.assetId || asset.id));
       }
 
       if (methodologiesResponse.success && methodologiesResponse.data) {
@@ -50,42 +50,30 @@ export const ZakatCalculator: React.FC = () => {
     setError(null);
 
     try {
-      // Get selected assets array - always provide an array, never undefined
-      const selectedAssetsData = selectedAssets.length < assets.length 
-        ? assets.filter(asset => selectedAssets.includes(asset.id))
-        : assets;
-
-      // Transform assets to match backend validation expectations
-      // Frontend assets have: {id, type, ...} 
-      // Backend expects: {id, type, ...} but assets from API have {assetId, category, ...}
-      const transformedAssets = selectedAssetsData.map(asset => {
-        const apiAsset = asset as any; // Assets from API may have different structure
-        return {
-          id: apiAsset.assetId || asset.id, // Use assetId if available, fallback to id
-          type: apiAsset.category || asset.type, // Use category if available, fallback to type  
-          name: asset.name,
-          value: asset.value,
-          currency: asset.currency
-        };
-      });
-
-      // Prepare request payload to match backend expectations
+      // Prepare request payload to match new API contract
       const calculationRequest = {
-        password: 'temp', // Required by backend validation but not actually used for simple calculations
-        assets: transformedAssets,
-        liabilities: [], // Optional but provide empty array
-        nisabChoice: 'gold', // Default value
-        calendarType: 'lunar' // Default value
+        methodology: selectedMethodology || 'standard',
+        calendarType: 'lunar',
+        calculationDate: new Date().toISOString().split('T')[0],
+        includeAssets: selectedAssets, // Send array of asset IDs
+        includeLiabilities: [], // Optional but provide empty array
+        customRules: {
+          nisabSource: 'gold' // Default value
+        }
       };
+
+      console.log('Sending calculation request:', calculationRequest);
 
       const response = await apiService.calculateZakat(calculationRequest);
       
-      if (response.success && response.data) {
-        setCalculation(response.data);
+      if (response.success && response.calculation) {
+        setCalculation(response.calculation);
+        setSuccessMessage('Zakat calculation completed successfully!');
       } else {
-        setError(response.message || 'Calculation failed');
+        setError(response.error?.message || 'Calculation failed');
       }
     } catch (err) {
+      console.error('Calculation error:', err);
       setError(err instanceof Error ? err.message : 'Calculation failed');
     } finally {
       setIsLoading(false);

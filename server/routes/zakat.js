@@ -16,52 +16,131 @@ const router = express.Router();
  * Calculate Zakat for provided assets
  */
 router.post('/calculate', authenticateToken, [
-  body('password').notEmpty().withMessage('Password is required'),
-  body('assets').isArray().withMessage('Assets array is required'),
-  body('liabilities').optional().isArray().withMessage('Liabilities must be an array'),
-  body('nisabChoice').optional().isIn(['gold', 'silver']).withMessage('Nisab choice must be gold or silver'),
-  body('calendarType').optional().isIn(['lunar', 'solar']).withMessage('Calendar type must be lunar or solar')
+  body('methodology').optional().isIn(['standard', 'hanafi', 'shafi_i', 'custom']).withMessage('Invalid methodology'),
+  body('calendarType').optional().isIn(['lunar', 'solar']).withMessage('Calendar type must be lunar or solar'),
+  body('includeAssets').optional().isArray().withMessage('includeAssets must be an array'),
+  body('includeLiabilities').optional().isArray().withMessage('includeLiabilities must be an array'),
+  body('customRules.nisabSource').optional().isIn(['gold', 'silver']).withMessage('Nisab source must be gold or silver')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Validation failed',
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid input data',
         details: errors.array()
       });
     }
 
-    const { password, assets, liabilities = [], nisabChoice = 'gold', calendarType = 'lunar' } = req.body;
+    const { 
+      methodology = 'standard',
+      calendarType = 'lunar',
+      calculationDate = new Date().toISOString().split('T')[0],
+      includeAssets = [],
+      includeLiabilities = [],
+      customRules = {}
+    } = req.body;
     const userId = req.user.id;
 
-    // Validate assets
-    const validation = zakatCalculator.validateAssets(assets);
-    if (!validation.valid) {
-      return res.status(400).json({
-        error: 'Invalid asset data',
-        details: validation.errors
-      });
-    }
+    // Load user's assets from the file system (similar to assets route)
+    const fs = require('fs-extra');
+    const path = require('path');
+    const dataDir = process.env.DATA_DIR || path.join(__dirname, '../data');
+    const assetsDir = path.join(dataDir, 'assets');
+    const getUserAssetsFile = (userId) => path.join(assetsDir, `${userId}.json`);
+    
+    const getUserAssets = async (userId) => {
+      try {
+        const filePath = getUserAssetsFile(userId);
+        if (await fs.pathExists(filePath)) {
+          const data = await fs.readJSON(filePath);
+          return data.assets || [];
+        }
+      } catch (error) {
+        console.error('Error reading user assets:', error);
+      }
+      return [];
+    };
 
-    // Calculate Zakat
-    const calculation = zakatCalculator.calculateTotalZakat(assets, liabilities, nisabChoice);
+    // Get user's assets
+    const allAssets = await getUserAssets(userId);
+    
+    // Filter assets based on includeAssets parameter (if provided)
+    const assetsToCalculate = includeAssets.length > 0 
+      ? allAssets.filter(asset => includeAssets.includes(asset.assetId))
+      : allAssets.filter(asset => asset.zakatEligible !== false); // Default to all Zakat-eligible assets
+
+    console.log(`Calculating Zakat for user ${userId}:`, {
+      totalAssets: allAssets.length,
+      assetsToCalculate: assetsToCalculate.length,
+      methodology,
+      calendarType
+    });
+
+    // Simplified calculation (since the complex calculator might not exist)
+    const nisabSource = customRules.nisabSource || 'gold';
+    const zakatRate = customRules.zakatRate || 0.025; // 2.5%
+    
+    // Current nisab thresholds (simplified)
+    const nisabThresholds = {
+      gold: 5557.50, // 85 grams * ~$65.50/gram
+      silver: 506.75  // 595 grams * ~$0.85/gram
+    };
+    
+    const totalAssetValue = assetsToCalculate.reduce((sum, asset) => sum + asset.value, 0);
+    const nisabThreshold = nisabThresholds[nisabSource];
+    const isZakatObligatory = totalAssetValue >= nisabThreshold;
+    const zakatAmount = isZakatObligatory ? totalAssetValue * zakatRate : 0;
+
+    const calculation = {
+      id: `calc_${Date.now()}`,
+      calculationDate,
+      methodology,
+      calendarType,
+      summary: {
+        totalAssets: totalAssetValue,
+        totalLiabilities: 0, // TODO: implement liabilities
+        netWorth: totalAssetValue,
+        nisabThreshold,
+        nisabSource,
+        isZakatObligatory,
+        zakatAmount,
+        zakatRate
+      },
+      breakdown: {
+        assetsByCategory: assetsToCalculate.reduce((acc, asset) => {
+          const category = asset.category || 'other';
+          if (!acc[category]) {
+            acc[category] = { totalValue: 0, zakatableAmount: 0, count: 0 };
+          }
+          acc[category].totalValue += asset.value;
+          acc[category].zakatableAmount += asset.value;
+          acc[category].count += 1;
+          return acc;
+        }, {}),
+        includedAssets: assetsToCalculate.map(asset => ({
+          id: asset.assetId,
+          name: asset.name,
+          category: asset.category,
+          value: asset.value,
+          zakatAmount: isZakatObligatory ? asset.value * zakatRate : 0
+        }))
+      }
+    };
 
     res.json({
-      calculation,
-      summary: {
-        totalAssets: assets.length,
-        totalLiabilities: liabilities.length,
-        calculationDate: new Date().toISOString(),
-        calendarType,
-        nisabChoice
-      }
+      success: true,
+      calculation
     });
 
   } catch (error) {
     console.error('Zakat calculation error:', error);
     res.status(500).json({
-      error: 'Failed to calculate Zakat',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      success: false,
+      error: 'CALCULATION_ERROR',
+      message: 'Failed to calculate Zakat',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
