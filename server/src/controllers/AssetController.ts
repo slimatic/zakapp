@@ -30,6 +30,45 @@ export class AssetController {
     const { type, currency, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     const userId = req.userId!;
 
+    // Initialize test assets for new users (if no assets exist)
+    if (!userAssets[userId] || userAssets[userId].length === 0) {
+      userAssets[userId] = [
+        {
+          id: `asset-1-${userId}`,
+          assetId: `asset-1-${userId}`,
+          type: 'cash',
+          name: 'Savings Account',
+          value: 10000,
+          currency: 'USD',
+          description: 'Bank savings account',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: `asset-2-${userId}`,
+          assetId: `asset-2-${userId}`,
+          type: 'gold',
+          name: 'Gold Jewelry',
+          value: 5000,
+          currency: 'USD',
+          description: 'Gold jewelry collection',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: `asset-3-${userId}`,
+          assetId: `asset-3-${userId}`,
+          type: 'crypto',
+          name: 'Bitcoin Investment',
+          value: 3000,
+          currency: 'USD',
+          description: 'Bitcoin cryptocurrency holdings',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+    }
+
     // Get user's assets - ensure clean isolation per user
     const userAssetList = getUserAssets(userId);
     
