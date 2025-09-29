@@ -8,7 +8,7 @@ export const AssetList: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   
   const { data: assetsData, isLoading, error } = useAssets();
-  const assets = assetsData?.data || [];
+  const assets = assetsData?.data?.assets || [];
 
   const getCategoryIcon = (category: AssetCategoryType): string => {
     const icons: Record<AssetCategoryType, string> = {
