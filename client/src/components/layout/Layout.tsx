@@ -62,7 +62,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="flex-shrink-0">
                 <div className="relative">
                   <span className="text-gray-700 text-sm mr-4">
-                    Welcome, {user?.firstName}!
+                    Welcome, {user?.username}!
                   </span>
                   <button
                     onClick={handleLogout}

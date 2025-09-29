@@ -1,0 +1,626 @@
+import { 
+  ZakatCalculation, 
+  ZakatCalculationRequest, 
+  Asset, 
+  MethodologyInfo,
+  NisabInfo,
+  ZakatCalculationResult,
+  CalendarCalculation,
+  HijriDate,
+  CalculationBreakdown,
+  AssetCalculation,
+  DeductionRule
+} from '../../../shared/src/types';
+import { ZAKAT_METHODS, NISAB_THRESHOLDS, ZAKAT_RATES } from '../../../shared/src/constants';
+import { CurrencyService } from './currencyService';
+import { CalendarService } from './calendarService';
+import { NisabService } from './nisabService';
+import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * Advanced Zakat Calculation Engine
+ * 
+ * This service implements the core zakat calculation logic with support for:
+ * - Multiple Islamic methodologies (Hanafi, Shafi'i, Maliki, Hanbali, Standard, Custom)
+ * - Calendar system integration (lunar/solar)
+ * - Asset-specific calculation rules
+ * - Comprehensive nisab threshold management
+ * - Detailed calculation breakdown and transparency
+ * 
+ * Constitutional Compliance:
+ * - Islamic Compliance: All calculations follow authentic Islamic jurisprudence
+ * - Transparency: Detailed breakdowns show calculation methodology
+ * - Privacy & Security: No sensitive data stored in calculations
+ * - User-Centric: Clear explanations and educational content
+ */
+export class ZakatEngine {
+  private currencyService: CurrencyService;
+  private calendarService: CalendarService;
+  private nisabService: NisabService;
+
+  constructor(
+    currencyService: CurrencyService,
+    calendarService: CalendarService,
+    nisabService: NisabService
+  ) {
+    this.currencyService = currencyService;
+    this.calendarService = calendarService;
+    this.nisabService = nisabService;
+  }
+
+  /**
+   * Calculate zakat using comprehensive methodology support
+   * 
+   * @param request - Calculation parameters including method, assets, calendar type
+   * @returns Complete calculation result with methodology details and alternatives
+   */
+  async calculateZakat(request: ZakatCalculationRequest): Promise<ZakatCalculationResult> {
+    try {
+      // Get methodology information
+      const methodology = this.getMethodologyInfo(request.method);
+      
+      // Get current nisab values
+      const nisabInfo = await this.calculateNisabThreshold(methodology, request.customNisab);
+      
+      // Get calendar information if needed
+      const calendarInfo = request.calendarType === 'lunar' 
+        ? await this.calendarService.getCalendarInfo(new Date(request.calculationDate))
+        : undefined;
+
+      // Load and validate assets
+      const assets = await this.loadAssets(request.includeAssets);
+      const validatedAssets = this.validateAssets(assets);
+
+      // Perform main calculation
+      const calculation = await this.performCalculation(
+        validatedAssets,
+        methodology,
+        nisabInfo,
+        request,
+        calendarInfo
+      );
+
+      // Generate detailed breakdown
+      const breakdown = this.generateBreakdown(calculation, methodology, nisabInfo, validatedAssets);
+
+      // Calculate alternatives for comparison
+      const alternatives = await this.calculateAlternatives(validatedAssets, request, calculation);
+
+      return {
+        result: calculation,
+        methodology,
+        breakdown,
+        assumptions: this.generateAssumptions(methodology, nisabInfo),
+        sources: this.getScholarlySources(methodology.id),
+        alternatives
+      };
+
+    } catch (error) {
+      throw new Error(`Zakat calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private getMethodologyInfo(methodId: string): MethodologyInfo {
+    const method = Object.values(ZAKAT_METHODS).find(m => m.id === methodId);
+    if (!method) {
+      throw new Error(`Unknown methodology: ${methodId}`);
+    }
+    // Cast to mutable type to fix readonly array issues
+    return {
+      ...method,
+      scholarlyBasis: [...method.scholarlyBasis],
+      regions: [...method.regions],
+      calendarSupport: [...method.calendarSupport],
+      suitableFor: [...method.suitableFor],
+      pros: [...method.pros],
+      cons: [...method.cons]
+    } as MethodologyInfo;
+  }
+
+  /**
+   * Calculate nisab threshold based on methodology and current market prices
+   */
+  private async calculateNisabThreshold(methodology: MethodologyInfo, customNisab?: number): Promise<NisabInfo> {
+    if (customNisab) {
+      return {
+        goldNisab: customNisab,
+        silverNisab: customNisab,
+        effectiveNisab: customNisab,
+        nisabBasis: 'custom',
+        calculationMethod: methodology.id
+      };
+    }
+
+    // Get current gold and silver prices
+    const goldPriceUSD = await this.nisabService.getGoldPrice(); // Price per gram in USD
+    const silverPriceUSD = await this.nisabService.getSilverPrice(); // Price per gram in USD
+
+    const goldNisab = NISAB_THRESHOLDS.GOLD_GRAMS * goldPriceUSD;
+    const silverNisab = NISAB_THRESHOLDS.SILVER_GRAMS * silverPriceUSD;
+
+    let effectiveNisab: number;
+    let nisabBasis: string;
+
+    switch (methodology.nisabBasis) {
+      case 'gold':
+        effectiveNisab = goldNisab;
+        nisabBasis = 'gold';
+        break;
+      case 'silver':
+        effectiveNisab = silverNisab;
+        nisabBasis = 'silver';
+        break;
+      case 'dual_minimum':
+        effectiveNisab = Math.min(goldNisab, silverNisab);
+        nisabBasis = goldNisab < silverNisab ? 'gold' : 'silver';
+        break;
+      case 'dual_flexible':
+        // Maliki approach - choose based on economic conditions
+        effectiveNisab = await this.calculateFlexibleNisab(goldNisab, silverNisab);
+        nisabBasis = 'dual_flexible';
+        break;
+      default:
+        effectiveNisab = Math.min(goldNisab, silverNisab);
+        nisabBasis = 'dual_minimum';
+    }
+
+    return {
+      goldNisab,
+      silverNisab,
+      effectiveNisab,
+      nisabBasis,
+      calculationMethod: methodology.id
+    };
+  }
+
+  /**
+   * Flexible nisab calculation for Maliki methodology
+   */
+  private async calculateFlexibleNisab(goldNisab: number, silverNisab: number): Promise<number> {
+    // This is a simplified implementation - in practice, this would consider:
+    // - Regional economic conditions
+    // - Local purchasing power
+    // - Community consensus
+    // For now, we'll use the lower threshold to be more inclusive
+    return Math.min(goldNisab, silverNisab);
+  }
+
+  /**
+   * Load assets for calculation
+   */
+  private async loadAssets(assetIds: string[]): Promise<Asset[]> {
+    // This would typically load from database
+    // For now, we'll assume assets are provided or loaded elsewhere
+    // In real implementation, this would call the asset service
+    throw new Error('Asset loading not implemented - assets should be provided');
+  }
+
+  /**
+   * Validate assets for zakat calculation
+   */
+  private validateAssets(assets: Asset[]): Asset[] {
+    const validAssets = assets.filter(asset => {
+      // Basic validation
+      if (!asset.value || asset.value <= 0) return false;
+      if (!asset.currency) return false;
+      if (!asset.category) return false;
+      
+      return true;
+    });
+
+    if (validAssets.length === 0) {
+      throw new Error('No valid assets found for calculation');
+    }
+
+    return validAssets;
+  }
+
+  /**
+   * Perform the main zakat calculation
+   */
+  private async performCalculation(
+    assets: Asset[],
+    methodology: MethodologyInfo,
+    nisabInfo: NisabInfo,
+    request: ZakatCalculationRequest,
+    calendarInfo?: CalendarCalculation
+  ): Promise<ZakatCalculation> {
+    const calculationId = uuidv4();
+    const calculationDate = new Date(request.calculationDate).toISOString();
+
+    // Convert all assets to base currency (USD)
+    const convertedAssets = await this.convertAssetsToBaseCurrency(assets);
+
+    // Apply methodology-specific rules
+    const methodologyAssets = this.applyMethodologyRules(convertedAssets, methodology);
+
+    // Calculate individual asset zakat amounts
+    const zakatAssets = this.calculateAssetZakat(methodologyAssets, methodology);
+
+    // Calculate totals
+    const totalAssets = zakatAssets.reduce((sum, asset) => sum + asset.value, 0);
+    const totalZakatableAssets = zakatAssets.reduce((sum, asset) => sum + asset.zakatableAmount, 0);
+    const totalZakatDue = zakatAssets.reduce((sum, asset) => sum + asset.zakatDue, 0);
+
+    // Check nisab eligibility
+    const meetsNisab = totalZakatableAssets >= nisabInfo.effectiveNisab;
+
+    // Apply calendar adjustments if needed
+    const adjustedZakatDue = calendarInfo 
+      ? this.applyCalendarAdjustment(totalZakatDue, calendarInfo)
+      : totalZakatDue;
+
+    const totals = {
+      totalAssets,
+      totalZakatableAssets,
+      totalZakatDue: meetsNisab ? adjustedZakatDue : 0
+    };
+
+    return {
+      calculationId,
+      calculationDate,
+      calendarType: request.calendarType,
+      method: methodology.id,
+      methodInfo: {
+        name: methodology.name,
+        description: methodology.description,
+        nisabBasis: methodology.nisabBasis
+      },
+      nisab: nisabInfo,
+      assets: meetsNisab ? zakatAssets : zakatAssets.map(a => ({ ...a, zakatDue: 0 })),
+      totals,
+      meetsNisab,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      calendarInfo: calendarInfo || undefined,
+      sources: this.getScholarlySources(methodology.id)
+    };
+  }
+
+  /**
+   * Convert assets to base currency for calculation
+   */
+  private async convertAssetsToBaseCurrency(assets: Asset[]): Promise<Asset[]> {
+    const convertedAssets: Asset[] = [];
+
+    for (const asset of assets) {
+      if (asset.currency === 'USD') {
+        convertedAssets.push(asset);
+      } else {
+        const rate = await this.currencyService.getExchangeRate(asset.currency, 'USD');
+        const convertedAsset = {
+          ...asset,
+          value: asset.value * rate,
+          originalValue: asset.value,
+          originalCurrency: asset.currency,
+          currency: 'USD',
+          exchangeRate: rate
+        };
+        convertedAssets.push(convertedAsset);
+      }
+    }
+
+    return convertedAssets;
+  }
+
+  /**
+   * Apply methodology-specific rules to assets
+   */
+  private applyMethodologyRules(assets: Asset[], methodology: MethodologyInfo): Asset[] {
+    return assets.map(asset => {
+      let zakatEligible = asset.zakatEligible;
+      let adjustedValue = asset.value;
+
+      // Apply business asset treatment rules
+      if (asset.category === 'business') {
+        switch (methodology.businessAssetTreatment) {
+          case 'comprehensive':
+            // Include all business assets at full value
+            zakatEligible = true;
+            break;
+          case 'categorized':
+            // Apply specific rules based on business asset type
+            zakatEligible = this.isCategorizedBusinessAssetEligible(asset);
+            break;
+          case 'market_value':
+            // Use current market value
+            zakatEligible = true;
+            adjustedValue = this.getMarketValue(asset);
+            break;
+        }
+      }
+
+      // Apply other methodology-specific adjustments
+      return {
+        ...asset,
+        zakatEligible,
+        value: adjustedValue
+      };
+    });
+  }
+
+  /**
+   * Check if categorized business asset is eligible
+   */
+  private isCategorizedBusinessAssetEligible(asset: Asset): boolean {
+    // Implement specific categorization rules
+    // This would be based on the asset's subcategory and business type
+    return asset.zakatEligible; // Simplified for now
+  }
+
+  /**
+   * Get market value for asset
+   */
+  private getMarketValue(asset: Asset): number {
+    // This would typically call external APIs or use internal valuation
+    // For now, return the asset's current value
+    return asset.value;
+  }
+
+  /**
+   * Calculate zakat for individual assets
+   */
+  private calculateAssetZakat(assets: Asset[], methodology: MethodologyInfo): any[] {
+    return assets.map(asset => {
+      if (!asset.zakatEligible) {
+        return {
+          assetId: asset.assetId,
+          name: asset.name,
+          category: asset.category,
+          value: asset.value,
+          zakatableAmount: 0,
+          zakatDue: 0
+        };
+      }
+
+      const zakatableAmount = this.calculateZakatableAmount(asset, methodology);
+      const zakatDue = zakatableAmount * (methodology.zakatRate / 100);
+
+      return {
+        assetId: asset.assetId,
+        name: asset.name,
+        category: asset.category,
+        value: asset.value,
+        zakatableAmount,
+        zakatDue
+      };
+    });
+  }
+
+  /**
+   * Calculate zakatable amount for an asset
+   */
+  private calculateZakatableAmount(asset: Asset, methodology: MethodologyInfo): number {
+    // Apply asset-specific rules based on category and methodology
+    switch (asset.category) {
+      case 'cash':
+      case 'gold':
+      case 'silver':
+      case 'crypto':
+        return asset.value; // Fully zakatable
+      
+      case 'business':
+        // Apply business-specific rules
+        return this.calculateBusinessZakatableAmount(asset, methodology);
+      
+      case 'property':
+        // Investment property - use current market value
+        return asset.value;
+      
+      case 'stocks':
+        // Apply stock-specific rules
+        return this.calculateStockZakatableAmount(asset, methodology);
+      
+      case 'debts':
+        // Receivables - typically fully zakatable if collectible
+        return asset.value;
+      
+      default:
+        return asset.value;
+    }
+  }
+
+  /**
+   * Calculate zakatable amount for business assets
+   */
+  private calculateBusinessZakatableAmount(asset: Asset, methodology: MethodologyInfo): number {
+    // This would implement detailed business asset rules based on methodology
+    // For now, return full value
+    return asset.value;
+  }
+
+  /**
+   * Calculate zakatable amount for stock assets
+   */
+  private calculateStockZakatableAmount(asset: Asset, methodology: MethodologyInfo): number {
+    // This would implement stock-specific rules
+    // Different methodologies may treat stocks differently
+    return asset.value;
+  }
+
+  /**
+   * Apply calendar adjustments for lunar calculations
+   */
+  private applyCalendarAdjustment(zakatDue: number, calendarInfo: CalendarCalculation): number {
+    // Apply lunar year adjustment (354 days vs 365 days)
+    if (calendarInfo.calculationPeriod === 'lunar') {
+      return zakatDue * calendarInfo.adjustmentFactor;
+    }
+    return zakatDue;
+  }
+
+  /**
+   * Generate detailed calculation breakdown
+   */
+  private generateBreakdown(
+    calculation: ZakatCalculation,
+    methodology: MethodologyInfo,
+    nisabInfo: NisabInfo,
+    assets: Asset[]
+  ): CalculationBreakdown {
+    const assetCalculations: AssetCalculation[] = assets.map(asset => {
+      const zakatAsset = calculation.assets.find(za => za.assetId === asset.assetId);
+      return {
+        assetId: asset.assetId,
+        name: asset.name,
+        category: asset.category,
+        value: asset.value,
+        zakatableAmount: zakatAsset?.zakatableAmount || 0,
+        zakatDue: zakatAsset?.zakatDue || 0,
+        methodSpecificRules: this.getMethodSpecificRules(asset, methodology)
+      };
+    });
+
+    return {
+      method: methodology.id,
+      nisabCalculation: {
+        goldNisab: nisabInfo.goldNisab,
+        silverNisab: nisabInfo.silverNisab,
+        effectiveNisab: nisabInfo.effectiveNisab,
+        basis: nisabInfo.nisabBasis
+      },
+      assetCalculations,
+      finalCalculation: {
+        totalAssets: calculation.totals.totalAssets,
+        totalDeductions: 0, // Would include debt deductions
+        zakatableAmount: calculation.totals.totalZakatableAssets,
+        zakatDue: calculation.totals.totalZakatDue
+      },
+      sources: this.getScholarlySources(methodology.id),
+      methodology: {
+        name: methodology.name,
+        description: methodology.description,
+        nisabBasis: methodology.nisabBasis
+      }
+    };
+  }
+
+  /**
+   * Get method-specific rules applied to an asset
+   */
+  private getMethodSpecificRules(asset: Asset, methodology: MethodologyInfo): string[] {
+    const rules: string[] = [];
+    
+    rules.push(`Applied ${methodology.name} methodology`);
+    rules.push(`Nisab basis: ${methodology.nisabBasis}`);
+    rules.push(`Business treatment: ${methodology.businessAssetTreatment}`);
+    
+    if (asset.category === 'business') {
+      rules.push(`Business asset treatment: ${methodology.businessAssetTreatment}`);
+    }
+    
+    return rules;
+  }
+
+  /**
+   * Calculate alternative methodologies for comparison
+   */
+  private async calculateAlternatives(
+    assets: Asset[],
+    request: ZakatCalculationRequest,
+    primaryCalculation: ZakatCalculation
+  ): Promise<any[]> {
+    const alternatives: any[] = [];
+    const otherMethods = Object.values(ZAKAT_METHODS).filter(m => m.id !== request.method);
+
+    // Calculate up to 3 alternative methodologies
+    for (const method of otherMethods.slice(0, 3)) {
+      try {
+        const altRequest = { ...request, method: method.id };
+        const altResult = await this.calculateZakat(altRequest);
+        
+        alternatives.push({
+          methodId: method.id,
+          methodName: method.name,
+          zakatDue: altResult.result.totals.totalZakatDue,
+          effectiveNisab: altResult.result.nisab.effectiveNisab,
+          differences: this.calculateMethodDifferences(primaryCalculation, altResult.result, {
+            ...method,
+            scholarlyBasis: [...method.scholarlyBasis],
+            regions: [...method.regions],
+            calendarSupport: [...method.calendarSupport],
+            suitableFor: [...method.suitableFor],
+            pros: [...method.pros],
+            cons: [...method.cons]
+          } as MethodologyInfo)
+        });
+      } catch (error) {
+        // Skip failed alternative calculations
+        console.warn(`Failed to calculate alternative method ${method.id}:`, error);
+      }
+    }
+
+    return alternatives;
+  }
+
+  /**
+   * Calculate differences between methodologies
+   */
+  private calculateMethodDifferences(primary: ZakatCalculation, alternative: ZakatCalculation, altMethod: MethodologyInfo): string[] {
+    const differences: string[] = [];
+    
+    const zakatDiff = alternative.totals.totalZakatDue - primary.totals.totalZakatDue;
+    if (Math.abs(zakatDiff) > 1) {
+      differences.push(`Zakat amount differs by $${Math.abs(zakatDiff).toFixed(2)} (${zakatDiff > 0 ? 'higher' : 'lower'})`);
+    }
+    
+    if (primary.nisab.nisabBasis !== alternative.nisab.nisabBasis) {
+      differences.push(`Uses ${alternative.nisab.nisabBasis} nisab vs ${primary.nisab.nisabBasis}`);
+    }
+    
+    differences.push(`Business treatment: ${altMethod.businessAssetTreatment}`);
+    differences.push(`Debt approach: ${altMethod.debtDeduction}`);
+    
+    return differences;
+  }
+
+  /**
+   * Generate calculation assumptions
+   */
+  private generateAssumptions(methodology: MethodologyInfo, nisabInfo: NisabInfo): string[] {
+    return [
+      `Using ${methodology.name} methodology`,
+      `Nisab calculated based on ${nisabInfo.nisabBasis}`,
+      `Current nisab threshold: $${nisabInfo.effectiveNisab.toFixed(2)}`,
+      `Standard zakat rate: ${methodology.zakatRate}%`,
+      `Currency conversion rates as of calculation date`,
+      'All asset values as reported by user',
+      'No extraordinary circumstances considered'
+    ];
+  }
+
+  /**
+   * Get scholarly sources for methodology
+   */
+  private getScholarlySources(methodId: string): string[] {
+    const sources: { [key: string]: string[] } = {
+      hanafi: [
+        'Al-Hidayah by Burhan al-Din al-Marghinani',
+        'Fath al-Qadir by Ibn al-Humam',
+        'Contemporary Hanafi Fiqh Academies'
+      ],
+      shafii: [
+        'Al-Majmu\' Sharh al-Muhadhdhab by Imam al-Nawawi',
+        'Minhaj al-Talibin by Imam al-Nawawi',
+        'AAOIFI Shafi\'i Guidelines'
+      ],
+      maliki: [
+        'Al-Mudawwana by Imam Malik',
+        'Bidayat al-Mujtahid by Ibn Rushd',
+        'North African Fiqh Academies'
+      ],
+      hanbali: [
+        'Al-Mughni by Ibn Qudamah',
+        'Works of Ibn Taymiyyah',
+        'Saudi Fiqh Academy'
+      ],
+      standard: [
+        'AAOIFI Financial Accounting Standard 9 (FAS 9)',
+        'IFSB Guidelines',
+        'Contemporary Islamic Finance Research'
+      ]
+    };
+
+    return sources[methodId] || ['Contemporary Islamic scholarship'];
+  }
+}

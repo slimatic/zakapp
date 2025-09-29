@@ -534,7 +534,6 @@ export interface MethodologyInfo {
   /** Debt deduction approach (e.g., 'comprehensive', 'conservative', 'immediate') */
   debtDeduction: string;
   
-  /** Array of scholarly sources and jurisprudential basis */
   scholarlyBasis: string[];
   
   /** Geographic regions where this methodology is commonly used */

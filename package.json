@@ -26,8 +26,8 @@
   "author": "zakapp contributors",
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "30.0.0",
+    "@types/jest": "^29.5.12",
     "concurrently": "^8.2.2",
-    "ts-jest": "29.4.4"
+    "ts-jest": "^29.1.5"
   }
 }
