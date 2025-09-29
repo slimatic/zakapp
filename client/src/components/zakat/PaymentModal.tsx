@@ -13,12 +13,12 @@ interface PaymentModalProps {
 export const PaymentModal: React.FC<PaymentModalProps> = ({
   isOpen,
   onClose,
-  zakatAmount,
-  currency,
+  zakatAmount = 0, // Add default value
+  currency = 'USD', // Add default value
   onPaymentRecorded
 }) => {
   const [formData, setFormData] = useState({
-    amount: zakatAmount.toString(),
+    amount: (zakatAmount || 0).toString(), // Ensure we don't call toString on undefined
     date: new Date().toISOString().split('T')[0],
     recipient: '',
     method: 'cash',
@@ -45,7 +45,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         onClose();
         // Reset form
         setFormData({
-          amount: zakatAmount.toString(),
+          amount: (zakatAmount || 0).toString(),
           date: new Date().toISOString().split('T')[0],
           recipient: '',
           method: 'cash',
