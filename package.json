@@ -14,7 +14,13 @@
     "clean": "pkill -f 'react-scripts' || true && pkill -f 'ts-node' || true",
     "reset": "npm run clean && npm run dev",
     "docker:build": "docker build -t zakapp .",
-    "docker:run": "docker run -p 3000:3000 -v zakapp-data:/app/data zakapp"
+    "docker:run": "docker run -p 3000:3000 -v zakapp-data:/app/data zakapp",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:contract": "jest --testPathPattern=contract",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:e2e": "playwright test"
   },
   "keywords": [
     "zakat",
@@ -26,8 +32,13 @@
   "author": "zakapp contributors",
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^29.5.12",
+    "@playwright/test": "1.55.1",
+    "@types/jest": "29.5.14",
+    "@types/supertest": "6.0.3",
     "concurrently": "^8.2.2",
-    "ts-jest": "^29.1.5"
+    "jest": "29.7.0",
+    "jest-extended": "6.0.0",
+    "supertest": "7.1.4",
+    "ts-jest": "29.4.4"
   }
 }

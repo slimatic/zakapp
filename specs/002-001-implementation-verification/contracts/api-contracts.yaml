@@ -1,0 +1,349 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Implementation Verification API
+  description: Standardized API contracts for ZakApp implementation verification
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api
+    description: Development server
+
+components:
+  schemas:
+    StandardResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Whether the operation was successful
+        data:
+          type: object
+          description: Response data for successful operations
+        error:
+          type: object
+          description: Error information for failed operations
+          properties:
+            code:
+              type: string
+              description: Error code for programmatic handling
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: array
+              description: Additional error context or validation details
+        metadata:
+          type: object
+          description: Additional response metadata
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+            version:
+              type: string
+
+    EncryptedAsset:
+      type: object
+      required:
+        - id
+        - type
+        - encryptedValue
+        - currency
+        - lastUpdated
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [cash, gold, silver, crypto, business, investment]
+        encryptedValue:
+          type: string
+          description: AES-256-CBC encrypted asset value
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: ISO 4217 currency code
+        description:
+          type: string
+          maxLength: 500
+        lastUpdated:
+          type: string
+          format: date-time
+
+    ZakatCalculationRequest:
+      type: object
+      required:
+        - methodology
+        - assets
+      properties:
+        methodology:
+          type: string
+          enum: [standard, hanafi, shafii]
+          description: Islamic calculation methodology to use
+        assets:
+          type: array
+          items:
+            $ref: '#/components/schemas/EncryptedAsset'
+        nisabSource:
+          type: string
+          enum: [gold, silver]
+          default: gold
+          description: Nisab threshold source (gold or silver based)
+
+    ZakatCalculationResponse:
+      allOf:
+        - $ref: '#/components/schemas/StandardResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                zakatAmount:
+                  type: number
+                  format: decimal
+                  description: Calculated Zakat amount in base currency
+                nisabThreshold:
+                  type: number
+                  format: decimal
+                  description: Current nisab threshold
+                totalAssetValue:
+                  type: number
+                  format: decimal
+                  description: Total value of zakatable assets
+                methodology:
+                  type: string
+                  description: Calculation methodology used
+                calculations:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      assetId:
+                        type: string
+                      assetType:
+                        type: string
+                      zakatableValue:
+                        type: number
+                      zakatAmount:
+                        type: number
+                educationalContent:
+                  type: object
+                  properties:
+                    methodologyExplanation:
+                      type: string
+                    sources:
+                      type: array
+                      items:
+                        type: string
+                    calculationSteps:
+                      type: array
+                      items:
+                        type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate user with credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          accessToken:
+                            type: string
+                            description: JWT access token
+                          refreshToken:
+                            type: string
+                            description: JWT refresh token
+                          user:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              email:
+                                type: string
+                              preferences:
+                                type: object
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+
+  /assets:
+    get:
+      summary: Retrieve user's assets
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Assets retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          assets:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/EncryptedAsset'
+    post:
+      summary: Create new asset
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - value
+                - currency
+              properties:
+                type:
+                  type: string
+                  enum: [cash, gold, silver, crypto, business, investment]
+                value:
+                  type: number
+                  format: decimal
+                  minimum: 0
+                currency:
+                  type: string
+                  pattern: '^[A-Z]{3}$'
+                description:
+                  type: string
+                  maxLength: 500
+      responses:
+        '201':
+          description: Asset created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          asset:
+                            $ref: '#/components/schemas/EncryptedAsset'
+
+  /zakat/calculate:
+    post:
+      summary: Calculate Zakat based on user's assets
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZakatCalculationRequest'
+      responses:
+        '200':
+          description: Zakat calculation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ZakatCalculationResponse'
+        '400':
+          description: Invalid calculation parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+
+  /verification/test-results:
+    get:
+      summary: Retrieve verification test results
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: testType
+          in: query
+          schema:
+            type: string
+            enum: [UNIT, INTEGRATION, E2E, CONTRACT, SECURITY, PERFORMANCE]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PASSED, FAILED, SKIPPED, PENDING]
+      responses:
+        '200':
+          description: Test results retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          testResults:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                testType:
+                                  type: string
+                                testName:
+                                  type: string
+                                status:
+                                  type: string
+                                executionTime:
+                                  type: number
+                                coverage:
+                                  type: number
+                                errors:
+                                  type: array
+                                  items:
+                                    type: string
+                                createdAt:
+                                  type: string
+                                  format: date-time

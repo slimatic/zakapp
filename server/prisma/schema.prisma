@@ -213,3 +213,169 @@ model UserSession {
   @@index([refreshToken])
   @@index([expiresAt])
 }
+
+// Implementation Verification Entities
+
+model TestResult {
+  id            String   @id @default(cuid())
+  testType      String   // UNIT, INTEGRATION, E2E, CONTRACT, SECURITY, PERFORMANCE
+  testName      String
+  status        String   // PASSED, FAILED, SKIPPED, PENDING
+  executionTime Int      // milliseconds
+  coverage      Float    // 0-100 percentage
+  errors        String[] // Array of error messages
+  metadata      String?  // JSON blob for additional context
+  feature       String   // Feature being tested
+  createdAt     DateTime @default(now())
+
+  // Relationships
+  implementationGapId String?
+  implementationGap   ImplementationGap? @relation(fields: [implementationGapId], references: [id])
+  qualityMetrics      QualityMetric[]
+
+  @@map("test_results")
+  @@index([testType, status, createdAt])
+  @@index([feature])
+  @@unique([testType, testName])
+}
+
+model ImplementationGap {
+  id                    String   @id @default(cuid())
+  category              String   // MISSING_FEATURE, INCOMPLETE_FEATURE, SECURITY_VIOLATION, etc.
+  severity              String   // CRITICAL, HIGH, MEDIUM, LOW
+  description           String
+  expectedBehavior      String
+  actualBehavior        String
+  affectedComponents    String[] // Array of component/file names
+  constitutionalPrinciple String
+  resolutionPlan        String
+  estimatedEffort       Int      // hours
+  assignedTo            String?
+  status                String   // IDENTIFIED, IN_PROGRESS, RESOLVED, VERIFIED
+  createdAt             DateTime @default(now())
+  resolvedAt            DateTime?
+
+  // Relationships
+  testResults     TestResult[]
+  qualityMetrics  QualityMetric[]
+
+  @@map("implementation_gaps")
+  @@index([severity, status])
+  @@index([category])
+}
+
+model QualityMetric {
+  id                  String   @id @default(cuid())
+  metricType          String   // CODE_COVERAGE, PERFORMANCE, SECURITY_SCORE, etc.
+  metricName          String
+  currentValue        Float
+  targetValue         Float
+  thresholdMin        Float?
+  thresholdMax        Float?
+  thresholdOptimal    Float?
+  unit                String   // %, ms, requests/sec, etc.
+  measurementDate     DateTime @default(now())
+  component           String
+  environment         String   // DEVELOPMENT, TESTING, STAGING, PRODUCTION
+  trend               String   // IMPROVING, STABLE, DEGRADING
+  automatedCollection Boolean  @default(false)
+
+  // Relationships
+  testResultId         String?
+  testResult           TestResult? @relation(fields: [testResultId], references: [id])
+  implementationGapId  String?
+  implementationGap    ImplementationGap? @relation(fields: [implementationGapId], references: [id])
+
+  @@map("quality_metrics")
+  @@index([metricType, component, measurementDate])
+  @@index([environment])
+}
+
+model MigrationRecord {
+  id              String   @id @default(cuid())
+  migrationName   String
+  sourceType      String   // USER_DATA, ASSET_DATA, CALCULATION_DATA, SETTINGS_DATA
+  sourceLocation  String
+  recordCount     Int
+  successCount    Int
+  failureCount    Int
+  checksumBefore  String
+  checksumAfter   String?
+  migrationLog    String   // JSON array of log entries
+  rollbackData    String?  // JSON blob for rollback
+  status          String   // PENDING, IN_PROGRESS, COMPLETED, FAILED, PARTIALLY_COMPLETED
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  duration        Int?     // seconds
+
+  @@map("migration_records")
+  @@index([status, sourceType])
+  @@index([migrationName])
+}
+
+model ComplianceVerification {
+  id                  String   @id @default(cuid())
+  calculationType     String   // ZAKAT_STANDARD, ZAKAT_HANAFI, ZAKAT_SHAFII, etc.
+  inputData           String   // JSON blob of input parameters
+  expectedResult      Float
+  actualResult        Float
+  accuracy            Float    // 0-100 percentage
+  authoritativeSource String
+  sourceCitation      String
+  verificationDate    DateTime @default(now())
+  methodology         String
+  currency            String
+  marketData          String?  // JSON blob of market rates
+  status              String   // PENDING, VERIFIED, DISCREPANCY, FAILED
+  notes               String?
+
+  @@map("compliance_verifications")
+  @@index([calculationType, status])
+  @@index([verificationDate])
+}
+
+model ApiContract {
+  id                    String   @id @default(cuid())
+  endpoint              String
+  method                String   // GET, POST, PUT, DELETE, PATCH
+  version               String
+  requestSchema         String   // JSON schema
+  responseSchema        String   // JSON schema
+  authenticationRequired Boolean @default(false)
+  rateLimitingRpm       Int?     // requests per minute
+  rateLimitingRph       Int?     // requests per hour
+  rateLimitingBurst     Int?     // burst limit
+  expectedStatusCodes   Int[]    // array of valid HTTP status codes
+  errorHandling         String?  // JSON blob
+  lastUpdated           DateTime @default(now())
+  complianceStatus      String   // COMPLIANT, PARTIAL, NON_COMPLIANT, UNTESTED
+  testCoverage          Float    // 0-100 percentage
+
+  @@map("api_contracts")
+  @@index([endpoint, method])
+  @@index([complianceStatus])
+  @@unique([endpoint, method, version])
+}
+
+model UserWorkflow {
+  id                   String   @id @default(cuid())
+  workflowName         String
+  description          String
+  userType             String   // NEW_USER, RETURNING_USER, ADMIN_USER
+  steps                String   // JSON array of workflow steps
+  prerequisites        String[] // array of setup requirements
+  testAutomated        Boolean  @default(false)
+  criticalPath         Boolean  @default(false)
+  estimatedDuration    Int      // minutes
+  lastTested           DateTime?
+  successRate          Float    // 0-100 percentage
+  commonFailures       String[] // array of common failure points
+  browserChrome        Boolean  @default(false)
+  browserFirefox       Boolean  @default(false)
+  browserSafari        Boolean  @default(false)
+  browserEdge          Boolean  @default(false)
+
+  @@map("user_workflows")
+  @@index([criticalPath, testAutomated])
+  @@index([workflowName])
+}
