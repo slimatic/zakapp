@@ -5,6 +5,15 @@
 **Status**: Draft  
 **Input**: User description: "zakapp Specification - Complete self-hosted Zakat calculator with authentication, asset management, multiple calculation methodologies, yearly tracking, lovable UI/UX, and security-first architecture"
 
+## Clarifications
+
+### Session 2025-09-29
+- Q: Debt tracking scope for zakat calculations → A: Simple debt subtraction from assets (current approach)
+- Q: Zakat disbursement tracking detail level → A: Basic payment records with notes and recipient details
+- Q: Currency conversion handling for zakat calculations → A: Base currency only - user sets regional base currency, all calculations in that currency
+- Q: Reminder system implementation scope → A: No reminders for now, focus on nisab date setting instead
+- Q: Nisab date flexibility for zakat accounting periods → A: Fixed annual date supporting both Gregorian and Islamic lunar calendar options
+
 ## User Scenarios & Testing
 
 ### Primary User Story
@@ -12,11 +21,11 @@ As a Muslim individual who needs to calculate and manage Zakat obligations, I wa
 
 ### Acceptance Scenarios
 1. **Given** I am a new user, **When** I register with email and password, **Then** my account is created with encrypted storage and I can access the dashboard
-2. **Given** I have logged in, **When** I add assets across multiple categories (cash, gold, business, property, stocks, crypto, debts), **Then** all assets are securely stored and categorized for calculation
+2. **Given** I have logged in, **When** I add assets across multiple categories (cash, gold, business, property, stocks, crypto) and simple debts, **Then** all assets are securely stored and categorized for calculation in my base currency
 3. **Given** I have entered my assets, **When** I request Zakat calculation using Standard methodology, **Then** the system calculates accurate Zakat based on current nisab thresholds and displays a detailed breakdown
 4. **Given** I want to use Hanafi methodology, **When** I switch calculation methods, **Then** the system recalculates using Hanafi-specific rules and nisab values
-5. **Given** I have calculated Zakat for multiple years, **When** I view my yearly tracking, **Then** I see annual summaries, payment records, and analytics with historical data
-6. **Given** I want to make a payment, **When** I record a Zakat disbursement, **Then** the system tracks the payment and updates my obligation status
+5. **Given** I have calculated Zakat for multiple years, **When** I view my yearly tracking, **Then** I see annual summaries and payment records based on my configured nisab date
+6. **Given** I want to make a payment, **When** I record a Zakat disbursement with recipient details and notes, **Then** the system tracks the payment and updates my obligation status
 7. **Given** I access the app on mobile, **When** I navigate through features, **Then** the interface is responsive, accessible, and provides guided educational content
 
 ### Edge Cases
@@ -42,27 +51,27 @@ As a Muslim individual who needs to calculate and manage Zakat obligations, I wa
 #### Asset Management
 - **FR-008**: System MUST support CRUD operations for user assets across multiple categories
 - **FR-009**: System MUST categorize assets into: cash, savings, gold, silver, business equity, real property, stocks, cryptocurrency, and debts
-- **FR-010**: System MUST support multi-currency asset entry with current exchange rates
+- **FR-010**: System MUST support single base currency operation with user-selectable regional currency preference
 - **FR-011**: System MUST maintain historical tracking of asset values over time
 - **FR-012**: System MUST validate asset data with appropriate business rules and constraints
 - **FR-013**: System MUST allow users to organize assets with custom labels and notes
+- **FR-014**: System MUST track simple debts and liabilities that reduce zakatable wealth through basic subtraction
 
 #### Zakat Calculation
-- **FR-014**: System MUST support multiple Islamic calculation methodologies: Standard, Hanafi, Shafi'i, and Custom
-- **FR-015**: System MUST calculate nisab thresholds using both gold and silver valuations
-- **FR-016**: System MUST support both lunar (Hijri) and solar (Gregorian) calendar calculations
-- **FR-017**: System MUST provide detailed calculation breakdowns showing methodology applied
-- **FR-018**: System MUST account for regional adjustments and local scholarly preferences
-- **FR-019**: System MUST maintain audit trail of all calculations performed
-- **FR-020**: System MUST handle liability deduction from total zakatable assets
-- **FR-021**: System MUST validate minimum nisab requirements before calculating obligations
+- **FR-015**: System MUST support multiple Islamic calculation methodologies: Standard, Hanafi, Shafi'i, and Custom
+- **FR-016**: System MUST calculate nisab thresholds using both gold and silver valuations
+- **FR-017**: System MUST support user-configurable nisab dates using either Gregorian or Islamic lunar calendar
+- **FR-018**: System MUST provide detailed calculation breakdowns showing methodology applied
+- **FR-019**: System MUST account for regional adjustments and local scholarly preferences
+- **FR-020**: System MUST maintain audit trail of all calculations performed
+- **FR-021**: System MUST handle liability deduction from total zakatable assets
+- **FR-022**: System MUST validate minimum nisab requirements before calculating obligations
 
 #### Yearly Tracking & Analytics
-- **FR-022**: System MUST generate annual Zakat summaries with payment status tracking
-- **FR-023**: System MUST record and manage Zakat payment/disbursement entries
-- **FR-024**: System MUST provide analytical insights on asset growth and Zakat trends
-- **FR-025**: System MUST send configurable reminders for upcoming Zakat obligations
-- **FR-026**: System MUST maintain multi-year historical data for comparison analysis
+- **FR-023**: System MUST generate annual Zakat summaries with payment status tracking
+- **FR-024**: System MUST record and manage Zakat payment/disbursement entries with recipient details and optional notes
+- **FR-025**: System MUST provide analytical insights on asset growth and Zakat trends
+- **FR-026**: System MUST maintain multi-year historical data for comparison analysis based on user-configured nisab dates
 
 #### User Experience
 - **FR-027**: System MUST provide lovable, intuitive user interface with modern design principles
@@ -81,15 +90,16 @@ As a Muslim individual who needs to calculate and manage Zakat obligations, I wa
 
 ### Key Entities
 
-- **User**: Represents an individual Muslim user with account credentials, preferences, settings, and associated financial data
-- **Asset**: Financial holdings including cash, precious metals, business equity, real estate, investments, and cryptocurrencies with values, categories, and metadata
-- **Liability**: Debts and obligations that reduce zakatable wealth including loans, mortgages, and other financial commitments
-- **ZakatCalculation**: Computational results showing methodology applied, nisab thresholds, zakatable amounts, and final Zakat obligation
-- **AssetSnapshot**: Point-in-time captures of user's complete asset portfolio for historical tracking and yearly calculations
-- **ZakatPayment**: Records of actual Zakat disbursements including amounts, recipients, dates, and verification status
+- **User**: Represents an individual Muslim user with account credentials, preferences, settings, nisab date configuration, and associated financial data
+- **Asset**: Financial holdings including cash, precious metals, business equity, real estate, investments, and cryptocurrencies with values, categories, and metadata in user's base currency
+- **Liability**: Simple debts and obligations that reduce zakatable wealth through basic subtraction including loans, mortgages, and other financial commitments
+- **ZakatCalculation**: Computational results showing methodology applied, nisab thresholds, zakatable amounts, and final Zakat obligation based on user's configured nisab date
+- **AssetSnapshot**: Point-in-time captures of user's complete asset portfolio for historical tracking and yearly calculations aligned with nisab dates
+- **ZakatPayment**: Records of actual Zakat disbursements including amounts, recipient details, dates, optional notes, and payment status
 - **CalculationMethodology**: Islamic scholarly approaches to Zakat calculation including rules, thresholds, and regional variations
 - **NisabThreshold**: Current gold and silver prices used for minimum wealth requirements with automatic updates
 - **UserSession**: Secure authentication sessions with JWT tokens, refresh capabilities, and security audit trails
+- **NisabConfiguration**: User's preferred annual accounting date supporting both Gregorian and Islamic lunar calendar systems
 
 ## Review & Acceptance Checklist
 
