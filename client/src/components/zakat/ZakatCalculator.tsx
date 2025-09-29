@@ -66,11 +66,24 @@ export const ZakatCalculator: React.FC = () => {
 
       const response = await apiService.calculateZakat(calculationRequest);
       
-      if (response.success && response.calculation) {
-        setCalculation(response.calculation);
-        setSuccessMessage('Zakat calculation completed successfully!');
+      console.log('API Response:', response);
+      
+      // Handle response based on actual structure returned from backend
+      if (response.success) {
+        // Backend returns calculation directly in response.calculation
+        const calculationData = (response as any).calculation || response.data;
+        if (calculationData) {
+          setCalculation(calculationData);
+          setSuccessMessage('Zakat calculation completed successfully!');
+        } else {
+          setError('No calculation data received');
+        }
       } else {
-        setError(response.error?.message || 'Calculation failed');
+        // Handle error response
+        const errorMessage = typeof response.error === 'string' 
+          ? response.error 
+          : (response as any).error?.message || response.message || 'Calculation failed';
+        setError(errorMessage);
       }
     } catch (err) {
       console.error('Calculation error:', err);
