@@ -28,9 +28,9 @@ export const ZakatCalculator: React.FC = () => {
       ]);
 
       if (assetsResponse.success && assetsResponse.data) {
-        setAssets(assetsResponse.data);
+        setAssets(assetsResponse.data.assets || []);
         // Select all assets by default
-        setSelectedAssets(assetsResponse.data.map((asset: Asset) => asset.id));
+        setSelectedAssets((assetsResponse.data.assets || []).map((asset: Asset) => asset.id));
       }
 
       if (methodologiesResponse.success && methodologiesResponse.data) {
