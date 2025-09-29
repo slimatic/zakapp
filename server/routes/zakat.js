@@ -524,21 +524,27 @@ router.get('/methodologies', (req, res) => {
         id: 'standard',
         name: 'Standard Method',
         description: 'The most commonly used Zakat calculation method',
+        nisabMethod: 'GOLD',
         nisabSource: 'gold',
+        zakatRate: 2.5,
         rate: 0.025
       },
       {
         id: 'hanafi',
         name: 'Hanafi Method', 
         description: 'Hanafi school methodology for Zakat calculation',
+        nisabMethod: 'SILVER',
         nisabSource: 'silver',
+        zakatRate: 2.5,
         rate: 0.025
       },
       {
         id: 'shafii',
         name: 'Shafi\'i Method',
         description: 'Shafi\'i school methodology for Zakat calculation', 
+        nisabMethod: 'GOLD',
         nisabSource: 'gold',
+        zakatRate: 2.5,
         rate: 0.025
       }
     ];
