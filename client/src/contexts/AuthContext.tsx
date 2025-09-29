@@ -1,14 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService, LoginRequest, RegisterRequest, AuthResponse } from '../services/api';
-
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  username: string;
-}
+import type { User } from '../../../shared/src/types';
 
 interface AuthState {
   user: User | null;
@@ -130,7 +123,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (response.refreshToken) {
           localStorage.setItem('refreshToken', response.refreshToken);
         }
-        dispatch({ type: 'LOGIN_SUCCESS', payload: response.user });
+        
+        // Convert API response user to shared User interface
+        const user: User = {
+          userId: response.user.id,
+          username: response.user.username,
+          email: response.user.email,
+          createdAt: new Date().toISOString(), // Default for now
+          lastLogin: new Date().toISOString(),
+          preferences: {
+            currency: 'USD',
+            language: 'en',
+            zakatMethod: 'standard',
+            calendarType: 'lunar'
+          }
+        };
+        
+        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
         return true;
       } else {
         dispatch({ type: 'LOGIN_FAILURE', payload: response.message || 'Login failed' });
@@ -154,7 +163,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (response.refreshToken) {
           localStorage.setItem('refreshToken', response.refreshToken);
         }
-        dispatch({ type: 'LOGIN_SUCCESS', payload: response.user });
+        
+        // Convert API response user to shared User interface
+        const user: User = {
+          userId: response.user.id,
+          username: response.user.username,
+          email: response.user.email,
+          createdAt: new Date().toISOString(), // Default for now
+          lastLogin: new Date().toISOString(),
+          preferences: {
+            currency: 'USD',
+            language: 'en',
+            zakatMethod: 'standard',
+            calendarType: 'lunar'
+          }
+        };
+        
+        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
         return true;
       } else {
         dispatch({ type: 'LOGIN_FAILURE', payload: response.message || 'Registration failed' });
