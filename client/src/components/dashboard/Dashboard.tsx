@@ -1,7 +1,40 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAssets, useZakatHistory } from '../../services/apiHooks';
+import { LoadingSpinner, ErrorMessage } from '../ui';
+import type { Asset } from '../../../../shared/src/types';
 
 export const Dashboard: React.FC = () => {
+  // Fetch assets and zakat history data
+  const { data: assetsData, isLoading: assetsLoading, error: assetsError } = useAssets();
+  const { data: historyData, isLoading: historyLoading, error: historyError } = useZakatHistory();
+
+  const assets = assetsData?.data?.assets || [];
+  const history = historyData?.data || [];
+
+  // Calculate dashboard metrics
+  const totalAssetValue = assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
+  const zakatEligibleAssets = assets.filter((asset: Asset) => asset.zakatEligible);
+  const totalZakatEligibleValue = zakatEligibleAssets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
+  const lastCalculation = history.length > 0 ? history[0] : null;
+  const lastZakatAmount = lastCalculation?.zakatAmount || 0;
+
+  const formatCurrency = (amount: number, currency: string = 'USD'): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount);
+  };
+
+  // Show loading state
+  if (assetsLoading || historyLoading) {
+    return <LoadingSpinner />;
+  }
+
+  // Show error state
+  if (assetsError) {
+    return <ErrorMessage error={assetsError} />;
+  }
   return (
     <>
       {/* Dashboard Header */}
@@ -27,7 +60,7 @@ export const Dashboard: React.FC = () => {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Total Assets</dt>
-                  <dd className="text-lg font-medium text-gray-900">$0.00</dd>
+                  <dd className="text-lg font-medium text-gray-900">{formatCurrency(totalAssetValue)}</dd>
                 </dl>
               </div>
             </div>
@@ -47,7 +80,7 @@ export const Dashboard: React.FC = () => {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Zakat Due</dt>
-                  <dd className="text-lg font-medium text-gray-900">$0.00</dd>
+                  <dd className="text-lg font-medium text-gray-900">{formatCurrency(lastZakatAmount)}</dd>
                 </dl>
               </div>
             </div>
@@ -67,7 +100,7 @@ export const Dashboard: React.FC = () => {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Total Assets</dt>
-                  <dd className="text-lg font-medium text-gray-900">0</dd>
+                  <dd className="text-lg font-medium text-gray-900">{assets.length}</dd>
                 </dl>
               </div>
             </div>
@@ -87,7 +120,12 @@ export const Dashboard: React.FC = () => {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Last Calculation</dt>
-                  <dd className="text-lg font-medium text-gray-900">Never</dd>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {lastCalculation 
+                      ? new Date(lastCalculation.createdAt).toLocaleDateString()
+                      : 'Never'
+                    }
+                  </dd>
                 </dl>
               </div>
             </div>
@@ -162,6 +200,52 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Recent Assets */}
+      {assets.length > 0 && (
+        <div className="mt-8 bg-white shadow rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Recent Assets</h3>
+              <Link
+                to="/assets"
+                className="text-sm font-medium text-blue-600 hover:text-blue-500"
+              >
+                View all assets →
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {assets.slice(0, 3).map((asset: Asset) => (
+                <div key={asset.assetId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      <span className="text-lg">
+                        {asset.category === 'cash' ? '💵' : 
+                         asset.category === 'gold' ? '🪙' : 
+                         asset.category === 'property' ? '🏠' : '📦'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{asset.name}</p>
+                      <p className="text-xs text-gray-500 capitalize">{asset.category}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {formatCurrency(asset.value, asset.currency)}
+                    </p>
+                    {asset.zakatEligible && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Zakat Eligible
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Recent Activity */}
       <div className="mt-8 bg-white shadow rounded-lg">
