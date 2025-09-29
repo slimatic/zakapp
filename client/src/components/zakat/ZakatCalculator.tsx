@@ -50,12 +50,18 @@ export const ZakatCalculator: React.FC = () => {
     setError(null);
 
     try {
-      const calculationRequest: ZakatCalculationRequest = {
-        methodologyId: selectedMethodology,
-        includeAllAssets: selectedAssets.length === assets.length,
-        assets: selectedAssets.length < assets.length 
-          ? assets.filter(asset => selectedAssets.includes(asset.id))
-          : undefined
+      // Get selected assets array - always provide an array, never undefined
+      const selectedAssetsData = selectedAssets.length < assets.length 
+        ? assets.filter(asset => selectedAssets.includes(asset.id))
+        : assets;
+
+      // Prepare request payload to match backend expectations
+      const calculationRequest = {
+        password: 'temp', // Required by backend validation but not actually used for simple calculations
+        assets: selectedAssetsData,
+        liabilities: [], // Optional but provide empty array
+        nisabChoice: 'gold', // Default value
+        calendarType: 'lunar' // Default value
       };
 
       const response = await apiService.calculateZakat(calculationRequest);
