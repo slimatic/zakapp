@@ -460,8 +460,8 @@ export const ZakatCalculator: React.FC = () => {
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
-          zakatAmount={calculation.zakatDue}
-          currency={calculation.currency}
+          zakatAmount={(calculation as any).summary?.zakatAmount || (calculation as any).zakatDue || 0}
+          currency="USD" // Default to USD since backend doesn't return currency yet
           onPaymentRecorded={handlePaymentRecorded}
         />
       )}
