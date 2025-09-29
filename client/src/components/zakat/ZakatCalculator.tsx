@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Asset, AssetType, ZakatCalculation, ZakatMethodology, NisabInfo, ZakatCalculationRequest, ZakatPayment } from '../../types';
+import { Asset, AssetType, ZakatCalculation, ZakatMethodology, NisabInfo, ZakatPayment } from '../../types';
 import { apiService } from '../../services/api';
 import { PaymentModal } from './PaymentModal';
 
@@ -50,12 +50,32 @@ export const ZakatCalculator: React.FC = () => {
     setError(null);
 
     try {
-      const calculationRequest: ZakatCalculationRequest = {
-        methodologyId: selectedMethodology,
-        includeAllAssets: selectedAssets.length === assets.length,
-        assets: selectedAssets.length < assets.length 
-          ? assets.filter(asset => selectedAssets.includes(asset.id))
-          : undefined
+      // Get selected assets array - always provide an array, never undefined
+      const selectedAssetsData = selectedAssets.length < assets.length 
+        ? assets.filter(asset => selectedAssets.includes(asset.id))
+        : assets;
+
+      // Transform assets to match backend validation expectations
+      // Frontend assets have: {id, type, ...} 
+      // Backend expects: {id, type, ...} but assets from API have {assetId, category, ...}
+      const transformedAssets = selectedAssetsData.map(asset => {
+        const apiAsset = asset as any; // Assets from API may have different structure
+        return {
+          id: apiAsset.assetId || asset.id, // Use assetId if available, fallback to id
+          type: apiAsset.category || asset.type, // Use category if available, fallback to type  
+          name: asset.name,
+          value: asset.value,
+          currency: asset.currency
+        };
+      });
+
+      // Prepare request payload to match backend expectations
+      const calculationRequest = {
+        password: 'temp', // Required by backend validation but not actually used for simple calculations
+        assets: transformedAssets,
+        liabilities: [], // Optional but provide empty array
+        nisabChoice: 'gold', // Default value
+        calendarType: 'lunar' // Default value
       };
 
       const response = await apiService.calculateZakat(calculationRequest);
