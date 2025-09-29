@@ -11,7 +11,7 @@ const zakatRoutes = require('./routes/zakat');
 const assetRoutes = require('./routes/assets');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 
 // Security middleware
 app.use(helmet());
@@ -46,7 +46,7 @@ app.use('/api/auth', (req, res, next) => {
 }, authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/zakat', zakatRoutes);
-app.use('/api/v1/assets', assetRoutes);
+app.use('/api/assets', assetRoutes);
 
 // API info endpoint
 app.get('/api', (req, res) => {
