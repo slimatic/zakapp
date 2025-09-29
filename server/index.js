@@ -46,7 +46,7 @@ app.use('/api/auth', (req, res, next) => {
 }, authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/zakat', zakatRoutes);
-app.use('/api/assets', assetRoutes);
+app.use('/api/v1/assets', assetRoutes);
 
 // API info endpoint
 app.get('/api', (req, res) => {
