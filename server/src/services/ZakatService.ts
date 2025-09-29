@@ -35,6 +35,7 @@ interface LegacyZakatCalculationRequest {
   year?: number;
   includeAssetTypes?: string[];
   excludeAssetIds?: string[];
+  includeAssets?: string[]; // Add support for includeAssets from frontend
 }
 
 interface LegacyMethodology {
@@ -123,11 +124,24 @@ export class ZakatService {
 
       // Filter assets based on request
       let filteredAssets = assets;
-      if (request.includeAssetTypes && request.includeAssetTypes.length > 0) {
-        filteredAssets = assets.filter(asset => request.includeAssetTypes!.includes(asset.category));
+      
+      console.log('ZakatService - All assets:', assets.length);
+      console.log('ZakatService - Request:', request);
+      
+      // If includeAssets is provided (from frontend), filter by those specific asset IDs
+      if (request.includeAssets && request.includeAssets.length > 0) {
+        console.log('ZakatService - Filtering by includeAssets:', request.includeAssets);
+        filteredAssets = assets.filter(asset => request.includeAssets!.includes(asset.assetId));
+        console.log('ZakatService - Filtered assets:', filteredAssets.length);
       }
-      if (request.excludeAssetIds && request.excludeAssetIds.length > 0) {
-        filteredAssets = filteredAssets.filter(asset => !request.excludeAssetIds!.includes(asset.assetId));
+      // Otherwise use the legacy filtering logic
+      else {
+        if (request.includeAssetTypes && request.includeAssetTypes.length > 0) {
+          filteredAssets = assets.filter(asset => request.includeAssetTypes!.includes(asset.category));
+        }
+        if (request.excludeAssetIds && request.excludeAssetIds.length > 0) {
+          filteredAssets = filteredAssets.filter(asset => !request.excludeAssetIds!.includes(asset.assetId));
+        }
       }
 
       // Create modern calculation request
