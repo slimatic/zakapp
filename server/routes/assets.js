@@ -1,17 +1,59 @@
 const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
+const fs = require('fs-extra');
+const path = require('path');
 
 const router = express.Router();
 
-// In-memory storage for assets (per user)
-const userAssets = {};
+// Data directory for persistent storage
+const dataDir = process.env.DATA_DIR || path.join(__dirname, '../data');
+const assetsDir = path.join(dataDir, 'assets');
+
+// Ensure data directory exists
+const ensureDataDir = async () => {
+  try {
+    await fs.ensureDir(dataDir);
+    await fs.ensureDir(assetsDir);
+  } catch (error) {
+    console.error('Error creating data directories:', error);
+  }
+};
+
+// Initialize data directory
+ensureDataDir();
+
+// Helper to get user assets file path
+const getUserAssetsFile = (userId) => {
+  return path.join(assetsDir, `${userId}.json`);
+};
 
 // Helper to get user assets
-const getUserAssets = (userId) => {
-  if (!userAssets[userId]) {
-    userAssets[userId] = [];
+const getUserAssets = async (userId) => {
+  try {
+    const filePath = getUserAssetsFile(userId);
+    if (await fs.pathExists(filePath)) {
+      const data = await fs.readJSON(filePath);
+      return data.assets || [];
+    }
+  } catch (error) {
+    console.error('Error reading user assets:', error);
   }
-  return userAssets[userId];
+  return [];
+};
+
+// Helper to save user assets
+const saveUserAssets = async (userId, assets) => {
+  try {
+    const filePath = getUserAssetsFile(userId);
+    await fs.writeJSON(filePath, {
+      userId,
+      assets,
+      lastUpdated: new Date().toISOString()
+    }, { spaces: 2 });
+  } catch (error) {
+    console.error('Error saving user assets:', error);
+    throw error;
+  }
 };
 
 // Debug middleware to log all requests to this router
@@ -31,7 +73,7 @@ router.get('/', async (req, res) => {
     const userId = req.user.id;
     console.log('Assets request received for user:', userId);
     
-    const assets = getUserAssets(userId);
+    const assets = await getUserAssets(userId);
     console.log('Found assets:', assets.length);
     
     res.json({
@@ -83,9 +125,12 @@ router.post('/', async (req, res) => {
       updatedAt: new Date().toISOString()
     };
     
-    // Add to user's assets
-    const assets = getUserAssets(userId);
+    // Get current assets and add new one
+    const assets = await getUserAssets(userId);
     assets.push(newAsset);
+    
+    // Save to file
+    await saveUserAssets(userId, assets);
     
     console.log('Asset created:', newAsset);
     console.log('Total user assets:', assets.length);
@@ -114,7 +159,7 @@ router.get('/:id', async (req, res) => {
     const userId = req.user.id;
     const assetId = req.params.id;
     
-    const assets = getUserAssets(userId);
+    const assets = await getUserAssets(userId);
     const asset = assets.find(a => a.assetId === assetId);
     
     if (!asset) {
@@ -151,7 +196,7 @@ router.put('/:id', async (req, res) => {
     const userId = req.user.id;
     const assetId = req.params.id;
     
-    const assets = getUserAssets(userId);
+    const assets = await getUserAssets(userId);
     const assetIndex = assets.findIndex(a => a.assetId === assetId);
     
     if (assetIndex === -1) {
@@ -173,6 +218,9 @@ router.put('/:id', async (req, res) => {
     };
     
     assets[assetIndex] = updatedAsset;
+    
+    // Save to file
+    await saveUserAssets(userId, assets);
     
     res.json({
       success: true,
@@ -198,7 +246,7 @@ router.delete('/:id', async (req, res) => {
     const userId = req.user.id;
     const assetId = req.params.id;
     
-    const assets = getUserAssets(userId);
+    const assets = await getUserAssets(userId);
     const assetIndex = assets.findIndex(a => a.assetId === assetId);
     
     if (assetIndex === -1) {
@@ -213,6 +261,9 @@ router.delete('/:id', async (req, res) => {
     
     // Remove asset
     assets.splice(assetIndex, 1);
+    
+    // Save to file
+    await saveUserAssets(userId, assets);
     
     res.json({
       success: true,
