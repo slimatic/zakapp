@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAssets, useCreateAsset } from '../../services/apiHooks';
 import { Asset, AssetCategoryType } from '../../../../shared/src/types';
-import { Button, LoadingSpinner, ErrorMessage } from '../ui';
+import { Button, LoadingSpinner } from '../ui';
 
 interface ImportResult {
   success: number;

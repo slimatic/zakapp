@@ -24,9 +24,32 @@ export const useAuth = () => {
       return response;
     },
     onSuccess: (data: any) => {
+      console.log('Login mutation onSuccess:', data);
       // Update auth context with user data
-      if (data?.user && data?.token) {
-        contextLogin(data.user, data.token);
+      if (data?.success && data?.user && data?.accessToken) {
+        // Store tokens in localStorage
+        localStorage.setItem('accessToken', data.accessToken);
+        if (data.refreshToken) {
+          localStorage.setItem('refreshToken', data.refreshToken);
+        }
+        
+        // Convert API response user to shared User interface and update context
+        const user = {
+          userId: data.user.id,
+          username: data.user.username,
+          email: data.user.email,
+          createdAt: data.user.createdAt,
+          lastLogin: new Date().toISOString(),
+          preferences: {
+            currency: data.user.settings?.currency || 'USD',
+            language: 'en',
+            zakatMethod: 'standard',
+            calendarType: data.user.settings?.preferredCalendar || 'lunar'
+          }
+        };
+        
+        // This should trigger the context to update and redirect
+        contextLogin(user.email, data.accessToken);
         // Invalidate all queries to refetch with new auth state
         queryClient.invalidateQueries();
       }

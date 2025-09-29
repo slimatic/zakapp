@@ -34,6 +34,14 @@ app.use(express.urlencoded({ extended: true }));
 // API routes
 app.use('/api/auth', (req, res, next) => {
   console.log('Auth request:', req.method, req.url, 'Body:', JSON.stringify(req.body));
+  
+  // Capture the original res.json to log responses
+  const originalJson = res.json.bind(res);
+  res.json = function(obj) {
+    console.log('Auth response:', res.statusCode, JSON.stringify(obj));
+    return originalJson(obj);
+  };
+  
   next();
 }, authRoutes);
 app.use('/api/user', userRoutes);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 
@@ -14,7 +14,7 @@ export const Register: React.FC = () => {
     confirmPassword: '',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const { isAuthenticated, register, isRegistering, registerError } = useAuth();
+  const { isAuthenticated, register, isLoading, error } = useAuth();
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -77,13 +77,14 @@ export const Register: React.FC = () => {
       return;
     }
 
-    // Send registration data (excluding confirmPassword)
-    register({
+    // Send registration data (including confirmPassword for backend validation)
+    await register({
       firstName: formData.firstName,
       lastName: formData.lastName,
       username: formData.username,
       email: formData.email,
-      password: formData.password
+      password: formData.password,
+      confirmPassword: formData.confirmPassword
     });
   };
 
@@ -185,7 +186,7 @@ export const Register: React.FC = () => {
             />
           </div>
 
-          {registerError && (
+          {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -195,7 +196,7 @@ export const Register: React.FC = () => {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">
-                    {registerError?.message || 'Registration failed. Please try again.'}
+                    {error || 'Registration failed. Please try again.'}
                   </h3>
                 </div>
               </div>
@@ -204,8 +205,8 @@ export const Register: React.FC = () => {
 
           <Button
             type="submit"
-            disabled={isRegistering}
-            isLoading={isRegistering}
+            disabled={isLoading}
+            isLoading={isLoading}
             className="w-full"
           >
             Create account
