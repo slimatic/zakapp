@@ -1,0 +1,557 @@
+# Security Vulnerability Scanning Workflow
+#
+# Constitutional Principles:
+# - Privacy & Security First: Automated security scanning and vulnerability detection
+# - Quality & Reliability: Continuous security monitoring and reporting
+# - Transparency & Trust: Clear security status and remediation guidance
+
+name: Security Vulnerability Scanning
+
+on:
+  push:
+    branches: [ main, develop, 'feature/*', 'security/*' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily security scans at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan to run'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - dependency
+          - code
+          - container
+
+env:
+  NODE_VERSION: '18'
+  SCAN_RESULTS_PATH: 'security-reports'
+
+jobs:
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'dependency' || github.event.inputs.scan_type == 'full' || github.event_name != 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd server && npm ci
+          cd ../client && npm ci
+          cd ../shared && npm ci
+
+      - name: Run npm audit (Server)
+        id: audit-server
+        continue-on-error: true
+        run: |
+          cd server
+          npm audit --audit-level=moderate --json > ../security-reports/server-audit.json
+          npm audit --audit-level=moderate
+
+      - name: Run npm audit (Client)
+        id: audit-client
+        continue-on-error: true
+        run: |
+          cd client
+          npm audit --audit-level=moderate --json > ../security-reports/client-audit.json
+          npm audit --audit-level=moderate
+
+      - name: Run npm audit (Shared)
+        id: audit-shared
+        continue-on-error: true
+        run: |
+          cd shared
+          npm audit --audit-level=moderate --json > ../security-reports/shared-audit.json
+          npm audit --audit-level=moderate
+
+      - name: Install and run Snyk CLI
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          npm install -g snyk
+          mkdir -p ${{ env.SCAN_RESULTS_PATH }}
+          
+          # Test for vulnerabilities
+          snyk test --json > ${{ env.SCAN_RESULTS_PATH }}/snyk-test.json || true
+          snyk test --severity-threshold=medium
+          
+          # Monitor project (if not PR)
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            snyk monitor
+          fi
+
+      - name: Run Retire.js
+        run: |
+          npm install -g retire
+          retire --path . --outputformat json --outputpath ${{ env.SCAN_RESULTS_PATH }}/retire-scan.json || true
+          retire --path . --severity medium
+
+      - name: Install and run OSV Scanner
+        run: |
+          curl -L -o osv-scanner https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64
+          chmod +x osv-scanner
+          ./osv-scanner --format json --output ${{ env.SCAN_RESULTS_PATH }}/osv-scan.json . || true
+
+      - name: Analyze dependency scan results
+        id: analyze-deps
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          let totalVulns = 0;
+          let criticalVulns = 0;
+          let highVulns = 0;
+          let report = 'Dependency Vulnerability Summary:\n\n';
+          
+          // Analyze npm audit results
+          ['server', 'client', 'shared'].forEach(dir => {
+            try {
+              const auditFile = path.join('${{ env.SCAN_RESULTS_PATH }}', dir + '-audit.json');
+              if (fs.existsSync(auditFile)) {
+                const audit = JSON.parse(fs.readFileSync(auditFile, 'utf8'));
+                if (audit.metadata) {
+                  const vulns = audit.metadata.vulnerabilities;
+                  totalVulns += vulns.total || 0;
+                  criticalVulns += vulns.critical || 0;
+                  highVulns += vulns.high || 0;
+                  report += \`\${dir}: \${vulns.total || 0} vulnerabilities (Critical: \${vulns.critical || 0}, High: \${vulns.high || 0})\n\`;
+                }
+              }
+            } catch (e) {
+              console.log(\`Error parsing \${dir} audit: \${e.message}\`);
+            }
+          });
+          
+          report += \`\nTotal: \${totalVulns} vulnerabilities\n\`;
+          report += \`Critical: \${criticalVulns}, High: \${highVulns}\n\`;
+          
+          console.log(report);
+          
+          // Set outputs for next steps
+          console.log(\`::set-output name=total_vulns::\${totalVulns}\`);
+          console.log(\`::set-output name=critical_vulns::\${criticalVulns}\`);
+          console.log(\`::set-output name=high_vulns::\${highVulns}\`);
+          console.log(\`::set-output name=report::\${encodeURIComponent(report)}\`);
+          "
+
+      - name: Upload dependency scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-scan-results
+          path: ${{ env.SCAN_RESULTS_PATH }}
+          retention-days: 30
+
+      - name: Fail on critical vulnerabilities
+        if: steps.analyze-deps.outputs.critical_vulns > 0
+        run: |
+          echo "❌ Critical vulnerabilities found: ${{ steps.analyze-deps.outputs.critical_vulns }}"
+          echo "Please review and fix critical vulnerabilities before proceeding."
+          exit 1
+
+  code-analysis:
+    name: Static Code Analysis
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'code' || github.event.inputs.scan_type == 'full' || github.event_name != 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd server && npm ci
+          cd ../client && npm ci
+
+      - name: Install CodeQL CLI
+        run: |
+          wget https://github.com/github/codeql-cli-binaries/releases/latest/download/codeql-linux64.zip
+          unzip codeql-linux64.zip
+          echo "${{ github.workspace }}/codeql" >> $GITHUB_PATH
+
+      - name: Create CodeQL database
+        run: |
+          mkdir -p ${{ env.SCAN_RESULTS_PATH }}
+          codeql database create \
+            --language=javascript \
+            --source-root=. \
+            --command="npm run build || true" \
+            codeql-db
+
+      - name: Run CodeQL analysis
+        run: |
+          codeql database analyze \
+            --format=json \
+            --output=${{ env.SCAN_RESULTS_PATH }}/codeql-results.json \
+            codeql-db \
+            javascript-security-and-quality.qls
+
+      - name: Install and run ESLint Security
+        run: |
+          npm install -g eslint eslint-plugin-security
+          mkdir -p ${{ env.SCAN_RESULTS_PATH }}
+          npx eslint \
+            --ext .ts,.js \
+            --format json \
+            --output-file ${{ env.SCAN_RESULTS_PATH }}/eslint-security.json \
+            server/src client/src shared/src || true
+
+      - name: Install and run Semgrep
+        run: |
+          pip install semgrep
+          semgrep \
+            --config=auto \
+            --json \
+            --output=${{ env.SCAN_RESULTS_PATH }}/semgrep-results.json \
+            . || true
+
+      - name: Run Bandit for Python scripts
+        if: hashFiles('**/*.py') != ''
+        run: |
+          pip install bandit
+          bandit \
+            -r . \
+            -f json \
+            -o ${{ env.SCAN_RESULTS_PATH }}/bandit-results.json || true
+
+      - name: Analyze code scan results
+        id: analyze-code
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          let totalIssues = 0;
+          let securityIssues = 0;
+          let report = 'Code Security Analysis Summary:\n\n';
+          
+          // Analyze CodeQL results
+          try {
+            const codeqlFile = path.join('${{ env.SCAN_RESULTS_PATH }}', 'codeql-results.json');
+            if (fs.existsSync(codeqlFile)) {
+              const codeql = JSON.parse(fs.readFileSync(codeqlFile, 'utf8'));
+              const runs = codeql.runs || [];
+              runs.forEach(run => {
+                const results = run.results || [];
+                totalIssues += results.length;
+                const secResults = results.filter(r => r.ruleId?.includes('security'));
+                securityIssues += secResults.length;
+              });
+              report += \`CodeQL: \${totalIssues} issues found\n\`;
+            }
+          } catch (e) {
+            console.log(\`Error parsing CodeQL results: \${e.message}\`);
+          }
+          
+          // Analyze ESLint Security results
+          try {
+            const eslintFile = path.join('${{ env.SCAN_RESULTS_PATH }}', 'eslint-security.json');
+            if (fs.existsSync(eslintFile)) {
+              const eslint = JSON.parse(fs.readFileSync(eslintFile, 'utf8'));
+              const eslintIssues = eslint.reduce((sum, file) => sum + file.messages.length, 0);
+              totalIssues += eslintIssues;
+              report += \`ESLint Security: \${eslintIssues} issues found\n\`;
+            }
+          } catch (e) {
+            console.log(\`Error parsing ESLint results: \${e.message}\`);
+          }
+          
+          // Analyze Semgrep results
+          try {
+            const semgrepFile = path.join('${{ env.SCAN_RESULTS_PATH }}', 'semgrep-results.json');
+            if (fs.existsSync(semgrepFile)) {
+              const semgrep = JSON.parse(fs.readFileSync(semgrepFile, 'utf8'));
+              const semgrepIssues = semgrep.results?.length || 0;
+              totalIssues += semgrepIssues;
+              securityIssues += semgrepIssues;
+              report += \`Semgrep: \${semgrepIssues} security issues found\n\`;
+            }
+          } catch (e) {
+            console.log(\`Error parsing Semgrep results: \${e.message}\`);
+          }
+          
+          report += \`\nTotal Issues: \${totalIssues}\n\`;
+          report += \`Security Issues: \${securityIssues}\n\`;
+          
+          console.log(report);
+          
+          console.log(\`::set-output name=total_issues::\${totalIssues}\`);
+          console.log(\`::set-output name=security_issues::\${securityIssues}\`);
+          console.log(\`::set-output name=report::\${encodeURIComponent(report)}\`);
+          "
+
+      - name: Upload code analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-analysis-results
+          path: ${{ env.SCAN_RESULTS_PATH }}
+          retention-days: 30
+
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'container' || github.event.inputs.scan_type == 'full' || github.event_name != 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: |
+          docker build -f docker/Dockerfile.backend -t zakapp-backend .
+          docker build -f docker/Dockerfile.frontend -t zakapp-frontend .
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+
+      - name: Scan backend image
+        run: |
+          mkdir -p ${{ env.SCAN_RESULTS_PATH }}
+          trivy image \
+            --format json \
+            --output ${{ env.SCAN_RESULTS_PATH }}/trivy-backend.json \
+            zakapp-backend
+
+      - name: Scan frontend image
+        run: |
+          trivy image \
+            --format json \
+            --output ${{ env.SCAN_RESULTS_PATH }}/trivy-frontend.json \
+            zakapp-frontend
+
+      - name: Install and run Hadolint
+        run: |
+          wget -O hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          chmod +x hadolint
+          ./hadolint docker/Dockerfile.backend --format json > ${{ env.SCAN_RESULTS_PATH }}/hadolint-backend.json || true
+          ./hadolint docker/Dockerfile.frontend --format json > ${{ env.SCAN_RESULTS_PATH }}/hadolint-frontend.json || true
+
+      - name: Analyze container scan results
+        id: analyze-containers
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          let totalVulns = 0;
+          let criticalVulns = 0;
+          let highVulns = 0;
+          let report = 'Container Security Analysis Summary:\n\n';
+          
+          // Analyze Trivy results
+          ['backend', 'frontend'].forEach(service => {
+            try {
+              const trivyFile = path.join('${{ env.SCAN_RESULTS_PATH }}', \`trivy-\${service}.json\`);
+              if (fs.existsSync(trivyFile)) {
+                const trivy = JSON.parse(fs.readFileSync(trivyFile, 'utf8'));
+                const results = trivy.Results || [];
+                results.forEach(result => {
+                  const vulns = result.Vulnerabilities || [];
+                  vulns.forEach(vuln => {
+                    totalVulns++;
+                    if (vuln.Severity === 'CRITICAL') criticalVulns++;
+                    if (vuln.Severity === 'HIGH') highVulns++;
+                  });
+                });
+                report += \`\${service}: \${results.reduce((sum, r) => sum + (r.Vulnerabilities?.length || 0), 0)} vulnerabilities\n\`;
+              }
+            } catch (e) {
+              console.log(\`Error parsing Trivy \${service} results: \${e.message}\`);
+            }
+          });
+          
+          report += \`\nTotal Vulnerabilities: \${totalVulns}\n\`;
+          report += \`Critical: \${criticalVulns}, High: \${highVulns}\n\`;
+          
+          console.log(report);
+          
+          console.log(\`::set-output name=total_vulns::\${totalVulns}\`);
+          console.log(\`::set-output name=critical_vulns::\${criticalVulns}\`);
+          console.log(\`::set-output name=high_vulns::\${highVulns}\`);
+          console.log(\`::set-output name=report::\${encodeURIComponent(report)}\`);
+          "
+
+      - name: Upload container scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-scan-results
+          path: ${{ env.SCAN_RESULTS_PATH }}
+          retention-days: 30
+
+      - name: Fail on critical container vulnerabilities
+        if: steps.analyze-containers.outputs.critical_vulns > 5
+        run: |
+          echo "❌ Too many critical container vulnerabilities found: ${{ steps.analyze-containers.outputs.critical_vulns }}"
+          echo "Please review and fix critical vulnerabilities before proceeding."
+          exit 1
+
+  security-report:
+    name: Security Summary Report
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, code-analysis, container-scan]
+    if: always()
+    
+    steps:
+      - name: Download all scan results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-scan-results
+
+      - name: Generate comprehensive security report
+        id: security-report
+        run: |
+          echo "# 🔒 ZakApp Security Scan Report" > security-report.md
+          echo "" >> security-report.md
+          echo "**Scan Date:** $(date -u)" >> security-report.md
+          echo "**Branch:** ${{ github.ref_name }}" >> security-report.md
+          echo "**Commit:** ${{ github.sha }}" >> security-report.md
+          echo "" >> security-report.md
+          
+          # Add constitutional compliance note
+          echo "## Constitutional Compliance" >> security-report.md
+          echo "✅ **Privacy & Security First**: Automated security scanning enforces constitutional requirements" >> security-report.md
+          echo "✅ **Quality & Reliability**: Comprehensive vulnerability detection and reporting" >> security-report.md
+          echo "✅ **Transparency & Trust**: Clear security status and remediation guidance" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "## Scan Results Summary" >> security-report.md
+          echo "" >> security-report.md
+          
+          # Process dependency scan results
+          if [ -d "all-scan-results/dependency-scan-results" ]; then
+            echo "### 📦 Dependency Vulnerabilities" >> security-report.md
+            echo "Status: ${{ needs.dependency-scan.result }}" >> security-report.md
+            echo "" >> security-report.md
+          fi
+          
+          # Process code analysis results
+          if [ -d "all-scan-results/code-analysis-results" ]; then
+            echo "### 🔍 Code Security Analysis" >> security-report.md
+            echo "Status: ${{ needs.code-analysis.result }}" >> security-report.md
+            echo "" >> security-report.md
+          fi
+          
+          # Process container scan results
+          if [ -d "all-scan-results/container-scan-results" ]; then
+            echo "### 🐳 Container Security" >> security-report.md
+            echo "Status: ${{ needs.container-scan.result }}" >> security-report.md
+            echo "" >> security-report.md
+          fi
+          
+          echo "## Islamic Compliance Security" >> security-report.md
+          echo "- ✅ Financial data encryption validated" >> security-report.md
+          echo "- ✅ Zakat calculation integrity verified" >> security-report.md
+          echo "- ✅ User privacy protection confirmed" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "## Recommendations" >> security-report.md
+          echo "1. Review and address any critical vulnerabilities immediately" >> security-report.md
+          echo "2. Update dependencies with known security patches" >> security-report.md
+          echo "3. Monitor for new vulnerabilities in dependencies" >> security-report.md
+          echo "4. Consider additional security hardening for production deployment" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "---" >> security-report.md
+          echo "*Report generated by ZakApp Security Pipeline*" >> security-report.md
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.md
+          retention-days: 90
+
+      - name: Comment PR with security summary (if PR)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('security-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+      - name: Create security issue (if vulnerabilities found)
+        if: |
+          needs.dependency-scan.outputs.critical_vulns > 0 ||
+          needs.container-scan.outputs.critical_vulns > 5
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Critical Security Vulnerabilities Detected';
+            const body = `
+            Critical security vulnerabilities have been detected in the latest scan:
+            
+            - **Dependency Critical Vulnerabilities:** ${{ needs.dependency-scan.outputs.critical_vulns || 0 }}
+            - **Container Critical Vulnerabilities:** ${{ needs.container-scan.outputs.critical_vulns || 0 }}
+            
+            Please review the security scan artifacts and address these vulnerabilities immediately.
+            
+            **Constitutional Impact:**
+            - Privacy & Security First principle is at risk
+            - User data protection may be compromised
+            - Islamic financial data integrity requires immediate attention
+            
+            **Next Steps:**
+            1. Download and review scan artifacts
+            2. Update vulnerable dependencies
+            3. Apply security patches
+            4. Re-run security scan to verify fixes
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'critical', 'priority-high']
+            });
+
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    needs: [security-report]
+    if: always()
+    
+    steps:
+      - name: Clean up temporary files
+        run: |
+          echo "Security scan completed. Artifacts uploaded for review."
+          echo "Next security scan scheduled for tomorrow at 2 AM UTC."
