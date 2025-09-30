@@ -1,0 +1,251 @@
+import { Request, Response, NextFunction } from 'express';
+import { JWTService } from '../services/JWTService';
+import { AuthenticatedRequest } from '../types';
+
+/**
+ * Authentication middleware for ZakApp API endpoints
+ * Integrates with JWTService for secure token verification
+ * Follows ZakApp constitutional principle: Privacy & Security First
+ */
+export class AuthMiddleware {
+  private jwtService: JWTService;
+
+  constructor() {
+    this.jwtService = new JWTService();
+  }
+
+  /**
+   * Middleware function to authenticate requests using JWT tokens
+   * Validates Bearer token format and verifies token using JWTService
+   * 
+   * @param req - Express request object (extended with user info)
+   * @param res - Express response object
+   * @param next - Next middleware function
+   */
+  authenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    try {
+      // Extract Authorization header
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+        res.status(401).json({
+          success: false,
+          error: 'MISSING_AUTHORIZATION',
+          message: 'Authorization header is required'
+        });
+        return;
+      }
+
+      // Validate Bearer token format
+      const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/);
+      if (!tokenMatch) {
+        res.status(401).json({
+          success: false,
+          error: 'INVALID_AUTH_FORMAT',
+          message: 'Authorization header must be in format: Bearer <token>'
+        });
+        return;
+      }
+
+      const token = tokenMatch[1];
+      if (!token) {
+        res.status(401).json({
+          success: false,
+          error: 'MISSING_TOKEN',
+          message: 'Access token is required'
+        });
+        return;
+      }
+
+      // Verify token using JWTService
+      const decoded = this.jwtService.verifyAccessToken(token);
+
+      // Attach user information to request
+      req.userId = decoded.userId;
+      req.user = {
+        id: decoded.userId,
+        email: decoded.email,
+        name: decoded.email // Will be enhanced when user models are implemented
+      };
+
+      next();
+    } catch (error) {
+      this.handleAuthError(error, res);
+    }
+  };
+
+  /**
+   * Optional authentication middleware - allows both authenticated and unauthenticated requests
+   * Populates user information if valid token is provided, otherwise continues without user
+   * 
+   * @param req - Express request object (extended with user info)
+   * @param res - Express response object
+   * @param next - Next middleware function
+   */
+  optionalAuthenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    try {
+      const authHeader = req.headers.authorization;
+      
+      // If no auth header, continue without user info
+      if (!authHeader) {
+        next();
+        return;
+      }
+
+      const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/);
+      if (!tokenMatch) {
+        // Invalid format, but continue without user info for optional auth
+        next();
+        return;
+      }
+
+      const token = tokenMatch[1];
+      if (!token) {
+        next();
+        return;
+      }
+
+      // Attempt to verify token
+      const decoded = this.jwtService.verifyAccessToken(token);
+
+      // Attach user information to request
+      req.userId = decoded.userId;
+      req.user = {
+        id: decoded.userId,
+        email: decoded.email,
+        name: decoded.email
+      };
+
+      next();
+    } catch (error) {
+      // For optional auth, ignore token errors and continue without user
+      next();
+    }
+  };
+
+  /**
+   * Authorization middleware to check user permissions
+   * Must be used after authenticate middleware
+   * 
+   * @param requiredPermissions - Array of permissions required to access the endpoint
+   * @returns Express middleware function
+   */
+  authorize = (requiredPermissions: string[] = []) => {
+    return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+      if (!req.userId) {
+        res.status(401).json({
+          success: false,
+          error: 'AUTHENTICATION_REQUIRED',
+          message: 'Authentication required for this endpoint'
+        });
+        return;
+      }
+
+      // Extract user permissions from token (will be enhanced when user roles are implemented)
+      const userPermissions: string[] = []; // TODO: Extract from user data or token
+
+      // Check if user has all required permissions
+      const hasPermissions = requiredPermissions.every(permission => 
+        userPermissions.includes(permission)
+      );
+
+      if (!hasPermissions && requiredPermissions.length > 0) {
+        res.status(403).json({
+          success: false,
+          error: 'INSUFFICIENT_PERMISSIONS',
+          message: 'Insufficient permissions to access this resource',
+          details: {
+            required: requiredPermissions,
+            userPermissions
+          }
+        });
+        return;
+      }
+
+      next();
+    };
+  };
+
+  /**
+   * Middleware to require admin role
+   * Must be used after authenticate middleware
+   */
+  requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    if (!req.userId) {
+      res.status(401).json({
+        success: false,
+        error: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required for admin access'
+      });
+      return;
+    }
+
+    // TODO: Check user role from database when user models are implemented
+    // For now, this is a placeholder that will be enhanced
+    
+    res.status(403).json({
+      success: false,
+      error: 'ADMIN_ACCESS_REQUIRED',
+      message: 'Administrator privileges required'
+    });
+  };
+
+  /**
+   * Handles authentication errors and returns appropriate response
+   * 
+   * @param error - Error object from JWT verification
+   * @param res - Express response object
+   */
+  private handleAuthError(error: unknown, res: Response): void {
+    if (error instanceof Error) {
+      // Map specific JWT errors to user-friendly responses
+      switch (error.message) {
+        case 'Access token expired':
+          res.status(401).json({
+            success: false,
+            error: 'TOKEN_EXPIRED',
+            message: 'Access token has expired. Please refresh your token.'
+          });
+          break;
+        
+        case 'Invalid access token':
+          res.status(401).json({
+            success: false,
+            error: 'INVALID_TOKEN',
+            message: 'Invalid access token provided'
+          });
+          break;
+        
+        case 'Invalid token type':
+          res.status(401).json({
+            success: false,
+            error: 'INVALID_TOKEN_TYPE',
+            message: 'Token is not a valid access token'
+          });
+          break;
+        
+        default:
+          res.status(401).json({
+            success: false,
+            error: 'AUTHENTICATION_FAILED',
+            message: 'Authentication failed'
+          });
+      }
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'INTERNAL_ERROR',
+        message: 'Internal authentication error'
+      });
+    }
+  }
+}
+
+// Export singleton instance for use across the application
+export const authMiddleware = new AuthMiddleware();
+
+// Export individual middleware functions for convenience
+export const authenticate = authMiddleware.authenticate;
+export const optionalAuthenticate = authMiddleware.optionalAuthenticate;
+export const authorize = authMiddleware.authorize;
+export const requireAdmin = authMiddleware.requireAdmin;
