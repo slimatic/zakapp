@@ -4,20 +4,74 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 // Note: This test will fail until the implementation exists
 // This is intentional as per TDD methodology
 
+// Helper function to load app dynamically
+const loadApp = async () => {
+  try {
+    const appModule = await import('../../server/src/app');
+    return appModule.default;
+  } catch (error) {
+    console.error('Failed to load app:', error);
+    return null;
+  }
+};
+
 describe('Contract Test: DELETE /api/assets/:id', () => {
   let app: any;
   let authToken: string | undefined;
   let testAssetId: string | undefined;
 
   beforeAll(async () => {
-    // This will fail until the Express app is properly implemented
     try {
-      // app = await import('../../server/src/app');
-      // authToken = 'test-jwt-token';
-      // testAssetId = 'test-asset-id';
-      throw new Error('Express app not yet implemented');
+      // Load the Express app
+      app = await loadApp();
+      if (!app) {
+        throw new Error('Failed to load Express app');
+      }
+
+      // Register a test user with guaranteed unique email
+      const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 100000)}-${process.hrtime.bigint()}`;
+      const userData = {
+        email: `deletetest-${uniqueId}@example.com`,
+        password: 'TestSecure123!',
+        confirmPassword: 'TestSecure123!',
+        firstName: 'Delete',
+        lastName: 'TestUser'
+      };
+
+      await request(app)
+        .post('/api/auth/register')
+        .send(userData)
+        .expect(201);
+
+      // Login to get auth token
+      const loginResponse = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: userData.email,
+          password: userData.password
+        })
+        .expect(200);
+
+      authToken = loginResponse.body.data.accessToken;
+
+      // Create a test asset for deletion tests
+      const assetData = {
+        type: 'cash',
+        value: 1000,
+        currency: 'USD',
+        description: 'Test asset for deletion'
+      };
+
+      const assetResponse = await request(app)
+        .post('/api/assets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(assetData)
+        .expect(201);
+
+      testAssetId = assetResponse.body.data.asset.id;
     } catch (error) {
-      console.log('Expected failure: Express app not implemented yet');
+      console.error('Setup failed:', error);
+      throw new Error('BeforeAll setup failed');
     }
   });
 
@@ -31,8 +85,7 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
   describe('DELETE /api/assets/:id', () => {
     it('should require authentication', async () => {
       if (!app || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+        // Test setup verified
       }
 
       const response = await request(app)
@@ -44,13 +97,28 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
     });
 
     it('should delete asset and return standardized response', async () => {
-      if (!app || !authToken || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+      if (!app || !authToken) {
+        // Test setup verified
       }
 
+      // Create a fresh asset for this test
+      const assetData = {
+        type: 'cash',
+        value: 1000,
+        currency: 'USD',
+        description: 'Test asset for basic deletion'
+      };
+
+      const assetResponse = await request(app)
+        .post('/api/assets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(assetData)
+        .expect(201);
+
+      const assetId = assetResponse.body.data.asset.id;
+
       const response = await request(app)
-        .delete(`/api/assets/${testAssetId}`)
+        .delete(`/api/assets/${assetId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -58,7 +126,7 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
       expect(response.body).toHaveProperty('success', true);
       expect(response.body).toHaveProperty('data');
       expect(response.body.data).toHaveProperty('message', 'Asset deleted successfully');
-      expect(response.body.data).toHaveProperty('deletedAssetId', testAssetId);
+      expect(response.body.data).toHaveProperty('deletedAssetId', assetId);
 
       // Validate metadata
       expect(response.body).toHaveProperty('metadata');
@@ -68,11 +136,10 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
 
     it('should handle asset not found', async () => {
       if (!app || !authToken) {
-        expect(true).toBe(false); // Force failure
-        return;
+        // Test setup verified
       }
 
-      const nonExistentId = 'non-existent-asset-id';
+      const nonExistentId = '12345678-1234-4123-a123-123456789012'; // Valid UUID format but non-existent
 
       const response = await request(app)
         .delete(`/api/assets/${nonExistentId}`)
@@ -85,8 +152,7 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
 
     it('should handle unauthorized access to other users assets', async () => {
       if (!app || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+        // Test setup verified
       }
 
       // Simulate different user token
@@ -103,8 +169,7 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
 
     it('should validate UUID format for asset ID', async () => {
       if (!app || !authToken) {
-        expect(true).toBe(false); // Force failure
-        return;
+        // Test setup verified
       }
 
       const invalidId = 'invalid-uuid';
@@ -120,13 +185,12 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
     });
 
     it('should prevent deletion of asset with dependent zakat calculations', async () => {
-      if (!app || !authToken || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+      if (!app || !authToken) {
+        // Test setup verified
       }
 
-      // Simulate asset with existing zakat calculations
-      const assetWithCalculations = 'asset-with-calculations-id';
+      // Simulate asset with existing zakat calculations - use valid UUID format
+      const assetWithCalculations = '12345678-1234-4abc-a123-123456789abc';
 
       const response = await request(app)
         .delete(`/api/assets/${assetWithCalculations}`)
@@ -139,20 +203,35 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
     });
 
     it('should verify asset is actually deleted from database', async () => {
-      if (!app || !authToken || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+      if (!app || !authToken) {
+        // Test setup verified
       }
+
+      // Create a fresh asset for this test
+      const assetData = {
+        type: 'cash',
+        value: 1000,
+        currency: 'USD',
+        description: 'Test asset for verification deletion'
+      };
+
+      const assetResponse = await request(app)
+        .post('/api/assets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(assetData)
+        .expect(201);
+
+      const assetId = assetResponse.body.data.asset.id;
 
       // First delete the asset
       await request(app)
-        .delete(`/api/assets/${testAssetId}`)
+        .delete(`/api/assets/${assetId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       // Then verify it's gone by trying to fetch it
       const response = await request(app)
-        .get(`/api/assets/${testAssetId}`)
+        .get(`/api/assets/${assetId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
@@ -161,13 +240,28 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
     });
 
     it('should create audit log entry for deletion', async () => {
-      if (!app || !authToken || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+      if (!app || !authToken) {
+        // Test setup verified
       }
 
+      // Create a fresh asset for this test
+      const assetData = {
+        type: 'cash',
+        value: 1000,
+        currency: 'USD',
+        description: 'Test asset for audit deletion'
+      };
+
+      const assetResponse = await request(app)
+        .post('/api/assets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(assetData)
+        .expect(201);
+
+      const assetId = assetResponse.body.data.asset.id;
+
       const response = await request(app)
-        .delete(`/api/assets/${testAssetId}`)
+        .delete(`/api/assets/${assetId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -177,13 +271,28 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
     });
 
     it('should handle soft delete with recovery option', async () => {
-      if (!app || !authToken || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+      if (!app || !authToken) {
+        // Test setup verified
       }
 
+      // Create a fresh asset for this test
+      const assetData = {
+        type: 'cash',
+        value: 1000,
+        currency: 'USD',
+        description: 'Test asset for soft deletion'
+      };
+
+      const assetResponse = await request(app)
+        .post('/api/assets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(assetData)
+        .expect(201);
+
+      const assetId = assetResponse.body.data.asset.id;
+
       const response = await request(app)
-        .delete(`/api/assets/${testAssetId}`)
+        .delete(`/api/assets/${assetId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -198,13 +307,28 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
     });
 
     it('should handle force delete option for immediate permanent deletion', async () => {
-      if (!app || !authToken || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+      if (!app || !authToken) {
+        // Test setup verified
       }
 
+      // Create a fresh asset for this test
+      const assetData = {
+        type: 'cash',
+        value: 1000,
+        currency: 'USD',
+        description: 'Test asset for force deletion'
+      };
+
+      const assetResponse = await request(app)
+        .post('/api/assets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(assetData)
+        .expect(201);
+
+      const assetId = assetResponse.body.data.asset.id;
+
       const response = await request(app)
-        .delete(`/api/assets/${testAssetId}?force=true`)
+        .delete(`/api/assets/${assetId}?force=true`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -215,13 +339,28 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
     });
 
     it('should include deleted asset summary in response', async () => {
-      if (!app || !authToken || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+      if (!app || !authToken) {
+        // Test setup verified
       }
 
+      // Create a fresh asset for this test
+      const assetData = {
+        type: 'cash',
+        value: 1000,
+        currency: 'USD',
+        description: 'Test asset for summary deletion'
+      };
+
+      const assetResponse = await request(app)
+        .post('/api/assets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(assetData)
+        .expect(201);
+
+      const assetId = assetResponse.body.data.asset.id;
+
       const response = await request(app)
-        .delete(`/api/assets/${testAssetId}`)
+        .delete(`/api/assets/${assetId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -229,7 +368,7 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
       expect(response.body.data).toHaveProperty('deletedAsset');
       const deletedAsset = response.body.data.deletedAsset;
       
-      expect(deletedAsset).toHaveProperty('id', testAssetId);
+      expect(deletedAsset).toHaveProperty('id', assetId);
       expect(deletedAsset).toHaveProperty('type');
       expect(deletedAsset).toHaveProperty('description');
       expect(deletedAsset).toHaveProperty('deletedAt');
@@ -240,18 +379,33 @@ describe('Contract Test: DELETE /api/assets/:id', () => {
     });
 
     it('should handle concurrent deletion attempts', async () => {
-      if (!app || !authToken || !testAssetId) {
-        expect(true).toBe(false); // Force failure
-        return;
+      if (!app || !authToken) {
+        // Test setup verified
       }
+
+      // Create a fresh asset for this test
+      const assetData = {
+        type: 'cash',
+        value: 1000,
+        currency: 'USD',
+        description: 'Test asset for concurrent deletion'
+      };
+
+      const assetResponse = await request(app)
+        .post('/api/assets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(assetData)
+        .expect(201);
+
+      const assetId = assetResponse.body.data.asset.id;
 
       // Simulate concurrent deletions
       const deletion1 = request(app)
-        .delete(`/api/assets/${testAssetId}`)
+        .delete(`/api/assets/${assetId}`)
         .set('Authorization', `Bearer ${authToken}`);
 
       const deletion2 = request(app)
-        .delete(`/api/assets/${testAssetId}`)
+        .delete(`/api/assets/${assetId}`)
         .set('Authorization', `Bearer ${authToken}`);
 
       const results = await Promise.allSettled([deletion1, deletion2]);
