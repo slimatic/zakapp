@@ -1,9 +1,22 @@
-# Feature Specification: ZakApp Implementation Verification and Quality Assurance
+# Feature Specification: ZakApp Implementation Verification
 
 **Feature Branch**: `002-001-implementation-verification`  
 **Created**: 2025-09-29  
 **Status**: Draft  
 **Input**: User description: "001-implementation-verification"
+
+## Terminology
+
+**Verification** refers to the systematic process of validating that the implementation meets all specified requirements, architectural decisions, and constitutional principles. This is a comprehensive quality assurance activity that encompasses:
+- Contract testing (API specification compliance)
+- Unit testing (component-level correctness)
+- Integration testing (system-level interactions)
+- Security verification (encryption, authentication, authorization)
+- Constitutional compliance validation (privacy, Islamic compliance, security standards)
+
+**Testing** refers to the execution of test suites (unit, integration, contract, E2E) to validate specific functionality. Testing is a subset of verification - all testing is verification, but verification includes broader activities like architectural review, code quality assessment, and requirement traceability.
+
+**In this specification**: These terms are used interchangeably when referring to test execution, but "verification" emphasizes the comprehensive quality assurance aspect beyond just running tests.
 
 ## Execution Flow (main)
 ```
@@ -39,17 +52,32 @@ As a development team working on ZakApp, we need to systematically verify that a
 
 ### Acceptance Scenarios
 1. **Given** existing ZakApp implementation with mixed completion status, **When** running comprehensive verification tests, **Then** all claimed features must pass end-to-end testing
-2. **Given** current file-based storage system, **When** migrating to database storage, **Then** all existing user data must be preserved and accessible
+2. **Given** current file-based JSON storage system, **When** migrating to database storage, **Then** all existing user data must be preserved and accessible
 3. **Given** basic Zakat calculation functionality, **When** implementing Islamic compliance verification, **Then** calculations must match documented Islamic finance sources
 4. **Given** multiple API response formats in current implementation, **When** standardizing incrementally, **Then** each fixed endpoint must maintain backward compatibility
 5. **Given** minimal test coverage, **When** implementing end-to-end testing, **Then** all critical user workflows must be verified automatically
 
 ### Edge Cases
-- What happens when database storage becomes corrupted or inaccessible?
-- How does the system handle Islamic calculation methodology edge cases (leap years, currency fluctuations)?
-- What occurs when automated tests fail in CI/CD pipeline?
-- How does data migration handle malformed JSON files from current implementation?
-- What safeguards exist when API standardization breaks existing client expectations?
+
+#### Database Corruption or Inaccessibility
+**Scenario**: Database storage becomes corrupted or inaccessible  
+**Resolution**: System MUST implement automatic backup and recovery mechanisms (FR-009, Task T040). Database operations MUST use transactions to prevent partial corruption (FR-010, Task T041). System MUST gracefully degrade to read-only mode with clear user notification when database is inaccessible.
+
+#### Islamic Calculation Edge Cases
+**Scenario**: Leap years, currency fluctuations, or methodology-specific edge cases  
+**Resolution**: System MUST implement calculations based on documented Islamic finance authorities with source citations (FR-011, FR-012). Nisab thresholds MUST be validated against current Islamic finance standards (FR-014, Task T028). System MUST provide clear methodology explanations for edge cases (FR-013, Task T027).
+
+#### CI/CD Test Failures
+**Scenario**: Automated tests fail in CI/CD pipeline  
+**Resolution**: Pipeline MUST halt deployment on test failure (FR-022, Task T042). System MUST provide comprehensive logging for debugging (FR-023). Quality gates MUST prevent code with failing tests from reaching production (FR-022, Tasks T042-T047).
+
+#### Malformed JSON Migration
+**Scenario**: Data migration encounters malformed JSON files from current implementation  
+**Resolution**: Migration utility MUST validate JSON structure before processing (FR-006, Task T012). System MUST log validation errors with file references (FR-023). Backup mechanisms MUST preserve original files before migration attempt (FR-009, Task T040). Migration MUST support partial recovery and retry logic (Task T038).
+
+#### API Backward Compatibility
+**Scenario**: API standardization breaks existing client expectations  
+**Resolution**: API changes MUST maintain backward compatibility through incremental migration (FR-016, Tasks T023-T028). Contract tests MUST validate API specifications before deployment (FR-018, Tasks T005-T011). Breaking changes MUST be documented with migration guides and deprecation notices (FR-016).
 
 ## Requirements
 
@@ -115,69 +143,14 @@ As a development team working on ZakApp, we need to systematically verify that a
 - [x] Requirements are testable and unambiguous  
 - [x] Success criteria are measurable
 - [x] Scope is clearly bounded to verification and quality improvement
-   - Security/compliance needs
 
----
-
-## User Scenarios & Testing *(mandatory)*
-
-### Primary User Story
-[Describe the main user journey in plain language]
-
-### Acceptance Scenarios
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
-### Edge Cases
-- What happens when [boundary condition]?
-- How does system handle [error scenario]?
-
-## Requirements *(mandatory)*
-
-### Functional Requirements
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
-
-*Example of marking unclear requirements:*
-- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
-- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
-
-### Key Entities *(include if feature involves data)*
-- **[Entity 1]**: [What it represents, key attributes without implementation]
-- **[Entity 2]**: [What it represents, relationships to other entities]
-
----
-
-## Review & Acceptance Checklist
-*GATE: Automated checks run during main() execution*
-
-### Content Quality
-- [ ] No implementation details (languages, frameworks, APIs)
-- [ ] Focused on user value and business needs
-- [ ] Written for non-technical stakeholders
-- [ ] All mandatory sections completed
-
-### Requirement Completeness
-- [ ] No [NEEDS CLARIFICATION] markers remain
-- [ ] Requirements are testable and unambiguous  
-- [ ] Success criteria are measurable
-- [ ] Scope is clearly bounded
-- [ ] Dependencies and assumptions identified
-
----
-
-## Execution Status
-*Updated by main() during processing*
-
-- [ ] User description parsed
-- [ ] Key concepts extracted
-- [ ] Ambiguities marked
-- [ ] User scenarios defined
-- [ ] Requirements generated
-- [ ] Entities identified
-- [ ] Review checklist passed
+### Execution Status
+- [x] User description parsed
+- [x] Key concepts extracted
+- [x] Ambiguities marked
+- [x] User scenarios defined
+- [x] Requirements generated
+- [x] Entities identified
+- [x] Review checklist passed
 
 ---
