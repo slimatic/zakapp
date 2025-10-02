@@ -8,7 +8,7 @@
  */
 
 import { IslamicCalculationService } from '../../server/src/services/IslamicCalculationService';
-import { ZakatMethodology, AssetCategory, CalculationResult } from '../../shared/src/types';
+import { ZakatMethodology, AssetCategory, ZakatCalculationResult } from '../../shared/src/types';
 
 describe('IslamicCalculationService', () => {
   let calculationService: IslamicCalculationService;
