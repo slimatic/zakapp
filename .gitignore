@@ -73,6 +73,9 @@ temp/
 # Testing
 jest.config.js
 coverage/
+test-results/
+playwright-report/
+playwright/.cache/
 
 # Docker
 .dockerignore
