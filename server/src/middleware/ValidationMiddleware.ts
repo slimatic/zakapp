@@ -43,9 +43,11 @@ export const handleValidationErrors = (
 
     return res.status(400).json({
       success: false,
-      error: 'VALIDATION_ERROR',
-      message: 'Input validation failed',
-      details: validationErrors
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Input validation failed',
+        details: validationErrors
+      }
     });
   }
   
@@ -71,9 +73,11 @@ export const validateSchema = (schema: z.ZodSchema) => {
 
         return res.status(400).json({
           success: false,
-          error: 'VALIDATION_ERROR',
-          message: 'Input validation failed',
-          details: validationErrors
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Input validation failed',
+            details: validationErrors
+          }
         });
       }
 
@@ -98,20 +102,41 @@ export const validateUserRegistration = [
   body('password')
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain uppercase, lowercase, and number'),
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/)
+    .withMessage('Password must contain uppercase, lowercase, number, and special character'),
+  
+  body('confirmPassword')
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Password confirmation does not match');
+      }
+      return true;
+    }),
   
   body('firstName')
     .trim()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('First name is required and must be less than 100 characters'),
-  
+    .isLength({ min: 2, max: 50 })
+    .matches(/^[a-zA-Z\s]+$/)
+    .withMessage('First name must be 2-50 characters and contain only letters and spaces'),
+    
   body('lastName')
     .trim()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Last name is required and must be less than 100 characters'),
+    .isLength({ min: 2, max: 50 })
+    .matches(/^[a-zA-Z\s]+$/)
+    .withMessage('Last name must be 2-50 characters and contain only letters and spaces'),
   
-  handleValidationErrors
+  // Optional fields validation
+  body('phone')
+    .optional()
+    .isMobilePhone('any')
+    .withMessage('Invalid phone number format'),
+  
+  body('dateOfBirth')
+    .optional()
+    .isISO8601()
+    .withMessage('Invalid date format'),
+    
+  // Remove validation handler from here - it will be called separately
 ];
 
 /**
