@@ -1,4 +1,4 @@
-import EncryptionService from '../../server/src/services/EncryptionService';
+import { EncryptionService } from '../../server/src/services/EncryptionService';
 
 describe('Implementation Task T023: EncryptionService', () => {
   describe('Core Encryption/Decryption', () => {
@@ -243,7 +243,7 @@ describe('Implementation Task T023: EncryptionService', () => {
       const plaintext = 'test data';
 
       // Valid encrypted data format should be detected
-      EncryptionService.encrypt(plaintext, key).then(encrypted => {
+      EncryptionService.encrypt(plaintext, key).then((encrypted: string) => {
         expect(EncryptionService.isEncrypted(encrypted)).toBe(true);
       });
 
