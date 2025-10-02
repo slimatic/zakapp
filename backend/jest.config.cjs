@@ -15,8 +15,9 @@ module.exports = {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '^@zakapp/shared$': '<rootDir>/../shared/src/index.ts',
+    '^uuid$': '<rootDir>/../server/node_modules/uuid/dist/index.js',
   },
-  transformIgnorePatterns: ['node_modules/(?!(@zakapp/shared|uuid)/)'],
+  transformIgnorePatterns: ['node_modules/(?!(@zakapp/shared|uuid|@prisma/client)/)'],
   collectCoverageFrom: ['src/**/*.ts', '!src/__tests__/**', '!src/index.ts'],
   testTimeout: 15000,
 };
