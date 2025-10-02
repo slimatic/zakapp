@@ -8,7 +8,7 @@
  */
 
 import request from 'supertest';
-import { app } from '../../server/src/app';
+import app from '../../server/src/app';
 import { PrismaClient } from '@prisma/client';
 import { performance } from 'perf_hooks';
 
