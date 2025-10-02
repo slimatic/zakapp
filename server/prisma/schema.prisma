@@ -223,7 +223,7 @@ model TestResult {
   status        String   // PASSED, FAILED, SKIPPED, PENDING
   executionTime Int      // milliseconds
   coverage      Float    // 0-100 percentage
-  errors        String[] // Array of error messages
+  errors        String?  // JSON array of error messages
   metadata      String?  // JSON blob for additional context
   feature       String   // Feature being tested
   createdAt     DateTime @default(now())
@@ -246,7 +246,7 @@ model ImplementationGap {
   description           String
   expectedBehavior      String
   actualBehavior        String
-  affectedComponents    String[] // Array of component/file names
+  affectedComponents    String?  // JSON array of component/file names
   constitutionalPrinciple String
   resolutionPlan        String
   estimatedEffort       Int      // hours
@@ -345,7 +345,7 @@ model ApiContract {
   rateLimitingRpm       Int?     // requests per minute
   rateLimitingRph       Int?     // requests per hour
   rateLimitingBurst     Int?     // burst limit
-  expectedStatusCodes   Int[]    // array of valid HTTP status codes
+  expectedStatusCodes   String?  // JSON array of valid HTTP status codes
   errorHandling         String?  // JSON blob
   lastUpdated           DateTime @default(now())
   complianceStatus      String   // COMPLIANT, PARTIAL, NON_COMPLIANT, UNTESTED
@@ -363,13 +363,13 @@ model UserWorkflow {
   description          String
   userType             String   // NEW_USER, RETURNING_USER, ADMIN_USER
   steps                String   // JSON array of workflow steps
-  prerequisites        String[] // array of setup requirements
+  prerequisites        String?  // JSON array of setup requirements
   testAutomated        Boolean  @default(false)
   criticalPath         Boolean  @default(false)
   estimatedDuration    Int      // minutes
   lastTested           DateTime?
   successRate          Float    // 0-100 percentage
-  commonFailures       String[] // array of common failure points
+  commonFailures       String?  // JSON array of common failure points
   browserChrome        Boolean  @default(false)
   browserFirefox       Boolean  @default(false)
   browserSafari        Boolean  @default(false)
