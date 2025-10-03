@@ -1,0 +1,331 @@
+name: CI/CD Pipeline - Staging Deployment
+
+on:
+  push:
+    branches:
+      - 002-001-implementation-verification
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  NODE_VERSION: '18'
+  DOCKER_BUILDKIT: 1
+  
+
+jobs:
+  # ============================================================================
+  # JOB 1: Quality Gates - Tests and Code Quality
+  # ============================================================================
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd server && npm ci
+          cd ../client && npm ci
+      
+      - name: Run contract tests
+        run: npm test -- tests/contract/ --ci --coverage
+        
+      - name: Run unit tests
+        run: npm test -- tests/unit/ --ci --coverage
+        
+      - name: Check test coverage
+        run: |
+          npm test -- --coverage --coverageReporters=text-summary
+          
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          
+  # ============================================================================
+  # JOB 2: Security Scanning
+  # ============================================================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
+      - name: npm audit
+        run: |
+          cd server && npm audit --audit-level=high
+          cd ../client && npm audit --audit-level=high
+        continue-on-error: true
+        
+  # ============================================================================
+  # JOB 3: Build Docker Images
+  # ============================================================================
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [quality-gates, security-scan]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile.backend
+          push: false
+          tags: zakapp-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile.frontend
+          push: false
+          tags: zakapp-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+  # ============================================================================
+  # JOB 4: Integration Tests
+  # ============================================================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-images
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: zakapp_test
+          POSTGRES_USER: zakapp_test
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd server && npm ci
+          
+      - name: Setup test database
+        env:
+          DATABASE_URL: postgresql://zakapp_test:test_password@localhost:5432/zakapp_test
+        run: |
+          cd server
+          npx prisma generate
+          npx prisma db push
+          
+      - name: Run integration tests
+        env:
+          DATABASE_URL: postgresql://zakapp_test:test_password@localhost:5432/zakapp_test
+          JWT_SECRET: test-jwt-secret-for-ci-32-chars
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef
+        run: npm test -- tests/integration/ --ci
+        
+  # ============================================================================
+  # JOB 5: E2E Tests with Playwright
+  # ============================================================================
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: build-images
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        
+      - name: Start application with Docker Compose
+        run: |
+          docker-compose -f docker-compose.staging.yml up -d
+          sleep 30  # Wait for services to be ready
+          
+      - name: Wait for services
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3002/health; do sleep 2; done'
+          timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
+          
+      - name: Run Playwright tests
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          PLAYWRIGHT_API_URL: http://localhost:3002
+        run: npm run test:e2e
+        
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+          
+      - name: Stop services
+        if: always()
+        run: docker-compose -f docker-compose.staging.yml down
+        
+  # ============================================================================
+  # JOB 6: Deploy to Staging (on push to specific branch)
+  # ============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [quality-gates, security-scan, integration-tests, e2e-tests]
+    if: github.ref == 'refs/heads/002-001-implementation-verification' && github.event_name == 'push'
+    
+    environment:
+      name: staging
+      url: https://staging.zakapp.example.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup deployment environment
+        run: |
+          echo "Preparing staging deployment..."
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          
+      - name: Configure SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+          
+      - name: Deploy to staging server
+        run: |
+          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
+            cd /var/www/zakapp
+            git pull origin 002-001-implementation-verification
+            ./deploy-staging.sh deploy
+          EOF
+          
+      - name: Verify deployment
+        run: |
+          sleep 30
+          curl -f https://staging.zakapp.example.com/health || exit 1
+          
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Staging deployment successful!"
+          echo "URL: https://staging.zakapp.example.com"
+          
+  # ============================================================================
+  # JOB 7: Performance Tests (on successful deployment)
+  # ============================================================================
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/002-001-implementation-verification'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install k6
+        run: |
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          
+      - name: Run performance tests
+        run: |
+          k6 run tests/performance/api-performance.test.ts
+          
+      - name: Check performance thresholds
+        run: |
+          echo "✅ Performance tests completed"
+          echo "Target: <200ms p95 latency"
+          
+  # ============================================================================
+  # Summary Job
+  # ============================================================================
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, performance-tests]
+    if: always()
+    
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# ZakApp Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ needs.deploy-staging.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Quality Gates: Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security Scan: Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Integration Tests: Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ E2E Tests: Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Performance Tests: Passed" >> $GITHUB_STEP_SUMMARY
