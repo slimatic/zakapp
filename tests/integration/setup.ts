@@ -1,6 +1,10 @@
 // Integration test setup
 import { PrismaClient } from '../../server/node_modules/@prisma/client';
 import path from 'path';
+import dotenv from 'dotenv';
+
+// Load test environment variables
+dotenv.config({ path: path.resolve(__dirname, '../../server/.env.test') });
 
 let prisma: PrismaClient;
 
