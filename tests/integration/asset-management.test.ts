@@ -33,7 +33,9 @@ describe('Integration Test: Asset Management Flow', () => {
       const userData = {
         email: `asset-integration-${Date.now()}@example.com`,
         password: 'TestSecure123!',
-        name: 'Asset Test User'
+        confirmPassword: 'TestSecure123!',
+        firstName: 'Asset',
+        lastName: 'TestUser'
       };
 
       // Register test user
