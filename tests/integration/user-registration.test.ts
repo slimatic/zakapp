@@ -2,18 +2,9 @@ import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 
 // Note: This test will fail until the implementation exists
-// This is intentional as per TDD method      // Step 4: Fetch user profile with encryption
-      const profileResponse = await request(app)
-        .get('/api/user/profile')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
+// This is intentional as per TDD methodology
 
-      expect(profileResponse.body.success).toBe(true);
-      const profile = profileResponse.body.profile;
-
-      // Verify profile is returned (currently mock data)
-      expect(profile).toBeDefined();
-      expect(profile.email).toBeDefined();lper function to load app dynamically
+// Helper function to load app dynamically
 const loadApp = async () => {
   try {
     const appModule = await import('../../server/src/app');
