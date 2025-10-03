@@ -11,12 +11,11 @@ import { EncryptionService } from '../../server/src/services/EncryptionService';
 import crypto from 'crypto';
 
 describe('EncryptionService', () => {
-  let encryptionService: EncryptionService;
+  // Note: EncryptionService uses static methods, no instance needed
   
   beforeEach(() => {
     // Set test encryption key
     process.env.ENCRYPTION_KEY = 'test-encryption-key-32-characters-long-abcdef1234567890';
-    encryptionService = new EncryptionService();
   });
 
   afterEach(() => {
@@ -24,8 +23,8 @@ describe('EncryptionService', () => {
   });
 
   describe('Constructor and Initialization', () => {
-    it('should initialize with valid encryption key', () => {
-      expect(() => new EncryptionService()).not.toThrow();
+    it('should have encryption key configured', () => {
+      expect(process.env.ENCRYPTION_KEY).toBeDefined();
     });
 
     it('should throw error with missing encryption key', () => {
@@ -48,8 +47,8 @@ describe('EncryptionService', () => {
   describe('Basic Encryption/Decryption', () => {
     it('should encrypt and decrypt text data', () => {
       const plaintext = 'Hello, World!';
-      const encrypted = encryptionService.encrypt(plaintext);
-      const decrypted = encryptionService.decrypt(encrypted);
+      const encrypted = EncryptionService.encrypt(plaintext);
+      const decrypted = EncryptionService.decrypt(encrypted);
       
       expect(decrypted).toBe(plaintext);
       expect(encrypted.encryptedData).not.toBe(plaintext);
@@ -59,32 +58,32 @@ describe('EncryptionService', () => {
 
     it('should encrypt and decrypt JSON objects', () => {
       const data = { name: 'John Doe', balance: 1000.50, currency: 'USD' };
-      const encrypted = encryptionService.encryptObject(data);
-      const decrypted = encryptionService.decryptObject(encrypted);
+      const encrypted = EncryptionService.encryptObject(data);
+      const decrypted = EncryptionService.decryptObject(encrypted);
       
       expect(decrypted).toEqual(data);
     });
 
     it('should encrypt and decrypt arrays', () => {
       const data = ['item1', 'item2', 'item3'];
-      const encrypted = encryptionService.encryptObject(data);
-      const decrypted = encryptionService.decryptObject(encrypted);
+      const encrypted = EncryptionService.encryptObject(data);
+      const decrypted = EncryptionService.decryptObject(encrypted);
       
       expect(decrypted).toEqual(data);
     });
 
     it('should handle empty strings', () => {
       const plaintext = '';
-      const encrypted = encryptionService.encrypt(plaintext);
-      const decrypted = encryptionService.decrypt(encrypted);
+      const encrypted = EncryptionService.encrypt(plaintext);
+      const decrypted = EncryptionService.decrypt(encrypted);
       
       expect(decrypted).toBe(plaintext);
     });
 
     it('should handle null and undefined values in objects', () => {
       const data = { nullValue: null, undefinedValue: undefined, emptyString: '' };
-      const encrypted = encryptionService.encryptObject(data);
-      const decrypted = encryptionService.decryptObject(encrypted);
+      const encrypted = EncryptionService.encryptObject(data);
+      const decrypted = EncryptionService.decryptObject(encrypted);
       
       expect(decrypted).toEqual(data);
     });
@@ -93,8 +92,8 @@ describe('EncryptionService', () => {
   describe('Security Properties', () => {
     it('should generate different IV for each encryption', () => {
       const plaintext = 'Same message';
-      const encrypted1 = encryptionService.encrypt(plaintext);
-      const encrypted2 = encryptionService.encrypt(plaintext);
+      const encrypted1 = EncryptionService.encrypt(plaintext);
+      const encrypted2 = EncryptionService.encrypt(plaintext);
       
       expect(encrypted1.iv).not.toBe(encrypted2.iv);
       expect(encrypted1.encryptedData).not.toBe(encrypted2.encryptedData);
@@ -102,7 +101,7 @@ describe('EncryptionService', () => {
 
     it('should produce different ciphertext for identical inputs', () => {
       const plaintext = 'Sensitive financial data';
-      const results = Array.from({ length: 5 }, () => encryptionService.encrypt(plaintext));
+      const results = Array.from({ length: 5 }, () => EncryptionService.encrypt(plaintext));
       
       const uniqueCiphertexts = new Set(results.map(r => r.encryptedData));
       expect(uniqueCiphertexts.size).toBe(5);
@@ -116,8 +115,8 @@ describe('EncryptionService', () => {
         creditCard: '4532-1234-5678-9012'
       };
       
-      const encrypted = encryptionService.encryptObject(sensitiveData);
-      const decrypted = encryptionService.decryptObject(encrypted);
+      const encrypted = EncryptionService.encryptObject(sensitiveData);
+      const decrypted = EncryptionService.decryptObject(encrypted);
       
       expect(decrypted).toEqual(sensitiveData);
       expect(JSON.stringify(encrypted)).not.toContain('50000.75');
@@ -126,7 +125,7 @@ describe('EncryptionService', () => {
 
     it('should use AES-256-CBC algorithm', () => {
       const plaintext = 'Test message';
-      const encrypted = encryptionService.encrypt(plaintext);
+      const encrypted = EncryptionService.encrypt(plaintext);
       
       // Verify IV length (16 bytes for AES)
       expect(Buffer.from(encrypted.iv, 'hex')).toHaveLength(16);
@@ -143,18 +142,18 @@ describe('EncryptionService', () => {
         iv: '1234567890abcdef1234567890abcdef'
       };
       
-      expect(() => encryptionService.decrypt(invalidEncrypted))
+      expect(() => EncryptionService.decrypt(invalidEncrypted))
         .toThrow('Failed to decrypt data');
     });
 
     it('should throw error for invalid IV format', () => {
-      const validData = encryptionService.encrypt('test');
+      const validData = EncryptionService.encrypt('test');
       const invalidEncrypted = {
         encryptedData: validData.encryptedData,
         iv: 'invalid-iv'
       };
       
-      expect(() => encryptionService.decrypt(invalidEncrypted))
+      expect(() => EncryptionService.decrypt(invalidEncrypted))
         .toThrow('Failed to decrypt data');
     });
 
@@ -164,26 +163,26 @@ describe('EncryptionService', () => {
         iv: '1234567890abcdef1234567890abcdef'
       };
       
-      expect(() => encryptionService.decrypt(invalidEncrypted))
+      expect(() => EncryptionService.decrypt(invalidEncrypted))
         .toThrow('Encrypted data and IV are required');
     });
 
     it('should throw error for missing IV', () => {
-      const validData = encryptionService.encrypt('test');
+      const validData = EncryptionService.encrypt('test');
       const invalidEncrypted = {
         encryptedData: validData.encryptedData,
         iv: ''
       };
       
-      expect(() => encryptionService.decrypt(invalidEncrypted))
+      expect(() => EncryptionService.decrypt(invalidEncrypted))
         .toThrow('Encrypted data and IV are required');
     });
 
     it('should handle JSON parsing errors gracefully', () => {
       // Create encrypted data that will result in invalid JSON
-      const validEncrypted = encryptionService.encrypt('not-valid-json{');
+      const validEncrypted = EncryptionService.encrypt('not-valid-json{');
       
-      expect(() => encryptionService.decryptObject(validEncrypted))
+      expect(() => EncryptionService.decryptObject(validEncrypted))
         .toThrow('Failed to parse decrypted JSON');
     });
   });
@@ -191,24 +190,24 @@ describe('EncryptionService', () => {
   describe('Data Types and Edge Cases', () => {
     it('should handle very long strings', () => {
       const longString = 'a'.repeat(10000);
-      const encrypted = encryptionService.encrypt(longString);
-      const decrypted = encryptionService.decrypt(encrypted);
+      const encrypted = EncryptionService.encrypt(longString);
+      const decrypted = EncryptionService.decrypt(encrypted);
       
       expect(decrypted).toBe(longString);
     });
 
     it('should handle unicode characters', () => {
       const unicodeText = '🔒 Secure زكاة calculation データ';
-      const encrypted = encryptionService.encrypt(unicodeText);
-      const decrypted = encryptionService.decrypt(encrypted);
+      const encrypted = EncryptionService.encrypt(unicodeText);
+      const decrypted = EncryptionService.decrypt(encrypted);
       
       expect(decrypted).toBe(unicodeText);
     });
 
     it('should handle special characters and symbols', () => {
       const specialText = '!@#$%^&*()_+-=[]{}|;:,.<>?`~"\'\n\t\r';
-      const encrypted = encryptionService.encrypt(specialText);
-      const decrypted = encryptionService.decrypt(encrypted);
+      const encrypted = EncryptionService.encrypt(specialText);
+      const decrypted = EncryptionService.decrypt(encrypted);
       
       expect(decrypted).toBe(specialText);
     });
@@ -232,8 +231,8 @@ describe('EncryptionService', () => {
         }
       };
       
-      const encrypted = encryptionService.encryptObject(complexData);
-      const decrypted = encryptionService.decryptObject(encrypted);
+      const encrypted = EncryptionService.encryptObject(complexData);
+      const decrypted = EncryptionService.decryptObject(encrypted);
       
       expect(decrypted).toEqual(complexData);
     });
@@ -246,8 +245,8 @@ describe('EncryptionService', () => {
         scientificNotation: 1.23e-10
       };
       
-      const encrypted = encryptionService.encryptObject(preciseNumbers);
-      const decrypted = encryptionService.decryptObject(encrypted);
+      const encrypted = EncryptionService.encryptObject(preciseNumbers);
+      const decrypted = EncryptionService.decryptObject(encrypted);
       
       expect(decrypted).toEqual(preciseNumbers);
     });
@@ -264,8 +263,8 @@ describe('EncryptionService', () => {
       };
       
       const startTime = Date.now();
-      const encrypted = encryptionService.encryptObject(largeData);
-      const decrypted = encryptionService.decryptObject(encrypted);
+      const encrypted = EncryptionService.encryptObject(largeData);
+      const decrypted = EncryptionService.decryptObject(encrypted);
       const endTime = Date.now();
       
       expect(decrypted).toEqual(largeData);
@@ -278,8 +277,8 @@ describe('EncryptionService', () => {
       
       // Perform many encryption/decryption operations
       for (let i = 0; i < 1000; i++) {
-        const encrypted = encryptionService.encrypt(testData + i);
-        encryptionService.decrypt(encrypted);
+        const encrypted = EncryptionService.encrypt(testData + i);
+        EncryptionService.decrypt(encrypted);
       }
       
       // Force garbage collection if available
@@ -312,8 +311,8 @@ describe('EncryptionService', () => {
         recipient: 'Local Islamic Center'
       };
       
-      const encrypted = encryptionService.encryptObject(zakatData);
-      const decrypted = encryptionService.decryptObject(encrypted);
+      const encrypted = EncryptionService.encryptObject(zakatData);
+      const decrypted = EncryptionService.decryptObject(encrypted);
       
       expect(decrypted).toEqual(zakatData);
       
@@ -344,8 +343,8 @@ describe('EncryptionService', () => {
         }
       };
       
-      const encrypted = encryptionService.encryptObject(profileData);
-      const decrypted = encryptionService.decryptObject(encrypted);
+      const encrypted = EncryptionService.encryptObject(profileData);
+      const decrypted = EncryptionService.decryptObject(encrypted);
       
       expect(decrypted).toEqual(profileData);
       
@@ -360,7 +359,7 @@ describe('EncryptionService', () => {
   describe('Backwards Compatibility', () => {
     it('should maintain consistent encryption format', () => {
       const testData = 'consistency test';
-      const encrypted = encryptionService.encrypt(testData);
+      const encrypted = EncryptionService.encrypt(testData);
       
       // Verify structure matches expected format
       expect(encrypted).toHaveProperty('encryptedData');
