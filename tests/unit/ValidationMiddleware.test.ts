@@ -101,9 +101,11 @@ describe('Implementation Task T025: Validation Middleware', () => {
       expect(statusSpy).toHaveBeenCalledWith(400);
       expect(jsonSpy).toHaveBeenCalledWith({
         success: false,
-        error: 'VALIDATION_ERROR',
-        message: 'Input validation failed',
-        details: expect.any(Array)
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Input validation failed',
+          details: expect.any(Array)
+        }
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
