@@ -7,7 +7,7 @@
  * - User-Centric Design: Ensure zero data loss and seamless migration experience
  */
 
-import DataMigrationService from '../../server/src/utils/DataMigration';
+import { DataMigrationService } from '../../server/src/utils/DataMigration';
 import { IntegrityChecker } from '../../server/src/utils/IntegrityChecker';
 import { BackupService } from '../../server/src/utils/BackupService';
 import fs from 'fs/promises';
@@ -19,7 +19,7 @@ jest.mock('@prisma/client');
 const MockPrismaClient = PrismaClient as jest.MockedClass<typeof PrismaClient>;
 
 describe('DataMigration', () => {
-  let dataMigration: DataMigrationService;
+  // Note: DataMigrationService uses static methods, no instance needed
   let mockPrisma: jest.Mocked<PrismaClient>;
   let testDataDir: string;
   let backupService: BackupService;
@@ -59,7 +59,7 @@ describe('DataMigration', () => {
     } as any;
 
     backupService = new BackupService();
-    dataMigration = new DataMigrationService(mockPrisma, backupService);
+    // Note: DataMigrationService uses static methods, no instantiation needed
   });
 
   afterEach(async () => {
@@ -83,7 +83,7 @@ describe('DataMigration', () => {
       const testFile = path.join(testDataDir, 'users.json');
       await fs.writeFile(testFile, JSON.stringify([validUserData], null, 2));
 
-      const files = await dataMigration.detectMigrationFiles(testDataDir);
+      const files = await DataMigrationService.detectMigrationFiles(testDataDir);
       expect(files).toContain(testFile);
     });
 
@@ -96,7 +96,7 @@ describe('DataMigration', () => {
       const testFile = path.join(testDataDir, 'valid.json');
       await fs.writeFile(testFile, JSON.stringify(validData, null, 2));
 
-      const isValid = await dataMigration.validateJsonStructure(testFile, 'user');
+      const isValid = await DataMigrationService.validateJsonStructure(testFile, 'user');
       expect(isValid).toBe(true);
     });
 
@@ -105,7 +105,7 @@ describe('DataMigration', () => {
       const testFile = path.join(testDataDir, 'invalid.json');
       await fs.writeFile(testFile, invalidJson);
 
-      await expect(dataMigration.validateJsonStructure(testFile, 'user'))
+      await expect(DataMigrationService.validateJsonStructure(testFile, 'user'))
         .rejects.toThrow('Invalid JSON format');
     });
 
@@ -113,7 +113,7 @@ describe('DataMigration', () => {
       const emptyFile = path.join(testDataDir, 'empty.json');
       await fs.writeFile(emptyFile, '[]');
 
-      const isValid = await dataMigration.validateJsonStructure(emptyFile, 'user');
+      const isValid = await DataMigrationService.validateJsonStructure(emptyFile, 'user');
       expect(isValid).toBe(true);
     });
 
@@ -126,7 +126,7 @@ describe('DataMigration', () => {
       const testFile = path.join(testDataDir, 'missing-fields.json');
       await fs.writeFile(testFile, JSON.stringify(invalidData, null, 2));
 
-      await expect(dataMigration.validateJsonStructure(testFile, 'user'))
+      await expect(DataMigrationService.validateJsonStructure(testFile, 'user'))
         .rejects.toThrow('Missing required fields');
     });
   });
@@ -156,7 +156,7 @@ describe('DataMigration', () => {
         .mockResolvedValueOnce(userData[0] as any)
         .mockResolvedValueOnce(userData[1] as any);
 
-      const result = await dataMigration.migrateUsers(userData);
+      const result = await DataMigrationService.migrateUsers(userData);
 
       expect(result.migrated).toBe(2);
       expect(result.failed).toBe(0);
@@ -174,7 +174,7 @@ describe('DataMigration', () => {
 
       mockPrisma.user.create.mockResolvedValue(userData[0] as any);
 
-      await dataMigration.migrateUsers(userData);
+      await DataMigrationService.migrateUsers(userData);
 
       const createCall = mockPrisma.user.create.mock.calls[0][0];
       
@@ -197,7 +197,7 @@ describe('DataMigration', () => {
         .mockRejectedValueOnce(new Error('Email validation failed'))
         .mockResolvedValueOnce(userData[2] as any);
 
-      const result = await dataMigration.migrateUsers(userData);
+      const result = await DataMigrationService.migrateUsers(userData);
 
       expect(result.migrated).toBe(2);
       expect(result.failed).toBe(1);
@@ -215,7 +215,7 @@ describe('DataMigration', () => {
       mockPrisma.user.create.mockResolvedValue({} as any);
 
       const progressUpdates: number[] = [];
-      const result = await dataMigration.migrateUsers(userData, {
+      const result = await DataMigrationService.migrateUsers(userData, {
         onProgress: (progress) => progressUpdates.push(progress)
       });
 
@@ -253,7 +253,7 @@ describe('DataMigration', () => {
         .mockResolvedValueOnce(assetData[0] as any)
         .mockResolvedValueOnce(assetData[1] as any);
 
-      const result = await dataMigration.migrateAssets(assetData);
+      const result = await DataMigrationService.migrateAssets(assetData);
 
       expect(result.migrated).toBe(2);
       expect(mockPrisma.asset.create).toHaveBeenCalledTimes(2);
@@ -275,7 +275,7 @@ describe('DataMigration', () => {
         }
       ];
 
-      await expect(dataMigration.migrateAssets(assetData))
+      await expect(DataMigrationService.migrateAssets(assetData))
         .rejects.toThrow('Haram asset category detected');
     });
 
@@ -293,7 +293,7 @@ describe('DataMigration', () => {
 
       mockPrisma.asset.create.mockResolvedValue(assetData[0] as any);
 
-      const result = await dataMigration.migrateAssets(assetData, {
+      const result = await DataMigrationService.migrateAssets(assetData, {
         convertToBaseCurrency: 'USD',
         exchangeRates: { EUR: 1.18 }
       });
@@ -324,7 +324,7 @@ describe('DataMigration', () => {
 
       mockPrisma.zakatCalculation.create.mockResolvedValue(calculationData[0] as any);
 
-      const result = await dataMigration.migrateZakatCalculations(calculationData);
+      const result = await DataMigrationService.migrateZakatCalculations(calculationData);
 
       expect(result.migrated).toBe(1);
       expect(mockPrisma.zakatCalculation.create).toHaveBeenCalledWith({
@@ -345,7 +345,7 @@ describe('DataMigration', () => {
         }
       ];
 
-      await expect(dataMigration.migrateZakatCalculations(invalidCalculation))
+      await expect(DataMigrationService.migrateZakatCalculations(invalidCalculation))
         .rejects.toThrow('Zakat calculation validation failed');
     });
   });
@@ -359,7 +359,7 @@ describe('DataMigration', () => {
 
       mockPrisma.user.create.mockResolvedValue(userData[0] as any);
 
-      const result = await dataMigration.migrateUsers(userData, { createBackup: true });
+      const result = await DataMigrationService.migrateUsers(userData, { createBackup: true });
 
       expect(backupSpy).toHaveBeenCalled();
       expect(result.backupId).toBe('backup-id-123');
@@ -378,7 +378,7 @@ describe('DataMigration', () => {
       const rollbackSpy = jest.spyOn(backupService, 'restoreBackup');
       rollbackSpy.mockResolvedValue(undefined);
 
-      const result = await dataMigration.migrateUsers(userData, {
+      const result = await DataMigrationService.migrateUsers(userData, {
         createBackup: true,
         rollbackOnError: true
       });
@@ -397,7 +397,7 @@ describe('DataMigration', () => {
       const integritySpy = jest.spyOn(integrityChecker, 'validateUserIntegrity');
       integritySpy.mockResolvedValue({ isValid: true, errors: [] });
 
-      const result = await dataMigration.migrateUsers(userData, {
+      const result = await DataMigrationService.migrateUsers(userData, {
         validateIntegrity: true
       });
 
@@ -417,7 +417,7 @@ describe('DataMigration', () => {
       mockPrisma.user.create.mockResolvedValue({} as any);
 
       const startTime = Date.now();
-      const result = await dataMigration.migrateUsers(largeDataset, {
+      const result = await DataMigrationService.migrateUsers(largeDataset, {
         batchSize: 100
       });
       const endTime = Date.now();
@@ -434,7 +434,7 @@ describe('DataMigration', () => {
 
       mockPrisma.user.create.mockResolvedValue({} as any);
 
-      await dataMigration.migrateUsers(dataset, { batchSize: 50 });
+      await DataMigrationService.migrateUsers(dataset, { batchSize: 50 });
 
       // Should have called create 250 times but in batches
       expect(mockPrisma.user.create).toHaveBeenCalledTimes(250);
@@ -451,7 +451,7 @@ describe('DataMigration', () => {
 
       mockPrisma.user.create.mockResolvedValue({} as any);
 
-      await dataMigration.migrateUsers(largeDataset, {
+      await DataMigrationService.migrateUsers(largeDataset, {
         batchSize: 100,
         memoryOptimized: true
       });
@@ -485,7 +485,7 @@ describe('DataMigration', () => {
       });
 
       // First migration attempt
-      const result1 = await dataMigration.migrateUsers(userData, {
+      const result1 = await DataMigrationService.migrateUsers(userData, {
         continueOnError: true,
         saveProgress: true
       });
@@ -494,7 +494,7 @@ describe('DataMigration', () => {
       expect(result1.failed).toBe(1);
 
       // Resume migration
-      const result2 = await dataMigration.resumeMigration('users', {
+      const result2 = await DataMigrationService.resumeMigration('users', {
         retryFailed: true
       });
 
@@ -511,7 +511,7 @@ describe('DataMigration', () => {
         .mockResolvedValueOnce(userData[0] as any)
         .mockRejectedValueOnce(new Error('Validation error'));
 
-      const result = await dataMigration.migrateUsers(userData, {
+      const result = await DataMigrationService.migrateUsers(userData, {
         enableLogging: true
       });
 
@@ -535,7 +535,7 @@ describe('DataMigration', () => {
 
       mockPrisma.user.create.mockResolvedValue(userData[0] as any);
 
-      await dataMigration.migrateUsers(userData, { sanitizeInput: true });
+      await DataMigrationService.migrateUsers(userData, { sanitizeInput: true });
 
       const createCall = mockPrisma.user.create.mock.calls[0][0];
       // Profile should be encrypted, but before encryption it should be sanitized
@@ -563,7 +563,7 @@ describe('DataMigration', () => {
         }
       ];
 
-      await expect(dataMigration.migrateAssets(assetData, {
+      await expect(DataMigrationService.migrateAssets(assetData, {
         enforceIslamicCompliance: true
       })).rejects.toThrow('Non-Shariah compliant asset detected');
     });
