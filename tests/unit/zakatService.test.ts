@@ -1,4 +1,4 @@
-import { ZakatService } from '../../backend/src/services/zakatService';
+import { ZakatService } from '../../server/src/services/ZakatService';
 import { ZAKAT_RATES, NISAB_THRESHOLDS, ZAKAT_METHODS } from '../../shared/src/index';
 import type { Asset, ZakatCalculationRequest, ZakatCalculation, NisabInfo } from '../../shared/src/index';
 
