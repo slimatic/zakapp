@@ -3,7 +3,7 @@
 A **production-ready**, privacy-first Islamic Zakat calculator with comprehensive asset management and beautiful UI.
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/slimatic/zakapp)
-[![Tests](https://img.shields.io/badge/tests-175%2F186-green)](./IMPLEMENTATION_VERIFICATION_COMPLETE.md)
+[![Tests](https://img.shields.io/badge/tests-175%2F186-green)](./docs/archive/completion-reports/IMPLEMENTATION_VERIFICATION_COMPLETE.md)
 [![Implementation](https://img.shields.io/badge/implementation-100%25-brightgreen)](./FINAL_IMPLEMENTATION_REPORT.md)
 [![Performance](https://img.shields.io/badge/performance-tested-blue)](./performance-tests/PHASE1_PERFORMANCE_REPORT.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
@@ -77,7 +77,7 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 
 ### 📋 **Project Status & Reports**
 - **[✅ Final Implementation Report](FINAL_IMPLEMENTATION_REPORT.md)** - Complete 500+ line report on all 53 features
-- **[📊 Implementation Verification](IMPLEMENTATION_VERIFICATION_COMPLETE.md)** - Test results and verification
+- **[📊 Implementation Verification](docs/archive/completion-reports/IMPLEMENTATION_VERIFICATION_COMPLETE.md)** - Test results and verification (archived)
 - **[⚡ Performance Testing](performance-tests/PHASE1_PERFORMANCE_REPORT.md)** - API load testing results
 - **[🚀 Production Setup Guide](PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Deployment automation and scripts
 - **[🗓️ Development Plan](development-plan.md)** - Detailed development roadmap
@@ -95,9 +95,8 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 
 ### 📝 **Requirements & Design**
 - **[👤 User Stories](user-stories.md)** - Feature requirements and user flows
-- **[🎯 Problem Statement](problem.md)** - Project motivation and challenges
-- **[💡 Solution Overview](solution.md)** - Technical approach and features
 - **[📏 Project Principles](principles.md)** - Development guidelines
+- **[🏗️ Project Structure](project-structure.md)** - Repository organization
 
 ## 🚀 Local Setup & Installation
 
@@ -331,7 +330,7 @@ Ready-to-use production scripts in `scripts/production/`:
 
 ### **📊 Project Status & Reports**
 - **[📋 Final Implementation Report](FINAL_IMPLEMENTATION_REPORT.md)** - Complete 500+ line feature report
-- **[✅ Implementation Verification](IMPLEMENTATION_VERIFICATION_COMPLETE.md)** - All 53 tasks complete
+- **[🗂️ Documentation Archive](docs/archive/ARCHIVE_INDEX.md)** - Historical reports and completion documentation
 - **[🏗️ Technical Specifications](specs/)** - Detailed API contracts and data models
 - **[🔐 Security Guide](security.md)** - Security measures and best practices
 
