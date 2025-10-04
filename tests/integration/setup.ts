@@ -26,6 +26,8 @@ beforeAll(async () => {
   
   // Enable foreign keys for SQLite databases
   try {
+    // SECURITY: Using $executeRaw with template literal (safe from SQL injection)
+    // Never use $executeRawUnsafe as it creates SQL injection vulnerabilities
     await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
   } catch (error) {
     // Ignore if not SQLite (PostgreSQL, MySQL, etc. have foreign keys enabled by default)
@@ -42,7 +44,8 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  // Clean database before each test using Prisma model introspection
+  // SECURITY: Clean database using Prisma DMMF introspection (SQL injection safe)
+  // This replaces the old unsafe pattern: SELECT name FROM sqlite_master + $executeRawUnsafe
   const { Prisma } = await import('../../server/node_modules/@prisma/client');
   const models = Prisma.dmmf?.datamodel?.models || [];
   

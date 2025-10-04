@@ -26,5 +26,17 @@ module.exports = {
     '@typescript-eslint/prefer-const': 'error',
     'no-console': 'warn',
     'prefer-const': 'error',
+    // Security: Ban unsafe Prisma raw query methods to prevent SQL injection
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: 'MemberExpression[property.name="$executeRawUnsafe"]',
+        message: 'Using $executeRawUnsafe creates SQL injection risk. Use $executeRaw with template literals instead.',
+      },
+      {
+        selector: 'MemberExpression[property.name="$queryRawUnsafe"]',
+        message: 'Using $queryRawUnsafe creates SQL injection risk. Use $queryRaw with template literals instead.',
+      },
+    ],
   },
 };
