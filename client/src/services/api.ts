@@ -1,5 +1,13 @@
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
 
+// Log API configuration in development mode
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔧 API Configuration:', {
+    baseUrl: API_BASE_URL,
+    source: process.env.REACT_APP_API_BASE_URL ? 'environment' : 'default',
+  });
+}
+
 export interface LoginRequest {
   username: string;
   password: string;
