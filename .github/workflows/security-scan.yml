@@ -7,6 +7,11 @@
 
 name: Security Vulnerability Scanning
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 on:
   push:
     branches: [ main, develop, 'feature/*', 'security/*' ]
