@@ -17,6 +17,8 @@ export async function initTestDatabase() {
   try {
     // Enable foreign keys for SQLite databases
     try {
+      // SECURITY: Using $executeRaw with template literal (safe from SQL injection)
+      // Never use $executeRawUnsafe as it creates SQL injection vulnerabilities
       await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
     } catch (error) {
       // Ignore if not SQLite (PostgreSQL, MySQL, etc. have foreign keys enabled by default)
@@ -36,7 +38,9 @@ export async function cleanTestDatabase() {
   if (!prisma) return;
 
   try {
-    // Use Prisma's DMMF for database-agnostic table introspection
+    // SECURITY: Using Prisma DMMF introspection instead of raw SQL queries
+    // This prevents SQL injection and is database-agnostic
+    // NEVER use: SELECT name FROM sqlite_master or $executeRawUnsafe
     const { Prisma } = await import('@prisma/client');
     const models = Prisma.dmmf?.datamodel?.models || [];
     
@@ -45,7 +49,7 @@ export async function cleanTestDatabase() {
       .map(model => model.name.charAt(0).toLowerCase() + model.name.slice(1))
       .reverse();
     
-    // Clear all tables using Prisma's deleteMany
+    // Clear all tables using Prisma's type-safe deleteMany (SQL injection safe)
     for (const modelName of modelNames) {
       try {
         const prismaModel = (prisma as any)[modelName];
