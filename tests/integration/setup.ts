@@ -21,9 +21,16 @@ beforeAll(async () => {
     }
   });
   
-  // Initialize connection and enable foreign keys
+  // Initialize connection and enable foreign keys (SQLite only)
   await prisma.$connect();
-  await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
+  
+  // Enable foreign keys for SQLite databases
+  try {
+    await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
+  } catch (error) {
+    // Ignore if not SQLite (PostgreSQL, MySQL, etc. have foreign keys enabled by default)
+    console.log('Foreign key enforcement setup skipped (not needed for this database)');
+  }
   
   console.log('✅ Test database connected:', TEST_DB_PATH);
 });
@@ -35,13 +42,25 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  // Clean database before each test
-  const tablenames = await prisma.$queryRaw<Array<{ name: string }>>`
-    SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_prisma_migrations';
-  `;
+  // Clean database before each test using Prisma model introspection
+  const { Prisma } = await import('../../server/node_modules/@prisma/client');
+  const models = Prisma.dmmf?.datamodel?.models || [];
   
-  for (const { name } of tablenames) {
-    await prisma.$executeRawUnsafe(`DELETE FROM ${name};`);
+  // Delete in reverse order to handle foreign key constraints
+  const modelNames = models
+    .map(model => model.name.charAt(0).toLowerCase() + model.name.slice(1))
+    .reverse();
+  
+  for (const modelName of modelNames) {
+    try {
+      const prismaModel = (prisma as any)[modelName];
+      if (prismaModel && typeof prismaModel.deleteMany === 'function') {
+        await prismaModel.deleteMany({});
+      }
+    } catch (error) {
+      // Skip models that don't support deleteMany operation
+      console.warn(`Could not clean model ${modelName}:`, error);
+    }
   }
 });
 
