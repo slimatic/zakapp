@@ -3,8 +3,9 @@ import bcrypt from 'bcryptjs';
 interface StoredUser {
   id: string;
   email: string;
-  username: string;
+  name: string;
   passwordHash: string;
+  encryptedProfile?: string;
   createdAt: string;
 }
 
@@ -13,7 +14,7 @@ const users = new Map<string, StoredUser>();
 const emailToUserId = new Map<string, string>();
 
 export class UserStore {
-  static async createUser(email: string, username: string, password: string): Promise<StoredUser> {
+  static async createUser(email: string, name: string, password: string): Promise<StoredUser> {
     if (emailToUserId.has(email)) {
       throw new Error('EMAIL_ALREADY_EXISTS');
     }
@@ -24,8 +25,9 @@ export class UserStore {
     const user: StoredUser = {
       id: userId,
       email,
-      username,
+      name,
       passwordHash,
+      encryptedProfile: '', // Empty encrypted profile for new users
       createdAt: new Date().toISOString()
     };
 
