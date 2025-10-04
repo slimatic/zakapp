@@ -1,6 +1,75 @@
-# Getting Started with Create React App
+# ZakApp Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the React frontend for ZakApp, a privacy-first Islamic Zakat calculator. This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Quick Start
+
+1. **Configure Environment**
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env.local
+   
+   # Edit .env.local and set REACT_APP_API_BASE_URL to match your backend
+   # Default: REACT_APP_API_BASE_URL=http://localhost:3001/api
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start Development Server**
+   ```bash
+   npm start
+   ```
+   
+   The app will open at [http://localhost:3000](http://localhost:3000)
+
+## Configuration
+
+### Backend API Connection
+
+The frontend needs to know where your backend API is running. Configure this in `.env.local`:
+
+```env
+REACT_APP_API_BASE_URL=http://localhost:3001/api
+```
+
+**IMPORTANT**: If you change the backend port, update this URL accordingly:
+- Backend on port 3001: `REACT_APP_API_BASE_URL=http://localhost:3001/api`
+- Backend on port 3081: `REACT_APP_API_BASE_URL=http://localhost:3081/api`
+
+### Frontend Port
+
+To change the frontend port from the default 3000:
+
+```env
+# In .env.local
+PORT=3010
+```
+
+Or run with:
+```bash
+PORT=3010 npm start
+```
+
+### Troubleshooting
+
+**"Failed to fetch" errors:**
+- ✓ Ensure backend is running: `curl http://localhost:3001/api/health`
+- ✓ Check `REACT_APP_API_BASE_URL` matches backend port
+- ✓ Verify backend's `CLIENT_URL` includes your frontend URL
+- ✓ Look at browser console to see the actual URL being called
+
+**Port already in use:**
+- React will prompt you to use a different port automatically
+- Or set `PORT=3010` in `.env.local`
+
+For more detailed configuration, see:
+- `.env.example` - All available environment variables
+- `../DEVELOPMENT_SETUP.md` - Complete development setup guide
+
+## Getting Started with Create React App
 
 ## Available Scripts
 

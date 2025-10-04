@@ -87,7 +87,10 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 - **[📖 API Specification](api-specification.md)** - Backend API documentation
 - **[🏗️ Complete Specification](specs/001-zakapp-specification-complete/)** - Detailed API contracts and data models
 - **[🛠️ Development Guide](DEVELOPMENT.md)** - Development environment setup
+- **[🔧 Port Configuration Guide](PORT_CONFIGURATION_GUIDE.md)** - How to configure custom ports (fixes "Failed to fetch" errors)
+- **[📋 Development Setup](DEVELOPMENT_SETUP.md)** - Detailed environment setup and port configuration
 - **[🐳 Docker Guide](DOCKER.md)** - Container deployment instructions
+- **[🚀 Deployment Guide](deployment-guide.md)** - Production deployment instructions
 - **[🔒 Security Guide](security.md)** - Security measures and best practices
 
 ### 📝 **Requirements & Design**
@@ -142,16 +145,21 @@ npm run db:migrate
 npm run db:seed
 ```
 
-### � **Step 4: Environment Configuration**
+### 🔧 **Step 4: Environment Configuration**
 
 ```bash
-# In the server directory, copy the example environment file
+# Backend configuration
 cd server
 cp .env.example .env
+# Edit server/.env if you need to change ports or other settings
 
-# Edit .env file with your preferred settings (default values work for local development)
-# The default configuration is ready to use for local testing
+# Frontend configuration
+cd ../client
+cp .env.example .env.local
+# Edit client/.env.local - ensure REACT_APP_API_BASE_URL matches backend port
 ```
+
+**⚠️ Important**: If you change the backend `PORT` in `server/.env`, you must update `REACT_APP_API_BASE_URL` in `client/.env.local` to match! See [PORT_CONFIGURATION_GUIDE.md](PORT_CONFIGURATION_GUIDE.md) for details.
 
 ### 🚀 **Step 5: Start the Application**
 
@@ -161,12 +169,12 @@ cp .env.example .env
 # Terminal 1: Start the backend server
 cd server
 npm run dev
-# Backend will run on http://localhost:3002
+# Backend will run on http://localhost:3001 (or your configured PORT)
 
 # Terminal 2: Start the frontend server  
 cd client
 npm start
-# Frontend will run on http://localhost:3000
+# Frontend will run on http://localhost:3000 (or your configured PORT)
 ```
 
 **Option B: Quick Start Script**
@@ -180,10 +188,12 @@ npm run dev
 
 ### 🌐 **Step 6: Access the Application**
 
-- **Frontend Application**: http://localhost:3000
-- **Backend API**: http://localhost:3002
-- **API Health Check**: http://localhost:3002/health
+- **Frontend Application**: http://localhost:3000 (or your configured PORT)
+- **Backend API**: http://localhost:3001 (or your configured PORT)
+- **API Health Check**: http://localhost:3001/api/health
 - **Database**: `server/data/test/zakapp.db` (SQLite file, environment-specific)
+
+💡 **Tip**: If ports are already in use, see [PORT_CONFIGURATION_GUIDE.md](PORT_CONFIGURATION_GUIDE.md) for how to configure custom ports.
 
 ### 🎯 **Step 7: First Use**
 
