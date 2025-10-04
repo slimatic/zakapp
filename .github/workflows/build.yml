@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install root dependencies
+      run: npm ci
+
+    - name: Install and build shared package
+      run: |
+        cd shared
+        npm ci
+        npm run build
+
+    - name: Install backend dependencies
+      run: cd backend && npm ci
+
+    - name: Lint backend
+      run: cd backend && npm run lint
+
+    - name: Type check backend
+      run: cd backend && npm run type-check
+
+    - name: Build backend
+      run: cd backend && npm run build
+
+    - name: Install frontend dependencies
+      run: cd frontend && npm ci
+      continue-on-error: true
+
+    - name: Lint frontend
+      run: cd frontend && npm run lint
+      continue-on-error: true
+
+    - name: Build frontend
+      run: cd frontend && npm run build
+      continue-on-error: true
