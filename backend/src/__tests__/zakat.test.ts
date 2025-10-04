@@ -1,67 +1,36 @@
 import request from 'supertest';
 import app from '../index';
-import { userService } from '../services/userService';
-import fs from 'fs-extra';
-import path from 'path';
-
-// Test database cleanup
-const TEST_DATA_DIR = path.join(process.cwd(), 'data_test_zakat');
-
-beforeAll(async () => {
-  // Set up test data directory
-  process.env.DATA_DIR = TEST_DATA_DIR;
-});
-
-afterAll(async () => {
-  // Clean up test data
-  if (await fs.pathExists(TEST_DATA_DIR)) {
-    await fs.remove(TEST_DATA_DIR);
-  }
-});
 
 describe('Zakat API Endpoints', () => {
   let authToken: string;
   let userId: string;
-
-  beforeEach(async () => {
-    // Clean up test data before each test
-    if (await fs.pathExists(TEST_DATA_DIR)) {
-      await fs.remove(TEST_DATA_DIR);
-    }
-    // Reset userService
-    (userService as any).initialized = false;
-    (userService as any).userIndex = {};
-  });
+  // Use timestamp to ensure unique user for each test run
+  const timestamp = Date.now();
+  const testUser = {
+    username: `zakatuser${timestamp}`,
+    email: `zakatuser${timestamp}@test.com`,
+    password: 'TestPassword123!',
+    confirmPassword: 'TestPassword123!',
+  };
 
   beforeAll(async () => {
-    // Create a test user and get auth token
-    const testUser = {
-      username: 'zakatuser',
-      email: 'zakat@test.com',
-      password: 'TestPassword123!',
-      confirmPassword: 'TestPassword123!'
-    };
-
     // Register user
     const registerResponse = await request(app)
       .post('/api/v1/auth/register')
       .send(testUser);
 
-    if (registerResponse.status !== 201) {
-      console.log('Registration failed:', registerResponse.status, JSON.stringify(registerResponse.body, null, 2));
-    }
     expect(registerResponse.status).toBe(201);
 
     // Login to get token
     const loginResponse = await request(app)
       .post('/api/v1/auth/login')
       .send({
-        usernameOrEmail: testUser.username,
-        password: testUser.password
+        username: testUser.username,
+        password: testUser.password,
       });
 
     expect(loginResponse.status).toBe(200);
-    authToken = loginResponse.body.data.token;
+    authToken = loginResponse.body.data.accessToken;
     userId = loginResponse.body.data.user.userId;
 
     // Create some test assets
@@ -69,7 +38,7 @@ describe('Zakat API Endpoints', () => {
       {
         name: 'Test Savings Account',
         category: 'cash',
-        subcategory: 'savings',
+        subCategory: 'savings',
         value: 15000,
         currency: 'USD',
         zakatEligible: true,
@@ -77,8 +46,8 @@ describe('Zakat API Endpoints', () => {
       },
       {
         name: 'Gold Investment',
-        category: 'precious_metals',
-        subcategory: 'gold',
+        category: 'gold',
+        subCategory: 'jewelry',
         value: 8000,
         currency: 'USD',
         zakatEligible: true,
@@ -87,7 +56,7 @@ describe('Zakat API Endpoints', () => {
       {
         name: 'Primary Home',
         category: 'property',
-        subcategory: 'residential',
+        subCategory: 'residential',
         value: 300000,
         currency: 'USD',
         zakatEligible: false,
@@ -96,14 +65,17 @@ describe('Zakat API Endpoints', () => {
     ];
 
     for (const asset of testAssets) {
-      await request(app)
+      const assetResponse = await request(app)
         .post('/api/v1/assets')
         .set('Authorization', `Bearer ${authToken}`)
         .send(asset);
+      
+      if (assetResponse.status !== 201) {
+        console.error('Failed to create asset:', asset.name, 'Status:', assetResponse.status);
+        console.error('Error:', JSON.stringify(assetResponse.body, null, 2));
+      }
     }
   });
-
-
 
   describe('GET /api/v1/zakat/nisab', () => {
     it('should get current nisab thresholds', async () => {
@@ -151,9 +123,14 @@ describe('Zakat API Endpoints', () => {
         .get('/api/v1/assets')
         .set('Authorization', `Bearer ${authToken}`);
 
-      testAssetIds = assetsResponse.body.data.assets
+      const assets = assetsResponse.body.data?.assets || [];
+      testAssetIds = assets
         .filter((asset: any) => asset.zakatEligible)
         .map((asset: any) => asset.assetId);
+      
+      if (testAssetIds.length === 0) {
+        console.warn('No zakat-eligible assets found for validate tests');
+      }
     });
 
     it('should validate assets for zakat eligibility', async () => {
