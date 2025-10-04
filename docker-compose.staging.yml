@@ -1,0 +1,139 @@
+version: '3.8'
+
+# Staging Deployment Configuration for ZakApp
+# Constitutional Compliance: Privacy & Security First, Production-ready setup
+# 
+# Usage:
+#   docker-compose -f docker-compose.staging.yml up -d
+#   docker-compose -f docker-compose.staging.yml logs -f
+#   docker-compose -f docker-compose.staging.yml down
+
+services:
+  # PostgreSQL Database (staging environment)
+  database:
+    image: postgres:15-alpine
+    container_name: zakapp-staging-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: zakapp_staging
+      POSTGRES_USER: zakapp_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_this_in_production}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./server/prisma/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - zakapp-staging-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zakapp_user -d zakapp_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API Server
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+      args:
+        NODE_ENV: staging
+    container_name: zakapp-staging-backend
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      # Application
+      NODE_ENV: staging
+      PORT: 3002
+      
+      # Database
+      DATABASE_URL: postgresql://zakapp_user:${DB_PASSWORD:-change_this_in_production}@database:5432/zakapp_staging
+      
+      # Security (MUST be changed for actual staging)
+      JWT_SECRET: ${JWT_SECRET:-CHANGE_THIS_STAGING_SECRET_MIN_32_CHARS}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-CHANGE_THIS_REFRESH_SECRET_MIN_32_CHARS}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-CHANGE_THIS_ENCRYPTION_KEY_32_CHARS_EXACTLY}
+      
+      # CORS
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000,https://staging.zakapp.example.com}
+      
+      # Logging
+      LOG_LEVEL: info
+      
+      # Data directory
+      DATA_DIR: /app/data
+    volumes:
+      - backend_data:/app/data
+      - ./server/data/backups:/app/data/backups
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - zakapp-staging-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Application
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      args:
+        NODE_ENV: staging
+        REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL:-http://localhost:3002/api}
+    container_name: zakapp-staging-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=staging
+    depends_on:
+      - backend
+    networks:
+      - zakapp-staging-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (optional - for production-like setup)
+  nginx:
+    image: nginx:alpine
+    container_name: zakapp-staging-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx-staging.conf:/etc/nginx/conf.d/default.conf:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - zakapp-staging-network
+    profiles:
+      - with-nginx
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  zakapp-staging-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

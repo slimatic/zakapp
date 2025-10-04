@@ -1,169 +1,282 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 export class EncryptionService {
-  private readonly algorithm = 'aes-256-cbc';
-  private readonly secretKey: string;
+  private static readonly ALGORITHM = 'aes-256-cbc';
+  private static readonly KEY_LENGTH = 32;
+  private static readonly IV_LENGTH = 16;
 
-  constructor() {
-    this.secretKey = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
-    
-    // Ensure secret key is 32 bytes
-    if (this.secretKey.length !== 64) { // 32 bytes = 64 hex chars
-      throw new Error('Encryption key must be 32 bytes (64 hex characters)');
+  static async encrypt(plaintext: string, key: string): Promise<string> {
+    try {
+      if (!plaintext) throw new Error('Plaintext cannot be empty');
+      if (!key) throw new Error('Encryption key is required');
+
+      const encryptionKey = this.normalizeKey(key);
+      const iv = crypto.randomBytes(this.IV_LENGTH);
+      const cipher = crypto.createCipheriv(this.ALGORITHM, encryptionKey, iv);
+      
+      let encrypted = cipher.update(plaintext, 'utf8', 'base64');
+      encrypted += cipher.final('base64');
+      
+      return iv.toString('base64') + ':' + encrypted;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Encryption failed: ${errorMessage}`);
     }
   }
 
-  /**
-   * Encrypt sensitive text data
-   */
-  encrypt(text: string): string {
-    if (!text) return text;
-
+  static async decrypt(encryptedData: string, key: string): Promise<string> {
     try {
-      // Generate random initialization vector
-      const iv = crypto.randomBytes(16);
-      
-      // Create cipher with IV
-      const cipher = crypto.createCipheriv(this.algorithm, Buffer.from(this.secretKey, 'hex'), iv);
-      
-      // Encrypt the text
-      let encrypted = cipher.update(text, 'utf8', 'hex');
-      encrypted += cipher.final('hex');
-      
-      // Combine IV and encrypted data
-      return iv.toString('hex') + ':' + encrypted;
-    } catch (error: any) {
-      throw new Error(`Encryption failed: ${error?.message || 'Unknown error'}`);
-    }
-  }
+      if (!encryptedData) throw new Error('Encrypted data cannot be empty');
+      if (!key) throw new Error('Decryption key is required');
 
-  /**
-   * Decrypt encrypted text data
-   */
-  decrypt(encryptedText: string): string {
-    if (!encryptedText || typeof encryptedText !== 'string') return encryptedText;
+      const parts = encryptedData.split(':');
+      if (parts.length !== 2) throw new Error('Invalid encrypted data format');
 
-    try {
-      // Check if text is encrypted (contains ':' separator)
-      if (!encryptedText.includes(':')) {
-        // If no separator, assume it's not encrypted and return as-is
-        return encryptedText;
-      }
+      const [ivBase64, encrypted] = parts;
+      const iv = Buffer.from(ivBase64, 'base64');
+      
+      if (iv.length !== this.IV_LENGTH) throw new Error('Invalid IV length');
 
-      // Split IV and encrypted data
-      const [ivHex, encrypted] = encryptedText.split(':');
+      const decryptionKey = this.normalizeKey(key);
+      const decipher = crypto.createDecipheriv(this.ALGORITHM, decryptionKey, iv);
       
-      if (!ivHex || !encrypted) {
-        throw new Error('Invalid encrypted data format');
-      }
-
-      // Convert IV from hex
-      const iv = Buffer.from(ivHex, 'hex');
-      
-      // Create decipher with IV
-      const decipher = crypto.createDecipheriv(this.algorithm, Buffer.from(this.secretKey, 'hex'), iv);
-      
-      // Decrypt the text
-      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+      let decrypted = decipher.update(encrypted, 'base64', 'utf8');
       decrypted += decipher.final('utf8');
       
       return decrypted;
-    } catch (error: any) {
-      // If decryption fails, log error and return original text
-      console.error('Decryption failed:', error?.message || 'Unknown error');
-      return encryptedText;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Decryption failed: ${errorMessage}`);
     }
   }
 
-  /**
-   * Encrypt JSON object
-   */
-  encryptObject(obj: any): string {
-    if (!obj) return '';
-    
+  static async encryptObject<T>(data: T, key: string): Promise<string> {
     try {
-      const jsonString = JSON.stringify(obj);
-      return this.encrypt(jsonString);
-    } catch (error: any) {
-      throw new Error(`Object encryption failed: ${error?.message || 'Unknown error'}`);
+      if (data === null || data === undefined) {
+        throw new Error('Data cannot be null or undefined');
+      }
+      const jsonString = JSON.stringify(data);
+      return await this.encrypt(jsonString, key);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Object encryption failed: ${errorMessage}`);
     }
   }
 
-  /**
-   * Decrypt to JSON object
-   */
-  decryptObject<T = any>(encryptedText: string): T | null {
-    if (!encryptedText) return null;
-
+  static async decryptObject<T>(encryptedData: string, key: string): Promise<T> {
     try {
-      const decryptedString = this.decrypt(encryptedText);
-      return JSON.parse(decryptedString) as T;
-    } catch (error: any) {
-      console.error('Object decryption failed:', error?.message || 'Unknown error');
-      return null;
+      const jsonString = await this.decrypt(encryptedData, key);
+      return JSON.parse(jsonString) as T;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Object decryption failed: ${errorMessage}`);
+    }
+  }
+
+  static generateKey(): string {
+    try {
+      const key = crypto.randomBytes(this.KEY_LENGTH);
+      return key.toString('base64');
+    } catch (error) {
+      throw new Error('Failed to generate encryption key');
+    }
+  }
+
+  static async deriveKey(password: string, salt: string, iterations: number = 100000): Promise<string> {
+    try {
+      if (!password) throw new Error('Password cannot be empty');
+      if (!salt) throw new Error('Salt cannot be empty');
+
+      return new Promise((resolve, reject) => {
+        crypto.pbkdf2(password, salt, iterations, this.KEY_LENGTH, 'sha512', (err, key) => {
+          if (err) {
+            reject(new Error(`Key derivation failed: ${err.message}`));
+          } else {
+            resolve(key.toString('base64'));
+          }
+        });
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Key derivation failed: ${errorMessage}`);
+    }
+  }
+
+  static generateSalt(): string {
+    try {
+      const salt = crypto.randomBytes(16);
+      return salt.toString('base64');
+    } catch (error) {
+      throw new Error('Failed to generate salt');
+    }
+  }
+
+  static hash(data: string): string {
+    try {
+      if (!data) throw new Error('Data to hash cannot be empty');
+      return crypto.createHash('sha256').update(data).digest('hex');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Hashing failed: ${errorMessage}`);
+    }
+  }
+
+  static verifyHash(data: string, hash: string): boolean {
+    try {
+      if (!data || !hash) return false;
+      
+      const dataHash = this.hash(data);
+      return crypto.timingSafeEqual(
+        Buffer.from(dataHash, 'hex'),
+        Buffer.from(hash, 'hex')
+      );
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private static normalizeKey(key: string): Buffer {
+    try {
+      let keyBuffer: Buffer;
+      
+      try {
+        keyBuffer = Buffer.from(key, 'base64');
+      } catch {
+        keyBuffer = Buffer.from(key, 'utf8');
+      }
+
+      if (keyBuffer.length === this.KEY_LENGTH) {
+        return keyBuffer;
+      } else if (keyBuffer.length > this.KEY_LENGTH) {
+        return keyBuffer.subarray(0, this.KEY_LENGTH);
+      } else {
+        const paddedKey = Buffer.alloc(this.KEY_LENGTH);
+        keyBuffer.copy(paddedKey);
+        return paddedKey;
+      }
+    } catch (error) {
+      throw new Error('Invalid encryption key format');
+    }
+  }
+
+  static isEncrypted(data: string): boolean {
+    try {
+      if (!data || typeof data !== 'string') return false;
+
+      const parts = data.split(':');
+      if (parts.length !== 2) return false;
+
+      const [ivPart, encryptedPart] = parts;
+      
+      try {
+        const iv = Buffer.from(ivPart, 'base64');
+        Buffer.from(encryptedPart, 'base64');
+        return iv.length === this.IV_LENGTH;
+      } catch {
+        return false;
+      }
+    } catch {
+      return false;
     }
   }
 
   /**
-   * Hash sensitive data (one-way)
+   * Encrypts financial asset data with integrity checks
    */
-  hash(data: string): string {
-    if (!data) return data;
-    
-    return crypto
-      .createHash('sha256')
-      .update(data + this.secretKey)
-      .digest('hex');
+  static async encryptAssetData(assetData: {
+    type: string;
+    value: number;
+    currency: string;
+    metadata?: Record<string, any>;
+  }, key: string): Promise<string> {
+    try {
+      const dataWithMetadata = {
+        ...assetData,
+        encrypted_at: new Date().toISOString(),
+        checksum: this.hash(JSON.stringify(assetData))
+      };
+
+      return await this.encryptObject(dataWithMetadata, key);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Asset encryption failed: ${errorMessage}`);
+    }
   }
 
   /**
-   * Generate secure random token
+   * Decrypts and verifies financial asset data
    */
-  generateSecureToken(length: number = 32): string {
-    return crypto.randomBytes(length).toString('hex');
+  static async decryptAssetData(encryptedAssetData: string, key: string): Promise<{
+    type: string;
+    value: number;
+    currency: string;
+    metadata?: Record<string, any>;
+    encrypted_at: string;
+  }> {
+    try {
+      const decryptedData = await this.decryptObject<{
+        type: string;
+        value: number;
+        currency: string;
+        metadata?: Record<string, any>;
+        encrypted_at: string;
+        checksum: string;
+      }>(encryptedAssetData, key);
+
+      const { checksum, ...assetData } = decryptedData;
+      const expectedChecksum = this.hash(JSON.stringify({
+        type: assetData.type,
+        value: assetData.value,
+        currency: assetData.currency,
+        metadata: assetData.metadata
+      }));
+
+      if (checksum !== expectedChecksum) {
+        throw new Error('Asset data integrity check failed');
+      }
+
+      return assetData;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Asset decryption failed: ${errorMessage}`);
+    }
   }
 
   /**
-   * Generate cryptographically secure random ID
+   * Validates encryption configuration
    */
-  generateSecureId(prefix?: string): string {
-    const timestamp = Date.now().toString();
-    const random = crypto.randomBytes(8).toString('hex');
-    const id = `${timestamp}-${random}`;
-    
-    return prefix ? `${prefix}-${id}` : id;
-  }
-
-  /**
-   * Validate if string is encrypted (has our format)
-   */
-  isEncrypted(text: string): boolean {
-    if (!text || typeof text !== 'string') return false;
-    
-    // Check if it has our encryption format (iv:encrypted)
-    return text.includes(':') && text.split(':').length === 2;
-  }
-
-  /**
-   * Encrypt financial amounts with additional precision preservation
-   */
-  encryptAmount(amount: number | string): string {
-    if (amount === null || amount === undefined) return '';
-    
-    // Convert to string with full precision
-    const amountStr = typeof amount === 'number' ? amount.toFixed(8) : amount.toString();
-    return this.encrypt(amountStr);
-  }
-
-  /**
-   * Decrypt financial amounts and return as number
-   */
-  decryptAmount(encryptedAmount: string): number {
-    if (!encryptedAmount) return 0;
-    
-    const decrypted = this.decrypt(encryptedAmount);
-    const amount = parseFloat(decrypted);
-    
-    return isNaN(amount) ? 0 : amount;
+  static validateConfiguration(): boolean {
+    try {
+      const testKey = this.generateKey();
+      const testData = 'test_encryption_data';
+      const testKeyBuffer = this.normalizeKey(testKey);
+      const iv = crypto.randomBytes(this.IV_LENGTH);
+      
+      const cipher = crypto.createCipheriv(this.ALGORITHM, testKeyBuffer, iv);
+      cipher.update(testData, 'utf8');
+      cipher.final('base64');
+      
+      return true;
+    } catch (error) {
+      console.error('Encryption configuration validation failed:', error);
+      return false;
+    }
   }
 }
+
+// Export singleton instance for application use
+export const encryptionService = {
+  encrypt: EncryptionService.encrypt,
+  decrypt: EncryptionService.decrypt,
+  encryptObject: EncryptionService.encryptObject,
+  decryptObject: EncryptionService.decryptObject,
+  generateKey: EncryptionService.generateKey,
+  deriveKey: EncryptionService.deriveKey,
+  generateSalt: EncryptionService.generateSalt,
+  hash: EncryptionService.hash,
+  verifyHash: EncryptionService.verifyHash,
+  isEncrypted: EncryptionService.isEncrypted,
+  encryptAssetData: EncryptionService.encryptAssetData,
+  decryptAssetData: EncryptionService.decryptAssetData,
+  validateConfiguration: EncryptionService.validateConfiguration
+};

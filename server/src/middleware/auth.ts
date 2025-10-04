@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../types';
-import { verifyToken } from '../utils/jwt';
+import { jwtService } from '../services/JWTService';
 
 export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   const authHeader = req.headers['authorization'];
@@ -35,17 +35,8 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
   }
 
   try {
-    const decoded = verifyToken(token);
+    const decoded = jwtService.verifyAccessToken(token);
     
-    if (decoded.type !== 'access') {
-      res.status(401).json({
-        success: false,
-        error: 'INVALID_TOKEN',
-        message: 'Invalid token type'
-      });
-      return;
-    }
-
     // Check if token is invalidated
     if (isTokenInvalidated(token)) {
       res.status(401).json({
@@ -59,8 +50,8 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
     req.userId = decoded.userId;
     req.user = {
       id: decoded.userId,
-      email: '', // Will be populated if needed
-      name: ''   // Will be populated if needed
+      email: decoded.email || '',
+      name: '' // Name not included in token payload
     };
     
     next();
@@ -68,7 +59,7 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
     let errorCode = 'INVALID_TOKEN';
     let message = 'Invalid access token';
 
-    if (error.message === 'TOKEN_EXPIRED') {
+    if (error.message?.includes('expired') || error.name === 'TokenExpiredError') {
       errorCode = 'TOKEN_EXPIRED';
       message = 'Access token has expired';
     }
@@ -100,7 +91,7 @@ export function isTokenInvalidated(token: string): boolean {
   
   // Check if token belongs to invalidated user session
   try {
-    const decoded = verifyToken(token);
+    const decoded = jwtService.verifyAccessToken(token);
     return invalidatedUserSessions.has(decoded.userId);
   } catch {
     return false;
