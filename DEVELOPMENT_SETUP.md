@@ -1,49 +1,123 @@
 # Development Environment Setup
 
+This guide covers how to configure both backend and frontend development environments, including how to change ports to avoid conflicts.
+
+## Quick Start
+
+1. **Set up Backend**: Copy `server/.env.example` to `server/.env` and configure ports
+2. **Set up Frontend**: Copy `client/.env.example` to `client/.env.local` and match backend port
+3. **Start Development**: Run `npm run dev` from root directory
+
 ## Backend Development Environment Variables
 
-For development and testing, create a `.env` file in the `backend/` directory with the following content:
+For development and testing, create a `.env` file in the `server/` directory:
+
+```bash
+# Copy the example file
+cp server/.env.example server/.env
+
+# Edit server/.env with your preferred settings
+```
+
+See `server/.env.example` for all available configuration options and detailed explanations.
+
+## Frontend Development Environment Variables
+
+For development, create a `.env.local` file in the `client/` directory:
+
+```bash
+# Copy the example file
+cp client/.env.example client/.env.local
+
+# Edit client/.env.local with your settings
+```
+
+**IMPORTANT**: The frontend must know where to find the backend API. Set `REACT_APP_API_BASE_URL` to match your backend port:
 
 ```env
-# Backend Environment Configuration
+# If backend is on port 3001 (default)
+REACT_APP_API_BASE_URL=http://localhost:3001/api
 
-# Server Configuration
-# The port the server will listen on. If not set, defaults to 3001.
-# Change this if you get "EADDRINUSE" errors or need to run multiple instances.
-PORT=3001
-NODE_ENV=development
-
-# CORS Configuration
-CORS_ORIGIN=http://localhost:3000
-
-# JWT Configuration
-# IMPORTANT: Change JWT_SECRET in production to a secure random string!
-JWT_SECRET=your-super-secure-jwt-secret-key-change-in-production
-JWT_EXPIRES_IN=24h
-
-# Data Storage Configuration
-DATA_DIR=./data
-
-# Security Settings
-# Password hashing rounds (higher = more secure but slower)
-BCRYPT_ROUNDS=12
+# If backend is on port 3081 (custom)
+REACT_APP_API_BASE_URL=http://localhost:3081/api
 ```
+
+See `client/.env.example` for all available configuration options.
 
 ## Port Configuration
 
-The backend server supports flexible port configuration to avoid common "address already in use" errors:
+Both backend and frontend support flexible port configuration.
 
-### Setting the Port
+### Changing Backend Port
 
-You can configure the server port in several ways:
+**Option 1: Using .env file (Recommended)**
+```bash
+# In server/.env
+PORT=3081
+```
 
-1. **Environment Variable**: Set `PORT=3002` in your `.env` file
-2. **Command Line**: `PORT=3002 npm run dev`
-3. **Export**: `export PORT=3002 && npm run dev`
+**Option 2: Command line**
+```bash
+cd server
+PORT=3081 npm run dev
+```
+
+**Option 3: Environment variable**
+```bash
+export PORT=3081
+cd server && npm run dev
+```
+
+### Changing Frontend Port
+
+**Option 1: Using .env.local file (Recommended)**
+```bash
+# In client/.env.local
+PORT=3010
+```
+
+**Option 2: Command line**
+```bash
+cd client
+PORT=3010 npm start
+```
+
+**Option 3: Environment variable**
+```bash
+export PORT=3010
+cd client && npm start
+```
+
+### Connecting Frontend to Backend with Custom Ports
+
+When you change the backend port, you **MUST** update the frontend configuration:
+
+**Example: Backend on 3081, Frontend on 3010**
+
+1. Configure backend (`server/.env`):
+```env
+PORT=3081
+CLIENT_URL=http://localhost:3010
+```
+
+2. Configure frontend (`client/.env.local`):
+```env
+PORT=3010
+REACT_APP_API_BASE_URL=http://localhost:3081/api
+```
+
+3. Start both servers:
+```bash
+# Terminal 1: Backend
+cd server && npm run dev
+
+# Terminal 2: Frontend  
+cd client && npm start
+```
 
 ### Handling Port Conflicts
 
-If you encounter an "EADDRINUSE" error, the server will provide helpful guidance:
+If you encounter an "EADDRINUSE" error, the backend provides helpful guidance:
 
 ```
 ❌ Port 3001 is already in use!
@@ -56,17 +130,45 @@ To fix this issue, you can:
   - Kill the process: kill -9 $(lsof -ti:3001)
 ```
 
+For frontend port conflicts, React will automatically prompt you to use a different port.
+
 ### Docker Configuration
 
-When using Docker, make sure to update your `docker-compose.yml` if you change the port:
+When using Docker, update port mappings in `docker-compose.yml`:
 
 ```yaml
-backend:
-  ports:
-    - '3002:3002'  # Change both port numbers if using a different port
-  environment:
-    - PORT=3002
+services:
+  backend:
+    ports:
+      - '3081:3081'  # host:container - change both if using custom port
+    environment:
+      - PORT=3081
+      - CLIENT_URL=http://localhost:3010
+  
+  frontend:
+    ports:
+      - '3010:3010'  # host:container - change both if using custom port
+    environment:
+      - PORT=3010
+      - REACT_APP_API_BASE_URL=http://localhost:3081/api
 ```
+
+### Troubleshooting Port Issues
+
+**"Failed to fetch" error on signup/login:**
+- ✓ Check backend is running: `curl http://localhost:3001/api/health`
+- ✓ Verify `REACT_APP_API_BASE_URL` in `client/.env.local` matches backend PORT
+- ✓ Check browser console for the actual URL being called
+- ✓ Ensure no CORS errors (backend `CLIENT_URL` should match frontend URL)
+
+**Port already in use:**
+- Backend: Change `PORT` in `server/.env`
+- Frontend: Change `PORT` in `client/.env.local` or accept the alternative port React suggests
+
+**CORS errors:**
+- Ensure backend's `CLIENT_URL` in `server/.env` matches your frontend URL
+- Default: `CLIENT_URL=http://localhost:3000`
+- Custom: `CLIENT_URL=http://localhost:3010`
 
 ## Development Authentication
 
