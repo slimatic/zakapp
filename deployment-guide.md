@@ -83,20 +83,33 @@ sudo usermod -aG docker $USER
 2. **Set up environment variables**
 
    ```bash
-   cp .env.example .env
-   # Edit .env file with your configuration
+   # Backend configuration
+   cp server/.env.example server/.env
+   # Edit server/.env with your backend settings (PORT, JWT_SECRET, etc.)
+   
+   # Frontend configuration
+   cp client/.env.example client/.env.local
+   # Edit client/.env.local - ensure REACT_APP_API_BASE_URL matches backend PORT
    ```
 
-3. **Start development environment**
+   **Important**: If you change the backend `PORT` in `server/.env`, you must update `REACT_APP_API_BASE_URL` in `client/.env.local` to match.
+
+3. **Install dependencies and start development**
 
    ```bash
-   docker-compose up -d
+   # From root directory
+   npm install
+   npm run dev
+   
+   # Or manually start each service:
+   # Terminal 1: cd server && npm install && npm run dev
+   # Terminal 2: cd client && npm install && npm start
    ```
 
 4. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
-   - API Documentation: http://localhost:3001/docs
+   - Frontend: http://localhost:3000 (or your configured PORT)
+   - Backend API: http://localhost:3001 (or your configured PORT)
+   - API Health Check: http://localhost:3001/api/health
 
 ### Development Configuration
 
@@ -383,16 +396,23 @@ services:
 
 **Frontend Port Configuration:**
 
-The frontend runs on port 3000 by default. To change it:
+The React frontend (client/) runs on port 3000 by default. To change it:
 
 ```bash
-# Vite development server
-npm run dev -- --port 3010
+# Method 1: Environment variable in client/.env.local
+PORT=3010
 
-# Or set in vite.config.ts
-server: {
-  port: 3010
-}
+# Method 2: Command line
+PORT=3010 npm start
+
+# Method 3: Create React App will prompt for alternative if 3000 is busy
+```
+
+**CRITICAL**: When changing backend port, update frontend's API URL:
+
+```bash
+# In client/.env.local
+REACT_APP_API_BASE_URL=http://localhost:3002/api  # Match backend PORT
 ```
 
 **Handling Port Conflicts:**
