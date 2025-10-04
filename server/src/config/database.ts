@@ -222,7 +222,8 @@ export class DatabaseManager {
     const startTime = Date.now();
     
     try {
-      // Simple connectivity test
+      // SECURITY: Simple connectivity test using $queryRaw with template literal (safe)
+      // Never use $queryRawUnsafe as it creates SQL injection vulnerabilities
       await this.prisma.$queryRaw`SELECT 1`;
       
       const duration = Date.now() - startTime;
@@ -406,6 +407,10 @@ export class DatabaseManager {
 
   /**
    * Get database statistics
+   * 
+   * SECURITY: Uses Prisma DMMF introspection instead of raw SQL queries
+   * This prevents SQL injection and is database-agnostic
+   * Old unsafe pattern: SELECT name FROM sqlite_master + $executeRawUnsafe
    */
   public async getStatistics(): Promise<any> {
     try {
@@ -419,7 +424,7 @@ export class DatabaseManager {
         health: this.getHealth()
       };
 
-      // Get row counts for each model using Prisma's generated methods
+      // Get row counts for each model using Prisma's type-safe methods (SQL injection safe)
       for (const model of models) {
         try {
           const modelName = model.name.charAt(0).toLowerCase() + model.name.slice(1);
