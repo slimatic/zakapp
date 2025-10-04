@@ -45,15 +45,15 @@ run_load_test() {
     
     if [ "$method" = "GET" ]; then
         if [ -n "$headers" ]; then
-            eval "$HEY -n $requests -c $concurrency $headers \"$API_BASE$endpoint\"" | tee "$output_file"
+            $HEY -n "$requests" -c "$concurrency" $headers "$API_BASE$endpoint" | tee "$output_file"
         else
-            $HEY -n $requests -c $concurrency "$API_BASE$endpoint" | tee "$output_file"
+            $HEY -n "$requests" -c "$concurrency" "$API_BASE$endpoint" | tee "$output_file"
         fi
     else
         if [ -n "$headers" ]; then
-            eval "$HEY -n $requests -c $concurrency -m $method $headers -d '$data' \"$API_BASE$endpoint\"" | tee "$output_file"
+            $HEY -n "$requests" -c "$concurrency" -m "$method" $headers -d "$data" "$API_BASE$endpoint" | tee "$output_file"
         else
-            $HEY -n $requests -c $concurrency -m $method -T "application/json" -d "$data" "$API_BASE$endpoint" | tee "$output_file"
+            $HEY -n "$requests" -c "$concurrency" -m "$method" -T "application/json" -d "$data" "$API_BASE$endpoint" | tee "$output_file"
         fi
     fi
     
