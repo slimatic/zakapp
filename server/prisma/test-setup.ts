@@ -15,7 +15,13 @@ export async function initTestDatabase() {
   // Push schema to test database (for quick setup without migrations)
   // In production, you'd use: npx prisma migrate deploy
   try {
-    await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
+    // Enable foreign keys for SQLite databases
+    try {
+      await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
+    } catch (error) {
+      // Ignore if not SQLite (PostgreSQL, MySQL, etc. have foreign keys enabled by default)
+      console.log('Foreign key enforcement setup skipped (not needed for this database)');
+    }
     console.log('Test database initialized successfully');
   } catch (error) {
     console.error('Failed to initialize test database:', error);
@@ -30,24 +36,27 @@ export async function cleanTestDatabase() {
   if (!prisma) return;
 
   try {
-    // Get all table names (excluding system tables)
-    const tablenames = await prisma.$queryRaw<Array<{ name: string }>>`
-      SELECT name FROM sqlite_master 
-      WHERE type='table' 
-      AND name NOT LIKE 'sqlite_%' 
-      AND name NOT LIKE '_prisma_migrations';
-    `;
+    // Use Prisma's DMMF for database-agnostic table introspection
+    const { Prisma } = await import('@prisma/client');
+    const models = Prisma.dmmf?.datamodel?.models || [];
     
-    // Disable foreign key constraints for cleanup
-    await prisma.$executeRaw`PRAGMA foreign_keys = OFF`;
+    // Delete in reverse order to handle foreign key constraints
+    const modelNames = models
+      .map(model => model.name.charAt(0).toLowerCase() + model.name.slice(1))
+      .reverse();
     
-    // Clear all tables
-    for (const { name } of tablenames) {
-      await prisma.$executeRawUnsafe(`DELETE FROM ${name};`);
+    // Clear all tables using Prisma's deleteMany
+    for (const modelName of modelNames) {
+      try {
+        const prismaModel = (prisma as any)[modelName];
+        if (prismaModel && typeof prismaModel.deleteMany === 'function') {
+          await prismaModel.deleteMany({});
+        }
+      } catch (error) {
+        // Skip models that don't support deleteMany operation
+        console.warn(`Could not clean model ${modelName}:`, error);
+      }
     }
-    
-    // Re-enable foreign key constraints
-    await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
     
     console.log('Test database cleaned successfully');
   } catch (error) {
