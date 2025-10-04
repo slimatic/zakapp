@@ -18,5 +18,8 @@ module.exports = {
   },
   transformIgnorePatterns: ['node_modules/(?!(@zakapp/shared|uuid)/)'],
   collectCoverageFrom: ['src/**/*.ts', '!src/__tests__/**', '!src/index.ts'],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['json', 'lcov', 'text', 'clover'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.cjs'],
   testTimeout: 15000,
 };
