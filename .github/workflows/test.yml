@@ -50,15 +50,12 @@ jobs:
 
     - name: Install frontend dependencies
       run: cd frontend && npm ci
-      continue-on-error: true
 
     - name: Run frontend tests
-      run: cd frontend && npm test -- --coverage --watchAll=false
-      continue-on-error: true
+      run: cd frontend && npm test -- --coverage --run
 
     - name: Upload frontend coverage to Codecov
       uses: codecov/codecov-action@v4
-      if: success() || failure()
       with:
         files: ./frontend/coverage/coverage-final.json
         flags: frontend

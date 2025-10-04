@@ -46,12 +46,9 @@ jobs:
 
     - name: Install frontend dependencies
       run: cd frontend && npm ci
-      continue-on-error: true
 
     - name: Lint frontend
       run: cd frontend && npm run lint
-      continue-on-error: true
 
     - name: Build frontend
       run: cd frontend && npm run build
-      continue-on-error: true

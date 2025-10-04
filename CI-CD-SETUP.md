@@ -58,6 +58,25 @@ The main issue was that `src/index.ts` (the server entry point) was calling `pro
 
 **Solution**: The `jest.setup.cjs` file mocks `process.exit()` in the test environment, allowing Jest to complete and write coverage files even when the server encounters errors.
 
+**Bug Fixed**: The `jest.setup.cjs` had a variable declaration order bug where `originalConsole` was used before being declared, causing infinite recursion. This has been fixed.
+
+## Test Isolation Pattern
+
+Backend tests use unique usernames per test file to avoid conflicts:
+
+```typescript
+// Use timestamp or unique identifier for test users
+const timestamp = Date.now();
+const testUser = {
+  username: `testuser${timestamp}`,
+  email: `testuser${timestamp}@test.com`,
+  password: 'TestPassword123!',
+  confirmPassword: 'TestPassword123!',
+};
+```
+
+Tests should use `beforeAll` for user registration and login to avoid rate limiting issues, and each test file should use a unique username pattern.
+
 ## Verification
 
 To verify the CI/CD pipeline locally:
@@ -92,6 +111,6 @@ ls -lh backend/coverage/coverage-final.json
 
 ## Notes
 
-- Some backend tests may fail (particularly zakat-related tests that try to register users multiple times)
-- The important outcome is that Jest completes execution and generates the coverage file
-- Frontend tests are marked with `continue-on-error: true` because the frontend may not be fully set up yet
+- All backend tests pass successfully with proper test isolation
+- All frontend tests pass successfully
+- Coverage files are generated consistently for both backend and frontend
