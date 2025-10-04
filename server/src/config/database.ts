@@ -105,6 +105,36 @@ export class DatabaseManager {
   }
 
   /**
+   * Detect the database type from the connection URL
+   */
+  private getDatabaseType(): 'sqlite' | 'postgresql' | 'mysql' | 'sqlserver' | 'mongodb' | 'cockroachdb' | 'unknown' {
+    const url = this.config.url.toLowerCase();
+    
+    if (url.includes('file:') || url.includes('sqlite:')) {
+      return 'sqlite';
+    } else if (url.includes('postgres://') || url.includes('postgresql://')) {
+      return 'postgresql';
+    } else if (url.includes('mysql://')) {
+      return 'mysql';
+    } else if (url.includes('sqlserver://')) {
+      return 'sqlserver';
+    } else if (url.includes('mongodb://') || url.includes('mongodb+srv://')) {
+      return 'mongodb';
+    } else if (url.includes('cockroachdb://')) {
+      return 'cockroachdb';
+    }
+    
+    return 'unknown';
+  }
+
+  /**
+   * Get database type (public accessor)
+   */
+  public getType(): string {
+    return this.getDatabaseType();
+  }
+
+  /**
    * Load database configuration from environment
    */
   private loadConfiguration(): DatabaseConfig {
@@ -279,10 +309,11 @@ export class DatabaseManager {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const fileName = backupName || `backup-${timestamp}.db.enc`;
     const backupPath = path.join(this.config.backupPath, fileName);
+    const dbType = this.getDatabaseType();
 
     try {
       // For SQLite, copy the database file
-      if (this.config.url.includes('file:')) {
+      if (dbType === 'sqlite') {
         const dbPath = this.config.url.replace('file:', '');
         const dbData = fs.readFileSync(dbPath);
         
@@ -292,7 +323,7 @@ export class DatabaseManager {
       } else {
         // For other databases, export schema and data
         // This would need specific implementation per database type
-        throw new Error('Backup for non-SQLite databases not implemented');
+        throw new Error(`Backup for ${dbType} databases not implemented. Use database-native backup tools.`);
       }
 
       console.log(`Database backup created: ${backupPath}`);
@@ -311,6 +342,8 @@ export class DatabaseManager {
       throw new Error('Database encryption must be enabled for backup restoration');
     }
 
+    const dbType = this.getDatabaseType();
+
     try {
       if (!fs.existsSync(backupPath)) {
         throw new Error(`Backup file not found: ${backupPath}`);
@@ -321,7 +354,7 @@ export class DatabaseManager {
       const dbData = Buffer.from(decryptedData, 'base64');
 
       // For SQLite, replace the database file
-      if (this.config.url.includes('file:')) {
+      if (dbType === 'sqlite') {
         const dbPath = this.config.url.replace('file:', '');
         
         // Disconnect first
@@ -333,7 +366,7 @@ export class DatabaseManager {
         // Reconnect
         await this.connect();
       } else {
-        throw new Error('Restore for non-SQLite databases not implemented');
+        throw new Error(`Restore for ${dbType} databases not implemented. Use database-native restore tools.`);
       }
 
       console.log(`Database restored from: ${backupPath}`);
@@ -376,10 +409,9 @@ export class DatabaseManager {
    */
   public async getStatistics(): Promise<any> {
     try {
-      // Get table information for SQLite
-      const tables = await this.prisma.$queryRaw`
-        SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'
-      `;
+      // Use Prisma's DMMF (Data Model Meta Format) for database-agnostic table introspection
+      const { Prisma } = await import('@prisma/client');
+      const models = Prisma.dmmf?.datamodel?.models || [];
 
       const stats: any = {
         tables: [],
@@ -387,19 +419,23 @@ export class DatabaseManager {
         health: this.getHealth()
       };
 
-      for (const table of tables as any[]) {
-        // Validate table name to prevent SQL injection
-        if (!/^[A-Za-z0-9_]+$/.test(table.name)) {
-          console.warn(`Skipping invalid table name: ${table.name}`);
-          continue;
+      // Get row counts for each model using Prisma's generated methods
+      for (const model of models) {
+        try {
+          const modelName = model.name.charAt(0).toLowerCase() + model.name.slice(1);
+          const prismaModel = (this.prisma as any)[modelName];
+          
+          if (prismaModel && typeof prismaModel.count === 'function') {
+            const count = await prismaModel.count();
+            stats.tables.push({
+              name: model.dbName || model.name,
+              rowCount: count
+            });
+          }
+        } catch (error) {
+          // Skip models that don't support count operation
+          console.warn(`Could not get count for model ${model.name}:`, error);
         }
-        const count = await this.prisma.$queryRawUnsafe(
-          `SELECT COUNT(*) as count FROM "${table.name}"`
-        );
-        stats.tables.push({
-          name: table.name,
-          rowCount: (count as any)[0].count
-        });
       }
 
       return stats;
