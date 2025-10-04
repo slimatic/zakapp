@@ -129,23 +129,7 @@ npm install
 cd ..
 ```
 
-### 🗄️ **Step 3: Database Setup**
-
-```bash
-# Navigate to server directory
-cd server
-
-# Generate Prisma client
-npm run db:generate
-
-# Run database migrations
-npm run db:migrate
-
-# Seed the database with initial data (optional)
-npm run db:seed
-```
-
-### 🔧 **Step 4: Environment Configuration**
+### 🔧 **Step 3: Environment Configuration**
 
 ```bash
 # Backend configuration
@@ -160,6 +144,22 @@ cp .env.example .env.local
 ```
 
 **⚠️ Important**: If you change the backend `PORT` in `server/.env`, you must update `REACT_APP_API_BASE_URL` in `client/.env.local` to match! See [PORT_CONFIGURATION_GUIDE.md](PORT_CONFIGURATION_GUIDE.md) for details.
+
+### 🗄️ **Step 4: Database Setup**
+
+```bash
+# Navigate to server directory
+cd server
+
+# Generate Prisma client
+npm run db:generate
+
+# Run database migrations
+npm run db:migrate
+
+# Seed the database with initial data (optional)
+npm run db:seed
+```
 
 ### 🚀 **Step 5: Start the Application**
 
