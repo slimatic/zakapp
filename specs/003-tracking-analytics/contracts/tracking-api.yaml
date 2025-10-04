@@ -1,0 +1,573 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Tracking API
+  description: API for historical Zakat calculation tracking and yearly snapshots
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Development server
+
+tags:
+  - name: Snapshots
+    description: Yearly Zakat calculation snapshot operations
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/tracking/snapshots:
+    post:
+      tags:
+        - Snapshots
+      summary: Create a new yearly snapshot
+      description: Creates a snapshot of user's financial state and Zakat calculation
+      operationId: createSnapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - calculationDate
+                - gregorianYear
+                - hijriYear
+                - totalWealth
+                - totalLiabilities
+                - zakatAmount
+                - methodologyUsed
+              properties:
+                calculationDate:
+                  type: string
+                  format: date-time
+                  example: "2024-01-15T10:00:00Z"
+                gregorianYear:
+                  type: integer
+                  example: 2024
+                gregorianMonth:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  example: 1
+                gregorianDay:
+                  type: integer
+                  minimum: 1
+                  maximum: 31
+                  example: 15
+                hijriYear:
+                  type: integer
+                  example: 1445
+                hijriMonth:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  example: 7
+                hijriDay:
+                  type: integer
+                  minimum: 1
+                  maximum: 30
+                  example: 3
+                totalWealth:
+                  type: number
+                  format: double
+                  example: 138000.00
+                totalLiabilities:
+                  type: number
+                  format: double
+                  example: 5000.00
+                zakatableWealth:
+                  type: number
+                  format: double
+                  example: 133000.00
+                zakatAmount:
+                  type: number
+                  format: double
+                  example: 3325.00
+                methodologyUsed:
+                  type: string
+                  enum: [Standard, Hanafi, Shafii, Custom]
+                  example: "Standard"
+                nisabThreshold:
+                  type: number
+                  format: double
+                  example: 4950.00
+                nisabType:
+                  type: string
+                  enum: [gold, silver]
+                  example: "gold"
+                status:
+                  type: string
+                  enum: [draft, finalized]
+                  default: draft
+                assetBreakdown:
+                  type: object
+                  description: Detailed breakdown by asset category
+                calculationDetails:
+                  type: object
+                  description: Step-by-step calculation information
+                userNotes:
+                  type: string
+                  example: "Annual Zakat calculation 2024"
+                isPrimary:
+                  type: boolean
+                  default: false
+      responses:
+        '201':
+          description: Snapshot created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  snapshot:
+                    $ref: '#/components/schemas/YearlySnapshot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    
+    get:
+      tags:
+        - Snapshots
+      summary: List user's yearly snapshots
+      description: Retrieves paginated list of user's historical snapshots
+      operationId: listSnapshots
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: year
+          in: query
+          description: Filter by Gregorian year
+          schema:
+            type: integer
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [draft, finalized, all]
+            default: all
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [date, year]
+            default: date
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Snapshots retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  snapshots:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/YearlySnapshot'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/tracking/snapshots/{id}:
+    get:
+      tags:
+        - Snapshots
+      summary: Get snapshot details
+      description: Retrieves detailed information about a specific snapshot
+      operationId: getSnapshot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Snapshot retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  snapshot:
+                    $ref: '#/components/schemas/YearlySnapshot'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Snapshots
+      summary: Update snapshot
+      description: Updates a draft snapshot (finalized snapshots cannot be modified)
+      operationId: updateSnapshot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                totalWealth:
+                  type: number
+                  format: double
+                totalLiabilities:
+                  type: number
+                  format: double
+                zakatAmount:
+                  type: number
+                  format: double
+                methodologyUsed:
+                  type: string
+                assetBreakdown:
+                  type: object
+                calculationDetails:
+                  type: object
+                userNotes:
+                  type: string
+      responses:
+        '200':
+          description: Snapshot updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  snapshot:
+                    $ref: '#/components/schemas/YearlySnapshot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Cannot update finalized snapshot
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Snapshots
+      summary: Delete snapshot
+      description: Deletes a snapshot and its associated payment records
+      operationId: deleteSnapshot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Snapshot deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Snapshot deleted successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tracking/snapshots/{id}/finalize:
+    post:
+      tags:
+        - Snapshots
+      summary: Finalize snapshot
+      description: Marks a snapshot as finalized, making it immutable
+      operationId: finalizeSnapshot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Snapshot finalized successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  snapshot:
+                    $ref: '#/components/schemas/YearlySnapshot'
+        '400':
+          description: Snapshot already finalized
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tracking/comparison:
+    get:
+      tags:
+        - Snapshots
+      summary: Compare multiple snapshots
+      description: Compares selected snapshots side-by-side
+      operationId: compareSnapshots
+      parameters:
+        - name: snapshotIds
+          in: query
+          required: true
+          description: Comma-separated snapshot IDs
+          schema:
+            type: string
+            example: "abc-123,def-456,ghi-789"
+      responses:
+        '200':
+          description: Comparison data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  comparison:
+                    type: object
+                    properties:
+                      snapshots:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/YearlySnapshot'
+                      analysis:
+                        type: object
+                        properties:
+                          wealthTrend:
+                            type: string
+                            enum: [increasing, decreasing, stable]
+                          averageGrowthRate:
+                            type: number
+                            format: double
+                          zakatConsistency:
+                            type: string
+                            enum: [excellent, good, inconsistent]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: Invalid snapshot IDs or snapshots belong to different users
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    YearlySnapshot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        calculationDate:
+          type: string
+          format: date-time
+        gregorianYear:
+          type: integer
+        gregorianMonth:
+          type: integer
+        gregorianDay:
+          type: integer
+        hijriYear:
+          type: integer
+        hijriMonth:
+          type: integer
+        hijriDay:
+          type: integer
+        totalWealth:
+          type: number
+          format: double
+        totalLiabilities:
+          type: number
+          format: double
+        zakatableWealth:
+          type: number
+          format: double
+        zakatAmount:
+          type: number
+          format: double
+        methodologyUsed:
+          type: string
+        nisabThreshold:
+          type: number
+          format: double
+        nisabType:
+          type: string
+          enum: [gold, silver]
+        status:
+          type: string
+          enum: [draft, finalized]
+        assetBreakdown:
+          type: object
+        calculationDetails:
+          type: object
+        userNotes:
+          type: string
+        isPrimary:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 5
+        totalItems:
+          type: integer
+          example: 42
+        itemsPerPage:
+          type: integer
+          example: 20
+        hasNextPage:
+          type: boolean
+          example: true
+        hasPreviousPage:
+          type: boolean
+          example: false
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "INVALID_REQUEST"
+              message:
+                type: string
+                example: "Invalid request parameters"
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "UNAUTHORIZED"
+              message:
+                type: string
+                example: "Authentication required"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "NOT_FOUND"
+              message:
+                type: string
+                example: "Snapshot not found"
+
+    ValidationError:
+      description: Validation error - Invalid data
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "VALIDATION_ERROR"
+              message:
+                type: string
+                example: "Validation failed"
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                    message:
+                      type: string
