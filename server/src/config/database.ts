@@ -388,9 +388,14 @@ export class DatabaseManager {
       };
 
       for (const table of tables as any[]) {
-        const count = await this.prisma.$queryRaw`
-          SELECT COUNT(*) as count FROM ${table.name}
-        `;
+        // Validate table name to prevent SQL injection
+        if (!/^[A-Za-z0-9_]+$/.test(table.name)) {
+          console.warn(`Skipping invalid table name: ${table.name}`);
+          continue;
+        }
+        const count = await this.prisma.$queryRawUnsafe(
+          `SELECT COUNT(*) as count FROM "${table.name}"`
+        );
         stats.tables.push({
           name: table.name,
           rowCount: (count as any)[0].count
