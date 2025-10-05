@@ -27,7 +27,7 @@ const PORT = process.env.PORT || 3001;
 
 // Only create HTTP server if not in test mode
 // Tests use supertest which creates its own server
-const server = process.env.JEST_WORKER_ID ? null : createServer(app);
+const server = process.env.NODE_ENV === 'test' ? null : createServer(app);
 
 // Log port configuration
 console.log(`🔧 Server configuration:`);
