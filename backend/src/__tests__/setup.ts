@@ -15,16 +15,19 @@ global.console = {
 
 // Clean up test data directories before each test
 beforeEach(async () => {
-  // Reset userService state
+  // Reset userService state to ensure clean state between tests
   (userService as any).initialized = false;
   (userService as any).userIndex = {};
   
-  // Clean up test data directories if they exist
+  // Clean up all test data directories if they exist
+  // This ensures complete test isolation
   const testDataDirs = [
     path.join(process.cwd(), 'data_test'),
     path.join(process.cwd(), 'data_test_zakat'),
     path.join(process.cwd(), 'data_test_auth'),
     path.join(process.cwd(), 'data_test_assets'),
+    path.join(process.cwd(), 'data_test_corruption'),
+    path.join(process.cwd(), 'data_test_enoent'),
   ];
   
   for (const dir of testDataDirs) {
@@ -34,13 +37,15 @@ beforeEach(async () => {
   }
 });
 
-// Optional: Clean up after all tests complete
+// Clean up after all tests complete
 afterAll(async () => {
   const testDataDirs = [
     path.join(process.cwd(), 'data_test'),
     path.join(process.cwd(), 'data_test_zakat'),
     path.join(process.cwd(), 'data_test_auth'),
     path.join(process.cwd(), 'data_test_assets'),
+    path.join(process.cwd(), 'data_test_corruption'),
+    path.join(process.cwd(), 'data_test_enoent'),
   ];
   
   for (const dir of testDataDirs) {
