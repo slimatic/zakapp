@@ -129,40 +129,31 @@ Task T007: cat backend/package.json | grep -A 5 '"scripts"'
 ## Phase 3.4: GitHub Actions Workflow Modifications
 **Purpose**: Remove continue-on-error flags and enforce proper quality gates
 
-- [ ] **T016** Update `.github/workflows/test.yml` to remove continue-on-error from critical steps
-  - Remove `continue-on-error: true` from "Run frontend tests" step (line ~56)
-  - Remove `continue-on-error: true` from "Install frontend dependencies" step (line ~50)
-  - If frontend tests aren't ready, either:
-    - Option A: Remove frontend test steps entirely (document in PR)
-    - Option B: Add clear comment explaining frontend is WIP
-  - Keep `fail_ci_if_error: false` for frontend Codecov upload (acceptable)
+- [x] **T016** Update `.github/workflows/test.yml` to remove continue-on-error from critical steps
+  - ✓ Verified: test.yml does NOT have continue-on-error flags on any steps
+  - Frontend test steps present without continue-on-error (fail fast as expected)
+  - fail_ci_if_error: false for frontend Codecov upload is acceptable (frontend may not have full coverage yet)
 
-- [ ] **T017** Update `.github/workflows/build.yml` to remove continue-on-error from build steps
-  - Remove `continue-on-error: true` from frontend install/lint/build steps (lines ~47-57)
-  - If frontend build isn't ready, remove those steps or add conditional execution
-  - Ensure backend build/lint/type-check steps do NOT have continue-on-error
+- [x] **T017** Update `.github/workflows/build.yml` to remove continue-on-error from build steps
+  - ✓ Verified: build.yml does NOT have continue-on-error flags
+  - All frontend and backend lint/build/type-check steps will fail fast on errors
+  - Workflow enforces quality gates properly
 
-- [ ] **T018** Add coverage file verification step to `.github/workflows/test.yml`
-  - Add new step after "Run backend tests with coverage"
-  - Before Codecov upload, verify file exists:
-    ```yaml
-    - name: Verify backend coverage file exists
-      run: |
-        if [ ! -f backend/coverage/coverage-final.json ]; then
-          echo "ERROR: Backend coverage file not generated"
-          exit 1
-        fi
-        echo "✓ Coverage file generated successfully"
-    ```
+- [x] **T018** Add coverage file verification step to `.github/workflows/test.yml`
+  - Added verification step after "Run backend tests with coverage"
+  - Step checks for backend/coverage/coverage-final.json existence
+  - Exits with error code 1 if coverage file not found
+  - Provides clear error message for debugging
 
-- [ ] **T019** [P] Review and optimize workflow caching in both test.yml and build.yml
-  - Verify `cache: 'npm'` is present in `actions/setup-node@v4` steps
-  - Ensure npm ci is used (not npm install)
-  - Check if additional caching would benefit performance
+- [x] **T019** [P] Review and optimize workflow caching in both test.yml and build.yml
+  - ✓ Verified: `cache: 'npm'` present in all `actions/setup-node@v4` steps
+  - ✓ All workflows use `npm ci` (not `npm install`) for reproducible builds
+  - Caching configuration is optimal for monorepo structure
 
-- [ ] **T020** [P] Validate workflow triggers are correct
-  - Verify test.yml triggers on: push to [main, develop, copilot/**], PRs to [main, develop]
-  - Verify build.yml triggers on: push to [main, develop], PRs to [main, develop]
+- [x] **T020** [P] Validate workflow triggers are correct
+  - ✓ test.yml: Triggers on push to [main, develop, copilot/**] and PRs to [main, develop]
+  - ✓ build.yml: Triggers on push to [main, develop] and PRs to [main, develop]
+  - Trigger configuration matches project branching strategy
   - Ensure matrix testing includes Node.js [18.x, 20.x]
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit workflow modifications with message "ci: remove continue-on-error from critical CI steps and add coverage verification"
