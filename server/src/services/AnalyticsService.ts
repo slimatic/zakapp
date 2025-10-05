@@ -1,0 +1,423 @@
+import { AnalyticsMetricModel } from '../models/AnalyticsMetric';
+import { YearlySnapshotModel } from '../models/YearlySnapshot';
+import { PaymentRecordModel } from '../models/PaymentRecord';
+import { EncryptionService } from './EncryptionService';
+import {
+  AnalyticsMetric,
+  AnalyticsMetricType,
+  VisualizationType
+} from '@zakapp/shared/types/tracking';
+
+/**
+ * AnalyticsService - Business logic for analytics calculations with caching
+ * Handles complex metric calculations and cache management
+ */
+export class AnalyticsService {
+  private encryptionKey: string;
+  private readonly DEFAULT_CACHE_TTL = 5; // 5 minutes
+
+  constructor() {
+    this.encryptionKey = process.env.ENCRYPTION_KEY || '';
+    if (!this.encryptionKey) {
+      throw new Error('ENCRYPTION_KEY environment variable is required');
+    }
+  }
+
+  /**
+   * Decrypts analytics metric data
+   * @param metric - Encrypted metric
+   * @returns Decrypted metric
+   */
+  private async decryptMetricData(metric: any): Promise<AnalyticsMetric> {
+    if (!metric) return metric;
+
+    const decrypted = { ...metric };
+
+    try {
+      // Decrypt calculatedValue if it's encrypted
+      if (metric.calculatedValue && typeof metric.calculatedValue === 'string') {
+        decrypted.calculatedValue = JSON.parse(
+          await EncryptionService.decrypt(metric.calculatedValue, this.encryptionKey)
+        );
+      }
+
+      // Decrypt parameters if encrypted
+      if (metric.parameters && typeof metric.parameters === 'string') {
+        decrypted.parameters = JSON.parse(
+          await EncryptionService.decrypt(metric.parameters, this.encryptionKey)
+        );
+      }
+    } catch (error) {
+      // If decryption fails, might already be decrypted JSON
+      if (typeof metric.calculatedValue === 'object') {
+        decrypted.calculatedValue = metric.calculatedValue;
+      }
+      if (typeof metric.parameters === 'object') {
+        decrypted.parameters = metric.parameters;
+      }
+    }
+
+    return decrypted as AnalyticsMetric;
+  }
+
+  /**
+   * Gets or calculates wealth trend metric
+   * @param userId - User ID
+   * @param startDate - Start date for analysis
+   * @param endDate - End date for analysis
+   * @returns Wealth trend data
+   */
+  async getWealthTrend(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<AnalyticsMetric> {
+    // Check cache first
+    const cached = await AnalyticsMetricModel.findCached(
+      userId,
+      'wealth_trend',
+      startDate,
+      endDate
+    );
+
+    if (cached) {
+      return await this.decryptMetricData(cached);
+    }
+
+    // Calculate new metric
+    const snapshots = await YearlySnapshotModel.findByUser(userId, {
+      page: 1,
+      limit: 1000
+    });
+
+    const trendData = snapshots.data
+      .filter(s => {
+        const calcDate = new Date(s.calculationDate);
+        return calcDate >= startDate && calcDate <= endDate;
+      })
+      .map(s => ({
+        year: s.gregorianYear,
+        date: s.calculationDate,
+        totalWealth: s.totalWealth,
+        zakatableWealth: s.zakatableWealth
+      }))
+      .sort((a, b) => a.year - b.year);
+
+    // Store in cache
+    const metric = await AnalyticsMetricModel.createOrUpdate(
+      userId,
+      'wealth_trend',
+      {
+        startDate,
+        endDate,
+        calculatedValue: { trend: trendData },
+        visualizationType: 'line_chart',
+        cacheTTLMinutes: this.DEFAULT_CACHE_TTL
+      }
+    );
+
+    return await this.decryptMetricData(metric);
+  }
+
+  /**
+   * Gets or calculates Zakat trend metric
+   * @param userId - User ID
+   * @param startDate - Start date
+   * @param endDate - End date
+   * @returns Zakat trend data
+   */
+  async getZakatTrend(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<AnalyticsMetric> {
+    // Check cache
+    const cached = await AnalyticsMetricModel.findCached(
+      userId,
+      'zakat_trend',
+      startDate,
+      endDate
+    );
+
+    if (cached) {
+      return await this.decryptMetricData(cached);
+    }
+
+    // Calculate
+    const snapshots = await YearlySnapshotModel.findByUser(userId, {
+      page: 1,
+      limit: 1000
+    });
+
+    const trendData = snapshots.data
+      .filter(s => {
+        const calcDate = new Date(s.calculationDate);
+        return calcDate >= startDate && calcDate <= endDate;
+      })
+      .map(s => ({
+        year: s.gregorianYear,
+        date: s.calculationDate,
+        zakatAmount: s.zakatAmount,
+        zakatableWealth: s.zakatableWealth,
+        nisabThreshold: s.nisabThreshold
+      }))
+      .sort((a, b) => a.year - b.year);
+
+    // Store
+    const metric = await AnalyticsMetricModel.createOrUpdate(
+      userId,
+      'zakat_trend',
+      {
+        startDate,
+        endDate,
+        calculatedValue: { trend: trendData },
+        visualizationType: 'line_chart',
+        cacheTTLMinutes: this.DEFAULT_CACHE_TTL
+      }
+    );
+
+    return await this.decryptMetricData(metric);
+  }
+
+  /**
+   * Gets or calculates payment distribution by Islamic category
+   * @param userId - User ID
+   * @param startDate - Start date
+   * @param endDate - End date
+   * @returns Payment distribution data
+   */
+  async getPaymentDistribution(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<AnalyticsMetric> {
+    // Check cache
+    const cached = await AnalyticsMetricModel.findCached(
+      userId,
+      'payment_distribution',
+      startDate,
+      endDate
+    );
+
+    if (cached) {
+      return await this.decryptMetricData(cached);
+    }
+
+    // Calculate
+    const payments = await PaymentRecordModel.findByUser(userId, {
+      page: 1,
+      limit: 10000,
+      startDate,
+      endDate
+    });
+
+    const categoryMap = new Map<string, { count: number; totalAmount: number }>();
+    let totalAmount = 0;
+
+    for (const payment of payments.data) {
+      const amount = payment.amount;
+      totalAmount += amount;
+
+      const existing = categoryMap.get(payment.recipientCategory) || { count: 0, totalAmount: 0 };
+      categoryMap.set(payment.recipientCategory, {
+        count: existing.count + 1,
+        totalAmount: existing.totalAmount + amount
+      });
+    }
+
+    const distribution = Array.from(categoryMap.entries()).map(([category, stats]) => ({
+      category,
+      count: stats.count,
+      totalAmount: stats.totalAmount,
+      percentage: totalAmount > 0 ? (stats.totalAmount / totalAmount) * 100 : 0
+    }));
+
+    // Store
+    const metric = await AnalyticsMetricModel.createOrUpdate(
+      userId,
+      'payment_distribution',
+      {
+        startDate,
+        endDate,
+        calculatedValue: { distribution, totalAmount },
+        visualizationType: 'pie_chart',
+        cacheTTLMinutes: this.DEFAULT_CACHE_TTL
+      }
+    );
+
+    return await this.decryptMetricData(metric);
+  }
+
+  /**
+   * Gets or calculates asset composition over time
+   * @param userId - User ID
+   * @param startDate - Start date
+   * @param endDate - End date
+   * @returns Asset composition data
+   */
+  async getAssetComposition(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<AnalyticsMetric> {
+    // Check cache
+    const cached = await AnalyticsMetricModel.findCached(
+      userId,
+      'asset_composition',
+      startDate,
+      endDate
+    );
+
+    if (cached) {
+      return await this.decryptMetricData(cached);
+    }
+
+    // Calculate
+    const snapshots = await YearlySnapshotModel.findByUser(userId, {
+      page: 1,
+      limit: 1000
+    });
+
+    const compositionData = snapshots.data
+      .filter(s => {
+        const calcDate = new Date(s.calculationDate);
+        return calcDate >= startDate && calcDate <= endDate;
+      })
+      .map(s => {
+        // Parse asset breakdown (it's encrypted in DB)
+        let breakdown = {};
+        try {
+          breakdown = typeof s.assetBreakdown === 'string'
+            ? JSON.parse(s.assetBreakdown)
+            : s.assetBreakdown;
+        } catch (e) {
+          breakdown = {};
+        }
+
+        return {
+          year: s.gregorianYear,
+          date: s.calculationDate,
+          breakdown
+        };
+      })
+      .sort((a, b) => a.year - b.year);
+
+    // Store
+    const metric = await AnalyticsMetricModel.createOrUpdate(
+      userId,
+      'asset_composition',
+      {
+        startDate,
+        endDate,
+        calculatedValue: { composition: compositionData },
+        visualizationType: 'area_chart',
+        cacheTTLMinutes: this.DEFAULT_CACHE_TTL
+      }
+    );
+
+    return await this.decryptMetricData(metric);
+  }
+
+  /**
+   * Gets or calculates yearly comparison metrics
+   * @param userId - User ID
+   * @param years - Array of years to compare
+   * @returns Comparison data
+   */
+  async getYearlyComparison(
+    userId: string,
+    years: number[]
+  ): Promise<AnalyticsMetric> {
+    const startDate = new Date(Math.min(...years), 0, 1);
+    const endDate = new Date(Math.max(...years), 11, 31);
+
+    // Check cache
+    const cached = await AnalyticsMetricModel.findCached(
+      userId,
+      'yearly_comparison',
+      startDate,
+      endDate
+    );
+
+    if (cached) {
+      return await this.decryptMetricData(cached);
+    }
+
+    // Calculate
+    const comparisons = await Promise.all(
+      years.map(async year => {
+        const snapshot = await YearlySnapshotModel.findPrimaryByYear(userId, year);
+        if (!snapshot) return null;
+
+        const payments = await PaymentRecordModel.findByUser(userId, {
+          page: 1,
+          limit: 10000
+        });
+
+        const yearPayments = payments.data.filter(p => {
+          const paymentYear = new Date(p.paymentDate).getFullYear();
+          return paymentYear === year;
+        });
+
+        const totalPaid = yearPayments.reduce((sum, p) => sum + p.amount, 0);
+
+        return {
+          year,
+          totalWealth: snapshot.totalWealth,
+          zakatableWealth: snapshot.zakatableWealth,
+          zakatAmount: snapshot.zakatAmount,
+          totalPaid,
+          paymentCount: yearPayments.length
+        };
+      })
+    );
+
+    const validComparisons = comparisons.filter(c => c !== null);
+
+    // Store
+    const metric = await AnalyticsMetricModel.createOrUpdate(
+      userId,
+      'yearly_comparison',
+      {
+        startDate,
+        endDate,
+        calculatedValue: { comparisons: validComparisons },
+        visualizationType: 'bar_chart',
+        parameters: { years },
+        cacheTTLMinutes: this.DEFAULT_CACHE_TTL
+      }
+    );
+
+    return await this.decryptMetricData(metric);
+  }
+
+  /**
+   * Invalidates cache for a specific user
+   * @param userId - User ID
+   * @param metricType - Optional specific metric type to invalidate
+   */
+  async invalidateCache(userId: string, metricType?: AnalyticsMetricType): Promise<void> {
+    await AnalyticsMetricModel.invalidateCache(userId, metricType);
+  }
+
+  /**
+   * Cleans up expired metrics
+   * @returns Number of deleted metrics
+   */
+  async cleanupExpiredMetrics(): Promise<number> {
+    return await AnalyticsMetricModel.deleteExpired();
+  }
+
+  /**
+   * Gets cache statistics for a user
+   * @param userId - User ID
+   * @returns Cache statistics
+   */
+  async getCacheStatistics(userId: string): Promise<{
+    total: number;
+    expired: number;
+    valid: number;
+  }> {
+    return await AnalyticsMetricModel.getCacheStats(userId);
+  }
+}
