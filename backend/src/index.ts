@@ -133,7 +133,7 @@ app.use(
  */
 function startServer() {
   if (!server) {
-    console.error('Server instance not available - cannot start server in test mode');
+    console.error('Server instance not available - cannot start server because either test mode is enabled or JEST_WORKER_ID is set');
     return;
   }
 
