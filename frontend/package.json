@@ -18,14 +18,18 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
+    "@tanstack/react-query": "^5.90.2",
     "@zakapp/shared": "file:../shared",
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.292.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.47.0",
     "react-router-dom": "^6.17.0",
+    "recharts": "^3.2.1",
     "zod": "^3.22.4",
     "zustand": "^4.4.6"
   },

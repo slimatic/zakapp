@@ -28,6 +28,13 @@ model User {
   payments         ZakatPayment[]
   snapshots        AssetSnapshot[]
   sessions         UserSession[]
+  
+  // Tracking & Analytics Relationships
+  yearlySnapshots  YearlySnapshot[]  @relation("UserYearlySnapshots")
+  paymentRecords   PaymentRecord[]   @relation("UserPaymentRecords")
+  analyticsMetrics AnalyticsMetric[] @relation("UserAnalyticsMetrics")
+  annualSummaries  AnnualSummary[]   @relation("UserAnnualSummaries")
+  reminderEvents   ReminderEvent[]   @relation("UserReminderEvents")
 
   @@map("users")
 }
@@ -378,4 +385,149 @@ model UserWorkflow {
   @@map("user_workflows")
   @@index([criticalPath, testAutomated])
   @@index([workflowName])
+}
+
+// ============================================================================
+// Tracking & Analytics Models
+// Feature: 003-tracking-analytics
+// ============================================================================
+
+model YearlySnapshot {
+  id                  String   @id @default(cuid())
+  userId              String
+  calculationDate     DateTime
+  gregorianYear       Int
+  gregorianMonth      Int
+  gregorianDay        Int
+  hijriYear           Int
+  hijriMonth          Int
+  hijriDay            Int
+  totalWealth         String   // Encrypted
+  totalLiabilities    String   // Encrypted
+  zakatableWealth     String   // Encrypted
+  zakatAmount         String   // Encrypted
+  methodologyUsed     String
+  nisabThreshold      String   // Encrypted
+  nisabType           String   // gold or silver
+  status              String   // draft or finalized
+  assetBreakdown      String   // Encrypted JSON
+  calculationDetails  String   // Encrypted JSON
+  userNotes           String?  // Encrypted
+  isPrimary           Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relationships
+  user                User            @relation("UserYearlySnapshots", fields: [userId], references: [id], onDelete: Cascade)
+  payments            PaymentRecord[]
+  summary             AnnualSummary?
+  reminders           ReminderEvent[]
+
+  @@map("yearly_snapshots")
+  @@index([userId, calculationDate(sort: Desc)])
+  @@index([userId, gregorianYear])
+  @@index([userId, hijriYear])
+  @@index([userId, status])
+}
+
+model PaymentRecord {
+  id                  String   @id @default(cuid())
+  userId              String
+  snapshotId          String
+  amount              String   // Encrypted
+  paymentDate         DateTime
+  recipientName       String   // Encrypted
+  recipientType       String
+  recipientCategory   String
+  notes               String?  // Encrypted
+  receiptReference    String?  // Encrypted
+  paymentMethod       String
+  status              String   // recorded or verified
+  currency            String   @default("USD")
+  exchangeRate        Float    @default(1.0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relationships
+  user                User            @relation("UserPaymentRecords", fields: [userId], references: [id], onDelete: Cascade)
+  snapshot            YearlySnapshot  @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@map("payment_records")
+  @@index([userId, paymentDate(sort: Desc)])
+  @@index([snapshotId])
+}
+
+model AnalyticsMetric {
+  id                  String   @id @default(cuid())
+  userId              String
+  metricType          String
+  startDate           DateTime
+  endDate             DateTime
+  calculatedValue     String   // Encrypted JSON
+  visualizationType   String
+  parameters          String   // JSON
+  calculatedAt        DateTime @default(now())
+  expiresAt           DateTime
+  version             Int      @default(1)
+
+  // Relationships
+  user                User     @relation("UserAnalyticsMetrics", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("analytics_metrics")
+  @@index([userId, metricType, expiresAt])
+  @@index([expiresAt])
+}
+
+model AnnualSummary {
+  id                     String   @id @default(cuid())
+  userId                 String
+  snapshotId             String   @unique
+  gregorianYear          Int
+  hijriYear              Int
+  startDate              DateTime
+  endDate                DateTime
+  totalZakatCalculated   String   // Encrypted
+  totalZakatPaid         String   // Encrypted
+  outstandingZakat       String   // Encrypted
+  numberOfPayments       Int
+  recipientSummary       String   // Encrypted JSON
+  assetBreakdown         String   // Encrypted JSON
+  comparativeAnalysis    String   // Encrypted JSON
+  methodologyUsed        String
+  nisabInfo              String   // Encrypted JSON
+  userNotes              String?  // Encrypted
+  generatedAt            DateTime @default(now())
+  version                Int      @default(1)
+
+  // Relationships
+  user                   User            @relation("UserAnnualSummaries", fields: [userId], references: [id], onDelete: Cascade)
+  snapshot               YearlySnapshot  @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@map("annual_summaries")
+  @@index([userId, gregorianYear])
+  @@index([userId, hijriYear])
+  @@index([snapshotId])
+}
+
+model ReminderEvent {
+  id                  String    @id @default(cuid())
+  userId              String
+  eventType           String
+  triggerDate         DateTime
+  title               String
+  message             String
+  priority            String    // high, medium, low
+  status              String    // pending, shown, acknowledged, dismissed
+  relatedSnapshotId   String?
+  metadata            String?   // JSON
+  acknowledgedAt      DateTime?
+  createdAt           DateTime  @default(now())
+
+  // Relationships
+  user                User            @relation("UserReminderEvents", fields: [userId], references: [id], onDelete: Cascade)
+  snapshot            YearlySnapshot? @relation(fields: [relatedSnapshotId], references: [id], onDelete: SetNull)
+
+  @@map("reminder_events")
+  @@index([userId, triggerDate])
+  @@index([userId, status])
 }
