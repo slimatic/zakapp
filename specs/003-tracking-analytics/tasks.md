@@ -1,6 +1,13 @@
 # Tasks: Tracking & Analytics
 
-**Input**: Design documents from `/specs/003-tracking-analytics/`
+**Input**: Design documents from## Phase 3.4: Core Implementation - Services
+- [x] T030 [P] SnapshotService with CRUD + finalize in server/src/services/YearlySnapshotService.ts ✅
+- [x] T031 [P] PaymentService with CRUD + aggregation in server/src/services/PaymentRecordService.ts ✅
+- [x] T032 [P] AnalyticsService with caching logic in server/src/services/AnalyticsService.ts ✅
+- [ ] T033 [P] SummaryService with annual report generation in server/src/services/AnnualSummaryService.ts (IN PROGRESS - needs fixes)
+- [ ] T034 [P] ReminderService with trigger calculation in server/src/services/ReminderService.ts
+- [x] T035 [P] CalendarService with Hijri conversion in server/src/services/CalendarConversionService.ts ✅
+- [ ] T036 ComparisonService with multi-snapshot analysis in server/src/services/ComparisonService.ts/003-tracking-analytics/`
 **Prerequisites**: plan.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅
 
 ## Feature Summary
