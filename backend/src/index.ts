@@ -23,8 +23,11 @@ import { API_ENDPOINTS } from '@zakapp/shared';
 dotenv.config();
 
 const app = express();
-const server = createServer(app);
 const PORT = process.env.PORT || 3001;
+
+// Only create HTTP server if not in test mode
+// Tests use supertest which creates its own server
+const server = process.env.JEST_WORKER_ID ? null : createServer(app);
 
 // Log port configuration
 console.log(`🔧 Server configuration:`);
@@ -124,50 +127,70 @@ app.use(
   }
 );
 
-// Start server with error handling
-server.listen(PORT, () => {
-  console.log(`🚀 Backend server running on http://localhost:${PORT}`);
-  console.log(`📝 API documentation: http://localhost:${PORT}/api`);
-  console.log(`✅ Shared package integration working!`);
-});
-
-// Handle server startup errors
-server.on('error', (error: Error & { code?: string }) => {
-  if (error.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use!`);
-    console.error('');
-    console.error('To fix this issue, you can:');
-    console.error(`• Set a different port: PORT=3002 npm run dev`);
-    console.error(`• Or set PORT environment variable: export PORT=3002`);
-    console.error(`• Or kill the process using port ${PORT}:`);
-    console.error(`  - Find the process: lsof -ti:${PORT}`);
-    console.error(`  - Kill the process: kill -9 $(lsof -ti:${PORT})`);
-    console.error('');
-    console.error('If using Docker:');
-    console.error('• Make sure to update the port mapping in docker-compose.yml');
-    console.error(`• Change "3001:3001" to "${PORT}:${PORT}" in the backend service`);
-    process.exit(1);
-  } else {
-    console.error('Server startup failed:', error);
-    process.exit(1);
+/**
+ * Start the server
+ * Separated from app export to allow testing without server startup
+ */
+function startServer() {
+  if (!server) {
+    console.error('Server instance not available - cannot start server in test mode');
+    return;
   }
-});
 
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n🛑 Gracefully shutting down server...');
-  server.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
+  server.listen(PORT, () => {
+    console.log(`🚀 Backend server running on http://localhost:${PORT}`);
+    console.log(`📝 API documentation: http://localhost:${PORT}/api`);
+    console.log(`✅ Shared package integration working!`);
   });
-});
 
-process.on('SIGTERM', () => {
-  console.log('\n🛑 Received SIGTERM, shutting down server...');
-  server.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
+  // Handle server startup errors
+  server.on('error', (error: Error & { code?: string }) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is already in use!`);
+      console.error('');
+      console.error('To fix this issue, you can:');
+      console.error(`• Set a different port: PORT=3002 npm run dev`);
+      console.error(`• Or set PORT environment variable: export PORT=3002`);
+      console.error(`• Or kill the process using port ${PORT}:`);
+      console.error(`  - Find the process: lsof -ti:${PORT}`);
+      console.error(`  - Kill the process: kill -9 $(lsof -ti:${PORT})`);
+      console.error('');
+      console.error('If using Docker:');
+      console.error('• Make sure to update the port mapping in docker-compose.yml');
+      console.error(`• Change "3001:3001" to "${PORT}:${PORT}" in the backend service`);
+      // Throw error instead of calling process.exit() to allow proper error handling
+      throw error;
+    } else {
+      console.error('Server startup failed:', error);
+      // Throw error instead of calling process.exit() to allow proper error handling
+      throw error;
+    }
   });
-});
+
+  // Handle graceful shutdown
+  process.on('SIGINT', () => {
+    console.log('\n🛑 Gracefully shutting down server...');
+    server.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('\n🛑 Received SIGTERM, shutting down server...');
+    server.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
+  });
+}
+
+// Only start server when run directly (not when imported by tests)
+// Skip server startup in test environment
+// Tests import the app without starting the server
+if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+  startServer();
+}
 
 export default app;
+export { server, startServer };

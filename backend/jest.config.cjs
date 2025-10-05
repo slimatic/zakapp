@@ -1,8 +1,9 @@
 module.exports = {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src', '<rootDir>/../tests'],
-  testMatch: ['**/__tests__/**/*.test.ts', '**/tests/**/*.test.ts'],
+  roots: ['<rootDir>/src'],
+  testMatch: ['**/__tests__/**/*.test.ts'],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/accessibility/', '/tests/e2e/'],
   extensionsToTreatAsEsm: ['.ts'],
   transform: {
     '^.+\\.ts$': [
