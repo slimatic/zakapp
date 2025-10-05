@@ -17,6 +17,9 @@ import trackingRoutes from './routes/tracking';
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
 
+// Import job scheduler
+import { initializeJobs, stopAllJobs } from './jobs/scheduler';
+
 const app = express();
 
 // Security middleware
@@ -55,11 +58,49 @@ app.use(errorHandler);
 // Start server if this file is run directly
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
     console.log(`🚀 ZakApp Server running on port ${PORT}`);
+    // eslint-disable-next-line no-console
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    // eslint-disable-next-line no-console
     console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+    
+    // Initialize background jobs
+    // eslint-disable-next-line no-console
+    console.log('⏰ Initializing background jobs...');
+    initializeJobs();
   });
+
+  // Graceful shutdown handler
+  const gracefulShutdown = (signal: string) => {
+    // eslint-disable-next-line no-console
+    console.log(`\n${signal} received. Starting graceful shutdown...`);
+    
+    // Stop accepting new requests
+    server.close(() => {
+      // eslint-disable-next-line no-console
+      console.log('✅ HTTP server closed');
+      
+      // Stop all background jobs
+      stopAllJobs();
+      
+      // eslint-disable-next-line no-console
+      console.log('✅ Graceful shutdown complete');
+      process.exit(0);
+    });
+
+    // Force shutdown after 30 seconds
+    setTimeout(() => {
+      // eslint-disable-next-line no-console
+      console.error('⚠️  Forced shutdown after timeout');
+      process.exit(1);
+    }, 30000);
+  };
+
+  // Register shutdown handlers
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
 export default app;
