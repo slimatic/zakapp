@@ -36,7 +36,7 @@ export function encryptData(data: string, userKey?: string): string {
         );
     const iv = crypto.randomBytes(IV_LENGTH);
 
-    const cipher = crypto.createCipher(ALGORITHM, key);
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -67,9 +67,10 @@ export function decryptData(encryptedData: string, userKey?: string): string {
     const parsed = JSON.parse(
       Buffer.from(encryptedData, 'base64').toString('utf8')
     );
+    const iv = Buffer.from(parsed.iv, 'hex');
     const encrypted = parsed.data;
 
-    const decipher = crypto.createDecipher(ALGORITHM, key);
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
 
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');

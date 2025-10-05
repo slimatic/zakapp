@@ -2,8 +2,9 @@
 
 A **production-ready**, privacy-first Islamic Zakat calculator with comprehensive asset management and beautiful UI.
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/slimatic/zakapp)
-[![Tests](https://img.shields.io/badge/tests-175%2F186-green)](./docs/archive/completion-reports/IMPLEMENTATION_VERIFICATION_COMPLETE.md)
+[![Build](https://github.com/slimatic/zakapp/actions/workflows/build.yml/badge.svg)](https://github.com/slimatic/zakapp/actions/workflows/build.yml)
+[![Tests](https://github.com/slimatic/zakapp/actions/workflows/test.yml/badge.svg)](https://github.com/slimatic/zakapp/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/slimatic/zakapp/branch/main/graph/badge.svg)](https://codecov.io/gh/slimatic/zakapp)
 [![Implementation](https://img.shields.io/badge/implementation-100%25-brightgreen)](./FINAL_IMPLEMENTATION_REPORT.md)
 [![Performance](https://img.shields.io/badge/performance-tested-blue)](./performance-tests/PHASE1_PERFORMANCE_REPORT.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
