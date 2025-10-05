@@ -22,6 +22,15 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!src/__tests__/**', '!src/index.ts'],
   coverageDirectory: 'coverage',
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
+  coverageThreshold: {
+    global: {
+      branches: 40,
+      functions: 50,
+      lines: 50,
+      statements: 50,
+    },
+  },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.cjs'],
   testTimeout: 15000,
+  maxWorkers: process.env.CI ? '50%' : undefined,
 };
