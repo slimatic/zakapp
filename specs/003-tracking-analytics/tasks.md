@@ -22,10 +22,10 @@ This is a web application with the following structure:
 - [x] T003 [P] Add shared TypeScript types in shared/types/tracking.ts for all 5 entities
 - [x] T004 Update Prisma schema with 5 new models in backend/prisma/schema.prisma
 - [x] T005 Generate and run Prisma migration for tracking tables in backend/prisma/migrations/
-- [ ] **🔸 COMMIT CHECKPOINT**: feat: Add tracking & analytics dependencies and database schema
+- [x] **🔸 COMMIT CHECKPOINT**: feat: Add tracking & analytics dependencies and database schema
 
-## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
-**CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
+## Phase 3.2: Tests First (TDD) ⚠️ SKIPPED FOR NOW
+**NOTE: Skipped per user request - will implement tests later**
 
 ### Contract Tests (API Endpoints)
 - [ ] T006 [P] Contract test POST /api/tracking/snapshots in backend/src/__tests__/contract/snapshots-post.test.ts
@@ -54,11 +54,11 @@ This is a web application with the following structure:
 - [ ] **🔸 COMMIT CHECKPOINT**: test: Add comprehensive TDD test suite for tracking feature (all failing)
 
 ## Phase 3.3: Core Implementation - Data Models (ONLY after tests are failing)
-- [ ] T025 [P] YearlySnapshot Prisma model validations in backend/src/models/YearlySnapshot.ts
-- [ ] T026 [P] PaymentRecord Prisma model validations in backend/src/models/PaymentRecord.ts
-- [ ] T027 [P] AnalyticsMetric Prisma model validations in backend/src/models/AnalyticsMetric.ts
-- [ ] T028 [P] AnnualSummary Prisma model validations in backend/src/models/AnnualSummary.ts
-- [ ] T029 [P] ReminderEvent Prisma model validations in backend/src/models/ReminderEvent.ts
+- [x] T025 [P] YearlySnapshot Prisma model validations in backend/src/models/YearlySnapshot.ts
+- [x] T026 [P] PaymentRecord Prisma model validations in backend/src/models/PaymentRecord.ts
+- [x] T027 [P] AnalyticsMetric Prisma model validations in backend/src/models/AnalyticsMetric.ts
+- [x] T028 [P] AnnualSummary Prisma model validations in backend/src/models/AnnualSummary.ts
+- [x] T029 [P] ReminderEvent Prisma model validations in backend/src/models/ReminderEvent.ts
 - [ ] **🔸 COMMIT CHECKPOINT**: feat: Implement data models for tracking entities
 
 ## Phase 3.4: Core Implementation - Services
