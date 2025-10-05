@@ -13,6 +13,12 @@ import { AssetList, AssetImportExport, AssetFormPage, AssetDetails } from './com
 import { ZakatCalculator } from './components/zakat/ZakatCalculator';
 import { History } from './components/history/History';
 import { GettingStarted } from './components/help/GettingStarted';
+import { TrackingDashboard } from './pages/TrackingDashboard';
+import { SnapshotsPage } from './pages/SnapshotsPage';
+import { SnapshotDetailPage } from './pages/SnapshotDetailPage';
+import { PaymentsPage } from './pages/PaymentsPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
+import { ComparisonPage } from './pages/ComparisonPage';
 
 function App() {
   return (
@@ -101,6 +107,67 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <GettingStarted />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            {/* Tracking & Analytics Routes */}
+            <Route 
+              path="/tracking" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <TrackingDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/snapshots" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <SnapshotsPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/snapshots/:snapshotId" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <SnapshotDetailPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/payments" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <PaymentsPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/analytics" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AnalyticsPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/comparison" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ComparisonPage />
                   </Layout>
                 </ProtectedRoute>
               } 
