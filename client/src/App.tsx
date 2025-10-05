@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { QueryProvider } from './services/queryClient';
@@ -13,12 +13,16 @@ import { AssetList, AssetImportExport, AssetFormPage, AssetDetails } from './com
 import { ZakatCalculator } from './components/zakat/ZakatCalculator';
 import { History } from './components/history/History';
 import { GettingStarted } from './components/help/GettingStarted';
-import { TrackingDashboard } from './pages/TrackingDashboard';
-import { SnapshotsPage } from './pages/SnapshotsPage';
-import { SnapshotDetailPage } from './pages/SnapshotDetailPage';
-import { PaymentsPage } from './pages/PaymentsPage';
-import { AnalyticsPage } from './pages/AnalyticsPage';
-import { ComparisonPage } from './pages/ComparisonPage';
+
+// T090 Performance Optimization: Lazy load tracking pages for faster initial load
+// These pages are not needed until user navigates to them, reducing initial bundle size
+// Estimated savings: ~150KB minified (~45KB gzipped) for tracking feature code
+const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
+const SnapshotsPage = lazy(() => import('./pages/SnapshotsPage').then(m => ({ default: m.SnapshotsPage })));
+const SnapshotDetailPage = lazy(() => import('./pages/SnapshotDetailPage').then(m => ({ default: m.SnapshotDetailPage })));
+const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
 
 function App() {
   return (
@@ -111,13 +115,15 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            {/* Tracking & Analytics Routes */}
+            {/* Tracking & Analytics Routes - Lazy loaded with Suspense */}
             <Route 
               path="/tracking" 
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <TrackingDashboard />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <TrackingDashboard />
+                    </Suspense>
                   </Layout>
                 </ProtectedRoute>
               } 
@@ -127,7 +133,9 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <SnapshotsPage />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <SnapshotsPage />
+                    </Suspense>
                   </Layout>
                 </ProtectedRoute>
               } 
@@ -137,7 +145,9 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <SnapshotDetailPage />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <SnapshotDetailPage />
+                    </Suspense>
                   </Layout>
                 </ProtectedRoute>
               } 
@@ -147,7 +157,9 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <PaymentsPage />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <PaymentsPage />
+                    </Suspense>
                   </Layout>
                 </ProtectedRoute>
               } 
@@ -157,7 +169,9 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <AnalyticsPage />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <AnalyticsPage />
+                    </Suspense>
                   </Layout>
                 </ProtectedRoute>
               } 
@@ -167,7 +181,9 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <ComparisonPage />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <ComparisonPage />
+                    </Suspense>
                   </Layout>
                 </ProtectedRoute>
               } 

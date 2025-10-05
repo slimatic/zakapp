@@ -428,6 +428,10 @@ model YearlySnapshot {
   @@index([userId, gregorianYear])
   @@index([userId, hijriYear])
   @@index([userId, status])
+  @@index([userId, isPrimary])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, gregorianYear, gregorianMonth])
+  @@index([userId, status, gregorianYear]) // Performance: Combined status + year filtering
 }
 
 model PaymentRecord {
@@ -455,6 +459,10 @@ model PaymentRecord {
   @@map("payment_records")
   @@index([userId, paymentDate(sort: Desc)])
   @@index([snapshotId])
+  @@index([userId, snapshotId])
+  @@index([userId, status])
+  @@index([userId, recipientCategory])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model AnalyticsMetric {
@@ -476,6 +484,8 @@ model AnalyticsMetric {
   @@map("analytics_metrics")
   @@index([userId, metricType, expiresAt])
   @@index([expiresAt])
+  @@index([userId, metricType, startDate, endDate])
+  @@index([userId, calculatedAt(sort: Desc)])
 }
 
 model AnnualSummary {
@@ -507,6 +517,7 @@ model AnnualSummary {
   @@index([userId, gregorianYear])
   @@index([userId, hijriYear])
   @@index([snapshotId])
+  @@index([userId, generatedAt(sort: Desc)])
 }
 
 model ReminderEvent {
@@ -530,4 +541,7 @@ model ReminderEvent {
   @@map("reminder_events")
   @@index([userId, triggerDate])
   @@index([userId, status])
+  @@index([userId, eventType])
+  @@index([userId, status, triggerDate])
+  @@index([userId, priority, status])
 }
