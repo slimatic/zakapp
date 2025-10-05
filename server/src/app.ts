@@ -12,6 +12,7 @@ import dataRoutes from './routes/data';
 import systemRoutes from './routes/system';
 import exportRoutes from './routes/export';
 import importRoutes from './routes/import';
+import trackingRoutes from './routes/tracking';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -41,6 +42,7 @@ app.use('/api/data', dataRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/tracking', trackingRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
