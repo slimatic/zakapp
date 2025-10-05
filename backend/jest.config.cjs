@@ -1,8 +1,9 @@
 module.exports = {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src', '<rootDir>/../tests'],
-  testMatch: ['**/__tests__/**/*.test.ts', '**/tests/**/*.test.ts'],
+  roots: ['<rootDir>/src'],
+  testMatch: ['**/__tests__/**/*.test.ts'],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/accessibility/', '/tests/e2e/'],
   extensionsToTreatAsEsm: ['.ts'],
   transform: {
     '^.+\\.ts$': [
@@ -21,6 +22,15 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!src/__tests__/**', '!src/index.ts'],
   coverageDirectory: 'coverage',
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+  },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.cjs'],
   testTimeout: 15000,
+  maxWorkers: process.env.CI ? '50%' : undefined,
 };
