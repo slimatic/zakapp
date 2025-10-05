@@ -43,6 +43,16 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 - **Payment Recording**: Track Zakat payments with receipt generation
 - **Historical Tracking**: Complete calculation and payment history
 
+### 📈 **Tracking & Analytics** ⭐ NEW
+- **Yearly Snapshots**: Create immutable snapshots of annual financial data
+- **Dual Calendar Support**: Gregorian and Hijri dates throughout
+- **Payment Tracking**: Record payments to 8 Islamic recipient categories
+- **Multi-Year Comparison**: Compare snapshots with trend analysis and insights
+- **Analytics Dashboard**: Visualize wealth trends, Zakat growth, and payment distribution
+- **PDF Export**: Export snapshots, summaries, and comparison reports
+- **Smart Reminders**: Anniversary reminders with Hijri calendar integration
+- **Islamic Compliance**: Full adherence to Zakat calculation and distribution rules
+
 ### 🎨 **User Experience**
 - **Beautiful Islamic UI**: Emerald green theme with cultural sensitivity
 - **Mobile-First Design**: Perfect experience on all devices
