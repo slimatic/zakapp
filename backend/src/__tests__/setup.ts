@@ -16,8 +16,7 @@ global.console = {
 // Clean up test data directories before each test
 beforeEach(async () => {
   // Reset userService state to ensure clean state between tests
-  (userService as any).initialized = false;
-  (userService as any).userIndex = {};
+  userService.reset();
   
   // Clean up all test data directories if they exist
   // This ensures complete test isolation
