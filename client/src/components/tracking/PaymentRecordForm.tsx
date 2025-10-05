@@ -134,8 +134,9 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       
       if (isEditing && payment) {
         result = await updatePaymentMutation.mutateAsync({
-          paymentId: payment.id,
-          updates: paymentData
+          id: payment.id,
+          snapshotId: snapshotId,
+          data: paymentData
         });
       } else {
         result = await createPaymentMutation.mutateAsync(paymentData);

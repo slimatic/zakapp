@@ -8,24 +8,11 @@ import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
 
-interface ComparisonResult {
-  snapshots: YearlySnapshot[];
+interface ComparisonSummary {
+  totalZakat: number;
+  averageGrowth: number;
   wealthTrend: 'increasing' | 'decreasing' | 'stable';
   zakatTrend: 'increasing' | 'decreasing' | 'stable';
-  averageGrowthRate: number;
-  totalWealth: {
-    min: number;
-    max: number;
-    average: number;
-    current: number;
-  };
-  totalZakat: {
-    min: number;
-    max: number;
-    average: number;
-    current: number;
-  };
-  insights: string[];
 }
 
 interface UseComparisonOptions {
@@ -34,7 +21,22 @@ interface UseComparisonOptions {
 }
 
 interface ComparisonResponse {
-  comparison: ComparisonResult;
+  snapshots: YearlySnapshot[];
+  summary?: ComparisonSummary;
+  notes?: string[];
+  insights?: string[];
+  totalWealth?: {
+    min: number;
+    max: number;
+    average: number;
+    current: number;
+  };
+  totalZakat?: {
+    min: number;
+    max: number;
+    average: number;
+    current: number;
+  };
 }
 
 /**

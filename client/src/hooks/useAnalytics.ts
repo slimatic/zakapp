@@ -25,19 +25,57 @@ interface UseAnalyticsOptions {
   enabled?: boolean;
 }
 
+interface AnalyticsMetadata {
+  period: string;
+  lastUpdated: string;
+  dataPoints: number;
+}
+
 interface AnalyticsResponse {
-  metric: AnalyticsMetric;
+  metric?: AnalyticsMetric;
+  data?: any;
+  metadata?: AnalyticsMetadata;
+  summary?: Record<string, number | string>;
 }
 
 /**
  * Fetches analytics metrics with caching
- * @param options - Query options including metric type and date range
+ * @param metricType - Type of analytics metric to fetch
+ * @param timeframe - Optional timeframe filter
  * @returns React Query result with analytics data
  */
 export function useAnalytics(
-  options: UseAnalyticsOptions
+  metricType: AnalyticsMetricType,
+  timeframe?: string
 ): UseQueryResult<AnalyticsResponse, Error> {
-  const { metricType, startDate, endDate, enabled = true } = options;
+  // Convert timeframe to date range if provided
+  const options = useMemo(() => {
+    const opts: UseAnalyticsOptions = { metricType, enabled: true };
+    
+    if (timeframe && timeframe !== 'all') {
+      const now = new Date();
+      const startDate = new Date();
+      
+      switch (timeframe) {
+        case '1y':
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+        case '3y':
+          startDate.setFullYear(now.getFullYear() - 3);
+          break;
+        case '5y':
+          startDate.setFullYear(now.getFullYear() - 5);
+          break;
+      }
+      
+      opts.startDate = startDate.toISOString();
+      opts.endDate = now.toISOString();
+    }
+    
+    return opts;
+  }, [metricType, timeframe]);
+
+  const { startDate, endDate, enabled = true } = options;
 
   // Updated staleTime to match optimized backend cache TTL (15-60 min based on metric type)
   const staleTimeMs = useMemo(() => {

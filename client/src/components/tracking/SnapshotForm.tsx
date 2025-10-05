@@ -4,11 +4,9 @@
  */
 
 import React, { useState } from 'react';
-import { clsx } from 'clsx';
 import type { CreateYearlySnapshotDto, UpdateYearlySnapshotDto, YearlySnapshot } from '@zakapp/shared/types/tracking';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { formatDualCalendar, gregorianToHijri, hijriToGregorian } from '../../utils/calendarConverter';
 
@@ -119,7 +117,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
 
       {error && (
         <div className="mb-6">
-          <ErrorMessage message={error} />
+          <ErrorMessage error={error} />
         </div>
       )}
 

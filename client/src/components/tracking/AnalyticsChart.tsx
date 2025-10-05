@@ -249,7 +249,10 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
           .filter(key => key !== 'period')
           .map((key, index) => ({
             name: key,
-            value: chartData.reduce((sum, item) => sum + (item[key] || 0), 0),
+            value: chartData.reduce((sum: number, item: any) => {
+              const val = item[key];
+              return sum + (typeof val === 'number' ? val : 0);
+            }, 0),
             fill: PIE_COLORS[index % PIE_COLORS.length]
           }));
 
@@ -261,7 +264,11 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={compact ? false : (entry) => `${entry.name}: ${formatPercentage(entry.value / pieData.reduce((sum, item) => sum + item.value, 0))}`}
+                label={compact ? false : (entry: any) => {
+                  const total = pieData.reduce((sum, item) => sum + item.value, 0);
+                  const value = typeof entry.value === 'number' ? entry.value : 0;
+                  return `${entry.name}: ${formatPercentage(value / total)}`;
+                }}
                 outerRadius={compact ? 80 : 100}
                 fill="#8884d8"
                 dataKey="value"
@@ -270,7 +277,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
                   <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => [formatCurrency(value), 'Amount']} />
+              <Tooltip formatter={(value: any) => [formatCurrency(typeof value === 'number' ? value : 0), 'Amount']} />
               {!compact && <Legend />}
             </PieChart>
           </ResponsiveContainer>
@@ -306,13 +313,13 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
       {analytics?.summary && !compact && (
         <div className="mt-6 pt-4 border-t border-gray-200">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {Object.entries(analytics.summary).map(([key, value]) => (
+            {Object.entries(analytics.summary).map(([key, value]: [string, any]) => (
               <div key={key} className="text-center">
                 <div className="text-sm font-medium text-gray-700 capitalize">
                   {key.replace(/_/g, ' ')}
                 </div>
                 <div className="text-lg font-bold text-gray-900">
-                  {typeof value === 'number' ? formatCurrency(value) : value}
+                  {typeof value === 'number' ? formatCurrency(value) : String(value)}
                 </div>
               </div>
             ))}
