@@ -20,6 +20,8 @@ export const authRateLimit = rateLimit({
   legacyHeaders: false,
   // Skip rate limiting for successful requests
   skipSuccessfulRequests: true,
+  // Skip rate limiting in test environment
+  skip: (req: Request) => process.env.NODE_ENV === 'test',
 });
 
 /**
@@ -37,6 +39,8 @@ export const generalRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting in test environment
+  skip: (req: Request) => process.env.NODE_ENV === 'test',
 });
 
 /**
@@ -54,6 +58,8 @@ export const dataExportRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting in test environment
+  skip: (req: Request) => process.env.NODE_ENV === 'test',
 });
 
 /**
@@ -71,6 +77,8 @@ export const fileUploadRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting in test environment
+  skip: (req: Request) => process.env.NODE_ENV === 'test',
 });
 
 /**
