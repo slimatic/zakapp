@@ -7,7 +7,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
-import type { YearlySnapshot, PaymentRecord, AnnualSummary } from '@zakapp/shared/types/tracking';
+import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
 import { formatCategoryName } from './chartFormatter';
 import { formatDualCalendar } from './calendarConverter';
 

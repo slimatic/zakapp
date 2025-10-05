@@ -153,7 +153,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b">
                 Metric
               </th>
-              {snapshots.map((snapshot, index) => (
+              {snapshots.map((snapshot: YearlySnapshot, index: number) => (
                 <th 
                   key={snapshot.id} 
                   className="px-4 py-3 text-center text-sm font-medium text-gray-700 border-b min-w-32"
@@ -180,7 +180,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                 <td className={`px-4 py-3 text-sm font-medium ${row.highlight ? 'text-green-800' : 'text-gray-700'}`}>
                   {row.label}
                 </td>
-                {snapshots.map((snapshot) => {
+                {snapshots.map((snapshot: YearlySnapshot) => {
                   let value: string;
                   
                   if (row.field === 'derived') {
@@ -274,7 +274,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h4 className="text-sm font-medium text-blue-800 mb-2">Comparison Notes</h4>
           <ul className="text-sm text-blue-700 space-y-1">
-            {comparison.notes.map((note, index) => (
+            {comparison.notes.map((note: string, index: number) => (
               <li key={index}>• {note}</li>
             ))}
           </ul>

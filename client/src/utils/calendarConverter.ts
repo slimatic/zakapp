@@ -5,7 +5,7 @@
  */
 
 import { toHijri, toGregorian } from 'hijri-converter';
-import { format, parse, isValid, addDays as addDaysGregorian } from 'date-fns';
+import { format, isValid, addDays as addDaysGregorian } from 'date-fns';
 
 /**
  * Hijri date object structure
