@@ -59,16 +59,16 @@ This is a web application with the following structure:
 - [x] T027 [P] AnalyticsMetric Prisma model validations in backend/src/models/AnalyticsMetric.ts
 - [x] T028 [P] AnnualSummary Prisma model validations in backend/src/models/AnnualSummary.ts
 - [x] T029 [P] ReminderEvent Prisma model validations in backend/src/models/ReminderEvent.ts
-- [ ] **🔸 COMMIT CHECKPOINT**: feat: Implement data models for tracking entities
+- [x] **🔸 COMMIT CHECKPOINT**: feat: Implement data models for tracking entities
 
 ## Phase 3.4: Core Implementation - Services
-- [ ] T030 [P] SnapshotService with CRUD + finalize in backend/src/services/SnapshotService.ts
-- [ ] T031 [P] PaymentService with CRUD + aggregation in backend/src/services/PaymentService.ts
-- [ ] T032 [P] AnalyticsService with caching logic in backend/src/services/AnalyticsService.ts
-- [ ] T033 [P] SummaryService with annual report generation in backend/src/services/SummaryService.ts
-- [ ] T034 [P] ReminderService with trigger calculation in backend/src/services/ReminderService.ts
-- [ ] T035 [P] CalendarService with Hijri conversion in backend/src/services/CalendarService.ts
-- [ ] T036 ComparisonService with multi-snapshot analysis in backend/src/services/ComparisonService.ts
+- [x] T030 [P] SnapshotService with CRUD + finalize in server/src/services/YearlySnapshotService.ts ✅
+- [ ] T031 [P] PaymentService with CRUD + aggregation in server/src/services/PaymentRecordService.ts
+- [ ] T032 [P] AnalyticsService with caching logic in server/src/services/AnalyticsService.ts
+- [ ] T033 [P] SummaryService with annual report generation in server/src/services/AnnualSummaryService.ts
+- [ ] T034 [P] ReminderService with trigger calculation in server/src/services/ReminderService.ts
+- [ ] T035 [P] CalendarService with Hijri conversion in server/src/services/CalendarService.ts
+- [ ] T036 ComparisonService with multi-snapshot analysis in server/src/services/ComparisonService.ts
 - [ ] **🔸 COMMIT CHECKPOINT**: feat: Implement business logic services for tracking
 
 ## Phase 3.5: Core Implementation - API Routes
