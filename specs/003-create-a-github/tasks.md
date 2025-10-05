@@ -218,23 +218,30 @@ Task T007: cat backend/package.json | grep -A 5 '"scripts"'
 ## Phase 3.7: Documentation Updates
 **Purpose**: Update documentation to reflect actual CI/CD state
 
-- [ ] **T028** [P] Update `CI-CD-SETUP.md` to reflect resolved issues
-  - Update "Known Issues" section to mark issues as RESOLVED
-  - Remove or update section about process.exit() workaround
-  - Document current workflow behavior accurately
-  - Add troubleshooting section for common issues
-  - Update verification commands to match current setup
+- [x] **T028** [P] Update `CI-CD-SETUP.md` to reflect resolved issues
+  - ✓ Updated coverage generation section to show RESOLVED status
+  - ✓ Documented all fixes: process.exit removal, rate limiting, encryption, test isolation
+  - ✓ Updated workflow descriptions with quality gates
+  - ✓ Added comprehensive troubleshooting section
+  - ✓ Documented current test status (9/14 suites passing)
+  - ✓ Updated Jest configuration documentation
 
-- [ ] **T029** [P] Create or update CI/CD troubleshooting guide
-  - Document how to reproduce test failures locally
-  - Add section on debugging coverage generation issues
-  - Include Node.js version testing instructions (using nvm)
-  - Add GitHub Actions debugging tips
+- [x] **T029** [P] Create or update CI/CD troubleshooting guide
+  - ✓ Added troubleshooting section to CI-CD-SETUP.md with 6 common issues:
+    * Coverage file not generated
+    * Rate limiting errors
+    * Duplicate registration errors
+    * Jest hanging/not exiting
+    * Encryption test failures
+    * Playwright tests in Jest
+  - ✓ Included Node.js version testing with nvm
+  - ✓ Added debugging tips and solutions for each issue
 
-- [ ] **T030** [P] Update README.md with workflow status badges (optional)
-  - Add GitHub Actions status badges for test and build workflows
-  - Example: `![Tests](https://github.com/slimatic/zakapp/actions/workflows/test.yml/badge.svg)`
-  - Add Codecov badge for coverage visualization
+- [x] **T030** [P] Update README.md with workflow status badges (optional)
+  - ✓ Replaced static badges with GitHub Actions workflow status badges
+  - ✓ Added Test workflow badge: `![Tests](...workflows/test.yml/badge.svg)`
+  - ✓ Added Build workflow badge: `![Build](...workflows/build.yml/badge.svg)`
+  - ✓ Added Codecov badge for coverage visualization
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit documentation updates with message "docs: update CI-CD documentation to reflect workflow improvements"
 
