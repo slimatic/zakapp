@@ -38,6 +38,14 @@ jobs:
     - name: Run backend tests with coverage
       run: cd backend && npm run test:coverage
 
+    - name: Verify backend coverage file exists
+      run: |
+        if [ ! -f backend/coverage/coverage-final.json ]; then
+          echo "ERROR: Backend coverage file not generated"
+          exit 1
+        fi
+        echo "✓ Coverage file generated successfully"
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
