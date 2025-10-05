@@ -9,6 +9,17 @@ import { AnnualSummaryService } from '../services/AnnualSummaryService';
 import { ReminderService } from '../services/ReminderService';
 import { CalendarConversionService } from '../services/CalendarConversionService';
 import { ComparisonService } from '../services/ComparisonService';
+import {
+  snapshotRateLimit,
+  analyticsRateLimit,
+  paymentRateLimit,
+  validateUserOwnership,
+  validateSnapshotId,
+  validatePaymentId,
+  validatePagination,
+  validateDateRange,
+  validateComparisonIds,
+} from '../middleware/security';
 
 const router = express.Router();
 
@@ -74,7 +85,7 @@ function sendError(res: Response, code: string, message: string, statusCode: num
  * Create a new yearly snapshot
  * @route T037
  */
-router.post('/snapshots', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -145,7 +156,7 @@ router.post('/snapshots', authenticate, async (req: AuthenticatedRequest, res: R
  * List all snapshots with pagination
  * @route T038
  */
-router.get('/snapshots', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/snapshots', authenticate, validateUserOwnership, validatePagination, snapshotRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -157,10 +168,6 @@ router.get('/snapshots', authenticate, async (req: AuthenticatedRequest, res: Re
     const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || 'desc';
     const status = req.query.status as 'draft' | 'finalized' | 'all';
     const year = req.query.year ? parseInt(req.query.year as string) : undefined;
-
-    if (page < 1 || limit < 1 || limit > 100) {
-      return sendError(res, 'VALIDATION_ERROR', 'Invalid pagination parameters (page >= 1, 1 <= limit <= 100)', 400);
-    }
 
     const result = await snapshotService.listSnapshots(userId, {
       page,
@@ -185,7 +192,7 @@ router.get('/snapshots', authenticate, async (req: AuthenticatedRequest, res: Re
  * Get a single snapshot by ID
  * @route T039
  */
-router.get('/snapshots/:id', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/snapshots/:id', authenticate, validateUserOwnership, validateSnapshotId, snapshotRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -216,7 +223,7 @@ router.get('/snapshots/:id', authenticate, async (req: AuthenticatedRequest, res
  * Update a snapshot (only if not finalized)
  * @route T040
  */
-router.put('/snapshots/:id', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/snapshots/:id', authenticate, validateUserOwnership, validateSnapshotId, snapshotRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -284,7 +291,7 @@ router.put('/snapshots/:id', authenticate, async (req: AuthenticatedRequest, res
  * Delete a snapshot
  * @route T041
  */
-router.delete('/snapshots/:id', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/snapshots/:id', authenticate, validateUserOwnership, validateSnapshotId, snapshotRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -317,7 +324,7 @@ router.delete('/snapshots/:id', authenticate, async (req: AuthenticatedRequest, 
  * Finalize a snapshot (make it immutable)
  * @route T042
  */
-router.post('/snapshots/:id/finalize', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/snapshots/:id/finalize', authenticate, validateUserOwnership, validateSnapshotId, snapshotRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -354,7 +361,7 @@ router.post('/snapshots/:id/finalize', authenticate, async (req: AuthenticatedRe
  * Compare multiple snapshots
  * @route T043
  */
-router.get('/comparison', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/comparison', authenticate, validateUserOwnership, validateComparisonIds, analyticsRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -400,7 +407,7 @@ router.get('/comparison', authenticate, async (req: AuthenticatedRequest, res: R
  * GET /api/tracking/snapshots/:id/payments
  * Get all payment records for a snapshot
  */
-router.get('/snapshots/:id/payments', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/snapshots/:id/payments', authenticate, validateUserOwnership, validateSnapshotId, paymentRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -428,7 +435,7 @@ router.get('/snapshots/:id/payments', authenticate, async (req: AuthenticatedReq
  * GET /api/tracking/reminders
  * Get all reminders for the user
  */
-router.get('/reminders', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/reminders', authenticate, validateUserOwnership, snapshotRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -451,7 +458,7 @@ router.get('/reminders', authenticate, async (req: AuthenticatedRequest, res: Re
  * POST /api/tracking/reminders/trigger
  * Trigger automatic reminders for the user
  */
-router.post('/reminders/trigger', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/reminders/trigger', authenticate, validateUserOwnership, snapshotRateLimit, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId;
     if (!userId) {
