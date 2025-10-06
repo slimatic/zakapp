@@ -357,6 +357,63 @@ router.post('/snapshots/:id/finalize', authenticate, validateUserOwnership, vali
 });
 
 /**
+ * GET /api/tracking/analytics/metrics
+ * Fetch analytics metrics with caching
+ */
+router.get('/analytics/metrics', authenticate, validateUserOwnership, analyticsRateLimit, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return sendError(res, 'UNAUTHORIZED', 'User not authenticated', 401);
+    }
+
+    const metricType = req.query.metricType as string;
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+
+    if (!metricType) {
+      return sendError(res, 'VALIDATION_ERROR', 'metricType query parameter is required', 400);
+    }
+
+    const validMetricTypes = [
+      'wealth_trend',
+      'zakat_trend',
+      'payment_distribution',
+      'asset_composition',
+      'yearly_comparison',
+      'nisab_compliance',
+      'payment_consistency'
+    ];
+
+    if (!validMetricTypes.includes(metricType)) {
+      return sendError(res, 'VALIDATION_ERROR', `Invalid metricType. Must be one of: ${validMetricTypes.join(', ')}`, 400);
+    }
+
+    const metric = await analyticsService.getMetric(userId, metricType, {
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined
+    });
+
+    sendSuccess(res, {
+      metric,
+      data: metric?.calculatedValue,
+      metadata: {
+        period: startDate && endDate ? `${startDate} to ${endDate}` : 'all time',
+        lastUpdated: metric?.calculatedAt?.toISOString() || new Date().toISOString(),
+        dataPoints: Array.isArray(metric?.calculatedValue) ? metric.calculatedValue.length : 1
+      },
+      summary: {
+        metricType,
+        cached: metric ? true : false
+      }
+    });
+  } catch (error: any) {
+    console.error('Error fetching analytics metrics:', error);
+    sendError(res, 'INTERNAL_ERROR', 'Failed to fetch analytics metrics', 500);
+  }
+});
+
+/**
  * GET /api/tracking/comparison
  * Compare multiple snapshots
  * @route T043

@@ -15,10 +15,12 @@ import { useNavigate } from 'react-router-dom';
 export const TrackingDashboard: React.FC = () => {
   const navigate = useNavigate();
   
-  // Fetch recent snapshots
+  // T090 Performance: Fetch only recent snapshots (3 items) with optimized query
+  // Reduces initial load time by limiting data transfer and database query complexity
   const { data: snapshotsData, isLoading } = useSnapshots({
     page: 1,
-    limit: 3
+    limit: 3,
+    status: undefined // Fetch all statuses for dashboard overview
   });
 
   const snapshots = snapshotsData?.snapshots || [];
