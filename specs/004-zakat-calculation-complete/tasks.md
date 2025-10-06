@@ -988,7 +988,7 @@ Mark tasks as complete using [X]:
 - [X] T118: Install hijri-converter library
 - [X] T119: Create CalendarService
 - [X] T120: Add calendar preference to user settings
-- [ ] T121: Implement date conversion API endpoints
+- [X] T121: Implement date conversion API endpoints
 - [ ] T122: Create CalendarSelector component
 - [ ] T123: Add calendar toggle to user profile
 - [ ] T124: Test calendar conversions and edge cases
