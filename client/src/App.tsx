@@ -19,6 +19,7 @@ import { GettingStarted } from './components/help/GettingStarted';
 // Estimated savings: ~150KB minified (~45KB gzipped) for tracking feature code
 const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
 const SnapshotsPage = lazy(() => import('./pages/SnapshotsPage').then(m => ({ default: m.SnapshotsPage })));
+const CreateSnapshotPage = lazy(() => import('./pages/CreateSnapshotPage').then(m => ({ default: m.CreateSnapshotPage })));
 const SnapshotDetailPage = lazy(() => import('./pages/SnapshotDetailPage').then(m => ({ default: m.SnapshotDetailPage })));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
@@ -135,6 +136,18 @@ function App() {
                   <Layout>
                     <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
                       <SnapshotsPage />
+                    </Suspense>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/snapshots/new" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <CreateSnapshotPage />
                     </Suspense>
                   </Layout>
                 </ProtectedRoute>
