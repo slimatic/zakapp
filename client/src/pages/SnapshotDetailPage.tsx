@@ -20,7 +20,9 @@ import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 export const SnapshotDetailPage: React.FC = () => {
   const { snapshotId } = useParams<{ snapshotId: string }>();
   const navigate = useNavigate();
-  const [isEditMode, setIsEditMode] = useState(false);
+  // Check if URL ends with /edit to automatically enable edit mode
+  const isEditRoute = window.location.pathname.endsWith('/edit');
+  const [isEditMode, setIsEditMode] = useState(isEditRoute);
 
   const { data: snapshotsData, isLoading } = useSnapshots({
     page: 1,
