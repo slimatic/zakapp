@@ -23,10 +23,10 @@
 
 | ID | Task | Estimate | Status | Notes |
 |----|------|----------|--------|-------|
-| T118 | Install and configure hijri-converter library | 30min | ⏳ TODO | - |
-| T119 | Create CalendarService with conversion utilities | 2h | ⏳ TODO | - |
-| T120 | Add calendar preference to user settings | 1h | ⏳ TODO | - |
-| T121 | Implement date conversion API endpoints | 1.5h | ⏳ TODO | - |
+| T118 | Install and configure hijri-converter library | 30min | ✅ DONE | Already installed |
+| T119 | Create CalendarService with conversion utilities | 2h | ✅ DONE | Complete with all methods |
+| T120 | Add calendar preference to user settings | 1h | ✅ DONE | Schema updated, migration applied |
+| T121 | Implement date conversion API endpoints | 1.5h | ✅ DONE | 6 endpoints created |
 | T122 | Create CalendarSelector component | 2h | ⏳ TODO | - |
 | T123 | Add calendar toggle to user profile | 1h | ⏳ TODO | - |
 | T124 | Test calendar conversions and edge cases | 2h | ⏳ TODO | - |
