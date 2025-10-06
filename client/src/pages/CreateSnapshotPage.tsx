@@ -24,9 +24,30 @@ export const CreateSnapshotPage: React.FC = () => {
         throw new Error('No authentication token found');
       }
 
-      // Get current date information
-      const now = new Date();
-      const calculationDate = now.toISOString();
+      // Use form data directly - it already includes calculationDate from SnapshotForm
+      const payload = {
+        calculationDate: snapshotData.calculationDate,
+        gregorianYear: snapshotData.gregorianYear,
+        gregorianMonth: snapshotData.gregorianMonth,
+        gregorianDay: snapshotData.gregorianDay,
+        hijriYear: snapshotData.hijriYear,
+        hijriMonth: snapshotData.hijriMonth,
+        hijriDay: snapshotData.hijriDay,
+        totalWealth: snapshotData.totalWealth,
+        totalLiabilities: snapshotData.totalLiabilities,
+        zakatableWealth: snapshotData.zakatableWealth,
+        zakatAmount: snapshotData.zakatAmount,
+        methodologyUsed: snapshotData.methodologyUsed,
+        nisabThreshold: snapshotData.nisabThreshold,
+        nisabType: snapshotData.nisabType,
+        status: snapshotData.status || 'draft',
+        assetBreakdown: snapshotData.assetBreakdown || {},
+        calculationDetails: snapshotData.calculationDetails || {},
+        userNotes: snapshotData.userNotes || '',
+        isPrimary: snapshotData.isPrimary || false
+      };
+
+      console.log('Creating snapshot with payload:', payload);
 
       const response = await fetch(`${API_BASE_URL}/tracking/snapshots`, {
         method: 'POST',
@@ -34,32 +55,17 @@ export const CreateSnapshotPage: React.FC = () => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          calculationDate,
-          gregorianYear: now.getFullYear(),
-          gregorianMonth: now.getMonth() + 1,
-          gregorianDay: now.getDate(),
-          hijriYear: snapshotData.hijriYear || now.getFullYear() - 579, // Approximate
-          hijriMonth: snapshotData.hijriMonth || 1,
-          hijriDay: snapshotData.hijriDay || 1,
-          totalWealth: snapshotData.totalWealth || 0,
-          totalLiabilities: snapshotData.totalLiabilities || 0,
-          zakatAmount: snapshotData.zakatAmount || 0,
-          methodologyUsed: snapshotData.methodologyUsed || 'standard',
-          assetBreakdown: snapshotData.assetBreakdown || {},
-          calculationDetails: snapshotData.calculationDetails || {},
-          userNotes: snapshotData.userNotes || '',
-          status: 'draft'
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Failed to create snapshot' }));
+        console.error('Backend error:', error);
         throw new Error(error.error?.message || error.message || 'Failed to create snapshot');
       }
 
       const result = await response.json();
-      const createdSnapshot = result.data.snapshot;
+      const createdSnapshot = result.data?.snapshot || result.snapshot;
 
       alert('Snapshot created successfully!');
       navigate(`/tracking/snapshots/${createdSnapshot.id}`);
