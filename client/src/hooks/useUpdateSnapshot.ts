@@ -36,7 +36,7 @@ export function useUpdateSnapshot(): UseMutationResult<
       }
 
       const response = await fetch(`${API_BASE_URL}/tracking/snapshots/${id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
