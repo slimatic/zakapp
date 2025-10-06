@@ -54,7 +54,16 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
   const [calendarLock, setCalendarLock] = useState<'gregorian' | 'hijri'>('gregorian');
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Auto-calculate zakatable wealth when wealth or liabilities change
+      if (field === 'totalWealth' || field === 'totalLiabilities') {
+        updated.zakatableWealth = Math.max(0, updated.totalWealth - updated.totalLiabilities);
+      }
+      
+      return updated;
+    });
   };
 
   // Sync calendars when date changes
@@ -101,9 +110,11 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
   };
 
   const handleCalculateZakat = () => {
-    // Simple 2.5% calculation for demo
-    const zakatAmount = Math.max(0, (formData.zakatableWealth - formData.nisabThreshold) * 0.025);
-    handleInputChange('zakatAmount', zakatAmount);
+    // Calculate Zakat at 2.5% of zakatable wealth (if above nisab)
+    const zakatAmount = formData.zakatableWealth >= formData.nisabThreshold 
+      ? formData.zakatableWealth * 0.025 
+      : 0;
+    handleInputChange('zakatAmount', Math.round(zakatAmount * 100) / 100); // Round to 2 decimals
   };
 
   return (
