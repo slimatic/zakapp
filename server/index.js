@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const zakatRoutes = require('./routes/zakat');
 const assetRoutes = require('./routes/assets');
+const trackingRoutes = require('./routes/tracking');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -47,6 +48,7 @@ app.use('/api/auth', (req, res, next) => {
 app.use('/api/user', userRoutes);
 app.use('/api/zakat', zakatRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/tracking', trackingRoutes);
 
 // API info endpoint
 app.get('/api', (req, res) => {

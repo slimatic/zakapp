@@ -92,6 +92,10 @@ router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit
       return sendError(res, 'UNAUTHORIZED', 'User not authenticated', 401);
     }
 
+    console.log('📸 CREATE SNAPSHOT REQUEST');
+    console.log('User ID:', userId);
+    console.log('Request Body:', JSON.stringify(req.body, null, 2));
+
     const {
       calculationDate,
       gregorianYear,
@@ -114,10 +118,21 @@ router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit
       isPrimary
     } = req.body;
 
+    console.log('📋 PARSED FIELDS:');
+    console.log('calculationDate:', calculationDate);
+    console.log('gregorianYear:', gregorianYear);
+    console.log('hijriYear:', hijriYear);
+    console.log('totalWealth:', totalWealth, typeof totalWealth);
+    console.log('totalLiabilities:', totalLiabilities, typeof totalLiabilities);
+    console.log('zakatAmount:', zakatAmount, typeof zakatAmount);
+
     // Validation
     if (!calculationDate || !gregorianYear || !hijriYear || totalWealth === undefined || totalLiabilities === undefined || zakatAmount === undefined) {
+      console.error('❌ VALIDATION FAILED - Missing required fields');
       return sendError(res, 'VALIDATION_ERROR', 'Missing required fields', 400);
     }
+
+    console.log('✅ Validation passed, calling snapshotService.createSnapshot...');
 
     const snapshot = await snapshotService.createSnapshot(userId, {
       calculationDate,
@@ -141,13 +156,18 @@ router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit
       isPrimary
     });
 
+    console.log('✅ Snapshot created successfully:', snapshot.id);
     sendSuccess(res, { snapshot }, 201);
   } catch (error: any) {
-    console.error('Error creating snapshot:', error);
+    console.error('❌ ERROR CREATING SNAPSHOT:');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Error object:', error);
+    
     if (error.message?.includes('already exists')) {
       return sendError(res, 'DUPLICATE_SNAPSHOT', error.message, 409);
     }
-    sendError(res, 'INTERNAL_ERROR', 'Failed to create snapshot', 500);
+    sendError(res, 'INTERNAL_ERROR', `Failed to create snapshot: ${error.message}`, 500);
   }
 });
 
