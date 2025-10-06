@@ -21,6 +21,11 @@ model User {
   lastLoginAt    DateTime?
   updatedAt      DateTime @updatedAt
 
+  // Zakat Preferences (Feature 004)
+  preferredCalendar     String?   @default("gregorian") // 'hijri' or 'gregorian'
+  preferredMethodology  String?   @default("standard")  // 'standard', 'hanafi', 'shafi', 'custom'
+  lastZakatDate         DateTime? // Last Zakat payment date for calculating next due date
+
   // Relationships
   assets           Asset[]
   liabilities      Liability[]
@@ -35,6 +40,9 @@ model User {
   analyticsMetrics AnalyticsMetric[] @relation("UserAnalyticsMetrics")
   annualSummaries  AnnualSummary[]   @relation("UserAnnualSummaries")
   reminderEvents   ReminderEvent[]   @relation("UserReminderEvents")
+
+  // Calculation History (Feature 004)
+  calculationHistory CalculationHistory[]
 
   @@map("users")
 }
@@ -544,4 +552,38 @@ model ReminderEvent {
   @@index([userId, eventType])
   @@index([userId, status, triggerDate])
   @@index([userId, priority, status])
+}
+
+model CalculationHistory {
+  id                String   @id @default(cuid())
+  userId            String
+  
+  // Methodology and Calendar Info
+  methodology       String   // 'standard', 'hanafi', 'shafi', 'custom'
+  calendarType      String   // 'hijri', 'gregorian'
+  calculationDate   DateTime @default(now())
+  
+  // Calculation Results
+  totalWealth       String   // Encrypted
+  nisabThreshold    String   // Encrypted
+  zakatDue          String   // Encrypted
+  zakatRate         Float    @default(2.5)
+  
+  // Detailed Asset Breakdown (encrypted JSON)
+  assetBreakdown    String   // Encrypted JSON of asset categories and values
+  
+  // User Notes and Metadata
+  notes             String?  // Encrypted
+  metadata          String?  // Encrypted JSON for additional calculation details
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relationships
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("calculation_history")
+  @@index([userId, calculationDate])
+  @@index([userId, methodology])
+  @@index([calculationDate])
 }
