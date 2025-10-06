@@ -13,9 +13,10 @@ import { formatDualCalendar, gregorianToHijri, hijriToGregorian } from '../../ut
 interface SnapshotFormProps {
   snapshot?: YearlySnapshot; // For editing existing snapshot
   onSubmit: (data: CreateYearlySnapshotDto | UpdateYearlySnapshotDto) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
   isLoading?: boolean;
   error?: string | null;
+  submitButtonText?: string;
 }
 
 export const SnapshotForm: React.FC<SnapshotFormProps> = ({
@@ -23,7 +24,8 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
   onSubmit,
   onCancel,
   isLoading = false,
-  error = null
+  error = null,
+  submitButtonText = 'Save Snapshot'
 }) => {
   const isEditMode = !!snapshot;
   
@@ -352,21 +354,23 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
 
         {/* Form Actions */}
         <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
+          {onCancel && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onCancel}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+          )}
           
           <Button
             type="submit"
             disabled={isLoading}
             isLoading={isLoading}
           >
-            {isEditMode ? 'Update Snapshot' : 'Create Snapshot'}
+            {submitButtonText || (isEditMode ? 'Update Snapshot' : 'Create Snapshot')}
           </Button>
         </div>
       </form>

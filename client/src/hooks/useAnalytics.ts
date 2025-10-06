@@ -56,15 +56,23 @@ export function useAnalytics(
       const now = new Date();
       const startDate = new Date();
       
+      // Support multiple timeframe formats
       switch (timeframe) {
         case '1y':
+        case 'last_year':
           startDate.setFullYear(now.getFullYear() - 1);
           break;
         case '3y':
+        case 'last_3_years':
           startDate.setFullYear(now.getFullYear() - 3);
           break;
         case '5y':
+        case 'last_5_years':
           startDate.setFullYear(now.getFullYear() - 5);
+          break;
+        case '10y':
+        case 'last_10_years':
+          startDate.setFullYear(now.getFullYear() - 10);
           break;
       }
       

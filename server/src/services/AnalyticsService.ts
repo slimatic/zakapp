@@ -4,8 +4,7 @@ import { PaymentRecordModel } from '../models/PaymentRecord';
 import { EncryptionService } from './EncryptionService';
 import {
   AnalyticsMetric,
-  AnalyticsMetricType,
-  VisualizationType
+  AnalyticsMetricType
 } from '@zakapp/shared/types/tracking';
 
 /**
@@ -53,7 +52,7 @@ export class AnalyticsService {
    * @param metric - Encrypted metric
    * @returns Decrypted metric
    */
-  private async decryptMetricData(metric: any): Promise<AnalyticsMetric> {
+  private async decryptMetricData(metric: AnalyticsMetric): Promise<AnalyticsMetric> {
     if (!metric) return metric;
 
     const decrypted = { ...metric };
@@ -72,7 +71,7 @@ export class AnalyticsService {
           await EncryptionService.decrypt(metric.parameters, this.encryptionKey)
         );
       }
-    } catch (error) {
+    } catch {
       // If decryption fails, might already be decrypted JSON
       if (typeof metric.calculatedValue === 'object') {
         decrypted.calculatedValue = metric.calculatedValue;
@@ -414,6 +413,55 @@ export class AnalyticsService {
     );
 
     return await this.decryptMetricData(metric);
+  }
+
+  /**
+   * Generic method to get any metric type
+   * @param userId - User ID
+   * @param metricType - Type of metric to fetch
+   * @param options - Optional start/end dates
+   * @returns Analytics metric or null if no data
+   */
+  async getMetric(
+    userId: string,
+    metricType: AnalyticsMetricType | string,
+    options?: { startDate?: Date; endDate?: Date }
+  ): Promise<AnalyticsMetric | null> {
+    const now = new Date();
+    const startDate = options?.startDate || new Date(now.getFullYear() - 5, 0, 1);
+    const endDate = options?.endDate || now;
+
+    try {
+      switch (metricType) {
+        case 'wealth_trend':
+          return await this.getWealthTrend(userId, startDate, endDate);
+        case 'zakat_trend':
+          return await this.getZakatTrend(userId, startDate, endDate);
+        case 'payment_distribution':
+          return await this.getPaymentDistribution(userId, startDate, endDate);
+        case 'asset_composition':
+          return await this.getAssetComposition(userId, startDate, endDate);
+        case 'yearly_comparison':
+          // yearly_comparison expects years array, extract from date range
+          const years = [];
+          for (let year = startDate.getFullYear(); year <= endDate.getFullYear(); year++) {
+            years.push(year);
+          }
+          return await this.getYearlyComparison(userId, years);
+        case 'nisab_compliance':
+        case 'payment_consistency':
+          // These metrics not yet implemented, return null
+          return null;
+        default:
+          throw new Error(`Unknown metric type: ${metricType}`);
+      }
+    } catch (error) {
+      // Log error but don't expose internal details
+      if (error instanceof Error) {
+        throw error;
+      }
+      return null;
+    }
   }
 
   /**

@@ -23,7 +23,6 @@ import {
 } from 'recharts';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { ErrorMessage } from '../ui/ErrorMessage';
 import { formatCurrency, formatPercentage, formatCompactNumber } from '../../utils/formatters';
 import { formatChartData } from '../../utils/chartFormatters';
 import type { AnalyticsMetricType, VisualizationType } from '@zakapp/shared/types/tracking';
@@ -126,20 +125,39 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
 
   if (error) {
     return (
-      <div className="py-8">
-        <ErrorMessage error={error} />
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6" style={{ minHeight: compact ? 200 : height }}>
+        <div className="flex items-start">
+          <svg className="h-6 w-6 text-red-600 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 className="text-sm font-medium text-red-800">Failed to load analytics</h3>
+            <p className="text-sm text-red-700 mt-1">
+              {error.message || 'Unable to fetch analytics data. Please try again later.'}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-sm text-red-800 underline mt-2 hover:text-red-900"
+            >
+              Refresh page
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center text-gray-500" style={{ height }}>
-        <svg className="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="flex flex-col items-center justify-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200" style={{ height: compact ? 200 : height }}>
+        <svg className="h-16 w-16 mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 00-2 2h-2a2 2 0 00-2-2z" />
         </svg>
-        <p className="text-center">
-          No data available for {title || metricType.replace('_', ' ')}
+        <p className="text-center font-medium text-gray-700">
+          No data available
+        </p>
+        <p className="text-sm text-gray-500 mt-1">
+          Create some snapshots to see {title || metricType.replace(/_/g, ' ')}
         </p>
       </div>
     );
