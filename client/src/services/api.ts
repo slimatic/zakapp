@@ -318,6 +318,65 @@ class ApiService {
       };
     }
   }
+
+  // Calendar Methods
+  async convertCalendarDate(from: 'hijri' | 'gregorian', to: 'hijri' | 'gregorian', date: Date | { year: number; month: number; day: number }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/convert`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ from, to, date })
+    });
+    return this.handleResponse(response);
+  }
+
+  async getNextZakatDate(lastDate?: string, calendarType?: 'hijri' | 'gregorian'): Promise<ApiResponse> {
+    const params = new URLSearchParams();
+    if (lastDate) params.append('lastDate', lastDate);
+    if (calendarType) params.append('calendarType', calendarType);
+    
+    const response = await fetch(`${API_BASE_URL}/calendar/next-zakat-date?${params}`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getCurrentHijriDate(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/current-hijri`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getHijriMonthNames(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/hijri-month-names`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateCalendarPreferences(preferences: {
+    preferredCalendar?: 'hijri' | 'gregorian';
+    preferredMethodology?: 'standard' | 'hanafi' | 'shafi' | 'custom';
+    lastZakatDate?: string;
+  }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/preferences`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(preferences)
+    });
+    return this.handleResponse(response);
+  }
+
+  async getCalendarPreferences(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/preferences`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
 }
 
 export const apiService = new ApiService();
