@@ -990,8 +990,8 @@ Mark tasks as complete using [X]:
 - [X] T120: Add calendar preference to user settings
 - [X] T121: Implement date conversion API endpoints
 - [X] T122: Create CalendarSelector component
-- [ ] T123: Add calendar toggle to user profile
-- [ ] T124: Test calendar conversions and edge cases
+- [X] T123: Add calendar toggle to user profile
+- [X] T124: Test calendar conversions and edge cases
 - [ ] T125: Design methodology card components
 - [ ] T126: Create MethodologySelector component
 - [ ] T127: Add methodology comparison view
