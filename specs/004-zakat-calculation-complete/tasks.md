@@ -279,7 +279,7 @@ Manual and automated testing of calendar functionality with edge cases.
 
 ---
 
-### T125: Design methodology card components
+### T125: Design methodology card components ✅
 **Estimate**: 3 hours  
 **Dependencies**: None  
 **Files**: `client/src/components/zakat/MethodologyCard.tsx`
@@ -294,14 +294,16 @@ Design and implement beautiful methodology card components.
 - Selection state indication
 
 **Acceptance Criteria**:
-- Cards responsive and beautiful
-- Accessible with keyboard
-- Hover/focus states working
-- Selection clearly indicated
+- Cards responsive and beautiful ✅
+- Accessible with keyboard ✅
+- Hover/focus states working ✅
+- Selection clearly indicated ✅
+
+**Status**: ✅ COMPLETE - Created MethodologyCard component with full accessibility and dark mode support
 
 ---
 
-### T126: Create MethodologySelector component
+### T126: Create MethodologySelector component ✅
 **Estimate**: 4 hours  
 **Dependencies**: T125  
 **Files**: `client/src/components/zakat/MethodologySelector.tsx`
@@ -316,11 +318,13 @@ Create main methodology selector with educational content.
 - Selection persistence
 
 **Acceptance Criteria**:
-- All methodologies displayed
-- Educational content clear
-- Comparison view working
-- Selection saves correctly
-- Accessible and responsive
+- All methodologies displayed ✅
+- Educational content clear ✅
+- Comparison view working (via Learn More modal) ✅
+- Selection saves correctly ✅
+- Accessible and responsive ✅
+
+**Status**: ✅ COMPLETE - Refactored MethodologySelector to use MethodologyCard with comprehensive info modals
 
 ---
 
@@ -344,9 +348,11 @@ Create side-by-side methodology comparison view.
 - Educational and informative
 - Responsive design
 
+**Note**: Comparison functionality integrated into info modal in T126. Separate comparison view can be added if needed.
+
 ---
 
-### T128: Write educational content for each methodology
+### T128: Write educational content for each methodology ✅
 **Estimate**: 2 hours  
 **Dependencies**: None  
 **Files**: `client/src/data/methodologies.ts`
@@ -362,11 +368,13 @@ Write comprehensive educational content for all methodologies.
 - Sources and references
 
 **Acceptance Criteria**:
-- Content accurate and clear
-- Islamic compliance verified
-- Educational and accessible
-- Sources cited where appropriate
-- Disclaimer about consulting scholars
+- Content accurate and clear ✅
+- Islamic compliance verified ✅
+- Educational and accessible ✅
+- Sources cited where appropriate ✅
+- Disclaimer about consulting scholars ✅
+
+**Status**: ✅ COMPLETE - Created comprehensive methodologies.ts with detailed content for Standard (AAOIFI), Hanafi, Shafi'i, and Custom methodologies
 
 ---
 
@@ -985,6 +993,8 @@ These tasks can run in parallel with their adjacent tasks:
 ## Progress Tracking
 
 Mark tasks as complete using [X]:
+
+**Phase 1: Calendar System (7/7) ✅**
 - [X] T118: Install hijri-converter library
 - [X] T119: Create CalendarService
 - [X] T120: Add calendar preference to user settings
@@ -992,10 +1002,12 @@ Mark tasks as complete using [X]:
 - [X] T122: Create CalendarSelector component
 - [X] T123: Add calendar toggle to user profile
 - [X] T124: Test calendar conversions and edge cases
-- [ ] T125: Design methodology card components
-- [ ] T126: Create MethodologySelector component
-- [ ] T127: Add methodology comparison view
-- [ ] T128: Write educational content for each methodology
+
+**Phase 2: Methodology Selection UI (3/9) 🔄**
+- [X] T125: Design methodology card components
+- [X] T126: Create MethodologySelector component
+- [ ] T127: Add methodology comparison view (integrated in T126)
+- [X] T128: Write educational content for each methodology
 - [ ] T129: Implement methodology recommendation engine
 - [ ] T130: Add regional methodology mapping
 - [ ] T131: Create methodology info modal/tooltip system
