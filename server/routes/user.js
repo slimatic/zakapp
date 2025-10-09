@@ -17,9 +17,9 @@ router.use(authenticateToken);
  * GET /api/user/profile
  * Get user profile (requires password for decryption)
  */
-router.post('/profile', [
-  body('password').notEmpty().withMessage('Password is required for data access')
-], async (req, res) => {
+router.post('/profile',
+  body('password').notEmpty().withMessage('Password is required for data access'),
+  async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -63,12 +63,12 @@ router.post('/profile', [
  * PUT /api/user/profile
  * Update user profile
  */
-router.put('/profile', [
+router.put('/profile',
   body('password').notEmpty().withMessage('Current password is required'),
   body('updates').isObject().withMessage('Updates object is required'),
   body('updates.email').optional().isEmail().withMessage('Valid email is required'),
-  body('updates.settings').optional().isObject().withMessage('Settings must be an object')
-], async (req, res) => {
+  body('updates.settings').optional().isObject().withMessage('Settings must be an object'),
+  async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -123,7 +123,7 @@ router.put('/profile', [
  * POST /api/user/change-password
  * Change user password
  */
-router.post('/change-password', [
+router.post('/change-password',
   body('currentPassword').notEmpty().withMessage('Current password is required'),
   body('newPassword')
     .isLength({ min: 8 })
@@ -136,8 +136,8 @@ router.post('/change-password', [
         throw new Error('Password confirmation does not match new password');
       }
       return true;
-    })
-], async (req, res) => {
+    }),
+  async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -191,9 +191,9 @@ router.post('/change-password', [
  * POST /api/user/export
  * Export user data
  */
-router.post('/export', [
-  body('password').notEmpty().withMessage('Password is required for data export')
-], async (req, res) => {
+router.post('/export',
+  body('password').notEmpty().withMessage('Password is required for data export'),
+  async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -232,12 +232,12 @@ router.post('/export', [
  * DELETE /api/user/account
  * Delete user account (with confirmation)
  */
-router.delete('/account', [
+router.delete('/account',
   body('password').notEmpty().withMessage('Password is required'),
   body('confirmation')
     .equals('DELETE_MY_ACCOUNT')
-    .withMessage('Confirmation text must be "DELETE_MY_ACCOUNT"')
-], async (req, res) => {
+    .withMessage('Confirmation text must be "DELETE_MY_ACCOUNT"'),
+  async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

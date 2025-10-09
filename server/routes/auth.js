@@ -48,7 +48,7 @@ const writeUserIndex = async (userIndex) => {
  * POST /api/auth/register
  * Register a new user
  */
-router.post('/register', [
+router.post('/register',
   body('username')
     .isLength({ min: 3, max: 30 })
     .withMessage('Username must be between 3 and 30 characters')
@@ -69,8 +69,8 @@ router.post('/register', [
         throw new Error('Password confirmation does not match password');
       }
       return true;
-    })
-], async (req, res) => {
+    }),
+  async (req, res) => {
   try {
     // Check validation errors
     const errors = validationResult(req);
@@ -153,10 +153,10 @@ router.post('/register', [
  * POST /api/auth/login
  * Authenticate user and return tokens
  */
-router.post('/login', [
+router.post('/login',
   body('username').notEmpty().withMessage('Username is required'),
-  body('password').notEmpty().withMessage('Password is required')
-], async (req, res) => {
+  body('password').notEmpty().withMessage('Password is required'),
+  async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -230,9 +230,9 @@ router.post('/login', [
  * POST /api/auth/refresh
  * Refresh access token using refresh token
  */
-router.post('/refresh', [
-  body('refreshToken').notEmpty().withMessage('Refresh token is required')
-], async (req, res) => {
+router.post('/refresh',
+  body('refreshToken').notEmpty().withMessage('Refresh token is required'),
+  async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
