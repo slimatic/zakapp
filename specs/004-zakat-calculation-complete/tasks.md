@@ -820,12 +820,26 @@ Test calculation display for all methodologies and edge cases.
 - Issues table for defect tracking
 - Ready for manual execution---
 
-### T142: Design calculation history data model
+### T142: Design calculation history data model ✅
 **Estimate**: 1 hour  
 **Dependencies**: None  
 **Files**: `server/prisma/schema.prisma`
 
 Design and implement CalculationHistory database model.
+
+**Implementation Notes**:
+- ✅ Model already exists in schema (lines 557-589)
+- ✅ All required fields present:
+  - id, userId, methodology, calendarType, calculationDate
+  - totalWealth, nisabThreshold, zakatDue, zakatRate (encrypted)
+  - assetBreakdown (encrypted JSON)
+  - notes, metadata (encrypted)
+- ✅ Optimized indexes:
+  - userId + calculationDate
+  - userId + methodology
+  - calculationDate
+- ✅ Proper User relationship with cascade delete
+- ✅ Encryption for all sensitive data
 
 **Model Schema**:
 ```prisma
@@ -854,12 +868,42 @@ model CalculationHistory {
 
 ---
 
-### T143: Create calculation history API endpoints
+### T143: Create calculation history API endpoints ✅
 **Estimate**: 3 hours  
 **Dependencies**: T142  
-**Files**: `server/routes/calculations.js`
+**Files**: `server/routes/calculations.js`, `server/index.js`
 
 Create CRUD API endpoints for calculation history.
+
+**Implementation Notes**:
+- ✅ Created comprehensive calculations.js routes file (550+ lines)
+- ✅ All 6 endpoints implemented:
+  1. POST /api/calculations - Save new calculation
+  2. GET /api/calculations - List with pagination & filters
+  3. GET /api/calculations/:id - Get specific calculation
+  4. GET /api/calculations/trends/analysis - Trend analysis
+  5. POST /api/calculations/compare - Compare multiple
+  6. DELETE /api/calculations/:id - Delete calculation
+- ✅ Features:
+  - Pagination (default 20, max 100 per page)
+  - Filtering (methodology, date range)
+  - Sorting (customizable field and order)
+  - Authentication/authorization enforced
+  - Data encryption before storage
+  - Data decryption on retrieval
+  - Input validation with proper error messages
+  - Ownership verification for access control
+- ✅ Trends endpoint includes:
+  - Period selection (1month to 2years, or all)
+  - Wealth and Zakat trends over time
+  - Methodology distribution statistics
+  - Averages and totals
+- ✅ Comparison endpoint includes:
+  - Support for 2-10 calculations
+  - Side-by-side data comparison
+  - Statistics (min, max, ranges, averages)
+  - Methodology analysis
+- ✅ Registered in server/index.js as /api/calculations
 
 **Endpoints**:
 - `GET /api/calculations` - List calculations (paginated)
@@ -1178,9 +1222,9 @@ Mark tasks as complete using [X]:
 - [X] T140: Add print/export calculation result
 - [X] T141: Test calculation display across methodologies
 
-**Phase 4: Calculation History (0/9) ⏳**
-- [ ] T142: Design calculation history data model
-- [ ] T143: Create calculation history API endpoints
+**Phase 4: Calculation History (2/9) 🔄**
+- [X] T142: Design calculation history data model
+- [X] T143: Create calculation history API endpoints
 - [ ] T144: Implement calculation storage in service layer
 - [ ] T145: Create CalculationHistory component
 - [ ] T146: Add calculation trend visualization

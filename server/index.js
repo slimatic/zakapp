@@ -11,6 +11,7 @@ const zakatRoutes = require('./routes/zakat');
 const assetRoutes = require('./routes/assets');
 const trackingRoutes = require('./routes/tracking');
 const calendarRoutes = require('./routes/calendar');
+const calculationsRoutes = require('./routes/calculations');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,6 +52,7 @@ app.use('/api/zakat', zakatRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/calculations', calculationsRoutes);
 
 // API info endpoint
 app.get('/api', (req, res) => {
