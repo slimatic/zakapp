@@ -5,3 +5,4 @@ export { CalculationBreakdown } from './CalculationBreakdown';
 export { NisabIndicator } from './NisabIndicator';
 export { CalculationExplanation } from './CalculationExplanation';
 export { EnhancedZakatCalculator } from './EnhancedZakatCalculator';
+export { ComparisonCalculator } from './ComparisonCalculator';
