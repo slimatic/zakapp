@@ -1072,12 +1072,12 @@ Mark tasks as complete using [X]:
 - [X] T135: Create NisabIndicator component
 - [X] T136: Add method-specific calculation explanations
 - [X] T137: Implement visual calculation breakdown
-- [ ] T136: Add method-specific calculation explanations
-- [ ] T137: Implement visual calculation breakdown
 - [ ] T138: Add educational tooltips to calculation fields
 - [ ] T139: Create comparison calculator view
 - [ ] T140: Add print/export calculation result
 - [ ] T141: Test calculation display across methodologies
+
+**Phase 4: Calculation History (0/9) ⏳**
 - [ ] T142: Design calculation history data model
 - [ ] T143: Create calculation history API endpoints
 - [ ] T144: Implement calculation storage in service layer
