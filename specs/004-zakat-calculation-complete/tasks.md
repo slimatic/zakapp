@@ -553,7 +553,7 @@ Create visual nisab threshold indicator component.
 
 ---
 
-### T136: Add method-specific calculation explanations
+### T136: Add method-specific calculation explanations ✅
 **Estimate**: 3 hours  
 **Dependencies**: T132  
 **Files**: `client/src/components/zakat/CalculationExplanation.tsx`
@@ -561,16 +561,29 @@ Create visual nisab threshold indicator component.
 Add method-specific explanations for calculations.
 
 **Explanations**:
-- Why this nisab threshold
-- How this methodology calculates
-- Asset treatment reasoning
-- References to Islamic sources
+- Why this nisab threshold ✅
+- How this methodology calculates ✅
+- Asset treatment reasoning ✅
+- References to Islamic sources ✅
 
 **Acceptance Criteria**:
-- Explanations accurate and clear
-- Method-specific content
-- Educational tooltips
-- Sources cited
+- Explanations accurate and clear ✅
+- Method-specific content ✅
+- Educational tooltips ✅
+- Sources cited ✅
+
+**Implementation Notes**:
+- Created comprehensive CalculationExplanation component
+- Four expandable sections per methodology:
+  - Nisab reasoning with hadith references
+  - Calculation method details with formulas
+  - Asset treatment with visual icons
+  - Special cases and modern considerations
+- Detailed content for all 4 methodologies (Standard, Hanafi, Shafi'i, Custom)
+- Islamic sources cited for each section (Quran, Hadith, Fiqh texts)
+- Expandable/collapsible sections for better UX
+- Educational disclaimer about consulting scholars
+- Responsive design with accessible controls
 
 ---
 
@@ -1037,9 +1050,10 @@ Mark tasks as complete using [X]:
 - [X] T132: Integrate methodology selector into calculator
 - [ ] T133: Test methodology switching and persistence (manual testing phase)
 
-**Phase 3: Enhanced Calculation Display (2/8) 🔄**
+**Phase 3: Enhanced Calculation Display (3/8) 🔄**
 - [X] T134: Design calculation breakdown UI
 - [X] T135: Create NisabIndicator component
+- [X] T136: Add method-specific calculation explanations
 - [ ] T136: Add method-specific calculation explanations
 - [ ] T137: Implement visual calculation breakdown
 - [ ] T138: Add educational tooltips to calculation fields
