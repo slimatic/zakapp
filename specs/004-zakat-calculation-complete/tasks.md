@@ -673,7 +673,7 @@ Add comprehensive educational tooltips throughout calculator.
 
 ---
 
-### T139: Create comparison calculator view
+### T139: Create comparison calculator view ✅
 **Estimate**: 3 hours  
 **Dependencies**: T137  
 **Files**: `client/src/components/zakat/ComparisonCalculator.tsx`
@@ -681,21 +681,45 @@ Add comprehensive educational tooltips throughout calculator.
 Create view to compare Zakat calculation across methodologies.
 
 **Features**:
-- Side-by-side methodology comparison
-- Same assets, different calculations
-- Highlight differences
-- Explanation of variations
-- Export comparison
+- Side-by-side methodology comparison ✅
+- Same assets, different calculations ✅
+- Highlight differences ✅
+- Explanation of variations ✅
+- Export comparison ✅
 
 **Acceptance Criteria**:
-- Clear comparison display
-- All methodologies comparable
-- Differences explained
-- Educational and informative
+- Clear comparison display ✅
+- All methodologies comparable ✅
+- Differences explained ✅
+- Educational and informative ✅
+
+**Implementation Notes**:
+- Created ComparisonCalculator component with 3 methodology comparison
+- Features:
+  - Asset input section (cash, gold, silver, crypto, business, investments)
+  - Real-time total wealth calculation
+  - Side-by-side cards for Standard, Hanafi, and Shafi'i methodologies
+  - Visual badges for highest/lowest Zakat amounts
+  - Color-coded borders (red for highest, green for lowest)
+  - Nisab status indicators per methodology
+  - Detailed differences explanation section
+  - Key insights grid with educational content
+- Highlights differences in nisab thresholds:
+  - Standard: $5,500 (gold-based)
+  - Hanafi: $3,000 (silver-based, lower threshold)
+  - Shafi'i: $5,500 (gold-based, separate calculation)
+- Educational content explaining:
+  - Why nisab thresholds differ
+  - Charitable wisdom behind lower thresholds
+  - Regional preferences
+  - Scholarly validity of all methods
+- JSON export functionality for comparison data
+- Responsive grid layout (1→3 columns)
+- Tooltips with InfoIcon for additional help
 
 ---
 
-### T140: Add print/export calculation result
+### T140: Add print/export calculation result ✅
 **Estimate**: 2 hours  
 **Dependencies**: T137  
 **Files**: `client/src/utils/calculationExport.ts`
@@ -703,22 +727,58 @@ Create view to compare Zakat calculation across methodologies.
 Add functionality to print or export calculation results.
 
 **Export Formats**:
-- PDF (print-friendly)
-- CSV (for records)
-- JSON (for backup)
+- PDF (print-friendly) ✅
+- CSV (for records) ✅
+- JSON (for backup) ✅
 
 **Export Content**:
-- Calculation details
-- Methodology used
-- Asset breakdown
-- Date and time
-- User notes (optional)
+- Calculation details ✅
+- Methodology used ✅
+- Asset breakdown ✅
+- Date and time ✅
+- User notes (optional) ✅
 
 **Acceptance Criteria**:
-- All export formats working
-- Print layout optimized
-- Data complete and accurate
-- Privacy maintained
+- All export formats working ✅
+- Print layout optimized ✅
+- Data complete and accurate ✅
+- Privacy maintained ✅
+
+**Implementation Notes**:
+- Created comprehensive calculationExport utility with multiple formats
+- ZakatCalculation interface for type safety:
+  - calculationDate, methodology, nisabThreshold, totalWealth, totalZakat
+  - assets array with detailed breakdown
+  - meetsNisab flag, currency, notes, userId
+- Export functions:
+  - exportAsJSON(): Clean JSON export with ISO timestamps and version
+  - exportAsCSV(): Structured CSV with summary and asset breakdown
+  - exportAsPDF(): Print-friendly HTML with professional styling
+  - printCalculation(): Opens print dialog
+  - exportAll(): Batch export in multiple formats
+- Print-friendly HTML features:
+  - Professional A4 layout with proper margins
+  - Green color scheme matching brand
+  - Header with calculation details
+  - Summary box with grid layout
+  - Prominent Zakat amount display
+  - Asset breakdown table
+  - Footer with Islamic reminders
+  - Print-specific CSS (@media print)
+  - Responsive and accessible
+- CSV format includes:
+  - Summary section with key metrics
+  - Asset breakdown table
+  - Currency formatting
+  - Optional notes field
+- JSON format includes:
+  - Complete calculation data
+  - ISO timestamps
+  - Version tracking
+  - Easy to import/backup
+- File naming convention: zakat-calculation-YYYY-MM-DD.{json|csv|pdf}
+- Helper utilities for currency formatting and date handling
+- All exports maintain user privacy (no sensitive data leaks)
 
 ---
 
@@ -1092,14 +1152,14 @@ Mark tasks as complete using [X]:
 - [X] T132: Integrate methodology selector into calculator
 - [ ] T133: Test methodology switching and persistence (manual testing phase)
 
-**Phase 3: Enhanced Calculation Display (5/8) 🔄**
+**Phase 3: Enhanced Calculation Display (7/8) 🔄**
 - [X] T134: Design calculation breakdown UI
 - [X] T135: Create NisabIndicator component
 - [X] T136: Add method-specific calculation explanations
 - [X] T137: Implement visual calculation breakdown
 - [X] T138: Add educational tooltips to calculation fields
-- [ ] T139: Create comparison calculator view
-- [ ] T140: Add print/export calculation result
+- [X] T139: Create comparison calculator view
+- [X] T140: Add print/export calculation result
 - [ ] T141: Test calculation display across methodologies
 
 **Phase 4: Calculation History (0/9) ⏳**
