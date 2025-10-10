@@ -3,6 +3,7 @@ import { EncryptionService } from './EncryptionService';
 import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
 export interface UpdateProfileDto {
   firstName?: string;
@@ -41,8 +42,8 @@ export class UserService {
     }
 
     // Decrypt profile data
-    const profile = user.profile ? EncryptionService.decryptObject(user.profile) : {};
-    const settings = user.settings ? EncryptionService.decryptObject(user.settings) : {};
+    const profile = user.profile ? await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY) : {};
+    const settings = user.settings ? await EncryptionService.decryptObject(user.settings, ENCRYPTION_KEY) : {};
 
     // Remove sensitive data
     const { passwordHash, ...userWithoutPassword } = user;
@@ -67,13 +68,13 @@ export class UserService {
     }
 
     // Decrypt current profile
-    const currentProfile = user.profile ? EncryptionService.decryptObject(user.profile) : {};
+    const currentProfile = user.profile ? await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY) : {};
 
     // Merge update data with current profile
     const updatedProfile = { ...currentProfile, ...updateData };
 
     // Encrypt updated profile
-    const encryptedProfile = EncryptionService.encryptObject(updatedProfile);
+    const encryptedProfile = await EncryptionService.encryptObject(updatedProfile, ENCRYPTION_KEY);
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -85,7 +86,7 @@ export class UserService {
     return {
       ...userWithoutPassword,
       profile: updatedProfile,
-      settings: user.settings ? EncryptionService.decryptObject(user.settings) : {}
+      settings: user.settings ? await EncryptionService.decryptObject(user.settings, ENCRYPTION_KEY) : {}
     };
   }
 
@@ -102,7 +103,7 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    return user.settings ? EncryptionService.decryptObject(user.settings) : {};
+    return user.settings ? await EncryptionService.decryptObject(user.settings, ENCRYPTION_KEY) : {};
   }
 
   /**
@@ -119,13 +120,13 @@ export class UserService {
     }
 
     // Decrypt current settings
-    const currentSettings = user.settings ? EncryptionService.decryptObject(user.settings) : {};
+    const currentSettings = user.settings ? await EncryptionService.decryptObject(user.settings, ENCRYPTION_KEY) : {};
 
     // Merge update data with current settings
     const updatedSettings = { ...currentSettings, ...settingsData };
 
     // Encrypt updated settings
-    const encryptedSettings = EncryptionService.encryptObject(updatedSettings);
+    const encryptedSettings = await EncryptionService.encryptObject(updatedSettings, ENCRYPTION_KEY);
 
     await prisma.user.update({
       where: { id: userId },
@@ -236,7 +237,7 @@ export class UserService {
    * Request data export
    */
   async requestDataExport(userId: string, format: 'JSON' | 'CSV' = 'JSON') {
-    const requestId = EncryptionService.generateSecureId('export');
+    const requestId = `export-${Date.now()}-${userId.substring(0, 8)}`;
 
     // Simulate export process
     return {
@@ -289,8 +290,8 @@ export class UserService {
         isActive: false,
         // Clear sensitive data
         email: `deleted_${Date.now()}@example.com`,
-        profile: EncryptionService.encryptObject({ deleted: true }),
-        settings: EncryptionService.encryptObject({ deleted: true })
+        profile: await EncryptionService.encryptObject({ deleted: true }, ENCRYPTION_KEY),
+        settings: await EncryptionService.encryptObject({ deleted: true }, ENCRYPTION_KEY)
       }
     });
 
