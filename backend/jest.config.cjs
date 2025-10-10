@@ -32,5 +32,5 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.cjs'],
   testTimeout: 15000,
-  maxWorkers: process.env.CI ? '50%' : undefined,
+  maxWorkers: process.env.CI ? 2 : undefined,
 };

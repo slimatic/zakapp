@@ -5,7 +5,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 
 const prisma = new PrismaClient();
-const encryptionService = new EncryptionService();
 
 export interface ExportOptions {
   includeAssets?: boolean;
@@ -235,7 +234,7 @@ export class ImportExportService {
       fileName = `zakapp-export-${userId}-${Date.now()}.csv`;
     } else {
       finalData = encrypt ? 
-        encryptionService.encrypt(JSON.stringify(exportData)) :
+        EncryptionService.encrypt(JSON.stringify(exportData)) :
         JSON.stringify(exportData, null, 2);
       fileName = `zakapp-export-${userId}-${Date.now()}.json`;
     }
@@ -286,7 +285,7 @@ export class ImportExportService {
       } catch {
         try {
           // If JSON parsing fails, try decryption
-          const decryptedContent = encryptionService.decrypt(fileContent);
+          const decryptedContent = EncryptionService.decrypt(fileContent);
           importData = JSON.parse(decryptedContent);
         } catch {
           throw new Error('Unable to parse import file. File may be corrupted or in an unsupported format.');

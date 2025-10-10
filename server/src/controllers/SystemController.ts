@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ApiResponse } from '../types';
-import { asyncHandler } from '../middleware/errorHandler';
+import { asyncHandler } from '../middleware/ErrorHandler';
 
 export class SystemController {
   health = asyncHandler(async (req: Request, res: Response) => {

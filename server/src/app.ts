@@ -13,9 +13,10 @@ import systemRoutes from './routes/system';
 import exportRoutes from './routes/export';
 import importRoutes from './routes/import';
 import trackingRoutes from './routes/tracking';
+import calculationsRoutes from './routes/calculations';
 
 // Import middleware
-import { errorHandler } from './middleware/errorHandler';
+import { errorHandler } from './middleware/ErrorHandler';
 
 // Import job scheduler
 import { initializeJobs, stopAllJobs } from './jobs/scheduler';
@@ -46,6 +47,7 @@ app.use('/api/system', systemRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/tracking', trackingRoutes);
+app.use('/api/calculations', calculationsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
