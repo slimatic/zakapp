@@ -158,7 +158,8 @@ export class AssetController {
       throw new AppError(
         'Missing required fields', 
         400, 
-        ErrorCode.VALIDATION_ERROR, 
+        ErrorCode.VALIDATION_ERROR,
+        'Please provide all required fields',
         missingFields.map(field => ({ field, message: `${field} is required` }))
       );
     }
@@ -329,7 +330,13 @@ export class AssetController {
       res.status(207).json(response);
     } else {
       // All failed
-      throw new AppError('Failed to create any assets', 400, ErrorCode.VALIDATION_ERROR, errors);
+      throw new AppError(
+        'Failed to create any assets', 
+        400, 
+        ErrorCode.VALIDATION_ERROR,
+        'All assets failed validation',
+        errors
+      );
     }
   });
 
@@ -608,7 +615,7 @@ export class AssetController {
         throw new AppError('Unsupported format. Supported formats: CSV, JSON', 400, ErrorCode.VALIDATION_ERROR);
       }
     } catch (parseError) {
-      throw new AppError('Invalid data format', 400, 'PARSE_ERROR');
+      throw new AppError('Invalid data format', 400, ErrorCode.PARSE_ERROR);
     }
 
     const userAssetList = getUserAssets(userId);
@@ -709,7 +716,13 @@ export class AssetController {
       res.status(207).json(response);
     } else {
       // All failed
-      throw new AppError('All assets failed to import', 400, 'IMPORT_FAILED', errors);
+      throw new AppError(
+        'All assets failed to import', 
+        400, 
+        ErrorCode.IMPORT_FAILED,
+        'Import operation failed for all assets',
+        errors
+      );
     }
   });
 }
