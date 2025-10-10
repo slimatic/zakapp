@@ -5,7 +5,7 @@ import { jwtService } from '../services/JWTService';
 import { authenticate } from '../middleware/AuthMiddleware';
 import { handleValidationErrors, validateUserLogin, validateUserRegistration } from '../middleware/ValidationMiddleware';
 import { registrationRateLimit, loginRateLimit } from '../middleware/RateLimitMiddleware';
-import { asyncHandler } from '../middleware/errorHandler';
+import { asyncHandler } from '../middleware/ErrorHandler';
 import { UserStore } from '../utils/userStore';
 import crypto from 'crypto';
 

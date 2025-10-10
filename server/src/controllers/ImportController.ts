@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
-import { asyncHandler } from '../middleware/errorHandler';
+import { asyncHandler } from '../middleware/ErrorHandler';
 
 export class ImportController {
   // POST /api/import/validate

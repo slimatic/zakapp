@@ -14,6 +14,8 @@
 
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from '../services/EncryptionService';
+
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -49,7 +51,6 @@ interface DatabaseHealth {
 export class DatabaseManager {
   private static instance: DatabaseManager;
   private prisma: PrismaClient;
-  private encryptionService: EncryptionService;
   private config: DatabaseConfig;
   private health: DatabaseHealth;
   private healthCheckTimer?: NodeJS.Timeout;
@@ -59,7 +60,6 @@ export class DatabaseManager {
   private constructor() {
     this.config = this.loadConfiguration();
     this.validateEnvironment();
-    this.encryptionService = new EncryptionService();
     this.health = {
       status: 'healthy',
       connectionCount: 0,
@@ -319,7 +319,7 @@ export class DatabaseManager {
         const dbData = fs.readFileSync(dbPath);
         
         // Encrypt the backup
-        const encryptedData = this.encryptionService.encrypt(dbData.toString('base64'));
+        const encryptedData = await EncryptionService.encrypt(dbData.toString('base64'), ENCRYPTION_KEY);
         fs.writeFileSync(backupPath, JSON.stringify(encryptedData));
       } else {
         // For other databases, export schema and data
@@ -351,7 +351,7 @@ export class DatabaseManager {
       }
 
       const encryptedData = JSON.parse(fs.readFileSync(backupPath, 'utf-8'));
-      const decryptedData = this.encryptionService.decrypt(encryptedData);
+      const decryptedData = await EncryptionService.decrypt(encryptedData, ENCRYPTION_KEY);
       const dbData = Buffer.from(decryptedData, 'base64');
 
       // For SQLite, replace the database file
