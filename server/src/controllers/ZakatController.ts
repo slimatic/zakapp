@@ -1,20 +1,20 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
-import { asyncHandler, AppError } from '../middleware/errorHandler';
+import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { zakatService } from '../services/ZakatService';
 
 export class ZakatController {
   calculate = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.userId;
     if (!userId) {
-      throw new AppError('User not authenticated', 401, 'UNAUTHORIZED');
+      throw new AppError('User not authenticated', 401, ErrorCode.UNAUTHORIZED);
     }
 
     const calculationRequest = req.body;
 
     // Validate request
     if (!calculationRequest.methodologyId) {
-      throw new AppError('Methodology ID is required', 400, 'VALIDATION_ERROR');
+      throw new AppError('Methodology ID is required', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     try {
@@ -35,7 +35,7 @@ export class ZakatController {
       res.status(200).json(response);
     } catch (error) {
       if (error instanceof Error && error.message.includes('Methodology ID is required')) {
-        throw new AppError('Methodology ID is required', 400, 'VALIDATION_ERROR');
+        throw new AppError('Methodology ID is required', 400, ErrorCode.VALIDATION_ERROR);
       }
       throw error;
     }
@@ -130,7 +130,7 @@ export class ZakatController {
     const { amount, date, recipient, method, notes } = req.body;
 
     if (!amount) {
-      throw new AppError('Payment amount is required', 400, 'MISSING_AMOUNT');
+      throw new AppError('Payment amount is required', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     const mockPayment = {

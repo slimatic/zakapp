@@ -3,7 +3,6 @@ import { EncryptionService } from './EncryptionService';
 import {
   PaymentRecord,
   CreatePaymentRecordDto,
-  UpdatePaymentRecordDto,
   PaginationParams,
   PaginationResult,
   RecipientCategory,
@@ -172,11 +171,10 @@ export class PaymentRecordService {
       page: params.page,
       limit: params.limit,
       snapshotId: params.snapshotId,
-      category: params.category,
+      recipientCategory: params.category,
       status: params.status,
       startDate: params.startDate,
       endDate: params.endDate,
-      sortBy: 'date',
       sortOrder: 'desc'
     });
 
@@ -226,7 +224,7 @@ export class PaymentRecordService {
   async updatePayment(
     id: string,
     userId: string,
-    data: UpdatePaymentRecordDto
+    data: Partial<CreatePaymentRecordDto>
   ): Promise<PaymentRecord> {
     // Check if payment exists
     const payment = await PaymentRecordModel.findById(id, userId);

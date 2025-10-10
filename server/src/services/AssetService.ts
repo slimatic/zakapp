@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 
 const prisma = new PrismaClient();
-const encryptionService = new EncryptionService();
 
 export interface CreateAssetDto {
   category: string;
@@ -49,7 +48,7 @@ export class AssetService {
     // Encrypt metadata if provided
     let encryptedMetadata = null;
     if (assetData.metadata) {
-      encryptedMetadata = encryptionService.encryptObject(assetData.metadata);
+      encryptedMetadata = EncryptionService.encryptObject(assetData.metadata);
     }
 
     const asset = await prisma.asset.create({
@@ -187,7 +186,7 @@ export class AssetService {
 
     // Encrypt metadata if provided
     if (updateData.metadata) {
-      updatePayload.metadata = encryptionService.encryptObject(updateData.metadata);
+      updatePayload.metadata = EncryptionService.encryptObject(updateData.metadata);
     }
 
     // Update category to uppercase if provided
@@ -441,7 +440,7 @@ export class AssetService {
     
     if (asset.metadata) {
       try {
-        decrypted.metadata = encryptionService.decryptObject(asset.metadata);
+        decrypted.metadata = EncryptionService.decryptObject(asset.metadata);
       } catch (error) {
         decrypted.metadata = null;
       }
