@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { AuthenticatedRequest, ApiResponse, AuthTokens, User } from '../types';
-import { asyncHandler, AppError } from '../middleware/errorHandler';
+import { asyncHandler, AppError } from '../middleware/ErrorHandler';
 import { UserStore } from '../utils/userStore';
 import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken, invalidateAllUserRefreshTokens } from '../utils/jwt';
 import { invalidateToken, invalidateUserSession } from '../middleware/auth';
