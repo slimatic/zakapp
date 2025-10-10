@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 
 const prisma = new PrismaClient();
-const encryptionService = new EncryptionService();
 
 export interface ZakatCalculationRequest {
   methodology?: 'STANDARD' | 'HANAFI' | 'SHAFI' | 'CUSTOM';

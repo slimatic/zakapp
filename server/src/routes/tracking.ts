@@ -419,7 +419,7 @@ router.get('/analytics/metrics', authenticate, validateUserOwnership, analyticsR
       data: metric?.calculatedValue,
       metadata: {
         period: startDate && endDate ? `${startDate} to ${endDate}` : 'all time',
-        lastUpdated: metric?.calculatedAt?.toISOString() || new Date().toISOString(),
+        lastUpdated: metric?.calculatedAt ? (typeof metric.calculatedAt === 'string' ? metric.calculatedAt : metric.calculatedAt.toISOString()) : new Date().toISOString(),
         dataPoints: Array.isArray(metric?.calculatedValue) ? metric.calculatedValue.length : 1
       },
       summary: {

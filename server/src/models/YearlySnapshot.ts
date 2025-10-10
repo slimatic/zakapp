@@ -227,7 +227,7 @@ export class YearlySnapshotModel {
         where.gregorianYear = options.year;
       }
 
-      if (options.status && options.status !== 'all') {
+      if (options.status && options.status !== 'all' as any) {
         where.status = options.status;
       }
 

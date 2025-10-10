@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { AuthenticatedRequest, ApiResponse } from '../types';
-import { asyncHandler, AppError } from '../middleware/errorHandler';
+import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { UserStore } from '../utils/userStore';
 
 export class UserController {
@@ -52,29 +52,29 @@ export class UserController {
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
-      throw new AppError('Current and new passwords are required', 400, 'MISSING_PASSWORDS');
+      throw new AppError('Current and new passwords are required', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     if (!req.userId) {
-      throw new AppError('User not authenticated', 401, 'UNAUTHENTICATED');
+      throw new AppError('User not authenticated', 401, ErrorCode.UNAUTHORIZED);
     }
 
     // Get current user from database
     const user = UserStore.getUserById(req.userId);
     if (!user) {
-      throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+      throw new AppError('User not found', 404, ErrorCode.RECORD_NOT_FOUND);
     }
 
     // Verify current password
     const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isValidPassword) {
-      throw new AppError('Current password is incorrect', 400, 'INVALID_PASSWORD');
+      throw new AppError('Current password is incorrect', 400, ErrorCode.INVALID_CREDENTIALS);
     }
 
     // Update password in database
     const success = await UserStore.updatePassword(req.userId, newPassword);
     if (!success) {
-      throw new AppError('Failed to update password', 500, 'PASSWORD_UPDATE_FAILED');
+      throw new AppError('Failed to update password', 500, ErrorCode.INTERNAL_ERROR);
     }
 
     const response: ApiResponse = {
@@ -169,7 +169,7 @@ export class UserController {
     const { password, reason } = req.body;
 
     if (!password) {
-      throw new AppError('Password confirmation is required for account deletion', 400, 'PASSWORD_REQUIRED');
+      throw new AppError('Password confirmation is required for account deletion', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     const response: ApiResponse = {
@@ -312,7 +312,7 @@ export class UserController {
     const { backupId, overwrite = false } = req.body;
 
     if (!backupId) {
-      throw new AppError('Backup ID is required', 400, 'BACKUP_ID_REQUIRED');
+      throw new AppError('Backup ID is required', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     const response: ApiResponse = {
