@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 
 const prisma = new PrismaClient();
-const encryptionService = new EncryptionService();
 
 export interface CreatePaymentRequest {
   calculationId: string;
@@ -101,7 +100,7 @@ export class PaymentService {
     const encryptedRecipients = recipients.map(recipient => ({
       ...recipient,
       contactInfo: recipient.contactInfo ? 
-        encryptionService.encryptObject(recipient.contactInfo) : null
+        EncryptionService.encryptObject(recipient.contactInfo) : null
     }));
 
     // Create payment record
@@ -257,7 +256,7 @@ export class PaymentService {
       const encryptedRecipients = updates.recipients.map(recipient => ({
         ...recipient,
         contactInfo: recipient.contactInfo ? 
-          encryptionService.encryptObject(recipient.contactInfo) : null
+          EncryptionService.encryptObject(recipient.contactInfo) : null
       }));
 
       updateData.recipients = JSON.stringify(encryptedRecipients);
@@ -515,7 +514,7 @@ export class PaymentService {
     let userProfile: any = {};
     if (payment.user?.profile) {
       try {
-        userProfile = encryptionService.decryptObject(payment.user.profile) || {};
+        userProfile = EncryptionService.decryptObject(payment.user.profile) || {};
       } catch (error) {
         // Handle decryption error gracefully
         userProfile = {};
@@ -526,7 +525,7 @@ export class PaymentService {
     const recipients = JSON.parse(payment.recipients || '[]').map((recipient: any) => ({
       ...recipient,
       contactInfo: recipient.contactInfo ? 
-        encryptionService.decryptObject(recipient.contactInfo) : null
+        EncryptionService.decryptObject(recipient.contactInfo) : null
     }));
 
     return {
@@ -565,7 +564,7 @@ export class PaymentService {
       recipients = JSON.parse(payment.recipients || '[]').map((recipient: any) => ({
         ...recipient,
         contactInfo: recipient.contactInfo ? 
-          encryptionService.decryptObject(recipient.contactInfo) : null
+          EncryptionService.decryptObject(recipient.contactInfo) : null
       }));
     } catch (error) {
       recipients = [];

@@ -1,0 +1,561 @@
+/**
+ * Calculation History API Routes
+ * Feature 004: Enhanced Zakat Calculation Engine - Phase 4
+ * 
+ * Provides CRUD operations for calculation history management including:
+ * - Saving new calculations
+ * - Retrieving calculation history (paginated)
+ * - Getting specific calculation details
+ * - Comparing multiple calculations
+ * - Analyzing calculation trends
+ * - Deleting calculations
+ * 
+ * All sensitive data is encrypted before storage.
+ */
+
+const express = require('express');
+const router = express.Router();
+const { authenticateToken } = require('../middleware/auth');
+const { PrismaClient } = require('@prisma/client');
+const { encrypt, decrypt } = require('../utils/encryption');
+
+const prisma = new PrismaClient();
+
+/**
+ * @route   POST /api/calculations
+ * @desc    Save a new calculation to history
+ * @access  Private
+ * @body    {methodology, calendarType, totalWealth, nisabThreshold, zakatDue, zakatRate, assetBreakdown, notes?, metadata?}
+ */
+router.post('/', authenticateToken, async (req, res) => {
+  try {
+    const {
+      methodology,
+      calendarType,
+      totalWealth,
+      nisabThreshold,
+      zakatDue,
+      zakatRate = 2.5,
+      assetBreakdown,
+      notes,
+      metadata,
+      calculationDate
+    } = req.body;
+
+    // Validation
+    if (!methodology || !calendarType || totalWealth === undefined || 
+        nisabThreshold === undefined || zakatDue === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'MISSING_REQUIRED_FIELDS',
+        message: 'Required fields: methodology, calendarType, totalWealth, nisabThreshold, zakatDue'
+      });
+    }
+
+    // Validate methodology
+    const validMethodologies = ['standard', 'hanafi', 'shafi', 'custom'];
+    if (!validMethodologies.includes(methodology)) {
+      return res.status(400).json({
+        success: false,
+        error: 'INVALID_METHODOLOGY',
+        message: `Methodology must be one of: ${validMethodologies.join(', ')}`
+      });
+    }
+
+    // Validate calendar type
+    const validCalendarTypes = ['hijri', 'gregorian'];
+    if (!validCalendarTypes.includes(calendarType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'INVALID_CALENDAR_TYPE',
+        message: `Calendar type must be one of: ${validCalendarTypes.join(', ')}`
+      });
+    }
+
+    // Encrypt sensitive data
+    const encryptedWealth = encrypt(totalWealth.toString());
+    const encryptedNisab = encrypt(nisabThreshold.toString());
+    const encryptedZakat = encrypt(zakatDue.toString());
+    const encryptedBreakdown = encrypt(JSON.stringify(assetBreakdown));
+    const encryptedNotes = notes ? encrypt(notes) : null;
+    const encryptedMetadata = metadata ? encrypt(JSON.stringify(metadata)) : null;
+
+    // Create calculation history record
+    const calculation = await prisma.calculationHistory.create({
+      data: {
+        userId: req.userId,
+        methodology,
+        calendarType,
+        calculationDate: calculationDate ? new Date(calculationDate) : new Date(),
+        totalWealth: encryptedWealth,
+        nisabThreshold: encryptedNisab,
+        zakatDue: encryptedZakat,
+        zakatRate,
+        assetBreakdown: encryptedBreakdown,
+        notes: encryptedNotes,
+        metadata: encryptedMetadata
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Calculation saved successfully',
+      calculation: {
+        id: calculation.id,
+        methodology: calculation.methodology,
+        calendarType: calculation.calendarType,
+        calculationDate: calculation.calculationDate,
+        zakatRate: calculation.zakatRate,
+        createdAt: calculation.createdAt
+      }
+    });
+
+  } catch (error) {
+    console.error('Error saving calculation:', error);
+    res.status(500).json({
+      success: false,
+      error: 'CALCULATION_SAVE_FAILED',
+      message: 'Failed to save calculation'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/calculations
+ * @desc    Get calculation history (paginated)
+ * @access  Private
+ * @query   {page?, limit?, methodology?, startDate?, endDate?, sortBy?, sortOrder?}
+ */
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      methodology,
+      startDate,
+      endDate,
+      sortBy = 'calculationDate',
+      sortOrder = 'desc'
+    } = req.query;
+
+    // Validate pagination
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build filter conditions
+    const where = {
+      userId: req.userId
+    };
+
+    if (methodology) {
+      where.methodology = methodology;
+    }
+
+    if (startDate || endDate) {
+      where.calculationDate = {};
+      if (startDate) {
+        where.calculationDate.gte = new Date(startDate);
+      }
+      if (endDate) {
+        where.calculationDate.lte = new Date(endDate);
+      }
+    }
+
+    // Build sort options
+    const orderBy = {};
+    orderBy[sortBy] = sortOrder;
+
+    // Get total count for pagination
+    const total = await prisma.calculationHistory.count({ where });
+
+    // Get calculations
+    const calculations = await prisma.calculationHistory.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy,
+      select: {
+        id: true,
+        methodology: true,
+        calendarType: true,
+        calculationDate: true,
+        totalWealth: true,
+        nisabThreshold: true,
+        zakatDue: true,
+        zakatRate: true,
+        notes: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
+
+    // Decrypt sensitive data
+    const decryptedCalculations = calculations.map(calc => ({
+      id: calc.id,
+      methodology: calc.methodology,
+      calendarType: calc.calendarType,
+      calculationDate: calc.calculationDate,
+      totalWealth: parseFloat(decrypt(calc.totalWealth)),
+      nisabThreshold: parseFloat(decrypt(calc.nisabThreshold)),
+      zakatDue: parseFloat(decrypt(calc.zakatDue)),
+      zakatRate: calc.zakatRate,
+      notes: calc.notes ? decrypt(calc.notes) : null,
+      createdAt: calc.createdAt,
+      updatedAt: calc.updatedAt
+    }));
+
+    res.json({
+      success: true,
+      calculations: decryptedCalculations,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.ceil(total / limitNum)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching calculations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'FETCH_CALCULATIONS_FAILED',
+      message: 'Failed to fetch calculation history'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/calculations/:id
+ * @desc    Get specific calculation details
+ * @access  Private
+ */
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const calculation = await prisma.calculationHistory.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            email: true
+          }
+        }
+      }
+    });
+
+    if (!calculation) {
+      return res.status(404).json({
+        success: false,
+        error: 'CALCULATION_NOT_FOUND',
+        message: 'Calculation not found'
+      });
+    }
+
+    // Check ownership
+    if (calculation.userId !== req.userId) {
+      return res.status(403).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'You do not have access to this calculation'
+      });
+    }
+
+    // Decrypt sensitive data
+    const decryptedCalculation = {
+      id: calculation.id,
+      methodology: calculation.methodology,
+      calendarType: calculation.calendarType,
+      calculationDate: calculation.calculationDate,
+      totalWealth: parseFloat(decrypt(calculation.totalWealth)),
+      nisabThreshold: parseFloat(decrypt(calculation.nisabThreshold)),
+      zakatDue: parseFloat(decrypt(calculation.zakatDue)),
+      zakatRate: calculation.zakatRate,
+      assetBreakdown: JSON.parse(decrypt(calculation.assetBreakdown)),
+      notes: calculation.notes ? decrypt(calculation.notes) : null,
+      metadata: calculation.metadata ? JSON.parse(decrypt(calculation.metadata)) : null,
+      createdAt: calculation.createdAt,
+      updatedAt: calculation.updatedAt
+    };
+
+    res.json({
+      success: true,
+      calculation: decryptedCalculation
+    });
+
+  } catch (error) {
+    console.error('Error fetching calculation details:', error);
+    res.status(500).json({
+      success: false,
+      error: 'FETCH_CALCULATION_FAILED',
+      message: 'Failed to fetch calculation details'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/calculations/trends/analysis
+ * @desc    Get calculation trends over time
+ * @access  Private
+ * @query   {period?, methodology?}
+ */
+router.get('/trends/analysis', authenticateToken, async (req, res) => {
+  try {
+    const { period = '1year', methodology } = req.query;
+
+    // Calculate date range based on period
+    const endDate = new Date();
+    const startDate = new Date();
+    
+    switch (period) {
+      case '1month':
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+      case '3months':
+        startDate.setMonth(startDate.getMonth() - 3);
+        break;
+      case '6months':
+        startDate.setMonth(startDate.getMonth() - 6);
+        break;
+      case '1year':
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
+      case '2years':
+        startDate.setFullYear(startDate.getFullYear() - 2);
+        break;
+      case 'all':
+        startDate.setFullYear(2000); // Set to far past
+        break;
+      default:
+        startDate.setFullYear(startDate.getFullYear() - 1);
+    }
+
+    // Build filter
+    const where = {
+      userId: req.userId,
+      calculationDate: {
+        gte: startDate,
+        lte: endDate
+      }
+    };
+
+    if (methodology) {
+      where.methodology = methodology;
+    }
+
+    // Get calculations
+    const calculations = await prisma.calculationHistory.findMany({
+      where,
+      orderBy: {
+        calculationDate: 'asc'
+      },
+      select: {
+        id: true,
+        methodology: true,
+        calculationDate: true,
+        totalWealth: true,
+        zakatDue: true
+      }
+    });
+
+    // Decrypt and format data for trends
+    const trendData = calculations.map(calc => ({
+      date: calc.calculationDate,
+      methodology: calc.methodology,
+      totalWealth: parseFloat(decrypt(calc.totalWealth)),
+      zakatDue: parseFloat(decrypt(calc.zakatDue))
+    }));
+
+    // Calculate methodology distribution
+    const methodologyDistribution = {};
+    trendData.forEach(item => {
+      methodologyDistribution[item.methodology] = 
+        (methodologyDistribution[item.methodology] || 0) + 1;
+    });
+
+    // Calculate averages
+    const totalWealth = trendData.reduce((sum, item) => sum + item.totalWealth, 0);
+    const totalZakat = trendData.reduce((sum, item) => sum + item.zakatDue, 0);
+    const avgWealth = trendData.length > 0 ? totalWealth / trendData.length : 0;
+    const avgZakat = trendData.length > 0 ? totalZakat / trendData.length : 0;
+
+    res.json({
+      success: true,
+      trends: {
+        period,
+        startDate,
+        endDate,
+        data: trendData,
+        statistics: {
+          totalCalculations: trendData.length,
+          averageWealth: avgWealth,
+          averageZakat: avgZakat,
+          totalZakatPaid: totalZakat,
+          methodologyDistribution
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching calculation trends:', error);
+    res.status(500).json({
+      success: false,
+      error: 'FETCH_TRENDS_FAILED',
+      message: 'Failed to fetch calculation trends'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/calculations/compare
+ * @desc    Compare multiple calculations
+ * @access  Private
+ * @body    {calculationIds: string[]}
+ */
+router.post('/compare', authenticateToken, async (req, res) => {
+  try {
+    const { calculationIds } = req.body;
+
+    if (!Array.isArray(calculationIds) || calculationIds.length < 2) {
+      return res.status(400).json({
+        success: false,
+        error: 'INVALID_COMPARISON_REQUEST',
+        message: 'At least 2 calculation IDs required for comparison'
+      });
+    }
+
+    if (calculationIds.length > 10) {
+      return res.status(400).json({
+        success: false,
+        error: 'TOO_MANY_CALCULATIONS',
+        message: 'Maximum 10 calculations can be compared at once'
+      });
+    }
+
+    // Fetch calculations
+    const calculations = await prisma.calculationHistory.findMany({
+      where: {
+        id: { in: calculationIds },
+        userId: req.userId // Ensure user owns all calculations
+      },
+      orderBy: {
+        calculationDate: 'asc'
+      }
+    });
+
+    if (calculations.length !== calculationIds.length) {
+      return res.status(404).json({
+        success: false,
+        error: 'CALCULATIONS_NOT_FOUND',
+        message: 'Some calculations were not found or you do not have access'
+      });
+    }
+
+    // Decrypt and format for comparison
+    const comparisonData = calculations.map(calc => ({
+      id: calc.id,
+      methodology: calc.methodology,
+      calendarType: calc.calendarType,
+      calculationDate: calc.calculationDate,
+      totalWealth: parseFloat(decrypt(calc.totalWealth)),
+      nisabThreshold: parseFloat(decrypt(calc.nisabThreshold)),
+      zakatDue: parseFloat(decrypt(calc.zakatDue)),
+      zakatRate: calc.zakatRate,
+      assetBreakdown: JSON.parse(decrypt(calc.assetBreakdown)),
+      notes: calc.notes ? decrypt(calc.notes) : null
+    }));
+
+    // Calculate comparison statistics
+    const wealthValues = comparisonData.map(c => c.totalWealth);
+    const zakatValues = comparisonData.map(c => c.zakatDue);
+
+    const comparison = {
+      calculations: comparisonData,
+      statistics: {
+        wealthRange: {
+          min: Math.min(...wealthValues),
+          max: Math.max(...wealthValues),
+          difference: Math.max(...wealthValues) - Math.min(...wealthValues)
+        },
+        zakatRange: {
+          min: Math.min(...zakatValues),
+          max: Math.max(...zakatValues),
+          difference: Math.max(...zakatValues) - Math.min(...zakatValues)
+        },
+        averages: {
+          wealth: wealthValues.reduce((a, b) => a + b, 0) / wealthValues.length,
+          zakat: zakatValues.reduce((a, b) => a + b, 0) / zakatValues.length
+        },
+        methodologies: [...new Set(comparisonData.map(c => c.methodology))]
+      }
+    };
+
+    res.json({
+      success: true,
+      comparison
+    });
+
+  } catch (error) {
+    console.error('Error comparing calculations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'COMPARISON_FAILED',
+      message: 'Failed to compare calculations'
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/calculations/:id
+ * @desc    Delete a calculation
+ * @access  Private
+ */
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if calculation exists and belongs to user
+    const calculation = await prisma.calculationHistory.findUnique({
+      where: { id },
+      select: { userId: true }
+    });
+
+    if (!calculation) {
+      return res.status(404).json({
+        success: false,
+        error: 'CALCULATION_NOT_FOUND',
+        message: 'Calculation not found'
+      });
+    }
+
+    if (calculation.userId !== req.userId) {
+      return res.status(403).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'You do not have access to delete this calculation'
+      });
+    }
+
+    // Delete calculation
+    await prisma.calculationHistory.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Calculation deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting calculation:', error);
+    res.status(500).json({
+      success: false,
+      error: 'DELETE_FAILED',
+      message: 'Failed to delete calculation'
+    });
+  }
+});
+
+module.exports = router;

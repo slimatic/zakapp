@@ -128,7 +128,9 @@ export class AnnualSummaryService {
         category: category as any,
         count: stats.count,
         totalAmount: stats.totalAmount
-      }))
+      })),
+      uniqueRecipients: 0, // TODO: Implement proper unique recipient counting
+      averagePayment: 0 // TODO: Implement proper average calculation
     };
 
     // Get previous year's snapshot for comparison
@@ -141,16 +143,29 @@ export class AnnualSummaryService {
       const zakatChange = snapshot.zakatAmount - previousSnapshot.zakatAmount;
 
       comparativeAnalysis = {
-        previousYear,
-        wealthChange,
-        wealthChangePercentage: previousSnapshot.totalWealth > 0
-          ? (wealthChange / previousSnapshot.totalWealth) * 100
-          : 0,
-        zakatChange,
-        zakatChangePercentage: previousSnapshot.zakatAmount > 0
-          ? (zakatChange / previousSnapshot.zakatAmount) * 100
-          : 0,
-        trend: wealthChange > 0 ? 'increasing' : wealthChange < 0 ? 'decreasing' : 'stable'
+        previousYear: {
+          year: previousYear,
+          wealth: previousSnapshot.totalWealth,
+          zakat: previousSnapshot.zakatAmount,
+          paid: 0 // TODO: Get actual paid amount from payments
+        },
+        currentYear: {
+          year: snapshot.gregorianYear,
+          wealth: snapshot.totalWealth,
+          zakat: snapshot.zakatAmount,
+          paid: 0 // TODO: Get actual paid amount from payments
+        },
+        changes: {
+          wealthChange: wealthChange,
+          wealthChangePercent: previousSnapshot.totalWealth > 0
+            ? (wealthChange / previousSnapshot.totalWealth) * 100
+            : 0,
+          zakatChange: zakatChange,
+          zakatChangePercent: previousSnapshot.zakatAmount > 0
+            ? (zakatChange / previousSnapshot.zakatAmount) * 100
+            : 0,
+          paymentConsistency: 'maintained' as const // TODO: Calculate based on actual payments
+        }
       };
     }
 
@@ -170,7 +185,7 @@ export class AnnualSummaryService {
     let nisabInfo: Record<string, any> = {
       threshold: snapshot.nisabThreshold,
       type: snapshot.nisabType,
-      methodology: snapshot.methodology
+      methodology: (snapshot as any).methodology || 'standard' // TODO: Add methodology to YearlySnapshot schema
     };
 
     const totalZakatCalculated = snapshot.zakatAmount;
@@ -181,8 +196,8 @@ export class AnnualSummaryService {
       snapshotId,
       gregorianYear: snapshot.gregorianYear,
       hijriYear: snapshot.hijriYear,
-      startDate: snapshot.calculationDate,
-      endDate: snapshot.calculationDate, // Same as calculation date
+      startDate: new Date(snapshot.calculationDate),
+      endDate: new Date(snapshot.calculationDate), // Same as calculation date
       totalZakatCalculated,
       totalZakatPaid: totalPaid,
       outstandingZakat,
@@ -190,7 +205,7 @@ export class AnnualSummaryService {
       recipientSummary,
       assetBreakdown,
       comparativeAnalysis,
-      methodologyUsed: snapshot.methodology as ZakatMethodology,
+      methodologyUsed: ((snapshot as any).methodology || 'standard') as ZakatMethodology, // TODO: Add methodology to YearlySnapshot schema
       nisabInfo,
       userNotes: snapshot.userNotes
     };
@@ -238,7 +253,7 @@ export class AnnualSummaryService {
    * @returns Array of summaries
    */
   async getSummariesByYear(year: number, userId: string): Promise<AnnualSummary[]> {
-    const summaries = await AnnualSummaryModel.findByYear(year, userId);
+    const summaries = await AnnualSummaryModel.findByYear(userId, year); // Fixed parameter order
     
     return await Promise.all(
       summaries.map(summary => this.decryptSummaryData(summary))
