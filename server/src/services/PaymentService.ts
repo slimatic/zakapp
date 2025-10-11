@@ -364,7 +364,7 @@ export class PaymentService {
     }, {} as Record<string, number>);
 
     // Get recent payments (limit 5)
-    const recentPayments = payments.slice(0, 5).map(p => this.formatPaymentData(p));
+    const recentPayments = await Promise.all(payments.slice(0, 5).map(async p => await this.formatPaymentData(p)));
 
     return {
       totalPaid,
