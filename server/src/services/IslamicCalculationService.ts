@@ -1,33 +1,25 @@
-/**
- * Local type definitions to avoid cross-project imports
- */
-interface Asset {
-  id: string;
-  type: string;
-  value: number;
-  currency: string;
-  description?: string;
+import { 
+  Asset, 
+  ZakatCalculationRequest, 
+  MethodologyInfo,
+  ZakatCalculationResult,
+  AssetCalculation,
+  NisabInfo
+} from '../../../shared/src/types';
+
+// Additional types needed for internal calculations
+interface ZakatAsset extends Asset {
+  zakatableAmount: number;
+  zakatDue: number;
 }
 
-interface ZakatCalculationRequest {
-  methodology: string;
-  assets: Asset[];
-  nisabThreshold: number;
-  calculationDate?: string;
-}
-
-interface AssetCalculation {
-  assetId: string;
-  assetValue: number;
-  zakatableValue: number;
-  zakatAmount: number;
-  reasoning: string;
-}
-
-interface ZakatCalculationResult {
-  totalValue: number;
+interface CalculationBreakdown {
+  totalAssets: number;
+  totalZakatableAmount: number;
   totalZakat: number;
-  assetCalculations: AssetCalculation[];
+  nisabThreshold: number;
+  aboveNisab: boolean;
+  calculations: AssetCalculation[];
   methodology: string;
   calculationDate: string;
 }
