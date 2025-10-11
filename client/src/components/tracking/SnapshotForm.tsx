@@ -329,7 +329,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               >
                 <option value="Standard">Standard</option>
                 <option value="Hanafi">Hanafi</option>
-                <option value="Shafii">Shafi'i</option>
+                <option value="shafi">Shafi'i</option>
                 <option value="Custom">Custom</option>
               </select>
             </div>

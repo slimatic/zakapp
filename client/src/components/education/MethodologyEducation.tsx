@@ -121,7 +121,7 @@ const DEFAULT_EDUCATIONAL_CONTENT: Record<string, MethodologyEducationContent> =
       "Community-focused approach"
     ]
   },
-  shafii: {
+  shafi: {
     historicalBackground: "The Shafi'i methodology is based on the jurisprudential school founded by Imam Muhammad ibn Idris al-Shafi'i (767-820 CE). This school is prominent in Southeast Asia, East Africa, and parts of the Middle East, known for its systematic approach to Islamic law.",
     nisabApproach: "Uses gold-based nisab calculation (87.48 grams of gold) which typically results in a higher threshold. This approach reflects the school's emphasis on precision and the historical stability of gold as a monetary standard.",
     businessAssetTreatment: "Business assets are carefully categorized based on their intended use. Trading inventory is subject to Zakat, while fixed assets for business operations are generally exempt. The school emphasizes clear categorization.",
