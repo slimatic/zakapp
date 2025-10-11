@@ -74,7 +74,7 @@ interface CheckOptions {
  * Validates database integrity across all entities with comprehensive checks
  */
 export class IntegrityChecker {
-  private static encryptionService = new EncryptionService();
+  private static readonly ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
   private static readonly VALID_CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SAR', 'AED', 'QAR', 'KWD'];
   private static readonly VALID_ASSET_CATEGORIES = ['cash', 'gold', 'silver', 'crypto', 'business', 'investment', 'real_estate'];
   private static readonly VALID_METHODOLOGIES = ['standard', 'hanafi', 'shafii', 'hanbali', 'maliki'];
@@ -339,7 +339,7 @@ export class IntegrityChecker {
       // Encryption validation
       if (options.includeEncryption && asset.encryptedData) {
         try {
-          const decrypted = await this.encryptionService.decrypt(asset.encryptedData);
+          const decrypted = await EncryptionService.decrypt(asset.encryptedData, this.ENCRYPTION_KEY);
           if (!decrypted || decrypted.trim().length === 0) {
             errors.push({
               type: 'encryption',
@@ -656,7 +656,7 @@ export class IntegrityChecker {
     for (const asset of assets) {
       if (asset.encryptedData) {
         try {
-          await this.encryptionService.decrypt(asset.encryptedData);
+          await EncryptionService.decrypt(asset.encryptedData, this.ENCRYPTION_KEY);
           validEncryption++;
         } catch {
           // Encryption failed, don't increment

@@ -89,7 +89,7 @@ export class BackupService {
   private static readonly ROLLBACK_DIR = path.join(process.cwd(), 'data', 'rollbacks');
   private static readonly MAX_BACKUPS = 50; // Keep last 50 backups
   private static readonly MAX_ROLLBACKS = 10; // Keep last 10 rollback points
-  private static encryptionService = new EncryptionService();
+  private static readonly ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
   /**
    * Initializes backup directories
@@ -192,7 +192,7 @@ export class BackupService {
       let serializedData = JSON.stringify(backupData, null, 2);
       
       if (backupOptions.encrypt) {
-        serializedData = await this.encryptionService.encrypt(serializedData);
+        serializedData = await EncryptionService.encrypt(serializedData, this.ENCRYPTION_KEY);
       }
 
       // Calculate size and checksum
@@ -207,7 +207,7 @@ export class BackupService {
       
       // Re-serialize with updated metadata
       if (backupOptions.encrypt) {
-        serializedData = await this.encryptionService.encrypt(JSON.stringify(backupData, null, 2));
+        serializedData = await EncryptionService.encrypt(JSON.stringify(backupData, null, 2), this.ENCRYPTION_KEY);
       } else {
         serializedData = JSON.stringify(backupData, null, 2);
       }
@@ -284,7 +284,7 @@ export class BackupService {
       
       // Check if encrypted
       if (backupPath.endsWith('.enc')) {
-        fileContent = await this.encryptionService.decrypt(fileContent);
+        fileContent = await EncryptionService.decrypt(fileContent, this.ENCRYPTION_KEY);
       }
 
       const backupData = JSON.parse(fileContent) as BackupData;
@@ -310,7 +310,7 @@ export class BackupService {
       
       if (backupPath.endsWith('.enc')) {
         try {
-          fileContent = await this.encryptionService.decrypt(fileContent);
+          fileContent = await EncryptionService.decrypt(fileContent, this.ENCRYPTION_KEY);
         } catch (error) {
           errors.push(`Decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
           return { valid: false, errors };
@@ -393,7 +393,7 @@ export class BackupService {
       let fileContent = await fs.readFile(backupPath, 'utf-8');
       
       if (backupPath.endsWith('.enc')) {
-        fileContent = await this.encryptionService.decrypt(fileContent);
+        fileContent = await EncryptionService.decrypt(fileContent, this.ENCRYPTION_KEY);
       }
 
       const backupData = JSON.parse(fileContent) as BackupData;
