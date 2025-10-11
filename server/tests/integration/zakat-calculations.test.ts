@@ -30,18 +30,26 @@ describe('Zakat Methodology Calculations - End-to-End', () => {
   let testAssets: any[];
 
   beforeAll(async () => {
-    // Create test user and authenticate
-    testUser = await generateTestUser('methodology-test-user');
-    
-    // Get auth token
-    const loginResponse = await request(app)
-      .post('/api/auth/login')
+    // Register test user through API (populates UserStore)
+    const registrationResponse = await request(app)
+      .post('/api/auth/register')
       .send({
-        email: testUser.email,
-        password: 'TestPassword123!'
+        email: 'methodology-test-user@test.com',
+        password: 'TestPassword123!',
+        confirmPassword: 'TestPassword123!',
+        firstName: 'Test',
+        lastName: 'User'
       });
     
-    authToken = loginResponse.body.token;
+    // Debug: Check registration response
+    if (registrationResponse.status !== 201 || !registrationResponse.body.data) {
+      console.error('Registration failed:', registrationResponse.status, registrationResponse.body);
+      throw new Error(`Registration failed: ${JSON.stringify(registrationResponse.body)}`);
+    }
+    
+    // Extract user ID and token from registration response
+    testUser = registrationResponse.body.data.user;
+    authToken = registrationResponse.body.data.tokens.accessToken;
 
     // Create test assets for calculations
     testAssets = [
@@ -86,7 +94,9 @@ describe('Zakat Methodology Calculations - End-to-End', () => {
   });
 
   afterAll(async () => {
-    await cleanupTestData(testUser.id);
+    // Clean up UserStore (in-memory)
+    const { UserStore } = await import('../../src/utils/userStore');
+    UserStore.clear();
   });
 
   describe('Standard (AAOIFI) Methodology', () => {
