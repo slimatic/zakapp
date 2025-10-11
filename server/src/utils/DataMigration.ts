@@ -114,7 +114,7 @@ interface MigrationProgress {
  * Handles comprehensive data migration from JSON files to database
  */
 export class DataMigrationService {
-  private static encryptionService = new EncryptionService();
+  private static readonly ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-for-development-purposes-32';
   private static progressCallback?: (progress: MigrationProgress) => void;
 
   /**
@@ -341,7 +341,7 @@ export class DataMigrationService {
         if (asset.encryptedData) {
           encryptedValue = asset.encryptedData;
         } else {
-          encryptedValue = await this.encryptionService.encrypt(asset.value.toString());
+          encryptedValue = await EncryptionService.encrypt(asset.value.toString(), this.ENCRYPTION_KEY);
         }
 
         // Create asset
