@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 
 const prisma = new PrismaClient();
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
 export interface CreatePaymentRequest {
   calculationId: string;
@@ -97,11 +98,11 @@ export class PaymentService {
     const islamicYear = this.getIslamicYear(paymentDate);
 
     // Encrypt sensitive recipient data
-    const encryptedRecipients = recipients.map(recipient => ({
+    const encryptedRecipients = await Promise.all(recipients.map(async recipient => ({
       ...recipient,
       contactInfo: recipient.contactInfo ? 
-        EncryptionService.encryptObject(recipient.contactInfo) : null
-    }));
+        await EncryptionService.encryptObject(recipient.contactInfo, ENCRYPTION_KEY) : null
+    })));
 
     // Create payment record
     const payment = await prisma.zakatPayment.create({
@@ -125,7 +126,7 @@ export class PaymentService {
       }
     });
 
-    return this.formatPaymentData(payment);
+    return await this.formatPaymentData(payment);
   }
 
   /**
@@ -143,7 +144,7 @@ export class PaymentService {
       throw new Error('Payment not found');
     }
 
-    return this.formatPaymentData(payment);
+    return await this.formatPaymentData(payment);
   }
 
   /**
@@ -210,10 +211,10 @@ export class PaymentService {
     const total = await prisma.zakatPayment.count({ where });
 
     return {
-      payments: payments.map(payment => ({
-        ...this.formatPaymentData(payment),
+      payments: await Promise.all(payments.map(async payment => ({
+        ...await this.formatPaymentData(payment),
         calculation: payment.calculation
-      })),
+      }))),
       pagination: {
         page,
         limit,
@@ -253,11 +254,11 @@ export class PaymentService {
       this.validateRecipientCategories(updates.recipients);
       
       // Encrypt sensitive recipient data
-      const encryptedRecipients = updates.recipients.map(recipient => ({
+      const encryptedRecipients = await Promise.all(updates.recipients.map(async recipient => ({
         ...recipient,
         contactInfo: recipient.contactInfo ? 
-          EncryptionService.encryptObject(recipient.contactInfo) : null
-      }));
+          await EncryptionService.encryptObject(recipient.contactInfo, ENCRYPTION_KEY) : null
+      })));
 
       updateData.recipients = JSON.stringify(encryptedRecipients);
 
@@ -514,7 +515,7 @@ export class PaymentService {
     let userProfile: any = {};
     if (payment.user?.profile) {
       try {
-        userProfile = EncryptionService.decryptObject(payment.user.profile) || {};
+        userProfile = await EncryptionService.decryptObject(payment.user.profile, ENCRYPTION_KEY) || {};
       } catch (error) {
         // Handle decryption error gracefully
         userProfile = {};
@@ -522,11 +523,11 @@ export class PaymentService {
     }
 
     // Decrypt recipient contact info
-    const recipients = JSON.parse(payment.recipients || '[]').map((recipient: any) => ({
+    const recipients = await Promise.all(JSON.parse(payment.recipients || '[]').map(async (recipient: any) => ({
       ...recipient,
       contactInfo: recipient.contactInfo ? 
-        EncryptionService.decryptObject(recipient.contactInfo) : null
-    }));
+        await EncryptionService.decryptObject(recipient.contactInfo, ENCRYPTION_KEY) : null
+    })));
 
     return {
       receiptNumber: payment.receiptNumber || payment.id,
@@ -557,15 +558,15 @@ export class PaymentService {
   /**
    * Private: Format payment data for response
    */
-  private formatPaymentData(payment: any): PaymentData {
+  private async formatPaymentData(payment: any): Promise<PaymentData> {
     // Decrypt recipient contact info
     let recipients = [];
     try {
-      recipients = JSON.parse(payment.recipients || '[]').map((recipient: any) => ({
+      recipients = await Promise.all(JSON.parse(payment.recipients || '[]').map(async (recipient: any) => ({
         ...recipient,
         contactInfo: recipient.contactInfo ? 
-          EncryptionService.decryptObject(recipient.contactInfo) : null
-      }));
+          await EncryptionService.decryptObject(recipient.contactInfo, ENCRYPTION_KEY) : null
+      })));
     } catch (error) {
       recipients = [];
     }
