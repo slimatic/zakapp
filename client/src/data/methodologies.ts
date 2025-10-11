@@ -173,14 +173,12 @@ export const methodologies: Record<string, Methodology> = {
     commonRegions: ['South Asia', 'Turkey', 'Central Asia', 'Parts of Middle East'],
     scholarlyBasis: 'Hanafi School of Jurisprudence (Madhab)'
   },
-
+  
   shafi: {
     id: 'shafi',
     name: 'Shafi\'i Method',
     shortDescription: 'Traditional method with detailed categorization',
-    icon: '📚',
-    
-    overview: `The Shafi'i methodology follows the Shafi'i school of Islamic jurisprudence, known for its detailed and systematic approach 
+    icon: '📚',    overview: `The Shafi'i methodology follows the Shafi'i school of Islamic jurisprudence, known for its detailed and systematic approach 
     to Zakat calculation. It provides specific rules for different asset categories based on classical Islamic texts and scholarly consensus.`,
     
     historicalContext: `Named after Imam Muhammad ibn Idris al-Shafi'i (767-820 CE), this school developed in Mecca and later Egypt. 

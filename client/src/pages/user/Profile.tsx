@@ -159,7 +159,7 @@ export const Profile: React.FC = () => {
   const zakatMethods = [
     { value: 'standard', name: 'Standard (2.5%)' },
     { value: 'hanafi', name: 'Hanafi School' },
-    { value: 'shafii', name: 'Shafi\'i School' },
+    { value: 'shafi', name: 'Shafi\'i School' },
     { value: 'custom', name: 'Custom Method' },
   ];
 
