@@ -23,8 +23,28 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
   // Get all methodologies from our data file
   const methodologies = getAllMethodologies();
 
-  const handleMethodologySelect = (methodologyId: string) => {
+  const handleMethodologySelect = async (methodologyId: string) => {
     onMethodologyChange(methodologyId);
+    
+    // Save preference to backend
+    try {
+      const response = await fetch('/api/user/settings', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          preferredMethodology: methodologyId
+        })
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to save methodology preference');
+      }
+    } catch (error) {
+      console.error('Error saving methodology preference:', error);
+    }
   };
 
   const handleLearnMore = (methodologyId: string) => {

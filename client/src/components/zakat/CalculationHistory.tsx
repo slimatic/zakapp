@@ -42,10 +42,13 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
   const [sortBy, setSortBy] = useState<'calculationDate' | 'totalWealth' | 'zakatDue'>('calculationDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedCalculation, setSelectedCalculation] = useState<Calculation | null>(null);
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   useEffect(() => {
     loadCalculations();
-  }, [pagination.page, selectedMethodology, sortBy, sortOrder]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.page, selectedMethodology, sortBy, sortOrder, startDate, endDate]);
 
   const loadCalculations = async () => {
     try {
@@ -62,6 +65,14 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
 
       if (selectedMethodology !== 'all') {
         params.append('methodology', selectedMethodology);
+      }
+      
+      if (startDate) {
+        params.append('startDate', startDate);
+      }
+      
+      if (endDate) {
+        params.append('endDate', endDate);
       }
 
       // Make API call
@@ -92,6 +103,7 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
   };
 
   const deleteCalculation = async (id: string) => {
+    // eslint-disable-next-line no-restricted-globals
     if (!confirm('Are you sure you want to delete this calculation?')) {
       return;
     }
@@ -177,7 +189,7 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Methodology Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -197,6 +209,38 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
               <option value="shafi">Shafi'i</option>
               <option value="custom">Custom</option>
             </select>
+          </div>
+
+          {/* Start Date Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              From Date
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                setPagination(prev => ({ ...prev, page: 1 }));
+              }}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+
+          {/* End Date Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              To Date
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                setPagination(prev => ({ ...prev, page: 1 }));
+              }}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+            />
           </div>
 
           {/* Sort By */}

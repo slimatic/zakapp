@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useZakatHistory, useZakatPayments } from '../../services/apiHooks';
 import { Button, LoadingSpinner, ErrorMessage } from '../../components/ui';
+import { CalculationHistory } from '../../components/zakat/CalculationHistory';
 
 interface ZakatCalculation {
   id: string;
@@ -195,7 +196,7 @@ export const History: React.FC = () => {
     const icons = {
       standard: '⚖️',
       hanafi: '🕌',
-      shafi_i: '📖',
+      shafi: '📖',
       custom: '⚙️'
     };
     return icons[methodology as keyof typeof icons] || '⚖️';
@@ -308,6 +309,11 @@ export const History: React.FC = () => {
           <div className="p-6">
             {/* Calculations Tab */}
             {activeTab === 'calculations' && (
+              <CalculationHistory />
+            )}
+
+            {/* Payments Tab - Keep existing implementation */}
+            {activeTab === 'payments' && (
               <div className="space-y-6">
                 {/* Filters */}
                 <div className="flex flex-wrap items-center gap-4">
@@ -328,7 +334,7 @@ export const History: React.FC = () => {
                     <option value="all">All Methodologies</option>
                     <option value="standard">Standard</option>
                     <option value="hanafi">Hanafi</option>
-                    <option value="shafi_i">Shafi'i</option>
+                    <option value="shafi">Shafi'i</option>
                     <option value="custom">Custom</option>
                   </select>
                   <select
