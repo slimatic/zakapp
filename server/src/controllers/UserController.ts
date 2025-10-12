@@ -1,8 +1,11 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { UserStore } from '../utils/userStore';
+
+const prisma = new PrismaClient();
 
 export class UserController {
   getProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -106,7 +109,8 @@ export class UserController {
   });
 
   deleteSession = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { id } = req.params;
+    // Session ID would be used for actual deletion
+    // const { id } = req.params;
 
     const response: ApiResponse = {
       success: true,
@@ -117,8 +121,24 @@ export class UserController {
   });
 
   getSettings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const mockSettings = {
-      preferredMethodology: 'standard',
+    const userId = req.userId!;
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        preferredMethodology: true,
+        preferredCalendar: true
+      }
+    });
+
+    if (!user) {
+      throw new AppError('User not found', 404, ErrorCode.ASSET_NOT_FOUND);
+    }
+
+    const settings = {
+      preferredMethodology: user.preferredMethodology || 'standard',
+      preferredCalendar: user.preferredCalendar || 'gregorian',
       currency: 'USD',
       language: 'en',
       timezone: 'UTC',
@@ -134,7 +154,7 @@ export class UserController {
         analytics: true,
         marketing: false
       },
-      calendarType: 'lunar' as const,
+      calendarType: (user.preferredCalendar === 'hijri' ? 'lunar' : 'solar') as 'lunar' | 'solar',
       notifications: {
         email: true,
         push: true,
@@ -144,20 +164,45 @@ export class UserController {
 
     const response: ApiResponse = {
       success: true,
-      settings: mockSettings
+      settings
     };
 
     res.status(200).json(response);
   });
 
   updateSettings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.userId!;
     const settingsUpdate = req.body;
+
+    // Extract fields that can be updated in User model
+    const userUpdateData: {
+      preferredMethodology?: string;
+      preferredCalendar?: string;
+    } = {};
+    
+    if (settingsUpdate.preferredMethodology !== undefined) {
+      userUpdateData.preferredMethodology = settingsUpdate.preferredMethodology;
+    }
+    if (settingsUpdate.preferredCalendar !== undefined) {
+      userUpdateData.preferredCalendar = settingsUpdate.preferredCalendar;
+    }
+
+    // Update user in database
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: userUpdateData,
+      select: {
+        preferredMethodology: true,
+        preferredCalendar: true
+      }
+    });
 
     const response: ApiResponse = {
       success: true,
       message: 'Settings updated successfully',
       settings: {
-        ...settingsUpdate,
+        preferredMethodology: updatedUser.preferredMethodology,
+        preferredCalendar: updatedUser.preferredCalendar,
         updatedAt: new Date().toISOString()
       }
     };
@@ -166,7 +211,8 @@ export class UserController {
   });
 
   deleteAccount = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { password, reason } = req.body;
+    const { password } = req.body;
+    // Reason for deletion would be logged: const { reason } = req.body;
 
     if (!password) {
       throw new AppError('Password confirmation is required for account deletion', 400, ErrorCode.VALIDATION_ERROR);

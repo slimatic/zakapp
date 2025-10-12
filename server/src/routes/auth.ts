@@ -6,8 +6,11 @@ import { authenticate } from '../middleware/AuthMiddleware';
 import { handleValidationErrors, validateUserLogin, validateUserRegistration } from '../middleware/ValidationMiddleware';
 import { registrationRateLimit, loginRateLimit } from '../middleware/RateLimitMiddleware';
 import { asyncHandler } from '../middleware/ErrorHandler';
-import { UserStore } from '../utils/userStore';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+
+const prisma = new PrismaClient();
 
 // Simple in-memory token revocation tracking
 const revokedTokens = new Set<string>();
@@ -100,8 +103,11 @@ router.post('/login',
     const { email, password } = req.body;
 
     try {
-      // Authenticate user
-      const user = await UserStore.authenticateUser(email, password);
+      // Find user in database
+      const user = await prisma.user.findUnique({
+        where: { email }
+      });
+
       if (!user) {
         res.status(401).json({
           success: false,
@@ -112,6 +118,25 @@ router.post('/login',
         });
         return;
       }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+      if (!isValidPassword) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_CREDENTIALS',
+            message: 'Invalid email or password'
+          }
+        });
+        return;
+      }
+
+      // Update last login
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() }
+      });
 
       // Generate tokens
       const accessToken = jwtService.createAccessToken({
@@ -131,7 +156,10 @@ router.post('/login',
           user: {
             id: user.id,
             email: user.email,
-            preferences: {} // TODO: Add user preferences when implemented
+            preferences: {
+              calendar: user.preferredCalendar,
+              methodology: user.preferredMethodology
+            }
           }
         },
         metadata: {
@@ -140,6 +168,7 @@ router.post('/login',
         }
       });
     } catch (error) {
+      console.error('Login error:', error);
       res.status(500).json({
         success: false,
         error: {
@@ -163,8 +192,12 @@ router.post('/register',
     const { email, password, firstName, lastName } = req.body;
 
     try {
-      // Check if email already exists
-      if (UserStore.emailExists(email)) {
+      // Check if user already exists in database
+      const existingUser = await prisma.user.findUnique({
+        where: { email }
+      });
+
+      if (existingUser) {
         res.status(409).json({
           success: false,
           error: {
@@ -175,9 +208,21 @@ router.post('/register',
         return;
       }
 
-      // Create new user
-      const fullName = `${firstName} ${lastName}`;
-      const user = await UserStore.createUser(email, fullName, password);
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 12);
+
+      // Create user in database
+      const user = await prisma.user.create({
+        data: {
+          email,
+          passwordHash,
+          profile: JSON.stringify({ firstName, lastName }), // Store profile as JSON
+          isActive: true,
+          lastLoginAt: new Date(),
+          preferredCalendar: 'gregorian',
+          preferredMethodology: 'standard'
+        }
+      });
 
       // Generate tokens
       const accessToken = jwtService.createAccessToken({
@@ -195,16 +240,19 @@ router.post('/register',
           user: {
             id: user.id,
             email: user.email,
-            encryptedProfile: user.encryptedProfile || '', // Add encrypted profile field
-            isActive: true, // Add active status
-            createdAt: new Date().toISOString(), // Add creation timestamp
-            preferences: {} // TODO: Add user preferences when implemented
+            encryptedProfile: user.profile || '',
+            isActive: user.isActive,
+            createdAt: user.createdAt.toISOString(),
+            preferences: {
+              calendar: user.preferredCalendar,
+              methodology: user.preferredMethodology
+            }
           },
           tokens: {
             accessToken,
             refreshToken
           },
-          auditLogId: `audit-${user.id}-${Date.now()}` // TODO: Implement proper audit logging
+          auditLogId: `audit-${user.id}-${Date.now()}`
         },
         metadata: {
           timestamp: new Date().toISOString(),
@@ -223,6 +271,8 @@ router.post('/register',
         return;
       }
 
+      // eslint-disable-next-line no-console
+      console.error('Registration error:', error);
       res.status(500).json({
         success: false,
         error: {
@@ -377,8 +427,11 @@ router.post('/refresh',
         return;
       }
       
-      // Find user
-      const user = UserStore.getUserById(decoded.userId);
+      // Find user in database
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId }
+      });
+      
       if (!user) {
         res.status(401).json({
           success: false,
@@ -503,7 +556,10 @@ router.get('/me',
   authenticate,
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const user = UserStore.getUserById(req.userId!);
+      const user = await prisma.user.findUnique({
+        where: { id: req.userId! }
+      });
+      
       if (!user) {
         res.status(404).json({
           success: false,
@@ -515,15 +571,28 @@ router.get('/me',
         return;
       }
 
+      // Parse profile to get name
+      let profile = { firstName: '', lastName: '' };
+      try {
+        if (user.profile) {
+          profile = JSON.parse(user.profile);
+        }
+      } catch {
+        // Ignore parse errors
+      }
+
       res.status(200).json({
         success: true,
         data: {
           user: {
             id: user.id,
             email: user.email,
-            name: user.name,
-            preferences: {}, // TODO: Add user preferences when implemented
-            createdAt: user.createdAt
+            name: `${profile.firstName} ${profile.lastName}`.trim() || user.email,
+            preferences: {
+              calendar: user.preferredCalendar,
+              methodology: user.preferredMethodology
+            },
+            createdAt: user.createdAt.toISOString()
           }
         },
         metadata: {

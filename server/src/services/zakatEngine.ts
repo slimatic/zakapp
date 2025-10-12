@@ -14,7 +14,7 @@ import {
 import { ZAKAT_METHODS, NISAB_THRESHOLDS, ZAKAT_RATES } from '../../../shared/src/constants';
 import { CurrencyService } from './currencyService';
 import { CalendarService } from './calendarService';
-import { NisabService } from './nisabService';
+import { NisabService } from './NisabService';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
