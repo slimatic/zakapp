@@ -7,7 +7,7 @@ import {
   PaginationParams,
   PaginationResult,
   SnapshotStatus
-} from '@zakapp/shared/types/tracking';
+} from '@shared/types/tracking';
 
 /**
  * YearlySnapshotService - Business logic for yearly Zakat snapshots
@@ -337,7 +337,7 @@ export class YearlySnapshotService {
 
     const finalizedCount = decrypted.filter(s => s.status === 'finalized').length;
     const draftCount = decrypted.filter(s => s.status === 'draft').length;
-    const yearsTracked = [...new Set(decrypted.map(s => s.gregorianYear))].sort();
+    const yearsTracked = [...new Set(decrypted.map(s => s.gregorianYear))].sort() as number[];
 
     return {
       totalSnapshots: decrypted.length,
