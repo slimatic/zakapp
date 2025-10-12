@@ -6,7 +6,7 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": false,
+    "forceConsistentCasingInFileNames": true,
     "strict": false,
     "exactOptionalPropertyTypes": false,
     "noImplicitAny": false,
@@ -36,9 +36,8 @@
   "exclude": [
     "node_modules",
     "dist",
-    "tests",
-    "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ],
   "ts-node": {
     "esm": false,
