@@ -108,7 +108,8 @@ Create a test user or use existing credentials:
 
 **Issues Found:**
 ```
-[Document any issues here]
+Calculation results always show Methodology as standard regardless of method selected.
+Asset selection only selects all or none. No option to select particular assets for calculation.
 ```
 
 ---
