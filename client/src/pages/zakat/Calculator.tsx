@@ -42,6 +42,35 @@ export const Calculator: React.FC = () => {
   const { data: methodologies, isLoading: methodologiesLoading } = useZakatMethodologies();
   const zakatCalculation = useZakatCalculation();
 
+  // Load user preferences on mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const response = await fetch('/api/user/settings', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.settings?.preferredMethodology) {
+            setCalculationParams(prev => ({
+              ...prev,
+              methodology: data.settings.preferredMethodology,
+              calendarType: data.settings.preferredCalendar === 'hijri' ? 'lunar' : 'solar'
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load preferences:', error);
+      }
+    };
+    
+    loadPreferences();
+  }, []);
+
   // Initialize selected assets when assets load
   useEffect(() => {
     if (assets?.data && selectedAssets.length === 0) {
@@ -74,29 +103,126 @@ export const Calculator: React.FC = () => {
 
   const handleCalculateZakat = async () => {
     try {
+      console.log('🔍 Calculation Request:', {
+        methodology: calculationParams.methodology,
+        fullParams: calculationParams
+      });
+      
       const result = await zakatCalculation.mutateAsync(calculationParams);
-      setCalculationResult(result.data);
+      
+      console.log('📥 API Response:', {
+        resultData: result.data,
+        methodology: result.data?.methodology,
+        fallback: calculationParams.methodology
+      });
+      
+      // Transform API response to match ZakatCalculation interface
+      const transformedResult = {
+        id: 'temp-' + Date.now(),
+        calculationDate: calculationParams.calculationDate,
+        methodology: result.data?.methodology || calculationParams.methodology, // Use from API or fallback
+        calendarType: calculationParams.calendarType,
+        summary: {
+          totalAssets: result.data?.totalAssetValue || 0,
+          totalLiabilities: 0,
+          netWorth: result.data?.totalAssetValue || 0,
+          nisabThreshold: result.data?.nisabThreshold || 0,
+          nisabSource: 'gold' as const,
+          isZakatObligatory: (result.data?.totalAssetValue || 0) >= (result.data?.nisabThreshold || 0),
+          zakatAmount: result.data?.zakatAmount || 0,
+          zakatRate: 0.025
+        },
+        breakdown: {
+          assetsByCategory: [],
+          liabilities: []
+        },
+        educationalContent: {
+          methodologyExplanation: result.data?.educationalContent?.methodologyExplanation || '',
+          scholarlyReferences: result.data?.educationalContent?.sources || [],
+          nisabExplanation: 'Nisab is the minimum threshold of wealth'
+        }
+      };
+      
+      console.log('✅ Transformed Result:', {
+        methodology: transformedResult.methodology,
+        fullResult: transformedResult
+      });
+      
+      setCalculationResult(transformedResult);
     } catch (error) {
       console.error('Zakat calculation failed:', error);
     }
   };
 
   const handleSaveCalculation = async () => {
-    if (!calculationResult || !saveCalculationName.trim()) return;
+    if (!calculationResult) {
+      alert('Please calculate Zakat first');
+      return;
+    }
     
     try {
-      // TODO: Implement save calculation functionality
-      console.log('Saving calculation:', saveCalculationName);
+      const response = await fetch('/api/calculations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          methodology: calculationParams.methodology,
+          calendarType: calculationParams.calendarType,
+          calculationDate: new Date().toISOString(),
+          totalWealth: calculationResult.totalWorth || calculationResult.netWorth || 0,
+          nisabThreshold: calculationResult.nisabThreshold || 0,
+          zakatDue: calculationResult.zakatAmount || 0,
+          zakatRate: calculationResult.zakatRate || 2.5,
+          assetBreakdown: calculationResult.assetBreakdown || {},
+          notes: saveCalculationName || 'Zakat Calculation'
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to save calculation');
+      }
+      
+      await response.json(); // Consume response
+      alert('✅ Calculation saved successfully!');
+      setSaveCalculationName('');
+      
+      // Navigate to history
+      window.location.href = '/history';
     } catch (error) {
-      console.error('Failed to save calculation:', error);
+      console.error('Save calculation error:', error);
+      alert(`❌ Failed to save calculation: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleExportResults = (format: 'pdf' | 'json') => {
     if (!calculationResult) return;
     
-    // TODO: Implement export functionality
-    console.log('Exporting results as:', format);
+    if (format === 'json') {
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        methodology: calculationParams.methodology,
+        calendarType: calculationParams.calendarType,
+        calculationDate: calculationParams.calculationDate,
+        ...calculationResult
+      };
+      
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `zakat-calculation-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else if (format === 'pdf') {
+      // Use browser print functionality for PDF
+      window.print();
+    }
   };
 
   const getNisabInfo = () => {
@@ -180,9 +306,10 @@ export const Calculator: React.FC = () => {
               </h2>
               <MethodologySelector
                 selectedMethodology={calculationParams.methodology}
-                methodologies={methodologies?.data || []}
-                onMethodologyChange={handleMethodologyChange}
-                showComparison={showMethodologyComparison}
+                onMethodologyChange={(methodologyId) => {
+                  setCalculationParams(prev => ({ ...prev, methodology: methodologyId }));
+                }}
+                showEducationalContent={true}
               />
             </div>
 
@@ -222,9 +349,10 @@ export const Calculator: React.FC = () => {
                               <input
                                 type="checkbox"
                                 checked={selectedAssets.includes(asset.assetId)}
-                                onChange={(e) => 
-                                  handleAssetSelectionChange(asset.assetId, e.target.checked)
-                                }
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleAssetSelectionChange(asset.assetId, e.target.checked);
+                                }}
                                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 onClick={(e) => e.stopPropagation()}
                               />
