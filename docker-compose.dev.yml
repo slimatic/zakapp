@@ -8,9 +8,9 @@ services:
       - .:/app
       - /app/node_modules
       - /app/shared/node_modules
-      - /app/backend/node_modules
-      - /app/frontend/node_modules
-      - ./backend/data:/app/backend/data
+      - /app/server/node_modules
+      - /app/client/node_modules
+      - ./server/prisma/data:/app/server/prisma/data
     environment:
       - NODE_ENV=development
     working_dir: /app
@@ -24,16 +24,16 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - ./frontend:/app/frontend
+      - ./client:/app/client
       - ./shared:/app/shared
-      - /app/frontend/node_modules
+      - /app/client/node_modules
       - /app/shared/node_modules
     environment:
       - NODE_ENV=development
       - REACT_APP_API_URL=http://localhost:3001
     depends_on:
       - backend
-    command: npm run dev
+    command: npm start
 
   backend:
     build:
@@ -42,16 +42,16 @@ services:
     ports:
       - '3001:3001'
     volumes:
-      - ./backend:/app/backend
+      - ./server:/app/server
       - ./shared:/app/shared
-      - /app/backend/node_modules
+      - /app/server/node_modules
       - /app/shared/node_modules
-      - ./backend/data:/app/backend/data
+      - ./server/prisma/data:/app/server/prisma/data
     environment:
       - NODE_ENV=development
       - PORT=3001
       - JWT_SECRET=your-jwt-secret-change-in-production
-      - DATA_DIR=/app/backend/data
+      - DATABASE_URL=file:./prisma/data/dev.db
     command: npm run dev
 
 networks:

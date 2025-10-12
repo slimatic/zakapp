@@ -1,7 +1,10 @@
 # Backend Dockerfile for development
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
+
+# Install build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache python3 make g++
 
 # Copy npmrc configuration
 COPY .npmrc ./
@@ -16,20 +19,23 @@ RUN cd shared && npm ci
 COPY shared/ ./shared/
 RUN cd shared && npm run build
 
-# Copy backend package files
-COPY backend/package*.json ./backend/
+# Copy server package files
+COPY server/package*.json ./server/
 
-# Install backend dependencies (this will link to ../shared)
-RUN cd backend && npm ci
+# Install server dependencies (this will link to ../shared)
+RUN cd server && npm ci
 
-# Copy backend source code
-COPY backend/ ./backend/
+# Copy server source code
+COPY server/ ./server/
 
 # Create data directory with proper permissions
-RUN mkdir -p /app/backend/data/users /app/backend/data/backups
+RUN mkdir -p /app/server/prisma/data
 
-# Set working directory to backend
-WORKDIR /app/backend
+# Generate Prisma client
+RUN cd server && npx prisma generate
+
+# Set working directory to server
+WORKDIR /app/server
 
 # Expose port
 EXPOSE 3001
