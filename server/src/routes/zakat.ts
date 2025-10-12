@@ -14,13 +14,13 @@ const router = express.Router();
 /**
  * Standard API Response Format
  */
-interface StandardResponse<T = any> {
+interface StandardResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
     code: string;
     message: string;
-    details?: any[];
+    details?: string[];
   };
   metadata?: {
     timestamp: string;
@@ -44,7 +44,7 @@ interface EncryptedAsset {
  * Zakat Calculation Request Schema
  */
 const ZakatCalculationRequestSchema = z.object({
-  methodology: z.enum(['standard', 'hanafi', 'shafii', 'maliki', 'hanbali']),
+  methodology: z.enum(['standard', 'hanafi', 'shafii', 'maliki', 'hanbali', 'custom']),
   assets: z.array(z.object({
     id: z.string(),
     type: z.enum(['cash', 'gold', 'silver', 'crypto', 'business', 'investment']),
@@ -59,7 +59,7 @@ const ZakatCalculationRequestSchema = z.object({
 /**
  * Helper function to create StandardResponse
  */
-const createResponse = <T>(success: boolean, data?: T, error?: { code: string; message: string; details?: any[] }): StandardResponse<T> => {
+const createResponse = <T>(success: boolean, data?: T, error?: { code: string; message: string; details?: string[] }): StandardResponse<T> => {
   return {
     success,
     data,
@@ -83,6 +83,10 @@ router.post('/calculate',
       const userId = req.userId!;
       const { methodology, assets, nisabSource } = req.body;
       
+      // Handle 'custom' methodology by defaulting to 'standard' calculation
+      // Custom rules would be applied separately if provided
+      const effectiveMethodology = methodology === 'custom' ? 'standard' : methodology;
+      
       // Generate decryption key from user ID
       const encryptionKey = await EncryptionService.deriveKey(userId, 'asset-salt');
       
@@ -105,17 +109,17 @@ router.post('/calculate',
       );
       
       // Get current nisab threshold using SimpleNisabService
-      const nisabInfo = await SimpleNisabService.calculateNisabThreshold(methodology, nisabSource);
+      const nisabInfo = await SimpleNisabService.calculateNisabThreshold(effectiveMethodology, nisabSource);
       
       // Calculate Zakat using Simple Islamic Calculation Service
       const calculationResult = await SimpleIslamicCalculationService.calculateZakat(
         decryptedAssets,
-        methodology,
+        effectiveMethodology,
         nisabInfo.effectiveNisab
       );
       
       // Get educational content for the methodology
-      const educationalContent = await SimpleEducationalContentService.getMethodologyEducation(methodology);
+      const educationalContent = await SimpleEducationalContentService.getMethodologyEducation(effectiveMethodology);
       
       // Prepare detailed calculations for each asset
       const calculations = decryptedAssets.map(asset => {
