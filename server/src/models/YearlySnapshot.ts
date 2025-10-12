@@ -6,7 +6,7 @@ import {
   SnapshotStatus,
   NisabType,
   ZakatMethodology
-} from '@zakapp/shared/types/tracking';
+} from '@shared/types/tracking';
 
 const prisma = new PrismaClient();
 

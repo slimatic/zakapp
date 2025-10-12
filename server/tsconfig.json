@@ -17,7 +17,6 @@
     "noUncheckedIndexedAccess": false,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "declaration": false,
     "declarationMap": false,
     "sourceMap": true,
@@ -31,7 +30,8 @@
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../shared/**/*"
   ],
   "exclude": [
     "node_modules",
