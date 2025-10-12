@@ -133,7 +133,7 @@ export const CalculationTrends: React.FC<CalculationTrendsProps> = () => {
     const wealthMap = new Map(trends.wealthTrend.map(item => [item.date, item.wealth]));
     const zakatMap = new Map(trends.zakatTrend.map(item => [item.date, item.zakat]));
     
-    const allDates = new Set([...wealthMap.keys(), ...zakatMap.keys()]);
+    const allDates = new Set(Array.from(wealthMap.keys()).concat(Array.from(zakatMap.keys())));
     
     return Array.from(allDates).sort().map(date => ({
       date: formatDate(date),
@@ -321,7 +321,7 @@ export const CalculationTrends: React.FC<CalculationTrendsProps> = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  label={(entry: any) => `${entry.name}: ${(entry.percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"

@@ -210,7 +210,7 @@ export const MultipleActions: Story = {
       type: 'zakat_anniversary',
       priority: 'high',
       title: 'Create Your 2025 Snapshot',
-      message: 'Your Zakat anniversary is here. Create your snapshot or view last year's data.',
+      message: 'Your Zakat anniversary is here. Create your snapshot or view last year\'s data.',
       eventDate: '2025-01-15',
       relatedSnapshotId: 'snap_2024_abcdef',
       createdAt: '2025-01-15',
