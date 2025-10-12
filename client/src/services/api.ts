@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -29,9 +29,13 @@ export interface AuthResponse {
   user?: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
-    username: string;
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+    preferences?: {
+      calendar?: string;
+      methodology?: string;
+    };
   };
   message?: string;
 }
@@ -74,13 +78,17 @@ class ApiService {
       if (!response.ok) {
         return {
           success: false,
-          message: result.message || `Login failed: ${response.status}`
+          message: result.error?.message || result.message || `Login failed: ${response.status}`
         };
       }
       
+      // Backend returns: { success: true, data: { accessToken, refreshToken, user } }
+      // Frontend expects: { success: true, accessToken, refreshToken, user }
       return {
         success: true,
-        ...result
+        accessToken: result.data?.accessToken,
+        refreshToken: result.data?.refreshToken,
+        user: result.data?.user
       };
     } catch (error) {
       console.error('Login error:', error);
@@ -104,13 +112,17 @@ class ApiService {
       if (!response.ok) {
         return {
           success: false,
-          message: result.message || `Registration failed: ${response.status}`
+          message: result.error?.message || result.message || `Registration failed: ${response.status}`
         };
       }
       
+      // Backend returns: { success: true, data: { user, tokens: { accessToken, refreshToken } } }
+      // Frontend expects: { success: true, accessToken, refreshToken, user }
       return {
         success: true,
-        ...result
+        accessToken: result.data?.tokens?.accessToken,
+        refreshToken: result.data?.tokens?.refreshToken,
+        user: result.data?.user
       };
     } catch (error) {
       console.error('Registration error:', error);

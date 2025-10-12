@@ -115,9 +115,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      console.log('Attempting login with username:', email);
-      // For login, treat the email input as username since the server expects username
-      const response = await apiService.login({ username: email, password });
+      console.log('Attempting login with email:', email);
+      // Send email directly - backend expects 'email' field
+      const response = await apiService.login({ email, password });
       console.log('Login response:', { ...response, accessToken: response.accessToken ? '[PRESENT]' : '[MISSING]' });
       
       if (response.success && response.accessToken && response.user) {
@@ -127,17 +127,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         
         // Convert API response user to shared User interface
+        // Backend may not return username (it's optional), extract from email if needed
         const user: User = {
           userId: response.user.id,
-          username: response.user.username,
+          username: response.user.username || response.user.email.split('@')[0], // Use email prefix if username not provided
           email: response.user.email,
           createdAt: new Date().toISOString(), // Default for now
           lastLogin: new Date().toISOString(),
           preferences: {
             currency: 'USD',
             language: 'en',
-            zakatMethod: 'standard',
-            calendarType: 'lunar'
+            zakatMethod: response.user.preferences?.methodology || 'standard',
+            calendarType: response.user.preferences?.calendar || 'lunar'
           }
         };
         
@@ -167,17 +168,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         
         // Convert API response user to shared User interface
+        // Backend may not return username (it's optional), extract from email if needed
         const user: User = {
           userId: response.user.id,
-          username: response.user.username,
+          username: response.user.username || response.user.email.split('@')[0], // Use email prefix if username not provided
           email: response.user.email,
           createdAt: new Date().toISOString(), // Default for now
           lastLogin: new Date().toISOString(),
           preferences: {
             currency: 'USD',
             language: 'en',
-            zakatMethod: 'standard',
-            calendarType: 'lunar'
+            zakatMethod: (response.user as any).preferences?.methodology || 'standard',
+            calendarType: (response.user as any).preferences?.calendar || 'lunar'
           }
         };
         
