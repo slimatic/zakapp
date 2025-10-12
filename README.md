@@ -17,6 +17,20 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 **🏆 Current Status**: **100% Implementation Complete** - All 53 features implemented, performance tested, and ready for production deployment!  
 📊 **Test Coverage**: 175/186 tests passing (94.1%) | ⚡ **Performance**: 30ms p50 response time | 🚀 **Production Ready**: Deployment scripts prepared
 
+## 🔄 Recent Updates (October 2025)
+
+### **Critical Authentication Fixes** ✅
+- **Fixed registration/login API response parsing**: Backend and frontend now properly communicate with nested data structures
+- **Resolved "Registration failed" error**: Users can now successfully register and login
+- **Improved error handling**: Better error messages and user feedback
+- **Updated API interfaces**: TypeScript types now match actual backend responses
+- **See Documentation**: [AUTH_FIX_LOGIN_REGISTER.md](AUTH_FIX_LOGIN_REGISTER.md) and [REGISTRATION_API_RESPONSE_FIX.md](REGISTRATION_API_RESPONSE_FIX.md)
+
+### **Methodology Consistency** ✅
+- **Fixed 15 frontend files**: Changed 'shafii' to 'shafi' to match backend enum
+- **Backend testing complete**: T133 (methodology) and T150 (calculation history) fully tested
+- **See Documentation**: [T133_T150_COMPLETE_TEST_REPORT.md](T133_T150_COMPLETE_TEST_REPORT.md)
+
 ## ✨ Key Features - **ALL IMPLEMENTED & PRODUCTION READY** ✅
 
 ### 🔐 **Security & Privacy**
@@ -103,6 +117,13 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 - **[🐳 Docker Guide](DOCKER.md)** - Container deployment instructions
 - **[🚀 Deployment Guide](deployment-guide.md)** - Production deployment instructions
 - **[🔒 Security Guide](security.md)** - Security measures and best practices
+
+### 🔧 **Recent Bug Fixes & Documentation (October 2025)**
+- **[🔐 Authentication Fix](AUTH_FIX_LOGIN_REGISTER.md)** - Fixed login/register email field mismatch
+- **[✅ Registration API Fix](REGISTRATION_API_RESPONSE_FIX.md)** - Fixed API response structure parsing
+- **[📊 T133/T150 Test Report](T133_T150_COMPLETE_TEST_REPORT.md)** - Methodology and calculation history testing
+- **[🔄 Methodology Fix](T133_METHODOLOGY_COMPLETE_FIX.md)** - Fixed 'shafii' vs 'shafi' naming consistency
+- **[📝 Storybook Errors](STORYBOOK_ERRORS_FIXED.md)** - Explanation of harmless dev server warnings
 
 ### 📝 **Requirements & Design**
 - **[👤 User Stories](user-stories.md)** - Feature requirements and user flows
@@ -198,10 +219,10 @@ npm run dev
 
 ### 🌐 **Step 6: Access the Application**
 
-- **Frontend Application**: http://localhost:3000 (or your configured PORT)
-- **Backend API**: http://localhost:3001 (or your configured PORT)
-- **API Health Check**: http://localhost:3001/api/health
-- **Database**: `server/data/test/zakapp.db` (SQLite file, environment-specific)
+- **Frontend Application**: http://localhost:3000 (default)
+- **Backend API**: http://localhost:3001 (default)
+- **API Health Check**: http://localhost:3001/health
+- **Database**: `server/prisma/data/dev.db` (SQLite file)
 
 💡 **Tip**: If ports are already in use, see [PORT_CONFIGURATION_GUIDE.md](PORT_CONFIGURATION_GUIDE.md) for how to configure custom ports.
 
@@ -219,15 +240,15 @@ To verify everything is working correctly:
 
 ```bash
 # Test backend API health check
-curl http://localhost:3002/health
-# Should return: {"status":"OK","timestamp":"...","version":"1.0.0"}
+curl http://localhost:3001/health
+# Should return: {"status":"healthy","timestamp":"..."}
 
 # Test frontend (should show HTML)
 curl http://localhost:3000
 
-# Verify backend is running
-curl http://localhost:3002/api/auth/login
-# Should return authentication error (expected - proves API is working)
+# Verify backend API is accessible
+curl http://localhost:3001/api/health
+# Should return: {"status":"OK","version":"1.0.0"}
 ```
 
 ### 🧪 **Run Tests (Optional)**
@@ -247,24 +268,338 @@ cd client
 npm test
 ```
 
-## 🐛 Troubleshooting
+---
+
+## 🐳 Docker Deployment (Recommended for Production)
+
+ZakApp is fully containerized and ready for Docker deployment! This is the **cleanest and easiest way** to deploy ZakApp in any environment.
+
+### **Why Docker?**
+- ✅ **Consistent Environment**: Works the same everywhere (dev, staging, production)
+- ✅ **Easy Deployment**: Single command to start entire application
+- ✅ **Isolated Dependencies**: No conflicts with system packages
+- ✅ **Scalable**: Easy to scale horizontally with orchestration tools
+- ✅ **Production-Ready**: Includes multi-stage builds and optimizations
+
+### **Prerequisites for Docker**
+- **Docker Engine 20.10+** ([Installation Guide](https://docs.docker.com/engine/install/))
+- **Docker Compose V2** ([Installation Guide](https://docs.docker.com/compose/install/))
+
+```bash
+# Verify Docker installation
+docker --version
+# Should show: Docker version 20.10.0 or higher
+
+docker compose version
+# Should show: Docker Compose version v2.0.0 or higher
+```
+
+### **🚀 Quick Start with Docker**
+
+#### **Step 1: Clone Repository**
+```bash
+git clone https://github.com/slimatic/zakapp.git
+cd zakapp
+```
+
+#### **Step 2: Configure Environment**
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env file with your settings
+# At minimum, set a strong JWT_SECRET for production!
+nano .env
+```
+
+#### **Step 3: Build & Start Services**
+```bash
+# Build and start in detached mode
+docker compose up -d
+
+# View logs (optional)
+docker compose logs -f
+
+# Or view logs for specific service
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+#### **Step 4: Access Application**
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:3001
+- **Health Check**: http://localhost:3001/health
+
+#### **Step 5: Stop Services**
+```bash
+# Stop and remove containers
+docker compose down
+
+# Stop, remove containers, and delete volumes (WARNING: deletes data!)
+docker compose down -v
+```
+
+### **🔧 Docker Configuration Options**
+
+ZakApp includes multiple Docker configurations for different use cases:
+
+#### **1. Development Mode (with hot reload)**
+Perfect for active development with code changes automatically reflected:
+
+```bash
+# Start with development configuration
+docker compose -f docker-compose.dev.yml up -d
+
+# Includes:
+# - Volume mounts for live code reloading
+# - Development environment variables
+# - Debug logging enabled
+```
+
+#### **2. Standard Mode (default)**
+Balanced configuration for testing and light production use:
+
+```bash
+# Start with standard configuration
+docker compose up -d
+
+# Includes:
+# - Optimized build steps
+# - Production-like environment
+# - Proper data persistence
+```
+
+#### **3. Staging Deployment**
+Full production setup with database and all services:
+
+```bash
+# Start staging environment
+docker compose -f docker-compose.staging.yml up -d
+
+# Includes:
+# - PostgreSQL database
+# - Environment-specific configs
+# - Health checks and restart policies
+# - Proper networking
+```
+
+### **🔍 Docker Management Commands**
+
+```bash
+# View running containers
+docker compose ps
+
+# View logs (all services)
+docker compose logs -f
+
+# View logs (specific service)
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# Restart a service
+docker compose restart backend
+
+# Rebuild images after code changes
+docker compose build
+docker compose up -d
+
+# Rebuild without cache (clean build)
+docker compose build --no-cache
+
+# Execute commands in running container
+docker compose exec backend sh
+docker compose exec backend npx prisma db push
+
+# View container resource usage
+docker stats
+
+# Clean up everything (WARNING: removes all data!)
+docker compose down -v --remove-orphans
+```
+
+### **📊 Docker Health Checks**
+
+```bash
+# Check if containers are healthy
+docker compose ps
+
+# Expected output:
+# NAME                COMMAND             STATUS
+# zakapp-backend      npm run dev         Up (healthy)
+# zakapp-frontend     npm start           Up (healthy)
+
+# Manual health check
+curl http://localhost:3001/health
+# Should return: {"status":"healthy","timestamp":"..."}
+
+# Check container logs for errors
+docker compose logs backend | tail -50
+```
+
+### **🗄️ Database Management with Docker**
+
+```bash
+# Access backend container shell
+docker compose exec backend sh
+
+# Inside container - run Prisma commands:
+npx prisma db push          # Apply schema changes
+npx prisma generate         # Regenerate Prisma client
+npx prisma db seed          # Seed database with initial data
+npx prisma studio           # Open database GUI (if exposed)
+
+# Exit container
+exit
+
+# Backup database from host
+docker compose exec backend cat /app/server/prisma/data/dev.db > backup.db
+
+# Restore database
+cat backup.db | docker compose exec -T backend sh -c 'cat > /app/server/prisma/data/dev.db'
+
+# Reset database (WARNING: deletes all data!)
+docker compose exec backend sh -c 'cd /app/server && rm -rf prisma/data/* && npx prisma migrate reset --force'
+```
+
+### **🔐 Production Docker Setup**
+
+For production deployment with Docker:
+
+#### **1. Use Production Dockerfile**
+```bash
+# Build production images
+docker build -f docker/Dockerfile.production --target frontend-production -t zakapp-frontend:prod .
+docker build -f docker/Dockerfile.production --target backend-production -t zakapp-backend:prod .
+
+# Run production containers
+docker run -d -p 80:80 --name zakapp-frontend zakapp-frontend:prod
+docker run -d -p 3001:3001 --name zakapp-backend \
+  -e JWT_SECRET="your-strong-secret" \
+  -e DATABASE_URL="file:./prisma/data/production.db" \
+  -v zakapp-data:/app/server/prisma/data \
+  zakapp-backend:prod
+```
+
+#### **2. Use Docker Compose with Secrets**
+```bash
+# Create secrets file
+cat > .env.production <<EOF
+NODE_ENV=production
+JWT_SECRET=$(openssl rand -base64 32)
+JWT_REFRESH_SECRET=$(openssl rand -base64 32)
+DATABASE_URL=file:./prisma/data/production.db
+CORS_ORIGIN=https://yourdomain.com
+EOF
+
+# Deploy with production settings
+docker compose -f docker-compose.production.yml --env-file .env.production up -d
+```
+
+#### **3. Use Reverse Proxy (nginx)**
+```bash
+# Example nginx configuration (included in docker/nginx.conf)
+# - Serves frontend on port 80
+# - Proxies API requests to backend
+# - SSL/TLS termination (add your certificates)
+# - Security headers
+
+# Start with nginx reverse proxy
+docker compose -f docker-compose.staging.yml up -d
+```
+
+### **� Docker Troubleshooting**
+
+#### **Build Failures**
+```bash
+# Check Docker version
+docker --version
+docker compose version
+
+# Clean Docker cache and rebuild
+docker compose down
+docker system prune -a -f
+docker compose build --no-cache
+docker compose up -d
+```
+
+#### **Port Already in Use**
+```bash
+# Check what's using the port
+sudo lsof -i :3000
+sudo lsof -i :3001
+
+# Option 1: Stop conflicting process
+sudo kill -9 <PID>
+
+# Option 2: Change ports in docker-compose.yml
+# Edit ports section:
+# ports:
+#   - "3002:3001"  # Map to different host port
+```
+
+#### **Container Keeps Restarting**
+```bash
+# Check container logs
+docker compose logs backend
+
+# Check container status
+docker compose ps
+
+# Access container for debugging
+docker compose exec backend sh
+
+# Check if database is accessible
+docker compose exec backend ls -la /app/server/prisma/data/
+```
+
+#### **Network Issues**
+```bash
+# Recreate network
+docker compose down
+docker network prune
+docker compose up -d
+
+# Check network connectivity
+docker compose exec backend ping frontend
+docker compose exec frontend ping backend
+```
+
+#### **Volume Permission Issues**
+```bash
+# Fix permissions on Linux
+sudo chown -R $(id -u):$(id -g) server/prisma/data/
+
+# Or run as root (not recommended for production)
+docker compose exec --user root backend chown -R node:node /app/server/prisma/data/
+```
+
+### **📚 Additional Docker Resources**
+
+- **[Docker Cleanup Complete](DOCKER_CLEANUP_COMPLETE.md)** - Recent Docker configuration updates
+- **[Docker Quick Start](DOCKER_QUICK_START.md)** - Quick reference guide
+- **[Docker Official Guide](DOCKER.md)** - Comprehensive Docker deployment guide
+- **[Staging Deployment](STAGING_DEPLOYMENT_GUIDE.md)** - Full staging setup instructions
+
+---
+
+## �🐛 Troubleshooting (Local Development)
 
 ### Common Issues & Solutions
 
 #### **Backend won't start**
 ```bash
-# Check if port 3002 is already in use
-lsof -i :3002
+# Check if port 3001 is already in use
+lsof -i :3001
 # If something is running, kill it or change PORT in .env
 
 # Rebuild the database
 cd server
-rm -rf data/
-npm run db:migrate
-npm run db:seed
+rm -rf prisma/data/
+npx prisma migrate reset --force
+npx prisma db seed
 
 # Check if backend is running
-curl http://localhost:3002/health
+curl http://localhost:3001/health
 ```
 
 #### **Frontend won't start**
@@ -280,12 +615,12 @@ lsof -i :3000
 
 #### **Database issues**
 ```bash
-# Reset database completely
+# Reset database completely (WARNING: Deletes all data!)
 cd server
-rm -rf data/ prisma/migrations/
-npm run db:migrate
-npm run db:generate
-npm run db:seed
+rm -rf prisma/data/
+npx prisma migrate reset --force
+npx prisma generate
+npx prisma db seed
 ```
 
 #### **Permission errors on Linux/Mac**
@@ -304,38 +639,77 @@ ls -la .env
 cp .env.example .env
 ```
 
+#### **"Registration failed" error**
+```bash
+# This was fixed in October 2025 - if you still see it:
+# 1. Make sure you're running the latest code
+# 2. Clear browser localStorage and try again
+# 3. Check browser console for actual error details
+# 4. Verify backend API response structure matches frontend expectations
+
+# The fix involved:
+# - Updated API response parsing to handle nested data structures
+# - Fixed authentication token extraction from backend responses
+# See REGISTRATION_API_RESPONSE_FIX.md for details
+```
+
 ### **Still having issues?**
 1. Make sure you have Node.js 18+ installed: `node --version`
 2. Clear all caches: `npm cache clean --force`
-3. Check the [Issues](https://github.com/slimatic/zakapp/issues) page
-4. Create a new issue with your error details
+3. Check recent fix documentation (AUTH_FIX_LOGIN_REGISTER.md, REGISTRATION_API_RESPONSE_FIX.md)
+4. Check the [Issues](https://github.com/slimatic/zakapp/issues) page
+5. Create a new issue with your error details
 
-## � Production Deployment
+## 🚀 Production Deployment
 
 ZakApp is production-ready with complete deployment automation!
 
-### **📊 Performance Metrics**
+### **� Recommended: Docker Deployment**
+
+Docker is the **easiest and most reliable** way to deploy ZakApp:
+
+```bash
+# Clone and configure
+git clone https://github.com/slimatic/zakapp.git
+cd zakapp
+cp .env.example .env
+# Edit .env with production secrets
+
+# Deploy with Docker Compose
+docker compose -f docker-compose.staging.yml up -d
+
+# View logs
+docker compose logs -f
+```
+
+**See the [Docker Deployment](#-docker-deployment-recommended-for-production) section above for complete instructions!**
+
+### **�📊 Performance Metrics**
 - **Response Time**: 30.5ms p50, 405ms p95 (health check)
 - **Throughput**: 75-333 requests/sec depending on endpoint
 - **Success Rate**: 100% on non-rate-limited endpoints
 - **Test Coverage**: 94.1% (175/186 tests passing)
 
-### **🔧 Deployment Scripts**
-Ready-to-use production scripts in `scripts/production/`:
+### **🔧 Alternative: Manual Deployment Scripts**
+For those who prefer traditional server setup, ready-to-use production scripts in `scripts/production/`:
 - **server-setup.sh**: Complete Ubuntu 22.04 server configuration
 - **database-setup.sh**: PostgreSQL setup with secure credentials
 - **generate-secrets.sh**: Cryptographically secure key generation
 - **ecosystem.config.js**: PM2 cluster configuration
 
 ### **📖 Production Guides**
-- **[Production Setup Guide](PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Complete deployment instructions
-- **[Performance Report](performance-tests/PHASE1_PERFORMANCE_REPORT.md)** - Load testing results
-- **[Production Progress](PHASE2_PROGRESS_REPORT.md)** - Infrastructure options and costs
+- **[🐳 Docker Guide](DOCKER.md)** - Comprehensive Docker deployment (RECOMMENDED)
+- **[🚀 Docker Quick Start](DOCKER_QUICK_START.md)** - Quick Docker reference
+- **[📋 Docker Cleanup](DOCKER_CLEANUP_COMPLETE.md)** - Recent Docker updates
+- **[📖 Production Setup Guide](PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Manual deployment instructions
+- **[⚡ Performance Report](performance-tests/PHASE1_PERFORMANCE_REPORT.md)** - Load testing results
+- **[📊 Production Progress](PHASE2_PROGRESS_REPORT.md)** - Infrastructure options and costs
 
-### **� Infrastructure Options**
-- **DigitalOcean**: $40/month (recommended for MVP)
-- **AWS**: $50-80/month (scalable)
-- **Heroku**: $75-100/month (easiest deployment)
+### **🏗️ Infrastructure Options**
+- **Docker on DigitalOcean**: $40/month (recommended for MVP)
+- **Docker on AWS ECS**: $50-80/month (scalable)
+- **Docker on Heroku**: $75-100/month (easiest deployment)
+- **Traditional VPS**: $40-60/month (manual setup required)
 
 ## 📚 Documentation
 
