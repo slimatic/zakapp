@@ -7,7 +7,7 @@ export const useLogin = () => {
   
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) => 
-      apiService.login({ username: email, password }),
+      apiService.login({ email, password }),
     onSuccess: () => {
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ['user'] });
