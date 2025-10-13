@@ -114,8 +114,8 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 - **[🛠️ Development Guide](DEVELOPMENT.md)** - Development environment setup
 - **[🔧 Port Configuration Guide](PORT_CONFIGURATION_GUIDE.md)** - How to configure custom ports (fixes "Failed to fetch" errors)
 - **[📋 Development Setup](DEVELOPMENT_SETUP.md)** - Detailed environment setup and port configuration
-- **[�️ Database Management](DATABASE_MANAGEMENT.md)** - Database cleanup, reset, backup, and troubleshooting
-- **[�🐳 Docker Guide](DOCKER.md)** - Container deployment instructions
+- **[🗄️ Database Management](DATABASE_MANAGEMENT.md)** - Database cleanup, reset, backup, and troubleshooting
+- **[🐳 Docker Guide](DOCKER.md)** - Container deployment instructions
 - **[🚀 Deployment Guide](deployment-guide.md)** - Production deployment instructions
 - **[🔒 Security Guide](security.md)** - Security measures and best practices
 
