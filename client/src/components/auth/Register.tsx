@@ -8,7 +8,6 @@ export const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -30,12 +29,6 @@ export const Register: React.FC = () => {
 
     if (!formData.lastName.trim()) {
       errors.lastName = 'Last name is required';
-    }
-
-    if (!formData.username.trim()) {
-      errors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      errors.username = 'Username must be at least 3 characters';
     }
 
     if (!formData.email.trim()) {
@@ -81,7 +74,6 @@ export const Register: React.FC = () => {
     await register({
       firstName: formData.firstName,
       lastName: formData.lastName,
-      username: formData.username,
       email: formData.email,
       password: formData.password,
       confirmPassword: formData.confirmPassword
@@ -133,18 +125,6 @@ export const Register: React.FC = () => {
                 />
               </div>
             </div>
-
-            <Input
-              id="username"
-              name="username"
-              type="text"
-              required
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleChange}
-              error={formErrors.username}
-              label="Username"
-            />
 
             <Input
               id="email"
