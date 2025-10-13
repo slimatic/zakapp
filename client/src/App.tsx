@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { QueryProvider } from './services/queryClient';
@@ -13,6 +13,17 @@ import { AssetList, AssetImportExport, AssetFormPage, AssetDetails } from './com
 import { ZakatCalculator } from './components/zakat/ZakatCalculator';
 import { History } from './components/history/History';
 import { GettingStarted } from './components/help/GettingStarted';
+
+// T090 Performance Optimization: Lazy load tracking pages for faster initial load
+// These pages are not needed until user navigates to them, reducing initial bundle size
+// Estimated savings: ~150KB minified (~45KB gzipped) for tracking feature code
+const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
+const SnapshotsPage = lazy(() => import('./pages/SnapshotsPage').then(m => ({ default: m.SnapshotsPage })));
+const CreateSnapshotPage = lazy(() => import('./pages/CreateSnapshotPage').then(m => ({ default: m.CreateSnapshotPage })));
+const SnapshotDetailPage = lazy(() => import('./pages/SnapshotDetailPage').then(m => ({ default: m.SnapshotDetailPage })));
+const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
 
 function App() {
   return (
@@ -101,6 +112,103 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <GettingStarted />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            {/* Tracking & Analytics Routes - Lazy loaded with Suspense */}
+            <Route 
+              path="/tracking" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <TrackingDashboard />
+                    </Suspense>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/snapshots" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <SnapshotsPage />
+                    </Suspense>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/snapshots/new" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <CreateSnapshotPage />
+                    </Suspense>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/snapshots/:snapshotId" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <SnapshotDetailPage />
+                    </Suspense>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/snapshots/:snapshotId/edit" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <SnapshotDetailPage />
+                    </Suspense>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/payments" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <PaymentsPage />
+                    </Suspense>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/analytics" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <AnalyticsPage />
+                    </Suspense>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/tracking/comparison" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                      <ComparisonPage />
+                    </Suspense>
                   </Layout>
                 </ProtectedRoute>
               } 

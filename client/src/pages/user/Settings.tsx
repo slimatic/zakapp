@@ -412,7 +412,7 @@ export const Settings: React.FC = () => {
                       >
                         <option value="standard">Standard (2.5%)</option>
                         <option value="hanafi">Hanafi School</option>
-                        <option value="shafii">Shafi'i School</option>
+                        <option value="shafi">Shafi'i School</option>
                         <option value="custom">Custom Method</option>
                       </select>
                     </div>

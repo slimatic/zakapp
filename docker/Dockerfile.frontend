@@ -1,5 +1,5 @@
 # Frontend Dockerfile for development
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -16,20 +16,20 @@ RUN cd shared && npm ci
 COPY shared/ ./shared/
 RUN cd shared && npm run build
 
-# Copy frontend package files
-COPY frontend/package*.json ./frontend/
+# Copy client package files
+COPY client/package*.json ./client/
 
-# Install frontend dependencies (this will link to ../shared)
-RUN cd frontend && npm ci
+# Install client dependencies (this will link to ../shared)
+RUN cd client && npm ci
 
-# Copy frontend source code
-COPY frontend/ ./frontend/
+# Copy client source code
+COPY client/ ./client/
 
-# Set working directory to frontend
-WORKDIR /app/frontend
+# Set working directory to client
+WORKDIR /app/client
 
 # Expose port
 EXPOSE 3000
 
-# Start development server
-CMD ["npm", "run", "dev"]
+# Start development server (Create React App uses 'npm start')
+CMD ["npm", "start"]

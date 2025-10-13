@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear ZakApp Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            text-align: left;
+        }
+        .info strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .success {
+            color: #10b981;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+        .token-info {
+            font-family: monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 ZakApp Storage Manager</h1>
+        <p>Use this page to clear your browser storage and fix authentication issues.</p>
+        
+        <div class="info">
+            <strong>Current Storage:</strong>
+            <div id="current-storage" class="token-info"></div>
+        </div>
+        
+        <div class="info">
+            <strong>Stored User ID (from token):</strong>
+            <div id="user-id" class="token-info"></div>
+        </div>
+        
+        <button onclick="clearStorage()">🗑️ Clear All Storage</button>
+        <button onclick="showStorage()">🔍 Refresh Storage Info</button>
+        <button onclick="goToLogin()">🔐 Go to Login</button>
+        
+        <div id="message"></div>
+    </div>
+
+    <script>
+        function decodeToken(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function showStorage() {
+            const storage = {
+                accessToken: localStorage.getItem('accessToken'),
+                token: localStorage.getItem('token'),
+                refreshToken: localStorage.getItem('refreshToken'),
+            };
+            
+            let html = '';
+            for (const [key, value] of Object.entries(storage)) {
+                if (value) {
+                    html += `<div><strong>${key}:</strong> ${value.substring(0, 50)}...</div>`;
+                }
+            }
+            
+            if (!html) {
+                html = '<div style="color: #888;">No tokens found in storage</div>';
+            }
+            
+            document.getElementById('current-storage').innerHTML = html;
+            
+            // Try to decode and show user ID
+            const token = storage.accessToken || storage.token;
+            if (token) {
+                const payload = decodeToken(token);
+                if (payload && payload.userId) {
+                    document.getElementById('user-id').innerHTML = 
+                        `<div style="color: ${payload.userId === 'mgmbkmxt28bvv77s3fb' ? '#ef4444' : '#10b981'}">
+                            ${payload.userId}
+                            ${payload.userId === 'mgmbkmxt28bvv77s3fb' ? ' ⚠️ INVALID (not in database)' : ''}
+                        </div>`;
+                } else {
+                    document.getElementById('user-id').innerHTML = '<div style="color: #888;">Could not decode token</div>';
+                }
+            } else {
+                document.getElementById('user-id').innerHTML = '<div style="color: #888;">No token found</div>';
+            }
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            document.getElementById('message').innerHTML = 
+                '<div class="success">✅ Storage cleared successfully!<br>You can now log in again.</div>';
+            
+            setTimeout(() => {
+                showStorage();
+            }, 500);
+        }
+
+        function goToLogin() {
+            window.location.href = '/login';
+        }
+
+        // Show storage on page load
+        showStorage();
+    </script>
+</body>
+</html>

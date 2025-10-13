@@ -51,7 +51,17 @@ export const Profile: React.FC = () => {
   // Update profile mutation
   const profileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
-      return apiService.updateProfile(data);
+      // Update general profile
+      const profileResult = await apiService.updateProfile(data);
+      
+      // Update calendar preferences separately via new calendar API
+      const calendarPrefs = {
+        preferredCalendar: data.preferences.calendarType === 'lunar' ? 'hijri' as const : 'gregorian' as const,
+        preferredMethodology: data.preferences.zakatMethod as 'standard' | 'hanafi' | 'shafi' | 'custom'
+      };
+      await apiService.updateCalendarPreferences(calendarPrefs);
+      
+      return profileResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', 'current'] });
@@ -149,7 +159,7 @@ export const Profile: React.FC = () => {
   const zakatMethods = [
     { value: 'standard', name: 'Standard (2.5%)' },
     { value: 'hanafi', name: 'Hanafi School' },
-    { value: 'shafii', name: 'Shafi\'i School' },
+    { value: 'shafi', name: 'Shafi\'i School' },
     { value: 'custom', name: 'Custom Method' },
   ];
 
@@ -307,6 +317,9 @@ export const Profile: React.FC = () => {
                     <div>
                       <label htmlFor="calendarType" className="block text-sm font-medium text-gray-700 mb-2">
                         Calendar System
+                        <span className="ml-2 text-xs text-gray-500">
+                          (for Zakat calculation dates)
+                        </span>
                       </label>
                       <select
                         id="calendarType"
@@ -320,9 +333,13 @@ export const Profile: React.FC = () => {
                         })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="lunar">Hijri (Lunar Calendar)</option>
-                        <option value="solar">Gregorian (Solar Calendar)</option>
+                        <option value="lunar">Hijri (Islamic Lunar Calendar - 354 days/year)</option>
+                        <option value="solar">Gregorian (Solar Calendar - 365 days/year)</option>
                       </select>
+                      <p className="mt-1 text-xs text-gray-500">
+                        💡 Zakat is due after one lunar year (Hijri) from your last payment. 
+                        Using the Hijri calendar is more Islamically accurate.
+                      </p>
                     </div>
 
                     <div>

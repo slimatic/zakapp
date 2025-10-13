@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
-import { asyncHandler, AppError } from '../middleware/errorHandler';
+import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 
 // Simple in-memory store for demo - in real app this would be database
 export const userAssets: { [userId: string]: any[] } = {};
@@ -158,7 +158,8 @@ export class AssetController {
       throw new AppError(
         'Missing required fields', 
         400, 
-        'VALIDATION_ERROR', 
+        ErrorCode.VALIDATION_ERROR,
+        'Please provide all required fields',
         missingFields.map(field => ({ field, message: `${field} is required` }))
       );
     }
@@ -166,30 +167,30 @@ export class AssetController {
     // Validate asset type
     const validTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER'];
     if (!validTypes.includes(type)) {
-      throw new AppError('Invalid asset type', 400, 'VALIDATION_ERROR');
+      throw new AppError('Invalid asset type', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     // Validate value is non-negative
     if (value < 0) {
-      throw new AppError('Asset value cannot be negative', 400, 'VALIDATION_ERROR');
+      throw new AppError('Asset value cannot be negative', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     // Validate currency
     const validCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD'];
     if (!validCurrencies.includes(currency)) {
-      throw new AppError('Invalid currency', 400, 'VALIDATION_ERROR');
+      throw new AppError('Invalid currency', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     // Validate asset type specific fields
     if (type === 'GOLD' || type === 'SILVER') {
       if (!otherFields.weight || !otherFields.unit) {
-        throw new AppError('Weight and unit are required for precious metals', 400, 'VALIDATION_ERROR');
+        throw new AppError('Weight and unit are required for precious metals', 400, ErrorCode.VALIDATION_ERROR);
       }
     }
 
     if (type === 'CRYPTOCURRENCY') {
       if (!otherFields.cryptoType || !otherFields.quantity) {
-        throw new AppError('Crypto type and quantity are required for cryptocurrency assets', 400, 'VALIDATION_ERROR');
+        throw new AppError('Crypto type and quantity are required for cryptocurrency assets', 400, ErrorCode.VALIDATION_ERROR);
       }
     }
 
@@ -232,7 +233,7 @@ export class AssetController {
 
     // Validate that assets array is provided
     if (!assets || !Array.isArray(assets) || assets.length === 0) {
-      throw new AppError('Assets array is required and cannot be empty', 400, 'VALIDATION_ERROR');
+      throw new AppError('Assets array is required and cannot be empty', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     const userAssetList = getUserAssets(userId);
@@ -250,24 +251,24 @@ export class AssetController {
 
         // Basic validation
         if (!type || !name || value === undefined || !currency) {
-          throw new AppError(`Asset ${i + 1}: Missing required fields`, 400, 'VALIDATION_ERROR');
+          throw new AppError(`Asset ${i + 1}: Missing required fields`, 400, ErrorCode.VALIDATION_ERROR);
         }
 
         // Validate asset type
         const validTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER'];
         if (!validTypes.includes(type)) {
-          throw new AppError(`Asset ${i + 1}: Invalid asset type`, 400, 'VALIDATION_ERROR');
+          throw new AppError(`Asset ${i + 1}: Invalid asset type`, 400, ErrorCode.VALIDATION_ERROR);
         }
 
         // Validate value is non-negative
         if (value < 0) {
-          throw new AppError(`Asset ${i + 1}: Asset value cannot be negative`, 400, 'VALIDATION_ERROR');
+          throw new AppError(`Asset ${i + 1}: Asset value cannot be negative`, 400, ErrorCode.VALIDATION_ERROR);
         }
 
         // Validate currency
         const validCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD'];
         if (!validCurrencies.includes(currency)) {
-          throw new AppError(`Asset ${i + 1}: Invalid currency`, 400, 'VALIDATION_ERROR');
+          throw new AppError(`Asset ${i + 1}: Invalid currency`, 400, ErrorCode.VALIDATION_ERROR);
         }
 
         // Determine if asset is zakatable
@@ -329,7 +330,13 @@ export class AssetController {
       res.status(207).json(response);
     } else {
       // All failed
-      throw new AppError('Failed to create any assets', 400, 'VALIDATION_ERROR', errors);
+      throw new AppError(
+        'Failed to create any assets', 
+        400, 
+        ErrorCode.VALIDATION_ERROR,
+        'All assets failed validation',
+        errors
+      );
     }
   });
 
@@ -340,7 +347,7 @@ export class AssetController {
     // Validate asset ID format (should be alphanumeric with hyphens)
     const validIdPattern = /^[a-zA-Z0-9\-_]+$/;
     if (!validIdPattern.test(id!)) {
-      throw new AppError('Invalid asset ID format', 400, 'VALIDATION_ERROR');
+      throw new AppError('Invalid asset ID format', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     // Get user's assets
@@ -363,9 +370,9 @@ export class AssetController {
     
     if (!asset) {
       if (assetExistsForOtherUser) {
-        throw new AppError('Access denied to this asset', 403, 'ACCESS_DENIED');
+        throw new AppError('Access denied to this asset', 403, ErrorCode.ACCESS_DENIED);
       } else {
-        throw new AppError('Asset not found', 404, 'ASSET_NOT_FOUND');
+        throw new AppError('Asset not found', 404, ErrorCode.ASSET_NOT_FOUND);
       }
     }
 
@@ -406,13 +413,13 @@ export class AssetController {
 
     // Ensure id is provided
     if (!id) {
-      throw new AppError('Asset ID is required', 400, 'VALIDATION_ERROR');
+      throw new AppError('Asset ID is required', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     // Validate asset ID format (should be alphanumeric with hyphens)
     const validIdPattern = /^[a-zA-Z0-9\-_]+$/;
     if (!validIdPattern.test(id)) {
-      throw new AppError('Invalid asset ID format', 400, 'VALIDATION_ERROR');
+      throw new AppError('Invalid asset ID format', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     // Get user's assets
@@ -422,24 +429,24 @@ export class AssetController {
     const assetIndex = userAssetList.findIndex(asset => asset.id === id);
     
     if (assetIndex === -1) {
-      throw new AppError('Asset not found', 404, 'ASSET_NOT_FOUND');
+      throw new AppError('Asset not found', 404, ErrorCode.ASSET_NOT_FOUND);
     }
 
     const existingAsset = userAssetList[assetIndex];
 
     // Validate update data
     if (updateData.value !== undefined && updateData.value < 0) {
-      throw new AppError('Asset value cannot be negative', 400, 'VALIDATION_ERROR');
+      throw new AppError('Asset value cannot be negative', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     if (updateData.type && !['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER'].includes(updateData.type)) {
-      throw new AppError('Invalid asset type', 400, 'VALIDATION_ERROR');
+      throw new AppError('Invalid asset type', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     if (updateData.currency) {
       const validCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD'];
       if (!validCurrencies.includes(updateData.currency)) {
-        throw new AppError('Invalid currency', 400, 'VALIDATION_ERROR');
+        throw new AppError('Invalid currency', 400, ErrorCode.VALIDATION_ERROR);
       }
     }
 
@@ -481,7 +488,7 @@ export class AssetController {
     const assetIndex = userAssetList.findIndex(asset => asset.id === id);
     
     if (assetIndex === -1) {
-      throw new AppError('Asset not found', 404, 'ASSET_NOT_FOUND');
+      throw new AppError('Asset not found', 404, ErrorCode.ASSET_NOT_FOUND);
     }
 
     // Remove asset from array
@@ -565,7 +572,7 @@ export class AssetController {
       }
 
       default: {
-        throw new AppError('Invalid export format. Supported formats: CSV, JSON, PDF', 400, 'VALIDATION_ERROR');
+        throw new AppError('Invalid export format. Supported formats: CSV, JSON, PDF', 400, ErrorCode.VALIDATION_ERROR);
       }
     }
   });
@@ -575,7 +582,7 @@ export class AssetController {
     const userId = req.userId!;
 
     if (!format || !data) {
-      throw new AppError('Format and data are required', 400, 'VALIDATION_ERROR');
+      throw new AppError('Format and data are required', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     let assetsToImport: any[] = [];
@@ -605,10 +612,10 @@ export class AssetController {
       } else if (format.toUpperCase() === 'JSON') {
         assetsToImport = Array.isArray(data) ? data : [data];
       } else {
-        throw new AppError('Unsupported format. Supported formats: CSV, JSON', 400, 'VALIDATION_ERROR');
+        throw new AppError('Unsupported format. Supported formats: CSV, JSON', 400, ErrorCode.VALIDATION_ERROR);
       }
     } catch (parseError) {
-      throw new AppError('Invalid data format', 400, 'PARSE_ERROR');
+      throw new AppError('Invalid data format', 400, ErrorCode.PARSE_ERROR);
     }
 
     const userAssetList = getUserAssets(userId);
@@ -627,24 +634,24 @@ export class AssetController {
 
         // Basic validation
         if (!type || !name || value === undefined || !currency) {
-          throw new AppError(`Asset ${i + 1}: Missing required fields`, 400, 'VALIDATION_ERROR');
+          throw new AppError(`Asset ${i + 1}: Missing required fields`, 400, ErrorCode.VALIDATION_ERROR);
         }
 
         // Validate asset type
         const validTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER'];
         if (!validTypes.includes(type)) {
-          throw new AppError(`Asset ${i + 1}: Invalid asset type`, 400, 'VALIDATION_ERROR');
+          throw new AppError(`Asset ${i + 1}: Invalid asset type`, 400, ErrorCode.VALIDATION_ERROR);
         }
 
         // Validate value is non-negative
         if (value < 0) {
-          throw new AppError(`Asset ${i + 1}: Asset value cannot be negative`, 400, 'VALIDATION_ERROR');
+          throw new AppError(`Asset ${i + 1}: Asset value cannot be negative`, 400, ErrorCode.VALIDATION_ERROR);
         }
 
         // Validate currency
         const validCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD'];
         if (!validCurrencies.includes(currency)) {
-          throw new AppError(`Asset ${i + 1}: Invalid currency`, 400, 'VALIDATION_ERROR');
+          throw new AppError(`Asset ${i + 1}: Invalid currency`, 400, ErrorCode.VALIDATION_ERROR);
         }
 
         // Determine if asset is zakatable
@@ -709,7 +716,13 @@ export class AssetController {
       res.status(207).json(response);
     } else {
       // All failed
-      throw new AppError('All assets failed to import', 400, 'IMPORT_FAILED', errors);
+      throw new AppError(
+        'All assets failed to import', 
+        400, 
+        ErrorCode.IMPORT_FAILED,
+        'Import operation failed for all assets',
+        errors
+      );
     }
   });
 }
