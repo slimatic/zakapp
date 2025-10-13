@@ -32,7 +32,8 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3001
-      - JWT_SECRET=your-jwt-secret-change-in-production
+      - JWT_SECRET=ced44baf98e206664e577f47c4fb069d82a5ba75869ad45aa07c08982f9f3767
+      - ENCRYPTION_KEY=7cad0964108a87ec94589cd32fbfcae4
       - DATABASE_URL=file:./prisma/data/dev.db
     command: npm run dev
 
