@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import type { CreateYearlySnapshotDto, UpdateYearlySnapshotDto, YearlySnapshot } from '@zakapp/shared/types/tracking';
+import type { CreateYearlySnapshotDto, UpdateYearlySnapshotDto, YearlySnapshot } from '../../../../shared/types/tracking';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ErrorMessage } from '../ui/ErrorMessage';
