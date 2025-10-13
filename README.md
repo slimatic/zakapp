@@ -685,7 +685,7 @@ docker compose logs -f
 
 **See the [Docker Deployment](#-docker-deployment-recommended-for-production) section above for complete instructions!**
 
-### **�📊 Performance Metrics**
+### **📊 Performance Metrics**
 - **Response Time**: 30.5ms p50, 405ms p95 (health check)
 - **Throughput**: 75-333 requests/sec depending on endpoint
 - **Success Rate**: 100% on non-rate-limited endpoints
