@@ -5,7 +5,7 @@
  */
 
 import { format } from 'date-fns';
-import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
+import type { YearlySnapshot, PaymentRecord } from '../../../shared/types/tracking';
 
 /**
  * Data point for line/area charts (wealth or Zakat trends)

@@ -3,7 +3,7 @@
  * Utility functions for formatting data for Recharts visualization
  */
 
-import type { AnalyticsMetricType } from '@zakapp/shared/types/tracking';
+import type { AnalyticsMetricType } from '../../../shared/types/tracking';
 
 export interface ChartDataPoint {
   [key: string]: string | number | Date;
