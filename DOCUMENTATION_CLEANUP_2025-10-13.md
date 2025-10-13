@@ -268,13 +268,22 @@ Categories: 8 directories
 
 ## 📊 Statistics
 
-- **Files Archived**: 82+ files
-- **Size Reduced**: ~900KB of markdown
-- **Root File Reduction**: 80% (102 → 20)
-- **Categories Created**: 8 archive categories
+- **Files in Archive**: 124 total files (82 newly archived in this cleanup)
+- **Archive Directory Size**: 1.4 MB of markdown documentation
+- **Root File Reduction**: 80% (102 → 20 files)
+- **Archive Categories**: 8 directories
+  - completion-reports: 37 files
+  - fix-reports: 24 files (18 newly archived)
+  - phase-reports: 19 files (12 newly archived)
+  - task-reports: 24 files (16 newly archived)
+  - technical-reports: 7 files (7 newly archived)
+  - session-reports: 8 files (8 newly archived)
+  - deployment-reports: 3 files
+  - documentation-quality: 2 files
 - **New Documentation Files**: 3 (docs/README.md, docs/guides/README.md, this file)
-- **Links Updated**: 10+ broken links fixed
-- **Navigation Paths Added**: 20+ quick links and cross-references
+- **Guides Organized**: 8 specialized guides moved to docs/guides/
+- **Links Fixed**: 6 broken links in README.md
+- **Navigation Improvements**: 30+ cross-references and breadcrumb links added
 
 ---
 
