@@ -14,6 +14,77 @@ jest.mock('jspdf-autotable');
 describe('pdfGenerator utility', () => {
   let mockDoc: any;
 
+  // Mock data available to all test blocks
+  const mockSnapshot: YearlySnapshot = {
+    id: 'snap-123',
+    userId: 'user-123',
+    calculationDate: new Date('2024-06-15'),
+    gregorianYear: 2024,
+    gregorianMonth: 6,
+    gregorianDay: 15,
+    hijriYear: 1446,
+    hijriMonth: 12,
+    hijriDay: 8,
+    totalWealth: 150000,
+    totalLiabilities: 20000,
+    zakatableWealth: 130000,
+    zakatAmount: 3250,
+    methodologyUsed: 'Standard',
+    nisabThreshold: 85000,
+    nisabType: 'gold',
+    status: 'finalized',
+    assetBreakdown: {
+      cash: 50000,
+      gold: 30000,
+      investments: 50000,
+      businessAssets: 20000
+    },
+    calculationDetails: {},
+    userNotes: 'This is a test note',
+    isPrimary: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  const mockPayments: PaymentRecord[] = [
+    {
+      id: 'pay-1',
+      userId: 'user-123',
+      snapshotId: 'snap-123',
+      amount: 1000,
+      paymentDate: new Date('2024-07-01'),
+      recipientName: 'Test Recipient 1',
+      recipientType: 'individual',
+      recipientCategory: 'fakir',
+      notes: 'First payment',
+      receiptReference: 'RCPT-001',
+      paymentMethod: 'cash',
+      status: 'verified',
+      currency: 'USD',
+      exchangeRate: 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 'pay-2',
+      userId: 'user-123',
+      snapshotId: 'snap-123',
+      amount: 1500,
+      paymentDate: new Date('2024-08-01'),
+      recipientName: 'Test Recipient 2',
+      recipientType: 'organization',
+      recipientCategory: 'miskin',
+      notes: 'Second payment',
+      receiptReference: 'RCPT-002',
+      paymentMethod: 'bank_transfer',
+      status: 'recorded',
+      currency: 'USD',
+      exchangeRate: 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ];
+
   beforeEach(() => {
     mockDoc = {
       setFontSize: jest.fn(),
@@ -37,76 +108,6 @@ describe('pdfGenerator utility', () => {
   });
 
   describe('generateAnnualSummaryPDF', () => {
-    const mockSnapshot: YearlySnapshot = {
-      id: 'snap-123',
-      userId: 'user-123',
-      calculationDate: new Date('2024-06-15'),
-      gregorianYear: 2024,
-      gregorianMonth: 6,
-      gregorianDay: 15,
-      hijriYear: 1446,
-      hijriMonth: 12,
-      hijriDay: 8,
-      totalWealth: 150000,
-      totalLiabilities: 20000,
-      zakatableWealth: 130000,
-      zakatAmount: 3250,
-      methodologyUsed: 'Standard',
-      nisabThreshold: 85000,
-      nisabType: 'gold',
-      status: 'finalized',
-      assetBreakdown: {
-        cash: 50000,
-        gold: 30000,
-        investments: 50000,
-        businessAssets: 20000
-      },
-      calculationDetails: {},
-      userNotes: 'This is a test note',
-      isPrimary: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const mockPayments: PaymentRecord[] = [
-      {
-        id: 'pay-1',
-        userId: 'user-123',
-        snapshotId: 'snap-123',
-        amount: 1000,
-        paymentDate: new Date('2024-07-01'),
-        recipientName: 'Test Recipient 1',
-        recipientType: 'individual',
-        recipientCategory: 'fakir',
-        notes: 'First payment',
-        receiptReference: 'RCPT-001',
-        paymentMethod: 'cash',
-        status: 'verified',
-        currency: 'USD',
-        exchangeRate: 1,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: 'pay-2',
-        userId: 'user-123',
-        snapshotId: 'snap-123',
-        amount: 1500,
-        paymentDate: new Date('2024-08-01'),
-        recipientName: 'Test Recipient 2',
-        recipientType: 'organization',
-        recipientCategory: 'miskin',
-        notes: 'Second payment',
-        receiptReference: 'RCPT-002',
-        paymentMethod: 'bank_transfer',
-        status: 'recorded',
-        currency: 'USD',
-        exchangeRate: 1,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ];
-
     it('should create a new jsPDF document', () => {
       generateAnnualSummaryPDF(mockSnapshot, mockPayments);
 
@@ -218,7 +219,7 @@ describe('pdfGenerator utility', () => {
     });
 
     it('should skip user notes if not present', () => {
-      const snapshotNoNotes = { ...mockSnapshot, userNotes: null };
+      const snapshotNoNotes = { ...mockSnapshot, userNotes: undefined };
       generateAnnualSummaryPDF(snapshotNoNotes, mockPayments);
 
       const notesCalls = (mockDoc.text as jest.Mock).mock.calls.filter(
@@ -394,7 +395,7 @@ describe('pdfGenerator utility', () => {
       const minimalSnapshot = {
         ...mockSnapshot,
         assetBreakdown: undefined,
-        userNotes: null
+        userNotes: undefined
       };
 
       expect(() => {
