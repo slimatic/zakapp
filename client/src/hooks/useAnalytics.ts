@@ -5,7 +5,7 @@
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import type { AnalyticsMetric } from '@zakapp/shared/types/tracking';
+import type { AnalyticsMetric } from '../../../shared/types/tracking';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
 

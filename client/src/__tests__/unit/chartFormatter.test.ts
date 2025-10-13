@@ -15,7 +15,7 @@ import {
   formatAssetTypeName,
   CATEGORY_COLORS
 } from '../../utils/chartFormatter';
-import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
+import type { YearlySnapshot, PaymentRecord } from '../../../../shared/types/tracking';
 
 describe('chartFormatter utility', () => {
   const mockSnapshots: YearlySnapshot[] = [
