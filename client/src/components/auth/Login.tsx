@@ -44,10 +44,10 @@ export const Login: React.FC = () => {
             <Input
               id="email"
               name="email"
-              type="text"
-              autoComplete="username"
+              type="email"
+              autoComplete="email"
               required
-              placeholder="Username or Email"
+              placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={error && !email ? 'Email is required' : undefined}

@@ -98,7 +98,6 @@ const router = express.Router();
 router.post('/login', 
   loginRateLimit,
   validateUserLogin,
-  handleValidationErrors,
   asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
