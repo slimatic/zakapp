@@ -138,7 +138,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             currency: 'USD',
             language: 'en',
             zakatMethod: response.user.preferences?.methodology || 'standard',
-            calendarType: response.user.preferences?.calendar || 'lunar'
+            calendarType: (response.user.preferences?.calendar || 'lunar') as 'lunar' | 'solar'
           }
         };
         
