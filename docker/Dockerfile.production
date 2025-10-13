@@ -1,31 +1,42 @@
 # Multi-stage production Dockerfile
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+# Install build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache python3 make g++
 
 # Copy package files
 COPY package*.json ./
 COPY shared/package*.json ./shared/
-COPY backend/package*.json ./backend/
-COPY frontend/package*.json ./frontend/
+COPY server/package*.json ./server/
+COPY client/package*.json ./client/
 
 # Install dependencies for all packages
 RUN npm ci
 RUN cd shared && npm ci
-RUN cd backend && npm ci
-RUN cd frontend && npm ci
+RUN cd server && npm ci
+RUN cd client && npm ci
 
 # Copy source code
-COPY . .
+COPY shared/ ./shared/
+COPY server/ ./server/
+COPY client/ ./client/
 
-# Build all packages
-RUN npm run build
+# Build shared package first
+RUN cd shared && npm run build
 
-# Production stage
-FROM nginx:alpine AS production
+# Generate Prisma client
+RUN cd server && npx prisma generate
 
-# Copy frontend build
-COPY --from=builder /app/frontend/dist /usr/share/nginx/html
+# Build client (React app)
+RUN cd client && npm run build
+
+# Production stage - Frontend (nginx)
+FROM nginx:alpine AS frontend-production
+
+# Copy client build (Create React App builds to 'build' directory)
+COPY --from=builder /app/client/build /usr/share/nginx/html
 
 # Copy custom nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
@@ -35,3 +46,27 @@ EXPOSE 80
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
+
+# Production stage - Backend (Node.js)
+FROM node:20-alpine AS backend-production
+
+WORKDIR /app
+
+# Install runtime dependencies for better-sqlite3
+RUN apk add --no-cache libstdc++
+
+# Copy built server from builder
+COPY --from=builder /app/server /app/server
+COPY --from=builder /app/shared /app/shared
+
+# Set working directory
+WORKDIR /app/server
+
+# Create data directory
+RUN mkdir -p /app/server/prisma/data
+
+# Expose port
+EXPOSE 3001
+
+# Start server
+CMD ["npm", "start"]

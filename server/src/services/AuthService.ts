@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 
 const prisma = new PrismaClient();
-const encryptionService = new EncryptionService();
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
 export interface CreateUserDto {
   firstName: string;
@@ -56,8 +56,8 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(userData.password, 12);
 
     // Encrypt sensitive data
-    const encryptedFirstName = encryptionService.encrypt(userData.firstName);
-    const encryptedLastName = encryptionService.encrypt(userData.lastName);
+    const encryptedFirstName = await EncryptionService.encrypt(userData.firstName, ENCRYPTION_KEY);
+    const encryptedLastName = await EncryptionService.encrypt(userData.lastName, ENCRYPTION_KEY);
 
     // Create user
     const user = await prisma.user.create({
@@ -112,8 +112,8 @@ export class AuthService {
     const { password: _, ...userWithoutPassword } = user;
     const decryptedUser = {
       ...userWithoutPassword,
-      firstName: encryptionService.decrypt(user.firstName),
-      lastName: encryptionService.decrypt(user.lastName)
+      firstName: await EncryptionService.decrypt(user.firstName, ENCRYPTION_KEY),
+      lastName: await EncryptionService.decrypt(user.lastName, ENCRYPTION_KEY)
     };
 
     return { user: decryptedUser, tokens };
@@ -175,8 +175,8 @@ export class AuthService {
     const { password: _, ...userWithoutPassword } = user;
     const decryptedUser = {
       ...userWithoutPassword,
-      firstName: encryptionService.decrypt(user.firstName),
-      lastName: encryptionService.decrypt(user.lastName)
+      firstName: await EncryptionService.decrypt(user.firstName, ENCRYPTION_KEY),
+      lastName: await EncryptionService.decrypt(user.lastName, ENCRYPTION_KEY)
     };
 
     return { user: decryptedUser, tokens };

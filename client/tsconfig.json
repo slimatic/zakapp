@@ -18,9 +18,27 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "downlevelIteration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@pages/*": ["src/pages/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@contexts/*": ["src/contexts/*"],
+      "@services/*": ["src/services/*"],
+      "@utils/*": ["src/utils/*"],
+      "@types/*": ["src/types/*"],
+      "@data/*": ["src/data/*"],
+      "@shared/*": ["../shared/src/*"]
+    }
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "**/*.stories.tsx",
+    "**/*.stories.ts"
   ]
 }

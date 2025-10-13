@@ -146,7 +146,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           "Document payments for spiritual accountability"
         ]
       },
-      shafii: {
+      shafi: {
         title: "Zakat Payment Guidelines (Shafi'i School)",
         guidelines: [
           "Distribute according to Shafi'i methodology",

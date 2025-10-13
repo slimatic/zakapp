@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 
 const prisma = new PrismaClient();
-const encryptionService = new EncryptionService();
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
 export interface CreateSnapshotRequest {
   name?: string;
@@ -120,7 +120,7 @@ export class SnapshotService {
     const netWorth = totalAssets - totalLiabilities;
 
     // Encrypt snapshot data
-    const encryptedAssets = encryptionService.encryptObject({
+    const encryptedAssets = await EncryptionService.encryptObject({
       assets: assets.map(asset => ({
         id: asset.id,
         name: asset.name,
@@ -130,9 +130,9 @@ export class SnapshotService {
         acquisitionDate: asset.acquisitionDate,
         metadata: asset.metadata
       }))
-    });
+    }, ENCRYPTION_KEY);
 
-    const encryptedLiabilities = encryptionService.encryptObject({
+    const encryptedLiabilities = await EncryptionService.encryptObject({
       liabilities: liabilities.map(liability => ({
         id: liability.id,
         name: liability.name,
@@ -141,7 +141,7 @@ export class SnapshotService {
         currency: liability.currency,
         dueDate: liability.dueDate
       }))
-    });
+    }, ENCRYPTION_KEY);
 
     // Create snapshot
     const snapshot = await prisma.snapshot.create({
@@ -258,8 +258,8 @@ export class SnapshotService {
     }
 
     // Decrypt snapshot data
-    const assetsData = encryptionService.decryptObject(snapshot.assetsData);
-    const liabilitiesData = encryptionService.decryptObject(snapshot.liabilitiesData);
+    const assetsData = await EncryptionService.decryptObject(snapshot.assetsData, ENCRYPTION_KEY);
+    const liabilitiesData = await EncryptionService.decryptObject(snapshot.liabilitiesData, ENCRYPTION_KEY);
 
     return this.formatSnapshotData(
       snapshot,

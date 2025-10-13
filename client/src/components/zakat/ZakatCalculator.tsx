@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Asset, AssetType, ZakatCalculation, ZakatMethodology, NisabInfo, ZakatPayment } from '../../types';
+import { Asset, AssetType, ZakatCalculation, NisabInfo, ZakatPayment } from '../../types';
 import { apiService } from '../../services/api';
 import { PaymentModal } from './PaymentModal';
+import { MethodologySelector } from './MethodologySelector';
 
 export const ZakatCalculator: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [methodologies, setMethodologies] = useState<ZakatMethodology[]>([]);
   const [nisabInfo, setNisabInfo] = useState<NisabInfo | null>(null);
   const [selectedMethodology, setSelectedMethodology] = useState<string>('standard');
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
@@ -21,9 +21,8 @@ export const ZakatCalculator: React.FC = () => {
 
   const loadInitialData = async () => {
     try {
-      const [assetsResponse, methodologiesResponse, nisabResponse] = await Promise.all([
+      const [assetsResponse, nisabResponse] = await Promise.all([
         apiService.getAssets(),
-        apiService.getMethodologies(),
         apiService.getNisab()
       ]);
 
@@ -31,10 +30,6 @@ export const ZakatCalculator: React.FC = () => {
         setAssets(assetsResponse.data.assets || []);
         // Select all assets by default - use assetId since that's what the backend API returns
         setSelectedAssets((assetsResponse.data.assets || []).map((asset: any) => asset.assetId || asset.id));
-      }
-
-      if (methodologiesResponse.success && methodologiesResponse.data) {
-        setMethodologies(methodologiesResponse.data);
       }
 
       if (nisabResponse.success && nisabResponse.data) {
@@ -132,8 +127,6 @@ export const ZakatCalculator: React.FC = () => {
     return labels[type] || type;
   };
 
-  const selectedMethodologyInfo = methodologies.find(m => m.id === selectedMethodology);
-
   const handlePaymentRecorded = (payment: ZakatPayment) => {
     setSuccessMessage(`Payment of ${formatCurrency(payment.amount)} recorded successfully!`);
     setTimeout(() => setSuccessMessage(null), 5000);
@@ -220,36 +213,11 @@ export const ZakatCalculator: React.FC = () => {
           {/* Methodology Selection */}
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Calculation Methodology</h3>
-            <div className="space-y-4">
-              {methodologies.map((methodology) => (
-                <div key={methodology.id} className="flex items-start">
-                  <input
-                    id={methodology.id}
-                    name="methodology"
-                    type="radio"
-                    checked={selectedMethodology === methodology.id}
-                    onChange={() => setSelectedMethodology(methodology.id)}
-                    className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
-                  />
-                  <div className="ml-3">
-                    <label htmlFor={methodology.id} className="text-sm font-medium text-gray-900">
-                      {methodology.name}
-                    </label>
-                    <p className="text-sm text-gray-500">{methodology.description}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Nisab Method: {(methodology as any).nisabMethod || (methodology as any).nisabThreshold || 'N/A'} • Rate: {methodology.zakatRate ? `${methodology.zakatRate}%` : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {selectedMethodologyInfo && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-md">
-                <p className="text-sm text-gray-700">
-                  <strong>Selected:</strong> {selectedMethodologyInfo.name} - {selectedMethodologyInfo.description}
-                </p>
-              </div>
-            )}
+            <MethodologySelector 
+              selectedMethodology={selectedMethodology}
+              onMethodologyChange={setSelectedMethodology}
+              showEducationalContent={true}
+            />
           </div>
 
           {/* Asset Selection */}
