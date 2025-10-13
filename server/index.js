@@ -9,6 +9,9 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const zakatRoutes = require('./routes/zakat');
 const assetRoutes = require('./routes/assets');
+const trackingRoutes = require('./routes/tracking');
+const calendarRoutes = require('./routes/calendar');
+const calculationsRoutes = require('./routes/calculations');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -47,6 +50,9 @@ app.use('/api/auth', (req, res, next) => {
 app.use('/api/user', userRoutes);
 app.use('/api/zakat', zakatRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/tracking', trackingRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/calculations', calculationsRoutes);
 
 // API info endpoint
 app.get('/api', (req, res) => {
@@ -59,6 +65,8 @@ app.get('/api', (req, res) => {
       assets: '/api/assets',
       zakat: '/api/zakat',
       user: '/api/user',
+      tracking: '/api/tracking',
+      calendar: '/api/calendar',
       health: '/health'
     }
   });

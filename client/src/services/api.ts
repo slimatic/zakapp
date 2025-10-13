@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -19,7 +19,6 @@ export interface RegisterRequest {
   confirmPassword: string;
   firstName: string;
   lastName: string;
-  username: string;
 }
 
 export interface AuthResponse {
@@ -29,9 +28,13 @@ export interface AuthResponse {
   user?: {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
-    username: string;
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+    preferences?: {
+      calendar?: string;
+      methodology?: string;
+    };
   };
   message?: string;
 }
@@ -74,13 +77,17 @@ class ApiService {
       if (!response.ok) {
         return {
           success: false,
-          message: result.message || `Login failed: ${response.status}`
+          message: result.error?.message || result.message || `Login failed: ${response.status}`
         };
       }
       
+      // Backend returns: { success: true, data: { accessToken, refreshToken, user } }
+      // Frontend expects: { success: true, accessToken, refreshToken, user }
       return {
         success: true,
-        ...result
+        accessToken: result.data?.accessToken,
+        refreshToken: result.data?.refreshToken,
+        user: result.data?.user
       };
     } catch (error) {
       console.error('Login error:', error);
@@ -104,13 +111,17 @@ class ApiService {
       if (!response.ok) {
         return {
           success: false,
-          message: result.message || `Registration failed: ${response.status}`
+          message: result.error?.message || result.message || `Registration failed: ${response.status}`
         };
       }
       
+      // Backend returns: { success: true, data: { user, tokens: { accessToken, refreshToken } } }
+      // Frontend expects: { success: true, accessToken, refreshToken, user }
       return {
         success: true,
-        ...result
+        accessToken: result.data?.tokens?.accessToken,
+        refreshToken: result.data?.tokens?.refreshToken,
+        user: result.data?.user
       };
     } catch (error) {
       console.error('Registration error:', error);
@@ -317,6 +328,65 @@ class ApiService {
         message: error instanceof Error ? error.message : 'Network error occurred'
       };
     }
+  }
+
+  // Calendar Methods
+  async convertCalendarDate(from: 'hijri' | 'gregorian', to: 'hijri' | 'gregorian', date: Date | { year: number; month: number; day: number }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/convert`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ from, to, date })
+    });
+    return this.handleResponse(response);
+  }
+
+  async getNextZakatDate(lastDate?: string, calendarType?: 'hijri' | 'gregorian'): Promise<ApiResponse> {
+    const params = new URLSearchParams();
+    if (lastDate) params.append('lastDate', lastDate);
+    if (calendarType) params.append('calendarType', calendarType);
+    
+    const response = await fetch(`${API_BASE_URL}/calendar/next-zakat-date?${params}`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getCurrentHijriDate(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/current-hijri`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getHijriMonthNames(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/hijri-month-names`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateCalendarPreferences(preferences: {
+    preferredCalendar?: 'hijri' | 'gregorian';
+    preferredMethodology?: 'standard' | 'hanafi' | 'shafi' | 'custom';
+    lastZakatDate?: string;
+  }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/preferences`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(preferences)
+    });
+    return this.handleResponse(response);
+  }
+
+  async getCalendarPreferences(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calendar/preferences`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
   }
 }
 

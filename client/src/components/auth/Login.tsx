@@ -44,10 +44,11 @@ export const Login: React.FC = () => {
             <Input
               id="email"
               name="email"
-              type="text"
-              autoComplete="username"
+              type="email"
+              autoComplete="email"
               required
-              placeholder="Username or Email"
+              placeholder="Email address"
+              label="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={error && !email ? 'Email is required' : undefined}
@@ -60,6 +61,7 @@ export const Login: React.FC = () => {
               autoComplete="current-password"
               required
               placeholder="Password"
+              label="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={error && !password ? 'Password is required' : undefined}

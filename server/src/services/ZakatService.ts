@@ -1,10 +1,10 @@
 import { randomUUID } from 'crypto';
 import { userAssets } from '../controllers/AssetController';
-import { ZakatEngine } from './zakatEngine';
-import { CurrencyService } from './currencyService';
-import { CalendarService } from './calendarService';
-import { NisabService } from './nisabService';
-import { AssetService } from './assetService';
+// TEMPORARILY DISABLED: import { ZakatEngine } from './zakatEngine';
+// TEMPORARILY DISABLED: import { CurrencyService } from './currencyService';
+// TEMPORARILY DISABLED: import { CalendarService } from './calendarService';
+import { NisabService } from './NisabService';
+import { AssetService } from './AssetService';
 import { 
   ZakatCalculationRequest, 
   ZakatCalculationResult,
@@ -69,19 +69,19 @@ interface LegacyZakatCalculation {
 }
 
 export class ZakatService {
-  private zakatEngine: ZakatEngine;
+  // TEMPORARILY DISABLED: private zakatEngine: ZakatEngine;
   private assetService: AssetService;
   private nisabService: NisabService;
 
   constructor() {
     // Initialize services
-    const currencyService = new CurrencyService();
-    const calendarService = new CalendarService();
+    // const currencyService = new CurrencyService();
+    // const calendarService = new CalendarService();
     this.nisabService = new NisabService();
     this.assetService = new AssetService();
     
-    // Initialize zakat engine
-    this.zakatEngine = new ZakatEngine(currencyService, calendarService, this.nisabService);
+    // TEMPORARILY DISABLED: Initialize zakat engine
+    // this.zakatEngine = new ZakatEngine(currencyService, calendarService, this.nisabService);
   }
 
   /**
@@ -95,7 +95,7 @@ export class ZakatService {
    * Get current nisab information
    */
   async getNisab() {
-    return await this.nisabService.calculateNisabThresholds();
+    return await this.nisabService.calculateNisab('standard', 'USD');
   }
 
   /**
@@ -175,7 +175,7 @@ export class ZakatService {
     }
 
     // Get nisab values
-    const nisabInfo = await this.nisabService.calculateNisabThresholds();
+    const nisabInfo = await this.nisabService.calculateNisab(request.method, 'USD');
     
     // Determine effective nisab based on methodology
     let effectiveNisab: number;

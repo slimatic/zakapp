@@ -18,10 +18,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Assets', href: '/assets' },
     { name: 'Calculate Zakat', href: '/calculate' },
+    { name: 'Tracking & Analytics', href: '/tracking' },
     { name: 'History', href: '/history' },
   ];
 
   const isActive = (href: string) => {
+    // For tracking route, also highlight when on any tracking subpage
+    if (href === '/tracking') {
+      return location.pathname.startsWith('/tracking');
+    }
     return location.pathname === href;
   };
 
