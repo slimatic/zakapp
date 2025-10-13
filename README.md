@@ -10,6 +10,21 @@ A **production-ready**, privacy-first Islamic Zakat calculator with comprehensiv
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
+## 📖 Table of Contents
+
+- [Project Overview](#-project-overview)
+- [Recent Updates](#-recent-updates-october-2025)
+- [Key Features](#-key-features---all-implemented--production-ready-)
+- [Architecture](#️-architecture)
+- [Documentation](#-documentation)
+- [Local Setup & Installation](#-local-setup--installation)
+- [Troubleshooting](#-troubleshooting)
+- [Production Deployment](#-production-deployment)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
 ## 🎯 Project Overview
 
 ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that helps Muslims manage their Islamic financial obligations with complete privacy and Islamic compliance. Built with modern web technologies, it features end-to-end encryption, multiple calculation methodologies, and a beautiful user experience.
@@ -24,12 +39,12 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 - **Resolved "Registration failed" error**: Users can now successfully register and login
 - **Improved error handling**: Better error messages and user feedback
 - **Updated API interfaces**: TypeScript types now match actual backend responses
-- **See Documentation**: [AUTH_FIX_LOGIN_REGISTER.md](AUTH_FIX_LOGIN_REGISTER.md) and [REGISTRATION_API_RESPONSE_FIX.md](REGISTRATION_API_RESPONSE_FIX.md)
+- **See Documentation**: [Authentication Fix Report](docs/archive/fix-reports/AUTH_FIX_LOGIN_REGISTER.md) and [Registration API Fix](docs/archive/fix-reports/REGISTRATION_API_RESPONSE_FIX.md)
 
 ### **Methodology Consistency** ✅
 - **Fixed 15 frontend files**: Changed 'shafii' to 'shafi' to match backend enum
 - **Backend testing complete**: T133 (methodology) and T150 (calculation history) fully tested
-- **See Documentation**: [T133_T150_COMPLETE_TEST_REPORT.md](T133_T150_COMPLETE_TEST_REPORT.md)
+- **See Documentation**: [T133/T150 Test Report](docs/archive/task-reports/T133_T150_COMPLETE_TEST_REPORT.md)
 
 ## ✨ Key Features - **ALL IMPLEMENTED & PRODUCTION READY** ✅
 
@@ -100,36 +115,48 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 
 ## 📚 Documentation
 
-### 📋 **Project Status & Reports**
+### 🗂️ **[Complete Documentation Hub](docs/README.md)**
+**→ Navigate to the [Documentation Hub](docs/README.md) for comprehensive documentation organized by topic**
+
+Quick links to essential documentation:
+
+### 📋 **Getting Started**
+- **[Developer Onboarding](DEVELOPER_ONBOARDING.md)** - Complete guide for new developers
+- **[Development Setup](DEVELOPMENT_SETUP.md)** - Detailed environment setup instructions
+- **[Development Guide](DEVELOPMENT.md)** - Development workflow and best practices
+- **[Project Structure](project-structure.md)** - Repository organization and layout
+
+### 📊 **Project Status & Planning**
 - **[✅ Final Implementation Report](FINAL_IMPLEMENTATION_REPORT.md)** - Complete 500+ line report on all 53 features
-- **[📊 Implementation Verification](docs/archive/completion-reports/IMPLEMENTATION_VERIFICATION_COMPLETE.md)** - Test results and verification (archived)
-- **[⚡ Performance Testing](performance-tests/PHASE1_PERFORMANCE_REPORT.md)** - API load testing results
-- **[🚀 Production Setup Guide](PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Deployment automation and scripts
 - **[🗓️ Development Plan](development-plan.md)** - Detailed development roadmap
 - **[🛣️ Roadmap](roadmap.md)** - High-level milestones and timeline
+- **[📝 Tasks](tasks.md)** - Current task tracking
+- **[📜 Changelog](CHANGELOG.md)** - Version history and changes
 
-### 🔧 **Technical Documentation**
-- **[📖 API Specification](api-specification.md)** - Backend API documentation
+### 🔧 **Technical Reference**
+- **[📖 API Specification](api-specification.md)** - Complete REST API documentation
 - **[🏗️ Complete Specification](specs/001-zakapp-specification-complete/)** - Detailed API contracts and data models
-- **[🛠️ Development Guide](DEVELOPMENT.md)** - Development environment setup
-- **[🔧 Port Configuration Guide](PORT_CONFIGURATION_GUIDE.md)** - How to configure custom ports (fixes "Failed to fetch" errors)
-- **[📋 Development Setup](DEVELOPMENT_SETUP.md)** - Detailed environment setup and port configuration
-- **[🗄️ Database Management](DATABASE_MANAGEMENT.md)** - Database cleanup, reset, backup, and troubleshooting
-- **[🐳 Docker Guide](DOCKER.md)** - Container deployment instructions
-- **[🚀 Deployment Guide](deployment-guide.md)** - Production deployment instructions
+- **[👤 User Stories](user-stories.md)** - Feature requirements and user flows
+- **[📏 Project Principles](principles.md)** - Development guidelines and philosophy
 - **[🔒 Security Guide](security.md)** - Security measures and best practices
 
-### 🔧 **Recent Bug Fixes & Documentation (October 2025)**
-- **[🔐 Authentication Fix](AUTH_FIX_LOGIN_REGISTER.md)** - Fixed login/register email field mismatch
-- **[✅ Registration API Fix](REGISTRATION_API_RESPONSE_FIX.md)** - Fixed API response structure parsing
-- **[📊 T133/T150 Test Report](T133_T150_COMPLETE_TEST_REPORT.md)** - Methodology and calculation history testing
-- **[🔄 Methodology Fix](T133_METHODOLOGY_COMPLETE_FIX.md)** - Fixed 'shafii' vs 'shafi' naming consistency
-- **[📝 Storybook Errors](STORYBOOK_ERRORS_FIXED.md)** - Explanation of harmless dev server warnings
+### 🚀 **Deployment & Operations**
+- **[🚀 Deployment Guide](deployment-guide.md)** - General deployment instructions
+- **[🏭 Production Setup](docs/guides/PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Production deployment automation
+- **[🎭 Staging Deployment](docs/guides/STAGING_DEPLOYMENT_GUIDE.md)** - Staging environment setup
+- **[🐳 Docker Guide](DOCKER.md)** - Container deployment instructions
+- **[🔄 CI/CD Setup](docs/guides/CI-CD-SETUP.md)** - Continuous integration/deployment
 
-### 📝 **Requirements & Design**
-- **[👤 User Stories](user-stories.md)** - Feature requirements and user flows
-- **[📏 Project Principles](principles.md)** - Development guidelines
-- **[🏗️ Project Structure](project-structure.md)** - Repository organization
+### 🛠️ **Configuration & Troubleshooting**
+- **[🗄️ Database Management](DATABASE_MANAGEMENT.md)** - Database operations, cleanup, reset, backup
+- **[🔧 Port Configuration](docs/guides/PORT_CONFIGURATION_GUIDE.md)** - Configure custom ports, fix "Failed to fetch" errors
+- **[💾 Database Portability](docs/guides/DATABASE_PORTABILITY_GUIDE.md)** - Database migration and portability
+- **[🧪 Manual Testing Guide](docs/guides/MANUAL_TESTING_GUIDE.md)** - Manual testing procedures
+
+### 📚 **Additional Resources**
+- **[🗂️ Documentation Archive](docs/archive/ARCHIVE_INDEX.md)** - 80+ historical reports and completion documents
+- **[⚡ Performance Testing](performance-tests/PHASE1_PERFORMANCE_REPORT.md)** - API load testing results
+- **[🔍 Code Analysis](CODE_ANALYSIS_FINDINGS.md)** - Comprehensive code analysis findings
 
 ## 🚀 Local Setup & Installation
 
@@ -175,7 +202,7 @@ cp .env.example .env.local
 # Edit client/.env.local - ensure REACT_APP_API_BASE_URL matches backend port
 ```
 
-**⚠️ Important**: If you change the backend `PORT` in `server/.env`, you must update `REACT_APP_API_BASE_URL` in `client/.env.local` to match! See [PORT_CONFIGURATION_GUIDE.md](PORT_CONFIGURATION_GUIDE.md) for details.
+**⚠️ Important**: If you change the backend `PORT` in `server/.env`, you must update `REACT_APP_API_BASE_URL` in `client/.env.local` to match! See [Port Configuration Guide](docs/guides/PORT_CONFIGURATION_GUIDE.md) for details.
 
 ### 🗄️ **Step 4: Database Setup**
 
@@ -651,15 +678,16 @@ cp .env.example .env
 # The fix involved:
 # - Updated API response parsing to handle nested data structures
 # - Fixed authentication token extraction from backend responses
-# See REGISTRATION_API_RESPONSE_FIX.md for details
+# See docs/archive/fix-reports/REGISTRATION_API_RESPONSE_FIX.md for details
 ```
 
 ### **Still having issues?**
 1. Make sure you have Node.js 18+ installed: `node --version`
 2. Clear all caches: `npm cache clean --force`
-3. Check recent fix documentation (AUTH_FIX_LOGIN_REGISTER.md, REGISTRATION_API_RESPONSE_FIX.md)
-4. Check the [Issues](https://github.com/slimatic/zakapp/issues) page
-5. Create a new issue with your error details
+3. Check [fix documentation](docs/archive/fix-reports/) for recent authentication and registration fixes
+4. Review [Database Management Guide](DATABASE_MANAGEMENT.md) for database issues
+5. Check the [Issues](https://github.com/slimatic/zakapp/issues) page
+6. Create a new issue with your error details
 
 ## 🚀 Production Deployment
 
