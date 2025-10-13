@@ -583,7 +583,7 @@ docker compose exec --user root backend chown -R node:node /app/server/prisma/da
 
 ---
 
-## �🐛 Troubleshooting (Local Development)
+## 🛠️🐛 Troubleshooting (Local Development)
 
 ### Common Issues & Solutions
 
