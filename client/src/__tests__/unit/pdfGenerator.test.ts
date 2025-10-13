@@ -286,13 +286,13 @@ describe('pdfGenerator utility', () => {
     };
 
     it('should create a payment receipt', () => {
-      generatePaymentReceiptPDF(mockPayment);
+      generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
       expect(jsPDF).toHaveBeenCalled();
     });
 
     it('should include receipt title', () => {
-      generatePaymentReceiptPDF(mockPayment);
+      generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
       expect(mockDoc.text).toHaveBeenCalledWith(
         expect.stringContaining('Payment Receipt'),
@@ -303,7 +303,7 @@ describe('pdfGenerator utility', () => {
     });
 
     it('should include receipt reference number', () => {
-      generatePaymentReceiptPDF(mockPayment);
+      generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
       expect(mockDoc.text).toHaveBeenCalledWith(
         expect.stringContaining('RCPT-2024-001'),
@@ -314,7 +314,7 @@ describe('pdfGenerator utility', () => {
     });
 
     it('should include payment amount', () => {
-      generatePaymentReceiptPDF(mockPayment);
+      generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
       // Should format and display the amount
       expect(mockDoc.text).toHaveBeenCalledWith(
@@ -326,7 +326,7 @@ describe('pdfGenerator utility', () => {
     });
 
     it('should include payment date', () => {
-      generatePaymentReceiptPDF(mockPayment);
+      generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
       expect(mockDoc.text).toHaveBeenCalledWith(
         expect.stringContaining('Jul'),
@@ -337,7 +337,7 @@ describe('pdfGenerator utility', () => {
     });
 
     it('should include recipient information', () => {
-      generatePaymentReceiptPDF(mockPayment);
+      generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
       expect(mockDoc.text).toHaveBeenCalledWith(
         expect.stringContaining('Test Organization'),
@@ -348,7 +348,7 @@ describe('pdfGenerator utility', () => {
     });
 
     it('should include payment method', () => {
-      generatePaymentReceiptPDF(mockPayment);
+      generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
       expect(mockDoc.text).toHaveBeenCalledWith(
         expect.stringContaining('bank_transfer'),
@@ -359,7 +359,7 @@ describe('pdfGenerator utility', () => {
     });
 
     it('should return jsPDF instance', () => {
-      const result = generatePaymentReceiptPDF(mockPayment);
+      const result = generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
       expect(result).toBe(mockDoc);
     });
