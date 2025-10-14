@@ -14,6 +14,7 @@ import exportRoutes from './routes/export';
 import importRoutes from './routes/import';
 import trackingRoutes from './routes/tracking';
 import calculationsRoutes from './routes/calculations';
+import methodologiesRoutes from './routes/methodologies';
 
 // Import middleware
 import { errorHandler } from './middleware/ErrorHandler';
@@ -48,6 +49,7 @@ app.use('/api/export', exportRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/calculations', calculationsRoutes);
+app.use('/api/methodologies', methodologiesRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
