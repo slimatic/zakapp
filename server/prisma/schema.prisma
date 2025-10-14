@@ -44,6 +44,9 @@ model User {
   // Calculation History (Feature 004)
   calculationHistory CalculationHistory[]
 
+  // Methodology Configurations
+  methodologyConfigs MethodologyConfig[]
+
   @@map("users")
 }
 
@@ -586,4 +589,23 @@ model CalculationHistory {
   @@index([userId, calculationDate])
   @@index([userId, methodology])
   @@index([calculationDate])
+}
+
+model MethodologyConfig {
+  id             String   @id @default(cuid())
+  userId         String
+  name           String
+  nisabBasis     String
+  customNisabValue Float?
+  rate           Float
+  assetRules     String   // Encrypted JSON
+  isCustom       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("methodology_configs")
+  @@index([userId])
 }
