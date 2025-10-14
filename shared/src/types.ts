@@ -534,10 +534,10 @@ export interface MethodologyInfo {
   /** Debt deduction approach (e.g., 'comprehensive', 'conservative', 'immediate') */
   debtDeduction: string;
   
-  scholarlyBasis: string[];
+  scholarlyBasis: readonly string[];
   
   /** Geographic regions where this methodology is commonly used */
-  regions: string[];
+  regions: readonly string[];
   
   /** Standard zakat rate percentage (typically 2.5) */
   zakatRate: number;
@@ -549,13 +549,13 @@ export interface MethodologyInfo {
   customRules?: boolean;
   
   /** Types of users or situations this methodology is most suitable for */
-  suitableFor: string[];
+  suitableFor: readonly string[];
   
   /** Advantages and benefits of using this methodology */
-  pros: string[];
+  pros: readonly string[];
   
   /** Potential drawbacks or considerations when using this methodology */
-  cons: string[];
+  cons: readonly string[];
   
   /** Comprehensive explanation of the methodology's principles and approach */
   explanation: string;
@@ -840,4 +840,38 @@ export interface PaginationInfo {
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: PaginationInfo;
+}
+
+// Methodology Configuration Types
+export interface MethodologyConfig {
+  id: string;
+  name: string;
+  description?: string;
+  nisabBasis: string;
+  customNisabValue?: number;
+  rate: number;
+  assetRules: Record<string, any>;
+  isCustom: boolean;
+  scholarlyBasis?: readonly string[];
+  regions?: readonly string[];
+  suitableFor?: readonly string[];
+  pros?: readonly string[];
+  cons?: readonly string[];
+  explanation?: string;
+}
+
+export interface CreateMethodologyConfig {
+  name: string;
+  nisabBasis: string;
+  customNisabValue?: number;
+  rate: number;
+  assetRules: Record<string, any>;
+}
+
+export interface UpdateMethodologyConfig {
+  name?: string;
+  nisabBasis?: string;
+  customNisabValue?: number;
+  rate?: number;
+  assetRules?: Record<string, any>;
 }
