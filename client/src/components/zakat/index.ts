@@ -1,4 +1,5 @@
 export { ZakatResults } from './ZakatResults';
+export { default as CalculationResults } from './CalculationResults';
 export { MethodologySelector } from './MethodologySelector';
 export { MethodologyCard } from './MethodologyCard';
 export { CalculationBreakdown } from './CalculationBreakdown';
@@ -6,3 +7,10 @@ export { NisabIndicator } from './NisabIndicator';
 export { CalculationExplanation } from './CalculationExplanation';
 export { EnhancedZakatCalculator } from './EnhancedZakatCalculator';
 export { ComparisonCalculator } from './ComparisonCalculator';
+export { PaymentModal } from './PaymentModal';
+export { default as PaymentTracking } from './PaymentTracking';
+export { default as SnapshotComparison } from './SnapshotComparison';
+export { default as EducationalContent } from './EducationalContent';
+export { default as MethodologyExplainer } from './MethodologyExplainer';
+export { default as NisabExplainer } from './NisabExplainer';
+export { ZakatCalculator } from './ZakatCalculator';
