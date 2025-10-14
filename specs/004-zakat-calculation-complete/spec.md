@@ -12,6 +12,7 @@
 ## 📋 Overview
 
 Complete the Zakat Calculation Engine (Milestone 4) by implementing the remaining 15% of functionality:
+
 1. Calendar system integration (Lunar/Solar)
 2. Multiple methodology calculation UI
 3. Method-specific educational content
@@ -24,9 +25,19 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 
 ---
 
+## Clarifications
+
+### Session 2025-10-13
+
+- Q: How should zakapp persist asset values inside a Zakat Snapshot? → A: Immutable amounts; unlock enables edits
+- Q: How should methodology-specific adjustments be configured? → A: Fixed methods; custom allows overrides
+
+---
+
 ## 🎯 Objectives
 
 ### Primary Goals
+
 1. ✅ **Complete Calendar System**
    - Implement Islamic lunar calendar (Hijri)
    - Solar calendar (Gregorian) support
@@ -52,6 +63,7 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
    - Export calculation reports
 
 ### Secondary Goals
+
 1. Regional methodology recommendations
 2. Advanced nisab tracking over time
 3. What-if scenario calculator
@@ -59,9 +71,255 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 
 ---
 
+## 📋 Functional Requirements
+
+### FR001: Calendar System Integration
+
+**Priority**: HIGH  
+**Description**: The system shall support both Hijri (Islamic lunar) and Gregorian (solar) calendars for Zakat year calculations.  
+**Acceptance Criteria**:
+
+- Users can select preferred calendar type in settings
+- Accurate bidirectional conversion between Hijri and Gregorian dates
+- Zakat due dates calculated based on selected calendar system
+- Calendar preference persists across sessions
+
+### FR002: Multi-Methodology Zakat Calculation
+
+
+**Priority**: HIGH  
+**Description**: The system shall support four Islamic Zakat calculation methodologies: Standard (AAOIFI), Hanafi, Shafi'i, and Custom.  
+**Acceptance Criteria**:
+
+- All four methodologies implemented with accurate calculations
+- Methodology selection available in calculator interface
+- Method-specific nisab thresholds and rates applied correctly
+- Calculation results display methodology used
+- Standard, Hanafi, and Shafi'i methods enforce platform-defined adjustment rules
+- Custom methodology allows per-asset inclusion percentages or exclusions defined by the user
+
+### FR003: Methodology Selection Interface
+
+**Priority**: HIGH  
+**Description**: Users shall be able to select and switch between Zakat calculation methodologies through an intuitive interface.  
+**Acceptance Criteria**:
+
+- Visual methodology cards with clear descriptions
+- Side-by-side methodology comparison view
+- Educational content explaining each methodology
+- Regional methodology recommendations based on user location
+- Methodology preference persists across sessions
+
+### FR004: Enhanced Calculation Display
+
+
+**Priority**: HIGH  
+**Description**: The calculator shall provide method-specific calculation breakdowns with visual aids and educational content.  
+**Acceptance Criteria**:
+
+- Visual nisab threshold indicators
+- Method-specific asset categorization breakdown
+- Educational tooltips explaining calculations
+- Zakat due amount clearly displayed with methodology context
+- Export/print functionality for calculation results
+
+### FR005: Calculation History Tracking
+
+**Priority**: HIGH  
+**Description**: The system shall store and display historical Zakat calculations with trend analysis.  
+**Acceptance Criteria**:
+
+- All calculations automatically saved with metadata
+- Historical calculations viewable in chronological order
+- Trend visualization showing calculation patterns over time
+- Calculation comparison between different methodologies
+- Export functionality for historical data
+
+### FR006: Calendar Conversion API
+
+**Priority**: MEDIUM  
+**Description**: Backend shall provide REST API endpoints for calendar date conversions.  
+**Acceptance Criteria**:
+
+- POST /api/calendar/convert returns accurate Hijri↔Gregorian conversions
+- GET /api/calendar/next-zakat-date calculates next due date
+- GET /api/calendar/current-hijri returns current Hijri date
+- All endpoints return properly formatted date objects
+
+### FR007: Calculation History API
+
+**Priority**: MEDIUM  
+**Description**: Backend shall provide REST API endpoints for calculation history management.  
+**Acceptance Criteria**:
+
+- GET /api/calculations returns paginated calculation history
+- POST /api/calculations/compare compares multiple methodologies
+- GET /api/calculations/trends returns calculation trend data
+- All endpoints require user authentication and authorization
+
+### FR008: Snapshot Data Integrity
+
+**Priority**: HIGH  
+**Description**: Zakat snapshots shall capture immutable asset and liability amounts at creation time, with controlled unlocks for clerical corrections.  
+**Acceptance Criteria**:
+
+- Snapshot creation stores numeric asset and liability values separate from live data
+- Snapshots default to a locked state that blocks edits to captured amounts
+- Authorized users may unlock a snapshot to correct clerical errors, with all modifications logged
+- Lock and unlock events record timestamp and actor identity
+- Methodology recalculations always operate on the stored snapshot amounts regardless of lock state
+
+---
+
+## 👥 User Stories
+
+### US001: Calendar Preference Management
+
+**As a** Muslim user following Islamic calendar  
+**I want to** set my preferred calendar system  
+**So that** Zakat calculations use the correct calendar for my lunar year  
+
+**Acceptance Criteria**:
+
+- Given I'm logged in, when I access settings, then I can select Hijri or Gregorian calendar
+- Given I select Hijri calendar, when I calculate Zakat, then due dates use Islamic lunar calendar
+- Given I change calendar preference, when I return to app, then my preference is remembered
+
+### US002: Methodology Selection Guidance
+
+**As a** new user unfamiliar with Zakat methodologies  
+**I want to** see clear explanations of different calculation methods  
+**So that** I can choose the most appropriate methodology for my situation  
+
+**Acceptance Criteria**:
+
+- Given I'm on methodology selection, when I view options, then each method shows clear description and use cases
+- Given I need help choosing, when I click "Take Quiz", then I'm guided to recommended methodology
+- Given I select a methodology, when I proceed to calculate, then educational content explains the method
+
+### US003: Visual Calculation Understanding
+
+**As a** user performing Zakat calculation  
+**I want to** see visual breakdown of my calculation  
+**So that** I understand how my Zakat amount was determined  
+
+**Acceptance Criteria**:
+
+- Given I enter my assets, when calculation completes, then I see visual nisab indicator
+- Given I'm above nisab threshold, when I view breakdown, then I see percentage above threshold
+- Given I hover over calculation elements, when I read tooltips, then I understand Islamic reasoning
+
+### US004: Historical Calculation Tracking
+
+**As a** user who calculates Zakat annually  
+**I want to** view my previous calculations  
+**So that** I can track changes in my Zakat obligations over time  
+
+**Acceptance Criteria**:
+
+- Given I have previous calculations, when I access history, then I see chronological list
+- Given I select a past calculation, when I view details, then I see full breakdown with methodology
+- Given I compare calculations, when I select multiple, then I see trend visualization
+
+### US005: Methodology Comparison
+
+**As a** user considering methodology change  
+**I want to** compare calculation results between methods  
+**So that** I can understand the differences and choose wisely  
+
+**Acceptance Criteria**:
+
+- Given I have asset data, when I access comparison, then I see side-by-side results
+- Given I compare methods, when I view differences, then I see explanation of variations
+- Given I switch methodology, when I recalculate, then new method is applied consistently
+
+---
+
+## ⚠️ Edge Cases
+
+### EC001: Calendar Boundary Transitions
+
+**Scenario**: User calculates Zakat during calendar month transitions  
+**Edge Case**: Hijri month boundaries (29/30 days), leap year calculations  
+**Expected Behavior**: Accurate date conversion regardless of month length variations  
+**Test Cases**:
+
+- Calculation on last day of 29-day Hijri month
+- Zakat due date falling on Gregorian leap day
+- Calendar conversion during Ramadan (variable month)
+
+### EC002: Nisab Threshold Boundaries
+
+**Scenario**: User's wealth is near nisab threshold  
+**Edge Case**: Wealth slightly above/below gold/silver thresholds  
+**Expected Behavior**: Clear indication of zakatability status with precise threshold display  
+**Test Cases**:
+
+- Wealth exactly at gold nisab threshold
+- Wealth 0.1% above silver nisab (Hanafi method)
+- Negative wealth values (debt handling)
+
+### EC003: Multi-Methodology Validation
+
+**Scenario**: Same asset data calculated with different methodologies  
+**Edge Case**: Methods producing significantly different results  
+**Expected Behavior**: Clear explanation of differences with Islamic scholarly references  
+**Test Cases**:
+
+- High-value gold assets (Standard vs Hanafi threshold difference)
+- Business inventory calculations (Shafi'i detailed categorization)
+- Cryptocurrency classification across methods
+
+### EC004: Historical Data Integrity
+
+**Scenario**: Long-term calculation history with methodology changes  
+**Edge Case**: Historical calculations using deprecated or updated methodologies  
+**Expected Behavior**: Historical data preserved with original methodology metadata  
+**Test Cases**:
+
+- Viewing calculations from before methodology updates
+- Exporting historical data with methodology context
+- Trend analysis across methodology changes
+
+### EC005: Regional Methodology Recommendations
+
+**Scenario**: Users in different geographic regions  
+**Edge Case**: Location-based methodology suggestions  
+**Expected Behavior**: Culturally sensitive recommendations without forcing specific methods  
+**Test Cases**:
+
+- Users in Southeast Asia (Shafi'i predominant regions)
+- Users in South Asia (Hanafi predominant regions)
+- Users requesting custom methodology options
+
+### EC006: Performance with Large Datasets
+
+**Scenario**: Users with extensive calculation history  
+**Edge Case**: 100+ historical calculations with trend analysis  
+**Expected Behavior**: Sub-500ms load times for history views  
+**Test Cases**:
+
+- Loading 100 calculations with trend charts
+- Exporting large calculation datasets
+- Concurrent users performing calculations
+
+### EC007: Snapshot Unlock Corrections
+
+**Scenario**: User discovers clerical errors after capturing a snapshot  
+**Edge Case**: Snapshot needs edits without losing historical integrity  
+**Expected Behavior**: Snapshots default to locked; authorized users can unlock, edit captured amounts, and re-lock with audit trail  
+**Test Cases**:
+
+- Attempting to edit a locked snapshot should be blocked with clear messaging
+- Unlock action records actor, timestamp, and reason
+- After corrections and re-locking, recalculations use the updated stored amounts while preserving audit history
+
+---
+
 ## 📦 Deliverables
 
 ### Backend Components
+
 1. **Calendar Service** (`server/services/CalendarService.js`)
    - Hijri date conversion
    - Zakat year calculation
@@ -80,6 +338,7 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
    - GET /calculations/trends - Get calculation trends
 
 ### Frontend Components
+
 1. **Methodology Selector** (`client/src/components/zakat/MethodologySelector.tsx`)
    - Beautiful methodology cards
    - Educational content display
@@ -108,9 +367,11 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ## 🗺️ Implementation Plan
 
 ### Phase 1: Calendar System (2-3 days)
+
 **Goal**: Complete calendar integration for Zakat year tracking
 
 #### Tasks
+
 1. **T118**: Install and configure hijri-converter library ⏱️ 30min
 2. **T119**: Create CalendarService with conversion utilities ⏱️ 2h
 3. **T120**: Add calendar preference to user settings ⏱️ 1h
@@ -122,6 +383,7 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 **Duration**: 10 hours (~1.5 days)
 
 #### Success Criteria
+
 - ✅ Accurate Hijri ↔ Gregorian conversion
 - ✅ User can select preferred calendar type
 - ✅ Calendar preference persists
@@ -130,9 +392,11 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ---
 
 ### Phase 2: Methodology Selection UI (3-4 days)
+
 **Goal**: Create beautiful, educational methodology selector
 
 #### Tasks
+
 1. **T125**: Design methodology card components ⏱️ 3h
 2. **T126**: Create MethodologySelector component ⏱️ 4h
 3. **T127**: Add methodology comparison view ⏱️ 3h
@@ -146,6 +410,7 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 **Duration**: 21 hours (~3 days)
 
 #### Success Criteria
+
 - ✅ Beautiful, intuitive methodology selection
 - ✅ Educational content for each method
 - ✅ Side-by-side comparison available
@@ -155,9 +420,11 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ---
 
 ### Phase 3: Enhanced Calculation Display (2-3 days)
+
 **Goal**: Show method-specific calculations with visual aids
 
 #### Tasks
+
 1. **T134**: Design calculation breakdown UI ⏱️ 2h
 2. **T135**: Create NisabIndicator component ⏱️ 2h
 3. **T136**: Add method-specific calculation explanations ⏱️ 3h
@@ -170,6 +437,7 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 **Duration**: 19 hours (~2.5 days)
 
 #### Success Criteria
+
 - ✅ Clear visual nisab indicators
 - ✅ Method-specific calculation breakdown
 - ✅ Educational tooltips throughout
@@ -179,9 +447,11 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ---
 
 ### Phase 4: Calculation History (2-3 days)
+
 **Goal**: Store and display calculation history with trends
 
 #### Tasks
+
 1. **T142**: Design calculation history data model ⏱️ 1h
 2. **T143**: Create calculation history API endpoints ⏱️ 3h
 3. **T144**: Implement calculation storage in service layer ⏱️ 2h
@@ -195,6 +465,7 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 **Duration**: 20.5 hours (~3 days)
 
 #### Success Criteria
+
 - ✅ All calculations stored with metadata
 - ✅ Historical calculations viewable
 - ✅ Trend visualization working
@@ -204,9 +475,11 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ---
 
 ### Phase 5: Testing & Documentation (1-2 days)
+
 **Goal**: Comprehensive testing and documentation
 
 #### Tasks
+
 1. **T151**: Unit test calendar conversions ⏱️ 2h
 2. **T152**: Test methodology calculations end-to-end ⏱️ 2h
 3. **T153**: Test calculation history functionality ⏱️ 1.5h
@@ -216,9 +489,10 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 7. **T157**: Update API documentation ⏱️ 1.5h
 8. **T158**: Create methodology selection guide ⏱️ 1h
 
-**Duration**: 14 hours (~2 days)
+**Duration**: 11 hours (~1.5 days)
 
 #### Success Criteria
+
 - ✅ All tests passing
 - ✅ Accessibility compliant
 - ✅ Performance optimized
@@ -247,7 +521,8 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ## 🎨 UI/UX Mockup Descriptions
 
 ### Methodology Selector
-```
+
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  Choose Your Zakat Calculation Methodology               │
 ├─────────────────────────────────────────────────────────┤
@@ -270,7 +545,8 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ```
 
 ### Enhanced Calculator Display
-```
+
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  Zakat Calculation (Standard Method)          [Compare] │
 ├─────────────────────────────────────────────────────────┤
@@ -298,7 +574,8 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ```
 
 ### Calculation History
-```
+
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  Calculation History                          [Export]  │
 ├─────────────────────────────────────────────────────────┤
@@ -334,37 +611,45 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ## 🔍 Islamic Methodologies Reference
 
 ### 1. Standard Method (AAOIFI-Compliant)
+
 **Source**: Accounting and Auditing Organization for Islamic Financial Institutions  
 **Nisab**: Gold-based (85g of gold)  
 **Rate**: 2.5% on all zakatable wealth  
 **Key Features**:
+
 - Most widely accepted modern standard
 - Clear categorization of assets
 - Comprehensive guidance for modern financial instruments
 
 ### 2. Hanafi Method
+
 **School**: Hanafi Madhab  
 **Nisab**: Silver-based (595g of silver) OR Gold-based (85g of gold), whichever is lower  
 **Rate**: 2.5% on qualifying assets  
 **Key Features**:
+
 - More inclusive (lower nisab threshold)
 - Benefits more people in need
 - Traditional approach
 
 ### 3. Shafi'i Method
+
 **School**: Shafi'i Madhab  
 **Nisab**: Gold-based (85g of gold)  
 **Rate**: 2.5% with specific categorization  
 **Key Features**:
+
 - Detailed asset categorization
 - Specific rules for business assets
 - Traditional scholarly approach
 
 ### 4. Custom Method
+
 **User-Defined**: Based on local scholar guidance  
 **Configurable**: User can set specific rules  
 **Rate**: Typically 2.5% but adjustable  
 **Key Features**:
+
 - Flexibility for regional variations
 - Accommodate specific scholarly opinions
 - Advanced user option
@@ -374,6 +659,7 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ## 📚 Educational Content Requirements
 
 ### For Each Methodology
+
 1. **Overview**: Brief explanation of the method
 2. **Historical Context**: Origins and scholarly basis
 3. **Nisab Calculation**: How nisab is determined
@@ -382,6 +668,7 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 6. **Example**: Practical calculation example
 
 ### Interactive Elements
+
 - **Quiz**: "Which methodology is right for you?"
 - **Comparison Tool**: Side-by-side methodology comparison
 - **Glossary**: Islamic financial terms explained
@@ -392,6 +679,7 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ## 🎯 Success Metrics
 
 ### Functional Metrics
+
 - ✅ 100% accurate calendar conversions
 - ✅ All 4 methodologies fully functional
 - ✅ Calculation history stored and retrievable
@@ -399,18 +687,21 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 - ✅ Comparison tools working
 
 ### Performance Metrics
+
 - ⚡ Calculation time < 200ms for any methodology
 - ⚡ Calendar conversion < 50ms
 - ⚡ History load < 500ms for 100 records
 - ⚡ Methodology comparison < 300ms
 
 ### Quality Metrics
+
 - 🎯 0 critical bugs
 - 🎯 95%+ test coverage
 - 🎯 WCAG 2.1 AA compliant
 - 🎯 Responsive on all devices
 
 ### User Experience Metrics
+
 - 😊 Methodology selection < 2 minutes
 - 😊 Calculation understanding > 90%
 - 😊 Educational content helpful > 85%
@@ -439,21 +730,25 @@ Complete the Zakat Calculation Engine (Milestone 4) by implementing the remainin
 ## 🚀 Deployment Plan
 
 ### Phase 1: Development (Current → Week 1-2)
+
 - Implement all tasks T118-T150
 - Internal testing
 - Code review
 
 ### Phase 2: Testing (Week 2)
+
 - Execute T151-T158
 - User acceptance testing
 - Bug fixes
 
 ### Phase 3: Documentation (Week 2)
+
 - Complete all documentation
 - Create user guides
 - API documentation
 
 ### Phase 4: Release (Week 3)
+
 - Merge to main branch
 - Deploy to staging
 - Production release
