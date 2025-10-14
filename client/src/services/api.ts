@@ -221,6 +221,39 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async getMethodology(id: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/methodologies/${id}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateMethodology(id: string, updates: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/methodologies/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(updates)
+    });
+    return this.handleResponse(response);
+  }
+
+  async createMethodology(methodologyData: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/methodologies/custom`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(methodologyData)
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteMethodology(id: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/methodologies/custom/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
   async recordPayment(data: any): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/payment`, {
       method: 'POST',
@@ -239,8 +272,47 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getSnapshots(): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/snapshots`, {
+  async getSnapshots(filters?: { year?: number; page?: number; limit?: number }): Promise<ApiResponse> {
+    const params = new URLSearchParams();
+    if (filters?.year) params.append('year', filters.year.toString());
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+
+    const url = params.toString()
+      ? `${API_BASE_URL}/zakat/snapshots?${params.toString()}`
+      : `${API_BASE_URL}/zakat/snapshots`;
+
+    const response = await fetch(url, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getSnapshot(snapshotId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/snapshots/${snapshotId}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteSnapshot(snapshotId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/snapshots/${snapshotId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async compareSnapshots(fromId: string, toId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/snapshots/compare?from=${fromId}&to=${toId}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getSnapshotStats(year?: number): Promise<ApiResponse> {
+    const params = year ? `?year=${year}` : '';
+    const response = await fetch(`${API_BASE_URL}/zakat/snapshots/stats${params}`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
@@ -253,8 +325,17 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getZakatPayments(): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/payments`, {
+  async getZakatPayments(filters?: { year?: number; page?: number; limit?: number }): Promise<ApiResponse> {
+    const params = new URLSearchParams();
+    if (filters?.year) params.append('year', filters.year.toString());
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+
+    const url = params.toString()
+      ? `${API_BASE_URL}/zakat/payments?${params.toString()}`
+      : `${API_BASE_URL}/zakat/payments`;
+
+    const response = await fetch(url, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
@@ -384,6 +465,29 @@ class ApiService {
   async getCalendarPreferences(): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/calendar/preferences`, {
       method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async deletePayment(paymentId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/payments/${paymentId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getPayment(paymentId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/payments/${paymentId}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getPaymentSummary(year?: number): Promise<ApiResponse> {
+    const params = year ? `?year=${year}` : '';
+    const response = await fetch(`${API_BASE_URL}/zakat/payments/summary${params}`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
