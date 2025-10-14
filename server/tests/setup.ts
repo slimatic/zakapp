@@ -10,7 +10,8 @@ dotenv.config({ path: '.env.test' });
 
 // Set default test environment
 process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'test-secret';
+process.env.JWT_ACCESS_SECRET = 'test-access-secret-32-characters!!';
+process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-32-characters!!';
 process.env.ENCRYPTION_KEY = 'test-encryption-key-32-characters!!';
 
 // Clear state before each test suite
