@@ -1,0 +1,461 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Calendar API
+  description: Calendar conversion and Zakat year calculation endpoints
+  version: 1.0.0
+  contact:
+    name: ZakApp Team
+
+servers:
+  - url: http://localhost:5000/api
+    description: Development server
+
+tags:
+  - name: Calendar
+    description: Calendar conversion and date operations
+
+paths:
+  /calendar/convert:
+    post:
+      summary: Convert date between Gregorian and Hijri calendars
+      description: Converts a date from one calendar system to another
+      tags:
+        - Calendar
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - date
+                - fromCalendar
+                - toCalendar
+              properties:
+                date:
+                  type: string
+                  format: date
+                  description: ISO 8601 date string (YYYY-MM-DD)
+                  example: "2025-10-13"
+                fromCalendar:
+                  type: string
+                  enum: [GREGORIAN, HIJRI]
+                  description: Source calendar system
+                  example: GREGORIAN
+                toCalendar:
+                  type: string
+                  enum: [GREGORIAN, HIJRI]
+                  description: Target calendar system
+                  example: HIJRI
+            examples:
+              gregorianToHijri:
+                summary: Gregorian to Hijri conversion
+                value:
+                  date: "2025-10-13"
+                  fromCalendar: GREGORIAN
+                  toCalendar: HIJRI
+              hijriToGregorian:
+                summary: Hijri to Gregorian conversion
+                value:
+                  date: "1447-04-10"
+                  fromCalendar: HIJRI
+                  toCalendar: GREGORIAN
+      responses:
+        '200':
+          description: Successful conversion
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - convertedDate
+                  - originalDate
+                  - fromCalendar
+                  - toCalendar
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  convertedDate:
+                    type: object
+                    required:
+                      - year
+                      - month
+                      - day
+                      - formatted
+                    properties:
+                      year:
+                        type: integer
+                        example: 1447
+                      month:
+                        type: integer
+                        minimum: 1
+                        maximum: 12
+                        example: 4
+                      day:
+                        type: integer
+                        minimum: 1
+                        maximum: 31
+                        example: 10
+                      formatted:
+                        type: string
+                        description: Formatted date string
+                        example: "1447-04-10"
+                  originalDate:
+                    type: object
+                    required:
+                      - year
+                      - month
+                      - day
+                      - formatted
+                    properties:
+                      year:
+                        type: integer
+                        example: 2025
+                      month:
+                        type: integer
+                        example: 10
+                      day:
+                        type: integer
+                        example: 13
+                      formatted:
+                        type: string
+                        example: "2025-10-13"
+                  fromCalendar:
+                    type: string
+                    enum: [GREGORIAN, HIJRI]
+                    example: GREGORIAN
+                  toCalendar:
+                    type: string
+                    enum: [GREGORIAN, HIJRI]
+                    example: HIJRI
+              examples:
+                gregorianToHijri:
+                  summary: Gregorian to Hijri result
+                  value:
+                    success: true
+                    convertedDate:
+                      year: 1447
+                      month: 4
+                      day: 10
+                      formatted: "1447-04-10"
+                    originalDate:
+                      year: 2025
+                      month: 10
+                      day: 13
+                      formatted: "2025-10-13"
+                    fromCalendar: GREGORIAN
+                    toCalendar: HIJRI
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidDate:
+                  summary: Invalid date format
+                  value:
+                    success: false
+                    error: INVALID_DATE_FORMAT
+                    message: "Date must be in YYYY-MM-DD format"
+                invalidCalendar:
+                  summary: Invalid calendar type
+                  value:
+                    success: false
+                    error: INVALID_CALENDAR_TYPE
+                    message: "Calendar type must be GREGORIAN or HIJRI"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /calendar/zakat-year:
+    post:
+      summary: Calculate Zakat year boundaries
+      description: Calculates the start and end dates of a Zakat year based on a reference date and calendar preference
+      tags:
+        - Calendar
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - referenceDate
+                - calendarType
+              properties:
+                referenceDate:
+                  type: string
+                  format: date
+                  description: ISO 8601 date (Gregorian) to calculate year from
+                  example: "2025-10-13"
+                calendarType:
+                  type: string
+                  enum: [GREGORIAN, HIJRI]
+                  description: Calendar system for year calculation
+                  example: HIJRI
+            examples:
+              hijriYear:
+                summary: Hijri Zakat year
+                value:
+                  referenceDate: "2025-10-13"
+                  calendarType: HIJRI
+              gregorianYear:
+                summary: Gregorian Zakat year
+                value:
+                  referenceDate: "2025-10-13"
+                  calendarType: GREGORIAN
+      responses:
+        '200':
+          description: Zakat year calculated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - zakatYear
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  zakatYear:
+                    type: object
+                    required:
+                      - startDate
+                      - endDate
+                      - calendarType
+                      - daysInYear
+                    properties:
+                      startDate:
+                        type: string
+                        format: date-time
+                        description: Start of Zakat year (ISO 8601 Gregorian)
+                        example: "2024-10-14T00:00:00.000Z"
+                      endDate:
+                        type: string
+                        format: date-time
+                        description: End of Zakat year (ISO 8601 Gregorian)
+                        example: "2025-10-13T23:59:59.999Z"
+                      calendarType:
+                        type: string
+                        enum: [GREGORIAN, HIJRI]
+                        example: HIJRI
+                      daysInYear:
+                        type: integer
+                        description: Number of days in the Zakat year (354 for Hijri, 365 for Gregorian)
+                        example: 354
+                      hijriStart:
+                        type: object
+                        description: Hijri representation of start date (only if calendarType = HIJRI)
+                        properties:
+                          year:
+                            type: integer
+                            example: 1446
+                          month:
+                            type: integer
+                            example: 4
+                          day:
+                            type: integer
+                            example: 11
+                          formatted:
+                            type: string
+                            example: "1446-04-11"
+                      hijriEnd:
+                        type: object
+                        description: Hijri representation of end date (only if calendarType = HIJRI)
+                        properties:
+                          year:
+                            type: integer
+                            example: 1447
+                          month:
+                            type: integer
+                            example: 4
+                          day:
+                            type: integer
+                            example: 10
+                          formatted:
+                            type: string
+                            example: "1447-04-10"
+              examples:
+                hijriYear:
+                  summary: Hijri Zakat year result
+                  value:
+                    success: true
+                    zakatYear:
+                      startDate: "2024-10-14T00:00:00.000Z"
+                      endDate: "2025-10-13T23:59:59.999Z"
+                      calendarType: HIJRI
+                      daysInYear: 354
+                      hijriStart:
+                        year: 1446
+                        month: 4
+                        day: 11
+                        formatted: "1446-04-11"
+                      hijriEnd:
+                        year: 1447
+                        month: 4
+                        day: 10
+                        formatted: "1447-04-10"
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /user/calendar-preference:
+    get:
+      summary: Get user's calendar preference
+      description: Retrieves the authenticated user's preferred calendar system
+      tags:
+        - Calendar
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Calendar preference retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - calendarType
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  calendarType:
+                    type: string
+                    enum: [GREGORIAN, HIJRI]
+                    example: HIJRI
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Update user's calendar preference
+      description: Updates the authenticated user's preferred calendar system
+      tags:
+        - Calendar
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - calendarType
+              properties:
+                calendarType:
+                  type: string
+                  enum: [GREGORIAN, HIJRI]
+                  example: HIJRI
+      responses:
+        '200':
+          description: Calendar preference updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - calendarType
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  calendarType:
+                    type: string
+                    enum: [GREGORIAN, HIJRI]
+                    example: HIJRI
+                  message:
+                    type: string
+                    example: "Calendar preference updated successfully"
+        '400':
+          description: Invalid calendar type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from /auth/login
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - success
+        - error
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Machine-readable error code
+          example: INVALID_DATE_FORMAT
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Date must be in YYYY-MM-DD format"
+        details:
+          type: array
+          description: Optional validation error details
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: UNAUTHORIZED
+            message: "Authentication token is missing or invalid"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: INTERNAL_ERROR
+            message: "An unexpected error occurred"
