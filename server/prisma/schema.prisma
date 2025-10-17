@@ -13,6 +13,7 @@ datasource db {
 model User {
   id             String   @id @default(cuid())
   email          String   @unique
+  username       String?  @unique // Optional username for login
   passwordHash   String   // bcrypt hash
   profile        String?  // Encrypted JSON blob (name, location, methodology preference)
   settings       String?  // Encrypted JSON blob (currency, language, calendar type, reminders)
@@ -46,6 +47,10 @@ model User {
 
   // Methodology Configurations
   methodologyConfigs MethodologyConfig[]
+
+  // Security and Password Reset
+  security     UserSecurity?
+  passwordResets PasswordReset[]
 
   @@map("users")
 }
@@ -125,13 +130,22 @@ model ZakatCalculation {
 model AssetSnapshot {
   id              String   @id @default(cuid())
   userId          String
+  name            String?  // Snapshot name/title
+  description     String?  // Snapshot description
   snapshotDate    DateTime
   snapshotType    String   // annual, custom, backup
   totalValue      Float
+  totalAssets     Float?   // Total assets value
+  totalLiabilities Float?  // Total liabilities value
+  netWorth        Float?   // Net worth (assets - liabilities)
   assetCount      Int
+  liabilitiesCount Int?    // Number of liabilities
   assetsData      String   // Complete encrypted JSON of all assets
   liabilitiesData String   // Complete encrypted JSON of all liabilities
   exchangeRates   String   // JSON with currency conversion rates
+  islamicYear     String?  // Hijri year
+  tags            String?  // JSON array of tags
+  metadata        String?  // Additional metadata JSON
   notes           String?
   isLocked        Boolean  @default(false)
   createdAt       DateTime @default(now())
@@ -608,4 +622,35 @@ model MethodologyConfig {
 
   @@map("methodology_configs")
   @@index([userId])
+}
+
+model UserSecurity {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  failedAttempts Int      @default(0)
+  lockedUntil   DateTime?
+  lastFailedAt  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  // Relationships
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_security")
+}
+
+model PasswordReset {
+  id            String   @id @default(cuid())
+  userId        String
+  token         String   @unique
+  expiresAt     DateTime
+  used          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  // Relationships
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+  @@index([token])
+  @@index([expiresAt])
 }

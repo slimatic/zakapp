@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 
 const prisma = new PrismaClient();
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
 export interface ZakatCalculationRequest {
   methodology?: 'STANDARD' | 'HANAFI' | 'SHAFI' | 'CUSTOM';
@@ -82,6 +83,16 @@ export class ZakatCalculationService {
     const breakdown = this.createBreakdown(assets, liabilities, methodology, nisabThreshold);
 
     // Save calculation to database
+    const encryptedBreakdown = await EncryptionService.encryptObject(breakdown, ENCRYPTION_KEY);
+    const encryptedAssetsIncluded = await EncryptionService.encryptObject(
+      assets.map(a => ({ id: a.id, name: a.name, value: a.value })), 
+      ENCRYPTION_KEY
+    );
+    const encryptedLiabilitiesIncluded = await EncryptionService.encryptObject(
+      liabilities.map(l => ({ id: l.id, name: l.name, amount: l.amount })), 
+      ENCRYPTION_KEY
+    );
+
     const calculation = await prisma.zakatCalculation.create({
       data: {
         userId,
@@ -96,9 +107,9 @@ export class ZakatCalculationService {
         isZakatObligatory,
         zakatAmount,
         zakatRate,
-        breakdown: JSON.stringify(breakdown),
-        assetsIncluded: JSON.stringify(assets.map(a => ({ id: a.id, name: a.name, value: a.value }))),
-        liabilitiesIncluded: JSON.stringify(liabilities.map(l => ({ id: l.id, name: l.name, amount: l.amount })))
+        breakdown: encryptedBreakdown,
+        assetsIncluded: encryptedAssetsIncluded,
+        liabilitiesIncluded: encryptedLiabilitiesIncluded
       }
     });
 
@@ -115,9 +126,9 @@ export class ZakatCalculationService {
       isZakatObligatory: calculation.isZakatObligatory,
       zakatAmount: calculation.zakatAmount,
       zakatRate: calculation.zakatRate,
-      breakdown: JSON.parse(calculation.breakdown),
-      assetsIncluded: JSON.parse(calculation.assetsIncluded),
-      liabilitiesIncluded: JSON.parse(calculation.liabilitiesIncluded)
+      breakdown: await EncryptionService.decryptObject(calculation.breakdown, ENCRYPTION_KEY),
+      assetsIncluded: await EncryptionService.decryptObject(calculation.assetsIncluded, ENCRYPTION_KEY),
+      liabilitiesIncluded: await EncryptionService.decryptObject(calculation.liabilitiesIncluded, ENCRYPTION_KEY)
     };
   }
 
@@ -131,7 +142,7 @@ export class ZakatCalculationService {
       take: limit
     });
 
-    return calculations.map(calc => ({
+    return Promise.all(calculations.map(async (calc) => ({
       id: calc.id,
       calculationDate: calc.calculationDate,
       methodology: calc.methodology,
@@ -144,10 +155,10 @@ export class ZakatCalculationService {
       isZakatObligatory: calc.isZakatObligatory,
       zakatAmount: calc.zakatAmount,
       zakatRate: calc.zakatRate,
-      breakdown: JSON.parse(calc.breakdown || '{}'),
-      assetsIncluded: JSON.parse(calc.assetsIncluded || '[]'),
-      liabilitiesIncluded: JSON.parse(calc.liabilitiesIncluded || '[]')
-    }));
+      breakdown: await EncryptionService.decryptObject(calc.breakdown || '{}', ENCRYPTION_KEY),
+      assetsIncluded: await EncryptionService.decryptObject(calc.assetsIncluded || '[]', ENCRYPTION_KEY),
+      liabilitiesIncluded: await EncryptionService.decryptObject(calc.liabilitiesIncluded || '[]', ENCRYPTION_KEY)
+    })));
   }
 
   /**
@@ -178,9 +189,9 @@ export class ZakatCalculationService {
       isZakatObligatory: calculation.isZakatObligatory,
       zakatAmount: calculation.zakatAmount,
       zakatRate: calculation.zakatRate,
-      breakdown: JSON.parse(calculation.breakdown || '{}'),
-      assetsIncluded: JSON.parse(calculation.assetsIncluded || '[]'),
-      liabilitiesIncluded: JSON.parse(calculation.liabilitiesIncluded || '[]')
+      breakdown: await EncryptionService.decryptObject(calculation.breakdown || '{}', ENCRYPTION_KEY),
+      assetsIncluded: await EncryptionService.decryptObject(calculation.assetsIncluded || '[]', ENCRYPTION_KEY),
+      liabilitiesIncluded: await EncryptionService.decryptObject(calculation.liabilitiesIncluded || '[]', ENCRYPTION_KEY)
     };
   }
 

@@ -262,6 +262,12 @@ export class EncryptionService {
       return false;
     }
   }
+
+  static generateSecureId(prefix?: string): string {
+    const randomBytes = crypto.randomBytes(16);
+    const id = randomBytes.toString('hex');
+    return prefix ? `${prefix}_${id}` : id;
+  }
 }
 
 // Export singleton instance for application use

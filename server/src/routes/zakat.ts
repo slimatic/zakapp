@@ -8,10 +8,13 @@ import { CurrencyService } from '../services/currencyService';
 import { CalendarService } from '../services/calendarService';
 import { NisabService } from '../services/NisabService';
 import { PaymentRecordService } from '../services/payment-record.service';
+import { CalculationHistoryService } from '../services/CalculationHistoryService';
 import { z } from 'zod';
 import * as jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
+const prisma = new PrismaClient();
 
 /**
  * Standard API Response Format
@@ -62,6 +65,7 @@ const currencyService = new CurrencyService();
 const calendarService = new CalendarService();
 const nisabService = new NisabService();
 const paymentService = new PaymentRecordService();
+const calculationHistoryService = new CalculationHistoryService();
 const zakatEngine = new ZakatEngine(currencyService, calendarService, nisabService);
 
 /**
@@ -90,10 +94,54 @@ router.post('/calculate',
         userId: req.userId
       });
 
+      // Save calculation to database
+      const savedCalculation = await prisma.zakatCalculation.create({
+        data: {
+          userId: req.userId!,
+          calculationDate: new Date(),
+          methodology: result.methodology.id,
+          calendarType: result.result.calendarType,
+          totalAssets: result.result.totals.totalAssets,
+          totalLiabilities: 0, // TODO: Implement liabilities
+          netWorth: result.result.totals.totalAssets,
+          nisabThreshold: result.result.nisab.effectiveNisab,
+          nisabSource: result.result.nisab.nisabBasis,
+          isZakatObligatory: result.result.meetsNisab,
+          zakatAmount: result.result.totals.totalZakatDue,
+          zakatRate: result.methodology.zakatRate,
+          breakdown: JSON.stringify(result.breakdown),
+          assetsIncluded: JSON.stringify(result.result.assets),
+          liabilitiesIncluded: JSON.stringify([]), // TODO: Implement liabilities
+          regionalAdjustments: null
+        }
+      });
+
+      // Save calculation to history (for audit and tracking)
+      try {
+        await calculationHistoryService.saveCalculation(req.userId!, {
+          methodology: result.methodology.id,
+          calendarType: result.result.calendarType,
+          totalWealth: result.result.totals.totalAssets,
+          nisabThreshold: result.result.nisab.effectiveNisab,
+          zakatDue: result.result.totals.totalZakatDue,
+          zakatRate: result.methodology.zakatRate,
+          assetBreakdown: result.breakdown.assetCalculations || [],
+          notes: `Zakat calculation using ${result.methodology.id} methodology`,
+          metadata: {
+            calculationId: savedCalculation.id,
+            meetsNisab: result.result.meetsNisab,
+            nisabBasis: result.result.nisab.nisabBasis
+          }
+        });
+      } catch {
+        // Log error but don't fail the calculation
+        // Note: Failed to save calculation to history
+      }
+
       // Transform result to match API contract format
       const response = createResponse(true, {
         calculation: {
-          id: result.result.calculationId,
+          id: savedCalculation.id,
           calculationDate: result.result.calculationDate,
           methodology: result.methodology.id,
           calendarType: result.result.calendarType,

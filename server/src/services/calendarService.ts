@@ -1,4 +1,4 @@
-import { HijriDate, CalendarCalculation } from '../../../shared/src/types';
+import { HijriDate, CalendarCalculation } from '@zakapp/shared';
 
 /**
  * Calendar Service for Hijri (Lunar) and Gregorian (Solar) date conversions
