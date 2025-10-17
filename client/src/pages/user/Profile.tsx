@@ -5,7 +5,7 @@ import { apiService } from '../../services/api';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
-import type { User, UserPreferences } from '../../../../shared/src/types';
+import type { User, UserPreferences } from '@zakapp/shared';
 
 interface ProfileFormData {
   username: string;

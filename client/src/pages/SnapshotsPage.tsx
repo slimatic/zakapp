@@ -11,7 +11,7 @@ import { useCreateSnapshot } from '../hooks/useCreateSnapshot';
 import { useFinalizeSnapshot } from '../hooks/useFinalizeSnapshot';
 import { useDeleteSnapshot } from '../hooks/useDeleteSnapshot';
 import { Button } from '../components/ui/Button';
-import type { YearlySnapshot } from '../../../shared/types/tracking';
+import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 export const SnapshotsPage: React.FC = () => {
   const navigate = useNavigate();

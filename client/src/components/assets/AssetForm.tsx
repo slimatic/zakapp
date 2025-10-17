@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCreateAsset, useUpdateAsset } from '../../services/apiHooks';
-import { Asset, AssetCategoryType } from '../../../../shared/src/types';
+import { Asset, AssetCategoryType } from '@zakapp/shared';
 import { Button, Input } from '../ui';
 
 interface AssetFormProps {

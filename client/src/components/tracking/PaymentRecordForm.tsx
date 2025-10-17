@@ -8,7 +8,7 @@ import { useCreatePayment, useUpdatePayment } from '../../hooks/usePayments';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import type { PaymentRecord } from '../../../../shared/types/tracking';
+import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 // Helper function to parse currency input
 const parseCurrency = (value: string): number => {

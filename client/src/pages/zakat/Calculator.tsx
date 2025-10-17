@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAssets, useZakatCalculation, useZakatMethodologies } from '../../services/apiHooks';
-import { Asset, ZakatMethodology } from '../../../../shared/src/types';
+import { Asset, ZakatMethodology } from '@zakapp/shared';
 import { Button, LoadingSpinner, ErrorMessage } from '../../components/ui';
 import { ZakatResults, MethodologySelector } from '../../components/zakat';
 

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import { apiService } from '../services/api';
-import type { User } from '../../../shared/src/types';
+import type { User } from '@zakapp/shared';
 
 interface AuthState {
   user: User | null;

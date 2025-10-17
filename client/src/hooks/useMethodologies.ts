@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/api';
-import { MethodologyInfo } from '../../../shared/src/types';
+import { MethodologyInfo } from '@zakapp/shared';
 
 /**
  * React Query hooks for Zakat methodology management.

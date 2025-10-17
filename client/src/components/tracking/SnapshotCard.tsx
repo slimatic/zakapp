@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { clsx } from 'clsx';
-import type { YearlySnapshot } from '../../../../shared/types/tracking';
+import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/formatters';
 import { formatDualCalendar } from '../../utils/calendarConverter';
