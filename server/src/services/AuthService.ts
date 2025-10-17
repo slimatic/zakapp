@@ -55,50 +55,42 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(userData.password, 12);
 
-    // Encrypt sensitive data
-    const encryptedFirstName = await EncryptionService.encrypt(userData.firstName, ENCRYPTION_KEY);
-    const encryptedLastName = await EncryptionService.encrypt(userData.lastName, ENCRYPTION_KEY);
+    // Create user with encrypted profile and settings
+    const profileData = {
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      timezone: userData.timezone || 'UTC'
+    };
+    const settingsData = {
+      currency: userData.currency || 'USD',
+      notifications: true,
+      darkMode: false,
+      language: 'en',
+      privacyLevel: 'STANDARD',
+      autoCalculate: true,
+      reminderFrequency: 'MONTHLY',
+      preferredMethodology: 'STANDARD'
+    };
+
+    const encryptedProfile = await EncryptionService.encrypt(JSON.stringify(profileData), ENCRYPTION_KEY);
+    const encryptedSettings = await EncryptionService.encrypt(JSON.stringify(settingsData), ENCRYPTION_KEY);
 
     // Create user
     const user = await prisma.user.create({
       data: {
-        firstName: encryptedFirstName,
-        lastName: encryptedLastName,
         username: userData.username,
         email: userData.email,
-        password: hashedPassword,
-        timezone: userData.timezone || 'UTC',
-        currency: userData.currency || 'USD',
-        emailVerified: false,
-        twoFactorEnabled: false,
-        isActive: true,
-        lastLoginAt: new Date(),
-        // Initialize settings
-        settings: {
-          create: {
-            notifications: true,
-            darkMode: false,
-            language: 'en',
-            privacyLevel: 'STANDARD',
-            autoCalculate: true,
-            reminderFrequency: 'MONTHLY',
-            preferredMethodology: 'STANDARD'
-          }
-        },
-        // Initialize security settings
-        security: {
-          create: {
-            loginAttempts: 0,
-            lockedUntil: null,
-            lastPasswordChange: new Date(),
-            securityQuestions: '{}',
-            trustedDevices: '[]'
-          }
-        }
-      },
-      include: {
-        settings: true,
-        security: true
+        passwordHash: hashedPassword,
+        profile: encryptedProfile,
+        settings: encryptedSettings,
+        isActive: true
+      }
+    });
+
+    // Create security record for the user
+    await prisma.userSecurity.create({
+      data: {
+        userId: user.id
       }
     });
 
@@ -109,11 +101,20 @@ export class AuthService {
     await this.createSession(user.id, tokens.refreshToken);
 
     // Return user without password and with decrypted data
-    const { password: _, ...userWithoutPassword } = user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
     const decryptedUser = {
-      ...userWithoutPassword,
-      firstName: await EncryptionService.decrypt(user.firstName, ENCRYPTION_KEY),
-      lastName: await EncryptionService.decrypt(user.lastName, ENCRYPTION_KEY)
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      lastLoginAt: user.lastLoginAt,
+      updatedAt: user.updatedAt,
+      preferredCalendar: user.preferredCalendar,
+      preferredMethodology: user.preferredMethodology,
+      lastZakatDate: user.lastZakatDate,
+      ...(user.profile ? JSON.parse(await EncryptionService.decrypt(user.profile, ENCRYPTION_KEY)) : {}),
+      ...(user.settings ? JSON.parse(await EncryptionService.decrypt(user.settings, ENCRYPTION_KEY)) : {})
     };
 
     return { user: decryptedUser, tokens };
@@ -125,11 +126,7 @@ export class AuthService {
   async login(credentials: LoginCredentials): Promise<{ user: any; tokens: AuthTokens }> {
     // Find user by email
     const user = await prisma.user.findUnique({
-      where: { email: credentials.email },
-      include: {
-        settings: true,
-        security: true
-      }
+      where: { email: credentials.email }
     });
 
     if (!user || !user.isActive) {
@@ -137,12 +134,15 @@ export class AuthService {
     }
 
     // Check if account is locked
-    if (user.security?.lockedUntil && user.security.lockedUntil > new Date()) {
+    const security = await prisma.userSecurity.findUnique({
+      where: { userId: user.id }
+    });
+    if (security?.lockedUntil && security.lockedUntil > new Date()) {
       throw new Error('Account is temporarily locked due to too many failed attempts');
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(credentials.password, user.password);
+    const isValidPassword = await bcrypt.compare(credentials.password, user.passwordHash);
 
     if (!isValidPassword) {
       // Increment failed attempts
@@ -154,7 +154,7 @@ export class AuthService {
     await prisma.userSecurity.update({
       where: { userId: user.id },
       data: {
-        loginAttempts: 0,
+        failedAttempts: 0,
         lockedUntil: null
       }
     });
@@ -172,11 +172,20 @@ export class AuthService {
     await this.createSession(user.id, tokens.refreshToken);
 
     // Return user without password and with decrypted data
-    const { password: _, ...userWithoutPassword } = user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
     const decryptedUser = {
-      ...userWithoutPassword,
-      firstName: await EncryptionService.decrypt(user.firstName, ENCRYPTION_KEY),
-      lastName: await EncryptionService.decrypt(user.lastName, ENCRYPTION_KEY)
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      lastLoginAt: user.lastLoginAt,
+      updatedAt: user.updatedAt,
+      preferredCalendar: user.preferredCalendar,
+      preferredMethodology: user.preferredMethodology,
+      lastZakatDate: user.lastZakatDate,
+      ...(user.profile ? JSON.parse(await EncryptionService.decrypt(user.profile, ENCRYPTION_KEY)) : {}),
+      ...(user.settings ? JSON.parse(await EncryptionService.decrypt(user.settings, ENCRYPTION_KEY)) : {})
     };
 
     return { user: decryptedUser, tokens };
@@ -279,7 +288,7 @@ export class AuthService {
         userId: user.id,
         token: resetToken,
         expiresAt,
-        isUsed: false
+        used: false
       }
     });
 
@@ -295,7 +304,7 @@ export class AuthService {
       where: {
         token,
         expiresAt: { gt: new Date() },
-        isUsed: false
+        used: false
       },
       include: { user: true }
     });
@@ -310,13 +319,13 @@ export class AuthService {
     // Update user password
     await prisma.user.update({
       where: { id: resetRecord.userId },
-      data: { password: hashedPassword }
+      data: { passwordHash: hashedPassword }
     });
 
     // Mark reset token as used
     await prisma.passwordReset.update({
       where: { id: resetRecord.id },
-      data: { isUsed: true }
+      data: { used: true }
     });
 
     // Invalidate all user sessions
@@ -325,11 +334,25 @@ export class AuthService {
       data: { isActive: false }
     });
 
-    // Update security record
-    await prisma.userSecurity.update({
-      where: { userId: resetRecord.userId },
-      data: { lastPasswordChange: new Date() }
+    // Update last login to indicate password change
+    await prisma.user.update({
+      where: { id: resetRecord.userId },
+      data: { lastLoginAt: new Date() }
     });
+  }
+
+  /**
+   * Update user password
+   */
+  async updatePassword(userId: string, newPassword: string): Promise<boolean> {
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: hashedPassword }
+    });
+
+    return true;
   }
 
   /**
@@ -355,17 +378,20 @@ export class AuthService {
   }
 
   /**
-   * Create user session
+   * Create a new user session
    */
   private async createSession(userId: string, refreshToken: string): Promise<void> {
+    const now = new Date();
     await prisma.userSession.create({
       data: {
         userId,
+        accessToken: '', // Will be set when tokens are generated
         refreshToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        isActive: true,
-        deviceInfo: 'Unknown Device',
-        ipAddress: '0.0.0.0'
+        ipAddress: '0.0.0.0',
+        userAgent: 'Unknown',
+        issuedAt: now,
+        expiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        isActive: true
       }
     });
   }
@@ -380,15 +406,53 @@ export class AuthService {
 
     if (!security) return;
 
-    const attempts = security.loginAttempts + 1;
+    const attempts = security.failedAttempts + 1;
     const lockUntil = attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null; // Lock for 15 minutes after 5 attempts
 
     await prisma.userSecurity.update({
       where: { userId },
       data: {
-        loginAttempts: attempts,
+        failedAttempts: attempts,
         lockedUntil: lockUntil
       }
     });
+  }
+
+  /**
+   * Get user by ID with decrypted data
+   */
+  async getUserById(userId: string): Promise<any> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      lastLoginAt: user.lastLoginAt,
+      updatedAt: user.updatedAt,
+      preferredCalendar: user.preferredCalendar,
+      preferredMethodology: user.preferredMethodology,
+      lastZakatDate: user.lastZakatDate,
+      ...(user.profile ? JSON.parse(await EncryptionService.decrypt(user.profile, ENCRYPTION_KEY)) : {}),
+      ...(user.settings ? JSON.parse(await EncryptionService.decrypt(user.settings, ENCRYPTION_KEY)) : {})
+    };
+  }
+
+  /**
+   * Get user ID by email
+   */
+  async getUserIdByEmail(email: string): Promise<string | null> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true }
+    });
+
+    return user?.id || null;
   }
 }

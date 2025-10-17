@@ -106,12 +106,12 @@ export class ImportExportService {
 
       exportData.assets = assets.map(asset => ({
         id: asset.id,
-        name: asset.name,
         category: asset.category,
+        name: asset.name,
         value: asset.value,
         currency: asset.currency,
         acquisitionDate: asset.acquisitionDate,
-        description: asset.description,
+        description: asset.notes || '',
         createdAt: asset.createdAt,
         updatedAt: asset.updatedAt
       }));
@@ -133,8 +133,7 @@ export class ImportExportService {
         amount: liability.amount,
         currency: liability.currency,
         dueDate: liability.dueDate,
-        interestRate: liability.interestRate,
-        description: liability.description,
+        description: liability.notes || '',
         createdAt: liability.createdAt,
         updatedAt: liability.updatedAt
       }));
@@ -195,7 +194,7 @@ export class ImportExportService {
 
     // Export snapshots
     if (includeSnapshots) {
-      const snapshots = await prisma.snapshot.findMany({
+      const snapshots = await prisma.assetSnapshot.findMany({
         where: {
           userId,
           ...(dateFilter && { snapshotDate: dateFilter })
@@ -211,7 +210,7 @@ export class ImportExportService {
         totalAssets: snapshot.totalAssets,
         totalLiabilities: snapshot.totalLiabilities,
         netWorth: snapshot.netWorth,
-        assetsCount: snapshot.assetsCount,
+        assetsCount: snapshot.assetCount,
         liabilitiesCount: snapshot.liabilitiesCount,
         tags: snapshot.tags,
         metadata: snapshot.metadata,

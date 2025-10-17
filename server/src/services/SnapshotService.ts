@@ -23,7 +23,7 @@ export interface SnapshotData {
   totalAssets: number;
   totalLiabilities: number;
   netWorth: number;
-  assetsCount: number;
+  assetCount: number;
   liabilitiesCount: number;
   tags: string[];
   metadata: Record<string, any>;
@@ -94,10 +94,7 @@ export class SnapshotService {
     }
 
     const assets = await prisma.asset.findMany({
-      where: assetsQuery,
-      include: {
-        metadata: true
-      }
+      where: assetsQuery
     });
 
     // Get user liabilities
@@ -143,28 +140,35 @@ export class SnapshotService {
       }))
     }, ENCRYPTION_KEY);
 
+    // Encrypt tags and metadata
+    const encryptedTags = await EncryptionService.encryptObject(tags, ENCRYPTION_KEY);
+    const encryptedMetadata = await EncryptionService.encryptObject({
+      ...metadata,
+      creationMethod: 'manual',
+      includeAssets: includeAssets.length > 0 ? includeAssets : 'all',
+      includeLiabilities: includeLiabilities.length > 0 ? includeLiabilities : 'all'
+    }, ENCRYPTION_KEY);
+
     // Create snapshot
-    const snapshot = await prisma.snapshot.create({
+    const snapshot = await prisma.assetSnapshot.create({
       data: {
         userId,
         name: snapshotName,
         description: description || null,
         snapshotDate: now,
-        islamicYear,
+        snapshotType: 'custom', // Required field
+        totalValue: netWorth, // Required field - using net worth as total value
         totalAssets,
         totalLiabilities,
         netWorth,
-        assetsCount: assets.length,
+        assetCount: assets.length,
         liabilitiesCount: liabilities.length,
-        tags: JSON.stringify(tags),
-        metadata: JSON.stringify({
-          ...metadata,
-          creationMethod: 'manual',
-          includeAssets: includeAssets.length > 0 ? includeAssets : 'all',
-          includeLiabilities: includeLiabilities.length > 0 ? includeLiabilities : 'all'
-        }),
         assetsData: encryptedAssets,
-        liabilitiesData: encryptedLiabilities
+        liabilitiesData: encryptedLiabilities,
+        exchangeRates: JSON.stringify({}), // Required field - empty for now
+        islamicYear,
+        tags: encryptedTags,
+        metadata: encryptedMetadata
       }
     });
 
@@ -200,14 +204,14 @@ export class SnapshotService {
       where.islamicYear = year;
     }
 
-    const snapshots = await prisma.snapshot.findMany({
+    const snapshots = await prisma.assetSnapshot.findMany({
       where,
       orderBy: this.buildOrderBy(sortBy, sortOrder),
       skip: (page - 1) * limit,
       take: limit
     });
 
-    const total = await prisma.snapshot.count({ where });
+    const total = await prisma.assetSnapshot.count({ where });
 
     // Filter by tags if provided
     let filteredSnapshots = snapshots;
@@ -219,19 +223,24 @@ export class SnapshotService {
     }
 
     return {
-      snapshots: filteredSnapshots.map(snapshot => ({
-        id: snapshot.id,
-        name: snapshot.name,
-        description: snapshot.description,
-        snapshotDate: snapshot.snapshotDate,
-        islamicYear: snapshot.islamicYear,
-        totalAssets: snapshot.totalAssets,
-        totalLiabilities: snapshot.totalLiabilities,
-        netWorth: snapshot.netWorth,
-        assetsCount: snapshot.assetsCount,
-        liabilitiesCount: snapshot.liabilitiesCount,
-        tags: JSON.parse(snapshot.tags || '[]'),
-        metadata: JSON.parse(snapshot.metadata || '{}')
+      snapshots: await Promise.all(filteredSnapshots.map(async (snapshot) => {
+        const tags = await EncryptionService.decryptObject(snapshot.tags, ENCRYPTION_KEY) as string[];
+        const metadata = await EncryptionService.decryptObject(snapshot.metadata, ENCRYPTION_KEY) as Record<string, any>;
+        
+        return {
+          id: snapshot.id,
+          name: snapshot.name,
+          description: snapshot.description,
+          snapshotDate: snapshot.snapshotDate,
+          islamicYear: snapshot.islamicYear,
+          totalAssets: snapshot.totalAssets,
+          totalLiabilities: snapshot.totalLiabilities,
+          netWorth: snapshot.netWorth,
+          assetCount: snapshot.assetCount,
+          liabilitiesCount: snapshot.liabilitiesCount,
+          tags,
+          metadata
+        };
       })),
       pagination: {
         page,
@@ -246,7 +255,7 @@ export class SnapshotService {
    * Get specific snapshot by ID
    */
   async getSnapshotById(userId: string, snapshotId: string): Promise<SnapshotData> {
-    const snapshot = await prisma.snapshot.findFirst({
+    const snapshot = await prisma.assetSnapshot.findFirst({
       where: {
         id: snapshotId,
         userId
@@ -258,11 +267,13 @@ export class SnapshotService {
     }
 
     // Decrypt snapshot data
-    const assetsData = await EncryptionService.decryptObject(snapshot.assetsData, ENCRYPTION_KEY);
-    const liabilitiesData = await EncryptionService.decryptObject(snapshot.liabilitiesData, ENCRYPTION_KEY);
+    const assetsData = await EncryptionService.decryptObject(snapshot.assetsData, ENCRYPTION_KEY) as { assets?: any[] };
+    const liabilitiesData = await EncryptionService.decryptObject(snapshot.liabilitiesData, ENCRYPTION_KEY) as { liabilities?: any[] };
+    const tags = await EncryptionService.decryptObject(snapshot.tags, ENCRYPTION_KEY) as string[];
+    const metadata = await EncryptionService.decryptObject(snapshot.metadata, ENCRYPTION_KEY) as Record<string, any>;
 
     return this.formatSnapshotData(
-      snapshot,
+      { ...snapshot, tags: JSON.stringify(tags), metadata: JSON.stringify(metadata) },
       assetsData.assets || [],
       liabilitiesData.liabilities || []
     );
@@ -331,7 +342,7 @@ export class SnapshotService {
       metadata?: Record<string, any>;
     }
   ) {
-    const snapshot = await prisma.snapshot.findFirst({
+    const snapshot = await prisma.assetSnapshot.findFirst({
       where: { id: snapshotId, userId }
     });
 
@@ -343,7 +354,7 @@ export class SnapshotService {
     const updatedMetadata = updates.metadata ? 
       { ...currentMetadata, ...updates.metadata } : currentMetadata;
 
-    const updatedSnapshot = await prisma.snapshot.update({
+    const updatedSnapshot = await prisma.assetSnapshot.update({
       where: { id: snapshotId },
       data: {
         ...(updates.name && { name: updates.name }),
@@ -367,7 +378,7 @@ export class SnapshotService {
    * Delete snapshot
    */
   async deleteSnapshot(userId: string, snapshotId: string): Promise<void> {
-    const snapshot = await prisma.snapshot.findFirst({
+    const snapshot = await prisma.assetSnapshot.findFirst({
       where: { id: snapshotId, userId }
     });
 
@@ -375,7 +386,7 @@ export class SnapshotService {
       throw new Error('Snapshot not found');
     }
 
-    await prisma.snapshot.delete({
+    await prisma.assetSnapshot.delete({
       where: { id: snapshotId }
     });
   }
@@ -389,7 +400,7 @@ export class SnapshotService {
       where.islamicYear = year;
     }
 
-    const snapshots = await prisma.snapshot.findMany({
+    const snapshots = await prisma.assetSnapshot.findMany({
       where,
       orderBy: { snapshotDate: 'asc' }
     });
@@ -467,7 +478,7 @@ export class SnapshotService {
     const snapshotName = `Yearly Snapshot ${currentYear}`;
 
     // Check if yearly snapshot already exists
-    const existingSnapshot = await prisma.snapshot.findFirst({
+    const existingSnapshot = await prisma.assetSnapshot.findFirst({
       where: {
         userId,
         islamicYear: currentYear,
@@ -504,7 +515,7 @@ export class SnapshotService {
       totalAssets: snapshot.totalAssets,
       totalLiabilities: snapshot.totalLiabilities,
       netWorth: snapshot.netWorth,
-      assetsCount: snapshot.assetsCount,
+      assetCount: snapshot.assetCount,
       liabilitiesCount: snapshot.liabilitiesCount,
       tags: JSON.parse(snapshot.tags || '[]'),
       metadata: JSON.parse(snapshot.metadata || '{}'),
@@ -516,16 +527,9 @@ export class SnapshotService {
   /**
    * Private: Build order by clause
    */
-  private buildOrderBy(sortBy: string, sortOrder: string) {
-    switch (sortBy) {
-      case 'name':
-        return { name: sortOrder };
-      case 'netWorth':
-        return { netWorth: sortOrder };
-      case 'date':
-      default:
-        return { snapshotDate: sortOrder };
-    }
+  private buildOrderBy(sortBy: string, sortOrder: string): { snapshotDate: 'asc' | 'desc' } {
+    const order: 'asc' | 'desc' = sortOrder === 'asc' ? 'asc' : 'desc';
+    return { snapshotDate: order };
   }
 
   /**

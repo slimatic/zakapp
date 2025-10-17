@@ -4,7 +4,7 @@ import {
   RecipientSummary,
   ComparativeAnalysis,
   ZakatMethodology
-} from '@shared/types/tracking';
+} from '@zakapp/shared/types/tracking';
 
 const prisma = new PrismaClient();
 

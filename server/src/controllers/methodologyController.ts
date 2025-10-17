@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { MethodologyConfigService } from '../services/methodologyConfigService';
-import { CreateMethodologyConfig, UpdateMethodologyConfig } from '../../../shared/src/types';
+import { CreateMethodologyConfig, UpdateMethodologyConfig } from '@zakapp/shared';
 import { AppError } from '../middleware/ErrorHandler';
 
 const methodologyService = new MethodologyConfigService();

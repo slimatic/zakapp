@@ -68,8 +68,8 @@ export class UserService {
     }
 
     // Decrypt current profile
-    const currentProfile = user.profile ? await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY) : {};
-
+    const currentProfile = user.profile ? await EncryptionService.decryptObject<{[key: string]: unknown}>(user.profile, ENCRYPTION_KEY) : {};
+    
     // Merge update data with current profile
     const updatedProfile = { ...currentProfile, ...updateData };
 
@@ -103,7 +103,7 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    return user.settings ? await EncryptionService.decryptObject(user.settings, ENCRYPTION_KEY) : {};
+    return user.settings ? await EncryptionService.decryptObject<{[key: string]: unknown}>(user.settings, ENCRYPTION_KEY) : {};
   }
 
   /**
@@ -120,7 +120,7 @@ export class UserService {
     }
 
     // Decrypt current settings
-    const currentSettings = user.settings ? await EncryptionService.decryptObject(user.settings, ENCRYPTION_KEY) : {};
+    const currentSettings = user.settings ? await EncryptionService.decryptObject<{[key: string]: unknown}>(user.settings, ENCRYPTION_KEY) : {};
 
     // Merge update data with current settings
     const updatedSettings = { ...currentSettings, ...settingsData };

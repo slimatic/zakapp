@@ -1,8 +1,8 @@
-import { MethodologyConfig, CreateMethodologyConfig, UpdateMethodologyConfig } from '../../../shared/src/types';
+import { MethodologyConfig, CreateMethodologyConfig, UpdateMethodologyConfig } from '@zakapp/shared';
 import { prisma } from '../config/database';
 import { AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { EncryptionService } from './EncryptionService';
-import { ZAKAT_METHODS } from '../../../shared/src/constants';
+import { ZAKAT_METHODS } from '@zakapp/shared';
 
 /**
  * Methodology Configuration Service
