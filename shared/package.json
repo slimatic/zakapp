@@ -9,7 +9,13 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
+      "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./types/tracking": {
+      "import": "./dist/types/tracking.js",
+      "require": "./dist/types/tracking.js",
+      "types": "./dist/types/tracking.d.ts"
     }
   },
   "scripts": {
