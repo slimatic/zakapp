@@ -543,7 +543,7 @@ export interface MethodologyInfo {
   zakatRate: number;
   
   /** Calendar systems supported by this methodology */
-  calendarSupport: ('lunar' | 'solar')[];
+  calendarSupport: readonly ('lunar' | 'solar')[];
   
   /** Whether the methodology includes custom rules beyond standard calculations */
   customRules?: boolean;
