@@ -6,7 +6,7 @@ import { apiService } from '../services/api';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { Button } from '../components/ui/Button';
-import type { Asset, ZakatCalculation } from '../../../shared/src/types';
+import type { Asset, ZakatCalculation } from '@zakapp/shared';
 
 interface DashboardStats {
   totalAssets: number;

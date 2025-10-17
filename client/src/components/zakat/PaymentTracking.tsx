@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { usePaymentRecords, useDeletePayment, PaymentFilters } from '../../hooks';
-import { ZakatPayment } from '../../../shared/src/types';
+import { ZakatPayment } from '@zakapp/shared';
 
 /**
  * PaymentTracking Component - T024

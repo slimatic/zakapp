@@ -15,7 +15,7 @@ import { PaymentList } from '../components/tracking/PaymentList';
 import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { gregorianToHijri } from '../utils/calendarConverter';
-import type { YearlySnapshot } from '../../../shared/types/tracking';
+import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 export const SnapshotDetailPage: React.FC = () => {
   const { snapshotId } = useParams<{ snapshotId: string }>();
