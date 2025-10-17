@@ -470,6 +470,15 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async updatePayment(paymentId: string, updates: Partial<{amount: number; date: string; recipient?: string; notes?: string}>): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/payments/${paymentId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(updates)
+    });
+    return this.handleResponse(response);
+  }
+
   async deletePayment(paymentId: string): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/payments/${paymentId}`, {
       method: 'DELETE',

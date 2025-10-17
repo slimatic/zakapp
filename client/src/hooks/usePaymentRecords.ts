@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { apiService } from '../services/api';
-import { ZakatPayment } from '../../../shared/src/types';
+import { ZakatPayment } from '@zakapp/shared';
 
 /**
  * Filter options for payment records queries.
@@ -28,12 +28,13 @@ export interface PaymentFilters {
 export const usePaymentRecords = (filters?: PaymentFilters) => {
   return useInfiniteQuery({
     queryKey: ['payments', filters],
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       apiService.getZakatPayments({
         ...filters,
-        page: pageParam,
+        page: pageParam as number,
         limit: filters?.limit || 20
       }),
+    initialPageParam: 1,
     getNextPageParam: (lastPage: any, pages) => {
       // Assuming the API returns pagination info
       const hasNextPage = lastPage.data?.hasNextPage || lastPage.data?.payments?.length === (filters?.limit || 20);

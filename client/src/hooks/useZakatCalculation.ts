@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/api';
-import { ZakatCalculationRequest, ZakatCalculationResult } from '../../../shared/src/types';
+import { ZakatCalculationRequest, ZakatCalculationResult } from '@zakapp/shared';
 
 /**
  * Hook for Zakat calculation operations
@@ -39,8 +39,7 @@ export const useCalculateZakat = () => {
       // Cache the calculation result for 10 minutes
       queryClient.setQueryData(
         ['zakat', 'calculation', data.result.calculationId],
-        data,
-        { staleTime: 10 * 60 * 1000 } // 10 minutes
+        data
       );
 
       // Invalidate related queries
@@ -87,14 +86,16 @@ export const useCalculateZakatOptimistic = () => {
       await queryClient.cancelQueries({ queryKey: ['zakat', 'calculation'] });
 
       // Snapshot the previous value
-      const previousCalculation = queryClient.getQueryData(['zakat', 'calculation']);
+      const previousCalculation = queryClient.getQueryData<ZakatCalculationResult>(['zakat', 'calculation']);
 
       // Optimistically update with loading state
-      queryClient.setQueryData(['zakat', 'calculation'], {
-        ...previousCalculation,
-        isCalculating: true,
-        calculationOptions: options,
-      });
+      if (previousCalculation) {
+        queryClient.setQueryData(['zakat', 'calculation'], {
+          ...previousCalculation,
+          isCalculating: true,
+          calculationOptions: options,
+        });
+      }
 
       return { previousCalculation };
     },
@@ -108,8 +109,7 @@ export const useCalculateZakatOptimistic = () => {
       // Cache the result
       queryClient.setQueryData(
         ['zakat', 'calculation', data.result.calculationId],
-        data,
-        { staleTime: 10 * 60 * 1000 }
+        data
       );
 
       // Invalidate related queries
