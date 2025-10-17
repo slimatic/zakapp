@@ -3,7 +3,7 @@ import {
   AnalyticsMetric,
   AnalyticsMetricType,
   VisualizationType
-} from '@shared/types/tracking';
+} from '@zakapp/shared/types/tracking';
 
 const prisma = new PrismaClient();
 

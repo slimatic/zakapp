@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from '../types';
 import { authenticate } from '../middleware/AuthMiddleware';
 import { SimpleValidation } from '../utils/SimpleValidation';
 import { EncryptionService } from '../services/EncryptionService';
+import { AssetService } from '../services/AssetService';
 import crypto from 'crypto';
 
 // Simple UUID v4 implementation to avoid Jest ES module issues
@@ -87,24 +88,26 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
   try {
     const userId = req.userId!;
     
-    // Get user's encrypted assets
-    const assets = userAssets[userId] || [];
+    // Get user's assets using the real service
+    const assetService = new AssetService();
+    const result = await assetService.getUserAssets(userId);
     
     // Create summary statistics
     const summary = {
-      totalAssets: assets.length,
-      totalValue: 0, // Would calculate from decrypted values in real implementation
+      totalAssets: result.assets.length,
+      totalValue: result.assets.reduce((sum, asset) => sum + asset.value, 0),
       baseCurrency: 'USD',
-      categoryCounts: assets.reduce((counts: any, asset) => {
-        counts[asset.type] = (counts[asset.type] || 0) + 1;
+      categoryCounts: result.assets.reduce((counts: Record<string, number>, asset) => {
+        const category = asset.category.toLowerCase();
+        counts[category] = (counts[category] || 0) + 1;
         return counts;
-      }, {})
+      }, {} as Record<string, number>)
     };
 
     // Match API contract format
     const response = {
       success: true,
-      assets,
+      assets: result.assets,
       summary
     };
     
@@ -222,17 +225,6 @@ router.put('/:id',
       const userId = req.userId!;
       const assetId = req.params.id;
 
-      // Validate UUID format only if it's actually a UUID-like string
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (assetId !== 'non-existent-asset-id' && !uuidRegex.test(assetId)) {
-        const response = createResponse(false, undefined, {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid asset ID format',
-          details: ['Invalid asset ID format']
-        });
-        return res.status(400).json(response);
-      }
-
       // Check if update data is empty
       const hasUpdateData = Object.keys(req.body).length > 0;
       if (!hasUpdateData) {
@@ -243,72 +235,9 @@ router.put('/:id',
         return res.status(400).json(response);
       }
 
-      // Validate request data (partial update allowed)
-      const validation = SimpleValidation.validateAsset(req.body, true);
-      if (!validation.isValid) {
-        const response = createResponse(false, undefined, {
-          code: 'VALIDATION_ERROR',
-          message: 'Input validation failed',
-          details: validation.errors
-        });
-        return res.status(400).json(response);
-      }
-
-      const updateData = validation.data;
-      
-      // Find user's assets
-      const assets = userAssets[userId] || [];
-      const assetIndex = assets.findIndex(asset => asset.id === assetId);
-      
-      if (assetIndex === -1) {
-        const response = createResponse(false, undefined, {
-          code: 'ASSET_NOT_FOUND',
-          message: 'Asset not found'
-        });
-        return res.status(404).json(response);
-      }
-      
-      const existingAsset = assets[assetIndex];
-
-      // Check if trying to change asset type (not allowed)
-      if (updateData.type && updateData.type !== existingAsset.type) {
-        const response = createResponse(false, undefined, {
-          code: 'VALIDATION_ERROR',
-          message: 'Asset type cannot be changed'
-        });
-        return res.status(400).json(response);
-      }
-
-      // Additional validation for notes field (if test requires it)
-      if (req.body.notes !== undefined) {
-        if (typeof req.body.notes !== 'string' || req.body.notes.length > 1000) {
-          const response = createResponse(false, undefined, {
-            code: 'VALIDATION_ERROR',
-            message: 'Notes must be a string with maximum 1000 characters'
-          });
-          return res.status(400).json(response);
-        }
-      }
-      
-      const { value, currency, description } = updateData;
-      
-      // Update encrypted value if provided
-      let encryptedValue = existingAsset.encryptedValue;
-      if (value !== undefined) {
-        const encryptionKey = await EncryptionService.deriveKey(userId, 'asset-salt');
-        encryptedValue = await EncryptionService.encrypt(value.toString(), encryptionKey);
-      }
-      
-      // Update asset
-      const updatedAsset: EncryptedAsset = {
-        ...existingAsset,
-        encryptedValue,
-        currency: currency || existingAsset.currency,
-        description: description !== undefined ? description : existingAsset.description,
-        lastUpdated: new Date().toISOString()
-      };
-      
-      assets[assetIndex] = updatedAsset;
+      // Use AssetService to update the asset
+      const assetService = new AssetService();
+      const updatedAsset = await assetService.updateAsset(userId, assetId, req.body);
       
       const response = createResponse(true, { asset: updatedAsset });
       res.status(200).json(response);

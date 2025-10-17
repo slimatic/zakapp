@@ -27,6 +27,8 @@ export class ZakatController {
         userId
       );
 
+      console.log('ZakatController - Calculation result:', JSON.stringify(calculation, null, 2));
+
       const response: ApiResponse = {
         success: true,
         calculation
@@ -34,9 +36,7 @@ export class ZakatController {
 
       res.status(200).json(response);
     } catch (error) {
-      if (error instanceof Error && error.message.includes('Methodology ID is required')) {
-        throw new AppError('Methodology ID is required', 400, ErrorCode.VALIDATION_ERROR);
-      }
+      console.error('ZakatController - Calculation error:', error);
       throw error;
     }
   });
