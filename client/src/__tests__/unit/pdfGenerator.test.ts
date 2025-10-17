@@ -5,7 +5,7 @@
 
 import jsPDF from 'jspdf';
 import { generateAnnualSummaryPDF, generatePaymentReceiptPDF, type PDFOptions } from '../../utils/pdfGenerator';
-import type { YearlySnapshot, PaymentRecord } from '../../../../shared/types/tracking';
+import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
 
 // Mock jsPDF
 jest.mock('jspdf');
