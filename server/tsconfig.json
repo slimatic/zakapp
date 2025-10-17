@@ -26,12 +26,12 @@
     "typeRoots": ["node_modules/@types", "./src/types"],
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["../shared/*"]
+      "@zakapp/shared": ["../shared/dist/index.d.ts"],
+      "@zakapp/shared/*": ["../shared/dist/*"]
     }
   },
   "include": [
-    "src/**/*",
-    "../shared/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
