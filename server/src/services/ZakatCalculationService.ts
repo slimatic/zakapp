@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
+import { redisCache } from './RedisCacheService';
 
 const prisma = new PrismaClient();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-for-development-purposes-32';
@@ -26,9 +27,9 @@ export interface ZakatCalculationResult {
   isZakatObligatory: boolean;
   zakatAmount: number;
   zakatRate: number;
-  breakdown: any;
-  assetsIncluded: any[];
-  liabilitiesIncluded: any[];
+  breakdown: Record<string, unknown>;
+  assetsIncluded: unknown[];
+  liabilitiesIncluded: unknown[];
 }
 
 export class ZakatCalculationService {
@@ -36,6 +37,14 @@ export class ZakatCalculationService {
    * Calculate Zakat for a user
    */
   async calculateZakat(userId: string, request: ZakatCalculationRequest = {}): Promise<ZakatCalculationResult> {
+    const cacheKey = `calculation:${userId}:${JSON.stringify(request)}`;
+
+    // Try to get from cache first
+    const cachedResult = await redisCache.get<ZakatCalculationResult>(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
     const {
       methodology = 'STANDARD',
       calendarType = 'lunar',
@@ -113,7 +122,7 @@ export class ZakatCalculationService {
       }
     });
 
-    return {
+    const result: ZakatCalculationResult = {
       id: calculation.id,
       calculationDate: calculation.calculationDate,
       methodology: calculation.methodology,
@@ -126,39 +135,71 @@ export class ZakatCalculationService {
       isZakatObligatory: calculation.isZakatObligatory,
       zakatAmount: calculation.zakatAmount,
       zakatRate: calculation.zakatRate,
-      breakdown: await EncryptionService.decryptObject(calculation.breakdown, ENCRYPTION_KEY),
-      assetsIncluded: await EncryptionService.decryptObject(calculation.assetsIncluded, ENCRYPTION_KEY),
-      liabilitiesIncluded: await EncryptionService.decryptObject(calculation.liabilitiesIncluded, ENCRYPTION_KEY)
+      breakdown: await EncryptionService.decryptObject(calculation.breakdown, ENCRYPTION_KEY) as Record<string, unknown>,
+      assetsIncluded: await EncryptionService.decryptObject(calculation.assetsIncluded, ENCRYPTION_KEY) as unknown[],
+      liabilitiesIncluded: await EncryptionService.decryptObject(calculation.liabilitiesIncluded, ENCRYPTION_KEY) as unknown[]
     };
+
+    // Cache the result for 1 hour
+    await redisCache.set(cacheKey, result, { ttl: 3600 });
+
+    return result;
   }
 
   /**
-   * Get calculation history for a user
+   * Get calculation history for a user with pagination
    */
-  async getCalculationHistory(userId: string, limit: number = 10) {
+  async getCalculationHistory(userId: string, limit: number = 10, offset: number = 0) {
+    const cacheKey = `history:${userId}:${limit}:${offset}`;
+
+    // Try cache first
+    const cachedResult = await redisCache.get(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
+    }
+
     const calculations = await prisma.zakatCalculation.findMany({
       where: { userId },
       orderBy: { calculationDate: 'desc' },
-      take: limit
+      take: limit,
+      skip: offset
     });
 
-    return Promise.all(calculations.map(async (calc) => ({
-      id: calc.id,
-      calculationDate: calc.calculationDate,
-      methodology: calc.methodology,
-      calendarType: calc.calendarType,
-      totalAssets: calc.totalAssets,
-      totalLiabilities: calc.totalLiabilities,
-      netWorth: calc.netWorth,
-      nisabThreshold: calc.nisabThreshold,
-      nisabSource: calc.nisabSource,
-      isZakatObligatory: calc.isZakatObligatory,
-      zakatAmount: calc.zakatAmount,
-      zakatRate: calc.zakatRate,
-      breakdown: await EncryptionService.decryptObject(calc.breakdown || '{}', ENCRYPTION_KEY),
-      assetsIncluded: await EncryptionService.decryptObject(calc.assetsIncluded || '[]', ENCRYPTION_KEY),
-      liabilitiesIncluded: await EncryptionService.decryptObject(calc.liabilitiesIncluded || '[]', ENCRYPTION_KEY)
-    })));
+    // Get total count for pagination metadata
+    const totalCount = await prisma.zakatCalculation.count({
+      where: { userId }
+    });
+
+    const result = {
+      calculations: await Promise.all(calculations.map(async (calc) => ({
+        id: calc.id,
+        calculationDate: calc.calculationDate,
+        methodology: calc.methodology,
+        calendarType: calc.calendarType,
+        totalAssets: calc.totalAssets,
+        totalLiabilities: calc.totalLiabilities,
+        netWorth: calc.netWorth,
+        nisabThreshold: calc.nisabThreshold,
+        nisabSource: calc.nisabSource,
+        isZakatObligatory: calc.isZakatObligatory,
+        zakatAmount: calc.zakatAmount,
+        zakatRate: calc.zakatRate,
+        breakdown: await EncryptionService.decryptObject(calc.breakdown || '{}', ENCRYPTION_KEY) as Record<string, unknown>,
+        assetsIncluded: await EncryptionService.decryptObject(calc.assetsIncluded || '[]', ENCRYPTION_KEY) as unknown[],
+        liabilitiesIncluded: await EncryptionService.decryptObject(calc.liabilitiesIncluded || '[]', ENCRYPTION_KEY) as unknown[]
+      }))),
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalCount
+      }
+    };
+
+    // Cache for 5 minutes
+    await redisCache.set(cacheKey, result, { ttl: 300 });
+
+    return result;
   }
 
   /**

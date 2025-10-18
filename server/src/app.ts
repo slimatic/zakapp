@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import compression from 'compression';
 
 // Import route modules
 import authRoutes from './routes/auth';
@@ -16,6 +17,7 @@ import trackingRoutes from './routes/tracking';
 import calculationsRoutes from './routes/calculations';
 import methodologiesRoutes from './routes/methodologies';
 import calendarRoutes from './routes/calendar';
+import snapshotsRoutes from './routes/snapshots';
 
 // Import middleware
 import { errorHandler } from './middleware/ErrorHandler';
@@ -35,6 +37,20 @@ app.use(cors({
 // Logging middleware
 app.use(morgan('combined'));
 
+// Compression middleware
+app.use(compression({
+  level: 6, // Good balance between compression and speed
+  threshold: 1024, // Only compress responses larger than 1KB
+  filter: (req, res) => {
+    // Don't compress responses with this request header
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    // Use compression filter function
+    return compression.filter(req, res);
+  }
+}));
+
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -52,6 +68,7 @@ app.use('/api/tracking', trackingRoutes);
 app.use('/api/calculations', calculationsRoutes);
 app.use('/api/methodologies', methodologiesRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/snapshots', snapshotsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -9,6 +9,7 @@ import { CalendarService } from '../services/calendarService';
 import { NisabService } from '../services/NisabService';
 import { PaymentRecordService } from '../services/payment-record.service';
 import { CalculationHistoryService } from '../services/CalculationHistoryService';
+import { PaymentRecordsController } from '../controllers/payment-records.controller';
 import { z } from 'zod';
 import * as jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
@@ -67,6 +68,9 @@ const nisabService = new NisabService();
 const paymentService = new PaymentRecordService();
 const calculationHistoryService = new CalculationHistoryService();
 const zakatEngine = new ZakatEngine(currencyService, calendarService, nisabService);
+
+// Initialize controllers
+const paymentRecordsController = new PaymentRecordsController();
 
 /**
  * POST /api/zakat/calculate
@@ -281,21 +285,7 @@ router.post('/payments',
     recipient: z.string().optional(),
     notes: z.string().optional()
   })),
-  async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const payment = await paymentService.createPayment(req.userId, req.body);
-
-      const response = createResponse(true, { payment });
-      res.status(201).json(response);
-    } catch (error) {
-      const response = createResponse(false, undefined, {
-        code: 'PAYMENT_CREATION_ERROR',
-        message: 'Failed to create payment record',
-        details: [error instanceof Error ? error.message : 'Unknown error']
-      });
-      res.status(400).json(response);
-    }
-  }
+  paymentRecordsController.createPayment
 );
 
 /**
@@ -304,36 +294,7 @@ router.post('/payments',
  */
 router.get('/payments',
   authenticate,
-  async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { year, page, limit } = req.query;
-      const filters = {
-        year: year ? parseInt(year as string) : undefined,
-        page: page ? parseInt(page as string) : undefined,
-        limit: limit ? parseInt(limit as string) : undefined
-      };
-
-      const payments = await paymentService.getPayments(req.userId, filters);
-
-      const response = createResponse(true, {
-        payments,
-        pagination: {
-          currentPage: filters.page || 1,
-          totalPages: Math.ceil(payments.length / (filters.limit || 20)),
-          totalItems: payments.length,
-          itemsPerPage: filters.limit || 20
-        }
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      const response = createResponse(false, undefined, {
-        code: 'PAYMENTS_RETRIEVAL_ERROR',
-        message: 'Failed to retrieve payment records',
-        details: [error instanceof Error ? error.message : 'Unknown error']
-      });
-      res.status(500).json(response);
-    }
-  }
+  paymentRecordsController.getPayments
 );
 
 /**
@@ -348,22 +309,7 @@ router.put('/payments/:id',
     recipient: z.string().optional(),
     notes: z.string().optional()
   })),
-  async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { id } = req.params;
-      const payment = await paymentService.updatePayment(req.userId, id, req.body);
-
-      const response = createResponse(true, { payment });
-      res.status(200).json(response);
-    } catch (error) {
-      const response = createResponse(false, undefined, {
-        code: 'PAYMENT_UPDATE_ERROR',
-        message: 'Failed to update payment record',
-        details: [error instanceof Error ? error.message : 'Unknown error']
-      });
-      res.status(400).json(response);
-    }
-  }
+  paymentRecordsController.updatePayment
 );
 
 /**
@@ -372,22 +318,16 @@ router.put('/payments/:id',
  */
 router.delete('/payments/:id',
   authenticate,
-  async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { id } = req.params;
-      await paymentService.deletePayment(req.userId, id);
+  paymentRecordsController.deletePayment
+);
 
-      const response = createResponse(true, { message: 'Payment record deleted successfully' });
-      res.status(200).json(response);
-    } catch (error) {
-      const response = createResponse(false, undefined, {
-        code: 'PAYMENT_DELETION_ERROR',
-        message: 'Failed to delete payment record',
-        details: [error instanceof Error ? error.message : 'Unknown error']
-      });
-      res.status(400).json(response);
-    }
-  }
+/**
+ * GET /api/zakat/payments/:id/receipt
+ * Generate payment receipt
+ */
+router.get('/payments/:id/receipt',
+  authenticate,
+  paymentRecordsController.getReceipt
 );
 
 /**
