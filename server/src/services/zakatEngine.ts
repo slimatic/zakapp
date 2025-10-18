@@ -1,6 +1,8 @@
 import { 
   ZakatCalculation, 
   ZakatCalculationRequest, 
+  MethodologyComparisonRequest,
+  MethodologyComparison,
   Asset, 
   MethodologyInfo,
   NisabInfo,
@@ -101,6 +103,82 @@ export class ZakatEngine {
 
     } catch (error) {
       throw new Error(`Zakat calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Compare multiple Zakat calculation methodologies using the same asset data.
+   * Returns comparison results without creating snapshots.
+   * 
+   * @param request - Comparison request with methodologies to compare
+   * @param assets - Asset data to use for all calculations
+   * @returns Array of methodology comparison results
+   */
+  async compareMethodologies(
+    request: MethodologyComparisonRequest & { assets?: Asset[]; userId?: string }
+  ): Promise<MethodologyComparison[]> {
+    try {
+      const referenceDate = request.referenceDate ? new Date(request.referenceDate) : new Date();
+      
+      // Load assets if not provided
+      const assets = request.assets || (request.userId ? await this.loadAssets(request.userId, []) : []);
+      const validatedAssets = this.validateAssets(assets);
+
+      // Calculate using each methodology
+      const results: MethodologyComparison[] = [];
+      
+      for (let i = 0; i < request.methodologies.length; i++) {
+        const methodId = request.methodologies[i];
+        const customConfigId = request.customConfigIds?.[i];
+        
+        // Get methodology info
+        const methodology = this.getMethodologyInfo(methodId);
+        
+        // Get nisab threshold
+        const nisabInfo = await this.calculateNisabThreshold(methodology, undefined); // No custom nisab for comparison
+        
+        // Perform calculation
+        const calculation = await this.performCalculation(
+          validatedAssets,
+          methodology,
+          nisabInfo,
+          {
+            method: methodId,
+            calculationDate: referenceDate.toISOString(),
+            calendarType: 'lunar', // Default to lunar for comparison
+            includeAssets: validatedAssets.map(a => a.assetId),
+            customNisab: undefined
+          },
+          undefined // No calendar info for comparison
+        );
+
+        // Calculate difference from first methodology
+        let difference = { absolute: 0, percentage: 0 };
+        if (results.length > 0) {
+          const firstResult = results[0];
+          const absoluteDiff = calculation.totals.totalZakatDue - firstResult.zakatDue;
+          const percentageDiff = firstResult.zakatDue !== 0 ? (absoluteDiff / firstResult.zakatDue) * 100 : 0;
+          difference = {
+            absolute: absoluteDiff,
+            percentage: percentageDiff
+          };
+        }
+
+        results.push({
+          methodology: methodId.toUpperCase(),
+          methodologyConfigId: customConfigId,
+          totalWealth: calculation.totals.totalZakatableAssets,
+          nisabThreshold: nisabInfo.effectiveNisab,
+          zakatDue: calculation.totals.totalZakatDue,
+          isAboveNisab: calculation.meetsNisab,
+          difference
+        });
+      }
+
+      return results;
+
+    } catch (error) {
+      throw new Error(`Methodology comparison failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

@@ -507,6 +507,25 @@ export interface ZakatCalculationRequest {
 }
 
 /**
+ * Request interface for comparing multiple Zakat calculation methodologies.
+ * Allows users to see how different methodologies affect their Zakat calculation
+ * using the same asset data and reference date.
+ * 
+ * @interface MethodologyComparisonRequest
+ * @since Phase 1
+ */
+export interface MethodologyComparisonRequest {
+  /** Array of methodology identifiers to compare (2-4 methodologies) */
+  methodologies: string[];
+  
+  /** Custom config IDs for CUSTOM methodologies (order must match methodologies array) */
+  customConfigIds?: string[];
+  
+  /** Reference date for calculation (optional, defaults to today) */
+  referenceDate?: string;
+}
+
+/**
  * Comprehensive methodology information interface for zakat calculation methods.
  * Supports multiple Islamic jurisprudence schools and modern standardized approaches.
  * This interface defines all the metadata needed to understand and apply different
@@ -671,25 +690,31 @@ export interface RegionalAdjustment {
  */
 export interface MethodologyComparison {
   /** Methodology identifier being compared */
-  methodId: string;
+  methodology: string;
   
-  /** Full methodology information */
-  methodology: MethodologyInfo;
+  /** Custom methodology config ID (if applicable) */
+  methodologyConfigId?: string;
   
-  /** Sample calculation results using this methodology */
-  sampleCalculation: {
-    /** Total asset value used in sample */
-    totalAssets: number;
+  /** Total zakatable wealth calculated */
+  totalWealth: number;
+  
+  /** Nisab threshold used */
+  nisabThreshold: number;
+  
+  /** Zakat amount due */
+  zakatDue: number;
+  
+  /** Whether wealth exceeds nisab */
+  isAboveNisab: boolean;
+  
+  /** Difference from first methodology in comparison */
+  difference: {
+    /** Absolute difference in Zakat amount */
+    absolute: number;
     
-    /** Zakat due calculated by this method */
-    zakatDue: number;
-    
-    /** Effective nisab threshold used */
-    effectiveNisab: number;
+    /** Percentage difference */
+    percentage: number;
   };
-  
-  /** Key differences from other methodologies */
-  differences: string[];
 }
 
 // Payment Types

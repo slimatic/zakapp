@@ -5,6 +5,7 @@
     "paths": {
       "@/*": ["../server/src/*"],
       "@shared/*": ["../shared/src/*"],
+      "@zakapp/shared": ["../shared/src/index.ts"],
       "@tests/*": ["./*"]
     }
   },

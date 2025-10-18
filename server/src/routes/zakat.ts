@@ -118,9 +118,13 @@ router.post('/calculate',
 
       // Save calculation to history (for audit and tracking)
       try {
+        // Calculate Zakat year boundaries
+        const calculationDate = new Date(calcRequest.calculationDate);
+        const zakatYear = await calendarService.calculateZakatYear(calculationDate, calcRequest.calendarType as 'HIJRI' | 'GREGORIAN');
+        
         await calculationHistoryService.saveCalculation(req.userId!, {
           methodology: result.methodology.id,
-          calendarType: result.result.calendarType,
+          calendarType: calcRequest.calendarType,
           totalWealth: result.result.totals.totalAssets,
           nisabThreshold: result.result.nisab.effectiveNisab,
           zakatDue: result.result.totals.totalZakatDue,
@@ -131,7 +135,9 @@ router.post('/calculate',
             calculationId: savedCalculation.id,
             meetsNisab: result.result.meetsNisab,
             nisabBasis: result.result.nisab.nisabBasis
-          }
+          },
+          zakatYearStart: zakatYear.startDate,
+          zakatYearEnd: zakatYear.endDate
         });
       } catch {
         // Log error but don't fail the calculation
