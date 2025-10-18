@@ -900,3 +900,65 @@ export interface UpdateMethodologyConfig {
   rate?: number;
   assetRules?: Record<string, any>;
 }
+
+// Calculation Snapshot Types
+export interface CalculationSnapshot {
+  id: string;
+  methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
+  methodologyConfigId?: string;
+  totalWealth: number;
+  zakatDue: number;
+  nisabThreshold: number;
+  calculationDate: string;
+  isLocked: boolean;
+  unlockedAt?: string;
+  unlockReason?: string;
+  calendarType: 'GREGORIAN' | 'HIJRI';
+  zakatYearStart: string;
+  zakatYearEnd: string;
+}
+
+export interface CalculationSnapshotDetail extends CalculationSnapshot {
+  assetValues: SnapshotAssetValue[];
+}
+
+export interface SnapshotAssetValue {
+  id: string;
+  assetId: string;
+  assetName: string;
+  assetCategory: string;
+  capturedValue: number;
+  capturedAt: string;
+  isZakatable: boolean;
+}
+
+export interface CreateCalculationSnapshotRequest {
+  methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
+  methodologyConfigId?: string;
+  calendarType?: 'GREGORIAN' | 'HIJRI';
+  referenceDate?: string;
+}
+
+export interface SnapshotComparison {
+  fromSnapshot: CalculationSnapshotDetail;
+  toSnapshot: CalculationSnapshotDetail;
+  timeDifference: {
+    days: number;
+    months: number;
+    years: number;
+  };
+  wealthChange: {
+    absolute: number;
+    percentage: number;
+  };
+  zakatChange: {
+    absolute: number;
+    percentage: number;
+  };
+  assetChanges: {
+    added: SnapshotAssetValue[];
+    removed: SnapshotAssetValue[];
+    modified: SnapshotAssetValue[];
+    valueChange: number;
+  };
+}
