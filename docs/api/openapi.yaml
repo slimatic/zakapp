@@ -1,0 +1,1550 @@
+openapi: 3.0.3
+info:
+  title: ZakApp API
+  description: |
+    A privacy-first Islamic Zakat calculator API with comprehensive asset management and yearly tracking capabilities.
+
+    ## Constitutional Principles
+    This API adheres to ZakApp's constitutional principles:
+    - **Privacy & Security First**: All endpoints implement encryption, authentication, and data protection
+    - **Islamic Compliance**: Calculations and methodologies follow authentic Islamic jurisprudence
+    - **User-Centric Design**: RESTful design with clear, intuitive endpoints
+    - **Quality & Reliability**: Comprehensive validation, error handling, and monitoring
+    - **Transparency & Trust**: Detailed documentation and clear response formats
+  version: 1.0.0
+  contact:
+    name: ZakApp Support
+    email: support@zakapp.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.zakapp.com/v1
+    description: Production server
+  - url: http://localhost:3001/v1
+    description: Local development server
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Error code
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: Human readable error message
+          example: "Invalid input data"
+        details:
+          type: array
+          items:
+            type: string
+          description: Additional validation error details
+      required:
+        - success
+        - error
+        - message
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          description: Response data (varies by endpoint)
+        meta:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+              example: "2024-09-29T12:00:00Z"
+            requestId:
+              type: string
+              example: "req_abc123"
+            version:
+              type: string
+              example: "1.0.0"
+      required:
+        - success
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+        total:
+          type: integer
+          minimum: 0
+          example: 100
+        totalPages:
+          type: integer
+          minimum: 0
+          example: 5
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+        - hasNext
+        - hasPrev
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        firstName:
+          type: string
+          example: "Ahmed"
+        lastName:
+          type: string
+          example: "Muhammad"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+        - createdAt
+        - updatedAt
+
+    Asset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        userId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          example: "Primary Savings Account"
+        category:
+          type: string
+          enum: ["cash", "gold", "silver", "crypto", "business", "investment", "real_estate", "debt"]
+          example: "cash"
+        amount:
+          type: number
+          minimum: 0
+          example: 50000.00
+        currency:
+          type: string
+          example: "USD"
+        isZakatable:
+          type: boolean
+          example: true
+        notes:
+          type: string
+          example: "Emergency savings"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+      required:
+        - id
+        - userId
+        - name
+        - category
+        - amount
+        - currency
+        - isZakatable
+        - createdAt
+        - updatedAt
+
+    ZakatCalculation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        userId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        calculationDate:
+          type: string
+          format: date-time
+          example: "2024-09-29T12:00:00Z"
+        methodology:
+          type: string
+          enum: ["standard", "hanafi", "shafi", "maliki", "hanbali"]
+          example: "standard"
+        nisabThreshold:
+          type: number
+          minimum: 0
+          example: 5000.00
+        totalZakat:
+          type: number
+          minimum: 0
+          example: 125.00
+        assetBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+                example: "cash"
+              amount:
+                type: number
+                example: 50000.00
+              isZakatable:
+                type: boolean
+                example: true
+              appliedRate:
+                type: number
+                minimum: 0
+                maximum: 1
+                example: 0.025
+        notes:
+          type: string
+          example: "Ramadan Zakat calculation"
+      required:
+        - id
+        - userId
+        - calculationDate
+        - methodology
+        - nisabThreshold
+        - totalZakat
+        - assetBreakdown
+
+    PaymentRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        userId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        calculationId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        amount:
+          type: number
+          minimum: 0
+          example: 125.00
+        paymentDate:
+          type: string
+          format: date-time
+          example: "2024-09-29T12:00:00Z"
+        recipient:
+          type: string
+          enum: ["poor", "orphans", "widows", "divorced", "wayfarers", "mosques", "education", "other"]
+          example: "poor"
+        receiptUrl:
+          type: string
+          format: uri
+          example: "https://example.com/receipt.pdf"
+        notes:
+          type: string
+          example: "Paid to local mosque"
+      required:
+        - id
+        - userId
+        - calculationId
+        - amount
+        - paymentDate
+        - recipient
+
+    Snapshot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        userId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        snapshotDate:
+          type: string
+          format: date-time
+          example: "2024-12-31T23:59:59Z"
+        totalAssets:
+          type: number
+          minimum: 0
+          example: 150000.00
+        totalZakat:
+          type: number
+          minimum: 0
+          example: 3750.00
+        assetBreakdown:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0
+          example:
+            cash: 50000.00
+            gold: 25000.00
+            investments: 75000.00
+        metadata:
+          type: object
+          properties:
+            methodology:
+              type: string
+              enum: ["standard", "hanafi", "shafi", "maliki", "hanbali"]
+              example: "standard"
+            nisabThreshold:
+              type: number
+              minimum: 0
+              example: 5000.00
+            currency:
+              type: string
+              example: "USD"
+      required:
+        - id
+        - userId
+        - snapshotDate
+        - totalAssets
+        - totalZakat
+        - assetBreakdown
+        - metadata
+
+paths:
+  # Authentication endpoints
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: Create a new user account with encrypted profile data
+      tags: ["Authentication"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  minLength: 8
+                  example: "SecurePass123!"
+                firstName:
+                  type: string
+                  example: "Ahmed"
+                lastName:
+                  type: string
+                  example: "Muhammad"
+              required:
+                - email
+                - password
+                - firstName
+                - lastName
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/User"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/login:
+    post:
+      summary: Authenticate user
+      description: Login with email and password to receive JWT tokens
+      tags: ["Authentication"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  minLength: 8
+                  example: "SecurePass123!"
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: "#/components/schemas/User"
+                          accessToken:
+                            type: string
+                            description: JWT access token (expires in 15 minutes)
+                            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                          refreshToken:
+                            type: string
+                            description: JWT refresh token (expires in 7 days)
+                            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        required:
+                          - user
+                          - accessToken
+                          - refreshToken
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      description: Exchange refresh token for new access token
+      tags: ["Authentication"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          accessToken:
+                            type: string
+                            description: New JWT access token
+                            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        required:
+                          - accessToken
+        "401":
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/logout:
+    post:
+      summary: Logout user
+      description: Invalidate the current session
+      tags: ["Authentication"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # Asset management endpoints
+  /assets:
+    get:
+      summary: Get user assets
+      description: Retrieve all assets for the authenticated user
+      tags: ["Assets"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of items per page
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: ["cash", "gold", "silver", "crypto", "business", "investment", "real_estate", "debt"]
+          description: Filter by asset category
+      responses:
+        "200":
+          description: Assets retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          assets:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Asset"
+                          pagination:
+                            $ref: "#/components/schemas/PaginationMeta"
+                        required:
+                          - assets
+                          - pagination
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Create new asset
+      description: Create a new asset for the authenticated user
+      tags: ["Assets"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: "Primary Savings Account"
+                category:
+                  type: string
+                  enum: ["cash", "gold", "silver", "crypto", "business", "investment", "real_estate", "debt"]
+                  example: "cash"
+                amount:
+                  type: number
+                  minimum: 0
+                  example: 50000.00
+                currency:
+                  type: string
+                  default: "USD"
+                  example: "USD"
+                isZakatable:
+                  type: boolean
+                  default: true
+                  example: true
+                notes:
+                  type: string
+                  maxLength: 500
+                  example: "Emergency savings"
+              required:
+                - name
+                - category
+                - amount
+      responses:
+        "201":
+          description: Asset created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Asset"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /assets/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Asset ID
+    get:
+      summary: Get asset by ID
+      description: Retrieve a specific asset by its ID
+      tags: ["Assets"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Asset retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Asset"
+        "404":
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      summary: Update asset
+      description: Update an existing asset
+      tags: ["Assets"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: "Updated Savings Account"
+                category:
+                  type: string
+                  enum: ["cash", "gold", "silver", "crypto", "business", "investment", "real_estate", "debt"]
+                  example: "cash"
+                amount:
+                  type: number
+                  minimum: 0
+                  example: 60000.00
+                currency:
+                  type: string
+                  example: "USD"
+                isZakatable:
+                  type: boolean
+                  example: true
+                notes:
+                  type: string
+                  maxLength: 500
+                  example: "Updated emergency savings"
+      responses:
+        "200":
+          description: Asset updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Asset"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete asset
+      description: Delete an asset by its ID
+      tags: ["Assets"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Asset deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # Zakat calculation endpoints
+  /zakat/calculate:
+    post:
+      summary: Calculate Zakat
+      description: Perform Zakat calculation based on user assets and selected methodology
+      tags: ["Zakat"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                methodology:
+                  type: string
+                  enum: ["standard", "hanafi", "shafi", "maliki", "hanbali"]
+                  default: "standard"
+                  example: "standard"
+                nisabGoldGrams:
+                  type: number
+                  minimum: 0
+                  example: 85.0
+                nisabSilverGrams:
+                  type: number
+                  minimum: 0
+                  example: 595.0
+                customSettings:
+                  type: object
+                  description: Custom settings for specific methodologies
+                  example: {}
+                notes:
+                  type: string
+                  maxLength: 500
+                  example: "Ramadan Zakat calculation"
+              required:
+                - methodology
+      responses:
+        "200":
+          description: Zakat calculated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ZakatCalculation"
+        "400":
+          description: Validation error or insufficient assets for Zakat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /zakat/history:
+    get:
+      summary: Get Zakat calculation history
+      description: Retrieve historical Zakat calculations for the authenticated user
+      tags: ["Zakat"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of items per page
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter calculations from this date (inclusive)
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter calculations until this date (inclusive)
+        - name: methodology
+          in: query
+          schema:
+            type: string
+            enum: ["standard", "hanafi", "shafi", "maliki", "hanbali"]
+          description: Filter by calculation methodology
+      responses:
+        "200":
+          description: Calculation history retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          calculations:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/ZakatCalculation"
+                          pagination:
+                            $ref: "#/components/schemas/PaginationMeta"
+                        required:
+                          - calculations
+                          - pagination
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # Payment tracking endpoints
+  /zakat/payments:
+    get:
+      summary: Get Zakat payment records
+      description: Retrieve Zakat payment records for the authenticated user
+      tags: ["Payments"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of items per page
+        - name: calculationId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter payments by calculation ID
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter payments from this date (inclusive)
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter payments until this date (inclusive)
+        - name: recipient
+          in: query
+          schema:
+            type: string
+            enum: ["poor", "orphans", "widows", "divorced", "wayfarers", "mosques", "education", "other"]
+          description: Filter by payment recipient category
+      responses:
+        "200":
+          description: Payment records retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          payments:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/PaymentRecord"
+                          pagination:
+                            $ref: "#/components/schemas/PaginationMeta"
+                        required:
+                          - payments
+                          - pagination
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Record Zakat payment
+      description: Record a new Zakat payment for tracking purposes
+      tags: ["Payments"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                calculationId:
+                  type: string
+                  format: uuid
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+                amount:
+                  type: number
+                  minimum: 0.01
+                  example: 125.00
+                paymentDate:
+                  type: string
+                  format: date-time
+                  example: "2024-09-29T12:00:00Z"
+                recipient:
+                  type: string
+                  enum: ["poor", "orphans", "widows", "divorced", "wayfarers", "mosques", "education", "other"]
+                  example: "poor"
+                receiptUrl:
+                  type: string
+                  format: uri
+                  example: "https://example.com/receipt.pdf"
+                notes:
+                  type: string
+                  maxLength: 500
+                  example: "Paid to local mosque"
+              required:
+                - calculationId
+                - amount
+                - paymentDate
+                - recipient
+      responses:
+        "201":
+          description: Payment recorded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/PaymentRecord"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Calculation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # Snapshot endpoints
+  /snapshots:
+    get:
+      summary: Get yearly snapshots
+      description: Retrieve yearly financial snapshots for the authenticated user
+      tags: ["Snapshots"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of items per page
+        - name: year
+          in: query
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2050
+          description: Filter snapshots by year
+      responses:
+        "200":
+          description: Snapshots retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          snapshots:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Snapshot"
+                          pagination:
+                            $ref: "#/components/schemas/PaginationMeta"
+                        required:
+                          - snapshots
+                          - pagination
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Create yearly snapshot
+      description: Create a new yearly financial snapshot for tracking purposes
+      tags: ["Snapshots"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                snapshotDate:
+                  type: string
+                  format: date-time
+                  example: "2024-12-31T23:59:59Z"
+                notes:
+                  type: string
+                  maxLength: 500
+                  example: "End of year 2024 snapshot"
+              required:
+                - snapshotDate
+      responses:
+        "201":
+          description: Snapshot created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Snapshot"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Snapshot already exists for this date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /snapshots/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Snapshot ID
+    get:
+      summary: Get snapshot by ID
+      description: Retrieve a specific snapshot by its ID
+      tags: ["Snapshots"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Snapshot retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Snapshot"
+        "404":
+          description: Snapshot not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete snapshot
+      description: Delete a snapshot by its ID
+      tags: ["Snapshots"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Snapshot deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Snapshot not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # Calendar endpoints
+  /calendar/convert:
+    post:
+      summary: Convert between Gregorian and Hijri dates
+      description: Convert dates between Gregorian and Islamic (Hijri) calendars
+      tags: ["Calendar"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                  example: "2024-09-29"
+                fromCalendar:
+                  type: string
+                  enum: ["gregorian", "hijri"]
+                  example: "gregorian"
+                toCalendar:
+                  type: string
+                  enum: ["gregorian", "hijri"]
+                  example: "hijri"
+              required:
+                - date
+                - fromCalendar
+                - toCalendar
+      responses:
+        "200":
+          description: Date converted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          originalDate:
+                            type: string
+                            format: date
+                            example: "2024-09-29"
+                          convertedDate:
+                            type: string
+                            format: date
+                            example: "1446-03-15"
+                          fromCalendar:
+                            type: string
+                            enum: ["gregorian", "hijri"]
+                            example: "gregorian"
+                          toCalendar:
+                            type: string
+                            enum: ["gregorian", "hijri"]
+                            example: "hijri"
+                        required:
+                          - originalDate
+                          - convertedDate
+                          - fromCalendar
+                          - toCalendar
+        "400":
+          description: Invalid date or calendar type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # Methodology endpoints
+  /methodologies:
+    get:
+      summary: Get available Zakat methodologies
+      description: Retrieve all supported Zakat calculation methodologies with their configurations
+      tags: ["Methodologies"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Methodologies retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          methodologies:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  enum: ["standard", "hanafi", "shafi", "maliki", "hanbali"]
+                                  example: "standard"
+                                name:
+                                  type: string
+                                  example: "Standard Methodology"
+                                description:
+                                  type: string
+                                  example: "Standard Zakat calculation following majority scholarly opinion"
+                                nisabGoldGrams:
+                                  type: number
+                                  minimum: 0
+                                  example: 85.0
+                                nisabSilverGrams:
+                                  type: number
+                                  minimum: 0
+                                  example: 595.0
+                                zakatRate:
+                                  type: number
+                                  minimum: 0
+                                  maximum: 1
+                                  example: 0.025
+                                references:
+                                  type: array
+                                  items:
+                                    type: string
+                                  example: ["Quran 9:60", "Sahih Muslim 978"]
+                              required:
+                                - id
+                                - name
+                                - description
+                                - nisabGoldGrams
+                                - nisabSilverGrams
+                                - zakatRate
+                        required:
+                          - methodologies
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /methodologies/{id}/config:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: ["standard", "hanafi", "shafi", "maliki", "hanbali"]
+        description: Methodology ID
+    get:
+      summary: Get user methodology configuration
+      description: Retrieve the user's custom configuration for a specific methodology
+      tags: ["Methodologies"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          methodology:
+                            type: string
+                            enum: ["standard", "hanafi", "shafi", "maliki", "hanbali"]
+                            example: "standard"
+                          nisabGoldGrams:
+                            type: number
+                            minimum: 0
+                            example: 85.0
+                          nisabSilverGrams:
+                            type: number
+                            minimum: 0
+                            example: 595.0
+                          customSettings:
+                            type: object
+                            description: User-defined custom settings
+                            example: {}
+                        required:
+                          - methodology
+                          - nisabGoldGrams
+                          - nisabSilverGrams
+        "404":
+          description: Methodology not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      summary: Update methodology configuration
+      description: Update the user's custom configuration for a specific methodology
+      tags: ["Methodologies"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nisabGoldGrams:
+                  type: number
+                  minimum: 0
+                  example: 87.5
+                nisabSilverGrams:
+                  type: number
+                  minimum: 0
+                  example: 612.5
+                customSettings:
+                  type: object
+                  description: User-defined custom settings
+                  example: {}
+      responses:
+        "200":
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          methodology:
+                            type: string
+                            enum: ["standard", "hanafi", "shafi", "maliki", "hanbali"]
+                            example: "standard"
+                          nisabGoldGrams:
+                            type: number
+                            minimum: 0
+                            example: 87.5
+                          nisabSilverGrams:
+                            type: number
+                            minimum: 0
+                            example: 612.5
+                          customSettings:
+                            type: object
+                            example: {}
+                        required:
+                          - methodology
+                          - nisabGoldGrams
+                          - nisabSilverGrams
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Methodology not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Assets
+    description: Asset management and CRUD operations
+  - name: Zakat
+    description: Zakat calculation and history
+  - name: Payments
+    description: Zakat payment tracking
+  - name: Snapshots
+    description: Yearly financial snapshots
+  - name: Calendar
+    description: Gregorian/Hijri calendar conversion
+  - name: Methodologies
+    description: Zakat calculation methodologies and configurations
