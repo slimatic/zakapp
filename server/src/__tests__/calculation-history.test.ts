@@ -42,6 +42,8 @@ describe('Calculation History Functionality', () => {
         nisabThreshold: 4340,
         zakatDue: 2500,
         zakatRate: 2.5,
+        zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
         assetBreakdown: {
           cash: { value: 50000, zakatDue: 1250 },
           gold: { value: 50000, zakatDue: 1250 }
@@ -78,6 +80,8 @@ describe('Calculation History Functionality', () => {
         nisabThreshold: 3500,
         zakatDue: 1875,
         zakatRate: 2.5,
+        zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
         assetBreakdown: {
           cash: { value: 75000, zakatDue: 1875 }
         }
@@ -104,6 +108,8 @@ describe('Calculation History Functionality', () => {
         nisabThreshold: 4340,
         zakatDue: 3000,
         zakatRate: 2.5,
+        zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
         assetBreakdown: {
           cash: { value: 60000, zakatDue: 1500 },
           business: { value: 60000, zakatDue: 1500 }
@@ -156,7 +162,9 @@ describe('Calculation History Functionality', () => {
           nisabThreshold: 4340,
           zakatDue: 1250,
           zakatRate: 2.5,
-          assetBreakdown: { cash: { value: 50000, zakatDue: 1250 } }
+          zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
+        assetBreakdown: { cash: { value: 50000, zakatDue: 1250 } }
         },
         {
           methodology: 'hanafi',
@@ -165,7 +173,9 @@ describe('Calculation History Functionality', () => {
           nisabThreshold: 3500,
           zakatDue: 1500,
           zakatRate: 2.5,
-          assetBreakdown: { cash: { value: 60000, zakatDue: 1500 } }
+          zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
+        assetBreakdown: { cash: { value: 60000, zakatDue: 1500 } }
         },
         {
           methodology: 'custom',
@@ -174,7 +184,9 @@ describe('Calculation History Functionality', () => {
           nisabThreshold: 4340,
           zakatDue: 1600,
           zakatRate: 2.0,
-          assetBreakdown: { cash: { value: 80000, zakatDue: 1600 } }
+          zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
+        assetBreakdown: { cash: { value: 80000, zakatDue: 1600 } }
         }
       ];
 
@@ -286,7 +298,9 @@ describe('Calculation History Functionality', () => {
           nisabThreshold: 4340,
           zakatDue: trend.zakat,
           zakatRate: 2.5,
-          assetBreakdown: { cash: { value: trend.wealth, zakatDue: trend.zakat } }
+          zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
+        assetBreakdown: { cash: { value: trend.wealth, zakatDue: trend.zakat } }
         });
 
         // Update the calculation date manually for trend testing
@@ -355,7 +369,9 @@ describe('Calculation History Functionality', () => {
           nisabThreshold: 4340,
           zakatDue: comp.zakatDue,
           zakatRate: comp.methodology === 'custom' ? 2.0 : 2.5,
-          assetBreakdown: { cash: { value: comp.totalWealth, zakatDue: comp.zakatDue } },
+          zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
+        assetBreakdown: { cash: { value: comp.totalWealth, zakatDue: comp.zakatDue } },
           notes: comp.notes
         });
         calculationIds.push(calc.id);
@@ -418,6 +434,8 @@ describe('Calculation History Functionality', () => {
         nisabThreshold: 4340,
         zakatDue: 1250,
         zakatRate: 2.5,
+        zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
         assetBreakdown: { cash: { value: 50000, zakatDue: 1250 } },
         notes: 'Original notes'
       });
@@ -472,6 +490,8 @@ describe('Calculation History Functionality', () => {
         nisabThreshold: 4340,
         zakatDue: 750,
         zakatRate: 2.5,
+        zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
         assetBreakdown: { cash: { value: 30000, zakatDue: 750 } },
         notes: 'Calculation to be deleted'
       });
@@ -504,6 +524,8 @@ describe('Calculation History Functionality', () => {
         nisabThreshold: 4340,
         zakatDue: 1000,
         zakatRate: 2.5,
+        zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
         assetBreakdown: { cash: { value: 40000, zakatDue: 1000 } }
       });
 
@@ -524,6 +546,8 @@ describe('Calculation History Functionality', () => {
         nisabThreshold: 4340,
         zakatDue: 1375,
         zakatRate: 2.5,
+        zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
         assetBreakdown: { cash: { value: 55000, zakatDue: 1375 } }
       });
 
@@ -600,6 +624,8 @@ describe('Calculation History Functionality', () => {
         nisabThreshold: 4340,
         zakatDue: 1750,
         zakatRate: 2.5,
+        zakatYearStart: new Date("2024-01-01"),
+        zakatYearEnd: new Date("2024-12-31"),
         assetBreakdown: { cash: { value: 70000, zakatDue: 1750 } }
       });
 
