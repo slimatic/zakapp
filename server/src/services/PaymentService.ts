@@ -19,7 +19,7 @@ export interface CreatePaymentRequest {
 export interface PaymentRecipient {
   name: string;
   type: 'individual' | 'organization' | 'charity';
-  category: 'poor' | 'needy' | 'collectors' | 'hearts_reconciled' | '
+  category: 'poor' | 'needy' | 'collectors' | 'hearts_reconciled' | 'widows' | 'orphans' | 'divorced' | 'refugees' | 'wayfarers';
   amount: number;
   contactInfo?: {
     email?: string;

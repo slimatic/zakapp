@@ -15,6 +15,7 @@ import importRoutes from './routes/import';
 import trackingRoutes from './routes/tracking';
 import calculationsRoutes from './routes/calculations';
 import methodologiesRoutes from './routes/methodologies';
+import calendarRoutes from './routes/calendar';
 
 // Import middleware
 import { errorHandler } from './middleware/ErrorHandler';
@@ -50,6 +51,7 @@ app.use('/api/import', importRoutes);
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/calculations', calculationsRoutes);
 app.use('/api/methodologies', methodologiesRoutes);
+app.use('/api/calendar', calendarRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
