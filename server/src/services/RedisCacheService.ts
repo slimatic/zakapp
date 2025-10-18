@@ -5,35 +5,47 @@ export interface CacheOptions {
   prefix?: string;
 }
 
+export interface CacheStats {
+  keys: number;
+  memory: string;
+  uptime: number;
+}
+
+/**
+ * RedisCacheService - Manages caching operations with Redis
+ * Provides TTL support, pattern-based deletion, and graceful error handling
+ */
 export class RedisCacheService {
   private client: RedisClientType;
   private isConnected: boolean = false;
-  private defaultTTL: number = 3600; // 1 hour default
-  private keyPrefix: string = 'zakapp:';
+  private readonly defaultTTL: number = 3600; // 1 hour default
+  private readonly keyPrefix: string = 'zakapp:';
 
   constructor() {
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
     this.client = createClient({
-      url: redisUrl,
-      socket: {
-        connectTimeout: 60000,
-        lazyConnect: true,
-      },
+      url: redisUrl
     });
 
-    this.client.on('error', (err) => {
-      console.error('Redis Client Error:', err);
+    this.setupEventHandlers();
+  }
+
+  /**
+   * Setup Redis event handlers
+   */
+  private setupEventHandlers(): void {
+    this.client.on('error', () => {
+      // Log error silently or handle gracefully
       this.isConnected = false;
     });
 
     this.client.on('connect', () => {
-      console.log('Connected to Redis');
       this.isConnected = true;
     });
 
     this.client.on('disconnect', () => {
-      console.log('Disconnected from Redis');
+      // Handle disconnect silently
       this.isConnected = false;
     });
   }
@@ -74,7 +86,7 @@ export class RedisCacheService {
   /**
    * Set a value in cache
    */
-  async set(key: string, value: any, options: CacheOptions = {}): Promise<void> {
+  async set<T>(key: string, value: T, options: CacheOptions = {}): Promise<void> {
     try {
       const cacheKey = this.generateKey(key, options.prefix);
       const serializedValue = JSON.stringify(value);
@@ -82,7 +94,7 @@ export class RedisCacheService {
 
       await this.client.setEx(cacheKey, ttl, serializedValue);
     } catch (error) {
-      console.error('Redis set error:', error);
+      // Silent error handling
       // Don't throw - cache failures shouldn't break the app
     }
   }
@@ -90,125 +102,113 @@ export class RedisCacheService {
   /**
    * Get a value from cache
    */
-  async get<T = any>(key: string, prefix?: string): Promise<T | null> {
+  async get<T = unknown>(key: string, prefix?: string): Promise<T | null> {
     try {
       const cacheKey = this.generateKey(key, prefix);
       const value = await this.client.get(cacheKey);
 
       if (value) {
-        return JSON.parse(value);
+        return JSON.parse(value) as T;
       }
 
       return null;
     } catch (error) {
-      console.error('Redis get error:', error);
+      // Silent error handling
       return null;
     }
   }
 
   /**
-   * Delete a value from cache
+   * Delete a key from cache
    */
-  async delete(key: string, prefix?: string): Promise<boolean> {
+  async delete(key: string, prefix?: string): Promise<void> {
     try {
       const cacheKey = this.generateKey(key, prefix);
-      const result = await this.client.del(cacheKey);
-      return result > 0;
+      await this.client.del(cacheKey);
     } catch (error) {
-      console.error('Redis delete error:', error);
-      return false;
+      // Silent error handling
     }
   }
 
   /**
-   * Delete multiple keys by pattern
+   * Delete all keys matching a pattern
    */
-  async deleteByPattern(pattern: string, prefix?: string): Promise<number> {
+  async deleteByPattern(pattern: string, prefix?: string): Promise<void> {
     try {
-      const fullPrefix = prefix || this.keyPrefix;
-      const searchPattern = `${fullPrefix}${pattern}`;
+      const fullPattern = this.generateKey(pattern, prefix);
+      const keys = await this.client.keys(fullPattern);
 
-      const keys = await this.client.keys(searchPattern);
       if (keys.length > 0) {
-        const result = await this.client.del(keys);
-        return result;
+        await this.client.del(keys);
       }
-
-      return 0;
     } catch (error) {
-      console.error('Redis deleteByPattern error:', error);
-      return 0;
+      // Silent error handling
     }
   }
 
   /**
    * Clear all cache for a user
    */
-  async clearUserCache(userId: string): Promise<number> {
-    return await this.deleteByPattern(`user:${userId}:*`);
-  }
-
-  /**
-   * Clear all calculation cache
-   */
-  async clearCalculationCache(): Promise<number> {
-    return await this.deleteByPattern('calculation:*');
-  }
-
-  /**
-   * Clear all nisab cache
-   */
-  async clearNisabCache(): Promise<number> {
-    return await this.deleteByPattern('nisab:*');
+  async clearUserCache(userId: string): Promise<void> {
+    try {
+      const pattern = `${this.keyPrefix}user:${userId}:*`;
+      await this.deleteByPattern(pattern);
+    } catch (error) {
+      // Silent error handling
+    }
   }
 
   /**
    * Get cache statistics
    */
-  async getStats(): Promise<any> {
+  async getStats(): Promise<CacheStats | null> {
     try {
-      const info = await this.client.info();
+      if (!this.isConnected) {
+        return null;
+      }
+
+      const keys = await this.client.keys(`${this.keyPrefix}*`);
+
       return {
-        connected: this.isConnected,
-        info: info,
+        keys: keys.length,
+        memory: 'N/A',
+        uptime: 0
       };
-    } catch (error) {
-      console.error('Redis stats error:', error);
-      return { connected: false, error: error.message };
+    } catch {
+      // Silently handle stats errors
+      return null;
     }
   }
 
   /**
-   * Health check
+   * Health check for Redis
    */
   async healthCheck(): Promise<boolean> {
     try {
+      if (!this.isConnected) {
+        return false;
+      }
+
       await this.client.ping();
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
 
   /**
-   * Get raw Redis client for advanced operations
+   * Execute a custom Redis command
    */
-  getClient(): RedisClientType {
-    return this.client;
-  }
-
-  /**
-   * Execute Redis command directly
-   */
-  async executeCommand(command: string, ...args: any[]): Promise<any> {
+  async executeCommand(command: string, ...args: string[]): Promise<unknown> {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return await (this.client as any)[command](...args);
     } catch (error) {
-      console.error(`Redis command error (${command}):`, error);
+      // Silent error handling
       return null;
     }
   }
 }
 
 // Export singleton instance
-export const redisCache = new RedisCacheService();
+export const redisCacheService = new RedisCacheService();

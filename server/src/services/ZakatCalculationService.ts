@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Asset, Liability } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
-import { redisCache } from './RedisCacheService';
+import { redisCacheService } from './RedisCacheService';
 
 const prisma = new PrismaClient();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
@@ -40,7 +40,7 @@ export class ZakatCalculationService {
     const cacheKey = `calculation:${userId}:${JSON.stringify(request)}`;
 
     // Try to get from cache first
-    const cachedResult = await redisCache.get<ZakatCalculationResult>(cacheKey);
+    const cachedResult = await redisCacheService.get<ZakatCalculationResult>(cacheKey);
     if (cachedResult) {
       return cachedResult;
     }
@@ -85,7 +85,7 @@ export class ZakatCalculationService {
     const isZakatObligatory = netWorth >= nisabThreshold;
 
     // Calculate Zakat amount
-    const zakatRate = customRate || this.getZakatRate(methodology);
+    const zakatRate = customRate || this.getZakatRate();
     const zakatAmount = isZakatObligatory ? netWorth * zakatRate : 0;
 
     // Create detailed breakdown
@@ -141,7 +141,7 @@ export class ZakatCalculationService {
     };
 
     // Cache the result for 1 hour
-    await redisCache.set(cacheKey, result, { ttl: 3600 });
+    await redisCacheService.set(cacheKey, result, { ttl: 3600 });
 
     return result;
   }
@@ -153,7 +153,7 @@ export class ZakatCalculationService {
     const cacheKey = `history:${userId}:${limit}:${offset}`;
 
     // Try cache first
-    const cachedResult = await redisCache.get(cacheKey);
+    const cachedResult = await redisCacheService.get(cacheKey);
     if (cachedResult) {
       return cachedResult;
     }
@@ -197,7 +197,7 @@ export class ZakatCalculationService {
     };
 
     // Cache for 5 minutes
-    await redisCache.set(cacheKey, result, { ttl: 300 });
+    await redisCacheService.set(cacheKey, result, { ttl: 300 });
 
     return result;
   }
@@ -315,7 +315,7 @@ export class ZakatCalculationService {
    * Get payment history
    */
   async getPaymentHistory(userId: string, year?: string) {
-    const where: any = { userId };
+    const where: Record<string, string | boolean> = { userId };
     if (year) {
       where.islamicYear = year;
     }
@@ -387,7 +387,7 @@ export class ZakatCalculationService {
   /**
    * Private: Calculate total assets based on methodology
    */
-  private calculateTotalAssets(assets: any[], methodology: string): number {
+  private calculateTotalAssets(assets: Asset[], methodology: string): number {
     let total = 0;
     
     for (const asset of assets) {
@@ -403,7 +403,7 @@ export class ZakatCalculationService {
   /**
    * Private: Calculate total liabilities based on methodology
    */
-  private calculateTotalLiabilities(liabilities: any[], methodology: string): number {
+  private calculateTotalLiabilities(liabilities: Liability[], methodology: string): number {
     let total = 0;
 
     for (const liability of liabilities) {
@@ -419,7 +419,7 @@ export class ZakatCalculationService {
   /**
    * Private: Determine if asset is zakatable based on methodology
    */
-  private isAssetZakatable(asset: any, methodology: string): boolean {
+  private isAssetZakatable(asset: Asset, methodology: string): boolean {
     const category = asset.category?.toUpperCase();
     
     switch (methodology) {
@@ -439,7 +439,7 @@ export class ZakatCalculationService {
   /**
    * Private: Determine if liability is deductible based on methodology
    */
-  private isLiabilityDeductible(liability: any, methodology: string): boolean {
+  private isLiabilityDeductible(liability: Liability, methodology: string): boolean {
     const type = liability.type?.toUpperCase();
     
     switch (methodology) {
@@ -459,23 +459,35 @@ export class ZakatCalculationService {
   /**
    * Private: Calculate nisab value based on methodology
    */
-  private calculateNisabValue(nisabData: any, methodology: string): number {
+  private calculateNisabValue(
+    nisabData: {
+      goldNisabValue?: number;
+      silverNisabValue?: number;
+      goldPricePerGram?: number;
+      silverPricePerGram?: number;
+      [key: string]: unknown;
+    },
+    methodology: string
+  ): number {
+    const goldNisab = (nisabData?.goldNisabValue || 0) as number;
+    const silverNisab = (nisabData?.silverNisabValue || 0) as number;
+
     switch (methodology) {
       case 'HANAFI':
         // Hanafi uses silver nisab (more lenient)
-        return nisabData.silverNisabValue;
+        return silverNisab;
       
       case 'SHAFI':
       default:
         // Shafi'i and Standard use gold nisab (stricter)
-        return nisabData.goldNisabValue;
+        return goldNisab;
     }
   }
 
   /**
    * Private: Get Zakat rate based on methodology
    */
-  private getZakatRate(methodology: string): number {
+  private getZakatRate(): number {
     // Standard rate is 2.5% for all methodologies
     return 0.025;
   }
@@ -483,7 +495,12 @@ export class ZakatCalculationService {
   /**
    * Private: Create detailed breakdown
    */
-  private createBreakdown(assets: any[], liabilities: any[], methodology: string, nisabThreshold: number) {
+  private createBreakdown(
+    assets: Asset[],
+    liabilities: Liability[],
+    methodology: string,
+    nisabThreshold: number
+  ) {
     const assetBreakdown = assets.reduce((acc, asset) => {
       const category = asset.category;
       if (!acc[category]) {
@@ -497,7 +514,7 @@ export class ZakatCalculationService {
       }
       
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, Record<string, number>>);
 
     const liabilityBreakdown = liabilities.reduce((acc, liability) => {
       const type = liability.type;
@@ -512,7 +529,7 @@ export class ZakatCalculationService {
       }
       
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, Record<string, number>>);
 
     return {
       methodology,
