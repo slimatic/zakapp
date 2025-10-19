@@ -5,7 +5,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 
 export const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { isAuthenticated, login, isLoading, error } = useAuth();
 
@@ -17,11 +17,11 @@ export const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    if (!username || !password) {
       return;
     }
 
-    await login(email, password);
+    await login(username, password);
   };
 
   return (
@@ -42,16 +42,16 @@ export const Login: React.FC = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="username"
               required
-              placeholder="Email address"
-              label="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              error={error && !email ? 'Email is required' : undefined}
+              placeholder="Username or email"
+              label="Username or email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              error={error && !username ? 'Username is required' : undefined}
             />
 
             <Input
@@ -87,7 +87,7 @@ export const Login: React.FC = () => {
 
         <Button
           type="submit"
-          disabled={isLoading || !email || !password}
+          disabled={isLoading || !username || !password}
           isLoading={isLoading}
           className="w-full"
         >

@@ -136,7 +136,7 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const { stats, recentAssets, recentCalculations } = dashboardData;
+  const { stats, recentAssets } = dashboardData;
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
@@ -366,24 +366,9 @@ export const Dashboard: React.FC = () => {
           </Link>
         </div>
 
-        {recentCalculations && recentCalculations.length > 0 ? (
-          <div className="space-y-3">
-            {recentCalculations.map((calc) => (
-              <div key={calc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">{new Date(calc.createdAt).toLocaleDateString()}</p>
-                  <p className="text-sm text-gray-600">{calc.method} • {calc.status}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900">{formatCurrency(calc.totals?.totalZakatDue || 0, user?.preferences?.currency)}</p>
-                  <Link to={`/zakat/history/${calc.id}`} className="text-sm text-blue-600">View</Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-gray-500">No recent calculations</div>
-        )}
+        <div className="text-center text-gray-600">
+          <p>Visit the history page to view your calculations</p>
+        </div>
       </div>
 
       {/* Upcoming Reminders */}
