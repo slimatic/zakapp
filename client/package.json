@@ -34,7 +34,7 @@
     "zod": "^4.1.11"
   },
   "scripts": {
-    "start": "react-scripts start",
+  "start": "NODE_OPTIONS=--no-deprecation react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
