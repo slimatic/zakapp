@@ -23,7 +23,7 @@ describe('ReminderService', () => {
   describe('createReminder', () => {
     it('should create a reminder with all required fields', async () => {
       const reminderData = {
-        eventType: 'zakat_anniversary' as const,
+        eventType: 'zakat_anniversary_approaching' as const,
         triggerDate: new Date('2025-06-15'),
         title: 'Zakat Anniversary Reminder',
         message: 'Your annual Zakat calculation is due',
@@ -47,7 +47,7 @@ describe('ReminderService', () => {
 
     it('should handle optional metadata', async () => {
       const reminderData = {
-        eventType: 'payment_due' as const,
+        eventType: 'payment_incomplete' as const,
         triggerDate: new Date('2025-01-01'),
         title: 'Payment Due',
         message: 'Zakat payment is due',
@@ -71,7 +71,7 @@ describe('ReminderService', () => {
       const mockReminder = {
         id: 'reminder-123',
         userId: mockUserId,
-        eventType: 'zakat_anniversary',
+        eventType: 'zakat_anniversary_approaching',
         status: 'pending'
       };
 
@@ -155,11 +155,11 @@ describe('ReminderService', () => {
     it('should filter by event type', async () => {
       (ReminderEventModel.findByUser as jest.Mock).mockResolvedValue({ data: [], total: 0 });
 
-      await service.listReminders(mockUserId, { eventType: 'zakat_anniversary' });
+      await service.listReminders(mockUserId, { eventType: 'zakat_anniversary_approaching' });
 
       expect(ReminderEventModel.findByUser).toHaveBeenCalledWith(
         mockUserId,
-        expect.objectContaining({ eventType: 'zakat_anniversary' })
+        expect.objectContaining({ eventType: 'zakat_anniversary_approaching' })
       );
     });
 
@@ -393,7 +393,7 @@ describe('ReminderService', () => {
     it('should not duplicate reminders', async () => {
       const existingReminder = {
         id: 'existing-reminder',
-        eventType: 'zakat_anniversary',
+        eventType: 'zakat_anniversary_approaching',
         relatedSnapshotId: 'snap1',
         triggerDate: new Date()
       };
@@ -413,7 +413,7 @@ describe('ReminderService', () => {
   describe('priority handling', () => {
     it('should support high priority reminders', async () => {
       const highPriorityData = {
-        eventType: 'zakat_anniversary' as const,
+        eventType: 'zakat_anniversary_approaching' as const,
         triggerDate: new Date(),
         title: 'Urgent',
         message: 'Immediate action required',
@@ -433,7 +433,7 @@ describe('ReminderService', () => {
 
     it('should support medium priority reminders', async () => {
       const mediumPriorityData = {
-        eventType: 'payment_due' as const,
+        eventType: 'payment_incomplete' as const,
         triggerDate: new Date(),
         title: 'Reminder',
         message: 'Action needed',
@@ -453,7 +453,7 @@ describe('ReminderService', () => {
 
     it('should support low priority reminders', async () => {
       const lowPriorityData = {
-        eventType: 'info' as const,
+        eventType: 'methodology_review' as const,
         triggerDate: new Date(),
         title: 'FYI',
         message: 'Information',
@@ -474,10 +474,10 @@ describe('ReminderService', () => {
 
   describe('event types', () => {
     const eventTypes = [
-      'zakat_anniversary',
-      'payment_due',
-      'calculation_reminder',
-      'info'
+      'zakat_anniversary_approaching',
+      'payment_incomplete',
+      'calculation_overdue',
+      'methodology_review'
     ] as const;
 
     eventTypes.forEach(eventType => {

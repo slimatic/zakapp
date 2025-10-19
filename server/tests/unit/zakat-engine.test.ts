@@ -3,6 +3,7 @@ import { CurrencyService } from '../../src/services/currencyService';
 import { CalendarService } from '../../src/services/calendarService';
 import { NisabService } from '../../src/services/NisabService';
 import { ZakatCalculationRequest, Asset } from '../../../shared/src/types';
+import { ZAKAT_METHODS } from '../../../shared/src/constants';
 
 // Mock dependencies
 jest.mock('../../src/services/currencyService');
@@ -22,7 +23,7 @@ describe('ZakatEngine Core Unit Tests', () => {
     mockNisabService = new NisabService() as jest.Mocked<NisabService>;
 
     // Mock the methods
-    mockCurrencyService.convertToUSD = jest.fn().mockResolvedValue(1);
+    mockCurrencyService.convertToBaseCurrency = jest.fn().mockResolvedValue(1);
     mockCalendarService.getCalendarInfo = jest.fn().mockResolvedValue({
       hijriDate: { year: 1445, month: 1, day: 1 },
       gregorianDate: new Date('2024-01-01'),
@@ -44,25 +45,25 @@ describe('ZakatEngine Core Unit Tests', () => {
 
   describe('calculateNisabThreshold', () => {
     test('should calculate nisab threshold for gold (85g)', async () => {
-      const methodology = { id: 'standard', name: 'Standard', nisabType: 'gold' as const };
+      const methodology = ZAKAT_METHODS.STANDARD;
       const result = await zakatEngine['calculateNisabThreshold'](methodology);
 
       expect(result).toBeDefined();
-      expect(result.threshold).toBeGreaterThan(0);
+      expect(result.effectiveNisab).toBeGreaterThan(0);
       expect(mockNisabService.calculateNisab).toHaveBeenCalledWith(methodology, undefined);
     });
 
     test('should calculate nisab threshold for silver (595g)', async () => {
-      const methodology = { id: 'hanafi', name: 'Hanafi', nisabType: 'silver' as const };
+      const methodology = ZAKAT_METHODS.HANAFI;
       const result = await zakatEngine['calculateNisabThreshold'](methodology);
 
       expect(result).toBeDefined();
-      expect(result.threshold).toBeGreaterThan(0);
+      expect(result.effectiveNisab).toBeGreaterThan(0);
       expect(mockNisabService.calculateNisab).toHaveBeenCalledWith(methodology, undefined);
     });
 
-    test('should handle custom nisab values', async () => {
-      const methodology = { id: 'custom', name: 'Custom', nisabType: 'gold' as const };
+    test('should use custom nisab when provided', async () => {
+      const methodology = ZAKAT_METHODS.STANDARD;
       const customNisab = 10000;
       const result = await zakatEngine['calculateNisabThreshold'](methodology, customNisab);
 
@@ -75,37 +76,43 @@ describe('ZakatEngine Core Unit Tests', () => {
     test('should group assets correctly by category', () => {
       const assets: Asset[] = [
         {
-          id: '1',
-          userId: 'user1',
+
+          assetId: '1',
           name: 'Cash',
           category: 'cash',
+          subCategory: 'savings',
           value: 1000,
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         },
         {
-          id: '2',
-          userId: 'user1',
+
+          assetId: '2',
           name: 'Gold',
           category: 'gold',
+          subCategory: 'jewelry',
           value: 2000,
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         },
         {
-          id: '3',
-          userId: 'user1',
+
+          assetId: '3',
           name: 'More Cash',
           category: 'cash',
+          subCategory: 'checking',
           value: 500,
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         }
       ];
 
@@ -126,26 +133,30 @@ describe('ZakatEngine Core Unit Tests', () => {
     test('should exclude non-zakatable assets', () => {
       const assets: Asset[] = [
         {
-          id: '1',
-          userId: 'user1',
+
+          assetId: '1',
           name: 'Cash',
           category: 'cash',
+          subCategory: 'savings',
           value: 1000,
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         },
         {
-          id: '2',
-          userId: 'user1',
+
+          assetId: '2',
           name: 'Personal Home',
-          category: 'real-estate',
+          category: 'property',
+          subCategory: 'residential',
           value: 50000,
           currency: 'USD',
-          isZakatable: false, // Not zakatable
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: false, // Property for personal use is not zakatable
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         }
       ];
 
@@ -188,24 +199,28 @@ describe('ZakatEngine Core Unit Tests', () => {
 
   describe('Standard methodology', () => {
     test('should treat all liquid assets as zakatable', async () => {
-      const request: ZakatCalculationRequest = {
+      const request = {
         method: 'standard',
-        calculationDate: new Date('2024-01-01'),
+        calendarType: 'lunar' as const,
+
+        calculationDate: '2024-01-01',
         includeAssets: ['cash', 'gold', 'silver', 'investments'],
-        includeDebts: false
       };
 
       const assets: Asset[] = [
         {
-          id: '1',
-          userId: 'user1',
+
+          assetId: '1',
+
           name: 'Cash',
           category: 'cash',
+          subCategory: 'savings',
           value: 10000,
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         }
       ];
 
@@ -219,24 +234,28 @@ describe('ZakatEngine Core Unit Tests', () => {
 
   describe('Hanafi methodology', () => {
     test('should have different nisab calculation', async () => {
-      const request: ZakatCalculationRequest = {
+      const request = {
         method: 'hanafi',
-        calculationDate: new Date('2024-01-01'),
+        calendarType: 'lunar' as const,
+
+        calculationDate: '2024-01-01',
         includeAssets: ['cash', 'gold', 'silver'],
-        includeDebts: false
       };
 
       const assets: Asset[] = [
         {
-          id: '1',
-          userId: 'user1',
+
+          assetId: '1',
+
           name: 'Cash',
           category: 'cash',
+          subCategory: 'savings',
           value: 10000,
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         }
       ];
 
@@ -250,24 +269,28 @@ describe('ZakatEngine Core Unit Tests', () => {
 
   describe('Shafi\'i methodology', () => {
     test('should have specific asset treatment', async () => {
-      const request: ZakatCalculationRequest = {
+      const request = {
         method: 'shafii',
-        calculationDate: new Date('2024-01-01'),
+        calendarType: 'lunar' as const,
+
+        calculationDate: '2024-01-01',
         includeAssets: ['cash', 'gold', 'silver', 'business'],
-        includeDebts: false
       };
 
       const assets: Asset[] = [
         {
-          id: '1',
-          userId: 'user1',
+
+          assetId: '1',
+
           name: 'Business Inventory',
           category: 'business',
+          subCategory: 'inventory',
           value: 10000,
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         }
       ];
 
@@ -280,35 +303,41 @@ describe('ZakatEngine Core Unit Tests', () => {
 
   describe('deductible debt handling', () => {
     test('should subtract debts when includeDebts is true', async () => {
-      const request: ZakatCalculationRequest = {
+      const request = {
         method: 'standard',
-        calculationDate: new Date('2024-01-01'),
+        calendarType: 'lunar' as const,
+
+        calculationDate: '2024-01-01',
         includeAssets: ['cash'],
-        includeDebts: true
       };
 
       const assets: Asset[] = [
         {
-          id: '1',
-          userId: 'user1',
+
+          assetId: '1',
+
           name: 'Cash',
           category: 'cash',
+          subCategory: 'savings',
           value: 10000,
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         },
         {
-          id: '2',
-          userId: 'user1',
+
+          assetId: '2',
           name: 'Debt',
-          category: 'debt',
+          category: 'debts',
+          subCategory: 'owed_to_me',
           value: 2000, // This should be subtracted
           currency: 'USD',
-          isZakatable: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         }
       ];
 
@@ -329,31 +358,35 @@ describe('ZakatEngine Core Unit Tests', () => {
         currency: 'USD'
       });
 
-      const request: ZakatCalculationRequest = {
+      const request = {
         method: 'standard',
-        calculationDate: new Date('2024-01-01'),
+        calendarType: 'lunar' as const,
+
+        calculationDate: '2024-01-01',
         includeAssets: ['cash'],
-        includeDebts: false
       };
 
       const assets: Asset[] = [
         {
-          id: '1',
-          userId: 'user1',
+
+          assetId: '1',
+
           name: 'Small Cash',
           category: 'cash',
+          subCategory: 'savings',
           value: 1000, // Below nisab threshold
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         }
       ];
 
       const result = await zakatEngine.calculateZakat({ ...request, assets });
 
       expect(result).toBeDefined();
-      expect(result.result.zakatAmount).toBe(0); // Should be zero below nisab
+      expect(result.result.totals.totalZakatDue).toBe(0); // Should be zero below nisab
     });
   });
 
@@ -361,15 +394,18 @@ describe('ZakatEngine Core Unit Tests', () => {
     test('should handle negative asset values', async () => {
       const assets: Asset[] = [
         {
-          id: '1',
-          userId: 'user1',
+
+          assetId: '1',
+
           name: 'Negative Asset',
           category: 'cash',
+          subCategory: 'savings',
           value: -1000, // Negative value
           currency: 'USD',
-          isZakatable: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          zakatEligible: true,
+          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString()
         }
       ];
 

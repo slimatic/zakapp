@@ -8,7 +8,8 @@ export interface DateComponents {
   year: number;
   month: number;
   day: number;
-  formatted: string;
+  formatted?: string;
+  monthName?: string;
 }
 
 export interface ConversionResult {
@@ -23,6 +24,8 @@ export interface ZakatYear {
   endDate: Date;
   calendarType: 'GREGORIAN' | 'HIJRI';
   daysInYear: number;
+  periodDays: number;
+  adjustmentFactor: number;
   hijriStart?: DateComponents;
   hijriEnd?: DateComponents;
 }
@@ -142,6 +145,8 @@ export class CalendarService {
       endDate,
       calendarType,
       daysInYear,
+      periodDays: calendarType === 'HIJRI' ? 354.367 : 365.25,
+      adjustmentFactor: calendarType === 'HIJRI' ? 0.9704 : 1.0,
       hijriStart,
       hijriEnd
     };
@@ -203,6 +208,61 @@ export class CalendarService {
       calculationPeriod: 'lunar',
       adjustmentFactor
     };
+  }
+
+  /**
+   * Get current Islamic date
+   */
+  getCurrentIslamicDate(): DateComponents {
+    return this.convertDate(new Date(), 'GREGORIAN', 'HIJRI').convertedDate;
+  }
+
+  /**
+   * Format Hijri date as string
+   */
+  formatHijriDate(date: DateComponents): string {
+    return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
+  }
+
+  /**
+   * Check if a Hijri year is a leap year
+   */
+  isHijriLeapYear(year: number): boolean {
+    // Hijri calendar leap year calculation
+    // A year is leap if (11 * year + 14) mod 30 < 11
+    return (11 * year + 14) % 30 < 11;
+  }
+
+  /**
+   * Get number of days in a Hijri month
+   */
+  getDaysInHijriMonth(month: number, year: number): number {
+    if (month === 12) {
+      // Dhul-Hijjah: 30 days normally, 29 in leap years
+      return this.isHijriLeapYear(year) ? 29 : 30;
+    } else if (month % 2 === 1) {
+      // Odd months: 30 days
+      return 30;
+    } else {
+      // Even months: 29 days
+      return 29;
+    }
+  }
+
+  /**
+   * Get lunar year adjustment factor
+   */
+  getLunarYearAdjustment(): number {
+    return 354 / 365; // Lunar year is 354 days, solar is 365
+  }
+
+  /**
+   * Calculate Zakat year period (alias for calculateZakatYear)
+   */
+  calculateZakatYearPeriod(referenceDate: Date, calendarType: 'GREGORIAN' | 'HIJRI' | 'lunar' | 'solar'): ZakatYear {
+    // Map 'lunar'/'solar' to 'HIJRI'/'GREGORIAN' for backward compatibility
+    const mappedType = calendarType === 'lunar' ? 'HIJRI' : calendarType === 'solar' ? 'GREGORIAN' : calendarType;
+    return this.calculateZakatYear(referenceDate, mappedType as 'GREGORIAN' | 'HIJRI');
   }
 }
 
