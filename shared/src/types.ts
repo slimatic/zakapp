@@ -497,10 +497,22 @@ export interface ZakatCalculationRequest {
   methodologyConfigId?: string;
   
   /** Calendar system for calculation */
-  calendarType?: 'GREGORIAN' | 'HIJRI';
+  calendarType?: 'lunar' | 'solar';
   
   /** Reference date for calculation */
   referenceDate?: string;
+  
+  /** Calculation method identifier (for internal use) */
+  method?: string;
+  
+  /** Date when calculation is performed */
+  calculationDate: string;
+  
+  /** Asset IDs to include in calculation */
+  includeAssets?: string[];
+  
+  /** Custom nisab threshold override */
+  customNisab?: number;
 }
 
 /**
@@ -781,31 +793,22 @@ export interface AlternativeCalculation {
  */
 export interface ZakatCalculationResult {
   /** Primary calculation result */
-  calculation: {
-    id: string;
-    methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
-    methodologyConfigId?: string;
-    totalWealth: number;
-    nisabThreshold: number;
-    zakatDue: number;
-    isAboveNisab: boolean;
-    zakatRate: number;
-    calculationDate: string;
-    calendarType: 'GREGORIAN' | 'HIJRI';
-    zakatYear: {
-      startDate: string;
-      endDate: string;
-      calendarType: 'GREGORIAN' | 'HIJRI';
-      daysInYear: number;
-    };
-    assetBreakdown: Array<{
-      category: string;
-      totalValue: number;
-      isZakatable: boolean;
-      count: number;
-    }>;
-    isLocked: boolean;
-  };
+  result: ZakatCalculation;
+  
+  /** Methodology information used */
+  methodology: MethodologyInfo;
+  
+  /** Detailed breakdown of the calculation */
+  breakdown: CalculationBreakdown;
+  
+  /** Assumptions made during calculation */
+  assumptions: string[];
+  
+  /** Scholarly sources supporting the calculation */
+  sources: string[];
+  
+  /** Alternative calculations with different methodologies */
+  alternatives: AlternativeCalculation[];
 }
 
 /**
@@ -966,41 +969,5 @@ export interface SnapshotComparison {
     removed: SnapshotAssetValue[];
     modified: SnapshotAssetValue[];
     valueChange: number;
-  };
-}
-
-// Zakat Calculation Types
-export interface ZakatCalculationRequest {
-  methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
-  methodologyConfigId?: string;
-  calendarType: 'GREGORIAN' | 'HIJRI';
-  referenceDate?: string;
-}
-
-export interface ZakatCalculationResult {
-  calculation: {
-    id: string;
-    methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
-    methodologyConfigId?: string;
-    totalWealth: number;
-    nisabThreshold: number;
-    zakatDue: number;
-    isAboveNisab: boolean;
-    zakatRate: number;
-    calculationDate: string;
-    calendarType: 'GREGORIAN' | 'HIJRI';
-    zakatYear: {
-      startDate: string;
-      endDate: string;
-      calendarType: 'GREGORIAN' | 'HIJRI';
-      daysInYear: number;
-    };
-    assetBreakdown: Array<{
-      category: string;
-      totalValue: number;
-      isZakatable: boolean;
-      count: number;
-    }>;
-    isLocked: boolean;
   };
 }

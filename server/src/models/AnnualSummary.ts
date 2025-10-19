@@ -392,4 +392,47 @@ export class AnnualSummaryModel {
       throw new Error(`Failed to get summary statistics: ${errorMessage}`);
     }
   }
+
+  /**
+   * Creates or updates an annual summary
+   * @param userId - User ID
+   * @param data - Summary data
+   * @returns Promise<AnnualSummary> - Created or updated summary
+   */
+  static async createOrUpdate(
+    userId: string,
+    data: {
+      snapshotId: string;
+      gregorianYear: number;
+      hijriYear: number;
+      startDate: Date;
+      endDate: Date;
+      totalZakatCalculated: number;
+      totalZakatPaid: number;
+      outstandingZakat: number;
+      numberOfPayments: number;
+      recipientSummary: RecipientSummary;
+      assetBreakdown: Record<string, any>;
+      comparativeAnalysis?: ComparativeAnalysis;
+      methodologyUsed: ZakatMethodology;
+      nisabInfo: Record<string, any>;
+      userNotes?: string;
+    }
+  ): Promise<AnnualSummary> {
+    try {
+      // Check if summary already exists
+      const existing = await this.findBySnapshot(data.snapshotId, userId);
+      
+      if (existing) {
+        // Update existing summary
+        return await this.update(existing.id, userId, data);
+      } else {
+        // Create new summary
+        return await this.create(userId, data);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to create or update annual summary: ${errorMessage}`);
+    }
+  }
 }
