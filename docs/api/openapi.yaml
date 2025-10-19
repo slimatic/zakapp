@@ -23,7 +23,9 @@ servers:
   - url: https://api.zakapp.com/v1
     description: Production server
   - url: http://localhost:3001/v1
-    description: Local development server
+    description: Local development server (API server default)
+  - url: http://localhost:5000/api
+    description: Local development server (client default)
 
 security:
   - bearerAuth: []
