@@ -115,13 +115,20 @@ export const useDeleteAsset = () => {
 // Zakat calculation hooks
 export const useZakatCalculation = () => {
   return useMutation({
-    mutationFn: (calculationData: any) => apiService.calculateZakat(calculationData),
+    mutationFn: (calculationData: {
+      method: 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom';
+      calendarType?: 'lunar' | 'solar';
+      calculationDate?: string;
+      includeAssets?: string[];
+      includeLiabilities?: string[];
+      customNisab?: number;
+    }) => apiService.calculateZakat(calculationData),
   });
 };
 
 export const useZakatHistory = () => {
   return useQuery({
-    queryKey: ['zakat', 'history'],
+    queryKey: ['calculations', 'history'],
     queryFn: () => apiService.getZakatHistory(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -129,7 +136,7 @@ export const useZakatHistory = () => {
 
 export const useZakatMethodologies = () => {
   return useQuery({
-    queryKey: ['zakat', 'methodologies'],
+    queryKey: ['methodologies'],
     queryFn: () => apiService.getMethodologies(),
     staleTime: 60 * 60 * 1000, // 1 hour - methodologies don't change often
   });
@@ -140,6 +147,60 @@ export const useNisabThresholds = () => {
     queryKey: ['zakat', 'nisab'],
     queryFn: () => apiService.getNisab(),
     staleTime: 60 * 60 * 1000, // 1 hour - nisab thresholds updated daily
+  });
+};
+
+// Calculation-specific hooks
+export const useCalculationHistory = (filters?: {
+  page?: number;
+  limit?: number;
+  methodology?: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
+  startDate?: string;
+  endDate?: string;
+}) => {
+  return useQuery({
+    queryKey: ['calculations', 'history', filters],
+    queryFn: () => apiService.getCalculationHistory(filters),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useCalculationById = (id: string) => {
+  return useQuery({
+    queryKey: ['calculations', id],
+    queryFn: () => apiService.getCalculationById(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useCompareMethodologies = () => {
+  return useMutation({
+    mutationFn: (comparisonData: {
+      methodologies: ('STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM')[];
+      customConfigIds?: string[];
+      referenceDate?: string;
+    }) => apiService.compareMethodologies(comparisonData),
+  });
+};
+
+export const useCalendarPreference = () => {
+  return useQuery({
+    queryKey: ['user', 'calendar-preference'],
+    queryFn: () => apiService.getCalendarPreference(),
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
+};
+
+export const useUpdateCalendarPreference = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (calendarType: 'GREGORIAN' | 'HIJRI') => 
+      apiService.updateCalendarPreference(calendarType),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user', 'calendar-preference'] });
+    },
   });
 };
 
