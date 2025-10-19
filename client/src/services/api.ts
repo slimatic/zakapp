@@ -334,7 +334,7 @@ class ApiService {
   }
 
   async recordPayment(data: any): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/payment`, {
+    const response = await fetch(`${API_BASE_URL}/zakat/payments`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data)
