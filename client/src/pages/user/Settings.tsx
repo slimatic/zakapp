@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import type { UserPreferences } from '@zakapp/shared';
+import { useCalendarPreference, useUpdateCalendarPreference } from '../../services/apiHooks';
 
 interface AppSettings {
   notifications: {
@@ -53,9 +54,15 @@ export const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'general' | 'calculations' | 'notifications' | 'privacy' | 'backup'>('general');
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
 
+  // Load calendar preference
+  const { data: calendarPreference } = useCalendarPreference();
+
+  // Update calendar preference mutation
+  const updateCalendarMutation = useUpdateCalendarPreference();
+
   // Load current settings
   const { data: settings, isLoading, error } = useQuery({
-    queryKey: ['settings'],
+    queryKey: ['settings', calendarPreference?.data?.calendarType],
     queryFn: async (): Promise<AppSettings> => {
       // This would typically come from an API endpoint
       // For now, we'll use default values with user preferences
@@ -81,7 +88,7 @@ export const Settings: React.FC = () => {
           language: user?.preferences?.language || 'en',
           dateFormat: 'MM/DD/YYYY',
           numberFormat: 'en-US',
-          calendarSystem: user?.preferences?.calendarType || 'lunar',
+          calendarSystem: 'lunar',
           showIslamicDates: true,
         },
         privacy: {
@@ -112,12 +119,7 @@ export const Settings: React.FC = () => {
   // Save settings mutation
   const saveSettingsMutation = useMutation({
     mutationFn: async (newSettings: AppSettings) => {
-      // This would save to the backend
-      return fetch('/api/user/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSettings)
-      });
+      return apiService.updateSettings(newSettings);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
@@ -141,9 +143,26 @@ export const Settings: React.FC = () => {
     },
   });
 
-  const handleSaveSettings = () => {
-    if (localSettings) {
-      saveSettingsMutation.mutate(localSettings);
+  const handleSaveSettings = async () => {
+    if (!localSettings) return;
+
+    try {
+      // Save general settings
+      await saveSettingsMutation.mutateAsync(localSettings);
+
+      // Update calendar preference if it changed
+      const currentCalendarType = calendarPreference?.data?.calendarType;
+      const newCalendarType = localSettings.display.calendarSystem === 'lunar' ? 'HIJRI' : 'GREGORIAN';
+
+      if (currentCalendarType !== newCalendarType) {
+        await updateCalendarMutation.mutateAsync(newCalendarType);
+      }
+
+      setShowSuccessMessage('Settings saved successfully!');
+      setTimeout(() => setShowSuccessMessage(null), 5000);
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      // Error handling will be done by the mutations
     }
   };
 

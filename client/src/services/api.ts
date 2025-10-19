@@ -198,11 +198,78 @@ class ApiService {
   }
 
   // Zakat Calculation Methods
-  async calculateZakat(data: any): Promise<ApiResponse> {
+  async calculateZakat(data: {
+    method: 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom';
+    calendarType?: 'lunar' | 'solar';
+    calculationDate?: string;
+    includeAssets?: string[];
+    includeLiabilities?: string[];
+    customNisab?: number;
+  }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/calculate`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async getCalculationHistory(filters?: {
+    page?: number;
+    limit?: number;
+    methodology?: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
+    startDate?: string;
+    endDate?: string;
+  }): Promise<ApiResponse> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.methodology) params.append('methodology', filters.methodology);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+
+    const url = params.toString()
+      ? `${API_BASE_URL}/calculations/history?${params.toString()}`
+      : `${API_BASE_URL}/calculations/history`;
+
+    const response = await fetch(url, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getCalculationById(id: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calculations/${id}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async compareMethodologies(data: {
+    methodologies: ('STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM')[];
+    customConfigIds?: string[];
+    referenceDate?: string;
+  }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/calculations/compare`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async getCalendarPreference(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/calendar-preference`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateCalendarPreference(calendarType: 'GREGORIAN' | 'HIJRI'): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/calendar-preference`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ calendarType })
     });
     return this.handleResponse(response);
   }
@@ -498,6 +565,26 @@ class ApiService {
     const params = year ? `?year=${year}` : '';
     const response = await fetch(`${API_BASE_URL}/zakat/payments/summary${params}`, {
       headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  // Settings Methods
+  async getSettings(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/settings`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateSettings(settings: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/settings`, {
+      method: 'PUT',
+      headers: {
+        ...this.getAuthHeaders(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(settings)
     });
     return this.handleResponse(response);
   }

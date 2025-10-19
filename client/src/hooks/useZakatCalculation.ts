@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/api';
-import { ZakatCalculationRequest, ZakatCalculationResult } from '@zakapp/shared';
 
 /**
  * Hook for Zakat calculation operations
@@ -14,7 +13,14 @@ export const useCalculateZakat = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (options: ZakatCalculationRequest): Promise<ZakatCalculationResult> => {
+    mutationFn: async (options: {
+      method: 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom';
+      calendarType?: 'lunar' | 'solar';
+      calculationDate?: string;
+      includeAssets?: string[];
+      includeLiabilities?: string[];
+      customNisab?: number;
+    }) => {
       const response = await apiService.calculateZakat(options);
 
       if (!response.success) {
@@ -64,7 +70,14 @@ export const useCalculateZakatOptimistic = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (options: ZakatCalculationRequest): Promise<ZakatCalculationResult> => {
+    mutationFn: async (options: {
+      method: 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom';
+      calendarType?: 'lunar' | 'solar';
+      calculationDate?: string;
+      includeAssets?: string[];
+      includeLiabilities?: string[];
+      customNisab?: number;
+    }) => {
       const response = await apiService.calculateZakat(options);
 
       if (!response.success) {
@@ -86,7 +99,7 @@ export const useCalculateZakatOptimistic = () => {
       await queryClient.cancelQueries({ queryKey: ['zakat', 'calculation'] });
 
       // Snapshot the previous value
-      const previousCalculation = queryClient.getQueryData<ZakatCalculationResult>(['zakat', 'calculation']);
+      const previousCalculation = queryClient.getQueryData(['zakat', 'calculation']);
 
       // Optimistically update with loading state
       if (previousCalculation) {
