@@ -319,6 +319,46 @@ export class ReminderService {
   }
 
   /**
+   * Triggers zakat anniversary reminders for a user
+   * @param userId - User ID
+   * @returns Array of created reminders
+   */
+  async triggerZakatAnniversaryReminders(userId: string): Promise<ReminderEvent[]> {
+    const createdReminders: ReminderEvent[] = [];
+    const now = new Date();
+
+    // Get all snapshots for the user
+    const snapshots = await YearlySnapshotModel.findByUser(userId, { limit: 100 });
+    
+    for (const snapshot of snapshots.data) {
+      // Check if it's time for anniversary reminder (1 year after calculation)
+      const anniversaryDate = new Date(snapshot.createdAt);
+      anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
+      
+      // If anniversary is within 7 days
+      const daysUntilAnniversary = Math.ceil((anniversaryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntilAnniversary >= 0 && daysUntilAnniversary <= 7) {
+        const reminder = await this.createReminder(userId, {
+          eventType: 'zakat_anniversary_approaching',
+          triggerDate: anniversaryDate,
+          title: 'Zakat Anniversary Reminder',
+          message: `Your Zakat calculation from ${snapshot.gregorianYear} is approaching its one-year anniversary.`,
+          priority: 'high',
+          relatedSnapshotId: snapshot.id,
+          metadata: { 
+            year: snapshot.gregorianYear,
+            anniversaryDate: anniversaryDate.toISOString()
+          }
+        });
+        createdReminders.push(reminder);
+      }
+    }
+
+    return createdReminders;
+  }
+
+  /**
    * Batch triggers reminders for all users (for scheduled jobs)
    * @returns Number of reminders created
    */
