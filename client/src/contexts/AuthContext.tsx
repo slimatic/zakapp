@@ -115,9 +115,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      console.log('Attempting login with email:', email);
-      // Send email directly - backend expects 'email' field
-      const response = await apiService.login({ email, password });
+      console.log('Attempting login with username/email:', email);
+      // Support both username and email - backend now accepts either
+      // If it looks like an email, send as email; otherwise send as username
+      const isEmail = email.includes('@');
+      const credentials = isEmail 
+        ? { email, password }
+        : { username: email, password };
+      
+      const response = await apiService.login(credentials);
       console.log('Login response:', { ...response, accessToken: response.accessToken ? '[PRESENT]' : '[MISSING]' });
       
       if (response.success && response.accessToken && response.user) {
