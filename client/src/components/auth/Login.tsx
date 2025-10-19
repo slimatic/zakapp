@@ -51,7 +51,7 @@ export const Login: React.FC = () => {
               label="Username or email"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              error={error && !username ? 'Username is required' : undefined}
+              error={error && !username ? 'Username or email is required' : undefined}
             />
 
             <Input
