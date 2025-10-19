@@ -100,15 +100,22 @@ router.post('/login',
   validateUserLogin,
   asyncHandler(async (req: Request, res: Response) => {
     const { email, username, password } = req.body;
-    
-    // Support login with either email or username
-    const loginField = email || username;
 
     try {
-      // Find user in database by email
-      const user = await prisma.user.findUnique({
-        where: { email: loginField }
-      });
+      // Find user in database by either email or username
+      let user;
+      
+      if (email) {
+        // Try to find by email
+        user = await prisma.user.findUnique({
+          where: { email }
+        });
+      } else if (username) {
+        // Try to find by username
+        user = await prisma.user.findUnique({
+          where: { username }
+        });
+      }
 
       if (!user) {
         res.status(401).json({
@@ -152,21 +159,16 @@ router.post('/login',
       // Respond with standard format
       res.status(200).json({
         success: true,
-        data: {
-          accessToken,
-          refreshToken,
-          user: {
-            id: user.id,
-            email: user.email,
-            preferences: {
-              calendar: user.preferredCalendar,
-              methodology: user.preferredMethodology
-            }
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          preferences: {
+            calendar: user.preferredCalendar,
+            methodology: user.preferredMethodology
           }
-        },
-        metadata: {
-          timestamp: new Date().toISOString(),
-          version: '1.0.0'
         }
       });
     } catch (error) {
@@ -191,10 +193,10 @@ router.post('/register',
   validateUserRegistration,
   handleValidationErrors,
   asyncHandler(async (req: Request, res: Response) => {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, username, password, firstName, lastName } = req.body;
 
     try {
-      // Check if user already exists in database
+      // Check if user already exists in database by email
       const existingUser = await prisma.user.findUnique({
         where: { email }
       });
@@ -210,6 +212,24 @@ router.post('/register',
         return;
       }
 
+      // Also check if username is already taken (if provided)
+      if (username) {
+        const existingUsername = await prisma.user.findUnique({
+          where: { username }
+        });
+
+        if (existingUsername) {
+          res.status(409).json({
+            success: false,
+            error: {
+              code: 'USERNAME_ALREADY_EXISTS',
+              message: 'Username is already taken'
+            }
+          });
+          return;
+        }
+      }
+
       // Hash password
       const passwordHash = await bcrypt.hash(password, 12);
 
@@ -217,6 +237,7 @@ router.post('/register',
       const user = await prisma.user.create({
         data: {
           email,
+          username,  // Store the username
           passwordHash,
           profile: JSON.stringify({ firstName, lastName }), // Store profile as JSON
           isActive: true,
@@ -238,27 +259,20 @@ router.post('/register',
       // Respond with standard format matching contract expectations
       res.status(201).json({
         success: true,
-        data: {
-          user: {
-            id: user.id,
-            email: user.email,
-            encryptedProfile: user.profile || '',
-            isActive: user.isActive,
-            createdAt: user.createdAt.toISOString(),
-            preferences: {
-              calendar: user.preferredCalendar,
-              methodology: user.preferredMethodology
-            }
-          },
-          tokens: {
-            accessToken,
-            refreshToken
-          },
-          auditLogId: `audit-${user.id}-${Date.now()}`
-        },
-        metadata: {
-          timestamp: new Date().toISOString(),
-          version: '1.0.0'
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          firstName: JSON.parse(user.profile || '{}').firstName,
+          lastName: JSON.parse(user.profile || '{}').lastName,
+          isActive: user.isActive,
+          createdAt: user.createdAt.toISOString(),
+          preferences: {
+            calendar: user.preferredCalendar,
+            methodology: user.preferredMethodology
+          }
         }
       });
     } catch (error) {

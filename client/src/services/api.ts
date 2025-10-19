@@ -83,13 +83,16 @@ class ApiService {
       const result = await response.json();
       
       if (!response.ok) {
+        // Extract detailed error message
+        const errorMessage = result.error?.message || result.message || `Login failed: ${response.status}`;
+        console.error('Login error response:', result);
         return {
           success: false,
-          message: result.error?.message || result.message || `Login failed: ${response.status}`
+          message: errorMessage
         };
       }
       
-      // Backend returns: { message, user, accessToken, refreshToken }
+      // Backend returns: { success, accessToken, refreshToken, user }
       return {
         success: true,
         accessToken: result.accessToken,
@@ -116,13 +119,16 @@ class ApiService {
       const result = await response.json();
       
       if (!response.ok) {
+        // Extract detailed error message
+        const errorMessage = result.error?.message || result.message || result.details?.[0]?.msg || `Registration failed: ${response.status}`;
+        console.error('Registration error response:', result);
         return {
           success: false,
-          message: result.error?.message || result.message || result.details?.[0]?.msg || `Registration failed: ${response.status}`
+          message: errorMessage
         };
       }
       
-      // Backend returns: { message, user, accessToken, refreshToken }
+      // Backend returns: { success, accessToken, refreshToken, user }
       return {
         success: true,
         accessToken: result.accessToken,
