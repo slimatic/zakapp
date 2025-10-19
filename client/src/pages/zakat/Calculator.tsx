@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAssets, useZakatCalculation, useZakatMethodologies } from '../../services/apiHooks';
-import { Asset, ZakatMethodology } from '../../../../shared/src/types';
+import { useAssets, useZakatCalculation, useZakatMethodologies, useCompareMethodologies } from '../../services/apiHooks';
+import { Asset, ZakatMethodology } from '@zakapp/shared';
 import { Button, LoadingSpinner, ErrorMessage } from '../../components/ui';
 import { ZakatResults, MethodologySelector } from '../../components/zakat';
 
 interface CalculationParams {
-  methodology: string;
-  calendarType: 'lunar' | 'solar';
+  methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
+  calendarType: 'GREGORIAN' | 'HIJRI';
   calculationDate: string;
   includeAssets: string[];
   includeLiabilities: string[];
@@ -25,8 +25,8 @@ interface CalculationParams {
 export const Calculator: React.FC = () => {
   // State management
   const [calculationParams, setCalculationParams] = useState<CalculationParams>({
-    methodology: 'standard',
-    calendarType: 'lunar',
+    methodology: 'STANDARD',
+    calendarType: 'HIJRI',
     calculationDate: new Date().toISOString().split('T')[0],
     includeAssets: [],
     includeLiabilities: []
@@ -36,11 +36,13 @@ export const Calculator: React.FC = () => {
   const [showMethodologyComparison, setShowMethodologyComparison] = useState(false);
   const [calculationResult, setCalculationResult] = useState<any>(null);
   const [saveCalculationName, setSaveCalculationName] = useState('');
+  const [comparisonResults, setComparisonResults] = useState<any>(null);
 
   // API hooks
   const { data: assets, isLoading: assetsLoading, error: assetsError } = useAssets();
   const { data: methodologies, isLoading: methodologiesLoading } = useZakatMethodologies();
   const zakatCalculation = useZakatCalculation();
+  const compareMethodologies = useCompareMethodologies();
 
   // Load user preferences on mount
   useEffect(() => {
@@ -58,8 +60,8 @@ export const Calculator: React.FC = () => {
           if (data.settings?.preferredMethodology) {
             setCalculationParams(prev => ({
               ...prev,
-              methodology: data.settings.preferredMethodology,
-              calendarType: data.settings.preferredCalendar === 'hijri' ? 'lunar' : 'solar'
+              methodology: (data.settings.preferredMethodology.toUpperCase() as 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM') || 'STANDARD',
+              calendarType: data.settings.preferredCalendar === 'hijri' ? 'HIJRI' : 'GREGORIAN'
             }));
           }
         }
@@ -93,64 +95,70 @@ export const Calculator: React.FC = () => {
     setCalculationParams(prev => ({ ...prev, includeAssets: updatedSelection }));
   };
 
-  const handleMethodologyChange = (methodology: string, customRules?: any) => {
-    setCalculationParams(prev => ({
-      ...prev,
-      methodology,
-      customRules: methodology === 'custom' ? customRules : undefined
-    }));
-  };
-
   const handleCalculateZakat = async () => {
     try {
       console.log('🔍 Calculation Request:', {
-        methodology: calculationParams.methodology,
-        fullParams: calculationParams
+        method: calculationParams.methodology.toLowerCase(),
+        calendarType: calculationParams.calendarType === 'HIJRI' ? 'lunar' : 'solar',
+        calculationDate: calculationParams.calculationDate,
+        includeAssets: calculationParams.includeAssets
       });
       
-      const result = await zakatCalculation.mutateAsync(calculationParams);
+      const result = await zakatCalculation.mutateAsync({
+        method: calculationParams.methodology.toLowerCase() as 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom',
+        calendarType: calculationParams.calendarType === 'HIJRI' ? 'lunar' : 'solar',
+        calculationDate: calculationParams.calculationDate,
+        includeAssets: calculationParams.includeAssets,
+        includeLiabilities: calculationParams.includeLiabilities
+      });
       
       console.log('📥 API Response:', {
         resultData: result.data,
-        methodology: result.data?.methodology,
-        fallback: calculationParams.methodology
+        success: result.success
       });
       
+      if (!result.success || !result.data?.calculation) {
+        throw new Error(result.message || 'Calculation failed');
+      }
+
       // Transform API response to match ZakatCalculation interface
-      const transformedResult = {
-        id: 'temp-' + Date.now(),
-        calculationDate: calculationParams.calculationDate,
-        methodology: result.data?.methodology || calculationParams.methodology, // Use from API or fallback
-        calendarType: calculationParams.calendarType,
+      const calcResult = result.data.calculation;
+      const transformedResult: any = {
+        id: calcResult.id,
+        calculationDate: calcResult.calculationDate,
+        methodology: calcResult.methodology,
+        calendarType: calcResult.calendarType,
         summary: {
-          totalAssets: result.data?.totalAssetValue || 0,
-          totalLiabilities: 0,
-          netWorth: result.data?.totalAssetValue || 0,
-          nisabThreshold: result.data?.nisabThreshold || 0,
-          nisabSource: 'gold' as const,
-          isZakatObligatory: (result.data?.totalAssetValue || 0) >= (result.data?.nisabThreshold || 0),
-          zakatAmount: result.data?.zakatAmount || 0,
-          zakatRate: 0.025
+          totalAssets: calcResult.totalWealth,
+          totalLiabilities: 0, // TODO: Implement liabilities
+          netWorth: calcResult.totalWealth,
+          nisabThreshold: calcResult.nisabThreshold,
+          nisabSource: 'gold', // TODO: Get from API
+          isZakatObligatory: calcResult.isAboveNisab,
+          zakatAmount: calcResult.zakatDue,
+          zakatRate: calcResult.zakatRate
         },
         breakdown: {
-          assetsByCategory: [],
+          assetsByCategory: calcResult.assetBreakdown || [],
           liabilities: []
         },
         educationalContent: {
-          methodologyExplanation: result.data?.educationalContent?.methodologyExplanation || '',
-          scholarlyReferences: result.data?.educationalContent?.sources || [],
-          nisabExplanation: 'Nisab is the minimum threshold of wealth'
+          methodologyExplanation: 'Calculation completed using selected methodology',
+          scholarlyReferences: [],
+          nisabExplanation: `Nisab threshold: ${calcResult.nisabThreshold}`
         }
       };
       
       console.log('✅ Transformed Result:', {
         methodology: transformedResult.methodology,
-        fullResult: transformedResult
+        totalWealth: transformedResult.summary.totalAssets,
+        zakatDue: transformedResult.summary.zakatAmount
       });
       
       setCalculationResult(transformedResult);
     } catch (error) {
       console.error('Zakat calculation failed:', error);
+      // Error is already handled by the mutation
     }
   };
 
@@ -170,13 +178,14 @@ export const Calculator: React.FC = () => {
         body: JSON.stringify({
           methodology: calculationParams.methodology,
           calendarType: calculationParams.calendarType,
-          calculationDate: new Date().toISOString(),
-          totalWealth: calculationResult.totalWorth || calculationResult.netWorth || 0,
-          nisabThreshold: calculationResult.nisabThreshold || 0,
-          zakatDue: calculationResult.zakatAmount || 0,
-          zakatRate: calculationResult.zakatRate || 2.5,
-          assetBreakdown: calculationResult.assetBreakdown || {},
-          notes: saveCalculationName || 'Zakat Calculation'
+          totalWealth: calculationResult.summary.totalAssets,
+          nisabThreshold: calculationResult.summary.nisabThreshold,
+          zakatDue: calculationResult.summary.zakatAmount,
+          zakatRate: calculationResult.summary.zakatRate,
+          assetBreakdown: calculationResult.breakdown.assetsByCategory,
+          notes: saveCalculationName || 'Zakat Calculation',
+          zakatYearStart: new Date(), // TODO: Calculate proper year start
+          zakatYearEnd: new Date() // TODO: Calculate proper year end
         })
       });
       
@@ -248,6 +257,22 @@ export const Calculator: React.FC = () => {
     return methodologies?.data?.find((m: ZakatMethodology) => m.id === calculationParams.methodology);
   };
 
+  const handleCompareMethodologies = async () => {
+    try {
+      const result = await compareMethodologies.mutateAsync({
+        methodologies: ['STANDARD', 'HANAFI', 'SHAFII'],
+        referenceDate: calculationParams.calculationDate
+      });
+      
+      if (result.success && result.data?.comparison) {
+        setComparisonResults(result.data.comparison);
+        setShowMethodologyComparison(true);
+      }
+    } catch (error) {
+      console.error('Methodology comparison failed:', error);
+    }
+  };
+
   // Loading states
   if (assetsLoading || methodologiesLoading) {
     return (
@@ -307,7 +332,10 @@ export const Calculator: React.FC = () => {
               <MethodologySelector
                 selectedMethodology={calculationParams.methodology}
                 onMethodologyChange={(methodologyId) => {
-                  setCalculationParams(prev => ({ ...prev, methodology: methodologyId }));
+                  setCalculationParams(prev => ({ 
+                    ...prev, 
+                    methodology: methodologyId as 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM'
+                  }));
                 }}
                 showEducationalContent={true}
               />
@@ -406,12 +434,12 @@ export const Calculator: React.FC = () => {
                     value={calculationParams.calendarType}
                     onChange={(e) => setCalculationParams(prev => ({ 
                       ...prev, 
-                      calendarType: e.target.value as 'lunar' | 'solar' 
+                      calendarType: e.target.value as 'GREGORIAN' | 'HIJRI' 
                     }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="lunar">Lunar (Islamic Calendar)</option>
-                    <option value="solar">Solar (Gregorian Calendar)</option>
+                    <option value="GREGORIAN">Gregorian (Solar Calendar)</option>
+                    <option value="HIJRI">Hijri (Lunar Calendar)</option>
                   </select>
                 </div>
               </div>
@@ -419,18 +447,35 @@ export const Calculator: React.FC = () => {
 
             {/* Calculate Button */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <Button
-                onClick={handleCalculateZakat}
-                disabled={selectedAssets.length === 0 || zakatCalculation.isPending}
-                size="lg"
-                className="w-full"
-              >
-                {zakatCalculation.isPending ? 'Calculating...' : 'Calculate Zakat'}
-              </Button>
+              <div className="flex space-x-4">
+                <Button
+                  onClick={handleCalculateZakat}
+                  disabled={selectedAssets.length === 0 || zakatCalculation.isPending}
+                  size="lg"
+                  className="flex-1"
+                >
+                  {zakatCalculation.isPending ? 'Calculating...' : 'Calculate Zakat'}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleCompareMethodologies}
+                  disabled={selectedAssets.length === 0 || compareMethodologies.isPending}
+                  size="lg"
+                >
+                  {compareMethodologies.isPending ? 'Comparing...' : 'Compare Methods'}
+                </Button>
+              </div>
               
               {zakatCalculation.error && (
                 <ErrorMessage 
                   error={zakatCalculation.error} 
+                  className="mt-4"
+                />
+              )}
+              
+              {compareMethodologies.error && (
+                <ErrorMessage 
+                  error={compareMethodologies.error} 
                   className="mt-4"
                 />
               )}
@@ -539,6 +584,97 @@ export const Calculator: React.FC = () => {
               saveCalculationName={saveCalculationName}
               onSaveNameChange={setSaveCalculationName}
             />
+          </div>
+        )}
+
+        {/* Methodology Comparison Section */}
+        {showMethodologyComparison && comparisonResults && (
+          <div className="mt-8">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  Methodology Comparison
+                </h2>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowMethodologyComparison(false)}
+                >
+                  Close Comparison
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {comparisonResults.map((result: any, index: number) => (
+                  <div
+                    key={result.methodology}
+                    className={`border rounded-lg p-4 ${
+                      index === 0 ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {result.methodology}
+                      </h3>
+                      {index === 0 && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Primary
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Wealth:</span>
+                        <span className="font-medium">${result.totalWealth.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Nisab Threshold:</span>
+                        <span className="font-medium">${result.nisabThreshold.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Zakat Due:</span>
+                        <span className="font-medium text-green-600">${result.zakatDue.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Above Nisab:</span>
+                        <span className={`font-medium ${result.isAboveNisab ? 'text-green-600' : 'text-red-600'}`}>
+                          {result.isAboveNisab ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      
+                      {index > 0 && result.difference && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="text-xs text-gray-500 mb-1">Difference from Primary:</div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Absolute:</span>
+                            <span className={`font-medium ${result.difference.absolute >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              ${result.difference.absolute >= 0 ? '+' : ''}{result.difference.absolute.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Percentage:</span>
+                            <span className={`font-medium ${result.difference.percentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {result.difference.percentage >= 0 ? '+' : ''}{result.difference.percentage.toFixed(2)}%
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  Understanding the Comparison
+                </h4>
+                <p className="text-sm text-gray-600">
+                  This comparison shows how different Islamic methodologies calculate Zakat based on the same asset data.
+                  The primary methodology (first column) is used as the baseline for difference calculations.
+                  Differences may arise due to varying interpretations of what constitutes zakatable wealth.
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>

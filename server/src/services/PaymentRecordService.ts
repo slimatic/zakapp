@@ -7,7 +7,7 @@ import {
   PaginationResult,
   RecipientCategory,
   PaymentStatus
-} from '@shared/types/tracking';
+} from '@zakapp/shared/types/tracking';
 
 /**
  * PaymentRecordService - Business logic for Zakat payment distribution

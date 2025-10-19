@@ -1,11 +1,11 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { UserStore } from '../utils/userStore';
+import { UserService } from '../services/UserService';
 
-const prisma = new PrismaClient();
+const userService = new UserService();
 
 export class UserController {
   getProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -123,48 +123,12 @@ export class UserController {
   getSettings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.userId!;
 
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        preferredMethodology: true,
-        preferredCalendar: true
-      }
-    });
-
-    if (!user) {
-      throw new AppError('User not found', 404, ErrorCode.ASSET_NOT_FOUND);
-    }
-
-    const settings = {
-      preferredMethodology: user.preferredMethodology || 'standard',
-      preferredCalendar: user.preferredCalendar || 'gregorian',
-      currency: 'USD',
-      language: 'en',
-      timezone: 'UTC',
-      dateFormat: 'MM/DD/YYYY',
-      reminders: {
-        enabled: true,
-        frequency: 'monthly',
-        email: true,
-        sms: false
-      },
-      privacy: {
-        dataSharing: false,
-        analytics: true,
-        marketing: false
-      },
-      calendarType: (user.preferredCalendar === 'hijri' ? 'lunar' : 'solar') as 'lunar' | 'solar',
-      notifications: {
-        email: true,
-        push: true,
-        sms: false
-      }
-    };
+    // Use UserService to get settings (handles decryption)
+    const settings = await userService.getSettings(userId);
 
     const response: ApiResponse = {
       success: true,
-      settings
+      data: settings
     };
 
     res.status(200).json(response);
@@ -174,37 +138,13 @@ export class UserController {
     const userId = req.userId!;
     const settingsUpdate = req.body;
 
-    // Extract fields that can be updated in User model
-    const userUpdateData: {
-      preferredMethodology?: string;
-      preferredCalendar?: string;
-    } = {};
-    
-    if (settingsUpdate.preferredMethodology !== undefined) {
-      userUpdateData.preferredMethodology = settingsUpdate.preferredMethodology;
-    }
-    if (settingsUpdate.preferredCalendar !== undefined) {
-      userUpdateData.preferredCalendar = settingsUpdate.preferredCalendar;
-    }
-
-    // Update user in database
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: userUpdateData,
-      select: {
-        preferredMethodology: true,
-        preferredCalendar: true
-      }
-    });
+    // Use UserService to update settings (handles encryption)
+    const updatedSettings = await userService.updateSettings(userId, settingsUpdate);
 
     const response: ApiResponse = {
       success: true,
       message: 'Settings updated successfully',
-      settings: {
-        preferredMethodology: updatedUser.preferredMethodology,
-        preferredCalendar: updatedUser.preferredCalendar,
-        updatedAt: new Date().toISOString()
-      }
+      data: updatedSettings
     };
 
     res.status(200).json(response);

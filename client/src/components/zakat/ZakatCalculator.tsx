@@ -47,14 +47,12 @@ export const ZakatCalculator: React.FC = () => {
     try {
       // Prepare request payload to match new API contract
       const calculationRequest = {
-        methodologyId: selectedMethodology || 'standard', // Backend expects methodologyId
-        calendarType: 'lunar',
+        method: (selectedMethodology || 'standard').toLowerCase() as 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom',
+        calendarType: 'lunar' as 'lunar' | 'solar',
         calculationDate: new Date().toISOString().split('T')[0],
         includeAssets: selectedAssets, // Send array of asset IDs
         includeLiabilities: [], // Optional but provide empty array
-        customRules: {
-          nisabSource: 'gold' // Default value
-        }
+        customNisab: undefined // Use default nisab
       };
 
       console.log('Sending calculation request:', calculationRequest);

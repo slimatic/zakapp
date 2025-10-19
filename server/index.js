@@ -12,6 +12,7 @@ const assetRoutes = require('./routes/assets');
 const trackingRoutes = require('./routes/tracking');
 const calendarRoutes = require('./routes/calendar');
 const calculationsRoutes = require('./routes/calculations');
+const methodologiesRoutes = require('./routes/methodologies');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -53,6 +54,7 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/calculations', calculationsRoutes);
+app.use('/api/methodologies', methodologiesRoutes);
 
 // API info endpoint
 app.get('/api', (req, res) => {
@@ -67,6 +69,7 @@ app.get('/api', (req, res) => {
       user: '/api/user',
       tracking: '/api/tracking',
       calendar: '/api/calendar',
+      methodologies: '/api/methodologies',
       health: '/health'
     }
   });

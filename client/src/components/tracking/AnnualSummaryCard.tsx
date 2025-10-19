@@ -10,7 +10,7 @@ import { formatCurrency, formatPercentage } from '../../utils/formatters';
 import { formatGregorianDate, formatHijriDate } from '../../utils/calendarConverter';
 import { generateAnnualSummaryPDF, downloadPDF } from '../../utils/pdfGenerator';
 import { usePayments } from '../../hooks/usePayments';
-import type { YearlySnapshot } from '../../../../shared/types/tracking';
+import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 interface AnnualSummaryCardProps {
   snapshot: YearlySnapshot;

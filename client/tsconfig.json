@@ -31,7 +31,8 @@
       "@utils/*": ["src/utils/*"],
       "@types/*": ["src/types/*"],
       "@data/*": ["src/data/*"],
-      "@shared/*": ["../shared/src/*"]
+      "@zakapp/shared": ["../shared/dist/index.d.ts"],
+      "@zakapp/shared/*": ["../shared/dist/*"]
     }
   },
   "include": [

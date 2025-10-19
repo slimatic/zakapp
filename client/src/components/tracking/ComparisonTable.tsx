@@ -9,7 +9,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { formatCurrency, formatPercentage } from '../../utils/formatters';
 import { formatGregorianDate, formatHijriDate } from '../../utils/calendarConverter';
-import type { YearlySnapshot } from '../../../../shared/types/tracking';
+import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 interface ComparisonTableProps {
   snapshotIds: string[];

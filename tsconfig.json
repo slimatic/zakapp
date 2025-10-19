@@ -12,8 +12,8 @@
   },
   "references": [
     { "path": "./shared" },
-    { "path": "./backend" },
-    { "path": "./frontend" }
+    { "path": "./server" },
+    { "path": "./client" }
   ],
   "files": [],
   "include": []

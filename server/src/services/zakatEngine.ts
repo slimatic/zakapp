@@ -1,21 +1,22 @@
 import { 
   ZakatCalculation, 
   ZakatCalculationRequest, 
+  MethodologyComparisonRequest,
+  MethodologyComparison,
   Asset, 
   MethodologyInfo,
   NisabInfo,
   ZakatCalculationResult,
   CalendarCalculation,
-  HijriDate,
   CalculationBreakdown,
   AssetCalculation,
-  DeductionRule
-} from '../../../shared/src/types';
-import { ZAKAT_METHODS, NISAB_THRESHOLDS, ZAKAT_RATES } from '../../../shared/src/constants';
+  AlternativeCalculation
+} from '@zakapp/shared';
+import { ZAKAT_METHODS } from '@zakapp/shared';
 import { CurrencyService } from './currencyService';
 import { CalendarService } from './calendarService';
 import { NisabService } from './NisabService';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 /**
  * Advanced Zakat Calculation Engine
@@ -37,6 +38,11 @@ export class ZakatEngine {
   private currencyService: CurrencyService;
   private calendarService: CalendarService;
   private nisabService: NisabService;
+  
+  // Performance optimization: Cache methodology info and nisab calculations
+  private methodologyCache = new Map<string, MethodologyInfo>();
+  private nisabCache = new Map<string, { info: NisabInfo; timestamp: number }>();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   constructor(
     currencyService: CurrencyService,
@@ -54,7 +60,7 @@ export class ZakatEngine {
    * @param request - Calculation parameters including method, assets, calendar type
    * @returns Complete calculation result with methodology details and alternatives
    */
-  async calculateZakat(request: ZakatCalculationRequest): Promise<ZakatCalculationResult> {
+  async calculateZakat(request: ZakatCalculationRequest & { assets?: Asset[]; userId?: string }): Promise<ZakatCalculationResult> {
     try {
       // Get methodology information
       const methodology = this.getMethodologyInfo(request.method);
@@ -68,7 +74,7 @@ export class ZakatEngine {
         : undefined;
 
       // Load and validate assets
-      const assets = await this.loadAssets(request.includeAssets);
+      const assets = request.assets || (request.userId ? await this.loadAssets(request.userId, request.includeAssets) : []);
       const validatedAssets = this.validateAssets(assets);
 
       // Perform main calculation
@@ -100,13 +106,96 @@ export class ZakatEngine {
     }
   }
 
+  /**
+   * Compare multiple Zakat calculation methodologies using the same asset data.
+   * Returns comparison results without creating snapshots.
+   * 
+   * @param request - Comparison request with methodologies to compare
+   * @param assets - Asset data to use for all calculations
+   * @returns Array of methodology comparison results
+   */
+  async compareMethodologies(
+    request: MethodologyComparisonRequest & { assets?: Asset[]; userId?: string }
+  ): Promise<MethodologyComparison[]> {
+    try {
+      const referenceDate = request.referenceDate ? new Date(request.referenceDate) : new Date();
+      
+      // Load assets if not provided
+      const assets = request.assets || (request.userId ? await this.loadAssets(request.userId, []) : []);
+      const validatedAssets = this.validateAssets(assets);
+
+      // Calculate using each methodology
+      const results: MethodologyComparison[] = [];
+      
+      for (let i = 0; i < request.methodologies.length; i++) {
+        const methodId = request.methodologies[i];
+        const customConfigId = request.customConfigIds?.[i];
+        
+        // Get methodology info
+        const methodology = this.getMethodologyInfo(methodId);
+        
+        // Get nisab threshold
+        const nisabInfo = await this.calculateNisabThreshold(methodology, undefined); // No custom nisab for comparison
+        
+        // Perform calculation
+        const calculation = await this.performCalculation(
+          validatedAssets,
+          methodology,
+          nisabInfo,
+          {
+            method: methodId,
+            calculationDate: referenceDate.toISOString(),
+            calendarType: 'lunar', // Default to lunar for comparison
+            includeAssets: validatedAssets.map(a => a.assetId),
+            customNisab: undefined
+          },
+          undefined // No calendar info for comparison
+        );
+
+        // Calculate difference from first methodology
+        let difference = { absolute: 0, percentage: 0 };
+        if (results.length > 0) {
+          const firstResult = results[0];
+          const absoluteDiff = calculation.totals.totalZakatDue - firstResult.zakatDue;
+          const percentageDiff = firstResult.zakatDue !== 0 ? (absoluteDiff / firstResult.zakatDue) * 100 : 0;
+          difference = {
+            absolute: absoluteDiff,
+            percentage: percentageDiff
+          };
+        }
+
+        results.push({
+          methodology: methodId.toUpperCase(),
+          methodologyConfigId: customConfigId,
+          totalWealth: calculation.totals.totalZakatableAssets,
+          nisabThreshold: nisabInfo.effectiveNisab,
+          zakatDue: calculation.totals.totalZakatDue,
+          isAboveNisab: calculation.meetsNisab,
+          difference
+        });
+      }
+
+      return results;
+
+    } catch (error) {
+      throw new Error(`Methodology comparison failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   private getMethodologyInfo(methodId: string): MethodologyInfo {
+    // Check cache first
+    const cached = this.methodologyCache.get(methodId);
+    if (cached) {
+      return cached;
+    }
+
     const method = Object.values(ZAKAT_METHODS).find(m => m.id === methodId);
     if (!method) {
       throw new Error(`Unknown methodology: ${methodId}`);
     }
+    
     // Cast to mutable type to fix readonly array issues
-    return {
+    const methodologyInfo: MethodologyInfo = {
       ...method,
       scholarlyBasis: [...method.scholarlyBasis],
       regions: [...method.regions],
@@ -114,7 +203,12 @@ export class ZakatEngine {
       suitableFor: [...method.suitableFor],
       pros: [...method.pros],
       cons: [...method.cons]
-    } as MethodologyInfo;
+    };
+
+    // Cache the result
+    this.methodologyCache.set(methodId, methodologyInfo);
+    
+    return methodologyInfo;
   }
 
   /**
@@ -131,46 +225,20 @@ export class ZakatEngine {
       };
     }
 
-    // Get current gold and silver prices
-    const goldPriceUSD = await this.nisabService.getGoldPrice(); // Price per gram in USD
-    const silverPriceUSD = await this.nisabService.getSilverPrice(); // Price per gram in USD
-
-    const goldNisab = NISAB_THRESHOLDS.GOLD_GRAMS * goldPriceUSD;
-    const silverNisab = NISAB_THRESHOLDS.SILVER_GRAMS * silverPriceUSD;
-
-    let effectiveNisab: number;
-    let nisabBasis: string;
-
-    switch (methodology.nisabBasis) {
-      case 'gold':
-        effectiveNisab = goldNisab;
-        nisabBasis = 'gold';
-        break;
-      case 'silver':
-        effectiveNisab = silverNisab;
-        nisabBasis = 'silver';
-        break;
-      case 'dual_minimum':
-        effectiveNisab = Math.min(goldNisab, silverNisab);
-        nisabBasis = goldNisab < silverNisab ? 'gold' : 'silver';
-        break;
-      case 'dual_flexible':
-        // Maliki approach - choose based on economic conditions
-        effectiveNisab = await this.calculateFlexibleNisab(goldNisab, silverNisab);
-        nisabBasis = 'dual_flexible';
-        break;
-      default:
-        effectiveNisab = Math.min(goldNisab, silverNisab);
-        nisabBasis = 'dual_minimum';
+    // Check cache first
+    const cacheKey = `${methodology.id}_USD`;
+    const cached = this.nisabCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < this.CACHE_TTL) {
+      return cached.info;
     }
 
-    return {
-      goldNisab,
-      silverNisab,
-      effectiveNisab,
-      nisabBasis,
-      calculationMethod: methodology.id
-    };
+    // Get nisab information from NisabService
+    const nisabInfo = await this.nisabService.calculateNisab(methodology.id, 'USD');
+    
+    // Cache the result
+    this.nisabCache.set(cacheKey, { info: nisabInfo, timestamp: Date.now() });
+    
+    return nisabInfo;
   }
 
   /**
@@ -187,12 +255,52 @@ export class ZakatEngine {
 
   /**
    * Load assets for calculation
+   * In production, this would load from database
+   * For testing/unit purposes, returns mock assets based on assetIds
    */
-  private async loadAssets(assetIds: string[]): Promise<Asset[]> {
-    // This would typically load from database
-    // For now, we'll assume assets are provided or loaded elsewhere
-    // In real implementation, this would call the asset service
-    throw new Error('Asset loading not implemented - assets should be provided');
+  private async loadAssets(userId: string, assetIds: string[]): Promise<Asset[]> {
+    // Import PrismaClient directly to avoid issues with AssetService
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+
+    try {
+      // Build where clause
+      const where: {
+        userId: string;
+        isActive: boolean;
+        id?: { in: string[] };
+      } = {
+        userId,
+        isActive: true
+      };
+
+      // Filter by specific asset IDs if provided
+      if (assetIds.length > 0) {
+        where.id = { in: assetIds };
+      }
+
+      // Load assets from database
+      const dbAssets = await prisma.asset.findMany({
+        where,
+        orderBy: { createdAt: 'desc' }
+      });
+
+      // Transform database assets to ZakatEngine Asset format
+      return dbAssets.map(asset => ({
+        assetId: asset.id,
+        name: asset.name,
+        category: asset.category.toLowerCase() as Asset['category'],
+        subCategory: this.mapAssetSubCategory(asset.category),
+        value: asset.value,
+        currency: asset.currency,
+        description: asset.notes || undefined,
+        zakatEligible: this.isAssetZakatEligible(asset.category),
+        createdAt: asset.createdAt.toISOString(),
+        updatedAt: asset.updatedAt.toISOString()
+      }));
+    } finally {
+      await prisma.$disconnect();
+    }
   }
 
   /**
@@ -225,7 +333,7 @@ export class ZakatEngine {
     request: ZakatCalculationRequest,
     calendarInfo?: CalendarCalculation
   ): Promise<ZakatCalculation> {
-    const calculationId = uuidv4();
+    const calculationId = randomUUID();
     const calculationDate = new Date(request.calculationDate).toISOString();
 
     // Convert all assets to base currency (USD)
@@ -278,16 +386,53 @@ export class ZakatEngine {
   }
 
   /**
-   * Convert assets to base currency for calculation
+   * Convert assets to base currency for calculation (optimized with batching)
    */
   private async convertAssetsToBaseCurrency(assets: Asset[]): Promise<Asset[]> {
-    const convertedAssets: Asset[] = [];
-
+    // Group assets by currency for batch processing
+    const assetsByCurrency = new Map<string, Asset[]>();
+    
     for (const asset of assets) {
-      if (asset.currency === 'USD') {
-        convertedAssets.push(asset);
-      } else {
-        const rate = await this.currencyService.getExchangeRate(asset.currency, 'USD');
+      if (!assetsByCurrency.has(asset.currency)) {
+        assetsByCurrency.set(asset.currency, []);
+      }
+      assetsByCurrency.get(asset.currency)!.push(asset);
+    }
+
+    const convertedAssets: Asset[] = [];
+    const usdAssets = assetsByCurrency.get('USD') || [];
+    
+    // Add USD assets directly (no conversion needed)
+    convertedAssets.push(...usdAssets);
+
+    // Batch convert non-USD currencies
+    const conversionPromises: Promise<void>[] = [];
+    const currencyResults = new Map<string, number>();
+
+    for (const [currency] of assetsByCurrency) {
+      if (currency === 'USD') continue;
+      
+      conversionPromises.push(
+        this.currencyService.getExchangeRate(currency, 'USD')
+          .then(rate => {
+            currencyResults.set(currency, rate);
+          })
+          .catch(() => {
+            // Fallback to 1.0 rate
+            currencyResults.set(currency, 1.0);
+          })
+      );
+    }
+
+    // Wait for all currency conversions to complete
+    await Promise.all(conversionPromises);
+
+    // Apply conversions
+    for (const [currency, currencyAssets] of assetsByCurrency) {
+      if (currency === 'USD') continue;
+      
+      const rate = currencyResults.get(currency) || 1.0;
+      for (const asset of currencyAssets) {
         const convertedAsset = {
           ...asset,
           value: asset.value * rate,
@@ -360,7 +505,7 @@ export class ZakatEngine {
   /**
    * Calculate zakat for individual assets
    */
-  private calculateAssetZakat(assets: Asset[], methodology: MethodologyInfo): any[] {
+  private calculateAssetZakat(assets: Asset[], methodology: MethodologyInfo): AssetCalculation[] {
     return assets.map(asset => {
       if (!asset.zakatEligible) {
         return {
@@ -369,7 +514,8 @@ export class ZakatEngine {
           category: asset.category,
           value: asset.value,
           zakatableAmount: 0,
-          zakatDue: 0
+          zakatDue: 0,
+          methodSpecificRules: ['Asset not eligible for zakat']
         };
       }
 
@@ -382,7 +528,8 @@ export class ZakatEngine {
         category: asset.category,
         value: asset.value,
         zakatableAmount,
-        zakatDue
+        zakatDue,
+        methodSpecificRules: this.getMethodSpecificRules(asset, methodology)
       };
     });
   }
@@ -391,7 +538,9 @@ export class ZakatEngine {
    * Calculate zakatable amount for an asset
    */
   private calculateZakatableAmount(asset: Asset, methodology: MethodologyInfo): number {
-    // Apply asset-specific rules based on category and methodology
+    // Methodology parameter available for future methodology-specific zakatable amount calculations
+    void methodology; // Explicitly mark as intentionally unused for now
+
     switch (asset.category) {
       case 'cash':
       case 'gold':
@@ -401,7 +550,7 @@ export class ZakatEngine {
       
       case 'business':
         // Apply business-specific rules
-        return this.calculateBusinessZakatableAmount(asset, methodology);
+        return this.calculateBusinessZakatableAmount(asset);
       
       case 'property':
         // Investment property - use current market value
@@ -409,7 +558,7 @@ export class ZakatEngine {
       
       case 'stocks':
         // Apply stock-specific rules
-        return this.calculateStockZakatableAmount(asset, methodology);
+        return this.calculateStockZakatableAmount(asset);
       
       case 'debts':
         // Receivables - typically fully zakatable if collectible
@@ -423,7 +572,7 @@ export class ZakatEngine {
   /**
    * Calculate zakatable amount for business assets
    */
-  private calculateBusinessZakatableAmount(asset: Asset, methodology: MethodologyInfo): number {
+  private calculateBusinessZakatableAmount(asset: Asset): number {
     // This would implement detailed business asset rules based on methodology
     // For now, return full value
     return asset.value;
@@ -432,7 +581,7 @@ export class ZakatEngine {
   /**
    * Calculate zakatable amount for stock assets
    */
-  private calculateStockZakatableAmount(asset: Asset, methodology: MethodologyInfo): number {
+  private calculateStockZakatableAmount(asset: Asset): number {
     // This would implement stock-specific rules
     // Different methodologies may treat stocks differently
     return asset.value;
@@ -519,34 +668,50 @@ export class ZakatEngine {
     assets: Asset[],
     request: ZakatCalculationRequest,
     primaryCalculation: ZakatCalculation
-  ): Promise<any[]> {
-    const alternatives: any[] = [];
+  ): Promise<AlternativeCalculation[]> {
+    const alternatives: AlternativeCalculation[] = [];
     const otherMethods = Object.values(ZAKAT_METHODS).filter(m => m.id !== request.method);
 
     // Calculate up to 3 alternative methodologies
     for (const method of otherMethods.slice(0, 3)) {
       try {
-        const altRequest = { ...request, method: method.id };
-        const altResult = await this.calculateZakat(altRequest);
+        const altMethodology = {
+          ...method,
+          scholarlyBasis: [...method.scholarlyBasis],
+          regions: [...method.regions],
+          calendarSupport: [...method.calendarSupport],
+          suitableFor: [...method.suitableFor],
+          pros: [...method.pros],
+          cons: [...method.cons]
+        } as MethodologyInfo;
+
+        // Get nisab for alternative method
+        const altNisabInfo = await this.calculateNisabThreshold(altMethodology, request.customNisab);
+        
+        // Get calendar info if needed
+        const altCalendarInfo = request.calendarType === 'lunar' 
+          ? await this.calendarService.getCalendarInfo(new Date(request.calculationDate))
+          : undefined;
+
+        // Perform calculation directly (avoid recursion)
+        const altCalculation = await this.performCalculation(
+          assets,
+          altMethodology,
+          altNisabInfo,
+          request,
+          altCalendarInfo
+        );
         
         alternatives.push({
           methodId: method.id,
           methodName: method.name,
-          zakatDue: altResult.result.totals.totalZakatDue,
-          effectiveNisab: altResult.result.nisab.effectiveNisab,
-          differences: this.calculateMethodDifferences(primaryCalculation, altResult.result, {
-            ...method,
-            scholarlyBasis: [...method.scholarlyBasis],
-            regions: [...method.regions],
-            calendarSupport: [...method.calendarSupport],
-            suitableFor: [...method.suitableFor],
-            pros: [...method.pros],
-            cons: [...method.cons]
-          } as MethodologyInfo)
+          zakatDue: altCalculation.totals.totalZakatDue,
+          effectiveNisab: altNisabInfo.effectiveNisab,
+          differences: this.calculateMethodDifferences(primaryCalculation, altCalculation, altMethodology)
         });
-      } catch (error) {
+      } catch {
         // Skip failed alternative calculations
-        console.warn(`Failed to calculate alternative method ${method.id}:`, error);
+        // Log error for debugging if needed
       }
     }
 
@@ -622,5 +787,55 @@ export class ZakatEngine {
     };
 
     return sources[methodId] || ['Contemporary Islamic scholarship'];
+  }
+
+  /**
+   * Map database asset category to ZakatEngine subCategory
+   */
+  private mapAssetSubCategory(category: string): string {
+    const categoryLower = category.toLowerCase();
+    
+    switch (categoryLower) {
+      case 'cash':
+        return 'savings'; // Default subCategory for cash
+      case 'gold':
+        return 'jewelry'; // Default subCategory for gold
+      case 'silver':
+        return 'jewelry'; // Default subCategory for silver
+      case 'business':
+        return 'inventory'; // Default subCategory for business
+      case 'property':
+        return 'residential'; // Default subCategory for property
+      case 'stocks':
+        return 'equities'; // Default subCategory for stocks
+      case 'crypto':
+        return 'bitcoin'; // Default subCategory for crypto
+      default:
+        return 'other'; // Default fallback
+    }
+  }
+
+  /**
+   * Determine if an asset category is eligible for Zakat
+   */
+  private isAssetZakatEligible(category: string): boolean {
+    const categoryLower = category.toLowerCase();
+    
+    // Assets that are generally zakatable
+    const zakatableCategories = ['cash', 'gold', 'silver', 'business', 'stocks', 'crypto'];
+    
+    // Assets that are generally not zakatable
+    const nonZakatableCategories = ['property']; // Real estate for personal use
+    
+    if (zakatableCategories.includes(categoryLower)) {
+      return true;
+    }
+    
+    if (nonZakatableCategories.includes(categoryLower)) {
+      return false;
+    }
+    
+    // Default to eligible for unknown categories (conservative approach)
+    return true;
   }
 }

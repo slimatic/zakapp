@@ -11,7 +11,7 @@ import { ErrorMessage } from '../ui/ErrorMessage';
 import { Input } from '../ui/Input';
 import { formatCurrency } from '../../utils/formatters';
 import { formatGregorianDate } from '../../utils/calendarConverter';
-import type { PaymentRecord } from '../../../../shared/types/tracking';
+import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 interface PaymentListProps {
   snapshotId: string;

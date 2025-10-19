@@ -143,7 +143,13 @@ export const validateUserRegistration = [
  * User login validation
  */
 export const validateUserLogin = [
+  body('username')
+    .optional()
+    .notEmpty()
+    .withMessage('Username is required'),
+  
   body('email')
+    .optional()
     .isEmail()
     .normalizeEmail()
     .withMessage('Valid email is required'),
@@ -151,6 +157,14 @@ export const validateUserLogin = [
   body('password')
     .notEmpty()
     .withMessage('Password is required'),
+  
+  // Custom validator to ensure at least one of username or email is provided
+  body().custom((value, { req }) => {
+    if (!req.body.username && !req.body.email) {
+      throw new Error('Username or email is required');
+    }
+    return true;
+  }),
   
   handleValidationErrors
 ];

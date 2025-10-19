@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAssets, useZakatHistory } from '../../services/apiHooks';
 import { LoadingSpinner, ErrorMessage } from '../ui';
-import type { Asset } from '../../../../shared/src/types';
+import type { Asset } from '@zakapp/shared';
 
 export const Dashboard: React.FC = () => {
   // Fetch assets and zakat history data

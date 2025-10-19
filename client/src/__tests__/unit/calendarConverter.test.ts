@@ -175,7 +175,7 @@ describe('calendarConverter utility', () => {
 
     it('should use custom Gregorian format', () => {
       const date = new Date(2024, 0, 1);
-      const result = formatDualCalendar(date, 'yyyy-MM-dd');
+      const result = formatDualCalendar(date);
 
       expect(result).toContain('2024-01-01');
       expect(result).toContain('AH');

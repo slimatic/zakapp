@@ -9,7 +9,7 @@ import { PaymentList } from '../components/tracking/PaymentList';
 import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
 import { usePayments } from '../hooks/usePayments';
 import { Button } from '../components/ui/Button';
-import type { PaymentRecord } from '../../../shared/types/tracking';
+import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 export const PaymentsPage: React.FC = () => {
   const navigate = useNavigate();

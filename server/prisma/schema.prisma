@@ -13,6 +13,7 @@ datasource db {
 model User {
   id             String   @id @default(cuid())
   email          String   @unique
+  username       String?  @unique // Optional username for login
   passwordHash   String   // bcrypt hash
   profile        String?  // Encrypted JSON blob (name, location, methodology preference)
   settings       String?  // Encrypted JSON blob (currency, language, calendar type, reminders)
@@ -44,6 +45,16 @@ model User {
   // Calculation History (Feature 004)
   calculationHistory CalculationHistory[]
 
+  // Methodology Configurations
+  methodologyConfigs MethodologyConfig[]
+
+  // Calculation Snapshots (Feature 004)
+  calculationSnapshots CalculationSnapshot[]
+
+  // Security and Password Reset
+  security     UserSecurity?
+  passwordResets PasswordReset[]
+
   @@map("users")
 }
 
@@ -63,10 +74,14 @@ model Asset {
 
   // Relationships
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshotValues SnapshotAssetValue[] // NEW relationship
 
   @@map("assets")
   @@index([userId])
   @@index([category])
+  @@index([userId, category])
+  @@index([userId, isActive])
+  @@index([acquisitionDate])
 }
 
 model Liability {
@@ -88,6 +103,10 @@ model Liability {
 
   @@map("liabilities")
   @@index([userId])
+  @@index([type])
+  @@index([userId, type])
+  @@index([userId, isActive])
+  @@index([dueDate])
 }
 
 model ZakatCalculation {
@@ -117,18 +136,30 @@ model ZakatCalculation {
   @@map("zakat_calculations")
   @@index([userId])
   @@index([calculationDate])
+  @@index([userId, calculationDate(sort: Desc)])
+  @@index([methodology])
+  @@index([calendarType])
 }
 
 model AssetSnapshot {
   id              String   @id @default(cuid())
   userId          String
+  name            String?  // Snapshot name/title
+  description     String?  // Snapshot description
   snapshotDate    DateTime
   snapshotType    String   // annual, custom, backup
   totalValue      Float
+  totalAssets     Float?   // Total assets value
+  totalLiabilities Float?  // Total liabilities value
+  netWorth        Float?   // Net worth (assets - liabilities)
   assetCount      Int
+  liabilitiesCount Int?    // Number of liabilities
   assetsData      String   // Complete encrypted JSON of all assets
   liabilitiesData String   // Complete encrypted JSON of all liabilities
   exchangeRates   String   // JSON with currency conversion rates
+  islamicYear     String?  // Hijri year
+  tags            String?  // JSON array of tags
+  metadata        String?  // Additional metadata JSON
   notes           String?
   isLocked        Boolean  @default(false)
   createdAt       DateTime @default(now())
@@ -139,6 +170,10 @@ model AssetSnapshot {
   @@map("asset_snapshots")
   @@index([userId])
   @@index([snapshotDate])
+  @@index([userId, snapshotDate(sort: Desc)])
+  @@index([snapshotType])
+  @@index([isLocked])
+  @@index([userId, isLocked])
 }
 
 model ZakatPayment {
@@ -165,6 +200,10 @@ model ZakatPayment {
   @@index([userId])
   @@index([paymentDate])
   @@index([islamicYear])
+  @@index([userId, paymentDate(sort: Desc)])
+  @@index([userId, islamicYear])
+  @@index([calculationId])
+  @@index([status])
 }
 
 model CalculationMethodology {
@@ -180,7 +219,7 @@ model CalculationMethodology {
   regionalVariations String  // JSON for local adaptations
   isActive           Boolean @default(true)
   createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  updatedAt          DateTime @default(now()) @updatedAt
 
   @@map("calculation_methodologies")
 }
@@ -560,10 +599,15 @@ model CalculationHistory {
   
   // Methodology and Calendar Info
   methodology       String   // 'standard', 'hanafi', 'shafi', 'custom'
+  methodologyConfigId String? // FK to MethodologyConfig for custom methodologies
   calendarType      String   // 'hijri', 'gregorian'
   calculationDate   DateTime @default(now())
   
-  // Calculation Results
+  // Zakat Year Boundaries
+  zakatYearStart    DateTime
+  zakatYearEnd      DateTime
+  
+  // Calculation Results (Encrypted)
   totalWealth       String   // Encrypted
   nisabThreshold    String   // Encrypted
   zakatDue          String   // Encrypted
@@ -572,18 +616,134 @@ model CalculationHistory {
   // Detailed Asset Breakdown (encrypted JSON)
   assetBreakdown    String   // Encrypted JSON of asset categories and values
   
+  // Lock/Unlock Workflow (Immutability Control)
+  isLocked          Boolean  @default(true)
+  lockedAt          DateTime?
+  unlockedAt        DateTime?
+  unlockedBy        String?  // User ID who unlocked
+  unlockReason      String?  // Audit trail for unlock
+  
   // User Notes and Metadata
   notes             String?  // Encrypted
   metadata          String?  // Encrypted JSON for additional calculation details
   
   createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  updatedAt         DateTime @default(now()) @updatedAt
+
   // Relationships
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  methodologyConfig MethodologyConfig? @relation(fields: [methodologyConfigId], references: [id])
+
   @@map("calculation_history")
   @@index([userId, calculationDate])
   @@index([userId, methodology])
   @@index([calculationDate])
+  @@index([isLocked])
+}
+
+model SnapshotAssetValue {
+  id            String   @id @default(cuid())
+  snapshotId    String
+  assetId       String
+  assetName     String   // Denormalized for historical accuracy
+  assetCategory String   // Denormalized (cash, gold, silver, etc.)
+  capturedValue String   // Encrypted value at calculation time
+  capturedAt    DateTime @default(now())
+  isZakatable   Boolean  // Based on methodology rules
+  createdAt     DateTime @default(now())
+
+  // Relationships
+  snapshot      CalculationSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  asset         Asset               @relation(fields: [assetId], references: [id])
+
+  @@map("snapshot_asset_values")
+  @@index([snapshotId])
+  @@index([assetId])
+}
+
+model MethodologyConfig {
+  id             String   @id @default(cuid())
+  userId         String
+  name           String
+  nisabBasis     String
+  customNisabValue Float?
+  rate           Float
+  assetRules     String   // Encrypted JSON
+  isCustom       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  // Relationships
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calculations   CalculationHistory[] // Custom methodologies used in calculations
+  calculationSnapshots CalculationSnapshot[] // Snapshots using this methodology config
+
+  @@map("methodology_configs")
+  @@index([userId])
+}
+
+model CalculationSnapshot {
+  id                String   @id @default(cuid())
+  userId            String
+  calculationDate   DateTime @default(now())
+  methodology       String   // "STANDARD" | "HANAFI" | "SHAFII" | "CUSTOM"
+  methodologyConfigId String?  // FK to MethodologyConfig for CUSTOM
+  totalWealth       String   // ENCRYPTED: Base64-encoded AES-256
+  zakatDue          String   // ENCRYPTED: Base64-encoded AES-256
+  nisabThreshold    String   // ENCRYPTED: Base64-encoded AES-256
+  isLocked          Boolean  @default(true)
+  lockedAt          DateTime?
+  unlockedAt        DateTime?
+  unlockedBy        String?  // User ID who unlocked
+  unlockReason      String?  // Audit trail
+  calendarType      String   // "GREGORIAN" | "HIJRI" (snapshot of user pref)
+  zakatYearStart    DateTime // Start of Zakat year (Gregorian)
+  zakatYearEnd      DateTime // End of Zakat year (Gregorian)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+
+  // Relationships
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  methodologyConfig MethodologyConfig? @relation(fields: [methodologyConfigId], references: [id])
+  assetValues       SnapshotAssetValue[]
+
+  @@map("calculation_snapshots")
+  @@index([userId, calculationDate])
+  @@index([methodology])
+  @@index([isLocked])
+  @@index([userId, isLocked])
+  @@index([userId, methodology])
+  @@index([zakatYearStart])
+  @@index([zakatYearEnd])
+}
+
+model UserSecurity {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  failedAttempts Int      @default(0)
+  lockedUntil   DateTime?
+  lastFailedAt  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  // Relationships
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_security")
+}
+
+model PasswordReset {
+  id            String   @id @default(cuid())
+  userId        String
+  token         String   @unique
+  expiresAt     DateTime
+  used          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  // Relationships
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+  @@index([token])
+  @@index([expiresAt])
 }

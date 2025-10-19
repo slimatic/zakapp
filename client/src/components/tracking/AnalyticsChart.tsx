@@ -25,7 +25,7 @@ import { useAnalytics } from '../../hooks/useAnalytics';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { formatCurrency, formatPercentage, formatCompactNumber } from '../../utils/formatters';
 import { formatChartData } from '../../utils/chartFormatters';
-import type { AnalyticsMetricType, VisualizationType } from '../../../../shared/types/tracking';
+import type { AnalyticsMetricType, VisualizationType } from '@zakapp/shared/types/tracking';
 
 interface AnalyticsChartProps {
   metricType: AnalyticsMetricType;
