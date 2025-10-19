@@ -5,7 +5,6 @@ import { apiService } from '../../services/api';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
-import type { UserPreferences } from '@zakapp/shared';
 import { useCalendarPreference, useUpdateCalendarPreference } from '../../services/apiHooks';
 
 interface AppSettings {
@@ -64,9 +63,8 @@ export const Settings: React.FC = () => {
   const { data: settings, isLoading, error } = useQuery({
     queryKey: ['settings', calendarPreference?.data?.calendarType],
     queryFn: async (): Promise<AppSettings> => {
-      // This would typically come from an API endpoint
-      // For now, we'll use default values with user preferences
-      return {
+      const response = await apiService.getSettings();
+      return response.data || {
         notifications: {
           zakatReminders: true,
           calculationUpdates: true,
