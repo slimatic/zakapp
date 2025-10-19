@@ -119,7 +119,7 @@ export class AssetService {
     ]);
 
     // Decrypt assets
-    const decryptedAssets = assets.map(asset => this.decryptAsset(asset));
+    const decryptedAssets = await Promise.all(assets.map(asset => this.decryptAsset(asset)));
 
     // Calculate portfolio summary
     const totalValue = assets.reduce((sum, asset) => sum + asset.value, 0);
@@ -248,7 +248,7 @@ export class AssetService {
           success: false,
           error: error.message,
           index: i,
-          asset: assetsData[i]
+          asset: assetsData[i ]
         });
       }
     }

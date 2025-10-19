@@ -26,18 +26,17 @@
     "typeRoots": ["node_modules/@types", "./src/types"],
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["../shared/*"]
+      "@zakapp/shared": ["../shared/dist/index.d.ts"],
+      "@zakapp/shared/*": ["../shared/dist/*"]
     }
   },
   "include": [
     "src/**/*",
-    "../shared/**/*"
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
+    "dist"
   ],
   "ts-node": {
     "esm": false,

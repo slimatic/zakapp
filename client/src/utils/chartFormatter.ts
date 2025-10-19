@@ -5,7 +5,7 @@
  */
 
 import { format } from 'date-fns';
-import type { YearlySnapshot, PaymentRecord } from '../../../shared/types/tracking';
+import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
 
 /**
  * Data point for line/area charts (wealth or Zakat trends)
@@ -25,6 +25,15 @@ export interface BarChartDataPoint {
   value: number; // Numeric value
   label?: string; // Optional formatted label
   color?: string; // Optional custom color
+}
+
+/**
+ * Data point for payment completion bar chart
+ */
+export interface PaymentCompletionDataPoint {
+  year: string; // Year label
+  paid: number; // Amount paid
+  due: number; // Amount due
 }
 
 /**
@@ -192,26 +201,23 @@ export function formatAssetComposition(
 /**
  * Formats payment completion data as bar chart
  * @param snapshots - Array of yearly snapshots with payment info
- * @param payments - Array of all payment records
+ * @param payments - Record of payment records grouped by snapshot ID
  * @returns Array of bar chart data points showing paid vs due
  */
 export function formatPaymentCompletion(
   snapshots: YearlySnapshot[],
   payments: Record<string, PaymentRecord[]>
-): BarChartDataPoint[] {
+): PaymentCompletionDataPoint[] {
   return snapshots
     .sort((a, b) => a.gregorianYear - b.gregorianYear)
     .map(snapshot => {
       const snapshotPayments = payments[snapshot.id] || [];
       const totalPaid = snapshotPayments.reduce((sum, p) => sum + p.amount, 0);
-      const percentagePaid = snapshot.zakatAmount > 0 
-        ? (totalPaid / snapshot.zakatAmount) * 100 
-        : 0;
 
       return {
-        name: `${snapshot.gregorianYear}`,
-        value: percentagePaid,
-        label: `${percentagePaid.toFixed(1)}% paid`
+        year: `${snapshot.gregorianYear}`,
+        paid: totalPaid,
+        due: snapshot.zakatAmount
       };
     });
 }

@@ -14,6 +14,10 @@ export interface SaveCalculationRequest {
   assetBreakdown: any;
   notes?: string;
   metadata?: any;
+  // Required for CalculationHistory schema
+  zakatYearStart: Date;
+  zakatYearEnd: Date;
+  methodologyConfigId?: string;
 }
 
 export interface CalculationHistoryFilters {
@@ -45,7 +49,10 @@ export class CalculationHistoryService {
       zakatRate = 2.5,
       assetBreakdown,
       notes,
-      metadata
+      metadata,
+      zakatYearStart,
+      zakatYearEnd,
+      methodologyConfigId
     } = request;
 
     // Encrypt sensitive data
@@ -62,13 +69,16 @@ export class CalculationHistoryService {
         userId,
         methodology,
         calendarType,
+        zakatYearStart,
+        zakatYearEnd,
         totalWealth: encryptedTotalWealth,
         nisabThreshold: encryptedNisab,
         zakatDue: encryptedZakatDue,
         zakatRate,
         assetBreakdown: encryptedAssetBreakdown,
         notes: encryptedNotes,
-        metadata: encryptedMetadata
+        metadata: encryptedMetadata,
+        methodologyConfigId
       }
     });
 

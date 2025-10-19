@@ -1,10 +1,20 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { CalculationHistoryService, SaveCalculationRequest } from '../services/CalculationHistoryService';
+import { ZakatEngine } from '../services/zakatEngine';
+import { CurrencyService } from '../services/currencyService';
+import { CalendarService } from '../services/calendarService';
+import { NisabService } from '../services/NisabService';
 import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 const calculationHistoryService = new CalculationHistoryService();
+
+// Initialize ZakatEngine dependencies
+const currencyService = new CurrencyService();
+const calendarService = new CalendarService();
+const nisabService = new NisabService();
+const zakatEngine = new ZakatEngine(currencyService, calendarService, nisabService);
 
 /**
  * Authenticated Request Interface
@@ -28,7 +38,10 @@ const SaveCalculationSchema = z.object({
   zakatRate: z.number().min(0).max(100).optional().default(2.5),
   assetBreakdown: z.record(z.any()),
   notes: z.string().optional(),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.any()).optional(),
+  zakatYearStart: z.string().datetime(),
+  zakatYearEnd: z.string().datetime(),
+  methodologyConfigId: z.string().uuid().optional()
 });
 
 /**
@@ -48,7 +61,9 @@ const GetCalculationsQuerySchema = z.object({
  * Compare Calculations Schema
  */
 const CompareCalculationsSchema = z.object({
-  calculationIds: z.array(z.string()).min(2).max(10)
+  methodologies: z.array(z.enum(['STANDARD', 'HANAFI', 'SHAFII', 'CUSTOM'])).min(2).max(4),
+  customConfigIds: z.array(z.string().uuid()).optional(),
+  referenceDate: z.string().optional()
 });
 
 /**
@@ -86,7 +101,10 @@ router.post('/',
         zakatRate: validatedData.zakatRate || 2.5,
         assetBreakdown: validatedData.assetBreakdown,
         notes: validatedData.notes,
-        metadata: validatedData.metadata
+        metadata: validatedData.metadata,
+        zakatYearStart: new Date(validatedData.zakatYearStart),
+        zakatYearEnd: new Date(validatedData.zakatYearEnd),
+        methodologyConfigId: validatedData.methodologyConfigId
       };
 
       // Get user ID from auth token
@@ -312,11 +330,13 @@ router.post('/compare',
         });
       }
 
-      // Compare calculations
-      const comparison = await calculationHistoryService.compareCalculations(
-        userId,
-        validatedData.calculationIds
-      );
+      // Compare methodologies using ZakatEngine
+      const comparison = await zakatEngine.compareMethodologies({
+        methodologies: validatedData.methodologies.map(m => m.toLowerCase()),
+        customConfigIds: validatedData.customConfigIds,
+        referenceDate: validatedData.referenceDate,
+        userId
+      });
 
       return res.status(200).json({
         success: true,
@@ -335,8 +355,8 @@ router.post('/compare',
         });
       }
 
-      if (error.message.includes('At least 2 calculations') || 
-          error.message.includes('Maximum 10 calculations')) {
+      if (error.message.includes('At least 2 methodologies') || 
+          error.message.includes('Maximum 4 methodologies')) {
         return res.status(400).json({
           success: false,
           error: 'INVALID_REQUEST',

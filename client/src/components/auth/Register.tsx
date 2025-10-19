@@ -6,6 +6,7 @@ import { Input } from '../ui/Input';
 
 export const Register: React.FC = () => {
   const [formData, setFormData] = useState({
+    username: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -23,12 +24,28 @@ export const Register: React.FC = () => {
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
+    if (!formData.username.trim()) {
+      errors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      errors.username = 'Username must be at least 3 characters';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      errors.username = 'Username can only contain letters, numbers, and underscores';
+    }
+
     if (!formData.firstName.trim()) {
       errors.firstName = 'First name is required';
+    } else if (formData.firstName.length < 2 || formData.firstName.length > 50) {
+      errors.firstName = 'First name must be 2-50 characters';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.firstName)) {
+      errors.firstName = 'First name can only contain letters and spaces';
     }
 
     if (!formData.lastName.trim()) {
       errors.lastName = 'Last name is required';
+    } else if (formData.lastName.length < 2 || formData.lastName.length > 50) {
+      errors.lastName = 'Last name must be 2-50 characters';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.lastName)) {
+      errors.lastName = 'Last name can only contain letters and spaces';
     }
 
     if (!formData.email.trim()) {
@@ -41,6 +58,8 @@ export const Register: React.FC = () => {
       errors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(formData.password)) {
+      errors.password = 'Password must contain uppercase, lowercase, number, and special character (!@#$%^&*)';
     }
 
     if (!formData.confirmPassword) {
@@ -70,8 +89,9 @@ export const Register: React.FC = () => {
       return;
     }
 
-    // Send registration data (including confirmPassword for backend validation)
+    // Send registration data with fields backend expects
     await register({
+      username: formData.username,
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
@@ -97,34 +117,41 @@ export const Register: React.FC = () => {
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div className="flex space-x-4">
-              <div className="flex-1">
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  required
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  error={formErrors.firstName}
-                  label="First Name"
-                />
-              </div>
-              <div className="flex-1">
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  required
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  error={formErrors.lastName}
-                  label="Last Name"
-                />
-              </div>
-            </div>
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              required
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              error={formErrors.username}
+              label="Username"
+            />
+
+            <Input
+              id="firstName"
+              name="firstName"
+              type="text"
+              required
+              placeholder="First name"
+              value={formData.firstName}
+              onChange={handleChange}
+              error={formErrors.firstName}
+              label="First Name"
+            />
+
+            <Input
+              id="lastName"
+              name="lastName"
+              type="text"
+              required
+              placeholder="Last name"
+              value={formData.lastName}
+              onChange={handleChange}
+              error={formErrors.lastName}
+              label="Last Name"
+            />
 
             <Input
               id="email"

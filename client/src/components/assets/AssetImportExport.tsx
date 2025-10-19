@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAssets, useCreateAsset } from '../../services/apiHooks';
-import { Asset, AssetCategoryType } from '../../../../shared/src/types';
+import { Asset, AssetCategoryType } from '@zakapp/shared';
 import { Button, LoadingSpinner } from '../ui';
 
 interface ImportResult {

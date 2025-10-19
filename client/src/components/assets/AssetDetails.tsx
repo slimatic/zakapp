@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAsset, useDeleteAsset } from '../../services/apiHooks';
-import { Asset } from '../../../../shared/src/types';
+import { Asset } from '@zakapp/shared';
 import { Button, LoadingSpinner, ErrorMessage } from '../ui';
 
 /**

@@ -7,7 +7,7 @@ import {
   PaginationParams,
   PaginationResult,
   SnapshotStatus
-} from '@shared/types/tracking';
+} from '@zakapp/shared/types/tracking';
 
 /**
  * YearlySnapshotService - Business logic for yearly Zakat snapshots
@@ -126,6 +126,9 @@ export class YearlySnapshotService {
    * @returns Created snapshot
    */
   async createSnapshot(userId: string, data: CreateYearlySnapshotDto): Promise<YearlySnapshot> {
+    // Validate data before encryption
+    YearlySnapshotModel.validateSnapshotData(data);
+
     // Encrypt sensitive data
     const encrypted = await this.encryptSnapshotData(data);
 
