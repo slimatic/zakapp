@@ -14,13 +14,42 @@ export interface UpdateProfileDto {
 }
 
 export interface UpdateSettingsDto {
-  notifications?: boolean;
-  darkMode?: boolean;
-  language?: string;
-  privacyLevel?: 'MINIMAL' | 'STANDARD' | 'COMPREHENSIVE';
-  autoCalculate?: boolean;
-  reminderFrequency?: 'WEEKLY' | 'MONTHLY' | 'QUARTERLY';
-  preferredMethodology?: 'STANDARD' | 'HANAFI' | 'SHAFI' | 'CUSTOM';
+  notifications?: {
+    zakatReminders?: boolean;
+    calculationUpdates?: boolean;
+    marketPriceAlerts?: boolean;
+    monthlyReports?: boolean;
+    emailNotifications?: boolean;
+    browserNotifications?: boolean;
+  };
+  calculations?: {
+    defaultMethodology?: string;
+    autoSaveCalculations?: boolean;
+    showEducationalContent?: boolean;
+    includePreviousYearComparison?: boolean;
+    defaultCurrency?: string;
+    roundingMethod?: 'up' | 'down' | 'nearest';
+  };
+  display?: {
+    theme?: 'light' | 'dark' | 'auto';
+    language?: string;
+    dateFormat?: string;
+    numberFormat?: string;
+    calendarSystem?: 'lunar' | 'solar';
+    showIslamicDates?: boolean;
+  };
+  privacy?: {
+    analyticsEnabled?: boolean;
+    crashReportingEnabled?: boolean;
+    dataRetentionPeriod?: number;
+    encryptionLevel?: 'standard' | 'high';
+  };
+  backup?: {
+    autoBackupEnabled?: boolean;
+    backupFrequency?: 'daily' | 'weekly' | 'monthly';
+    maxBackups?: number;
+    includeCalculationHistory?: boolean;
+  };
 }
 
 export interface ChangePasswordDto {
@@ -380,12 +409,22 @@ export class UserService {
    */
   async updatePrivacySettings(userId: string, privacyData: any) {
     await this.updateSettings(userId, {
-      privacyLevel: privacyData.privacyLevel,
+      privacy: {
+        analyticsEnabled: privacyData.analyticsEnabled,
+        crashReportingEnabled: privacyData.crashReportingEnabled,
+        dataRetentionPeriod: privacyData.dataRetentionPeriod,
+        encryptionLevel: privacyData.encryptionLevel
+      },
       notifications: privacyData.notifications
     });
 
     return {
-      privacyLevel: privacyData.privacyLevel,
+      privacy: {
+        analyticsEnabled: privacyData.analyticsEnabled,
+        crashReportingEnabled: privacyData.crashReportingEnabled,
+        dataRetentionPeriod: privacyData.dataRetentionPeriod,
+        encryptionLevel: privacyData.encryptionLevel
+      },
       notifications: privacyData.notifications,
       dataRetentionPeriod: '2 years',
       thirdPartySharing: false,
