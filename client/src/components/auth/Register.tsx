@@ -7,6 +7,8 @@ import { Input } from '../ui/Input';
 export const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     username: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -30,6 +32,22 @@ export const Register: React.FC = () => {
       errors.username = 'Username can only contain letters, numbers, and underscores';
     }
 
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    } else if (formData.firstName.length < 2 || formData.firstName.length > 50) {
+      errors.firstName = 'First name must be 2-50 characters';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.firstName)) {
+      errors.firstName = 'First name can only contain letters and spaces';
+    }
+
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+    } else if (formData.lastName.length < 2 || formData.lastName.length > 50) {
+      errors.lastName = 'Last name must be 2-50 characters';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.lastName)) {
+      errors.lastName = 'Last name can only contain letters and spaces';
+    }
+
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -40,8 +58,8 @@ export const Register: React.FC = () => {
       errors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      errors.password = 'Password must contain uppercase, lowercase, and a number';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(formData.password)) {
+      errors.password = 'Password must contain uppercase, lowercase, number, and special character (!@#$%^&*)';
     }
 
     if (!formData.confirmPassword) {
@@ -71,9 +89,11 @@ export const Register: React.FC = () => {
       return;
     }
 
-    // Send registration data
+    // Send registration data with fields backend expects
     await register({
       username: formData.username,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
       email: formData.email,
       password: formData.password,
       confirmPassword: formData.confirmPassword
@@ -107,6 +127,30 @@ export const Register: React.FC = () => {
               onChange={handleChange}
               error={formErrors.username}
               label="Username"
+            />
+
+            <Input
+              id="firstName"
+              name="firstName"
+              type="text"
+              required
+              placeholder="First name"
+              value={formData.firstName}
+              onChange={handleChange}
+              error={formErrors.firstName}
+              label="First Name"
+            />
+
+            <Input
+              id="lastName"
+              name="lastName"
+              type="text"
+              required
+              placeholder="Last name"
+              value={formData.lastName}
+              onChange={handleChange}
+              error={formErrors.lastName}
+              label="Last Name"
             />
 
             <Input
