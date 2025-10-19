@@ -99,12 +99,15 @@ router.post('/login',
   loginRateLimit,
   validateUserLogin,
   asyncHandler(async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
+    
+    // Support login with either email or username
+    const loginField = email || username;
 
     try {
-      // Find user in database
+      // Find user in database by email
       const user = await prisma.user.findUnique({
-        where: { email }
+        where: { email: loginField }
       });
 
       if (!user) {
@@ -112,7 +115,7 @@ router.post('/login',
           success: false,
           error: {
             code: 'INVALID_CREDENTIALS',
-            message: 'Invalid email or password'
+            message: 'Invalid email/username or password'
           }
         });
         return;
