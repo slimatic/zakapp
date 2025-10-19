@@ -358,40 +358,34 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Upcoming Reminders */}
-      {stats.upcomingReminders > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Upcoming Reminders</h2>
-            <Link to="/zakat/history">
-              <Button variant="ghost" size="sm">Manage Reminders</Button>
+      <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg leading-6 font-medium text-yellow-900">Upcoming Zakat Reminder</h3>
+              <p className="mt-1 text-sm text-yellow-700">
+                Your next Zakat payment is due in approximately 6 months (based on Hijri calendar).
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <svg className="h-16 w-16 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4">
+            <Link
+              to="/calculate"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            >
+              Calculate Zakat Now
+              <svg className="ml-2 -mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
             </Link>
           </div>
-          
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-              <div className="flex items-center">
-                <span className="text-2xl mr-3">📅</span>
-                <div>
-                  <p className="font-medium text-gray-900">Annual Zakat Calculation</p>
-                  <p className="text-sm text-gray-600">Due in 2 weeks</p>
-                </div>
-              </div>
-              <Button variant="secondary" size="sm">Review</Button>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-              <div className="flex items-center">
-                <span className="text-2xl mr-3">🔄</span>
-                <div>
-                  <p className="font-medium text-gray-900">Asset Review</p>
-                  <p className="text-sm text-gray-600">Monthly asset valuation update</p>
-                </div>
-              </div>
-              <Button variant="secondary" size="sm">Update</Button>
-            </div>
-          </div>
         </div>
-      )}
+      </div>
 
       {/* Islamic Calendar Integration */}
       <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-6 border border-emerald-200">

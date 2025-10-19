@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useCalculateZakat } from '../../hooks/useZakatCalculation';
 import { usePaymentRecords, usePaymentSummary } from '../../hooks/usePaymentRecords';
 import { useRecentSnapshots } from '../../hooks/useZakatSnapshots';
 
@@ -11,9 +10,6 @@ import { useRecentSnapshots } from '../../hooks/useZakatSnapshots';
  * Provides centralized access to all Zakat-related functionality.
  */
 const ZakatDashboard: React.FC = () => {
-  // Fetch latest calculation (assuming we have a way to get the latest)
-  const { data: latestCalculation, isLoading: calculationLoading } = useCalculateZakat();
-
   // Fetch recent payments
   const { data: paymentsData, isLoading: paymentsLoading } = usePaymentRecords({
     limit: 5,
@@ -27,10 +23,8 @@ const ZakatDashboard: React.FC = () => {
   // Fetch recent snapshots
   const { data: recentSnapshots, isLoading: snapshotsLoading } = useRecentSnapshots(3);
 
-  // Calculate derived values
-  const zakatOwed = latestCalculation?.data?.calculation?.zakatDue || 0;
+  // Calculate derived values (placeholder values since we don't have latest calculation)
   const totalPaid = paymentSummary?.data?.totalPaid || 0;
-  const remainingBalance = Math.max(0, zakatOwed - totalPaid);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -51,16 +45,15 @@ const ZakatDashboard: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Zakat Owed</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {calculationLoading ? (
-                    <div className="animate-pulse bg-gray-200 h-8 w-24 rounded"></div>
-                  ) : (
-                    `$${zakatOwed.toLocaleString()}`
-                  )}
+                  Calculate to see amount
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Run a Zakat calculation to view your obligation
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
               </div>
             </div>
@@ -92,16 +85,15 @@ const ZakatDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Remaining Balance</p>
-                <p className={`text-2xl font-bold ${remainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  {calculationLoading || summaryLoading ? (
-                    <div className="animate-pulse bg-gray-200 h-8 w-24 rounded"></div>
-                  ) : (
-                    `$${remainingBalance.toLocaleString()}`
-                  )}
+                <p className={`text-2xl font-bold text-gray-900`}>
+                  Calculate Zakat first
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Complete a calculation to track your balance
                 </p>
               </div>
-              <div className={`p-3 rounded-full ${remainingBalance > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
-                <svg className={`w-6 h-6 ${remainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className={`p-3 rounded-full bg-gray-100`}>
+                <svg className={`w-6 h-6 text-gray-600`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
               </div>
@@ -166,9 +158,9 @@ const ZakatDashboard: React.FC = () => {
                   </div>
                 ))}
               </div>
-            ) : paymentsData?.data?.payments?.length ? (
+            ) : paymentsData?.pages?.[0]?.success && paymentsData.pages[0].data?.payments?.length ? (
               <div className="space-y-3">
-                {paymentsData.data.payments.slice(0, 5).map((payment: any) => (
+                {paymentsData.pages[0].data.payments.slice(0, 5).map((payment: any) => (
                   <div key={payment.paymentId} className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
