@@ -5,24 +5,6 @@ import { apiService } from '../../services/api';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
-import type { User, UserPreferences } from '@zakapp/shared';
-
-interface ProfileFormData {
-  username: string;
-  email: string;
-  preferences: {
-    currency: string;
-    language: string;
-    zakatMethod: string;
-    calendarType: 'lunar' | 'solar';
-  };
-}
-
-interface PasswordChangeData {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
 
 export const Profile: React.FC = () => {
   const { user } = useAuth();

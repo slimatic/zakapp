@@ -357,6 +357,35 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Recent Calculations */}
+      <div className="bg-white rounded-lg shadow p-6 mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Recent Calculations</h2>
+          <Link to="/zakat/history">
+            <Button variant="ghost" size="sm">View All</Button>
+          </Link>
+        </div>
+
+        {recentCalculations && recentCalculations.length > 0 ? (
+          <div className="space-y-3">
+            {recentCalculations.map((calc) => (
+              <div key={calc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-gray-900">{new Date(calc.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-600">{calc.method} • {calc.status}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-900">{formatCurrency(calc.totals?.totalZakatDue || 0, user?.preferences?.currency)}</p>
+                  <Link to={`/zakat/history/${calc.id}`} className="text-sm text-blue-600">View</Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-500">No recent calculations</div>
+        )}
+      </div>
+
       {/* Upcoming Reminders */}
       <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg">
         <div className="px-4 py-5 sm:p-6">
