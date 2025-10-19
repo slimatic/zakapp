@@ -1,0 +1,788 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Calculations API
+  description: Zakat calculation with multi-methodology support and history tracking
+  version: 1.0.0
+  contact:
+    name: ZakApp Team
+
+servers:
+  - url: http://localhost:5000/api
+    description: Development server
+
+tags:
+  - name: Calculations
+    description: Zakat calculation operations
+  - name: History
+    description: Calculation history and snapshots
+
+paths:
+  /calculations/calculate:
+    post:
+      summary: Calculate Zakat for current assets
+      description: Performs Zakat calculation using specified methodology and creates immutable snapshot
+      tags:
+        - Calculations
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - methodology
+              properties:
+                methodology:
+                  type: string
+                  enum: [STANDARD, HANAFI, SHAFII, CUSTOM]
+                  description: Zakat calculation methodology
+                  example: STANDARD
+                methodologyConfigId:
+                  type: string
+                  format: uuid
+                  description: Required if methodology = CUSTOM
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                calendarType:
+                  type: string
+                  enum: [GREGORIAN, HIJRI]
+                  description: Calendar system for Zakat year (optional, defaults to user preference)
+                  example: HIJRI
+                referenceDate:
+                  type: string
+                  format: date
+                  description: Date for calculation (optional, defaults to today)
+                  example: "2025-10-13"
+            examples:
+              standardMethodology:
+                summary: Standard methodology calculation
+                value:
+                  methodology: STANDARD
+                  calendarType: HIJRI
+              customMethodology:
+                summary: Custom methodology calculation
+                value:
+                  methodology: CUSTOM
+                  methodologyConfigId: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '201':
+          description: Calculation completed and snapshot created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - calculation
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  calculation:
+                    $ref: '#/components/schemas/CalculationResult'
+              examples:
+                standardResult:
+                  summary: Standard methodology result
+                  value:
+                    success: true
+                    calculation:
+                      id: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+                      methodology: STANDARD
+                      totalWealth: 125000.00
+                      nisabThreshold: 7500.00
+                      zakatDue: 3125.00
+                      isAboveNisab: true
+                      zakatRate: 2.5
+                      calculationDate: "2025-10-13T14:30:00.000Z"
+                      zakatYear:
+                        startDate: "2024-10-14T00:00:00.000Z"
+                        endDate: "2025-10-13T23:59:59.999Z"
+                        calendarType: HIJRI
+                        daysInYear: 354
+                      assetBreakdown:
+                        - category: CASH
+                          totalValue: 50000.00
+                          isZakatable: true
+                          count: 2
+                        - category: GOLD
+                          totalValue: 75000.00
+                          isZakatable: true
+                          count: 1
+                      isLocked: true
+        '400':
+          description: Invalid request or insufficient assets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingConfigId:
+                  summary: Custom methodology without config ID
+                  value:
+                    success: false
+                    error: MISSING_CONFIG_ID
+                    message: "methodologyConfigId is required for CUSTOM methodology"
+                noAssets:
+                  summary: No assets to calculate
+                  value:
+                    success: false
+                    error: NO_ASSETS
+                    message: "User has no assets to calculate Zakat"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Methodology config not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                success: false
+                error: CONFIG_NOT_FOUND
+                message: "Methodology configuration not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /calculations/history:
+    get:
+      summary: Get calculation history
+      description: Retrieves paginated calculation history for authenticated user
+      tags:
+        - History
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Results per page
+        - name: methodology
+          in: query
+          schema:
+            type: string
+            enum: [STANDARD, HANAFI, SHAFII, CUSTOM]
+          description: Filter by methodology
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter calculations from this date (inclusive)
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter calculations to this date (inclusive)
+      responses:
+        '200':
+          description: Calculation history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - calculations
+                  - pagination
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  calculations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CalculationSnapshot'
+                  pagination:
+                    type: object
+                    required:
+                      - page
+                      - limit
+                      - total
+                      - pages
+                    properties:
+                      page:
+                        type: integer
+                        example: 1
+                      limit:
+                        type: integer
+                        example: 20
+                      total:
+                        type: integer
+                        description: Total number of calculations
+                        example: 45
+                      pages:
+                        type: integer
+                        description: Total number of pages
+                        example: 3
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /calculations/{id}:
+    get:
+      summary: Get calculation by ID
+      description: Retrieves detailed calculation snapshot with asset breakdown
+      tags:
+        - History
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Calculation snapshot ID
+      responses:
+        '200':
+          description: Calculation retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - calculation
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  calculation:
+                    $ref: '#/components/schemas/CalculationDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Calculation belongs to another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                success: false
+                error: FORBIDDEN
+                message: "You do not have permission to access this calculation"
+        '404':
+          description: Calculation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                success: false
+                error: NOT_FOUND
+                message: "Calculation snapshot not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /calculations/{id}/unlock:
+    post:
+      summary: Unlock calculation for editing
+      description: Unlocks an immutable calculation snapshot to allow corrections
+      tags:
+        - History
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Calculation snapshot ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 500
+                  description: Justification for unlocking (audit trail)
+                  example: "Correction needed: Gold asset value was incorrectly entered"
+      responses:
+        '200':
+          description: Calculation unlocked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                  - calculation
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Calculation unlocked for editing"
+                  calculation:
+                    $ref: '#/components/schemas/CalculationSnapshot'
+        '400':
+          description: Invalid request or already unlocked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                alreadyUnlocked:
+                  summary: Calculation already unlocked
+                  value:
+                    success: false
+                    error: ALREADY_UNLOCKED
+                    message: "Calculation is already unlocked"
+                reasonTooShort:
+                  summary: Unlock reason too short
+                  value:
+                    success: false
+                    error: INVALID_REASON
+                    message: "Unlock reason must be at least 10 characters"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /calculations/{id}/lock:
+    post:
+      summary: Re-lock calculation after editing
+      description: Re-locks a calculation snapshot after corrections are made
+      tags:
+        - History
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Calculation snapshot ID
+      responses:
+        '200':
+          description: Calculation locked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                  - calculation
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Calculation locked"
+                  calculation:
+                    $ref: '#/components/schemas/CalculationSnapshot'
+        '400':
+          description: Already locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                success: false
+                error: ALREADY_LOCKED
+                message: "Calculation is already locked"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /calculations/compare:
+    post:
+      summary: Compare methodologies
+      description: Calculates Zakat using multiple methodologies for comparison (does not create snapshots)
+      tags:
+        - Calculations
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - methodologies
+              properties:
+                methodologies:
+                  type: array
+                  minItems: 2
+                  maxItems: 4
+                  items:
+                    type: string
+                    enum: [STANDARD, HANAFI, SHAFII, CUSTOM]
+                  example: [STANDARD, HANAFI, SHAFII]
+                customConfigIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: Config IDs for CUSTOM methodologies (order must match)
+                referenceDate:
+                  type: string
+                  format: date
+                  description: Date for calculation (optional, defaults to today)
+      responses:
+        '200':
+          description: Methodology comparison completed
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - comparison
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  comparison:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MethodologyComparison'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CalculationResult:
+      type: object
+      required:
+        - id
+        - methodology
+        - totalWealth
+        - nisabThreshold
+        - zakatDue
+        - isAboveNisab
+        - zakatRate
+        - calculationDate
+        - zakatYear
+        - assetBreakdown
+        - isLocked
+      properties:
+        id:
+          type: string
+          format: uuid
+        methodology:
+          type: string
+          enum: [STANDARD, HANAFI, SHAFII, CUSTOM]
+        methodologyConfigId:
+          type: string
+          format: uuid
+          nullable: true
+        totalWealth:
+          type: number
+          format: double
+          description: Total zakatable wealth (decrypted)
+        nisabThreshold:
+          type: number
+          format: double
+          description: Nisab threshold value (decrypted)
+        zakatDue:
+          type: number
+          format: double
+          description: Calculated Zakat amount (decrypted)
+        isAboveNisab:
+          type: boolean
+          description: Whether wealth exceeds nisab
+        zakatRate:
+          type: number
+          format: double
+          description: Rate used (e.g., 2.5)
+        calculationDate:
+          type: string
+          format: date-time
+        zakatYear:
+          type: object
+          required:
+            - startDate
+            - endDate
+            - calendarType
+            - daysInYear
+          properties:
+            startDate:
+              type: string
+              format: date-time
+            endDate:
+              type: string
+              format: date-time
+            calendarType:
+              type: string
+              enum: [GREGORIAN, HIJRI]
+            daysInYear:
+              type: integer
+        assetBreakdown:
+          type: array
+          items:
+            type: object
+            required:
+              - category
+              - totalValue
+              - isZakatable
+              - count
+            properties:
+              category:
+                type: string
+              totalValue:
+                type: number
+                format: double
+              isZakatable:
+                type: boolean
+              count:
+                type: integer
+        isLocked:
+          type: boolean
+
+    CalculationSnapshot:
+      type: object
+      required:
+        - id
+        - methodology
+        - totalWealth
+        - zakatDue
+        - nisabThreshold
+        - calculationDate
+        - isLocked
+      properties:
+        id:
+          type: string
+          format: uuid
+        methodology:
+          type: string
+          enum: [STANDARD, HANAFI, SHAFII, CUSTOM]
+        methodologyConfigId:
+          type: string
+          format: uuid
+          nullable: true
+        totalWealth:
+          type: number
+          format: double
+        zakatDue:
+          type: number
+          format: double
+        nisabThreshold:
+          type: number
+          format: double
+        calculationDate:
+          type: string
+          format: date-time
+        isLocked:
+          type: boolean
+        unlockedAt:
+          type: string
+          format: date-time
+          nullable: true
+        unlockReason:
+          type: string
+          nullable: true
+        calendarType:
+          type: string
+          enum: [GREGORIAN, HIJRI]
+        zakatYearStart:
+          type: string
+          format: date-time
+        zakatYearEnd:
+          type: string
+          format: date-time
+
+    CalculationDetail:
+      allOf:
+        - $ref: '#/components/schemas/CalculationSnapshot'
+        - type: object
+          required:
+            - assetValues
+          properties:
+            assetValues:
+              type: array
+              items:
+                type: object
+                required:
+                  - id
+                  - assetId
+                  - assetName
+                  - assetCategory
+                  - capturedValue
+                  - isZakatable
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  assetId:
+                    type: string
+                    format: uuid
+                  assetName:
+                    type: string
+                  assetCategory:
+                    type: string
+                  capturedValue:
+                    type: number
+                    format: double
+                  isZakatable:
+                    type: boolean
+                  capturedAt:
+                    type: string
+                    format: date-time
+
+    MethodologyComparison:
+      type: object
+      required:
+        - methodology
+        - totalWealth
+        - nisabThreshold
+        - zakatDue
+        - isAboveNisab
+        - difference
+      properties:
+        methodology:
+          type: string
+          enum: [STANDARD, HANAFI, SHAFII, CUSTOM]
+        methodologyConfigId:
+          type: string
+          format: uuid
+          nullable: true
+        totalWealth:
+          type: number
+          format: double
+        nisabThreshold:
+          type: number
+          format: double
+        zakatDue:
+          type: number
+          format: double
+        isAboveNisab:
+          type: boolean
+        difference:
+          type: object
+          description: Difference from first methodology in comparison
+          required:
+            - absolute
+            - percentage
+          properties:
+            absolute:
+              type: number
+              format: double
+              description: Absolute difference in Zakat amount
+            percentage:
+              type: number
+              format: double
+              description: Percentage difference
+
+    Error:
+      type: object
+      required:
+        - success
+        - error
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: UNAUTHORIZED
+            message: "Authentication token is missing or invalid"
+
+    Forbidden:
+      description: Access denied to this resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: FORBIDDEN
+            message: "You do not have permission to access this resource"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: NOT_FOUND
+            message: "Resource not found"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: INTERNAL_ERROR
+            message: "An unexpected error occurred"

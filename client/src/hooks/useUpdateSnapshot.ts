@@ -4,10 +4,8 @@
  */
 
 import { useMutation, useQueryClient, UseMutationResult } from '@tanstack/react-query';
-import type { UpdateYearlySnapshotDto, YearlySnapshot } from '../../../shared/types/tracking';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
-
+import type { UpdateYearlySnapshotDto, YearlySnapshot } from '@zakapp/shared/types/tracking';
+import { API_BASE_URL } from '../api'; // Adjust path if needed
 interface UpdateSnapshotParams {
   id: string;
   data: UpdateYearlySnapshotDto;

@@ -11,8 +11,8 @@ import {
   MethodologyInfo,
   Asset,
   ZakatCalculation
-} from '../../../shared/src/types';
-import { ZAKAT_METHODS } from '../../../shared/src/constants';
+} from '@zakapp/shared';
+import { ZAKAT_METHODS } from '@zakapp/shared';
 
 // Legacy interfaces for backward compatibility
 interface LegacyAsset {
@@ -88,7 +88,7 @@ export class ZakatService {
    * Get all available methodologies
    */
   getMethodologies(): MethodologyInfo[] {
-    return Object.values(ZAKAT_METHODS);
+    return Object.values(ZAKAT_METHODS) as MethodologyInfo[];
   }
 
   /**

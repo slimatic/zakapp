@@ -4,7 +4,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
-import type { PaymentRecord } from '../../../shared/types/tracking';
+import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
 

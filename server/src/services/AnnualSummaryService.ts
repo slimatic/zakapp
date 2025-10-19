@@ -7,7 +7,7 @@ import {
   RecipientSummary,
   ComparativeAnalysis,
   ZakatMethodology
-} from '@shared/types/tracking';
+} from '@zakapp/shared/types/tracking';
 
 /**
  * AnnualSummaryService - Business logic for annual Zakat reports

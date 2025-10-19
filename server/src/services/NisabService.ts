@@ -1,5 +1,5 @@
-import { NisabInfo } from '../../../shared/src/types';
-import { NISAB_THRESHOLDS } from '../../../shared/src/constants';
+import { NisabInfo } from '@zakapp/shared';
+import { NISAB_THRESHOLDS } from '@zakapp/shared';
 
 /**
  * Nisab Threshold Service

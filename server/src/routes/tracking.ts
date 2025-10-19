@@ -9,6 +9,7 @@ import { AnnualSummaryService } from '../services/AnnualSummaryService';
 import { ReminderService } from '../services/ReminderService';
 import { CalendarConversionService } from '../services/CalendarConversionService';
 import { ComparisonService } from '../services/ComparisonService';
+import { PrismaClient } from '@prisma/client';
 import {
   snapshotRateLimit,
   analyticsRateLimit,
@@ -31,6 +32,7 @@ const summaryService = new AnnualSummaryService();
 const reminderService = new ReminderService();
 const calendarService = new CalendarConversionService();
 const comparisonService = new ComparisonService();
+const prisma = new PrismaClient();
 
 /**
  * Standard API Response Format
@@ -92,11 +94,8 @@ router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit
       return sendError(res, 'UNAUTHORIZED', 'User not authenticated', 401);
     }
 
-    console.log('📸 CREATE SNAPSHOT REQUEST');
-    console.log('User ID:', userId);
-    console.log('Request Body:', JSON.stringify(req.body, null, 2));
-
     const {
+      calculationId,
       calculationDate,
       gregorianYear,
       gregorianMonth,
@@ -118,42 +117,115 @@ router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit
       isPrimary
     } = req.body;
 
-    console.log('📋 PARSED FIELDS:');
-    console.log('calculationDate:', calculationDate);
-    console.log('gregorianYear:', gregorianYear);
-    console.log('hijriYear:', hijriYear);
-    console.log('totalWealth:', totalWealth, typeof totalWealth);
-    console.log('totalLiabilities:', totalLiabilities, typeof totalLiabilities);
-    console.log('zakatAmount:', zakatAmount, typeof zakatAmount);
+    let snapshotData: {
+      calculationDate?: string;
+      gregorianYear?: number;
+      gregorianMonth?: number;
+      gregorianDay?: number;
+      hijriYear?: number;
+      hijriMonth?: number;
+      hijriDay?: number;
+      totalWealth?: number;
+      totalLiabilities?: number;
+      zakatableWealth?: number;
+      zakatAmount?: number;
+      methodologyUsed?: string;
+      nisabThreshold?: number;
+      nisabType?: string;
+      status?: string;
+      assetBreakdown?: any;
+      calculationDetails?: any;
+      userNotes?: string;
+      isPrimary?: boolean;
+    } = {};
+
+    // If calculationId is provided, populate data from calculation
+    if (calculationId) {
+      const calculation = await prisma.zakatCalculation.findFirst({
+        where: {
+          id: calculationId,
+          userId
+        }
+      });
+
+      if (!calculation) {
+        return sendError(res, 'NOT_FOUND', 'Calculation not found', 404);
+      }
+
+      // Parse breakdown JSON
+      const breakdown = JSON.parse(calculation.breakdown);
+      
+      snapshotData = {
+        calculationDate: calculation.calculationDate.toISOString(),
+        gregorianYear: calculation.calculationDate.getFullYear(),
+        gregorianMonth: calculation.calculationDate.getMonth() + 1,
+        gregorianDay: calculation.calculationDate.getDate(),
+        hijriYear: req.body.year || calculation.calculationDate.getFullYear(), // Use provided year or calculation year
+        hijriMonth: 1, // Default to Muharram
+        hijriDay: 1, // Default to 1st
+        totalWealth: calculation.totalAssets,
+        totalLiabilities: calculation.totalLiabilities,
+        zakatableWealth: calculation.totalAssets - calculation.totalLiabilities,
+        zakatAmount: calculation.zakatAmount,
+        methodologyUsed: (calculation.methodology.charAt(0).toUpperCase() + calculation.methodology.slice(1)) as 'Standard' | 'Hanafi' | 'Shafii' | 'Custom',
+        nisabThreshold: calculation.nisabThreshold,
+        nisabType: (calculation.nisabSource === 'gold' ? 'gold' : 'silver') as 'gold' | 'silver',
+        status: 'finalized' as 'draft' | 'finalized',
+        assetBreakdown: breakdown,
+        calculationDetails: calculation,
+        userNotes: req.body.notes || 'Created from calculation',
+        isPrimary: true
+      };
+    } else {
+      // Use provided data
+      snapshotData = {
+        calculationDate,
+        gregorianYear,
+        gregorianMonth,
+        gregorianDay,
+        hijriYear,
+        hijriMonth,
+        hijriDay,
+        totalWealth,
+        totalLiabilities,
+        zakatableWealth,
+        zakatAmount,
+        methodologyUsed,
+        nisabThreshold,
+        nisabType,
+        status,
+        assetBreakdown,
+        calculationDetails,
+        userNotes,
+        isPrimary
+      };
+    }
 
     // Validation
-    if (!calculationDate || !gregorianYear || !hijriYear || totalWealth === undefined || totalLiabilities === undefined || zakatAmount === undefined) {
-      console.error('❌ VALIDATION FAILED - Missing required fields');
+    if (!snapshotData.calculationDate || !snapshotData.gregorianYear || !snapshotData.hijriYear || snapshotData.totalWealth === undefined || snapshotData.totalLiabilities === undefined || snapshotData.zakatAmount === undefined) {
       return sendError(res, 'VALIDATION_ERROR', 'Missing required fields', 400);
     }
 
-    console.log('✅ Validation passed, calling snapshotService.createSnapshot...');
-
     const snapshot = await snapshotService.createSnapshot(userId, {
-      calculationDate,
-      gregorianYear,
-      gregorianMonth,
-      gregorianDay,
-      hijriYear,
-      hijriMonth,
-      hijriDay,
-      totalWealth,
-      totalLiabilities,
-      zakatableWealth,
-      zakatAmount,
-      methodologyUsed,
-      nisabThreshold,
-      nisabType,
-      status,
-      assetBreakdown,
-      calculationDetails,
-      userNotes,
-      isPrimary
+      calculationDate: snapshotData.calculationDate!,
+      gregorianYear: snapshotData.gregorianYear!,
+      gregorianMonth: snapshotData.gregorianMonth!,
+      gregorianDay: snapshotData.gregorianDay!,
+      hijriYear: snapshotData.hijriYear!,
+      hijriMonth: snapshotData.hijriMonth!,
+      hijriDay: snapshotData.hijriDay!,
+      totalWealth: snapshotData.totalWealth!,
+      totalLiabilities: snapshotData.totalLiabilities!,
+      zakatableWealth: snapshotData.zakatableWealth!,
+      zakatAmount: snapshotData.zakatAmount!,
+      methodologyUsed: snapshotData.methodologyUsed as 'Standard' | 'Hanafi' | 'Shafii' | 'Custom',
+      nisabThreshold: snapshotData.nisabThreshold!,
+      nisabType: snapshotData.nisabType as 'gold' | 'silver',
+      status: snapshotData.status as 'draft' | 'finalized',
+      assetBreakdown: snapshotData.assetBreakdown,
+      calculationDetails: snapshotData.calculationDetails,
+      userNotes: snapshotData.userNotes,
+      isPrimary: snapshotData.isPrimary
     });
 
     console.log('✅ Snapshot created successfully:', snapshot.id);

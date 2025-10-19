@@ -490,20 +490,48 @@ export interface ZakatTotals {
  * @since Phase 1
  */
 export interface ZakatCalculationRequest {
-  /** Date for which to calculate zakat */
+  /** Methodology to use for calculation */
+  methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
+  
+  /** Custom methodology config ID (required if methodology = CUSTOM) */
+  methodologyConfigId?: string;
+  
+  /** Calendar system for calculation */
+  calendarType?: 'lunar' | 'solar';
+  
+  /** Reference date for calculation */
+  referenceDate?: string;
+  
+  /** Calculation method identifier (for internal use) */
+  method?: string;
+  
+  /** Date when calculation is performed */
   calculationDate: string;
   
-  /** Calendar system to use for calculation */
-  calendarType: 'lunar' | 'solar';
+  /** Asset IDs to include in calculation */
+  includeAssets?: string[];
   
-  /** Methodology identifier to use for calculation */
-  method: string;
-  
-  /** Custom nisab override (optional) */
+  /** Custom nisab threshold override */
   customNisab?: number;
+}
+
+/**
+ * Request interface for comparing multiple Zakat calculation methodologies.
+ * Allows users to see how different methodologies affect their Zakat calculation
+ * using the same asset data and reference date.
+ * 
+ * @interface MethodologyComparisonRequest
+ * @since Phase 1
+ */
+export interface MethodologyComparisonRequest {
+  /** Array of methodology identifiers to compare (2-4 methodologies) */
+  methodologies: string[];
   
-  /** Array of asset IDs to include in calculation */
-  includeAssets: string[];
+  /** Custom config IDs for CUSTOM methodologies (order must match methodologies array) */
+  customConfigIds?: string[];
+  
+  /** Reference date for calculation (optional, defaults to today) */
+  referenceDate?: string;
 }
 
 /**
@@ -534,28 +562,28 @@ export interface MethodologyInfo {
   /** Debt deduction approach (e.g., 'comprehensive', 'conservative', 'immediate') */
   debtDeduction: string;
   
-  scholarlyBasis: string[];
+  scholarlyBasis: readonly string[];
   
   /** Geographic regions where this methodology is commonly used */
-  regions: string[];
+  regions: readonly string[];
   
   /** Standard zakat rate percentage (typically 2.5) */
   zakatRate: number;
   
   /** Calendar systems supported by this methodology */
-  calendarSupport: ('lunar' | 'solar')[];
+  calendarSupport: readonly ('lunar' | 'solar')[];
   
   /** Whether the methodology includes custom rules beyond standard calculations */
   customRules?: boolean;
   
   /** Types of users or situations this methodology is most suitable for */
-  suitableFor: string[];
+  suitableFor: readonly string[];
   
   /** Advantages and benefits of using this methodology */
-  pros: string[];
+  pros: readonly string[];
   
   /** Potential drawbacks or considerations when using this methodology */
-  cons: string[];
+  cons: readonly string[];
   
   /** Comprehensive explanation of the methodology's principles and approach */
   explanation: string;
@@ -671,25 +699,31 @@ export interface RegionalAdjustment {
  */
 export interface MethodologyComparison {
   /** Methodology identifier being compared */
-  methodId: string;
+  methodology: string;
   
-  /** Full methodology information */
-  methodology: MethodologyInfo;
+  /** Custom methodology config ID (if applicable) */
+  methodologyConfigId?: string;
   
-  /** Sample calculation results using this methodology */
-  sampleCalculation: {
-    /** Total asset value used in sample */
-    totalAssets: number;
+  /** Total zakatable wealth calculated */
+  totalWealth: number;
+  
+  /** Nisab threshold used */
+  nisabThreshold: number;
+  
+  /** Zakat amount due */
+  zakatDue: number;
+  
+  /** Whether wealth exceeds nisab */
+  isAboveNisab: boolean;
+  
+  /** Difference from first methodology in comparison */
+  difference: {
+    /** Absolute difference in Zakat amount */
+    absolute: number;
     
-    /** Zakat due calculated by this method */
-    zakatDue: number;
-    
-    /** Effective nisab threshold used */
-    effectiveNisab: number;
+    /** Percentage difference */
+    percentage: number;
   };
-  
-  /** Key differences from other methodologies */
-  differences: string[];
 }
 
 // Payment Types
@@ -761,19 +795,19 @@ export interface ZakatCalculationResult {
   /** Primary calculation result */
   result: ZakatCalculation;
   
-  /** Detailed methodology information */
+  /** Methodology information used */
   methodology: MethodologyInfo;
   
-  /** Calculation breakdown for transparency */
+  /** Detailed breakdown of the calculation */
   breakdown: CalculationBreakdown;
   
   /** Assumptions made during calculation */
   assumptions: string[];
   
-  /** Educational and scholarly sources */
+  /** Scholarly sources supporting the calculation */
   sources: string[];
   
-  /** Alternative calculations for comparison */
+  /** Alternative calculations with different methodologies */
   alternatives: AlternativeCalculation[];
 }
 
@@ -840,4 +874,100 @@ export interface PaginationInfo {
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: PaginationInfo;
+}
+
+// Methodology Configuration Types
+export interface MethodologyConfig {
+  id: string;
+  name: string;
+  description?: string;
+  nisabBasis: string;
+  customNisabValue?: number;
+  rate: number;
+  assetRules: Record<string, any>;
+  isCustom: boolean;
+  scholarlyBasis?: readonly string[];
+  regions?: readonly string[];
+  suitableFor?: readonly string[];
+  pros?: readonly string[];
+  cons?: readonly string[];
+  explanation?: string;
+}
+
+export interface CreateMethodologyConfig {
+  name: string;
+  nisabBasis: string;
+  customNisabValue?: number;
+  rate: number;
+  assetRules: Record<string, any>;
+}
+
+export interface UpdateMethodologyConfig {
+  name?: string;
+  nisabBasis?: string;
+  customNisabValue?: number;
+  rate?: number;
+  assetRules?: Record<string, any>;
+}
+
+// Calculation Snapshot Types
+export interface CalculationSnapshot {
+  id: string;
+  methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
+  methodologyConfigId?: string;
+  totalWealth: number;
+  zakatDue: number;
+  nisabThreshold: number;
+  calculationDate: string;
+  isLocked: boolean;
+  unlockedAt?: string;
+  unlockReason?: string;
+  calendarType: 'GREGORIAN' | 'HIJRI';
+  zakatYearStart: string;
+  zakatYearEnd: string;
+}
+
+export interface CalculationSnapshotDetail extends CalculationSnapshot {
+  assetValues: SnapshotAssetValue[];
+}
+
+export interface SnapshotAssetValue {
+  id: string;
+  assetId: string;
+  assetName: string;
+  assetCategory: string;
+  capturedValue: number;
+  capturedAt: string;
+  isZakatable: boolean;
+}
+
+export interface CreateCalculationSnapshotRequest {
+  methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
+  methodologyConfigId?: string;
+  calendarType?: 'GREGORIAN' | 'HIJRI';
+  referenceDate?: string;
+}
+
+export interface SnapshotComparison {
+  fromSnapshot: CalculationSnapshotDetail;
+  toSnapshot: CalculationSnapshotDetail;
+  timeDifference: {
+    days: number;
+    months: number;
+    years: number;
+  };
+  wealthChange: {
+    absolute: number;
+    percentage: number;
+  };
+  zakatChange: {
+    absolute: number;
+    percentage: number;
+  };
+  assetChanges: {
+    added: SnapshotAssetValue[];
+    removed: SnapshotAssetValue[];
+    modified: SnapshotAssetValue[];
+    valueChange: number;
+  };
 }

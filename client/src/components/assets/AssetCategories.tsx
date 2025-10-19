@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AssetCategoryType } from '../../../../shared/src/types';
+import { AssetCategoryType } from '@zakapp/shared';
 
 interface AssetCategory {
   id: AssetCategoryType;

@@ -1,0 +1,627 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Methodology Configuration API
+  description: Custom Zakat methodology configuration management
+  version: 1.0.0
+  contact:
+    name: ZakApp Team
+
+servers:
+  - url: http://localhost:5000/api
+    description: Development server
+
+tags:
+  - name: Methodology
+    description: Methodology configuration operations
+
+paths:
+  /methodologies:
+    get:
+      summary: List available methodologies
+      description: Retrieves all available fixed methodologies and user's custom configurations
+      tags:
+        - Methodology
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Methodologies retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - fixed
+                  - custom
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  fixed:
+                    type: array
+                    description: Built-in methodologies (STANDARD, HANAFI, SHAFII)
+                    items:
+                      $ref: '#/components/schemas/FixedMethodology'
+                  custom:
+                    type: array
+                    description: User-created custom methodologies
+                    items:
+                      $ref: '#/components/schemas/CustomMethodology'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /methodologies/custom:
+    post:
+      summary: Create custom methodology
+      description: Creates a new user-defined Zakat calculation methodology
+      tags:
+        - Methodology
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMethodologyConfig'
+            examples:
+              silverBased:
+                summary: Silver-based custom methodology
+                value:
+                  name: "My Regional Method"
+                  nisabBasis: SILVER
+                  rate: 2.5
+                  assetRules:
+                    CASH:
+                      included: true
+                    GOLD:
+                      included: true
+                      adjustmentPercentage: 1.0
+                    CRYPTO:
+                      included: true
+                    REAL_ESTATE:
+                      included: false
+                      notes: "Personal residence exempt"
+              customValue:
+                summary: Custom nisab value
+                value:
+                  name: "Fixed Nisab Method"
+                  nisabBasis: CUSTOM_VALUE
+                  customNisabValue: 10000.00
+                  rate: 2.5
+                  assetRules:
+                    CASH:
+                      included: true
+                    GOLD:
+                      included: true
+      responses:
+        '201':
+          description: Custom methodology created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - methodology
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Custom methodology created successfully"
+                  methodology:
+                    $ref: '#/components/schemas/CustomMethodology'
+        '400':
+          description: Invalid configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                duplicateName:
+                  summary: Duplicate methodology name
+                  value:
+                    success: false
+                    error: DUPLICATE_NAME
+                    message: "A methodology with this name already exists"
+                invalidRate:
+                  summary: Invalid Zakat rate
+                  value:
+                    success: false
+                    error: INVALID_RATE
+                    message: "Zakat rate must be between 0 and 100"
+                missingNisabValue:
+                  summary: Missing custom nisab value
+                  value:
+                    success: false
+                    error: MISSING_NISAB_VALUE
+                    message: "customNisabValue is required when nisabBasis is CUSTOM_VALUE"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /methodologies/custom/{id}:
+    get:
+      summary: Get custom methodology by ID
+      description: Retrieves a specific custom methodology configuration
+      tags:
+        - Methodology
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Methodology configuration ID
+      responses:
+        '200':
+          description: Methodology retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - methodology
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  methodology:
+                    $ref: '#/components/schemas/CustomMethodology'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Update custom methodology
+      description: Updates an existing custom methodology configuration
+      tags:
+        - Methodology
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMethodologyConfig'
+      responses:
+        '200':
+          description: Methodology updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - methodology
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Custom methodology updated successfully"
+                  methodology:
+                    $ref: '#/components/schemas/CustomMethodology'
+        '400':
+          description: Invalid update data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete custom methodology
+      description: Deactivates a custom methodology (preserves historical calculations)
+      tags:
+        - Methodology
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Methodology deactivated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Custom methodology deactivated successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /methodologies/{type}/info:
+    get:
+      summary: Get methodology information
+      description: Retrieves educational information about a specific methodology type
+      tags:
+        - Methodology
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [STANDARD, HANAFI, SHAFII]
+          description: Fixed methodology type
+      responses:
+        '200':
+          description: Methodology information retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - info
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  info:
+                    $ref: '#/components/schemas/MethodologyInfo'
+        '400':
+          description: Invalid methodology type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    FixedMethodology:
+      type: object
+      required:
+        - type
+        - name
+        - description
+        - nisabBasis
+        - rate
+      properties:
+        type:
+          type: string
+          enum: [STANDARD, HANAFI, SHAFII]
+          example: STANDARD
+        name:
+          type: string
+          example: "Standard (AAOIFI)"
+        description:
+          type: string
+          example: "Gold-based nisab following AAOIFI guidelines"
+        nisabBasis:
+          type: string
+          enum: [GOLD, SILVER]
+          example: GOLD
+        rate:
+          type: number
+          format: double
+          example: 2.5
+        nisabThresholds:
+          type: object
+          properties:
+            gold:
+              type: object
+              properties:
+                grams:
+                  type: number
+                  example: 85
+                description:
+                  type: string
+                  example: "85 grams of gold"
+            silver:
+              type: object
+              properties:
+                grams:
+                  type: number
+                  example: 595
+                description:
+                  type: string
+                  example: "595 grams of silver"
+
+    CustomMethodology:
+      type: object
+      required:
+        - id
+        - name
+        - nisabBasis
+        - rate
+        - assetRules
+        - isActive
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        nisabBasis:
+          type: string
+          enum: [GOLD, SILVER, CUSTOM_VALUE]
+        customNisabValue:
+          type: number
+          format: double
+          nullable: true
+          description: Only present if nisabBasis = CUSTOM_VALUE (decrypted)
+        rate:
+          type: number
+          format: double
+          example: 2.5
+        assetRules:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AssetRule'
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AssetRule:
+      type: object
+      required:
+        - included
+      properties:
+        included:
+          type: boolean
+          description: Whether this asset category is zakatable
+        adjustmentPercentage:
+          type: number
+          format: double
+          nullable: true
+          description: Optional adjustment factor (e.g., 0.8 = 80% of value)
+          example: 1.0
+        notes:
+          type: string
+          nullable: true
+          description: Optional user notes about this rule
+          example: "Personal residence exempt"
+
+    CreateMethodologyConfig:
+      type: object
+      required:
+        - name
+        - nisabBasis
+        - assetRules
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Unique name for this custom methodology
+          example: "My Regional Method"
+        nisabBasis:
+          type: string
+          enum: [GOLD, SILVER, CUSTOM_VALUE]
+          description: How to calculate nisab threshold
+        customNisabValue:
+          type: number
+          format: double
+          minimum: 0
+          description: Required if nisabBasis = CUSTOM_VALUE
+          example: 10000.00
+        rate:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          default: 2.5
+          description: Zakat rate percentage
+        assetRules:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AssetRule'
+          description: Rules for each asset category
+
+    UpdateMethodologyConfig:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        nisabBasis:
+          type: string
+          enum: [GOLD, SILVER, CUSTOM_VALUE]
+        customNisabValue:
+          type: number
+          format: double
+          minimum: 0
+          nullable: true
+        rate:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        assetRules:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AssetRule'
+
+    MethodologyInfo:
+      type: object
+      required:
+        - type
+        - name
+        - description
+        - nisabBasis
+        - rate
+        - scholarlyBasis
+        - suitableFor
+      properties:
+        type:
+          type: string
+          enum: [STANDARD, HANAFI, SHAFII]
+        name:
+          type: string
+        description:
+          type: string
+        nisabBasis:
+          type: string
+          enum: [GOLD, SILVER]
+        rate:
+          type: number
+          format: double
+        scholarlyBasis:
+          type: object
+          required:
+            - source
+            - summary
+          properties:
+            source:
+              type: string
+              description: Primary scholarly source
+              example: "AAOIFI Shariah Standards"
+            summary:
+              type: string
+              description: Brief explanation of methodology basis
+              example: "Based on AAOIFI Shariah Standard No. 35 on Zakat"
+            references:
+              type: array
+              items:
+                type: string
+              description: Additional scholarly references
+        suitableFor:
+          type: array
+          items:
+            type: string
+          description: Scenarios where this methodology is appropriate
+          example: ["General use", "Global standard", "AAOIFI-compliant institutions"]
+        considerations:
+          type: array
+          items:
+            type: string
+          description: Important notes about using this methodology
+          example: ["Gold prices fluctuate - nisab threshold changes", "More strict than silver-based"]
+
+    Error:
+      type: object
+      required:
+        - success
+        - error
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: UNAUTHORIZED
+            message: "Authentication token is missing or invalid"
+
+    Forbidden:
+      description: Access denied to this resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: FORBIDDEN
+            message: "You do not have permission to access this resource"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: NOT_FOUND
+            message: "Methodology configuration not found"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error: INTERNAL_ERROR
+            message: "An unexpected error occurred"

@@ -6,7 +6,7 @@ import {
   SnapshotStatus,
   NisabType,
   ZakatMethodology
-} from '@shared/types/tracking';
+} from '@zakapp/shared/types/tracking';
 
 const prisma = new PrismaClient();
 
@@ -20,7 +20,7 @@ export class YearlySnapshotModel {
    * @param data - Snapshot data to validate
    * @throws Error if validation fails
    */
-  private static validateSnapshotData(data: Partial<CreateYearlySnapshotDto>): void {
+  static validateSnapshotData(data: Partial<CreateYearlySnapshotDto>): void {
     // Validate calculation date
     if (data.calculationDate) {
       const calcDate = new Date(data.calculationDate);
@@ -135,8 +135,8 @@ export class YearlySnapshotModel {
    */
   static async create(userId: string, data: CreateYearlySnapshotDto): Promise<YearlySnapshot> {
     try {
-      // Validate data
-      this.validateSnapshotData(data);
+      // Validate data - MOVED TO SERVICE LAYER
+      // this.validateSnapshotData(data);
 
       // Validate primary snapshot constraint
       await this.validatePrimarySnapshot(

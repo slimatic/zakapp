@@ -19,7 +19,7 @@ export interface CreatePaymentRequest {
 export interface PaymentRecipient {
   name: string;
   type: 'individual' | 'organization' | 'charity';
-  category: 'poor' | 'needy' | 'collectors' | 'hearts_reconciled' | 'slaves' | 'debtors' | 'path_of_allah' | 'travelers';
+  category: 'poor' | 'needy' | 'collectors' | 'hearts_reconciled' | 'widows' | 'orphans' | 'divorced' | 'refugees' | 'wayfarers';
   amount: number;
   contactInfo?: {
     email?: string;
@@ -98,11 +98,7 @@ export class PaymentService {
     const islamicYear = this.getIslamicYear(paymentDate);
 
     // Encrypt sensitive recipient data
-    const encryptedRecipients = await Promise.all(recipients.map(async recipient => ({
-      ...recipient,
-      contactInfo: recipient.contactInfo ? 
-        await EncryptionService.encryptObject(recipient.contactInfo, ENCRYPTION_KEY) : null
-    })));
+    const encryptedRecipients = await EncryptionService.encryptObject(recipients, ENCRYPTION_KEY);
 
     // Create payment record
     const payment = await prisma.zakatPayment.create({
@@ -112,17 +108,17 @@ export class PaymentService {
         paymentDate,
         amount,
         currency,
-        recipients: JSON.stringify(encryptedRecipients),
+        recipients: encryptedRecipients,
         paymentMethod,
         receiptNumber: receiptNumber || null,
         islamicYear,
         notes: notes || null,
         status: 'completed',
-        verificationDetails: JSON.stringify({
+        verificationDetails: await EncryptionService.encryptObject({
           ...metadata,
           recipientCount: recipients.length,
           paymentCategories: this.extractPaymentCategories(recipients)
-        })
+        }, ENCRYPTION_KEY)
       }
     });
 
@@ -254,11 +250,7 @@ export class PaymentService {
       this.validateRecipientCategories(updates.recipients);
       
       // Encrypt sensitive recipient data
-      const encryptedRecipients = await Promise.all(updates.recipients.map(async recipient => ({
-        ...recipient,
-        contactInfo: recipient.contactInfo ? 
-          await EncryptionService.encryptObject(recipient.contactInfo, ENCRYPTION_KEY) : null
-      })));
+      const encryptedRecipients = await EncryptionService.encryptObject(updates.recipients, ENCRYPTION_KEY);
 
       updateData.recipients = JSON.stringify(encryptedRecipients);
 
@@ -559,16 +551,20 @@ export class PaymentService {
    * Private: Format payment data for response
    */
   private async formatPaymentData(payment: any): Promise<PaymentData> {
-    // Decrypt recipient contact info
+    // Decrypt recipient data
     let recipients = [];
     try {
-      recipients = await Promise.all(JSON.parse(payment.recipients || '[]').map(async (recipient: any) => ({
-        ...recipient,
-        contactInfo: recipient.contactInfo ? 
-          await EncryptionService.decryptObject(recipient.contactInfo, ENCRYPTION_KEY) : null
-      })));
+      recipients = await EncryptionService.decryptObject(payment.recipients, ENCRYPTION_KEY);
     } catch (error) {
       recipients = [];
+    }
+
+    // Decrypt verification details
+    let metadata = {};
+    try {
+      metadata = await EncryptionService.decryptObject(payment.verificationDetails, ENCRYPTION_KEY);
+    } catch (error) {
+      metadata = {};
     }
 
     return {
@@ -584,7 +580,7 @@ export class PaymentService {
       islamicYear: payment.islamicYear,
       notes: payment.notes,
       status: payment.status,
-      metadata: JSON.parse(payment.verificationDetails || '{}'),
+      metadata,
       createdAt: payment.createdAt,
       updatedAt: payment.updatedAt
     };

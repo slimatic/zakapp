@@ -135,6 +135,7 @@ Quick links to essential documentation:
 
 ### 🔧 **Technical Reference**
 - **[📖 API Specification](api-specification.md)** - Complete REST API documentation
+- **[🔄 OpenAPI Specification](docs/api/openapi.yaml)** - Machine-readable API specification
 - **[🏗️ Complete Specification](specs/001-zakapp-specification-complete/)** - Detailed API contracts and data models
 - **[👤 User Stories](user-stories.md)** - Feature requirements and user flows
 - **[📏 Project Principles](principles.md)** - Development guidelines and philosophy
@@ -152,6 +153,7 @@ Quick links to essential documentation:
 - **[🔧 Port Configuration](docs/guides/PORT_CONFIGURATION_GUIDE.md)** - Configure custom ports, fix "Failed to fetch" errors
 - **[💾 Database Portability](docs/guides/DATABASE_PORTABILITY_GUIDE.md)** - Database migration and portability
 - **[🧪 Manual Testing Guide](docs/guides/MANUAL_TESTING_GUIDE.md)** - Manual testing procedures
+- **[❓ Troubleshooting & FAQ](docs/troubleshooting-faq.md)** - Common issues, error messages, and solutions
 
 ### 📚 **Additional Resources**
 - **[🗂️ Documentation Archive](docs/archive/ARCHIVE_INDEX.md)** - 80+ historical reports and completion documents

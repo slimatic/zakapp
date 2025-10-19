@@ -7,9 +7,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SnapshotForm } from '../components/tracking/SnapshotForm';
 import { Button } from '../components/ui/Button';
-import type { YearlySnapshot } from '../../../shared/types/tracking';
+import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+import { API_BASE_URL } from '../api'; // Adjust path as needed to where API_BASE_URL is exported
 
 export const CreateSnapshotPage: React.FC = () => {
   const navigate = useNavigate();

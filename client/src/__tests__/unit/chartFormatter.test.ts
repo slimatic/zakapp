@@ -15,7 +15,7 @@ import {
   formatAssetTypeName,
   CATEGORY_COLORS
 } from '../../utils/chartFormatter';
-import type { YearlySnapshot, PaymentRecord } from '../../../../shared/types/tracking';
+import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
 
 describe('chartFormatter utility', () => {
   const mockSnapshots: YearlySnapshot[] = [
@@ -44,7 +44,7 @@ describe('chartFormatter utility', () => {
         businessAssets: 10000
       },
       calculationDetails: {},
-      userNotes: null,
+      userNotes: undefined,
       isPrimary: true,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -74,7 +74,7 @@ describe('chartFormatter utility', () => {
         businessAssets: 10000
       },
       calculationDetails: {},
-      userNotes: null,
+      userNotes: undefined,
       isPrimary: true,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -104,12 +104,72 @@ describe('chartFormatter utility', () => {
         businessAssets: 10000
       },
       calculationDetails: {},
-      userNotes: null,
+      userNotes: undefined,
       isPrimary: true,
       createdAt: new Date(),
       updatedAt: new Date()
     }
   ];
+
+  // Mock payments for groupBy-based functions (grouped by snapshot ID)
+  const mockPaymentsBySnapshot: Record<string, PaymentRecord[]> = {
+    'snap-3': [
+      {
+        id: 'pay-1',
+        userId: 'user-123',
+        snapshotId: 'snap-3',
+        amount: 1000,
+        paymentDate: new Date('2024-07-01'),
+        recipientName: 'Recipient 1',
+        recipientType: 'individual',
+        recipientCategory: 'fakir',
+        notes: 'Payment 1',
+        receiptReference: 'RCPT-001',
+        paymentMethod: 'cash',
+        status: 'verified',
+        currency: 'USD',
+        exchangeRate: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'pay-2',
+        userId: 'user-123',
+        snapshotId: 'snap-3',
+        amount: 1500,
+        paymentDate: new Date('2024-08-01'),
+        recipientName: 'Recipient 2',
+        recipientType: 'organization',
+        recipientCategory: 'miskin',
+        notes: 'Payment 2',
+        receiptReference: 'RCPT-002',
+        paymentMethod: 'bank_transfer',
+        status: 'recorded',
+        currency: 'USD',
+        exchangeRate: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 'pay-3',
+        userId: 'user-123',
+        snapshotId: 'snap-3',
+        amount: 750,
+        paymentDate: new Date('2024-09-01'),
+        recipientName: 'Recipient 3',
+        recipientType: 'individual',
+        recipientCategory: 'riqab',
+        notes: 'Payment 3',
+        receiptReference: 'RCPT-003',
+        paymentMethod: 'online',
+        status: 'verified',
+        currency: 'USD',
+        exchangeRate: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ]
+  };
 
   const mockPayments: PaymentRecord[] = [
     {
@@ -174,10 +234,10 @@ describe('chartFormatter utility', () => {
 
       expect(result).toHaveLength(3);
       expect(result[0]).toHaveProperty('date');
-      expect(result[0]).toHaveProperty('wealth');
-      expect(result[0].wealth).toBe(100000);
-      expect(result[1].wealth).toBe(125000);
-      expect(result[2].wealth).toBe(150000);
+      expect(result[0]).toHaveProperty('value');
+      expect(result[0].value).toBe(100000);
+      expect(result[1].value).toBe(125000);
+      expect(result[2].value).toBe(150000);
     });
 
     it('should sort data by date ascending', () => {
@@ -205,7 +265,7 @@ describe('chartFormatter utility', () => {
       const result = formatWealthTrend([mockSnapshots[0]]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].wealth).toBe(100000);
+      expect(result[0].value).toBe(100000);
     });
   });
 
@@ -215,10 +275,10 @@ describe('chartFormatter utility', () => {
 
       expect(result).toHaveLength(3);
       expect(result[0]).toHaveProperty('date');
-      expect(result[0]).toHaveProperty('zakat');
-      expect(result[0].zakat).toBe(2250);
-      expect(result[1].zakat).toBe(2750);
-      expect(result[2].zakat).toBe(3250);
+      expect(result[0]).toHaveProperty('value');
+      expect(result[0].value).toBe(2250);
+      expect(result[1].value).toBe(2750);
+      expect(result[2].value).toBe(3250);
     });
 
     it('should sort data by date ascending', () => {
@@ -298,9 +358,9 @@ describe('chartFormatter utility', () => {
       const result = formatYearlyComparison(mockSnapshots, 'wealth');
 
       expect(result).toHaveLength(3);
-      expect(result[0]).toHaveProperty('year');
+      expect(result[0]).toHaveProperty('name');
       expect(result[0]).toHaveProperty('value');
-      expect(result[0].year).toBe('2022');
+      expect(result[0].name).toBe('2022');
       expect(result[0].value).toBe(100000);
     });
 
@@ -316,9 +376,9 @@ describe('chartFormatter utility', () => {
       const unsorted = [mockSnapshots[2], mockSnapshots[0], mockSnapshots[1]];
       const result = formatYearlyComparison(unsorted, 'wealth');
 
-      expect(result[0].year).toBe('2022');
-      expect(result[1].year).toBe('2023');
-      expect(result[2].year).toBe('2024');
+      expect(result[0].name).toBe('2022');
+      expect(result[1].name).toBe('2023');
+      expect(result[2].name).toBe('2024');
     });
 
     it('should handle empty snapshots array', () => {
@@ -427,7 +487,7 @@ describe('chartFormatter utility', () => {
 
   describe('formatPaymentCompletion', () => {
     it('should format payment completion for bar chart', () => {
-      const result = formatPaymentCompletion(mockSnapshots, mockPayments);
+      const result = formatPaymentCompletion(mockSnapshots, mockPaymentsBySnapshot);
 
       expect(result).toHaveLength(3);
       expect(result[0]).toHaveProperty('year');
@@ -436,7 +496,7 @@ describe('chartFormatter utility', () => {
     });
 
     it('should calculate paid and due amounts correctly', () => {
-      const result = formatPaymentCompletion(mockSnapshots, mockPayments);
+      const result = formatPaymentCompletion(mockSnapshots, mockPaymentsBySnapshot);
 
       // 2024 snapshot has 3 payments totaling 3250
       const currentYear = result.find(r => r.year === '2024');
@@ -445,7 +505,7 @@ describe('chartFormatter utility', () => {
     });
 
     it('should handle years with no payments', () => {
-      const result = formatPaymentCompletion(mockSnapshots, mockPayments);
+      const result = formatPaymentCompletion(mockSnapshots, mockPaymentsBySnapshot);
 
       const year2022 = result.find(r => r.year === '2022');
       expect(year2022?.paid).toBe(0);
@@ -454,7 +514,7 @@ describe('chartFormatter utility', () => {
 
     it('should sort by year ascending', () => {
       const unsorted = [mockSnapshots[2], mockSnapshots[0], mockSnapshots[1]];
-      const result = formatPaymentCompletion(unsorted, mockPayments);
+      const result = formatPaymentCompletion(unsorted, mockPaymentsBySnapshot);
 
       expect(result[0].year).toBe('2022');
       expect(result[1].year).toBe('2023');
@@ -462,7 +522,7 @@ describe('chartFormatter utility', () => {
     });
 
     it('should handle empty payments array', () => {
-      const result = formatPaymentCompletion(mockSnapshots, []);
+      const result = formatPaymentCompletion(mockSnapshots, {});
 
       expect(result[0].paid).toBe(0);
       expect(result[1].paid).toBe(0);
@@ -470,7 +530,7 @@ describe('chartFormatter utility', () => {
     });
 
     it('should handle empty snapshots array', () => {
-      const result = formatPaymentCompletion([], mockPayments);
+      const result = formatPaymentCompletion([], mockPaymentsBySnapshot);
 
       expect(result).toEqual([]);
     });
@@ -552,7 +612,7 @@ describe('chartFormatter utility', () => {
       const result = formatWealthTrend([snapshotNoAssets]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].wealth).toBe(100000);
+      expect(result[0].value).toBe(100000);
     });
 
     it('should handle negative values gracefully', () => {
@@ -564,7 +624,7 @@ describe('chartFormatter utility', () => {
 
       const result = formatWealthTrend([negativeSnapshot]);
 
-      expect(result[0].wealth).toBe(-1000);
+      expect(result[0].value).toBe(-1000);
     });
 
     it('should handle zero values', () => {
@@ -589,7 +649,7 @@ describe('chartFormatter utility', () => {
 
       const result = formatWealthTrend([largeSnapshot]);
 
-      expect(result[0].wealth).toBe(10000000);
+      expect(result[0].value).toBe(10000000);
     });
   });
 
@@ -608,7 +668,7 @@ describe('chartFormatter utility', () => {
 
     it('should handle multi-year analysis', () => {
       const comparison = formatYearlyComparison(mockSnapshots, 'wealth');
-      const completion = formatPaymentCompletion(mockSnapshots, mockPayments);
+      const completion = formatPaymentCompletion(mockSnapshots, mockPaymentsBySnapshot);
 
       expect(comparison).toHaveLength(3);
       expect(completion).toHaveLength(3);

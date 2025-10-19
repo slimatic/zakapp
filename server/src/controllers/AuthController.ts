@@ -2,14 +2,16 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { AuthenticatedRequest, ApiResponse, AuthTokens, User } from '../types';
 import { asyncHandler, AppError } from '../middleware/ErrorHandler';
-import { UserStore } from '../utils/userStore';
+import { AuthService } from '../services/AuthService';
 import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken, invalidateAllUserRefreshTokens } from '../utils/jwt';
 import { invalidateToken, invalidateUserSession } from '../middleware/auth';
 import { generateResetToken, validateResetToken, useResetToken, invalidateUserResetTokens } from '../utils/resetTokens';
 
+const authService = new AuthService();
+
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
-    const { email, password, username } = req.body;
+    const { email, password, username, firstName, lastName, timezone, currency } = req.body;
     
     // Validation - collect all errors
     const validationErrors: Array<{field: string, message: string}> = [];
@@ -40,37 +42,36 @@ export class AuthController {
       return;
     }
 
-    // Check for duplicate email
-    if (UserStore.emailExists(email)) {
-      res.status(409).json({
-        success: false,
-        error: 'EMAIL_ALREADY_EXISTS',
-        message: 'Email address is already registered'
-      });
-      return;
-    }
-    
     try {
-      // Create user with encrypted password
-      const user = await UserStore.createUser(email, username, password);
+      // Create user using AuthService
+      const result = await authService.register({
+        firstName: firstName || '',
+        lastName: lastName || '',
+        username,
+        email,
+        password,
+        timezone,
+        currency
+      });
       
       // Create user response without sensitive data
       const userResponse = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        createdAt: user.createdAt
+        id: result.user.id,
+        email: result.user.email,
+        username: result.user.username,
+        createdAt: result.user.createdAt
       };
 
       const response: ApiResponse = {
         success: true,
         message: 'User registered successfully',
-        user: userResponse
+        user: userResponse,
+        tokens: result.tokens
       };
 
       res.status(201).json(response);
     } catch (error: any) {
-      if (error.message === 'EMAIL_ALREADY_EXISTS') {
+      if (error.message === 'User with this email or username already exists') {
         res.status(409).json({
           success: false,
           error: 'EMAIL_ALREADY_EXISTS',
@@ -109,8 +110,8 @@ export class AuthController {
     }
 
     // Authenticate user
-    const user = await UserStore.authenticateUser(email, password);
-    if (!user) {
+    const result = await authService.login({ email, password });
+    if (!result) {
       res.status(401).json({
         success: false,
         error: 'INVALID_CREDENTIALS',
@@ -119,35 +120,19 @@ export class AuthController {
       return;
     }
 
-    // Generate tokens
-    const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken(user.id);
-    const sessionId = generateSessionId();
-
     // Create user response
     const userResponse = {
-      id: user.id,
-      email: user.email,
-      name: user.username,
-      lastLoginAt: new Date().toISOString()
-    };
-
-    const tokens: AuthTokens = {
-      accessToken,
-      refreshToken,
-      expiresIn: 900 // 15 minutes in seconds
+      id: result.user.id,
+      email: result.user.email,
+      username: result.user.username,
+      createdAt: result.user.createdAt
     };
 
     const response: ApiResponse = {
       success: true,
       message: 'Login successful',
       user: userResponse,
-      tokens,
-      // Also provide direct access for tests that expect it
-      accessToken,
-      refreshToken,
-      expiresIn: 900,
-      sessionId
+      tokens: result.tokens
     };
 
     res.status(200).json(response);
@@ -167,63 +152,16 @@ export class AuthController {
     }
 
     try {
-      // Verify the refresh token
-      const decoded = verifyRefreshToken(refreshToken);
-      
-      // If there's an authorization header, verify it matches the refresh token user
-      const authHeader = req.headers['authorization'];
-      if (authHeader) {
-        const accessToken = authHeader.split(' ')[1];
-        if (accessToken) {
-          try {
-            const accessDecoded = verifyToken(accessToken);
-            if (accessDecoded.userId !== decoded.userId) {
-              res.status(401).json({
-                success: false,
-                error: 'TOKEN_MISMATCH',
-                message: 'Access token does not match refresh token user'
-              });
-              return;
-            }
-          } catch (error) {
-            // Ignore invalid access tokens for now, just focus on refresh token
-          }
-        }
-      }
-      
-      // Mark the old refresh token as used
-      markRefreshTokenAsUsed(refreshToken);
-      
-      // Get user to validate they still exist
-      const user = UserStore.getUserById(decoded.userId);
-      if (!user) {
-        res.status(401).json({
-          success: false,
-          error: 'INVALID_TOKEN',
-          message: 'User not found'
-        });
-        return;
-      }
-
-      // Generate new tokens
-      const newAccessToken = generateAccessToken(decoded.userId);
-      const newRefreshToken = generateRefreshToken(decoded.userId);
-      const sessionId = generateSessionId();
-
-      const tokens: AuthTokens = {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-        expiresIn: 900 // 15 minutes
-      };
+      // Use AuthService to refresh tokens
+      const tokens = await authService.refreshTokens(refreshToken);
 
       const response: ApiResponse = {
         success: true,
         tokens,
         // Also provide direct access for tests that expect it
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-        expiresIn: 900,
-        sessionId
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: tokens.expiresIn
       };
 
       res.status(200).json(response);
@@ -299,7 +237,7 @@ export class AuthController {
     }
 
     // Get user from storage
-    const user = UserStore.getUserById(req.userId);
+    const user = await authService.getUserById(req.userId);
     if (!user) {
       res.status(401).json({
         success: false,
@@ -379,7 +317,7 @@ export class AuthController {
 
     // Privacy-first: Always return success to prevent email enumeration
     // In real implementation, would send email if user exists
-    const userId = UserStore.getUserIdByEmail(email);
+    const userId = await authService.getUserIdByEmail(email);
     const resetTokenId = crypto.randomUUID(); // Always use UUID format for security
     const expiresIn = 3600; // 1 hour in seconds
     const eventId = `pwd_reset_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
@@ -388,10 +326,10 @@ export class AuthController {
       // Invalidate any existing reset tokens for this user
       invalidateUserResetTokens(userId);
       
-      const resetToken = generateResetToken(userId, email);
+      const resetToken = await generateResetToken(userId, email);
       
       // In real implementation: send email with resetToken
-      console.log(`Reset token for ${email}: ${resetToken}`); // For testing
+      // TODO: Implement email service to send reset token securely
     }
 
     const response: ApiResponse = {
@@ -485,7 +423,7 @@ export class AuthController {
 
     try {
       // Update password
-      const success = await UserStore.updatePassword(tokenData.userId, password);
+      const success = await authService.updatePassword(tokenData.userId, password);
       if (!success) {
         res.status(400).json({
           success: false,

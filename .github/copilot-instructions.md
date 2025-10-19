@@ -4,12 +4,11 @@
 ZakApp is a privacy-first Islamic Zakat calculator with comprehensive asset management and yearly tracking capabilities. This application prioritizes user privacy, data security, and Islamic compliance in all features.
 
 ## Constitutional Principles (NON-NEGOTIABLE)
-1. **Privacy & Security First**: All sensitive data must be encrypted. Never store financial information in plain text.
-2. **Islamic Compliance**: All calculations and methodologies must align with Islamic jurisprudence.
-3. **User-Centric Design**: Every feature must solve real user problems with intuitive interfaces.
-4. **Lovable UI/UX**: Beautiful, accessible, and delightful user experiences.
-5. **Transparency & Trust**: Clear explanations, educational content, and open source approach.
-6. **Quality & Reliability**: Robust testing, error handling, and performance optimization.
+1. **Professional & Modern User Experience**: Deliver guided workflows, clear data visualizations, and accessible education that transform complex Zakat steps into intuitive, confidence-inspiring interactions validated through usability feedback.
+2. **Privacy & Security First**: Keep the platform self-hostable with AES-256 encryption at rest, operate on a zero-trust model, and never log or transmit sensitive financial data to third parties.
+3. **Spec-Driven & Clear Development**: Begin every change with a written, testable specification grounded in authoritative Islamic sources, eliminating ambiguity before implementation.
+4. **Quality & Performance**: Maintain >90% coverage for calculation logic, keep page loads under 2 seconds, and meet WCAG 2.1 AA accessibility while exposing observability hooks for reliability.
+5. **Foundational Islamic Guidance**: Align methodologies and educational content with the Simple Zakat Guide (video series + site), citing additional scholarly sources whenever they influence behavior.
 
 ## Technology Stack
 - **Backend**: Node.js + Express.js + TypeScript

@@ -71,12 +71,6 @@ export interface NisabInfo {
   lastUpdated: string;
 }
 
-export interface ZakatCalculationRequest {
-  methodologyId: string;
-  assets?: Asset[];
-  includeAllAssets?: boolean;
-}
-
 export interface ZakatPayment {
   id: string;
   amount: number;
