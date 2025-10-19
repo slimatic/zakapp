@@ -6,8 +6,7 @@ import { Input } from '../ui/Input';
 
 export const Register: React.FC = () => {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -23,12 +22,12 @@ export const Register: React.FC = () => {
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) {
-      errors.firstName = 'First name is required';
-    }
-
-    if (!formData.lastName.trim()) {
-      errors.lastName = 'Last name is required';
+    if (!formData.username.trim()) {
+      errors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      errors.username = 'Username must be at least 3 characters';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      errors.username = 'Username can only contain letters, numbers, and underscores';
     }
 
     if (!formData.email.trim()) {
@@ -41,6 +40,8 @@ export const Register: React.FC = () => {
       errors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      errors.password = 'Password must contain uppercase, lowercase, and a number';
     }
 
     if (!formData.confirmPassword) {
@@ -70,10 +71,9 @@ export const Register: React.FC = () => {
       return;
     }
 
-    // Send registration data (including confirmPassword for backend validation)
+    // Send registration data
     await register({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
+      username: formData.username,
       email: formData.email,
       password: formData.password,
       confirmPassword: formData.confirmPassword
@@ -97,34 +97,17 @@ export const Register: React.FC = () => {
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div className="flex space-x-4">
-              <div className="flex-1">
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  required
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  error={formErrors.firstName}
-                  label="First Name"
-                />
-              </div>
-              <div className="flex-1">
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  required
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  error={formErrors.lastName}
-                  label="Last Name"
-                />
-              </div>
-            </div>
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              required
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              error={formErrors.username}
+              label="Username"
+            />
 
             <Input
               id="email"

@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
 
 // Log API configuration in development mode
 if (process.env.NODE_ENV === 'development') {
@@ -9,7 +9,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export interface LoginRequest {
-  email: string;
+  email?: string;
+  username?: string;
   password: string;
 }
 
@@ -66,10 +67,16 @@ class ApiService {
   // Authentication endpoints
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
+      // Support both email and username logins - convert email to username if needed
+      const loginData = {
+        username: credentials.username || credentials.email || '',
+        password: credentials.password
+      };
+
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials)
+        body: JSON.stringify(loginData)
       });
       
       const result = await response.json();
@@ -81,13 +88,12 @@ class ApiService {
         };
       }
       
-      // Backend returns: { success: true, data: { accessToken, refreshToken, user } }
-      // Frontend expects: { success: true, accessToken, refreshToken, user }
+      // Backend returns: { message, user, accessToken, refreshToken }
       return {
         success: true,
-        accessToken: result.data?.accessToken,
-        refreshToken: result.data?.refreshToken,
-        user: result.data?.user
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        user: result.user
       };
     } catch (error) {
       console.error('Login error:', error);
@@ -111,17 +117,16 @@ class ApiService {
       if (!response.ok) {
         return {
           success: false,
-          message: result.error?.message || result.message || `Registration failed: ${response.status}`
+          message: result.error?.message || result.message || result.details?.[0]?.msg || `Registration failed: ${response.status}`
         };
       }
       
-      // Backend returns: { success: true, data: { user, tokens: { accessToken, refreshToken } } }
-      // Frontend expects: { success: true, accessToken, refreshToken, user }
+      // Backend returns: { message, user, accessToken, refreshToken }
       return {
         success: true,
-        accessToken: result.data?.tokens?.accessToken,
-        refreshToken: result.data?.tokens?.refreshToken,
-        user: result.data?.user
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        user: result.user
       };
     } catch (error) {
       console.error('Registration error:', error);
