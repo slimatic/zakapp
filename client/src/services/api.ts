@@ -294,21 +294,21 @@ class ApiService {
   }
 
   async getMethodologies(): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/methodologies`, {
+    const response = await fetch(`${API_BASE_URL}/methodologies`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
   }
 
   async getMethodology(id: string): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/methodologies/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/methodologies/${id}`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
   }
 
   async updateMethodology(id: string, updates: any): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/methodologies/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/methodologies/${id}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(updates)
@@ -317,7 +317,7 @@ class ApiService {
   }
 
   async createMethodology(methodologyData: any): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/methodologies/custom`, {
+    const response = await fetch(`${API_BASE_URL}/methodologies/custom`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(methodologyData)
@@ -326,7 +326,7 @@ class ApiService {
   }
 
   async deleteMethodology(id: string): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/methodologies/custom/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/methodologies/${id}`, {
       method: 'DELETE',
       headers: this.getAuthHeaders()
     });
