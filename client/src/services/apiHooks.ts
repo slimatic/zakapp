@@ -220,7 +220,7 @@ export const useRecordPayment = () => {
     mutationFn: (paymentData: any) => apiService.recordPayment(paymentData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['zakat', 'payments'] });
-      queryClient.invalidateQueries({ queryKey: ['zakat', 'history'] });
+      queryClient.invalidateQueries({ queryKey: ['calculations', 'history'] });
     },
   });
 };
@@ -246,7 +246,7 @@ export const useSaveCalculation = () => {
   return useMutation({
     mutationFn: (calculationData: any) => apiService.saveCalculation(calculationData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['zakat', 'history'] });
+      queryClient.invalidateQueries({ queryKey: ['calculations', 'history'] });
     },
   });
 };
