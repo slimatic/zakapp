@@ -127,7 +127,7 @@ export const useCalculateZakatOptimistic = () => {
 
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['assets'] });
-      queryClient.invalidateQueries({ queryKey: ['zakat', 'history'] });
+      queryClient.invalidateQueries({ queryKey: ['calculations', 'history'] });
       queryClient.invalidateQueries({ queryKey: ['snapshots'] });
     },
     onError: (error, variables, context) => {
