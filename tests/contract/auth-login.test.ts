@@ -14,9 +14,9 @@ describe('Contract Test: POST /api/auth/login', () => {
 
   beforeAll(async () => {
     try {
-      // Dynamically import the app to handle ES module issues
-      const appModule = await import('../../server/src/app');
-      app = appModule.default;
+      // Load compiled JavaScript version to avoid ts-node path resolution issues
+      const appModule = require('../../server/dist/app');
+      app = appModule.default || appModule;
     } catch (error) {
       console.error('Failed to load app:', error);
       app = null;
