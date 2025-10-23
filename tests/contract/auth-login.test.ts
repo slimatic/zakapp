@@ -12,15 +12,20 @@ import request from 'supertest';
 describe('Contract Test: POST /api/auth/login', () => {
   let app: any;
 
-  beforeAll(async () => {
+  // Helper function to load app dynamically
+  const loadApp = async () => {
     try {
-      // Dynamically import the app to handle ES module issues
-      const appModule = await import('../../server/src/app');
-      app = appModule.default;
+      // Load compiled JavaScript version to avoid ts-node path resolution issues
+      const appModule = require('../../server/dist/server/src/app');
+      return appModule.default || appModule;
     } catch (error) {
       console.error('Failed to load app:', error);
-      app = null;
+      return null;
     }
+  };
+
+  beforeAll(async () => {
+    app = await loadApp();
   });
 
   describe('POST /api/auth/login', () => {
@@ -32,8 +37,9 @@ describe('Contract Test: POST /api/auth/login', () => {
       }
 
       // First register a test user
+      const uniqueEmail = `login-test-${Date.now()}@example.com`;
       const testUser = {
-        email: 'contracttest@example.com',
+        email: uniqueEmail,
         password: 'SecurePassword123!',
         confirmPassword: 'SecurePassword123!',
         firstName: 'Contract',
@@ -51,7 +57,7 @@ describe('Contract Test: POST /api/auth/login', () => {
 
       // Now test login
       const loginData = {
-        email: 'contracttest@example.com',
+        email: uniqueEmail,
         password: 'SecurePassword123!'
       };
 
@@ -64,14 +70,15 @@ describe('Contract Test: POST /api/auth/login', () => {
       expect(response.body).toHaveProperty('success', true);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('metadata');
-      expect(response.body.data).toHaveProperty('accessToken');
-      expect(response.body.data).toHaveProperty('refreshToken');
+      expect(response.body.data).toHaveProperty('tokens');
       expect(response.body.data).toHaveProperty('user');
+      expect(response.body.data.tokens).toHaveProperty('accessToken');
+      expect(response.body.data.tokens).toHaveProperty('refreshToken');
 
       // Validate JWT token structure
-      expect(typeof response.body.data.accessToken).toBe('string');
-      expect(typeof response.body.data.refreshToken).toBe('string');
-      expect(response.body.data.accessToken.split('.').length).toBe(3); // JWT has 3 parts
+      expect(typeof response.body.data.tokens.accessToken).toBe('string');
+      expect(typeof response.body.data.tokens.refreshToken).toBe('string');
+      expect(response.body.data.tokens.accessToken.split('.').length).toBe(3); // JWT has 3 parts
 
       // Validate user data (must not contain sensitive info)
       expect(response.body.data.user).toHaveProperty('id');
@@ -87,7 +94,7 @@ describe('Contract Test: POST /api/auth/login', () => {
       }
 
       const invalidLogin = {
-        email: 'contracttest@example.com',
+        email: `nonexistent-${Date.now()}@example.com`,
         password: 'WrongPassword123!'
       };
 

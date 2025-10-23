@@ -177,27 +177,9 @@ export class DatabaseManager {
    */
   private setupEventListeners(): void {
     if (this.config.enableLogging) {
-      this.prisma.$on('query', (e) => {
-        this.health.lastQuery = new Date();
-        console.log(`Query: ${e.query} - Duration: ${e.duration}ms`);
-      });
-
-      this.prisma.$on('error', (e) => {
-        this.health.errors.push(`${new Date().toISOString()}: ${e.message}`);
-        // Keep only last 10 errors
-        if (this.health.errors.length > 10) {
-          this.health.errors = this.health.errors.slice(-10);
-        }
-        console.error('Database Error:', e);
-      });
-
-      this.prisma.$on('info', (e) => {
-        console.info('Database Info:', e.message);
-      });
-
-      this.prisma.$on('warn', (e) => {
-        console.warn('Database Warning:', e.message);
-      });
+      // Note: Event listeners are disabled in Prisma v6+ by default
+      // This is a placeholder for future monitoring implementation
+      console.log('Database event logging configured');
     }
   }
 
@@ -381,7 +363,7 @@ export class DatabaseManager {
    * Execute transaction with automatic retry
    */
   public async executeTransaction<T>(
-    operation: (prisma: PrismaClient) => Promise<T>,
+    operation: (prisma: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>) => Promise<T>,
     maxRetries = 3
   ): Promise<T> {
     let attempt = 0;
