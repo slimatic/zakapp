@@ -292,7 +292,7 @@ router.get('/:id',
       // eslint-disable-next-line no-console
       console.error('Get calculation error:', error);
 
-      if (error.message === 'Calculation not found or access denied') {
+      if (error instanceof Error && error.message === 'Calculation not found or access denied') {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',
@@ -355,8 +355,8 @@ router.post('/compare',
         });
       }
 
-      if (error.message.includes('At least 2 methodologies') || 
-          error.message.includes('Maximum 4 methodologies')) {
+      if (error instanceof Error && (error.message.includes('At least 2 methodologies') || 
+          error.message.includes('Maximum 4 methodologies'))) {
         return res.status(400).json({
           success: false,
           error: 'INVALID_REQUEST',
@@ -364,7 +364,7 @@ router.post('/compare',
         });
       }
 
-      if (error.message.includes('not found or access denied')) {
+      if (error instanceof Error && error.message.includes('not found or access denied')) {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',
@@ -429,7 +429,7 @@ router.patch('/:id/notes',
         });
       }
 
-      if (error.message === 'Calculation not found or access denied') {
+      if (error instanceof Error && error.message === 'Calculation not found or access denied') {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',
@@ -474,7 +474,7 @@ router.delete('/:id',
       // eslint-disable-next-line no-console
       console.error('Delete calculation error:', error);
 
-      if (error.message === 'Calculation not found or access denied') {
+      if (error instanceof Error && error.message === 'Calculation not found or access denied') {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',

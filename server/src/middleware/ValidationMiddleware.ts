@@ -95,8 +95,25 @@ export const validateSchema = (schema: z.ZodSchema) => {
  */
 export const validateUserRegistration = [
   body('email')
-    .isEmail()
-    .normalizeEmail()
+    .exists({ checkFalsy: true })
+    .isString()
+    .custom((value) => {
+      if (!value || typeof value !== 'string' || value.trim() === '') {
+        throw new Error('Email is required');
+      }
+      if (value.includes('@@') || value.startsWith('@') || value.includes(' ')) {
+        throw new Error('Invalid email format');
+      }
+      if (value.includes('..')) {
+        throw new Error('Invalid email format: consecutive dots');
+      }
+      // Basic email regex
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(value)) {
+        throw new Error('Invalid email format: regex failed');
+      }
+      return true;
+    })
     .withMessage('Valid email is required'),
   
   body('password')
@@ -150,8 +167,23 @@ export const validateUserLogin = [
   
   body('email')
     .optional()
-    .isEmail()
-    .normalizeEmail()
+    .custom((value) => {
+      if (!value || typeof value !== 'string' || value.trim() === '') {
+        throw new Error('Email is required');
+      }
+      if (value.includes('@@') || value.startsWith('@') || value.includes(' ')) {
+        throw new Error('Invalid email format');
+      }
+      if (value.includes('..')) {
+        throw new Error('Invalid email format: consecutive dots');
+      }
+      // Basic email regex
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(value)) {
+        throw new Error('Invalid email format: regex failed');
+      }
+      return true;
+    })
     .withMessage('Valid email is required'),
   
   body('password')
