@@ -6,18 +6,18 @@ import compression from 'compression';
 
 // Import route modules
 import authRoutes from './routes/auth';
-// import assetRoutes from './routes/assets';
-// import zakatRoutes from './routes/zakat';
-// import userRoutes from './routes/user';
-// import dataRoutes from './routes/data';
-// import systemRoutes from './routes/system';
-// import exportRoutes from './routes/export';
-// import importRoutes from './routes/import';
-// import trackingRoutes from './routes/tracking';
-// import calculationsRoutes from './routes/calculations';
-// import methodologiesRoutes from './routes/methodologies';
-// import calendarRoutes from './routes/calendar';
-// import snapshotsRoutes from './routes/snapshots';
+import assetRoutes from './routes/assets';
+import zakatRoutes from './routes/zakat';
+import userRoutes from './routes/user';
+import dataRoutes from './routes/data';
+import systemRoutes from './routes/system';
+import exportRoutes from './routes/export';
+import importRoutes from './routes/import';
+import trackingRoutes from './routes/tracking';
+import calculationsRoutes from './routes/calculations';
+import methodologiesRoutes from './routes/methodologies';
+import calendarRoutes from './routes/calendar';
+import snapshotsRoutes from './routes/snapshots';
 
 // Import middleware
 import { errorHandler } from './middleware/ErrorHandler';
@@ -57,18 +57,18 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/assets', assetRoutes);
-// app.use('/api/zakat', zakatRoutes);
-// app.use('/api/user', userRoutes);
-// app.use('/api/data', dataRoutes);
-// app.use('/api/system', systemRoutes);
-// app.use('/api/export', exportRoutes);
-// app.use('/api/import', importRoutes);
-// app.use('/api/tracking', trackingRoutes);
-// app.use('/api/calculations', calculationsRoutes);
-// app.use('/api/methodologies', methodologiesRoutes);
-// app.use('/api/calendar', calendarRoutes);
-// app.use('/api/snapshots', snapshotsRoutes);
+app.use('/api/assets', assetRoutes);
+app.use('/api/zakat', zakatRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/data', dataRoutes);
+app.use('/api/system', systemRoutes);
+app.use('/api/export', exportRoutes);
+app.use('/api/import', importRoutes);
+app.use('/api/tracking', trackingRoutes);
+app.use('/api/calculations', calculationsRoutes);
+app.use('/api/methodologies', methodologiesRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/snapshots', snapshotsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
