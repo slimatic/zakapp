@@ -11,8 +11,13 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { EncryptionService } from '../services/EncryptionService';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
+
+// Lazy initialization of Prisma client
+function getPrismaClient() {
+  return new PrismaClient();
+}
 
 // Simple in-memory token revocation tracking
 const revokedTokens = new Set<string>();
@@ -109,10 +114,10 @@ router.post('/login',
       
       if (email) {
         // Try to find by email (unique)
-        user = await prisma.user.findUnique({ where: { email } });
+        user = await getPrismaClient().user.findUnique({ where: { email } });
       } else if (username) {
         // Find by username using findFirst since username is not a unique field in the schema
-        user = await prisma.user.findFirst({ where: { username } });
+        user = await getPrismaClient().user.findFirst({ where: { username } });
       }
 
       if (!user) {
@@ -140,7 +145,7 @@ router.post('/login',
       }
 
       // Update last login
-      await prisma.user.update({
+      await getPrismaClient().user.update({
         where: { id: user.id },
         data: { lastLoginAt: new Date() }
       });
@@ -206,7 +211,7 @@ router.post('/register',
 
     try {
       // Check if user already exists in database by email
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await getPrismaClient().user.findUnique({
         where: { email: normalizedEmail }
       });
 
@@ -225,7 +230,7 @@ router.post('/register',
 
       if (username) {
         // Use findFirst to check for an existing username (schema may not mark username as unique)
-        const existingUsername = await prisma.user.findFirst({ where: { username } });
+        const existingUsername = await getPrismaClient().user.findFirst({ where: { username } });
 
         if (existingUsername) {
           res.status(409).json({
@@ -279,10 +284,10 @@ router.post('/register',
         createData.username = username;
       }
 
-      const user = await prisma.user.create({ data: createData });
+      const user = await getPrismaClient().user.create({ data: createData });
 
       // Create security record for the user
-      await prisma.userSecurity.create({
+      await getPrismaClient().userSecurity.create({
         data: {
           userId: user.id
         }
@@ -493,7 +498,7 @@ router.post('/refresh',
       }
       
       // Find user in database
-      const user = await prisma.user.findUnique({
+      const user = await getPrismaClient().user.findUnique({
         where: { id: decoded.userId }
       });
       
@@ -621,7 +626,7 @@ router.get('/me',
   authenticate,
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const user = await prisma.user.findUnique({
+      const user = await getPrismaClient().user.findUnique({
         where: { id: req.userId! }
       });
       
