@@ -63,7 +63,7 @@ export class ZakatEngine {
   async calculateZakat(request: ZakatCalculationRequest & { assets?: Asset[]; userId?: string }): Promise<ZakatCalculationResult> {
     try {
       // Get methodology information
-      const methodology = this.getMethodologyInfo(request.method);
+      const methodology = this.getMethodologyInfo(request.methodology);
       
       // Get current nisab values
       const nisabInfo = await this.calculateNisabThreshold(methodology, request.customNisab);
@@ -74,7 +74,7 @@ export class ZakatEngine {
         : undefined;
 
       // Load and validate assets
-      const assets = request.assets || (request.userId ? await this.loadAssets(request.userId, request.includeAssets) : []);
+      const assets = request.assets || (request.userId ? await this.loadAssets(request.userId, request.includeAssets || []) : []);
       const validatedAssets = this.validateAssets(assets);
 
       // Perform main calculation
@@ -143,7 +143,7 @@ export class ZakatEngine {
           methodology,
           nisabInfo,
           {
-            method: methodId,
+            methodology: methodId as 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM',
             calculationDate: referenceDate.toISOString(),
             calendarType: 'lunar', // Default to lunar for comparison
             includeAssets: validatedAssets.map(a => a.assetId),
@@ -367,7 +367,7 @@ export class ZakatEngine {
     return {
       calculationId,
       calculationDate,
-      calendarType: request.calendarType,
+      calendarType: request.calendarType || 'lunar',
       method: methodology.id,
       methodInfo: {
         name: methodology.name,

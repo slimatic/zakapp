@@ -9,25 +9,29 @@ const userService = new UserService();
 
 export class UserController {
   getProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const mockProfile = {
-      id: 'mock-user-id',
-      email: 'user@example.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      settings: {
-        preferredMethodology: 'standard',
-        currency: 'USD',
-        language: 'en',
-        reminders: true,
-        calendarType: 'lunar' as const
-      },
-      createdAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString()
-    };
+    if (!req.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'AUTHENTICATION_REQUIRED',
+        message: 'User authentication required'
+      });
+    }
+
+    const user = await userService.getProfile(req.userId);
 
     const response: ApiResponse = {
       success: true,
-      profile: mockProfile
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          profile: user.profile
+        }
+      }
     };
 
     res.status(200).json(response);

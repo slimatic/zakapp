@@ -4,6 +4,15 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+// Development helper to remove webpack-dev-server overlay which can block E2E interactions
+if (process.env.NODE_ENV === 'development') {
+  import('./dev/disableWDSOverlay')
+    .then((m) => m.disableWDSOverlay())
+    .catch(() => {
+      /* ignore */
+    });
+}
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
