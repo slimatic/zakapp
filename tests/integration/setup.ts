@@ -1,70 +1,34 @@
 // Integration test setup
-import { PrismaClient } from '../../server/node_modules/@prisma/client';
+import { initTestDatabase, cleanTestDatabase } from '../../server/prisma/test-setup';
 import path from 'path';
 import dotenv from 'dotenv';
 
 // Load test environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../server/.env.test') });
 
-let prisma: PrismaClient;
+// Override DATABASE_URL to use test database BEFORE any server code is imported
+process.env.DATABASE_URL = `file:${path.resolve(__dirname, '../../server/data/test-integration.db')}`;
+process.env.TEST_DATABASE_URL = process.env.DATABASE_URL;
 
-// Ensure test database path is absolute
-const TEST_DB_PATH = path.resolve(__dirname, '../../server/data/test-integration.db');
+let prisma: any;
 
 beforeAll(async () => {
-  // Create a test database connection with absolute path
-  prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: `file:${TEST_DB_PATH}`
-      }
-    }
-  });
-  
-  // Initialize connection and enable foreign keys (SQLite only)
-  await prisma.$connect();
-  
-  // Enable foreign keys for SQLite databases
-  try {
-    // SECURITY: Using $executeRaw with template literal (safe from SQL injection)
-    // Never use $executeRawUnsafe as it creates SQL injection vulnerabilities
-    await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
-  } catch (error) {
-    // Ignore if not SQLite (PostgreSQL, MySQL, etc. have foreign keys enabled by default)
-    console.log('Foreign key enforcement setup skipped (not needed for this database)');
-  }
-  
-  console.log('✅ Test database connected:', TEST_DB_PATH);
+  // Initialize test database with schema
+  prisma = await initTestDatabase();
+  console.log('✅ Test database connected:', process.env.DATABASE_URL);
 });
 
 afterAll(async () => {
   // Clean up test database connection
-  await prisma.$disconnect();
+  if (prisma) {
+    await prisma.$disconnect();
+  }
   console.log('✅ Test database disconnected');
 });
 
 beforeEach(async () => {
-  // SECURITY: Clean database using Prisma DMMF introspection (SQL injection safe)
-  // This replaces the old unsafe pattern: SELECT name FROM sqlite_master + $executeRawUnsafe
-  const { Prisma } = await import('../../server/node_modules/@prisma/client');
-  const models = Prisma.dmmf?.datamodel?.models || [];
-  
-  // Delete in reverse order to handle foreign key constraints
-  const modelNames = models
-    .map(model => model.name.charAt(0).toLowerCase() + model.name.slice(1))
-    .reverse();
-  
-  for (const modelName of modelNames) {
-    try {
-      const prismaModel = (prisma as any)[modelName];
-      if (prismaModel && typeof prismaModel.deleteMany === 'function') {
-        await prismaModel.deleteMany({});
-      }
-    } catch (error) {
-      // Skip models that don't support deleteMany operation
-      console.warn(`Could not clean model ${modelName}:`, error);
-    }
-  }
+  // Clean all test data before each test
+  await cleanTestDatabase();
 });
 
 export { prisma };

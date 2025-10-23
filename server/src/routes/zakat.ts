@@ -85,7 +85,7 @@ router.post('/calculate',
 
       // Prepare calculation request
       const calcRequest = {
-        method,
+        methodology: method,
         calendarType: calendarType || 'lunar',
         calculationDate: calculationDate || new Date().toISOString(),
         includeAssets: includeAssets || [],

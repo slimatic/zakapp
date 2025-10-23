@@ -18,7 +18,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:contract": "jest --testPathPattern=contract",
+    "test:contract": "TS_NODE_COMPILER_OPTIONS='{\"moduleResolution\":\"node\",\"paths\":{\"@zakapp/shared\":[\"../shared/dist/index.d.ts\"],\"@zakapp/shared/*\":[\"../shared/dist/*\"]}}' jest --testPathPattern=contract",
     "test:integration": "jest --testPathPattern=integration",
     "test:e2e": "playwright test"
   },
