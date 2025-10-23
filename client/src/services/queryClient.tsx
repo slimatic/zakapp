@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -28,10 +27,63 @@ interface QueryProviderProps {
 }
 
 export const QueryProvider: React.FC<QueryProviderProps> = ({ children }) => {
+  const [Devtools, setDevtools] = useState<React.ComponentType | null>(null);
+
+  // Error boundary to catch render-time errors from Devtools (prevents webpack overlay)
+  class DevtoolsErrorBoundary extends React.Component<{
+    children: React.ReactNode;
+  }, { hasError: boolean }> {
+    constructor(props: any) {
+      super(props);
+      this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError() {
+      return { hasError: true };
+    }
+
+    componentDidCatch(error: any) {
+      // Log devtools render errors but do not rethrow so overlay won't appear
+      // eslint-disable-next-line no-console
+      console.warn('React Query Devtools threw during render:', error?.message || error);
+    }
+
+    render() {
+      if (this.state.hasError) return null;
+      return this.props.children as React.ReactElement;
+    }
+  }
+
+  useEffect(() => {
+    // Dynamically import devtools to avoid import-time runtime errors in some environments
+    let mounted = true;
+    // Only attempt to load devtools when explicitly enabled via env var.
+    // This prevents unexpected runtime errors (and the webpack overlay) during automated E2E runs.
+    if (process.env.REACT_APP_ENABLE_QUERY_DEVTOOLS === 'true') {
+      (async () => {
+        try {
+          const mod = await import('@tanstack/react-query-devtools');
+          if (mounted && mod?.ReactQueryDevtools) {
+            setDevtools(() => mod.ReactQueryDevtools);
+          }
+        } catch (err) {
+          // Swallow devtools import errors to prevent app overlay in dev server
+          // Log for debugging locally
+          // eslint-disable-next-line no-console
+          console.warn('React Query Devtools failed to load:', err && typeof err === 'object' && 'message' in err ? (err as any).message : err);
+        }
+      })();
+    }
+    return () => { mounted = false; };
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {Devtools ? (
+        <DevtoolsErrorBoundary>
+          <Devtools />
+        </DevtoolsErrorBoundary>
+      ) : null}
     </QueryClientProvider>
   );
 };
