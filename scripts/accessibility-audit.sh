@@ -88,7 +88,7 @@ echo "3. Running Playwright Accessibility Tests"
 echo "------------------------------------------"
 
 # Run accessibility tests
-if npx playwright test tests/e2e/accessibility.spec.ts --headed=false; then
+if npx playwright test tests/e2e/accessibility.spec.ts; then
     print_status "PASS" "All accessibility tests passed"
     TEST_RESULT="PASS"
 else

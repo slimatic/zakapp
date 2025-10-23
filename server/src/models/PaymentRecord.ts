@@ -6,7 +6,7 @@ import {
   RecipientCategory,
   PaymentMethod,
   PaymentStatus
-} from '@zakapp/shared/types/tracking';
+} from '../../../shared/src/types/tracking';
 
 const prisma = new PrismaClient();
 

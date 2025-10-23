@@ -148,7 +148,7 @@ export class ZakatService {
       const modernRequest: ZakatCalculationRequest = {
         calculationDate: new Date().toISOString(),
         calendarType: 'lunar',
-        method: request.methodologyId,
+        methodology: request.methodologyId as 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM',
         includeAssets: filteredAssets.map(asset => asset.assetId)
       };
 

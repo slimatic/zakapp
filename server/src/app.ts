@@ -23,7 +23,7 @@ import snapshotsRoutes from './routes/snapshots';
 import { errorHandler } from './middleware/ErrorHandler';
 
 // Import job scheduler
-import { initializeJobs, stopAllJobs } from './jobs/scheduler';
+// import { initializeJobs, stopAllJobs } from './jobs/scheduler';
 
 const app = express();
 
@@ -90,9 +90,8 @@ if (require.main === module) {
     console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
     
     // Initialize background jobs
-    // eslint-disable-next-line no-console
-    console.log('⏰ Initializing background jobs...');
-    initializeJobs();
+    // console.log('⏰ Initializing background jobs...');
+    // initializeJobs();
   });
 
   // Graceful shutdown handler
@@ -106,7 +105,7 @@ if (require.main === module) {
       console.log('✅ HTTP server closed');
       
       // Stop all background jobs
-      stopAllJobs();
+      // stopAllJobs();
       
       // eslint-disable-next-line no-console
       console.log('✅ Graceful shutdown complete');

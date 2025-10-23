@@ -40,6 +40,14 @@
   ],
   "ts-node": {
     "esm": false,
-    "experimentalSpecifierResolution": "node"
+    "experimentalSpecifierResolution": "node",
+    "compilerOptions": {
+      "moduleResolution": "node",
+      "paths": {
+        "@/*": ["./src/*"],
+        "@zakapp/shared": ["../shared/dist/index.d.ts"],
+        "@zakapp/shared/*": ["../shared/dist/*"]
+      }
+    }
   }
 }

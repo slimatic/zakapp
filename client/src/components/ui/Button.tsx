@@ -6,10 +6,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   children: React.ReactNode;
+  // optional test id for e2e
+  dataTestId?: string;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', isLoading = false, disabled = false, className, children, ...rest }, ref) => {
+  ({ variant = 'primary', size = 'md', isLoading = false, disabled = false, className, children, dataTestId, ...rest }, ref) => {
     
     const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
     
@@ -29,6 +31,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        data-testid={dataTestId}
         className={clsx(
           baseClasses,
           variantClasses[variant],

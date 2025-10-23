@@ -1,4 +1,4 @@
-import { ASSET_CATEGORIES, genericAssetSchema, expensesAssetSchema, stocksAssetSchema } from '@shared/index';
+import { ASSET_CATEGORIES, genericAssetSchema, expensesAssetSchema, stocksAssetSchema } from '../../../shared/src/index';
 
 // NOTE: Skipping these tests due to module resolution issues with @shared imports in Jest
 // These are enhancement/feature tests, not core integration tests

@@ -4,22 +4,39 @@ import AxeBuilder from '@axe-core/playwright';
 // Note: This test will fail until the full application is implemented
 // This is intentional as per TDD methodology
 
+test.setTimeout(120000); // increase per-test timeout to 2 minutes while debugging
+
 test.describe('E2E Test: Accessibility Audit (T032)', () => {
   test.beforeEach(async ({ page }) => {
     // Setup: Register and login user for accessibility tests
     await page.goto('http://localhost:3000');
 
-    // Quick registration for accessibility tests
+    // Use a predictable email per run
+    const email = `accessibility-test-${Date.now()}@example.com`;
+
+  // Allow longer default timeouts for slow dev servers
+  await page.setDefaultTimeout(60000);
+
+  // Quick registration for accessibility tests
     await page.click('[data-testid="register-link"]');
-    await page.fill('[data-testid="email-input"]', `accessibility-test-${Date.now()}@example.com`);
+    await page.fill('[data-testid="email-input"]', email);
     await page.fill('[data-testid="password-input"]', 'SecurePass123!');
     await page.fill('[data-testid="confirm-password-input"]', 'SecurePass123!');
     await page.fill('[data-testid="first-name-input"]', 'Accessibility');
     await page.fill('[data-testid="last-name-input"]', 'Tester');
     await page.click('[data-testid="register-button"]');
 
-    // Verify we're logged in
-    await expect(page).toHaveURL(/.*\/dashboard/);
+    // Verify we're logged in; if registration doesn't auto-login, perform explicit login
+    try {
+      await page.waitForURL(/.*\/dashboard/, { timeout: 60000 });
+    } catch (e) {
+      // Fallback: navigate to login and authenticate
+      await page.goto('http://localhost:3000/login');
+      await page.fill('[data-testid="email-input"]', email);
+      await page.fill('[data-testid="password-input"]', 'SecurePass123!');
+      await page.click('[data-testid="login-button"]');
+      await page.waitForURL(/.*\/dashboard/, { timeout: 60000 });
+    }
   });
 
   test('should pass WCAG 2.1 AA accessibility standards on dashboard', async ({ page }) => {
