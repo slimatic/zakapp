@@ -51,6 +51,7 @@ export const Login: React.FC = () => {
               label="Username or email"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              dataTestId="email-input"
               error={error && !username ? 'Username or email is required' : undefined}
             />
 
@@ -64,6 +65,7 @@ export const Login: React.FC = () => {
               label="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              dataTestId="password-input"
               error={error && !password ? 'Password is required' : undefined}
             />
           </div>
@@ -90,9 +92,12 @@ export const Login: React.FC = () => {
           disabled={isLoading || !username || !password}
           isLoading={isLoading}
           className="w-full"
+          dataTestId="login-button"
         >
           Sign in
-        </Button>          <div className="text-center space-y-3">
+        </Button>
+
+        <div className="text-center space-y-3">
             <p className="text-sm">
               <Link
                 to="/forgot-password"
@@ -107,6 +112,7 @@ export const Login: React.FC = () => {
               <Link
                 to="/register"
                 className="font-medium text-green-600 hover:text-green-500"
+                data-testid="register-link"
               >
                 Create one now
               </Link>

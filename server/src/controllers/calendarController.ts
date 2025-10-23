@@ -65,7 +65,7 @@ export const convertDate = async (req: AuthenticatedRequest, res: Response) => {
     // eslint-disable-next-line no-console
     console.error('Calendar conversion error:', error);
 
-    if (error.message.includes('Invalid date format')) {
+    if (error instanceof Error && error.message.includes('Invalid date format')) {
       return res.status(400).json({
         success: false,
         error: 'INVALID_DATE_FORMAT',
@@ -127,7 +127,7 @@ export const calculateZakatYear = async (req: AuthenticatedRequest, res: Respons
     // eslint-disable-next-line no-console
     console.error('Zakat year calculation error:', error);
 
-    if (error.message.includes('Invalid date format')) {
+    if (error instanceof Error && error.message.includes('Invalid date format')) {
       return res.status(400).json({
         success: false,
         error: 'INVALID_DATE_FORMAT',

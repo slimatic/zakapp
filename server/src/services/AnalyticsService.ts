@@ -5,7 +5,7 @@ import { EncryptionService } from './EncryptionService';
 import {
   AnalyticsMetric,
   AnalyticsMetricType
-} from '@zakapp/shared/types/tracking';
+} from '../../../shared/src/types/tracking';
 
 /**
  * AnalyticsService - Business logic for analytics calculations with caching

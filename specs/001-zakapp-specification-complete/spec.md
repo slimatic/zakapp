@@ -47,7 +47,7 @@ As a Muslim individual who needs to calculate and manage Zakat obligations, I wa
 ### Functional Requirements
 
 #### Authentication & Security
-- **FR-001**: System MUST allow users to create secure accounts with email and strong password requirements
+- **FR-001**: System MUST allow users to create secure accounts with email and strong password requirements (minimum 12 characters with mixed case, numbers, and symbols)
 - **FR-002**: System MUST authenticate users using JWT tokens with automatic refresh capabilities
 - **FR-003**: System MUST encrypt all user financial data using AES-256 encryption at rest
 - **FR-004**: System MUST provide password reset functionality with secure token-based verification
@@ -60,7 +60,7 @@ As a Muslim individual who needs to calculate and manage Zakat obligations, I wa
 - **FR-009**: System MUST categorize assets into: cash, savings, gold, silver, business equity, real property, stocks, cryptocurrency, and debts
 - **FR-010**: System MUST support single base currency operation with user-selectable regional currency preference
 - **FR-011**: System MUST maintain historical tracking of asset values over time
-- **FR-012**: System MUST validate asset data with appropriate business rules and constraints
+- **FR-012**: System MUST validate asset data with appropriate business rules and constraints (positive values only, valid asset categories, proper currency format, and reasonable value ranges)
 - **FR-013**: System MUST allow users to organize assets with custom labels and notes
 - **FR-014**: System MUST track simple debts and liabilities that reduce zakatable wealth through basic subtraction
 
@@ -81,7 +81,7 @@ As a Muslim individual who needs to calculate and manage Zakat obligations, I wa
 - **FR-026**: System MUST maintain multi-year historical data for comparison analysis based on user-configured nisab dates
 
 #### User Experience
-- **FR-027**: System MUST provide lovable, intuitive user interface with modern design principles
+- **FR-027**: System MUST provide professional, intuitive user interface with modern design principles that meet WCAG 2.1 AA accessibility standards and load pages in under 2 seconds
 - **FR-028**: System MUST be fully responsive and mobile-first in design approach
 - **FR-029**: System MUST meet WCAG 2.1 AA accessibility compliance standards
 - **FR-030**: System MUST provide educational guidance about Islamic Zakat principles

@@ -7,7 +7,7 @@ import {
   PaginationParams,
   PaginationResult,
   SnapshotStatus
-} from '@zakapp/shared/types/tracking';
+} from '../../../shared/src/types/tracking';
 
 /**
  * YearlySnapshotService - Business logic for yearly Zakat snapshots
@@ -334,7 +334,7 @@ export class YearlySnapshotService {
       limit: 1000 // Get all for statistics
     });
 
-    const decrypted = await Promise.all(
+    const decrypted: YearlySnapshot[] = await Promise.all(
       allSnapshots.data.map(snapshot => this.decryptSnapshotData(snapshot))
     );
 

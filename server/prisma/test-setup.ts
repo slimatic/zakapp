@@ -15,6 +15,9 @@ export async function initTestDatabase() {
   // Push schema to test database (for quick setup without migrations)
   // In production, you'd use: npx prisma migrate deploy
   try {
+    // Push the schema to the test database
+    await prisma.$connect();
+    
     // Enable foreign keys for SQLite databases
     try {
       // SECURITY: Using $executeRaw with template literal (safe from SQL injection)
@@ -38,27 +41,24 @@ export async function cleanTestDatabase() {
   if (!prisma) return;
 
   try {
-    // SECURITY: Using Prisma DMMF introspection instead of raw SQL queries
-    // This prevents SQL injection and is database-agnostic
-    // NEVER use: SELECT name FROM sqlite_master or $executeRawUnsafe
-    const { Prisma } = await import('@prisma/client');
-    const models = Prisma.dmmf?.datamodel?.models || [];
+    // Clean specific tables used in tests, in reverse dependency order
+    const tablesToClean = [
+      'zakatPayment',
+      'zakatCalculation', 
+      'liability',
+      'asset',
+      'user'
+    ];
     
-    // Delete in reverse order to handle foreign key constraints
-    const modelNames = models
-      .map(model => model.name.charAt(0).toLowerCase() + model.name.slice(1))
-      .reverse();
-    
-    // Clear all tables using Prisma's type-safe deleteMany (SQL injection safe)
-    for (const modelName of modelNames) {
+    for (const tableName of tablesToClean) {
       try {
-        const prismaModel = (prisma as any)[modelName];
+        const prismaModel = (prisma as any)[tableName];
         if (prismaModel && typeof prismaModel.deleteMany === 'function') {
           await prismaModel.deleteMany({});
+          console.log(`Cleaned table: ${tableName}`);
         }
       } catch (error) {
-        // Skip models that don't support deleteMany operation
-        console.warn(`Could not clean model ${modelName}:`, error);
+        console.warn(`Could not clean table ${tableName}:`, error);
       }
     }
     
