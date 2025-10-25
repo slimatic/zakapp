@@ -135,5 +135,188 @@ describe('PaymentService', () => {
       await expect(PaymentService.createPayment(paymentData))
         .rejects.toThrow('Encryption key is required');
     });
+
+    it('should handle very large payment amounts', async () => {
+      const largeAmountData = {
+        userId: 'user-123',
+        snapshotId: 'snapshot-123',
+        amount: '999999999.99',
+        paymentDate: new Date('2024-01-15'),
+        recipientName: 'Large Charity Organization',
+        recipientType: 'charity' as const,
+        recipientCategory: 'education' as const,
+        paymentMethod: 'bank_transfer' as const,
+        currency: 'USD',
+        exchangeRate: 1.0,
+      };
+
+      const result = await PaymentService.createPayment(largeAmountData);
+      expect(result).toBeDefined();
+      expect(result.id).toBeDefined();
+
+      // Verify decryption works for large amounts
+      const decryptedAmount = await PaymentEncryption.decryptAmount(result.amount, mockEncryptionKey);
+      expect(decryptedAmount).toBe(largeAmountData.amount);
+    });
+
+    it('should handle very small payment amounts', async () => {
+      const smallAmountData = {
+        userId: 'user-123',
+        snapshotId: 'snapshot-123',
+        amount: '0.01',
+        paymentDate: new Date('2024-01-15'),
+        recipientName: 'Small Contribution',
+        recipientType: 'individual' as const,
+        recipientCategory: 'poor' as const,
+        paymentMethod: 'cash' as const,
+        currency: 'USD',
+        exchangeRate: 1.0,
+      };
+
+      const result = await PaymentService.createPayment(smallAmountData);
+      expect(result).toBeDefined();
+
+      const decryptedAmount = await PaymentEncryption.decryptAmount(result.amount, mockEncryptionKey);
+      expect(decryptedAmount).toBe(smallAmountData.amount);
+    });
+
+    it('should handle special characters in recipient names', async () => {
+      const specialCharData = {
+        userId: 'user-123',
+        snapshotId: 'snapshot-123',
+        amount: '100.00',
+        paymentDate: new Date('2024-01-15'),
+        recipientName: 'Dr. María José González-Smith أحمد محمد',
+        recipientType: 'individual' as const,
+        recipientCategory: 'poor' as const,
+        paymentMethod: 'cash' as const,
+        currency: 'USD',
+        exchangeRate: 1.0,
+      };
+
+      const result = await PaymentService.createPayment(specialCharData);
+      expect(result).toBeDefined();
+
+      const decryptedName = await PaymentEncryption.decryptRecipientName(result.recipientName, mockEncryptionKey);
+      expect(decryptedName).toBe(specialCharData.recipientName);
+    });
+
+    it('should handle future payment dates', async () => {
+      const futureDate = new Date();
+      futureDate.setFullYear(futureDate.getFullYear() + 1); // 1 year in future
+
+      const futurePaymentData = {
+        userId: 'user-123',
+        snapshotId: 'snapshot-123',
+        amount: '500.00',
+        paymentDate: futureDate,
+        recipientName: 'Future Recipient',
+        recipientType: 'charity' as const,
+        recipientCategory: 'education' as const,
+        paymentMethod: 'bank_transfer' as const,
+        currency: 'USD',
+        exchangeRate: 1.0,
+      };
+
+      const result = await PaymentService.createPayment(futurePaymentData);
+      expect(result).toBeDefined();
+      expect(result.paymentDate).toEqual(futureDate);
+    });
+
+    it('should handle very old payment dates', async () => {
+      const oldDate = new Date('1900-01-01');
+
+      const oldPaymentData = {
+        userId: 'user-123',
+        snapshotId: 'snapshot-123',
+        amount: '100.00',
+        paymentDate: oldDate,
+        recipientName: 'Historical Recipient',
+        recipientType: 'individual' as const,
+        recipientCategory: 'poor' as const,
+        paymentMethod: 'cash' as const,
+        currency: 'USD',
+        exchangeRate: 1.0,
+      };
+
+      const result = await PaymentService.createPayment(oldPaymentData);
+      expect(result).toBeDefined();
+      expect(result.paymentDate).toEqual(oldDate);
+    });
+
+    it('should handle maximum length strings in notes and receipt reference', async () => {
+      const longNotes = 'A'.repeat(1000); // Very long notes
+      const longReceiptRef = 'RCP-' + '0'.repeat(100); // Long receipt reference
+
+      const longStringData = {
+        userId: 'user-123',
+        snapshotId: 'snapshot-123',
+        amount: '100.00',
+        paymentDate: new Date('2024-01-15'),
+        recipientName: 'Test Recipient',
+        recipientType: 'individual' as const,
+        recipientCategory: 'poor' as const,
+        paymentMethod: 'cash' as const,
+        notes: longNotes,
+        receiptReference: longReceiptRef,
+        currency: 'USD',
+        exchangeRate: 1.0,
+      };
+
+      const result = await PaymentService.createPayment(longStringData);
+      expect(result).toBeDefined();
+
+      const decryptedNotes = await PaymentEncryption.decryptNotes(result.notes!, mockEncryptionKey);
+      const decryptedReceiptRef = await PaymentEncryption.decryptReceiptReference(result.receiptReference!, mockEncryptionKey);
+
+      expect(decryptedNotes).toBe(longNotes);
+      expect(decryptedReceiptRef).toBe(longReceiptRef);
+    });
+
+    it('should handle empty strings in optional fields', async () => {
+      const emptyStringData = {
+        userId: 'user-123',
+        snapshotId: 'snapshot-123',
+        amount: '100.00',
+        paymentDate: new Date('2024-01-15'),
+        recipientName: 'Test Recipient',
+        recipientType: 'individual' as const,
+        recipientCategory: 'poor' as const,
+        paymentMethod: 'cash' as const,
+        notes: '',
+        receiptReference: '',
+        currency: 'USD',
+        exchangeRate: 1.0,
+      };
+
+      const result = await PaymentService.createPayment(emptyStringData);
+      expect(result).toBeDefined();
+
+      const decryptedNotes = await PaymentEncryption.decryptNotes(result.notes!, mockEncryptionKey);
+      const decryptedReceiptRef = await PaymentEncryption.decryptReceiptReference(result.receiptReference!, mockEncryptionKey);
+
+      expect(decryptedNotes).toBe('');
+      expect(decryptedReceiptRef).toBe('');
+    });
+
+    it('should handle various currency codes and exchange rates', async () => {
+      const currencyTestData = {
+        userId: 'user-123',
+        snapshotId: 'snapshot-123',
+        amount: '100.00',
+        paymentDate: new Date('2024-01-15'),
+        recipientName: 'Currency Test',
+        recipientType: 'charity' as const,
+        recipientCategory: 'education' as const,
+        paymentMethod: 'bank_transfer' as const,
+        currency: 'EUR',
+        exchangeRate: 0.85,
+      };
+
+      const result = await PaymentService.createPayment(currencyTestData);
+      expect(result).toBeDefined();
+      expect(result.currency).toBe('EUR');
+      expect(result.exchangeRate).toBe(0.85);
+    });
   });
 });

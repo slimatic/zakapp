@@ -369,7 +369,7 @@ export class ZakatEngine {
     return {
       calculationId,
       calculationDate,
-      calendarType: request.calendarType,
+      calendarType: request.calendarType || 'lunar',
       method: methodology.id,
       methodInfo: {
         name: methodology.name,
