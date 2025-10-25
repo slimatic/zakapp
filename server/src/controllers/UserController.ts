@@ -11,9 +11,11 @@ export class UserController {
   getProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const mockProfile = {
       id: 'mock-user-id',
-      email: 'user@example.com',
-      firstName: 'John',
-      lastName: 'Doe',
+      email: 'encryption-test@example.com',
+      firstName: 'Encryption',
+      lastName: 'Test',
+      phoneNumber: '+1234567890',
+      dateOfBirth: '1990-01-01',
       settings: {
         preferredMethodology: 'standard',
         currency: 'USD',
