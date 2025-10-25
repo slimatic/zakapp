@@ -56,7 +56,7 @@ describe('Integration Test: User Registration Flow', () => {
       }
 
       const registrationData = {
-        email: 'integration@example.com',
+        email: `integration-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         confirmPassword: 'SecurePass123!',
         firstName: 'Integration',
@@ -115,7 +115,7 @@ describe('Integration Test: User Registration Flow', () => {
       }
 
       const registrationData = {
-        email: 'duplicate@example.com',
+        email: `duplicate-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         confirmPassword: 'SecurePass123!',
         firstName: 'First',
@@ -161,7 +161,7 @@ describe('Integration Test: User Registration Flow', () => {
         // Test setup verified
       }
 
-      const baseEmail = 'casesensitive@example.com';
+      const baseEmail = `casesensitive-${Date.now()}@example.com`;
       const registrationData1 = {
         email: baseEmail.toLowerCase(),
         password: 'SecurePass123!',
@@ -203,7 +203,7 @@ describe('Integration Test: User Registration Flow', () => {
       }
 
       const registrationData = {
-        email: 'encryption@example.com',
+        email: `encryption-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         confirmPassword: 'SecurePass123!',
         firstName: 'Encryption',
@@ -227,7 +227,7 @@ describe('Integration Test: User Registration Flow', () => {
         .expect(200);
 
       expect(profileResponse.body.success).toBe(true);
-      const profile = profileResponse.body.data.user.profile;
+      const profile = profileResponse.body.profile;
 
       // Verify decrypted profile contains original data
       expect(profile.firstName).toBe(registrationData.firstName);
@@ -236,9 +236,9 @@ describe('Integration Test: User Registration Flow', () => {
       expect(profile.dateOfBirth).toBe(registrationData.dateOfBirth);
 
       // Verify sensitive data is not in the main user object
-      expect(profileResponse.body.data.user).not.toHaveProperty('firstName');
-      expect(profileResponse.body.data.user).not.toHaveProperty('lastName');
-      expect(profileResponse.body.data.user).not.toHaveProperty('phoneNumber');
+      expect(profileResponse.body).not.toHaveProperty('firstName');
+      expect(profileResponse.body).not.toHaveProperty('lastName');
+      expect(profileResponse.body).not.toHaveProperty('phoneNumber');
     });
 
     // TODO: Re-enable when audit log endpoints are implemented
@@ -248,7 +248,7 @@ describe('Integration Test: User Registration Flow', () => {
       }
 
       const registrationData = {
-        email: 'audit@example.com',
+        email: `audit-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         confirmPassword: 'SecurePass123!',
         firstName: 'Audit',
@@ -287,7 +287,7 @@ describe('Integration Test: User Registration Flow', () => {
       }
 
       const registrationData = {
-        email: 'defaults@example.com',
+        email: `defaults-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         confirmPassword: 'SecurePass123!',
         firstName: 'Default',
@@ -330,7 +330,7 @@ describe('Integration Test: User Registration Flow', () => {
       // to ensure proper transaction rollback
 
       const registrationData = {
-        email: 'rollback@example.com',
+        email: `rollback-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         confirmPassword: 'SecurePass123!',
         firstName: 'Rollback',
@@ -365,7 +365,7 @@ describe('Integration Test: User Registration Flow', () => {
       }
 
       const registrationData = {
-        email: 'performance@example.com',
+        email: `performance-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         confirmPassword: 'SecurePass123!',
         firstName: 'Performance',
@@ -388,10 +388,10 @@ describe('Integration Test: User Registration Flow', () => {
       expect(registrationTime).toBeLessThan(5000);
       
       // Metadata should be included (timestamp and version)
-      expect(registerResponse.body.metadata).toHaveProperty('timestamp');
-      expect(registerResponse.body.metadata).toHaveProperty('version');
-      expect(typeof registerResponse.body.metadata.timestamp).toBe('string');
-      expect(typeof registerResponse.body.metadata.version).toBe('string');
+      expect(registerResponse.body.meta).toHaveProperty('timestamp');
+      expect(registerResponse.body.meta).toHaveProperty('version');
+      expect(typeof registerResponse.body.meta.timestamp).toBe('string');
+      expect(typeof registerResponse.body.meta.version).toBe('string');
     });
 
     it('should handle concurrent registration attempts with same email', async () => {
@@ -400,7 +400,7 @@ describe('Integration Test: User Registration Flow', () => {
       }
 
       const registrationData = {
-        email: 'concurrent@example.com',
+        email: `concurrent-${Date.now()}@example.com`,
         password: 'SecurePass123!',
         confirmPassword: 'SecurePass123!',
         firstName: 'Concurrent',
