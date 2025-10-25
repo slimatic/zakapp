@@ -9,7 +9,7 @@ import { SnapshotForm } from '../components/tracking/SnapshotForm';
 import { Button } from '../components/ui/Button';
 import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
-import { API_BASE_URL } from '../api'; // Adjust path as needed to where API_BASE_URL is exported
+import { API_BASE_URL } from '../services/api'; // Adjust path as needed to where API_BASE_URL is exported
 
 export const CreateSnapshotPage: React.FC = () => {
   const navigate = useNavigate();

@@ -18,6 +18,9 @@ import calculationsRoutes from './routes/calculations';
 import methodologiesRoutes from './routes/methodologies';
 import calendarRoutes from './routes/calendar';
 import snapshotsRoutes from './routes/snapshots';
+import paymentsRoutes from './routes/payments';
+import analyticsRoutes from './routes/analytics';
+import remindersRoutes from './routes/reminders';
 
 // Import middleware
 import { errorHandler } from './middleware/ErrorHandler';
@@ -69,6 +72,9 @@ app.use('/api/calculations', calculationsRoutes);
 app.use('/api/methodologies', methodologiesRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/snapshots', snapshotsRoutes);
+app.use('/api/payments', paymentsRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/reminders', remindersRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

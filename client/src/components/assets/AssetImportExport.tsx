@@ -20,7 +20,7 @@ export const AssetImportExport: React.FC = () => {
   const { data: assetsData } = useAssets();
   const createAssetMutation = useCreateAsset();
 
-  const assets = assetsData?.data || [];
+  const assets = assetsData?.data?.assets || [];
 
   // Export assets to CSV
   const handleExport = () => {

@@ -447,7 +447,19 @@ export class AssetService {
       }
     }
 
-    return decrypted;
+    // Transform to match shared Asset interface
+    return {
+      assetId: asset.id,
+      name: asset.name,
+      category: asset.category.toLowerCase(),
+      subCategory: decrypted.metadata?.subCategory || '',
+      value: asset.value,
+      currency: asset.currency,
+      description: decrypted.metadata?.description || asset.notes || '',
+      zakatEligible: decrypted.metadata?.zakatEligible ?? true,
+      createdAt: asset.createdAt.toISOString(),
+      updatedAt: asset.updatedAt.toISOString()
+    };
   }
 
   /**

@@ -40,7 +40,7 @@ interface StandardResponse<T = any> {
  */
 interface EncryptedAsset {
   id: string;
-  type: 'cash' | 'gold' | 'silver' | 'crypto' | 'business' | 'investment';
+  category: 'cash' | 'gold' | 'silver' | 'crypto' | 'business' | 'investment' | 'property' | 'stocks' | 'debts' | 'expenses';
   encryptedValue: string;
   currency: string;
   description?: string;
@@ -107,8 +107,10 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
     // Match API contract format
     const response = {
       success: true,
-      assets: result.assets,
-      summary
+      data: {
+        assets: result.assets,
+        summary
+      }
     };
     
     res.status(200).json(response);
@@ -175,33 +177,24 @@ router.post('/',
         return;
       }
 
-      const { type, value, currency, description } = validation.data;
+      const { category, value, currency, description } = validation.data;
+      const { name } = req.body; // Get name from request body
 
       const userId = req.userId!;
       
-      // Generate encryption key from user ID (in production, use proper key management)
-      const encryptionKey = await EncryptionService.deriveKey(userId, 'asset-salt');
-      
-      // Encrypt the asset value
-      const encryptedValue = await EncryptionService.encrypt(value.toString(), encryptionKey);
-      
-      // Create new asset
-      const newAsset: EncryptedAsset = {
-        id: generateUUID(),
-        type,
-        encryptedValue,
+      // Use the AssetService to create the asset
+      const assetService = new AssetService();
+      const asset = await assetService.createAsset(userId, {
+        category,
+        name: name || `${category} asset`, // Default name if not provided
+        value,
         currency,
-        description,
-        lastUpdated: new Date().toISOString()
-      };
+        acquisitionDate: new Date(), // Default to current date
+        metadata: { description }, // Store description in metadata
+        notes: description // Also store as notes
+      });
       
-      // Store asset
-      if (!userAssets[userId]) {
-        userAssets[userId] = [];
-      }
-      userAssets[userId].push(newAsset);
-      
-      const response = createResponse(true, { asset: newAsset });
+      const response = createResponse(true, { asset });
       res.status(201).json(response);
     } catch (error) {
       const response = createResponse(false, undefined, {
@@ -310,7 +303,7 @@ router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res: Respo
       deletedAssetId: assetId,
       deletedAsset: {
         id: deletedAsset.id,
-        type: deletedAsset.type,
+        category: deletedAsset.category,
         description: deletedAsset.description,
         currency: deletedAsset.currency,
         deletedAt: new Date().toISOString()
