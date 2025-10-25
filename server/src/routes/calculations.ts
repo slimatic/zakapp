@@ -127,8 +127,16 @@ router.post('/',
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      // eslint-disable-next-line no-console
       console.error('Save calculation error:', error);
+
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage === 'Calculation not found or access denied') {
+        return res.status(404).json({
+          success: false,
+          error: 'NOT_FOUND',
+          message: 'Calculation not found'
+        });
+      }
 
       if (error instanceof z.ZodError) {
         return res.status(400).json({
@@ -292,7 +300,8 @@ router.get('/:id',
       // eslint-disable-next-line no-console
       console.error('Get calculation error:', error);
 
-      if (error.message === 'Calculation not found or access denied') {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage === 'Calculation not found or access denied') {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',
@@ -355,16 +364,17 @@ router.post('/compare',
         });
       }
 
-      if (error.message.includes('At least 2 methodologies') || 
-          error.message.includes('Maximum 4 methodologies')) {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes('At least 2 methodologies') || 
+          errorMessage.includes('Maximum 4 methodologies')) {
         return res.status(400).json({
           success: false,
           error: 'INVALID_REQUEST',
-          message: error.message
+          message: errorMessage
         });
       }
 
-      if (error.message.includes('not found or access denied')) {
+      if (errorMessage.includes('not found or access denied')) {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',
@@ -429,7 +439,8 @@ router.patch('/:id/notes',
         });
       }
 
-      if (error.message === 'Calculation not found or access denied') {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage === 'Calculation not found or access denied') {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',
@@ -474,7 +485,8 @@ router.delete('/:id',
       // eslint-disable-next-line no-console
       console.error('Delete calculation error:', error);
 
-      if (error.message === 'Calculation not found or access denied') {
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage === 'Calculation not found or access denied') {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',
@@ -490,5 +502,17 @@ router.delete('/:id',
     }
   }
 );
+
+/**
+ * Safely extracts error message from unknown error type
+ * @param error - The caught error (unknown type in strict mode)
+ * @returns Error message string or default message
+ */
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'An unexpected error occurred';
+};
 
 export default router;
