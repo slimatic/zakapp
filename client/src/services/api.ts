@@ -94,12 +94,12 @@ class ApiService {
         };
       }
       
-      // Backend returns: { success, accessToken, refreshToken, user }
+      // Backend returns: { success, data: { user, tokens: { accessToken, refreshToken } } }
       return {
         success: true,
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        user: result.user
+        accessToken: result.data.tokens.accessToken,
+        refreshToken: result.data.tokens.refreshToken,
+        user: result.data.user
       };
     } catch (error) {
       console.error('Login error:', error);
@@ -243,8 +243,8 @@ class ApiService {
     if (filters?.endDate) params.append('endDate', filters.endDate);
 
     const url = params.toString()
-      ? `${API_BASE_URL}/calculations/history?${params.toString()}`
-      : `${API_BASE_URL}/calculations/history`;
+      ? `${API_BASE_URL}/calculations?${params.toString()}`
+      : `${API_BASE_URL}/calculations`;
 
     const response = await fetch(url, {
       headers: this.getAuthHeaders()
