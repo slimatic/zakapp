@@ -25,10 +25,20 @@ export class SimpleValidation {
     if (!isPartial || data.category !== undefined) {
       if (!data.category || typeof data.category !== 'string') {
         errors.push('Category is required and must be a string');
-      } else if (!['cash', 'gold', 'silver', 'crypto', 'business', 'investment', 'property', 'stocks', 'debts', 'expenses'].includes(data.category)) {
-        errors.push('Category must be one of: cash, gold, silver, crypto, business, investment, property, stocks, debts, expenses');
+      } else if (!['cash', 'gold', 'silver', 'crypto', 'business', 'property', 'stocks'].includes(data.category)) {
+        errors.push('Category must be one of: cash, gold, silver, crypto, business, property, stocks');
       } else {
         validatedData.category = data.category;
+      }
+    }
+
+    if (!isPartial || data.name !== undefined) {
+      if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
+        errors.push('Name is required and must be a non-empty string');
+      } else if (data.name.length > 100) {
+        errors.push('Name must be maximum 100 characters');
+      } else {
+        validatedData.name = data.name.trim();
       }
     }
 
