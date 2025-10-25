@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { MethodologyConfigService } from '../services/methodologyConfigService';
 import { CreateMethodologyConfig, UpdateMethodologyConfig } from '@zakapp/shared';
 import { AppError } from '../middleware/ErrorHandler';
+import { AuthenticatedRequest } from '../types';
 
 const methodologyService = new MethodologyConfigService();
 
@@ -29,8 +30,16 @@ const handleError = (error: unknown, res: Response) => {
  * Get all methodologies available to the authenticated user
  * Returns both fixed methodologies and user's custom configurations
  */
-export const getMethodologies = async (req: Request & { userId: string }, res: Response) => {
+export const getMethodologies = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
+      });
+    }
+
     const methodologies = await methodologyService.getMethodologies(req.userId);
 
     res.json({
@@ -46,8 +55,16 @@ export const getMethodologies = async (req: Request & { userId: string }, res: R
 /**
  * Get a specific methodology configuration
  */
-export const getMethodology = async (req: Request & { userId: string }, res: Response) => {
+export const getMethodology = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
+      });
+    }
+
     const { id } = req.params;
     const methodology = await methodologyService.getMethodology(req.userId, id);
 
@@ -64,8 +81,16 @@ export const getMethodology = async (req: Request & { userId: string }, res: Res
  * Update a methodology configuration
  * Only custom methodologies can be updated
  */
-export const updateMethodology = async (req: Request & { userId: string }, res: Response) => {
+export const updateMethodology = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
+      });
+    }
+
     const { id } = req.params;
     const updates: UpdateMethodologyConfig = req.body;
 
@@ -83,8 +108,16 @@ export const updateMethodology = async (req: Request & { userId: string }, res: 
 /**
  * Create a custom methodology configuration
  */
-export const createCustomMethodology = async (req: Request & { userId: string }, res: Response) => {
+export const createCustomMethodology = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
+      });
+    }
+
     const config: CreateMethodologyConfig = req.body;
 
     const methodology = await methodologyService.createCustomMethodology(req.userId, config);
@@ -101,8 +134,16 @@ export const createCustomMethodology = async (req: Request & { userId: string },
 /**
  * Delete a custom methodology configuration
  */
-export const deleteCustomMethodology = async (req: Request & { userId: string }, res: Response) => {
+export const deleteCustomMethodology = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
+      });
+    }
+
     const { id } = req.params;
 
     await methodologyService.deleteCustomMethodology(req.userId, id);

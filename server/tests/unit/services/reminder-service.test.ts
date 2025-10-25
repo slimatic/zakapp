@@ -107,5 +107,151 @@ describe('ReminderService', () => {
         expect(result.eventType).toBe(eventType);
       }
     });
+
+    it('should handle very long titles and messages', async () => {
+      const longTitle = 'A'.repeat(200); // Very long title
+      const longMessage = 'B'.repeat(2000); // Very long message
+
+      const longReminderData = {
+        userId: 'user-123',
+        eventType: 'zakat_due' as const,
+        triggerDate: new Date(Date.now() + 86400000),
+        title: longTitle,
+        message: longMessage,
+        priority: 'high' as const,
+      };
+
+      const result = await ReminderService.scheduleReminder(longReminderData);
+      expect(result).toBeDefined();
+      expect(result.title).not.toBe(longTitle); // Should be encrypted
+      expect(result.message).not.toBe(longMessage); // Should be encrypted
+    });
+
+    it('should handle special characters and unicode in messages', async () => {
+      const unicodeMessage = 'Zakat reminder: $1,250.00 💰📅 Islamic calendar: رمضان 1445';
+
+      const unicodeReminderData = {
+        userId: 'user-123',
+        eventType: 'payment_reminder' as const,
+        triggerDate: new Date(Date.now() + 86400000),
+        title: 'Unicode Test Reminder',
+        message: unicodeMessage,
+        priority: 'medium' as const,
+      };
+
+      const result = await ReminderService.scheduleReminder(unicodeReminderData);
+      expect(result).toBeDefined();
+      expect(result.message).not.toBe(unicodeMessage); // Should be encrypted
+    });
+
+    it('should handle very distant future dates', async () => {
+      const farFutureDate = new Date();
+      farFutureDate.setFullYear(farFutureDate.getFullYear() + 10); // 10 years in future
+
+      const farFutureReminderData = {
+        userId: 'user-123',
+        eventType: 'annual_review' as const,
+        triggerDate: farFutureDate,
+        title: 'Long-term Reminder',
+        message: 'This is a reminder far in the future',
+        priority: 'low' as const,
+      };
+
+      const result = await ReminderService.scheduleReminder(farFutureReminderData);
+      expect(result).toBeDefined();
+      expect(result.triggerDate).toEqual(farFutureDate);
+    });
+
+    it('should handle complex metadata objects', async () => {
+      const complexMetadata = {
+        calculationId: 'calc-123',
+        snapshotId: 'snap-456',
+        amount: 1250.50,
+        currency: 'USD',
+        recipientCategories: ['poor', 'orphan', 'widow'],
+        paymentMethods: ['bank_transfer', 'cash'],
+        notes: 'Complex metadata test',
+        nestedObject: {
+          level1: {
+            level2: 'deep nesting test'
+          }
+        },
+        arrayOfObjects: [
+          { id: 1, value: 'test1' },
+          { id: 2, value: 'test2' }
+        ]
+      };
+
+      const complexReminderData = {
+        userId: 'user-123',
+        eventType: 'custom' as const,
+        triggerDate: new Date(Date.now() + 86400000),
+        title: 'Complex Metadata Test',
+        message: 'Testing complex metadata handling',
+        metadata: complexMetadata,
+      };
+
+      const result = await ReminderService.scheduleReminder(complexReminderData);
+      expect(result).toBeDefined();
+      expect(result.metadata).toEqual(complexMetadata);
+    });
+
+    it('should handle empty optional fields gracefully', async () => {
+      const emptyFieldsReminderData = {
+        userId: 'user-123',
+        eventType: 'payment_reminder' as const,
+        triggerDate: new Date(Date.now() + 86400000),
+        title: '',
+        message: '',
+        priority: 'low' as const,
+        relatedSnapshotId: '',
+        metadata: {},
+      };
+
+      const result = await ReminderService.scheduleReminder(emptyFieldsReminderData);
+      expect(result).toBeDefined();
+      expect(result.title).not.toBe(''); // Should be encrypted even if empty
+      expect(result.message).not.toBe(''); // Should be encrypted even if empty
+      expect(result.relatedSnapshotId).toBe('');
+      expect(result.metadata).toEqual({});
+    });
+
+    it('should handle same-day scheduling (minimum future time)', async () => {
+      const soonDate = new Date(Date.now() + 60000); // 1 minute in future
+
+      const soonReminderData = {
+        userId: 'user-123',
+        eventType: 'zakat_due' as const,
+        triggerDate: soonDate,
+        title: 'Very Soon Reminder',
+        message: 'This reminder triggers very soon',
+        priority: 'high' as const,
+      };
+
+      const result = await ReminderService.scheduleReminder(soonReminderData);
+      expect(result).toBeDefined();
+      expect(result.triggerDate.getTime()).toBeGreaterThan(Date.now());
+    });
+
+    it('should handle reminders at exact midnight', async () => {
+      const midnightDate = new Date();
+      midnightDate.setHours(23, 59, 59, 999); // End of current day
+      midnightDate.setDate(midnightDate.getDate() + 1); // Next day
+      midnightDate.setHours(0, 0, 0, 0); // Midnight
+
+      const midnightReminderData = {
+        userId: 'user-123',
+        eventType: 'annual_review' as const,
+        triggerDate: midnightDate,
+        title: 'Midnight Reminder',
+        message: 'Reminder at exact midnight',
+      };
+
+      const result = await ReminderService.scheduleReminder(midnightReminderData);
+      expect(result).toBeDefined();
+      expect(result.triggerDate.getHours()).toBe(0);
+      expect(result.triggerDate.getMinutes()).toBe(0);
+      expect(result.triggerDate.getSeconds()).toBe(0);
+    });
   });
 });
