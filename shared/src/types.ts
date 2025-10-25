@@ -491,7 +491,7 @@ export interface ZakatTotals {
  */
 export interface ZakatCalculationRequest {
   /** Methodology to use for calculation */
-  methodology: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
+  methodology?: 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM';
   
   /** Custom methodology config ID (required if methodology = CUSTOM) */
   methodologyConfigId?: string;

@@ -41,8 +41,8 @@ export const Dashboard: React.FC = () => {
         apiService.getZakatHistory()
       ]);
 
-      const assets = assetsResponse.data || [];
-      const calculations = calculationsResponse.data || [];
+      const assets = assetsResponse.data?.assets || [];
+      const calculations = calculationsResponse.data?.calculations || [];
 
       // Calculate stats
       const totalAssets = assets.length;

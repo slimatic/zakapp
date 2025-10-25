@@ -65,6 +65,7 @@ export class ReminderService {
       page?: number;
       limit?: number;
       status?: ReminderStatus;
+      priority?: ReminderPriority;
       eventType?: ReminderEventType;
       sortOrder?: 'asc' | 'desc';
     } = {}

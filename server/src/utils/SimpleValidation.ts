@@ -22,13 +22,13 @@ export class SimpleValidation {
     const errors: string[] = [];
     const validatedData: any = {};
 
-    if (!isPartial || data.type !== undefined) {
-      if (!data.type || typeof data.type !== 'string') {
-        errors.push('Type is required and must be a string');
-      } else if (!['cash', 'gold', 'silver', 'crypto', 'business', 'investment'].includes(data.type)) {
-        errors.push('Type must be one of: cash, gold, silver, crypto, business, investment');
+    if (!isPartial || data.category !== undefined) {
+      if (!data.category || typeof data.category !== 'string') {
+        errors.push('Category is required and must be a string');
+      } else if (!['cash', 'gold', 'silver', 'crypto', 'business', 'investment', 'property', 'stocks', 'debts', 'expenses'].includes(data.category)) {
+        errors.push('Category must be one of: cash, gold, silver, crypto, business, investment, property, stocks, debts, expenses');
       } else {
-        validatedData.type = data.type;
+        validatedData.category = data.category;
       }
     }
 

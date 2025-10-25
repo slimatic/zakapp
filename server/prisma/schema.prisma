@@ -132,6 +132,7 @@ model ZakatCalculation {
   // Relationships
   user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   payments ZakatPayment[]
+  paymentRecords PaymentRecord[]
 
   @@map("zakat_calculations")
   @@index([userId])
@@ -485,6 +486,7 @@ model PaymentRecord {
   id                  String   @id @default(cuid())
   userId              String
   snapshotId          String
+  calculationId       String?  // Associated Zakat calculation
   amount              String   // Encrypted
   paymentDate         DateTime
   recipientName       String   // Encrypted
@@ -502,6 +504,7 @@ model PaymentRecord {
   // Relationships
   user                User            @relation("UserPaymentRecords", fields: [userId], references: [id], onDelete: Cascade)
   snapshot            YearlySnapshot  @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  calculation         ZakatCalculation? @relation(fields: [calculationId], references: [id])
 
   @@map("payment_records")
   @@index([userId, paymentDate(sort: Desc)])
@@ -573,7 +576,7 @@ model ReminderEvent {
   eventType           String
   triggerDate         DateTime
   title               String
-  message             String
+  message             String    // Encrypted
   priority            String    // high, medium, low
   status              String    // pending, shown, acknowledged, dismissed
   relatedSnapshotId   String?

@@ -8,6 +8,8 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
+export { API_BASE_URL };
+
 export interface LoginRequest {
   email?: string;
   username?: string;
