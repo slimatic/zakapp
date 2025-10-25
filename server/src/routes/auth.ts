@@ -159,16 +159,24 @@ router.post('/login',
       // Respond with standard format
       res.status(200).json({
         success: true,
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          preferences: {
-            calendar: user.preferredCalendar,
-            methodology: user.preferredMethodology
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            preferences: {
+              calendar: user.preferredCalendar,
+              methodology: user.preferredMethodology
+            }
+          },
+          tokens: {
+            accessToken,
+            refreshToken
           }
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          version: '1.0.0'
         }
       });
     } catch (error) {
@@ -259,20 +267,27 @@ router.post('/register',
       // Respond with standard format matching contract expectations
       res.status(201).json({
         success: true,
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          firstName: JSON.parse(user.profile || '{}').firstName,
-          lastName: JSON.parse(user.profile || '{}').lastName,
-          isActive: user.isActive,
-          createdAt: user.createdAt.toISOString(),
-          preferences: {
-            calendar: user.preferredCalendar,
-            methodology: user.preferredMethodology
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            firstName: JSON.parse(user.profile || '{}').firstName,
+            lastName: JSON.parse(user.profile || '{}').lastName,
+            isActive: user.isActive,
+            preferences: {
+              calendar: user.preferredCalendar,
+              methodology: user.preferredMethodology
+            }
+          },
+          tokens: {
+            accessToken,
+            refreshToken
           }
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          version: '1.0.0'
         }
       });
     } catch (error) {
