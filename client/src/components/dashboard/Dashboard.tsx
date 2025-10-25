@@ -10,7 +10,7 @@ export const Dashboard: React.FC = () => {
   const { data: historyData, isLoading: historyLoading, error: historyError } = useZakatHistory();
 
   const assets = assetsData?.data?.assets || [];
-  const history = historyData?.data || [];
+  const history = historyData?.data?.calculations || [];
 
   // Calculate dashboard metrics
   const totalAssetValue = assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
