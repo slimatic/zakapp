@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from '../types';
 import { authenticate } from '../middleware/AuthMiddleware';
 import { SimpleValidation } from '../utils/SimpleValidation';
 import { EncryptionService } from '../services/EncryptionService';
-import { AssetService } from '../services/AssetService';
+import { AssetService, UpdateAssetDto } from '../services/AssetService';
 import crypto from 'crypto';
 
 // Simple UUID v4 implementation to avoid Jest ES module issues
@@ -125,6 +125,75 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
 });
 
 /**
+ * GET /api/assets/summary
+ * Retrieve user's asset portfolio summary
+ */
+router.get('/summary', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    
+    // Get user's assets using the real service
+    const assetService = new AssetService();
+    const result = await assetService.getUserAssets(userId);
+    
+    // Create detailed summary statistics
+    const summary = {
+      totalValueUSD: result.assets.reduce((sum, asset) => sum + asset.value, 0),
+      totalAssets: result.assets.length,
+      assetBreakdown: result.assets.reduce((breakdown: Record<string, number>, asset) => {
+        const category = asset.category.toLowerCase();
+        breakdown[category] = (breakdown[category] || 0) + asset.value;
+        return breakdown;
+      }, {} as Record<string, number>),
+      currencyBreakdown: result.assets.reduce((breakdown: Record<string, number>, asset) => {
+        const currency = asset.currency;
+        breakdown[currency] = (breakdown[currency] || 0) + asset.value;
+        return breakdown;
+      }, {} as Record<string, number>),
+      categoryCounts: result.assets.reduce((counts: Record<string, number>, asset) => {
+        const category = asset.category.toLowerCase();
+        counts[category] = (counts[category] || 0) + 1;
+        return counts;
+      }, {} as Record<string, number>)
+    };
+
+    const response = createResponse(true, { summary });
+    res.status(200).json(response);
+  } catch (error) {
+    const response = createResponse(false, undefined, {
+      code: 'SUMMARY_RETRIEVAL_ERROR',
+      message: 'Failed to retrieve asset summary',
+      details: [error instanceof Error ? error.message : 'Unknown error']
+    });
+    res.status(500).json(response);
+  }
+});
+
+/**
+ * GET /api/assets/deleted
+ * Retrieve user's deleted assets
+ */
+router.get('/deleted', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    
+    // Get user's deleted assets using the real service
+    const assetService = new AssetService();
+    const result = await assetService.getDeletedAssets(userId);
+    
+    const response = createResponse(true, { assets: result.assets });
+    res.status(200).json(response);
+  } catch (error) {
+    const response = createResponse(false, undefined, {
+      code: 'DELETED_ASSETS_RETRIEVAL_ERROR',
+      message: 'Failed to retrieve deleted assets',
+      details: [error instanceof Error ? error.message : 'Unknown error']
+    });
+    res.status(500).json(response);
+  }
+});
+
+/**
  * GET /api/assets/:id
  * Retrieve specific asset by ID
  */
@@ -133,9 +202,9 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
     const userId = req.userId!;
     const assetId = req.params.id;
     
-    // Find user's assets
-    const assets = userAssets[userId] || [];
-    const asset = assets.find(asset => asset.id === assetId);
+    // Use the AssetService to get the asset
+    const assetService = new AssetService();
+    const asset = await assetService.getAssetById(userId, assetId);
     
     if (!asset) {
       const response = createResponse(false, undefined, {
@@ -148,6 +217,14 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
     const response = createResponse(true, { asset });
     res.status(200).json(response);
   } catch (error) {
+    if (error instanceof Error && error.message === 'Asset not found') {
+      const response = createResponse(false, undefined, {
+        code: 'ASSET_NOT_FOUND',
+        message: 'Asset not found'
+      });
+      return res.status(404).json(response);
+    }
+    
     const response = createResponse(false, undefined, {
       code: 'ASSET_RETRIEVAL_ERROR',
       message: 'Failed to retrieve asset',
@@ -177,8 +254,7 @@ router.post('/',
         return;
       }
 
-      const { category, value, currency, description } = validation.data;
-      const { name } = req.body; // Get name from request body
+      const { category, name, value, currency, description } = validation.data;
 
       const userId = req.userId!;
       
@@ -228,9 +304,16 @@ router.put('/:id',
         return res.status(400).json(response);
       }
 
+      // Transform request data to match UpdateAssetDto
+      const { description, ...otherData } = req.body;
+      const updateData: Partial<UpdateAssetDto> = { ...otherData };
+      if (description) {
+        updateData.metadata = { description };
+      }
+
       // Use AssetService to update the asset
       const assetService = new AssetService();
-      const updatedAsset = await assetService.updateAsset(userId, assetId, req.body);
+      const updatedAsset = await assetService.updateAsset(userId, assetId, updateData);
       
       const response = createResponse(true, { asset: updatedAsset });
       res.status(200).json(response);
@@ -253,71 +336,56 @@ router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res: Respo
   try {
     const userId = req.userId!;
     const assetId = req.params.id;
-    const force = req.query.force === 'true';
     
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(assetId)) {
+    // Use AssetService to delete the asset
+    const assetService = new AssetService();
+    await assetService.deleteAsset(userId, assetId);
+    
+    // Return response with soft delete information
+    const response = createResponse(true, {
+      deletedAssetId: assetId,
+      recoverable: true,
+      recoveryDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+      message: 'Asset deleted successfully'
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    const response = createResponse(false, undefined, {
+      code: 'ASSET_DELETE_ERROR',
+      message: 'Failed to delete asset',
+      details: [error instanceof Error ? error.message : 'Unknown error']
+    });
+    res.status(500).json(response);
+  }
+});
+
+/**
+ * POST /api/assets/:id/recover
+ * Recover a deleted asset
+ */
+router.post('/:id/recover', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const assetId = req.params.id;
+    
+    // Recover the asset using the real service
+    const assetService = new AssetService();
+    const asset = await assetService.recoverAsset(userId, assetId);
+    
+    const response = createResponse(true, { asset });
+    res.status(200).json(response);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Deleted asset not found') {
       const response = createResponse(false, undefined, {
-        code: 'VALIDATION_ERROR',
-        message: 'Invalid asset ID format',
-        details: ['Invalid asset ID format']
-      });
-      return res.status(400).json(response);
-    }
-    
-    // Find user's assets
-    const assets = userAssets[userId] || [];
-    const assetIndex = assets.findIndex(asset => asset.id === assetId);
-    
-    // Special case: if this is the test asset for calculations conflict, simulate it exists
-    if (assetId === '12345678-1234-4abc-a123-123456789abc') {
-      const response = createResponse(false, undefined, {
-        code: 'CONFLICT',
-        message: 'Cannot delete asset with existing zakat calculations'
-      });
-      return res.status(409).json(response);
-    }
-    
-    if (assetIndex === -1) {
-      const response = createResponse(false, undefined, {
-        code: 'ASSET_NOT_FOUND',
-        message: 'Asset not found'
+        code: 'DELETED_ASSET_NOT_FOUND',
+        message: 'Deleted asset not found'
       });
       return res.status(404).json(response);
     }
     
-    const asset = assets[assetIndex];
-    
-    // Store asset data for response
-    const deletedAsset = { ...asset };
-    
-    // Remove asset
-    assets.splice(assetIndex, 1);
-    
-    // Generate audit log ID (in real implementation, would save to audit table)
-    const auditLogId = `audit-delete-${Date.now()}-${assetId}`;
-    
-    const response = createResponse(true, {
-      message: force ? 'Asset permanently deleted' : 'Asset deleted successfully',
-      deletedAssetId: assetId,
-      deletedAsset: {
-        id: deletedAsset.id,
-        category: deletedAsset.category,
-        description: deletedAsset.description,
-        currency: deletedAsset.currency,
-        deletedAt: new Date().toISOString()
-      },
-      recoverable: !force,
-      auditLogId,
-      ...(force ? { permanent: true } : { recoveryDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() })
-    });
-    
-    res.status(200).json(response);
-  } catch (error) {
     const response = createResponse(false, undefined, {
-      code: 'ASSET_DELETION_ERROR',
-      message: 'Failed to delete asset',
+      code: 'ASSET_RECOVERY_ERROR',
+      message: 'Failed to recover asset',
       details: [error instanceof Error ? error.message : 'Unknown error']
     });
     res.status(500).json(response);
