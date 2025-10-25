@@ -38,7 +38,7 @@ export const Dashboard: React.FC = () => {
       // Since we don't have a specific dashboard endpoint, let's compose the data
       const [assetsResponse, calculationsResponse] = await Promise.all([
         apiService.getAssets(),
-        apiService.getZakatHistory()
+        apiService.getCalculationHistory()
       ]);
 
       const assets = assetsResponse.data?.assets || [];
