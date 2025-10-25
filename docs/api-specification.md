@@ -985,3 +985,573 @@ Official SDKs available for:
 ---
 
 *This API documentation follows ZakApp's constitutional principles of Privacy & Security First, Islamic Compliance, User-Centric Design, Quality & Reliability, and Transparency & Trust.*
+
+## Analytics Endpoints
+
+### Get Analytics Summary
+**GET** `/analytics/summary`
+
+Get comprehensive Zakat analytics summary for the authenticated user.
+
+**Query Parameters:**
+- `startDate` (string, optional): Start date for analysis period (ISO 8601)
+- `endDate` (string, optional): End date for analysis period (ISO 8601)
+- `methodology` (string, optional): Filter by Zakat methodology
+- `includeTrends` (boolean, optional): Include trend analysis (default: true)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "summary": {
+      "totalPayments": 12500.00,
+      "totalRecipients": 45,
+      "averagePayment": 277.78,
+      "paymentFrequency": "quarterly",
+      "mostUsedCategory": "poor",
+      "preferredMethodology": "hanafi",
+      "complianceRate": 95.2
+    },
+    "trends": {
+      "paymentGrowth": 12.5,
+      "recipientDiversity": 8.3,
+      "methodologyConsistency": 98.1
+    },
+    "period": {
+      "startDate": "2024-01-01T00:00:00Z",
+      "endDate": "2024-12-31T23:59:59Z",
+      "totalMonths": 12
+    }
+  }
+}
+```
+
+### Get Analytics Metrics
+**GET** `/analytics/metrics`
+
+Retrieve detailed analytics metrics with customizable groupings.
+
+**Query Parameters:**
+- `startDate` (string, optional): Start date for analysis
+- `endDate` (string, optional): End date for analysis
+- `groupBy` (string, optional): Group results by (`month`, `quarter`, `year`, `category`, `methodology`)
+- `metrics` (string[], optional): Specific metrics to include
+- `limit` (integer, optional): Maximum results to return
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "metrics": [
+      {
+        "period": "2024-Q1",
+        "totalPayments": 3200.00,
+        "paymentCount": 12,
+        "averagePayment": 266.67,
+        "topCategory": "education",
+        "recipientCount": 8
+      },
+      {
+        "period": "2024-Q2",
+        "totalPayments": 3800.00,
+        "paymentCount": 15,
+        "averagePayment": 253.33,
+        "topCategory": "poor",
+        "recipientCount": 12
+      }
+    ],
+    "aggregates": {
+      "totalPayments": 7000.00,
+      "totalCount": 27,
+      "averagePayment": 259.26,
+      "growthRate": 18.75
+    }
+  }
+}
+```
+
+### Get Payment Trends
+**GET** `/analytics/trends`
+
+Analyze payment trends and patterns over time.
+
+**Query Parameters:**
+- `analysisType` (string, optional): Type of trend analysis (`seasonal`, `growth`, `distribution`, `predictive`)
+- `period` (string, optional): Analysis period (`1y`, `2y`, `5y`)
+- `confidence` (number, optional): Prediction confidence level (0-1)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "trends": {
+      "seasonal": {
+        "peakMonths": ["Ramadan", "Dhul-Hijjah"],
+        "seasonalMultiplier": 2.3,
+        "confidence": 0.89
+      },
+      "growth": {
+        "annualGrowthRate": 12.5,
+        "trendDirection": "increasing",
+        "volatility": 0.15
+      },
+      "distribution": {
+        "paymentSizeDistribution": {
+          "small": 35,
+          "medium": 45,
+          "large": 20
+        },
+        "categoryDistribution": {
+          "poor": 40,
+          "orphans": 25,
+          "widows": 20,
+          "education": 15
+        }
+      }
+    },
+    "predictions": {
+      "nextQuarterEstimate": 4200.00,
+      "confidenceInterval": {
+        "lower": 3800.00,
+        "upper": 4600.00
+      }
+    }
+  }
+}
+```
+
+### Compare Analytics Periods
+**GET** `/analytics/comparison`
+
+Compare Zakat analytics between different time periods.
+
+**Query Parameters:**
+- `period1` (object): First comparison period
+  - `startDate` (string): Start date
+  - `endDate` (string): End date
+- `period2` (object): Second comparison period
+- `comparisonType` (string, optional): Type of comparison (`absolute`, `percentage`, `growth`)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "comparison": {
+      "period1": {
+        "label": "2023",
+        "totalPayments": 12000.00,
+        "paymentCount": 48,
+        "averagePayment": 250.00
+      },
+      "period2": {
+        "label": "2024",
+        "totalPayments": 13500.00,
+        "paymentCount": 52,
+        "averagePayment": 259.62
+      },
+      "differences": {
+        "totalPayments": {
+          "absolute": 1500.00,
+          "percentage": 12.5,
+          "direction": "increase"
+        },
+        "paymentCount": {
+          "absolute": 4,
+          "percentage": 8.3,
+          "direction": "increase"
+        },
+        "averagePayment": {
+          "absolute": 9.62,
+          "percentage": 3.8,
+          "direction": "increase"
+        }
+      }
+    },
+    "insights": [
+      "Payment volume increased by 12.5%",
+      "Average payment size grew by 3.8%",
+      "Payment frequency improved by 8.3%"
+    ]
+  }
+}
+```
+
+### Clear Analytics Cache
+**POST** `/analytics/cache/clear`
+
+Clear cached analytics data to force fresh calculations.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Analytics cache cleared successfully",
+  "data": {
+    "clearedAt": "2024-09-29T15:30:00Z",
+    "cacheSize": "2.3MB",
+    "nextRefresh": "2024-09-29T15:30:05Z"
+  }
+}
+```
+
+## Reminder Management Endpoints
+
+### Create Reminder
+**POST** `/reminders`
+
+Create a new Zakat payment reminder.
+
+**Request Body:**
+```json
+{
+  "title": "Quarterly Zakat Payment",
+  "description": "Time to calculate and pay your quarterly Zakat",
+  "reminderType": "payment",
+  "frequency": "quarterly",
+  "nextDueDate": "2024-12-31T23:59:59Z",
+  "amount": 2500.00,
+  "currency": "USD",
+  "recipientCategory": "poor",
+  "isActive": true,
+  "notificationPreferences": {
+    "email": true,
+    "push": false,
+    "sms": false
+  },
+  "metadata": {
+    "calculationMethod": "hanafi",
+    "nisabThreshold": 505.75
+  }
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "reminder_123",
+    "title": "Quarterly Zakat Payment",
+    "description": "Time to calculate and pay your quarterly Zakat",
+    "reminderType": "payment",
+    "frequency": "quarterly",
+    "nextDueDate": "2024-12-31T23:59:59Z",
+    "amount": 2500.00,
+    "currency": "USD",
+    "recipientCategory": "poor",
+    "isActive": true,
+    "notificationPreferences": {
+      "email": true,
+      "push": false,
+      "sms": false
+    },
+    "metadata": {
+      "calculationMethod": "hanafi",
+      "nisabThreshold": 505.75
+    },
+    "createdAt": "2024-09-29T15:30:00Z",
+    "updatedAt": "2024-09-29T15:30:00Z"
+  }
+}
+```
+
+### List Reminders
+**GET** `/reminders`
+
+Retrieve user's reminders with filtering options.
+
+**Query Parameters:**
+- `page`, `limit`: Pagination
+- `status`: Filter by status (`active`, `inactive`, `completed`)
+- `type`: Filter by reminder type (`payment`, `calculation`, `nisab_check`)
+- `upcomingOnly`: Show only upcoming reminders
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "reminder_123",
+        "title": "Quarterly Zakat Payment",
+        "reminderType": "payment",
+        "frequency": "quarterly",
+        "nextDueDate": "2024-12-31T23:59:59Z",
+        "amount": 2500.00,
+        "isActive": true,
+        "status": "active"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 5,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrev": false
+    }
+  }
+}
+```
+
+### Get Reminder
+**GET** `/reminders/{reminderId}`
+
+Retrieve specific reminder details.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "reminder_123",
+    "title": "Quarterly Zakat Payment",
+    "description": "Time to calculate and pay your quarterly Zakat",
+    "reminderType": "payment",
+    "frequency": "quarterly",
+    "nextDueDate": "2024-12-31T23:59:59Z",
+    "lastTriggered": "2024-09-29T15:30:00Z",
+    "amount": 2500.00,
+    "currency": "USD",
+    "recipientCategory": "poor",
+    "isActive": true,
+    "notificationPreferences": {
+      "email": true,
+      "push": false,
+      "sms": false
+    },
+    "metadata": {
+      "calculationMethod": "hanafi",
+      "nisabThreshold": 505.75
+    },
+    "createdAt": "2024-09-29T15:30:00Z",
+    "updatedAt": "2024-09-29T15:30:00Z"
+  }
+}
+```
+
+### Update Reminder
+**PUT** `/reminders/{reminderId}`
+
+Update existing reminder.
+
+**Request Body:**
+```json
+{
+  "title": "Updated Quarterly Zakat Payment",
+  "amount": 2800.00,
+  "isActive": false
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "reminder_123",
+    "title": "Updated Quarterly Zakat Payment",
+    "amount": 2800.00,
+    "isActive": false,
+    "updatedAt": "2024-09-29T16:00:00Z"
+  }
+}
+```
+
+### Delete Reminder
+**DELETE** `/reminders/{reminderId}`
+
+Remove a reminder.
+
+**Success Response (204):** No content
+
+### Acknowledge Reminder
+**POST** `/reminders/{reminderId}/acknowledge`
+
+Mark a reminder as acknowledged (snooze or complete).
+
+**Request Body:**
+```json
+{
+  "action": "snooze",
+  "snoozeUntil": "2024-10-15T00:00:00Z",
+  "notes": "Payment completed, reminder acknowledged"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "reminder_123",
+    "status": "acknowledged",
+    "nextDueDate": "2024-10-15T00:00:00Z",
+    "acknowledgedAt": "2024-09-29T16:00:00Z"
+  }
+}
+```
+
+### Get All Upcoming Reminders
+**GET** `/reminders/upcoming/all`
+
+Get all upcoming reminders across all users (admin endpoint).
+
+**Query Parameters:**
+- `daysAhead` (integer, optional): Look ahead days (default: 30)
+- `limit` (integer, optional): Maximum results
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "reminders": [
+      {
+        "id": "reminder_123",
+        "userId": "user_456",
+        "title": "Quarterly Zakat Payment",
+        "nextDueDate": "2024-12-31T23:59:59Z",
+        "amount": 2500.00,
+        "daysUntilDue": 93
+      }
+    ],
+    "total": 25,
+    "urgent": 3
+  }
+}
+```
+
+## Enhanced Export Endpoints
+
+### Request Data Export
+**POST** `/user/export-request`
+
+Request comprehensive data export including analytics and tracking data.
+
+**Request Body:**
+```json
+{
+  "format": "json",
+  "includeAnalytics": true,
+  "includeTracking": true,
+  "includeReminders": true,
+  "dateRange": {
+    "startDate": "2023-01-01T00:00:00Z",
+    "endDate": "2024-12-31T23:59:59Z"
+  },
+  "anonymizeSensitive": false,
+  "includeMetadata": true
+}
+```
+
+**Success Response (202):**
+```json
+{
+  "success": true,
+  "data": {
+    "requestId": "export_req_123",
+    "status": "processing",
+    "estimatedCompletion": "2024-09-29T15:35:00Z",
+    "statusUrl": "/user/export-status/export_req_123",
+    "requestedData": {
+      "assets": true,
+      "calculations": true,
+      "payments": true,
+      "analytics": true,
+      "reminders": true,
+      "tracking": true
+    }
+  }
+}
+```
+
+### Get Export Status
+**GET** `/user/export-status/{requestId}`
+
+Check the status of a data export request.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "requestId": "export_req_123",
+    "status": "completed",
+    "downloadUrl": "https://api.zakapp.com/downloads/export_req_123.zip",
+    "expiresAt": "2024-09-30T15:30:00Z",
+    "fileSize": "5.2MB",
+    "recordCounts": {
+      "assets": 25,
+      "calculations": 48,
+      "payments": 52,
+      "analytics": 365,
+      "reminders": 12
+    },
+    "completedAt": "2024-09-29T15:32:00Z"
+  }
+}
+```
+
+### Backup User Data
+**POST** `/user/backup`
+
+Create encrypted backup of all user data.
+
+**Request Body:**
+```json
+{
+  "backupType": "full",
+  "encryptionEnabled": true,
+  "includeAnalytics": true,
+  "retentionDays": 365
+}
+```
+
+**Success Response (202):**
+```json
+{
+  "success": true,
+  "data": {
+    "backupId": "backup_123",
+    "status": "processing",
+    "estimatedCompletion": "2024-09-29T15:35:00Z",
+    "backupType": "full",
+    "encryptionEnabled": true
+  }
+}
+```
+
+### Restore User Data
+**POST** `/user/restore`
+
+Restore user data from backup.
+
+**Request Body:**
+```json
+{
+  "backupId": "backup_123",
+  "restoreOptions": {
+    "overwriteExisting": false,
+    "validateIntegrity": true,
+    "restoreAnalytics": true
+  }
+}
+```
+
+**Success Response (202):**
+```json
+{
+  "success": true,
+  "data": {
+    "restoreId": "restore_123",
+    "status": "processing",
+    "estimatedCompletion": "2024-09-29T15:40:00Z"
+  }
+}
+```
