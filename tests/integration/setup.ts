@@ -2,40 +2,57 @@
 import { PrismaClient } from '../../server/node_modules/@prisma/client';
 import path from 'path';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 // Load test environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../server/.env.test') });
 
 let prisma: PrismaClient;
 
-// Ensure test database path is absolute
-const TEST_DB_PATH = path.resolve(__dirname, '../../server/data/test-integration.db');
+// Create unique database name based on test file or timestamp
+const testFileName = process.env.JEST_WORKER_ID || `test-${Date.now()}`;
+const TEST_DB_PATH = path.resolve(__dirname, `../../server/data/test-integration-${testFileName}.db`);
+const TEST_DB_URL = `file:${TEST_DB_PATH}`;
+const SCHEMA_PATH = path.resolve(__dirname, '../../server/prisma/schema.prisma');
 
 beforeAll(async () => {
+  // Delete existing test database file if it exists
+  if (fs.existsSync(TEST_DB_PATH)) {
+    console.log(`🗑️ Deleting existing test database: ${TEST_DB_PATH}`);
+    try {
+      fs.unlinkSync(TEST_DB_PATH);
+    } catch (error) {
+      console.log(`⚠️ Could not delete test database (might be already deleted):`, error instanceof Error ? error.message : String(error));
+    }
+  } else {
+    console.log(`ℹ️ Test database does not exist: ${TEST_DB_PATH}`);
+  }
+  
   // Create a test database connection with absolute path
   prisma = new PrismaClient({
     datasources: {
       db: {
-        url: `file:${TEST_DB_PATH}`
+        url: TEST_DB_URL
       }
     }
   });
   
-  // Initialize connection and enable foreign keys (SQLite only)
-  await prisma.$connect();
-  
-  // Enable foreign keys for SQLite databases
+  // Apply database schema
+  console.log(`🚀 Applying database schema to: ${TEST_DB_PATH}`);
+  const { execSync } = require('child_process');
   try {
-    // SECURITY: Using $executeRaw with template literal (safe from SQL injection)
-    // Never use $executeRawUnsafe as it creates SQL injection vulnerabilities
-    await prisma.$executeRaw`PRAGMA foreign_keys = ON`;
+    // Override DATABASE_URL for schema push - use absolute path to ensure correct location
+    execSync(`cd /home/lunareclipse/zakapp/server && DATABASE_URL="${TEST_DB_URL}" npx prisma db push --accept-data-loss`, { stdio: 'inherit' });
+    console.log(`✅ Test database schema applied`);
   } catch (error) {
-    // Ignore if not SQLite (PostgreSQL, MySQL, etc. have foreign keys enabled by default)
-    console.log('Foreign key enforcement setup skipped (not needed for this database)');
+    console.error('❌ Failed to apply test database schema:', error);
+    throw error;
   }
-  
-  console.log('✅ Test database connected:', TEST_DB_PATH);
-});
+
+  // Connect to database
+  await prisma.$connect();
+  console.log(`✅ Test database connected: ${TEST_DB_PATH}`);
+}, 60000); // 60 seconds timeout
 
 afterAll(async () => {
   // Clean up test database connection
@@ -44,27 +61,8 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  // SECURITY: Clean database using Prisma DMMF introspection (SQL injection safe)
-  // This replaces the old unsafe pattern: SELECT name FROM sqlite_master + $executeRawUnsafe
-  const { Prisma } = await import('../../server/node_modules/@prisma/client');
-  const models = Prisma.dmmf?.datamodel?.models || [];
-  
-  // Delete in reverse order to handle foreign key constraints
-  const modelNames = models
-    .map(model => model.name.charAt(0).toLowerCase() + model.name.slice(1))
-    .reverse();
-  
-  for (const modelName of modelNames) {
-    try {
-      const prismaModel = (prisma as any)[modelName];
-      if (prismaModel && typeof prismaModel.deleteMany === 'function') {
-        await prismaModel.deleteMany({});
-      }
-    } catch (error) {
-      // Skip models that don't support deleteMany operation
-      console.warn(`Could not clean model ${modelName}:`, error);
-    }
-  }
+  // Database cleanup is now handled in beforeAll after schema setup
+  // This ensures tables exist before attempting to clean them
 });
 
 export { prisma };
