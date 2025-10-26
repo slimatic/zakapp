@@ -1,0 +1,608 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Reminder System API
+  description: |
+    RESTful API for managing Zakat reminder notifications and events.
+    Part of Milestone 5: Tracking & Analytics System.
+  version: 1.0.0
+  contact:
+    name: ZakApp Development Team
+    url: https://github.com/yourusername/zakapp
+
+servers:
+  - url: http://localhost:3001/api
+    description: Local development server
+  - url: https://staging.zakapp.com/api
+    description: Staging environment
+  - url: https://zakapp.com/api
+    description: Production environment
+
+tags:
+  - name: Reminders
+    description: Reminder event management endpoints
+
+security:
+  - BearerAuth: []
+
+paths:
+  /reminders:
+    post:
+      summary: Create Reminder
+      description: |
+        Creates a new reminder event for the authenticated user.
+        Reminder date is automatically calculated based on trigger date.
+      operationId: createReminder
+      tags:
+        - Reminders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReminderRequest'
+            examples:
+              zakatAnniversary:
+                summary: Zakat anniversary approaching
+                value:
+                  eventType: "zakat_anniversary_approaching"
+                  triggerDate: "2025-12-01T00:00:00Z"
+                  title: "Zakat Anniversary Approaching"
+                  message: "Your Zakat anniversary is coming up in 30 days"
+                  priority: "high"
+              dataBackup:
+                summary: Data backup reminder
+                value:
+                  eventType: "data_backup_reminder"
+                  triggerDate: "2025-02-01T00:00:00Z"
+                  title: "Time to Backup Your Data"
+                  message: "It's been 6 months since your last backup"
+                  priority: "medium"
+      responses:
+        '201':
+          description: Reminder created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderResponse'
+              example:
+                success: true
+                data:
+                  reminder:
+                    id: "clxxxxxxxxxxxx"
+                    eventType: "zakat_anniversary_approaching"
+                    triggerDate: "2025-12-01T00:00:00Z"
+                    title: "Zakat Anniversary Approaching"
+                    message: "Your Zakat anniversary is coming up in 30 days"
+                    priority: "high"
+                    status: "pending"
+                    relatedSnapshotId: null
+                    metadata: {}
+                    createdAt: "2025-01-15T10:00:00Z"
+                    updatedAt: "2025-01-15T10:00:00Z"
+                    acknowledgedAt: null
+                    dismissedAt: null
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      summary: List Reminders
+      description: |
+        Retrieves reminder events for the authenticated user with optional filtering.
+        Results are ordered by trigger date ascending (earliest first).
+      operationId: listReminders
+      tags:
+        - Reminders
+      parameters:
+        - name: status
+          in: query
+          description: Filter by reminder status
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - shown
+              - acknowledged
+              - dismissed
+          example: "pending"
+        - name: eventType
+          in: query
+          description: Filter by event type
+          required: false
+          schema:
+            type: string
+            enum:
+              - zakat_anniversary_approaching
+              - calculation_overdue
+              - payment_incomplete
+              - yearly_comparison_available
+              - data_backup_reminder
+              - methodology_review
+          example: "zakat_anniversary_approaching"
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          example: 20
+        - name: offset
+          in: query
+          description: Number of results to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Reminders retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderListResponse'
+              example:
+                success: true
+                data:
+                  reminders:
+                    - id: "clxxxxxxxxxxxx"
+                      eventType: "zakat_anniversary_approaching"
+                      triggerDate: "2025-12-01T00:00:00Z"
+                      title: "Zakat Anniversary Approaching"
+                      message: "Your Zakat anniversary is coming up in 30 days"
+                      priority: "high"
+                      status: "pending"
+                      relatedSnapshotId: null
+                      metadata: {}
+                      createdAt: "2025-01-15T10:00:00Z"
+                      updatedAt: "2025-01-15T10:00:00Z"
+                      acknowledgedAt: null
+                      dismissedAt: null
+                    - id: "clyyyyyyyyyyyyy"
+                      eventType: "data_backup_reminder"
+                      triggerDate: "2025-02-01T00:00:00Z"
+                      title: "Time to Backup Your Data"
+                      message: "It's been 6 months since your last backup"
+                      priority: "medium"
+                      status: "acknowledged"
+                      relatedSnapshotId: null
+                      metadata: {}
+                      createdAt: "2025-01-10T08:00:00Z"
+                      updatedAt: "2025-01-12T14:30:00Z"
+                      acknowledgedAt: "2025-01-12T14:30:00Z"
+                      dismissedAt: null
+                  total: 2
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /reminders/{id}:
+    get:
+      summary: Get Reminder
+      description: Retrieves a single reminder by ID
+      operationId: getReminder
+      tags:
+        - Reminders
+      parameters:
+        - name: id
+          in: path
+          description: Reminder ID
+          required: true
+          schema:
+            type: string
+          example: "clxxxxxxxxxxxx"
+      responses:
+        '200':
+          description: Reminder retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderResponse'
+              example:
+                success: true
+                data:
+                  reminder:
+                    id: "clxxxxxxxxxxxx"
+                    eventType: "zakat_anniversary_approaching"
+                    triggerDate: "2025-12-01T00:00:00Z"
+                    title: "Zakat Anniversary Approaching"
+                    message: "Your Zakat anniversary is coming up in 30 days"
+                    priority: "high"
+                    status: "pending"
+                    relatedSnapshotId: null
+                    metadata: {}
+                    createdAt: "2025-01-15T10:00:00Z"
+                    updatedAt: "2025-01-15T10:00:00Z"
+                    acknowledgedAt: null
+                    dismissedAt: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Reminder not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Reminder not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Update Reminder
+      description: |
+        Updates an existing reminder. Can update title, message, priority, or status.
+        Commonly used to mark reminders as acknowledged or dismissed.
+      operationId: updateReminder
+      tags:
+        - Reminders
+      parameters:
+        - name: id
+          in: path
+          description: Reminder ID
+          required: true
+          schema:
+            type: string
+          example: "clxxxxxxxxxxxx"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReminderRequest'
+            examples:
+              acknowledge:
+                summary: Acknowledge reminder
+                value:
+                  status: "acknowledged"
+              dismiss:
+                summary: Dismiss reminder
+                value:
+                  status: "dismissed"
+              updatePriority:
+                summary: Change priority
+                value:
+                  priority: "low"
+      responses:
+        '200':
+          description: Reminder updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderResponse'
+              example:
+                success: true
+                data:
+                  reminder:
+                    id: "clxxxxxxxxxxxx"
+                    eventType: "zakat_anniversary_approaching"
+                    triggerDate: "2025-12-01T00:00:00Z"
+                    title: "Zakat Anniversary Approaching"
+                    message: "Your Zakat anniversary is coming up in 30 days"
+                    priority: "high"
+                    status: "acknowledged"
+                    relatedSnapshotId: null
+                    metadata: {}
+                    createdAt: "2025-01-15T10:00:00Z"
+                    updatedAt: "2025-01-16T09:00:00Z"
+                    acknowledgedAt: "2025-01-16T09:00:00Z"
+                    dismissedAt: null
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Reminder not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Reminder not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete Reminder
+      description: |
+        Permanently deletes a reminder. This action cannot be undone.
+        Consider dismissing instead of deleting for audit purposes.
+      operationId: deleteReminder
+      tags:
+        - Reminders
+      parameters:
+        - name: id
+          in: path
+          description: Reminder ID to delete
+          required: true
+          schema:
+            type: string
+          example: "clxxxxxxxxxxxx"
+      responses:
+        '200':
+          description: Reminder deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Reminder not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Reminder not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from /api/auth/login
+
+  schemas:
+    CreateReminderRequest:
+      type: object
+      required:
+        - eventType
+        - triggerDate
+        - title
+        - message
+      properties:
+        eventType:
+          type: string
+          enum:
+            - zakat_anniversary_approaching
+            - calculation_overdue
+            - payment_incomplete
+            - yearly_comparison_available
+            - data_backup_reminder
+            - methodology_review
+          description: Type of reminder event
+          example: "zakat_anniversary_approaching"
+        triggerDate:
+          type: string
+          format: date-time
+          description: Date when the reminder should trigger
+          example: "2025-12-01T00:00:00Z"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Reminder title
+          example: "Zakat Anniversary Approaching"
+        message:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Detailed reminder message
+          example: "Your Zakat anniversary is coming up in 30 days"
+        priority:
+          type: string
+          enum:
+            - high
+            - medium
+            - low
+          default: medium
+          description: Reminder priority level
+          example: "high"
+        relatedSnapshotId:
+          type: string
+          description: Optional ID of related snapshot
+          example: "clzzzzzzzzzzz"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata (key-value pairs)
+          example:
+            customField: "value"
+            anotherField: 123
+
+    UpdateReminderRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Updated title
+          example: "Updated Title"
+        message:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Updated message
+          example: "Updated message content"
+        priority:
+          type: string
+          enum:
+            - high
+            - medium
+            - low
+          description: Updated priority
+          example: "medium"
+        status:
+          type: string
+          enum:
+            - pending
+            - acknowledged
+            - dismissed
+          description: Updated status
+          example: "acknowledged"
+
+    ReminderEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique reminder identifier (CUID)
+          example: "clxxxxxxxxxxxx"
+        eventType:
+          type: string
+          enum:
+            - zakat_anniversary_approaching
+            - calculation_overdue
+            - payment_incomplete
+            - yearly_comparison_available
+            - data_backup_reminder
+            - methodology_review
+          description: Type of reminder event
+          example: "zakat_anniversary_approaching"
+        triggerDate:
+          type: string
+          format: date-time
+          description: Date when reminder triggers
+          example: "2025-12-01T00:00:00Z"
+        title:
+          type: string
+          description: Reminder title
+          example: "Zakat Anniversary Approaching"
+        message:
+          type: string
+          description: Detailed message
+          example: "Your Zakat anniversary is coming up in 30 days"
+        priority:
+          type: string
+          enum:
+            - high
+            - medium
+            - low
+          description: Priority level
+          example: "high"
+        status:
+          type: string
+          enum:
+            - pending
+            - shown
+            - acknowledged
+            - dismissed
+          description: Current status
+          example: "pending"
+        relatedSnapshotId:
+          type: string
+          nullable: true
+          description: Related snapshot ID if applicable
+          example: null
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata
+          example: {}
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2025-01-15T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-01-15T10:00:00Z"
+        acknowledgedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When reminder was acknowledged
+          example: null
+        dismissedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When reminder was dismissed
+          example: null
+
+    ReminderResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            reminder:
+              $ref: '#/components/schemas/ReminderEvent'
+
+    ReminderListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            reminders:
+              type: array
+              items:
+                $ref: '#/components/schemas/ReminderEvent'
+            total:
+              type: integer
+              description: Total number of reminders matching filters
+              example: 2
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Error message
+          example: "Validation failed"
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Invalid event type"
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Authentication required"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "An unexpected error occurred"
