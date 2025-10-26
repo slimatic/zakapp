@@ -62,19 +62,20 @@ export class ZakatEngine {
    */
   async calculateZakat(request: ZakatCalculationRequest & { assets?: Asset[]; userId?: string }): Promise<ZakatCalculationResult> {
     try {
-      // Get methodology information
-      const methodology = this.getMethodologyInfo(request.methodology);
+    // Get methodology information (method may be optional in request types)
+    const methodId = (request.method as string) || 'standard';
+    const methodology = this.getMethodologyInfo(methodId);
       
       // Get current nisab values
       const nisabInfo = await this.calculateNisabThreshold(methodology, request.customNisab);
       
       // Get calendar information if needed
-      const calendarInfo = request.calendarType === 'lunar' 
-        ? await this.calendarService.getCalendarInfo(new Date(request.calculationDate))
+      const calendarInfo = request.calendarType === 'lunar'
+        ? await this.calendarService.getCalendarInfo(new Date(request.calculationDate || Date.now()))
         : undefined;
 
       // Load and validate assets
-      const assets = request.assets || (request.userId ? await this.loadAssets(request.userId, request.includeAssets || []) : []);
+  const assets = request.assets || (request.userId ? await this.loadAssets(request.userId, request.includeAssets || []) : []);
       const validatedAssets = this.validateAssets(assets);
 
       // Perform main calculation
@@ -127,8 +128,9 @@ export class ZakatEngine {
       // Calculate using each methodology
       const results: MethodologyComparison[] = [];
       
-      for (let i = 0; i < request.methodologies.length; i++) {
-        const methodId = request.methodologies[i];
+    const methodList = request.methodologies || [];
+    for (let i = 0; i < methodList.length; i++) {
+      const methodId = methodList[i];
         const customConfigId = request.customConfigIds?.[i];
         
         // Get methodology info
@@ -146,7 +148,7 @@ export class ZakatEngine {
             methodology: methodId as 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM',
             calculationDate: referenceDate.toISOString(),
             calendarType: 'lunar', // Default to lunar for comparison
-            includeAssets: validatedAssets.map(a => a.assetId),
+            includeAssets: validatedAssets.map(a => a.assetId) || [],
             customNisab: undefined
           },
           undefined // No calendar info for comparison

@@ -163,10 +163,6 @@ router.post('/login',
       res.status(200).json({
         success: true,
         data: {
-          tokens: {
-            accessToken,
-            refreshToken
-          },
           user: {
             id: user.id,
             email: user.email,
@@ -175,9 +171,13 @@ router.post('/login',
               calendar: user.preferredCalendar,
               methodology: user.preferredMethodology
             }
+          },
+          tokens: {
+            accessToken,
+            refreshToken
           }
         },
-        metadata: {
+        meta: {
           timestamp: new Date().toISOString(),
           version: '1.0.0'
         }
@@ -306,25 +306,24 @@ router.post('/register',
       res.status(201).json({
         success: true,
         data: {
-          tokens: {
-            accessToken,
-            refreshToken
-          },
           user: {
             id: user.id,
-            email: user.email, // Use user.email since it's now normalized
-            // some Prisma client types in this environment may not expose 'username' on the typed user object
-            // use a safe cast to access if present
-            username: (user as any).username || null,
+            email: user.email,
+            username: user.username,
+            firstName: JSON.parse(user.profile || '{}').firstName,
+            lastName: JSON.parse(user.profile || '{}').lastName,
             isActive: user.isActive,
-            createdAt: user.createdAt.toISOString(),
             preferences: {
               calendar: user.preferredCalendar,
               methodology: user.preferredMethodology
             }
+          },
+          tokens: {
+            accessToken,
+            refreshToken
           }
         },
-        metadata: {
+        meta: {
           timestamp: new Date().toISOString(),
           version: '1.0.0'
         }

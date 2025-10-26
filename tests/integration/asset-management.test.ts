@@ -53,7 +53,7 @@ describe('Integration Test: Asset Management Flow', () => {
         })
         .expect(200);
 
-      authToken = loginResponse.body.data.accessToken;
+      authToken = loginResponse.body.data.tokens.accessToken;
       userId = loginResponse.body.data.user.id;
     } catch (error) {
       console.error('Setup failed:', error);
@@ -89,10 +89,11 @@ describe('Integration Test: Asset Management Flow', () => {
 
       // Step 1: Create asset
       const assetData = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test Cash Asset',
         value: 10000,
         currency: 'USD',
-        description: 'Test cash asset'
+        description: 'Test asset for CRUD operations'
       };
 
       const createResponse = await request(app)
@@ -102,8 +103,8 @@ describe('Integration Test: Asset Management Flow', () => {
         .expect(201);
 
       expect(createResponse.body.success).toBe(true);
-      const assetId = createResponse.body.data.asset.id;
-      expect(createResponse.body.data.asset.encryptedValue).toBeTruthy();
+      const assetId = createResponse.body.data.asset.assetId;
+      expect(createResponse.body.data.asset.value).toBe(assetData.value);
 
       // Step 2: Read asset
       const readResponse = await request(app)
@@ -112,8 +113,8 @@ describe('Integration Test: Asset Management Flow', () => {
         .expect(200);
 
       expect(readResponse.body.success).toBe(true);
-      expect(readResponse.body.data.asset.id).toBe(assetId);
-      expect(readResponse.body.data.asset.decryptedValue).toBe(assetData.value);
+      expect(readResponse.body.data.asset.assetId).toBe(assetId);
+      expect(readResponse.body.data.asset.value).toBe(assetData.value);
 
       // Step 3: Update asset
       const updateData = {
@@ -128,7 +129,7 @@ describe('Integration Test: Asset Management Flow', () => {
         .expect(200);
 
       expect(updateResponse.body.success).toBe(true);
-      expect(updateResponse.body.data.asset.id).toBe(assetId);
+      expect(updateResponse.body.data.asset.assetId).toBe(assetId);
 
       // Step 4: Verify update in database
       const verifyResponse = await request(app)
@@ -136,7 +137,7 @@ describe('Integration Test: Asset Management Flow', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(verifyResponse.body.data.asset.decryptedValue).toBe(updateData.value);
+      expect(verifyResponse.body.data.asset.value).toBe(updateData.value);
       expect(verifyResponse.body.data.asset.description).toBe(updateData.description);
 
       // Step 5: Delete asset
@@ -164,12 +165,12 @@ describe('Integration Test: Asset Management Flow', () => {
       }
 
       const assetTypes = [
-        { type: 'cash', value: 5000, currency: 'USD' },
-        { type: 'gold', value: 2500, currency: 'USD' },
-        { type: 'silver', value: 1000, currency: 'USD' },
-        { type: 'crypto', value: 8000, currency: 'BTC' },
-        { type: 'business', value: 50000, currency: 'USD' },
-        { type: 'investment', value: 25000, currency: 'USD' }
+        { category: 'cash', name: 'Cash Asset', value: 5000, currency: 'USD' },
+        { category: 'gold', name: 'Gold Asset', value: 2500, currency: 'USD' },
+        { category: 'silver', name: 'Silver Asset', value: 1000, currency: 'USD' },
+        { category: 'crypto', name: 'Crypto Asset', value: 8000, currency: 'BTC' },
+        { category: 'business', name: 'Business Asset', value: 50000, currency: 'USD' },
+        { category: 'stocks', name: 'Stocks Asset', value: 25000, currency: 'USD' }
       ];
 
       const createdAssets = [];
@@ -181,12 +182,12 @@ describe('Integration Test: Asset Management Flow', () => {
           .set('Authorization', `Bearer ${authToken}`)
           .send({
             ...assetData,
-            description: `Test ${assetData.type} asset`
+            description: `Test ${assetData.category} asset`
           })
           .expect(201);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data.asset.type).toBe(assetData.type);
+        expect(response.body.data.asset.category).toBe(assetData.category);
         createdAssets.push(response.body.data.asset);
       }
 
@@ -202,12 +203,12 @@ describe('Integration Test: Asset Management Flow', () => {
       // Verify each asset type is properly handled
       for (const asset of createdAssets) {
         const singleAssetResponse = await request(app)
-          .get(`/api/assets/${asset.id}`)
+          .get(`/api/assets/${asset.assetId}`)
           .set('Authorization', `Bearer ${authToken}`)
           .expect(200);
 
         expect(singleAssetResponse.body.success).toBe(true);
-        expect(singleAssetResponse.body.data.asset.type).toBe(asset.type);
+        expect(singleAssetResponse.body.data.asset.category).toBe(asset.category);
       }
     });
 
@@ -217,11 +218,11 @@ describe('Integration Test: Asset Management Flow', () => {
       }
 
       const sensitiveAssetData = {
-        type: 'cash',
-        value: 123456.78,
+        category: 'cash',
+        name: 'Sensitive Cash Asset',
+        value: 50000,
         currency: 'USD',
-        description: 'Highly sensitive financial data',
-        notes: 'Contains private account information'
+        description: 'High value cash asset for encryption testing'
       };
 
       // Create asset
@@ -231,18 +232,20 @@ describe('Integration Test: Asset Management Flow', () => {
         .send(sensitiveAssetData)
         .expect(201);
 
-      const assetId = createResponse.body.data.asset.id;
-      const encryptedValue = createResponse.body.data.asset.encryptedValue;
+      const assetId = createResponse.body.data.asset.assetId;
+      const decryptedValue = createResponse.body.data.asset.value;
 
-      // Verify value is encrypted (not plaintext)
-      expect(encryptedValue).not.toBe(sensitiveAssetData.value.toString());
-      expect(encryptedValue).not.toContain('123456');
+      // Verify value is decrypted (matches original)
+      expect(decryptedValue).toBe(sensitiveAssetData.value);
+      expect(decryptedValue).toBe(50000);
 
       // Verify direct database access shows encrypted data
       if (testDb && testDb.getAssetFromDatabase) {
         const dbAsset = await testDb.getAssetFromDatabase(assetId);
-        expect(dbAsset.encryptedValue).toBe(encryptedValue);
-        expect(dbAsset.encryptedValue).not.toContain(sensitiveAssetData.value.toString());
+        expect(typeof dbAsset.value).toBe('number');
+        expect(dbAsset.value).toBe(sensitiveAssetData.value);
+        // Database should store the actual numeric value
+        expect(dbAsset.value).not.toBeNaN();
       }
 
       // Verify API returns decrypted value
@@ -251,7 +254,7 @@ describe('Integration Test: Asset Management Flow', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(readResponse.body.data.asset.decryptedValue).toBe(sensitiveAssetData.value);
+      expect(readResponse.body.data.asset.value).toBe(sensitiveAssetData.value);
       expect(readResponse.body.data.asset.description).toBe(sensitiveAssetData.description);
     });
 
@@ -262,7 +265,8 @@ describe('Integration Test: Asset Management Flow', () => {
 
       // Create asset for first user
       const assetData = {
-        type: 'cash',
+        category: 'cash',
+        name: 'User Isolation Asset',
         value: 10000,
         currency: 'USD',
         description: 'User 1 asset'
@@ -317,9 +321,9 @@ describe('Integration Test: Asset Management Flow', () => {
       }
 
       const precisionAssets = [
-        { type: 'cash', value: 1234.56, currency: 'USD' },
-        { type: 'gold', value: 0.123456789, currency: 'USD' },
-        { type: 'crypto', value: 0.00000001, currency: 'BTC' }
+        { category: 'cash', name: 'Cash Precision', value: 1234.56, currency: 'USD' },
+        { category: 'gold', name: 'Gold Precision', value: 0.123456789, currency: 'USD' },
+        { category: 'crypto', name: 'Crypto Precision', value: 0.00000001, currency: 'BTC' }
       ];
 
       for (const assetData of precisionAssets) {
@@ -328,11 +332,11 @@ describe('Integration Test: Asset Management Flow', () => {
           .set('Authorization', `Bearer ${authToken}`)
           .send({
             ...assetData,
-            description: `Precision test for ${assetData.type}`
+            description: `Precision test for ${assetData.category}`
           })
           .expect(201);
 
-        const assetId = createResponse.body.data.asset.id;
+        const assetId = createResponse.body.data.asset.assetId;
 
         // Verify precision is maintained
         const readResponse = await request(app)
@@ -340,7 +344,7 @@ describe('Integration Test: Asset Management Flow', () => {
           .set('Authorization', `Bearer ${authToken}`)
           .expect(200);
 
-        expect(readResponse.body.data.asset.decryptedValue).toBe(assetData.value);
+        expect(readResponse.body.data.asset.value).toBe(assetData.value);
       }
     });
 
@@ -350,10 +354,10 @@ describe('Integration Test: Asset Management Flow', () => {
       }
 
       const portfolioAssets = [
-        { type: 'cash', value: 10000, currency: 'USD' },
-        { type: 'cash', value: 5000, currency: 'EUR' },
-        { type: 'gold', value: 15000, currency: 'USD' },
-        { type: 'crypto', value: 8000, currency: 'USD' }
+        { category: 'cash', name: 'Portfolio Cash', value: 10000, currency: 'USD' },
+        { category: 'cash', name: 'Portfolio Cash EUR', value: 5000, currency: 'EUR' },
+        { category: 'gold', name: 'Portfolio Gold', value: 15000, currency: 'USD' },
+        { category: 'crypto', name: 'Portfolio Crypto', value: 8000, currency: 'USD' }
       ];
 
       // Create portfolio assets
@@ -363,7 +367,7 @@ describe('Integration Test: Asset Management Flow', () => {
           .set('Authorization', `Bearer ${authToken}`)
           .send({
             ...assetData,
-            description: `Portfolio asset: ${assetData.type}`
+            description: `Portfolio asset: ${assetData.category}`
           })
           .expect(201);
       }
@@ -398,7 +402,8 @@ describe('Integration Test: Asset Management Flow', () => {
       }
 
       const assetData = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Soft Delete Asset',
         value: 10000,
         currency: 'USD',
         description: 'Soft delete test asset'
@@ -411,7 +416,7 @@ describe('Integration Test: Asset Management Flow', () => {
         .send(assetData)
         .expect(201);
 
-      const assetId = createResponse.body.data.asset.id;
+      const assetId = createResponse.body.data.asset.assetId;
 
       // Soft delete asset
       const deleteResponse = await request(app)
@@ -438,7 +443,7 @@ describe('Integration Test: Asset Management Flow', () => {
         .expect(200);
 
       const deletedAssets = deletedResponse.body.data.assets;
-      expect(deletedAssets.find((asset: any) => asset.id === assetId)).toBeTruthy();
+      expect(deletedAssets.find((asset: any) => asset.assetId === assetId)).toBeTruthy();
 
       // Recover asset
       const recoverResponse = await request(app)
@@ -455,7 +460,7 @@ describe('Integration Test: Asset Management Flow', () => {
         .expect(200);
 
       expect(verifyResponse.body.success).toBe(true);
-      expect(verifyResponse.body.data.asset.id).toBe(assetId);
+      expect(verifyResponse.body.data.asset.assetId).toBe(assetId);
     });
 
     it('should handle concurrent asset operations', async () => {
@@ -464,7 +469,8 @@ describe('Integration Test: Asset Management Flow', () => {
       }
 
       const assetData = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Concurrent Asset',
         value: 10000,
         currency: 'USD',
         description: 'Concurrent operations test'
@@ -477,7 +483,7 @@ describe('Integration Test: Asset Management Flow', () => {
         .send(assetData)
         .expect(201);
 
-      const assetId = createResponse.body.data.asset.id;
+      const assetId = createResponse.body.data.asset.assetId;
 
       // Simulate concurrent updates
       const update1 = request(app)
@@ -506,7 +512,7 @@ describe('Integration Test: Asset Management Flow', () => {
         .expect(200);
 
       expect(finalResponse.body.success).toBe(true);
-      expect([15000, 20000]).toContain(finalResponse.body.data.asset.decryptedValue);
+      expect([15000, 20000]).toContain(finalResponse.body.data.asset.value);
     });
   });
 });

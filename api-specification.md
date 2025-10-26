@@ -795,42 +795,643 @@ Authorization: Bearer <jwt_token>
 }
 ```
 
-## Error Responses
+## Payment Tracking Endpoints
 
-### Standard Error Format
+### POST /payments
+
+Create a new Zakat payment record.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Request Body:**
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "string",
-    "message": "string",
-    "details": "string (optional)"
+  "snapshotId": "string (CUID)",
+  "calculationId": "string (CUID, optional)",
+  "amount": "string (decimal number, e.g., '150.50')",
+  "paymentDate": "string (ISO datetime)",
+  "recipientName": "string (1-200 chars)",
+  "recipientType": "string (enum: individual, organization, charity, mosque, family, other)",
+  "recipientCategory": "string (enum: poor, orphans, widows, education, healthcare, infrastructure, general)",
+  "notes": "string (optional, max 1000 chars)",
+  "receiptReference": "string (optional, max 200 chars)",
+  "paymentMethod": "string (enum: cash, bank_transfer, check, crypto, other)",
+  "currency": "string (3-letter code, default: USD)",
+  "exchangeRate": "number (default: 1.0)"
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "payment": {
+      "id": "string",
+      "userId": "string",
+      "snapshotId": "string",
+      "amount": 150.50,
+      "paymentDate": "2025-10-26T10:00:00.000Z",
+      "recipientName": "Local Mosque",
+      "recipientType": "mosque",
+      "recipientCategory": "general",
+      "notes": "Monthly Zakat distribution",
+      "receiptReference": "REC-2025-001",
+      "paymentMethod": "bank_transfer",
+      "status": "recorded",
+      "currency": "USD",
+      "exchangeRate": 1.0,
+      "createdAt": "2025-10-26T10:00:00.000Z",
+      "updatedAt": "2025-10-26T10:00:00.000Z"
+    }
   }
 }
 ```
 
-### Common Error Codes
+### GET /payments
 
-- `INVALID_REQUEST` (400): Malformed request data
-- `UNAUTHORIZED` (401): Invalid or missing authentication
-- `FORBIDDEN` (403): Insufficient permissions
-- `NOT_FOUND` (404): Resource not found
-- `VALIDATION_ERROR` (422): Input validation failed
-- `INTERNAL_ERROR` (500): Server internal error
+Retrieve user's Zakat payment records with optional filtering and pagination.
 
-### Validation Error Format
+**Authentication:** Required (JWT Bearer token)
+
+**Query Parameters:**
+- `page` (number, optional): Page number (default: 1, min: 1)
+- `limit` (number, optional): Items per page (default: 20, max: 100)
+- `sortBy` (string, optional): Sort field (default: paymentDate, options: paymentDate, amount, recipientName, createdAt)
+- `sortOrder` (string, optional): Sort order (default: desc, options: asc, desc)
+- `status` (string, optional): Filter by status (recorded, verified)
+- `recipientCategory` (string, optional): Filter by recipient category
+- `startDate` (string, optional): Filter payments from this date (ISO datetime)
+- `endDate` (string, optional): Filter payments until this date (ISO datetime)
+- `minAmount` (string, optional): Minimum payment amount
+- `maxAmount` (string, optional): Maximum payment amount
+
+**Response (200):**
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Validation failed",
-    "details": {
-      "field1": ["Error message 1"],
-      "field2": ["Error message 2"]
+  "success": true,
+  "data": {
+    "payments": [
+      {
+        "id": "string",
+        "userId": "string",
+        "snapshotId": "string",
+        "amount": 150.50,
+        "paymentDate": "2025-10-26T10:00:00.000Z",
+        "recipientName": "Local Mosque",
+        "recipientType": "mosque",
+        "recipientCategory": "general",
+        "notes": "Monthly Zakat distribution",
+        "receiptReference": "REC-2025-001",
+        "paymentMethod": "bank_transfer",
+        "status": "recorded",
+        "currency": "USD",
+        "exchangeRate": 1.0,
+        "createdAt": "2025-10-26T10:00:00.000Z",
+        "updatedAt": "2025-10-26T10:00:00.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 45,
+      "totalPages": 3
     }
+  }
+}
+```
+
+### GET /payments/:id
+
+Retrieve a specific payment record by ID.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):** Same as individual payment object above
+
+### PUT /payments/:id
+
+Update an existing payment record.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Request Body:** Same as POST /payments but all fields optional except id
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "payment": {
+      // Updated payment object
+    }
+  }
+}
+```
+
+### DELETE /payments/:id
+
+Delete a payment record.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):**
+
+```json
+{
+  "success": true
+}
+```
+
+## Analytics Endpoints
+
+### GET /analytics/summary
+
+Get comprehensive analytics summary for a specific year.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Query Parameters:**
+- `year` (number, optional): Year to analyze (default: current year)
+- `includeTrends` (boolean, optional): Include trend analysis (default: true)
+- `includeProjections` (boolean, optional): Include future projections (default: false)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "year": 2025,
+    "metrics": {
+      "wealth_trend": {
+        "id": "string",
+        "userId": "string",
+        "metricType": "wealth_trend",
+        "startDate": "2025-01-01T00:00:00.000Z",
+        "endDate": "2025-12-31T23:59:59.999Z",
+        "calculatedValue": {
+          "totalWealth": 50000.00,
+          "monthlyBreakdown": [
+            {"month": "Jan", "wealth": 45000.00},
+            {"month": "Feb", "wealth": 47000.00}
+          ],
+          "growthRate": 5.2
+        },
+        "visualizationType": "line_chart",
+        "parameters": {},
+        "calculatedAt": "2025-10-26T10:00:00.000Z",
+        "expiresAt": "2025-10-27T10:00:00.000Z",
+        "version": 1
+      },
+      "zakat_trend": {
+        // Similar structure for Zakat payments
+      },
+      "payment_distribution": {
+        // Payment distribution by recipient category
+      }
+    }
+  }
+}
+```
+
+### GET /analytics/metrics
+
+Get detailed analytics metrics with customizable date ranges.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Query Parameters:**
+- `startDate` (string, required): Start date for analysis (ISO datetime)
+- `endDate` (string, required): End date for analysis (ISO datetime)
+- `metricTypes` (array, optional): Specific metric types to include
+- `includeCache` (boolean, optional): Use cached results (default: true)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "metrics": [
+      {
+        "id": "string",
+        "userId": "string",
+        "metricType": "wealth_trend",
+        "startDate": "2025-01-01T00:00:00.000Z",
+        "endDate": "2025-10-26T23:59:59.999Z",
+        "calculatedValue": {
+          "data": [...],
+          "insights": [...]
+        },
+        "visualizationType": "line_chart",
+        "parameters": {},
+        "calculatedAt": "2025-10-26T10:00:00.000Z",
+        "expiresAt": "2025-10-27T10:00:00.000Z",
+        "version": 1
+      }
+    ]
+  }
+}
+```
+
+### GET /analytics/trends
+
+Get trend analysis for wealth and Zakat payments.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Query Parameters:**
+- `period` (string, optional): Analysis period (default: 12months, options: 3months, 6months, 12months, 24months)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "wealthTrends": {
+      "direction": "increasing",
+      "changePercent": 8.5,
+      "period": "12months",
+      "data": [...]
+    },
+    "zakatTrends": {
+      "direction": "stable",
+      "changePercent": 2.1,
+      "period": "12months",
+      "data": [...]
+    }
+  }
+}
+```
+
+### GET /analytics/comparison
+
+Compare current year with previous year.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "comparison": {
+      "previousYear": {
+        "year": 2024,
+        "wealth": 45000.00,
+        "zakat": 1125.00,
+        "paid": 1050.00
+      },
+      "currentYear": {
+        "year": 2025,
+        "wealth": 50000.00,
+        "zakat": 1250.00,
+        "paid": 1200.00
+      },
+      "changes": {
+        "wealthChange": 5000.00,
+        "wealthChangePercent": 11.11,
+        "zakatChange": 125.00,
+        "zakatChangePercent": 11.11,
+        "paymentConsistency": "improved"
+      }
+    }
+  }
+}
+```
+
+### POST /analytics/cache/clear
+
+Clear analytics cache to force fresh calculations.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Analytics cache cleared successfully"
+}
+```
+
+## Export Endpoints
+
+### POST /export/full
+
+Export complete user data including assets, calculations, payments, and snapshots.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Request Body:**
+
+```json
+{
+  "format": "string (enum: csv, pdf, json)",
+  "includePayments": "boolean (default: true)",
+  "includeSnapshots": "boolean (default: true)",
+  "includeAssets": "boolean (default: true)",
+  "startDate": "string (optional, ISO datetime)",
+  "endDate": "string (optional, ISO datetime)"
+}
+```
+
+**Response (202):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "exportId": "export_123456",
+    "status": "processing",
+    "estimatedCompletion": "2025-10-26T10:05:00.000Z",
+    "downloadUrl": null
+  }
+}
+```
+
+### POST /export/payments
+
+Export payment records only.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Request Body:** Same as /export/full but focused on payment-specific options
+
+**Response (202):** Same structure as /export/full
+
+### POST /export/analytics
+
+Export analytics data and reports.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Request Body:**
+
+```json
+{
+  "format": "string (enum: csv, pdf)",
+  "reportType": "string (enum: summary, trends, comparison)",
+  "year": "number (optional)",
+  "includeCharts": "boolean (default: true)"
+}
+```
+
+**Response (202):** Same structure as /export/full
+
+### GET /export/status/:exportId
+
+Check export processing status.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "exportId": "export_123456",
+    "status": "completed",
+    "downloadUrl": "https://api.zakapp.com/downloads/export_123456.zip",
+    "expiresAt": "2025-10-27T10:00:00.000Z",
+    "fileSize": 2457600
+  }
+}
+```
+
+### GET /export/download/:exportId
+
+Download completed export file.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response:** File download (application/zip or text/csv)
+
+### GET /export/templates
+
+Get available export templates and formats.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "templates": [
+      {
+        "id": "full_export",
+        "name": "Complete Data Export",
+        "description": "All user data in structured format",
+        "formats": ["json", "csv", "pdf"],
+        "estimatedSize": "2-5MB"
+      },
+      {
+        "id": "payment_summary",
+        "name": "Payment Summary",
+        "description": "Zakat payment records with recipient details",
+        "formats": ["csv", "pdf"],
+        "estimatedSize": "100-500KB"
+      }
+    ]
+  }
+}
+```
+
+### DELETE /export/:exportId
+
+Delete an export file and clean up storage.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Export deleted successfully"
+}
+```
+
+## Reminder Endpoints
+
+### POST /reminders
+
+Create a new reminder event.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Request Body:**
+
+```json
+{
+  "eventType": "string (enum: zakat_due, payment_reminder, annual_review, custom)",
+  "triggerDate": "string (ISO datetime)",
+  "title": "string (1-200 chars)",
+  "message": "string (1-1000 chars)",
+  "priority": "string (enum: high, medium, low, default: medium)",
+  "relatedSnapshotId": "string (optional, CUID)",
+  "metadata": "object (optional, additional data)"
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "reminder": {
+      "id": "string",
+      "userId": "string",
+      "eventType": "zakat_due",
+      "triggerDate": "2025-11-01T00:00:00.000Z",
+      "title": "Zakat Due Reminder",
+      "message": "Your Zakat payment is due this month",
+      "priority": "high",
+      "status": "pending",
+      "relatedSnapshotId": "snapshot_123",
+      "metadata": {},
+      "createdAt": "2025-10-26T10:00:00.000Z"
+    }
+  }
+}
+```
+
+### GET /reminders
+
+Retrieve user's reminders with filtering and pagination.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Query Parameters:**
+- `page` (number, optional): Page number (default: 1)
+- `limit` (number, optional): Items per page (default: 20, max: 100)
+- `sortBy` (string, optional): Sort field (default: triggerDate)
+- `sortOrder` (string, optional): Sort order (default: asc)
+- `status` (string, optional): Filter by status
+- `priority` (string, optional): Filter by priority
+- `eventType` (string, optional): Filter by event type
+- `startDate` (string, optional): Filter from date
+- `endDate` (string, optional): Filter until date
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "reminders": [
+      {
+        "id": "string",
+        "userId": "string",
+        "eventType": "zakat_due",
+        "triggerDate": "2025-11-01T00:00:00.000Z",
+        "title": "Zakat Due Reminder",
+        "message": "Your Zakat payment is due this month",
+        "priority": "high",
+        "status": "pending",
+        "relatedSnapshotId": "snapshot_123",
+        "metadata": {},
+        "createdAt": "2025-10-26T10:00:00.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 5,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+### GET /reminders/:id
+
+Retrieve a specific reminder by ID.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):** Same as individual reminder object above
+
+### PUT /reminders/:id
+
+Update an existing reminder.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Request Body:** Same as POST /reminders but all fields optional except id
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "reminder": {
+      // Updated reminder object
+    }
+  }
+}
+```
+
+### DELETE /reminders/:id
+
+Delete a reminder.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):**
+
+```json
+{
+  "success": true
+}
+```
+
+### POST /reminders/:id/acknowledge
+
+Mark a reminder as acknowledged.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "reminder": {
+      // Updated reminder with acknowledged status
+    }
+  }
+}
+```
+
+### GET /reminders/upcoming/all
+
+Get all upcoming reminders across all users (admin endpoint).
+
+**Authentication:** Required (JWT Bearer token, admin only)
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "reminders": [
+      // Array of upcoming reminders
+    ]
   }
 }
 ```
@@ -839,7 +1440,11 @@ Authorization: Bearer <jwt_token>
 
 - **Authentication endpoints**: 5 requests per minute per IP
 - **General API endpoints**: 100 requests per minute per user
+- **Payment endpoints**: 50 requests per minute per user
+- **Analytics endpoints**: 30 requests per minute per user (cached results), 10 requests per minute for fresh calculations
+- **Reminder endpoints**: 50 requests per minute per user
 - **Data export**: 3 requests per hour per user
+- **Export status checks**: 60 requests per minute per user
 - **File upload**: 10 requests per hour per user
 
 ## Security Headers

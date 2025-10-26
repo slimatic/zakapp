@@ -1,0 +1,694 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Export API
+  description: |
+    RESTful API for exporting user data in various formats (CSV, PDF, JSON).
+    Part of Milestone 5: Tracking & Analytics System.
+    Supports full data export and selective exports for privacy and portability.
+  version: 1.0.0
+  contact:
+    name: ZakApp Development Team
+    url: https://github.com/yourusername/zakapp
+
+servers:
+  - url: http://localhost:3001/api
+    description: Local development server
+  - url: https://staging.zakapp.com/api
+    description: Staging environment
+  - url: https://zakapp.com/api
+    description: Production environment
+
+tags:
+  - name: Export
+    description: Data export and download endpoints
+
+security:
+  - BearerAuth: []
+
+paths:
+  /export/full:
+    post:
+      summary: Full Data Export
+      description: |
+        Exports all user data including assets, calculations, payments, and reminders.
+        Supports multiple formats: CSV, PDF, or JSON.
+      operationId: exportFull
+      tags:
+        - Export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+            example:
+              format: "csv"
+              includeDeleted: false
+      responses:
+        '202':
+          description: Export initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportStatusResponse'
+              example:
+                success: true
+                data:
+                  exportId: "exp_clxxxxxxxxxxxx"
+                  status: "processing"
+                  format: "csv"
+                  createdAt: "2025-01-15T10:00:00Z"
+                  estimatedCompletionTime: "2025-01-15T10:01:00Z"
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /export/assets:
+    post:
+      summary: Export Assets Only
+      description: Exports only asset data in the specified format
+      operationId: exportAssets
+      tags:
+        - Export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+            example:
+              format: "csv"
+      responses:
+        '202':
+          $ref: '#/components/responses/ExportInitiated'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /export/zakat-history:
+    post:
+      summary: Export Zakat Calculation History
+      description: Exports all Zakat calculations and associated data
+      operationId: exportZakatHistory
+      tags:
+        - Export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+            example:
+              format: "pdf"
+              startDate: "2024-01-01T00:00:00Z"
+              endDate: "2025-12-31T23:59:59Z"
+      responses:
+        '202':
+          $ref: '#/components/responses/ExportInitiated'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /export/payments:
+    post:
+      summary: Export Payment Records
+      description: |
+        Exports payment records with optional date range filtering.
+        Useful for tax records or personal accounting.
+      operationId: exportPayments
+      tags:
+        - Export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentExportRequest'
+            examples:
+              csvExport:
+                summary: CSV export for 2025
+                value:
+                  format: "csv"
+                  startDate: "2025-01-01T00:00:00Z"
+                  endDate: "2025-12-31T23:59:59Z"
+              pdfReceipt:
+                summary: PDF receipt for specific payments
+                value:
+                  format: "pdf"
+                  paymentIds:
+                    - "clxxxxxxxxxxxx"
+                    - "clyyyyyyyyyyyyy"
+      responses:
+        '202':
+          $ref: '#/components/responses/ExportInitiated'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /export/templates:
+    get:
+      summary: Get Export Templates
+      description: |
+        Retrieves available export templates for customizing output format.
+        Templates define which fields and formatting to use.
+      operationId: getExportTemplates
+      tags:
+        - Export
+      responses:
+        '200':
+          description: Templates retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplatesResponse'
+              example:
+                success: true
+                data:
+                  templates:
+                    - id: "default_csv"
+                      name: "Default CSV"
+                      format: "csv"
+                      description: "Standard CSV export with all fields"
+                      fields:
+                        - "id"
+                        - "date"
+                        - "amount"
+                        - "recipient"
+                        - "category"
+                        - "method"
+                        - "notes"
+                    - id: "tax_receipt_pdf"
+                      name: "Tax Receipt PDF"
+                      format: "pdf"
+                      description: "Professional PDF for tax purposes"
+                      fields:
+                        - "date"
+                        - "amount"
+                        - "recipient"
+                        - "category"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /export/custom:
+    post:
+      summary: Custom Export
+      description: |
+        Creates a custom export using a template or field selection.
+        Allows granular control over what data is exported.
+      operationId: exportCustom
+      tags:
+        - Export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomExportRequest'
+            example:
+              format: "csv"
+              templateId: "tax_receipt_csv"
+              dataTypes:
+                - "payments"
+                - "calculations"
+              fields:
+                - "date"
+                - "amount"
+                - "recipient"
+                - "category"
+              filters:
+                startDate: "2025-01-01T00:00:00Z"
+                endDate: "2025-12-31T23:59:59Z"
+      responses:
+        '202':
+          $ref: '#/components/responses/ExportInitiated'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /export/status/{exportId}:
+    get:
+      summary: Get Export Status
+      description: |
+        Checks the status of an export job. Use this to poll for completion.
+      operationId: getExportStatus
+      tags:
+        - Export
+      parameters:
+        - name: exportId
+          in: path
+          description: Export job ID
+          required: true
+          schema:
+            type: string
+          example: "exp_clxxxxxxxxxxxx"
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportStatusResponse'
+              examples:
+                processing:
+                  summary: Export still processing
+                  value:
+                    success: true
+                    data:
+                      exportId: "exp_clxxxxxxxxxxxx"
+                      status: "processing"
+                      format: "csv"
+                      createdAt: "2025-01-15T10:00:00Z"
+                      estimatedCompletionTime: "2025-01-15T10:01:00Z"
+                completed:
+                  summary: Export completed
+                  value:
+                    success: true
+                    data:
+                      exportId: "exp_clxxxxxxxxxxxx"
+                      status: "completed"
+                      format: "csv"
+                      createdAt: "2025-01-15T10:00:00Z"
+                      completedAt: "2025-01-15T10:00:45Z"
+                      downloadUrl: "/api/export/download/exp_clxxxxxxxxxxxx"
+                      fileSize: 15234
+                      expiresAt: "2025-01-16T10:00:45Z"
+                failed:
+                  summary: Export failed
+                  value:
+                    success: true
+                    data:
+                      exportId: "exp_clxxxxxxxxxxxx"
+                      status: "failed"
+                      format: "csv"
+                      createdAt: "2025-01-15T10:00:00Z"
+                      error: "Insufficient data to export"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Export not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Export not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /export/download/{exportId}:
+    get:
+      summary: Download Export File
+      description: |
+        Downloads the completed export file. Files expire after 24 hours.
+      operationId: downloadExport
+      tags:
+        - Export
+      parameters:
+        - name: exportId
+          in: path
+          description: Export job ID
+          required: true
+          schema:
+            type: string
+          example: "exp_clxxxxxxxxxxxx"
+      responses:
+        '200':
+          description: File download
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Export not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Export file not found or has expired"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /export/{exportId}:
+    delete:
+      summary: Delete Export
+      description: |
+        Deletes an export job and its associated file (if completed).
+        Use this to clean up completed exports before the 24-hour expiration.
+      operationId: deleteExport
+      tags:
+        - Export
+      parameters:
+        - name: exportId
+          in: path
+          description: Export job ID to delete
+          required: true
+          schema:
+            type: string
+          example: "exp_clxxxxxxxxxxxx"
+      responses:
+        '200':
+          description: Export deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Export not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Export not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from /api/auth/login
+
+  schemas:
+    ExportRequest:
+      type: object
+      required:
+        - format
+      properties:
+        format:
+          type: string
+          enum:
+            - csv
+            - pdf
+            - json
+          description: Export file format
+          example: "csv"
+        includeDeleted:
+          type: boolean
+          default: false
+          description: Include soft-deleted records
+          example: false
+        startDate:
+          type: string
+          format: date-time
+          description: Optional date range start
+          example: "2025-01-01T00:00:00Z"
+        endDate:
+          type: string
+          format: date-time
+          description: Optional date range end
+          example: "2025-12-31T23:59:59Z"
+
+    PaymentExportRequest:
+      type: object
+      required:
+        - format
+      properties:
+        format:
+          type: string
+          enum:
+            - csv
+            - pdf
+            - json
+          description: Export file format
+          example: "csv"
+        startDate:
+          type: string
+          format: date-time
+          description: Filter payments after this date
+          example: "2025-01-01T00:00:00Z"
+        endDate:
+          type: string
+          format: date-time
+          description: Filter payments before this date
+          example: "2025-12-31T23:59:59Z"
+        paymentIds:
+          type: array
+          items:
+            type: string
+          description: Specific payment IDs to export (overrides date range)
+          example:
+            - "clxxxxxxxxxxxx"
+            - "clyyyyyyyyyyyyy"
+        recipientCategory:
+          type: string
+          description: Filter by recipient category
+          example: "Religious Institution"
+
+    CustomExportRequest:
+      type: object
+      required:
+        - format
+        - dataTypes
+      properties:
+        format:
+          type: string
+          enum:
+            - csv
+            - pdf
+            - json
+          description: Export file format
+          example: "csv"
+        templateId:
+          type: string
+          description: Optional template to use
+          example: "tax_receipt_csv"
+        dataTypes:
+          type: array
+          items:
+            type: string
+            enum:
+              - assets
+              - calculations
+              - payments
+              - reminders
+          description: Types of data to include
+          example:
+            - "payments"
+            - "calculations"
+        fields:
+          type: array
+          items:
+            type: string
+          description: Specific fields to include
+          example:
+            - "date"
+            - "amount"
+            - "recipient"
+        filters:
+          type: object
+          additionalProperties: true
+          description: Additional filters (date ranges, categories, etc.)
+          example:
+            startDate: "2025-01-01T00:00:00Z"
+            endDate: "2025-12-31T23:59:59Z"
+
+    ExportTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "default_csv"
+        name:
+          type: string
+          example: "Default CSV"
+        format:
+          type: string
+          enum:
+            - csv
+            - pdf
+            - json
+          example: "csv"
+        description:
+          type: string
+          example: "Standard CSV export with all fields"
+        fields:
+          type: array
+          items:
+            type: string
+          example:
+            - "id"
+            - "date"
+            - "amount"
+            - "recipient"
+
+    ExportStatus:
+      type: object
+      properties:
+        exportId:
+          type: string
+          description: Unique export job identifier
+          example: "exp_clxxxxxxxxxxxx"
+        status:
+          type: string
+          enum:
+            - processing
+            - completed
+            - failed
+          description: Current export status
+          example: "completed"
+        format:
+          type: string
+          enum:
+            - csv
+            - pdf
+            - json
+          description: Export format
+          example: "csv"
+        createdAt:
+          type: string
+          format: date-time
+          description: When export was initiated
+          example: "2025-01-15T10:00:00Z"
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When export finished (if completed)
+          example: "2025-01-15T10:00:45Z"
+        estimatedCompletionTime:
+          type: string
+          format: date-time
+          nullable: true
+          description: Estimated completion (if processing)
+          example: "2025-01-15T10:01:00Z"
+        downloadUrl:
+          type: string
+          nullable: true
+          description: Download URL (if completed)
+          example: "/api/export/download/exp_clxxxxxxxxxxxx"
+        fileSize:
+          type: integer
+          nullable: true
+          description: File size in bytes (if completed)
+          example: 15234
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When file expires (24 hours after completion)
+          example: "2025-01-16T10:00:45Z"
+        error:
+          type: string
+          nullable: true
+          description: Error message (if failed)
+          example: null
+
+    ExportStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/ExportStatus'
+
+    TemplatesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            templates:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExportTemplate'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Error message
+          example: "Validation failed"
+
+  responses:
+    ExportInitiated:
+      description: Export initiated successfully
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExportStatusResponse'
+          example:
+            success: true
+            data:
+              exportId: "exp_clxxxxxxxxxxxx"
+              status: "processing"
+              format: "csv"
+              createdAt: "2025-01-15T10:00:00Z"
+              estimatedCompletionTime: "2025-01-15T10:01:00Z"
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Invalid export format"
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Authentication required"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "An unexpected error occurred"
