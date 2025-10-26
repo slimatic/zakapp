@@ -14,6 +14,8 @@ import {
   HistorySkeleton,
   PageLoadingFallback,
 } from './components/common/LoadingFallback';
+import InstallPrompt from './components/pwa/InstallPrompt';
+import UpdateNotification from './components/pwa/UpdateNotification';
 
 /**
  * T023 Performance Optimization: Route-Based Code Splitting
@@ -321,6 +323,10 @@ function App() {
               />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
+
+          {/* PWA Features: Install prompt and update notification */}
+          <InstallPrompt />
+          <UpdateNotification />
         </div>
       </Router>
     </AuthProvider>
