@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { VALID_ASSET_CATEGORY_VALUES } from '@zakapp/shared';
 
 // Asset validation schemas
 export const AssetCreateSchema = z.object({
   name: z.string().min(1, 'Asset name is required').max(255, 'Asset name too long'),
-  category: z.enum(['CASH', 'GOLD', 'SILVER', 'CRYPTO', 'BUSINESS', 'INVESTMENT', 'REAL_ESTATE', 'OTHER']),
+  category: z.enum([...VALID_ASSET_CATEGORY_VALUES] as [string, ...string[]]),
   value: z.number().min(0, 'Asset value must be non-negative'),
   currency: z.string().length(3, 'Currency must be 3 characters').default('USD'),
   acquisitionDate: z.date().optional(),
