@@ -1,0 +1,568 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Payment Tracking API
+  description: |
+    RESTful API for managing Zakat payment records with encryption and privacy controls.
+    Part of Milestone 5: Tracking & Analytics System.
+  version: 1.0.0
+  contact:
+    name: ZakApp Development Team
+    url: https://github.com/yourusername/zakapp
+
+servers:
+  - url: http://localhost:3001/api
+    description: Local development server
+  - url: https://staging.zakapp.com/api
+    description: Staging environment
+  - url: https://zakapp.com/api
+    description: Production environment
+
+tags:
+  - name: Payments
+    description: Payment record management endpoints
+
+security:
+  - BearerAuth: []
+
+paths:
+  /payments:
+    post:
+      summary: Create Payment Record
+      description: |
+        Creates a new Zakat payment record with encrypted sensitive fields.
+        All financial data is encrypted before storage using AES-256-CBC.
+      operationId: createPayment
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+            examples:
+              cashPayment:
+                summary: Cash payment to local masjid
+                value:
+                  amount: 250.00
+                  date: "2025-01-15T00:00:00Z"
+                  recipient: "Local Masjid"
+                  recipientCategory: "Religious Institution"
+                  paymentMethod: "Cash"
+                  notes: "Monthly Zakat payment"
+              bankTransfer:
+                summary: Bank transfer to charity
+                value:
+                  amount: 500.00
+                  date: "2025-02-01T00:00:00Z"
+                  recipient: "Islamic Relief"
+                  recipientCategory: "Charity Organization"
+                  paymentMethod: "Bank Transfer"
+                  calculationId: "clxxxxxxxxxxxx"
+      responses:
+        '201':
+          description: Payment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+              example:
+                success: true
+                data:
+                  payment:
+                    id: "clxxxxxxxxxxxx"
+                    amount: 250.00
+                    date: "2025-01-15T00:00:00Z"
+                    recipient: "Local Masjid"
+                    recipientCategory: "Religious Institution"
+                    paymentMethod: "Cash"
+                    notes: "Monthly Zakat payment"
+                    calculationId: null
+                    createdAt: "2025-01-15T10:30:00Z"
+                    updatedAt: "2025-01-15T10:30:00Z"
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      summary: List Payment Records
+      description: |
+        Retrieves all payment records for the authenticated user with optional filtering.
+        Results are ordered by date descending (newest first).
+      operationId: listPayments
+      tags:
+        - Payments
+      parameters:
+        - name: startDate
+          in: query
+          description: Filter payments on or after this date (ISO 8601)
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2025-01-01T00:00:00Z"
+        - name: endDate
+          in: query
+          description: Filter payments on or before this date (ISO 8601)
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2025-12-31T23:59:59Z"
+        - name: recipientCategory
+          in: query
+          description: Filter by recipient category
+          required: false
+          schema:
+            type: string
+          example: "Religious Institution"
+        - name: paymentMethod
+          in: query
+          description: Filter by payment method
+          required: false
+          schema:
+            type: string
+          example: "Cash"
+        - name: calculationId
+          in: query
+          description: Filter by associated Zakat calculation
+          required: false
+          schema:
+            type: string
+          example: "clxxxxxxxxxxxx"
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: offset
+          in: query
+          description: Number of results to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Payments retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentListResponse'
+              example:
+                success: true
+                data:
+                  payments:
+                    - id: "clxxxxxxxxxxxx"
+                      amount: 500.00
+                      date: "2025-02-01T00:00:00Z"
+                      recipient: "Islamic Relief"
+                      recipientCategory: "Charity Organization"
+                      paymentMethod: "Bank Transfer"
+                      notes: null
+                      calculationId: "clyyyyyyyyyyyyy"
+                      createdAt: "2025-02-01T14:20:00Z"
+                      updatedAt: "2025-02-01T14:20:00Z"
+                    - id: "clzzzzzzzzzzz"
+                      amount: 250.00
+                      date: "2025-01-15T00:00:00Z"
+                      recipient: "Local Masjid"
+                      recipientCategory: "Religious Institution"
+                      paymentMethod: "Cash"
+                      notes: "Monthly Zakat payment"
+                      calculationId: null
+                      createdAt: "2025-01-15T10:30:00Z"
+                      updatedAt: "2025-01-15T10:30:00Z"
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /payments/{id}:
+    get:
+      summary: Get Payment Record
+      description: Retrieves a single payment record by ID
+      operationId: getPayment
+      tags:
+        - Payments
+      parameters:
+        - name: id
+          in: path
+          description: Payment record ID
+          required: true
+          schema:
+            type: string
+          example: "clxxxxxxxxxxxx"
+      responses:
+        '200':
+          description: Payment retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+              example:
+                success: true
+                data:
+                  payment:
+                    id: "clxxxxxxxxxxxx"
+                    amount: 250.00
+                    date: "2025-01-15T00:00:00Z"
+                    recipient: "Local Masjid"
+                    recipientCategory: "Religious Institution"
+                    paymentMethod: "Cash"
+                    notes: "Monthly Zakat payment"
+                    calculationId: null
+                    createdAt: "2025-01-15T10:30:00Z"
+                    updatedAt: "2025-01-15T10:30:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Payment not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Update Payment Record
+      description: Updates an existing payment record (partial updates supported)
+      operationId: updatePayment
+      tags:
+        - Payments
+      parameters:
+        - name: id
+          in: path
+          description: Payment record ID
+          required: true
+          schema:
+            type: string
+          example: "clxxxxxxxxxxxx"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaymentRequest'
+            example:
+              notes: "Updated notes - paid via mobile banking"
+              paymentMethod: "Mobile Banking"
+      responses:
+        '200':
+          description: Payment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+              example:
+                success: true
+                data:
+                  payment:
+                    id: "clxxxxxxxxxxxx"
+                    amount: 250.00
+                    date: "2025-01-15T00:00:00Z"
+                    recipient: "Local Masjid"
+                    recipientCategory: "Religious Institution"
+                    paymentMethod: "Mobile Banking"
+                    notes: "Updated notes - paid via mobile banking"
+                    calculationId: null
+                    createdAt: "2025-01-15T10:30:00Z"
+                    updatedAt: "2025-01-15T16:45:00Z"
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Payment not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete Payment Record
+      description: |
+        Permanently deletes a payment record. This action cannot be undone.
+        Use with caution - consider soft delete or archival instead.
+      operationId: deletePayment
+      tags:
+        - Payments
+      parameters:
+        - name: id
+          in: path
+          description: Payment record ID to delete
+          required: true
+          schema:
+            type: string
+          example: "clxxxxxxxxxxxx"
+      responses:
+        '200':
+          description: Payment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Payment not found"
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from /api/auth/login
+
+  schemas:
+    CreatePaymentRequest:
+      type: object
+      required:
+        - amount
+        - date
+        - recipient
+      properties:
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          multipleOf: 0.01
+          description: Payment amount (encrypted before storage)
+          example: 250.00
+        date:
+          type: string
+          format: date-time
+          description: Date the payment was made (cannot be in the future)
+          example: "2025-01-15T00:00:00Z"
+        recipient:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Name of the recipient (encrypted before storage)
+          example: "Local Masjid"
+        recipientCategory:
+          type: string
+          maxLength: 50
+          description: Optional category for the recipient
+          example: "Religious Institution"
+        paymentMethod:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Method used for payment
+          example: "Cash"
+          enum:
+            - Cash
+            - Bank Transfer
+            - Check
+            - Credit Card
+            - Debit Card
+            - Mobile Banking
+            - Online Payment
+            - Other
+        notes:
+          type: string
+          maxLength: 1000
+          description: Additional notes (encrypted before storage)
+          example: "Monthly Zakat payment"
+        calculationId:
+          type: string
+          description: ID of associated Zakat calculation (optional)
+          example: "clyyyyyyyyyyyyy"
+
+    UpdatePaymentRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          multipleOf: 0.01
+          description: Payment amount
+          example: 250.00
+        date:
+          type: string
+          format: date-time
+          description: Payment date
+          example: "2025-01-15T00:00:00Z"
+        recipient:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Recipient name
+          example: "Updated Recipient"
+        recipientCategory:
+          type: string
+          maxLength: 50
+          description: Recipient category
+          example: "Charity Organization"
+        paymentMethod:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Payment method
+          example: "Bank Transfer"
+        notes:
+          type: string
+          maxLength: 1000
+          description: Additional notes
+          example: "Updated notes"
+        calculationId:
+          type: string
+          description: Associated calculation ID
+          example: "clyyyyyyyyyyyyy"
+
+    PaymentRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique payment identifier (CUID)
+          example: "clxxxxxxxxxxxx"
+        amount:
+          type: number
+          format: decimal
+          description: Payment amount (decrypted)
+          example: 250.00
+        date:
+          type: string
+          format: date-time
+          description: Payment date
+          example: "2025-01-15T00:00:00Z"
+        recipient:
+          type: string
+          description: Recipient name (decrypted)
+          example: "Local Masjid"
+        recipientCategory:
+          type: string
+          nullable: true
+          description: Recipient category
+          example: "Religious Institution"
+        paymentMethod:
+          type: string
+          nullable: true
+          description: Payment method
+          example: "Cash"
+        notes:
+          type: string
+          nullable: true
+          description: Additional notes (decrypted)
+          example: "Monthly Zakat payment"
+        calculationId:
+          type: string
+          nullable: true
+          description: Associated calculation ID
+          example: null
+        createdAt:
+          type: string
+          format: date-time
+          description: Record creation timestamp
+          example: "2025-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-01-15T10:30:00Z"
+
+    PaymentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            payment:
+              $ref: '#/components/schemas/PaymentRecord'
+
+    PaymentListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            payments:
+              type: array
+              items:
+                $ref: '#/components/schemas/PaymentRecord'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Error message
+          example: "Validation failed"
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Invalid amount: must be positive"
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Authentication required"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "An unexpected error occurred"

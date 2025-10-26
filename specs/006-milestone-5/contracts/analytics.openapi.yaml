@@ -1,0 +1,619 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Analytics API
+  description: |
+    RESTful API for retrieving analytics and insights on Zakat calculations and payments.
+    Part of Milestone 5: Tracking & Analytics System.
+    All data is computed on-demand for maximum freshness.
+  version: 1.0.0
+  contact:
+    name: ZakApp Development Team
+    url: https://github.com/yourusername/zakapp
+
+servers:
+  - url: http://localhost:3001/api
+    description: Local development server
+  - url: https://staging.zakapp.com/api
+    description: Staging environment
+  - url: https://zakapp.com/api
+    description: Production environment
+
+tags:
+  - name: Analytics
+    description: Analytics and insights endpoints
+
+security:
+  - BearerAuth: []
+
+paths:
+  /analytics/summary:
+    get:
+      summary: Get Analytics Summary
+      description: |
+        Retrieves a comprehensive analytics summary including trends, distributions,
+        and year-over-year comparisons. Data is computed on-demand from payment records.
+      operationId: getAnalyticsSummary
+      tags:
+        - Analytics
+      parameters:
+        - name: year
+          in: query
+          description: Year to analyze (defaults to current year)
+          required: false
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+          example: 2025
+        - name: includeTrends
+          in: query
+          description: Include wealth and zakat trends
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+        - name: includeProjections
+          in: query
+          description: Include multi-year comparison and projections
+          required: false
+          schema:
+            type: boolean
+            default: false
+          example: false
+      responses:
+        '200':
+          description: Analytics summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummaryResponse'
+              example:
+                success: true
+                data:
+                  summary:
+                    year: 2025
+                    metrics:
+                      wealthTrend:
+                        metricType: "wealth_trend"
+                        timeRange:
+                          start: "2025-01-01T00:00:00Z"
+                          end: "2025-12-31T23:59:59Z"
+                        dataPoints:
+                          - date: "2025-01-01"
+                            value: 50000.00
+                          - date: "2025-02-01"
+                            value: 52500.00
+                          - date: "2025-03-01"
+                            value: 51800.00
+                        summary:
+                          total: 154300.00
+                          average: 51433.33
+                          growth: 3.6
+                      zakatTrend:
+                        metricType: "zakat_trend"
+                        timeRange:
+                          start: "2025-01-01T00:00:00Z"
+                          end: "2025-12-31T23:59:59Z"
+                        dataPoints:
+                          - date: "2025-01-01"
+                            value: 1250.00
+                          - date: "2025-02-01"
+                            value: 1312.50
+                        summary:
+                          total: 3857.50
+                          average: 1285.83
+                          growth: 5.0
+                      paymentDistribution:
+                        metricType: "payment_distribution"
+                        categories:
+                          - name: "Religious Institution"
+                            amount: 2000.00
+                            count: 8
+                            percentage: 51.9
+                          - name: "Charity Organization"
+                            amount: 1500.00
+                            count: 5
+                            percentage: 38.9
+                          - name: "Individual"
+                            amount: 357.50
+                            count: 2
+                            percentage: 9.2
+                        summary:
+                          totalAmount: 3857.50
+                          totalCount: 15
+                      assetComposition:
+                        metricType: "asset_composition"
+                        categories:
+                          - name: "Cash"
+                            amount: 15000.00
+                            percentage: 30.0
+                          - name: "Bank Accounts"
+                            amount: 25000.00
+                            percentage: 50.0
+                          - name: "Gold"
+                            amount: 10000.00
+                            percentage: 20.0
+                        summary:
+                          totalAmount: 50000.00
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /analytics/metrics:
+    get:
+      summary: Get Specific Analytics Metrics
+      description: |
+        Retrieves specific analytics metrics with custom date ranges.
+        Use this endpoint for more granular control over analytics queries.
+      operationId: getAnalyticsMetrics
+      tags:
+        - Analytics
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for analysis (ISO 8601)
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2025-01-01T00:00:00Z"
+        - name: endDate
+          in: query
+          description: End date for analysis (ISO 8601)
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2025-12-31T23:59:59Z"
+        - name: metricTypes
+          in: query
+          description: Comma-separated list of metric types to retrieve
+          required: false
+          schema:
+            type: string
+          example: "wealth_trend,zakat_trend,payment_distribution"
+        - name: includeCache
+          in: query
+          description: Whether to use cached data (currently not implemented)
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+              example:
+                success: true
+                data:
+                  metrics:
+                    - metricType: "wealth_trend"
+                      timeRange:
+                        start: "2025-01-01T00:00:00Z"
+                        end: "2025-12-31T23:59:59Z"
+                      dataPoints:
+                        - date: "2025-01-01"
+                          value: 50000.00
+                        - date: "2025-02-01"
+                          value: 52500.00
+                      summary:
+                        total: 154300.00
+                        average: 51433.33
+                        growth: 3.6
+                    - metricType: "payment_distribution"
+                      categories:
+                        - name: "Religious Institution"
+                          amount: 2000.00
+                          count: 8
+                          percentage: 51.9
+                      summary:
+                        totalAmount: 3857.50
+                        totalCount: 15
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /analytics/trends:
+    get:
+      summary: Get Trend Analysis
+      description: |
+        Retrieves detailed trend analysis for wealth and Zakat over time.
+        Optimized for charts and visualizations.
+      operationId: getTrendAnalysis
+      tags:
+        - Analytics
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for trend analysis
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2024-01-01T00:00:00Z"
+        - name: endDate
+          in: query
+          description: End date for trend analysis
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2025-12-31T23:59:59Z"
+        - name: granularity
+          in: query
+          description: Data point granularity
+          required: false
+          schema:
+            type: string
+            enum:
+              - daily
+              - weekly
+              - monthly
+              - yearly
+            default: monthly
+          example: "monthly"
+      responses:
+        '200':
+          description: Trends retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendsResponse'
+              example:
+                success: true
+                data:
+                  trends:
+                    wealth:
+                      - date: "2025-01-01"
+                        value: 50000.00
+                      - date: "2025-02-01"
+                        value: 52500.00
+                      - date: "2025-03-01"
+                        value: 51800.00
+                    zakat:
+                      - date: "2025-01-01"
+                        value: 1250.00
+                      - date: "2025-02-01"
+                        value: 1312.50
+                      - date: "2025-03-01"
+                        value: 1295.00
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /analytics/comparison:
+    get:
+      summary: Get Year-Over-Year Comparison
+      description: |
+        Retrieves year-over-year comparison data for multiple years.
+        Useful for analyzing growth trends and patterns.
+      operationId: getYearComparison
+      tags:
+        - Analytics
+      parameters:
+        - name: years
+          in: query
+          description: Comma-separated list of years to compare (max 5)
+          required: false
+          schema:
+            type: string
+          example: "2023,2024,2025"
+        - name: includeGrowth
+          in: query
+          description: Calculate growth percentages
+          required: false
+          schema:
+            type: boolean
+            default: true
+          example: true
+      responses:
+        '200':
+          description: Comparison data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComparisonResponse'
+              example:
+                success: true
+                data:
+                  comparison:
+                    - year: 2023
+                      totalWealth: 45000.00
+                      totalZakat: 1125.00
+                      totalPayments: 1125.00
+                      paymentCount: 12
+                      growth: null
+                    - year: 2024
+                      totalWealth: 48000.00
+                      totalZakat: 1200.00
+                      totalPayments: 1200.00
+                      paymentCount: 13
+                      growth: 6.67
+                    - year: 2025
+                      totalWealth: 51800.00
+                      totalZakat: 1295.00
+                      totalPayments: 1295.00
+                      paymentCount: 15
+                      growth: 7.92
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from /api/auth/login
+
+  schemas:
+    TimeRange:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+        end:
+          type: string
+          format: date-time
+          example: "2025-12-31T23:59:59Z"
+
+    DataPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2025-01-01"
+        value:
+          type: number
+          format: decimal
+          example: 50000.00
+
+    MetricSummary:
+      type: object
+      properties:
+        total:
+          type: number
+          format: decimal
+          example: 154300.00
+        average:
+          type: number
+          format: decimal
+          example: 51433.33
+        growth:
+          type: number
+          format: decimal
+          nullable: true
+          description: Growth percentage
+          example: 3.6
+
+    CategoryData:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Religious Institution"
+        amount:
+          type: number
+          format: decimal
+          example: 2000.00
+        count:
+          type: integer
+          example: 8
+        percentage:
+          type: number
+          format: decimal
+          example: 51.9
+
+    TrendMetric:
+      type: object
+      properties:
+        metricType:
+          type: string
+          enum:
+            - wealth_trend
+            - zakat_trend
+            - payment_distribution
+            - asset_composition
+            - yearly_comparison
+          example: "wealth_trend"
+        timeRange:
+          $ref: '#/components/schemas/TimeRange'
+        dataPoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataPoint'
+        summary:
+          $ref: '#/components/schemas/MetricSummary'
+
+    DistributionMetric:
+      type: object
+      properties:
+        metricType:
+          type: string
+          example: "payment_distribution"
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryData'
+        summary:
+          type: object
+          properties:
+            totalAmount:
+              type: number
+              format: decimal
+              example: 3857.50
+            totalCount:
+              type: integer
+              example: 15
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        year:
+          type: integer
+          example: 2025
+        metrics:
+          type: object
+          properties:
+            wealthTrend:
+              $ref: '#/components/schemas/TrendMetric'
+            zakatTrend:
+              $ref: '#/components/schemas/TrendMetric'
+            paymentDistribution:
+              $ref: '#/components/schemas/DistributionMetric'
+            assetComposition:
+              $ref: '#/components/schemas/DistributionMetric'
+
+    YearlyComparison:
+      type: object
+      properties:
+        year:
+          type: integer
+          example: 2025
+        totalWealth:
+          type: number
+          format: decimal
+          example: 51800.00
+        totalZakat:
+          type: number
+          format: decimal
+          example: 1295.00
+        totalPayments:
+          type: number
+          format: decimal
+          example: 1295.00
+        paymentCount:
+          type: integer
+          example: 15
+        growth:
+          type: number
+          format: decimal
+          nullable: true
+          description: Growth percentage vs previous year
+          example: 7.92
+
+    AnalyticsSummaryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            summary:
+              $ref: '#/components/schemas/AnalyticsSummary'
+
+    MetricsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            metrics:
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/TrendMetric'
+                  - $ref: '#/components/schemas/DistributionMetric'
+
+    TrendsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            trends:
+              type: object
+              properties:
+                wealth:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DataPoint'
+                zakat:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DataPoint'
+
+    ComparisonResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            comparison:
+              type: array
+              items:
+                $ref: '#/components/schemas/YearlyComparison'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Error message
+          example: "Validation failed"
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Invalid date range"
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Authentication required"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "An unexpected error occurred"
