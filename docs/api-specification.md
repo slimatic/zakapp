@@ -1555,3 +1555,852 @@ Restore user data from backup.
   }
 }
 ```
+
+---
+
+## Payment Tracking Endpoints
+
+**Feature**: Tracking & Analytics System (Milestone 5)  
+**Version**: Added in v1.1.0  
+**Authentication**: Required (Bearer Token)  
+
+### Create Payment Record
+**POST** `/api/payments`
+
+Record a new Zakat payment with encrypted storage.
+
+**Request Body:**
+```json
+{
+  "amount": 250.00,
+  "currency": "USD",
+  "date": "2024-03-15T10:00:00Z",
+  "category": "Masjid",
+  "recipient": "Local Islamic Center",
+  "notes": "Monthly Zakat contribution",
+  "paymentMethod": "Bank Transfer",
+  "referenceNumber": "TXN123456"
+}
+```
+
+**Validation Rules:**
+- `amount`: Required, positive decimal, max 2 decimal places
+- `currency`: Required, ISO 4217 currency code (USD, EUR, GBP, etc.)
+- `date`: Required, ISO 8601 datetime, cannot be future date
+- `category`: Required, one of: "Masjid", "Sadaqah", "Zakat", "Fidyah", "Kaffarah", "General"
+- `recipient`: Optional, string, max 200 characters
+- `notes`: Optional, string, max 1000 characters, encrypted at rest
+- `paymentMethod`: Optional, string, max 50 characters
+- `referenceNumber`: Optional, string, max 100 characters
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "payment": {
+      "id": "payment_abc123",
+      "userId": "user_xyz789",
+      "amount": 250.00,
+      "currency": "USD",
+      "date": "2024-03-15T10:00:00Z",
+      "category": "Masjid",
+      "recipient": "Local Islamic Center",
+      "notes": "Monthly Zakat contribution",
+      "paymentMethod": "Bank Transfer",
+      "referenceNumber": "TXN123456",
+      "createdAt": "2024-03-15T10:05:00Z",
+      "updatedAt": "2024-03-15T10:05:00Z"
+    }
+  }
+}
+```
+
+**Error Responses:**
+- `400 VALIDATION_ERROR`: Invalid input data
+- `401 UNAUTHORIZED`: Missing or invalid authentication token
+- `500 ENCRYPTION_ERROR`: Failed to encrypt payment data
+
+---
+
+### Get User Payments
+**GET** `/api/payments`
+
+Retrieve all payment records for the authenticated user with optional filtering.
+
+**Query Parameters:**
+- `startDate` (optional): ISO 8601 datetime - Filter payments after this date
+- `endDate` (optional): ISO 8601 datetime - Filter payments before this date
+- `category` (optional): String - Filter by payment category
+- `minAmount` (optional): Number - Filter payments >= this amount
+- `maxAmount` (optional): Number - Filter payments <= this amount
+- `limit` (optional): Integer - Max records to return (default: 50, max: 100)
+- `offset` (optional): Integer - Number of records to skip (for pagination)
+- `sortBy` (optional): String - Sort field: "date", "amount", "category" (default: "date")
+- `sortOrder` (optional): String - "asc" or "desc" (default: "desc")
+
+**Example Request:**
+```
+GET /api/payments?startDate=2024-01-01&endDate=2024-12-31&category=Zakat&limit=20
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "payments": [
+      {
+        "id": "payment_abc123",
+        "amount": 250.00,
+        "currency": "USD",
+        "date": "2024-03-15T10:00:00Z",
+        "category": "Masjid",
+        "recipient": "Local Islamic Center",
+        "notes": "Monthly Zakat contribution",
+        "paymentMethod": "Bank Transfer",
+        "referenceNumber": "TXN123456",
+        "createdAt": "2024-03-15T10:05:00Z",
+        "updatedAt": "2024-03-15T10:05:00Z"
+      }
+    ]
+  },
+  "meta": {
+    "pagination": {
+      "total": 45,
+      "limit": 20,
+      "offset": 0,
+      "hasNext": true,
+      "hasPrev": false
+    }
+  }
+}
+```
+
+---
+
+### Get Payment by ID
+**GET** `/api/payments/:id`
+
+Retrieve a specific payment record by ID.
+
+**URL Parameters:**
+- `id`: Payment ID (e.g., "payment_abc123")
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "payment": {
+      "id": "payment_abc123",
+      "amount": 250.00,
+      "currency": "USD",
+      "date": "2024-03-15T10:00:00Z",
+      "category": "Masjid",
+      "recipient": "Local Islamic Center",
+      "notes": "Monthly Zakat contribution",
+      "paymentMethod": "Bank Transfer",
+      "referenceNumber": "TXN123456",
+      "createdAt": "2024-03-15T10:05:00Z",
+      "updatedAt": "2024-03-15T10:05:00Z"
+    }
+  }
+}
+```
+
+**Error Responses:**
+- `404 NOT_FOUND`: Payment not found or doesn't belong to user
+- `401 UNAUTHORIZED`: Missing or invalid authentication token
+
+---
+
+### Update Payment
+**PUT** `/api/payments/:id`
+
+Update an existing payment record.
+
+**URL Parameters:**
+- `id`: Payment ID
+
+**Request Body:**
+```json
+{
+  "amount": 275.00,
+  "notes": "Updated: Monthly Zakat contribution - March",
+  "category": "Zakat"
+}
+```
+
+**Note**: All fields from create are optional. Only provided fields will be updated.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "payment": {
+      "id": "payment_abc123",
+      "amount": 275.00,
+      "currency": "USD",
+      "date": "2024-03-15T10:00:00Z",
+      "category": "Zakat",
+      "recipient": "Local Islamic Center",
+      "notes": "Updated: Monthly Zakat contribution - March",
+      "paymentMethod": "Bank Transfer",
+      "referenceNumber": "TXN123456",
+      "createdAt": "2024-03-15T10:05:00Z",
+      "updatedAt": "2024-03-15T15:30:00Z"
+    }
+  }
+}
+```
+
+---
+
+### Delete Payment
+**DELETE** `/api/payments/:id`
+
+Permanently delete a payment record.
+
+**URL Parameters:**
+- `id`: Payment ID
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Payment deleted successfully",
+    "deletedId": "payment_abc123"
+  }
+}
+```
+
+**Error Responses:**
+- `404 NOT_FOUND`: Payment not found or doesn't belong to user
+- `401 UNAUTHORIZED`: Missing or invalid authentication token
+
+---
+
+## Analytics Endpoints
+
+**Feature**: Tracking & Analytics System (Milestone 5)  
+**Version**: Added in v1.1.0  
+**Authentication**: Required (Bearer Token)  
+
+### Get Analytics Summary
+**GET** `/api/analytics/summary`
+
+Get comprehensive analytics summary for the authenticated user.
+
+**Query Parameters:**
+- `year` (optional): Integer - Year for analytics (default: current year)
+- `includeTrends` (optional): Boolean - Include trend analysis (default: true)
+- `includeProjections` (optional): Boolean - Include future projections (default: false)
+
+**Example Request:**
+```
+GET /api/analytics/summary?year=2024&includeTrends=true
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "year": 2024,
+    "metrics": {
+      "totalPayments": {
+        "value": 3000.00,
+        "currency": "USD",
+        "count": 12,
+        "average": 250.00
+      },
+      "byCategory": {
+        "Zakat": { "amount": 1500.00, "count": 6 },
+        "Masjid": { "amount": 900.00, "count": 4 },
+        "Sadaqah": { "amount": 600.00, "count": 2 }
+      },
+      "byMonth": [
+        {
+          "month": "2024-01",
+          "amount": 250.00,
+          "count": 1
+        },
+        {
+          "month": "2024-02",
+          "amount": 250.00,
+          "count": 1
+        }
+      ],
+      "trends": {
+        "monthlyGrowth": 5.2,
+        "categoryDiversity": 0.75,
+        "consistency": "high"
+      }
+    }
+  },
+  "meta": {
+    "performance": {
+      "calculationTime": 145
+    }
+  }
+}
+```
+
+**Performance**: < 500ms for standard date ranges (per NFR-001)
+
+---
+
+### Get Payment Trends
+**GET** `/api/analytics/trends`
+
+Get detailed trend analysis for payment history.
+
+**Query Parameters:**
+- `startDate`: ISO 8601 datetime - Start of analysis period
+- `endDate`: ISO 8601 datetime - End of analysis period
+- `interval`: String - Grouping interval: "day", "week", "month", "quarter", "year" (default: "month")
+- `metrics`: Array of strings - Metrics to include: ["amount", "count", "average", "categories"]
+
+**Example Request:**
+```
+GET /api/analytics/trends?startDate=2024-01-01&endDate=2024-12-31&interval=month
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "trends": {
+      "timeline": [
+        {
+          "period": "2024-01",
+          "amount": 250.00,
+          "count": 1,
+          "average": 250.00,
+          "categories": {
+            "Zakat": 250.00
+          }
+        },
+        {
+          "period": "2024-02",
+          "amount": 500.00,
+          "count": 2,
+          "average": 250.00,
+          "categories": {
+            "Zakat": 300.00,
+            "Masjid": 200.00
+          }
+        }
+      ],
+      "summary": {
+        "totalAmount": 3000.00,
+        "totalCount": 12,
+        "periodAverage": 250.00,
+        "highestPeriod": {
+          "period": "2024-06",
+          "amount": 400.00
+        },
+        "lowestPeriod": {
+          "period": "2024-01",
+          "amount": 250.00
+        }
+      },
+      "insights": {
+        "trend": "increasing",
+        "growthRate": 5.2,
+        "volatility": "low",
+        "seasonality": false
+      }
+    }
+  }
+}
+```
+
+---
+
+### Get Category Breakdown
+**GET** `/api/analytics/categories`
+
+Get detailed breakdown of payments by category.
+
+**Query Parameters:**
+- `startDate` (optional): ISO 8601 datetime
+- `endDate` (optional): ISO 8601 datetime
+- `includePercentages` (optional): Boolean (default: true)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "categories": [
+      {
+        "name": "Zakat",
+        "amount": 1500.00,
+        "count": 6,
+        "percentage": 50.0,
+        "average": 250.00
+      },
+      {
+        "name": "Masjid",
+        "amount": 900.00,
+        "count": 4,
+        "percentage": 30.0,
+        "average": 225.00
+      },
+      {
+        "name": "Sadaqah",
+        "amount": 600.00,
+        "count": 2,
+        "percentage": 20.0,
+        "average": 300.00
+      }
+    ],
+    "total": {
+      "amount": 3000.00,
+      "count": 12
+    }
+  }
+}
+```
+
+---
+
+## Reminder Management Endpoints
+
+**Feature**: Tracking & Analytics System (Milestone 5)  
+**Version**: Added in v1.1.0  
+**Authentication**: Required (Bearer Token)  
+
+### Create Reminder
+**POST** `/api/reminders`
+
+Create a new reminder for Zakat-related events.
+
+**Request Body:**
+```json
+{
+  "eventType": "zakat_anniversary_approaching",
+  "triggerDate": "2025-03-15T09:00:00Z",
+  "title": "Zakat Anniversary Approaching",
+  "message": "Your Zakat anniversary is in 30 days. Start reviewing your assets.",
+  "priority": "high",
+  "relatedSnapshotId": "snapshot_xyz123",
+  "metadata": {
+    "daysUntil": 30,
+    "lastCalculation": "2024-03-15"
+  }
+}
+```
+
+**Event Types:**
+- `zakat_anniversary_approaching`: Zakat due date reminder
+- `calculation_overdue`: Calculation not performed
+- `payment_incomplete`: Payment tracking incomplete
+- `yearly_comparison_available`: Annual comparison ready
+- `data_backup_reminder`: Backup recommendation
+- `methodology_review`: Review Zakat methodology
+
+**Validation Rules:**
+- `eventType`: Required, must be one of the allowed types
+- `triggerDate`: Required, ISO 8601 datetime, must be future date
+- `title`: Required, 1-200 characters
+- `message`: Required, 1-1000 characters
+- `priority`: Optional, "high", "medium", or "low" (default: "medium")
+- `relatedSnapshotId`: Optional, UUID format
+- `metadata`: Optional, JSON object
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "reminder": {
+      "id": "reminder_abc123",
+      "userId": "user_xyz789",
+      "eventType": "zakat_anniversary_approaching",
+      "triggerDate": "2025-03-15T09:00:00Z",
+      "title": "Zakat Anniversary Approaching",
+      "message": "Your Zakat anniversary is in 30 days.",
+      "priority": "high",
+      "status": "pending",
+      "relatedSnapshotId": "snapshot_xyz123",
+      "metadata": {
+        "daysUntil": 30
+      },
+      "createdAt": "2024-10-25T10:00:00Z",
+      "updatedAt": "2024-10-25T10:00:00Z"
+    }
+  }
+}
+```
+
+---
+
+### Get User Reminders
+**GET** `/api/reminders`
+
+Retrieve reminders for the authenticated user.
+
+**Query Parameters:**
+- `status` (optional): Filter by status: "pending", "shown", "acknowledged", "dismissed"
+- `eventType` (optional): Filter by event type
+- `limit` (optional): Integer - Max records (default: 50, max: 100)
+- `offset` (optional): Integer - Pagination offset
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "reminders": [
+      {
+        "id": "reminder_abc123",
+        "eventType": "zakat_anniversary_approaching",
+        "triggerDate": "2025-03-15T09:00:00Z",
+        "title": "Zakat Anniversary Approaching",
+        "message": "Your Zakat anniversary is in 30 days.",
+        "priority": "high",
+        "status": "pending",
+        "createdAt": "2024-10-25T10:00:00Z"
+      }
+    ]
+  },
+  "meta": {
+    "pagination": {
+      "total": 5,
+      "limit": 50,
+      "offset": 0
+    }
+  }
+}
+```
+
+---
+
+### Update Reminder Status
+**PUT** `/api/reminders/:id`
+
+Update reminder details or status.
+
+**URL Parameters:**
+- `id`: Reminder ID
+
+**Request Body:**
+```json
+{
+  "status": "acknowledged",
+  "title": "Updated title",
+  "message": "Updated message",
+  "priority": "medium"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "reminder": {
+      "id": "reminder_abc123",
+      "status": "acknowledged",
+      "updatedAt": "2024-10-25T15:00:00Z"
+    }
+  }
+}
+```
+
+---
+
+### Delete Reminder
+**DELETE** `/api/reminders/:id`
+
+Delete a reminder.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Reminder deleted successfully"
+  }
+}
+```
+
+---
+
+### Get Pending Reminders
+**GET** `/api/reminders/pending`
+
+Get all pending reminders for the authenticated user that should be displayed now.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "reminders": [
+      {
+        "id": "reminder_abc123",
+        "eventType": "zakat_anniversary_approaching",
+        "title": "Zakat Anniversary Approaching",
+        "message": "Your Zakat anniversary is in 30 days.",
+        "priority": "high",
+        "triggerDate": "2025-03-15T09:00:00Z"
+      }
+    ],
+    "count": 1
+  }
+}
+```
+
+---
+
+## Export Endpoints
+
+**Feature**: Tracking & Analytics System (Milestone 5)  
+**Version**: Added in v1.1.0  
+**Authentication**: Required (Bearer Token)  
+
+### Export Payment History
+**POST** `/api/export/payments`
+
+Export payment history in various formats.
+
+**Request Body:**
+```json
+{
+  "format": "csv",
+  "startDate": "2024-01-01T00:00:00Z",
+  "endDate": "2024-12-31T23:59:59Z",
+  "includeAnalytics": true,
+  "categories": ["Zakat", "Masjid", "Sadaqah"]
+}
+```
+
+**Supported Formats:**
+- `csv`: Comma-separated values
+- `json`: JSON format
+- `pdf`: PDF report with formatting
+- `excel`: Excel spreadsheet (.xlsx)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "exportId": "export_abc123",
+    "format": "csv",
+    "status": "completed",
+    "downloadUrl": "/api/export/download/export_abc123",
+    "expiresAt": "2024-10-26T10:00:00Z",
+    "fileSize": 15240,
+    "recordCount": 45
+  }
+}
+```
+
+**CSV Format:**
+```csv
+Date,Amount,Currency,Category,Recipient,Payment Method,Reference,Notes
+2024-01-15,250.00,USD,Zakat,Local Masjid,Bank Transfer,TXN001,Monthly contribution
+2024-02-15,250.00,USD,Zakat,Local Masjid,Bank Transfer,TXN002,Monthly contribution
+```
+
+---
+
+### Export Full Data
+**POST** `/api/export/full`
+
+Export all user data including payments, analytics, and settings.
+
+**Request Body:**
+```json
+{
+  "format": "json",
+  "includeEncrypted": false,
+  "includeAnalytics": true,
+  "includeSettings": true
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "exportId": "export_full_xyz789",
+    "format": "json",
+    "downloadUrl": "/api/export/download/export_full_xyz789",
+    "expiresAt": "2024-10-26T10:00:00Z",
+    "fileSize": 152400
+  }
+}
+```
+
+---
+
+### Download Export
+**GET** `/api/export/download/:exportId`
+
+Download a previously generated export file.
+
+**URL Parameters:**
+- `exportId`: Export ID from create export response
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Success Response (200):**
+- Content-Type: Based on export format
+  - `text/csv` for CSV
+  - `application/json` for JSON
+  - `application/pdf` for PDF
+  - `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` for Excel
+- Content-Disposition: `attachment; filename="zakapp-export-2024-10-25.csv"`
+
+**Error Responses:**
+- `404 NOT_FOUND`: Export not found or expired
+- `403 FORBIDDEN`: Export doesn't belong to authenticated user
+
+---
+
+### Get Export Status
+**GET** `/api/export/status/:exportId`
+
+Check the status of an export job.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "exportId": "export_abc123",
+    "status": "processing",
+    "progress": 65,
+    "estimatedCompletion": "2024-10-25T10:05:00Z"
+  }
+}
+```
+
+**Status Values:**
+- `queued`: Export queued for processing
+- `processing`: Currently generating export
+- `completed`: Export ready for download
+- `failed`: Export generation failed
+- `expired`: Export file expired and deleted
+
+---
+
+### Delete Export
+**DELETE** `/api/export/:exportId`
+
+Delete an export file before expiration.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Export deleted successfully"
+  }
+}
+```
+
+---
+
+## Performance Considerations
+
+### Analytics Endpoints
+- **Summary endpoint**: < 300ms for current year
+- **Trends endpoint**: < 500ms for up to 3 years of data
+- **Large datasets** (10+ years): May take up to 1000ms
+- **Caching**: Results cached for 5 minutes by default
+- **Optimization**: Use `includeCache: true` parameter for faster responses
+
+### Export Endpoints
+- **Small exports** (< 100 records): Synchronous, immediate download
+- **Large exports** (> 100 records): Asynchronous, poll status endpoint
+- **File retention**: Export files expire after 24 hours
+- **Format performance**: CSV fastest, PDF slowest
+
+---
+
+## Error Codes Reference
+
+### Payment Endpoints
+- `PAYMENT_NOT_FOUND`: Payment ID doesn't exist or doesn't belong to user
+- `INVALID_PAYMENT_DATA`: Validation failed on payment data
+- `ENCRYPTION_ERROR`: Failed to encrypt/decrypt payment information
+- `INVALID_DATE_RANGE`: Start date after end date or invalid format
+- `AMOUNT_OUT_OF_RANGE`: Payment amount exceeds limits
+
+### Analytics Endpoints
+- `INSUFFICIENT_DATA`: Not enough payment records for analytics
+- `INVALID_DATE_RANGE`: Invalid or illogical date range
+- `ANALYTICS_CALCULATION_ERROR`: Error during metric calculation
+- `CACHE_ERROR`: Error accessing cached analytics data
+
+### Reminder Endpoints
+- `REMINDER_NOT_FOUND`: Reminder doesn't exist or doesn't belong to user
+- `INVALID_TRIGGER_DATE`: Trigger date in past or invalid format
+- `INVALID_EVENT_TYPE`: Unsupported event type
+- `REMINDER_LIMIT_EXCEEDED`: Too many active reminders
+
+### Export Endpoints
+- `EXPORT_NOT_FOUND`: Export ID doesn't exist or expired
+- `EXPORT_FAILED`: Export generation failed
+- `UNSUPPORTED_FORMAT`: Requested export format not supported
+- `EXPORT_TOO_LARGE`: Export exceeds size limits
+- `NO_DATA_TO_EXPORT`: No records match export criteria
+
+---
+
+## Rate Limiting
+
+All tracking & analytics endpoints are subject to rate limiting:
+
+- **Standard endpoints**: 100 requests per minute per user
+- **Analytics endpoints**: 30 requests per minute per user (computation-intensive)
+- **Export endpoints**: 10 requests per hour per user (resource-intensive)
+
+Rate limit headers included in all responses:
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1635174000
+```
+
+---
+
+## Security & Privacy
+
+### Data Encryption
+- **Payment notes**: AES-256 encrypted at rest
+- **Recipient information**: Encrypted when stored
+- **Export files**: Encrypted during transmission (HTTPS)
+- **Temporary files**: Securely deleted after export expiration
+
+### Access Control
+- All endpoints require valid JWT authentication
+- Users can only access their own payment records
+- Export files accessible only to owner for 24 hours
+- Reminder data isolated per user
+
+### Audit Logging
+- All payment create/update/delete operations logged
+- Export generation logged with timestamp and format
+- Failed authentication attempts logged
+- Compliance with zero-knowledge privacy model
+
+---
+
+*Last Updated: October 25, 2025*  
+*API Version: 1.1.0*  
+*Feature: Tracking & Analytics System (Milestone 5)*
