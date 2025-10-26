@@ -28,8 +28,9 @@ app.use(cors({
   credentials: true
 }));
 
-// Logging middleware
-app.use(morgan('combined'));
+// Logging middleware - TEMPORARILY DISABLED due to hanging issue
+// TODO: Debug morgan middleware hanging on Node v23.1.0
+// app.use(morgan('dev'));
 
 // Compression middleware
 app.use(compression({
