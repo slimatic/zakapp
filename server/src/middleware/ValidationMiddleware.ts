@@ -326,7 +326,7 @@ export const assetCreateSchema = z.object({
   acquisitionDate: z.string().datetime().or(z.date()),
   description: z.string().max(1000).optional(),
   notes: z.string().max(2000).optional(),
-  metadata: z.record(z.string(), z.any()).optional()
+  metadata: z.record(z.string(), z.unknown()).optional()
 });
 
 /**
