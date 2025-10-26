@@ -9,8 +9,15 @@ import { asyncHandler } from '../middleware/ErrorHandler';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { EncryptionService } from '../services/EncryptionService';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
+
+// Lazy initialization of Prisma client
+function getPrismaClient() {
+  return new PrismaClient();
+}
 
 // Simple in-memory token revocation tracking
 const revokedTokens = new Set<string>();
@@ -106,15 +113,11 @@ router.post('/login',
       let user;
       
       if (email) {
-        // Try to find by email
-        user = await prisma.user.findUnique({
-          where: { email }
-        });
+        // Try to find by email (unique)
+        user = await getPrismaClient().user.findUnique({ where: { email } });
       } else if (username) {
-        // Try to find by username
-        user = await prisma.user.findUnique({
-          where: { username }
-        });
+        // Find by username using findFirst since username is not a unique field in the schema
+        user = await getPrismaClient().user.findFirst({ where: { username } });
       }
 
       if (!user) {
@@ -142,7 +145,7 @@ router.post('/login',
       }
 
       // Update last login
-      await prisma.user.update({
+      await getPrismaClient().user.update({
         where: { id: user.id },
         data: { lastLoginAt: new Date() }
       });
@@ -201,12 +204,15 @@ router.post('/register',
   validateUserRegistration,
   handleValidationErrors,
   asyncHandler(async (req: Request, res: Response) => {
-    const { email, username, password, firstName, lastName } = req.body;
+    // Normalize email to lowercase first
+    req.body.email = req.body.email.toLowerCase();
+    
+    const { email: normalizedEmail, username, password, firstName, lastName, phoneNumber, dateOfBirth } = req.body;
 
     try {
       // Check if user already exists in database by email
-      const existingUser = await prisma.user.findUnique({
-        where: { email }
+      const existingUser = await getPrismaClient().user.findUnique({
+        where: { email: normalizedEmail }
       });
 
       if (existingUser) {
@@ -221,10 +227,10 @@ router.post('/register',
       }
 
       // Also check if username is already taken (if provided)
+
       if (username) {
-        const existingUsername = await prisma.user.findUnique({
-          where: { username }
-        });
+        // Use findFirst to check for an existing username (schema may not mark username as unique)
+        const existingUsername = await getPrismaClient().user.findFirst({ where: { username } });
 
         if (existingUsername) {
           res.status(409).json({
@@ -241,17 +247,49 @@ router.post('/register',
       // Hash password
       const passwordHash = await bcrypt.hash(password, 12);
 
+      // Create encrypted profile and settings
+      const profileData = { 
+        firstName, 
+        lastName,
+        phoneNumber,
+        dateOfBirth
+      };
+      const settingsData = {
+        currency: 'USD',
+        notifications: true,
+        darkMode: false,
+        language: 'en',
+        privacyLevel: 'STANDARD',
+        autoCalculate: true,
+        reminderFrequency: 'MONTHLY',
+        preferredMethodology: 'STANDARD'
+      };
+
+      const encryptedProfile = await EncryptionService.encryptObject(profileData, ENCRYPTION_KEY);
+      const encryptedSettings = await EncryptionService.encryptObject(settingsData, ENCRYPTION_KEY);
+
       // Create user in database
-      const user = await prisma.user.create({
+      const createData: any = {
+        email: normalizedEmail,
+        passwordHash,
+        profile: encryptedProfile,
+        settings: encryptedSettings,
+        isActive: true,
+        lastLoginAt: new Date(),
+        preferredCalendar: 'gregorian',
+        preferredMethodology: 'standard'
+      };
+
+      if (username) {
+        createData.username = username;
+      }
+
+      const user = await getPrismaClient().user.create({ data: createData });
+
+      // Create security record for the user
+      await getPrismaClient().userSecurity.create({
         data: {
-          email,
-          username,  // Store the username
-          passwordHash,
-          profile: JSON.stringify({ firstName, lastName }), // Store profile as JSON
-          isActive: true,
-          lastLoginAt: new Date(),
-          preferredCalendar: 'gregorian',
-          preferredMethodology: 'standard'
+          userId: user.id
         }
       });
 
@@ -419,22 +457,22 @@ router.post('/refresh',
       return;
     }
 
-    // Check user rate limiting BEFORE token verification
-    // This prevents brute force attacks on the refresh endpoint
-    if (checkUserRateLimit('unknown-user-for-failed-attempts')) {
-      res.status(429).json({
-        success: false,
-        error: {
-          code: 'RATE_LIMIT_EXCEEDED',
-          message: 'Too many refresh attempts'
-        }
-      });
-      return;
-    }
-
     try {
       // Verify refresh token
       const decoded = jwtService.verifyRefreshToken(refreshToken);
+
+      // Check user rate limiting AFTER successful token verification
+      // This prevents brute force attacks but allows proper error responses for invalid tokens
+      if (checkUserRateLimit(decoded.userId)) {
+        res.status(429).json({
+          success: false,
+          error: {
+            code: 'RATE_LIMIT_EXCEEDED',
+            message: 'Too many refresh attempts'
+          }
+        });
+        return;
+      }
 
       // Check if token was already used (for token rotation security)
       const wasTokenUsed = trackTokenUsage(refreshToken);
@@ -446,7 +484,7 @@ router.post('/refresh',
         revokeToken(refreshToken);
         
         // Increment the user rate limit for failed attempts
-        checkUserRateLimit('unknown-user-for-failed-attempts');
+        checkUserRateLimit(decoded.userId);
         
         res.status(401).json({
           success: false,
@@ -459,7 +497,7 @@ router.post('/refresh',
       }
       
       // Find user in database
-      const user = await prisma.user.findUnique({
+      const user = await getPrismaClient().user.findUnique({
         where: { id: decoded.userId }
       });
       
@@ -587,7 +625,7 @@ router.get('/me',
   authenticate,
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const user = await prisma.user.findUnique({
+      const user = await getPrismaClient().user.findUnique({
         where: { id: req.userId! }
       });
       

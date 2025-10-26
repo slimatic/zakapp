@@ -29,7 +29,17 @@ export class UserController {
 
     const response: ApiResponse = {
       success: true,
-      profile: mockProfile
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          profile: user.profile
+        }
+      }
     };
 
     res.status(200).json(response);
