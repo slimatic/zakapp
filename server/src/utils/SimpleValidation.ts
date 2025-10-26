@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { VALID_ASSET_CATEGORY_VALUES } from '@zakapp/shared';
 
 /**
  * Validation result interface
@@ -25,8 +26,8 @@ export class SimpleValidation {
     if (!isPartial || data.category !== undefined) {
       if (!data.category || typeof data.category !== 'string') {
         errors.push('Category is required and must be a string');
-      } else if (!['cash', 'gold', 'silver', 'crypto', 'business', 'property', 'stocks'].includes(data.category)) {
-        errors.push('Category must be one of: cash, gold, silver, crypto, business, property, stocks');
+      } else if (!VALID_ASSET_CATEGORY_VALUES.includes(data.category as any)) {
+        errors.push(`Category must be one of: ${VALID_ASSET_CATEGORY_VALUES.join(', ')}`);
       } else {
         validatedData.category = data.category;
       }
@@ -87,10 +88,9 @@ export class SimpleValidation {
     if (value === undefined || value === null) errors.push('Asset value is required');
     if (!currency) errors.push('Currency is required');
     
-    // Validate asset type
-    const validTypes = ['cash', 'gold', 'silver', 'crypto', 'business', 'investment'];
-    if (type && !validTypes.includes(type)) {
-      errors.push('Invalid asset type. Must be one of: ' + validTypes.join(', '));
+    // Validate asset type using shared constant
+    if (type && !VALID_ASSET_CATEGORY_VALUES.includes(type)) {
+      errors.push(`Invalid asset type. Must be one of: ${VALID_ASSET_CATEGORY_VALUES.join(', ')}`);
     }
     
     // Validate value
