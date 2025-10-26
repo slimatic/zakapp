@@ -31,6 +31,8 @@
     "react-hook-form": "^7.63.0",
     "react-router-dom": "^6.28.1",
     "react-scripts": "5.0.1",
+    "react-window": "^2.2.1",
+    "react-window-infinite-loader": "^2.0.0",
     "recharts": "^3.2.1",
     "typescript": "4.9.5",
     "web-vitals": "^2.1.4",

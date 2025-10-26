@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 
@@ -21,11 +21,20 @@ interface AnalyticsDashboardProps {
  * Comprehensive analytics dashboard with multiple visualization types
  * Shows wealth trends, Zakat giving patterns, and payment distributions
  */
-export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
+export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(({
   data,
   isLoading,
   onExport
 }) => {
+  // Memoize expensive currency formatting function
+  const formatCurrency = useMemo(() => {
+    const formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    });
+    return (amount: number) => formatter.format(amount);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -44,13 +53,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       </div>
     );
   }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
 
   return (
     <div className="space-y-6">
@@ -133,4 +135,4 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       </Card>
     </div>
   );
-};
+});
