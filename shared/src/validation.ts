@@ -42,6 +42,10 @@ export const createReminderSchema = z.object({
   message: z.string().min(1).max(1000),
   priority: z.enum(['high', 'medium', 'low']).default('medium'),
   relatedSnapshotId: z.string().cuid().optional(),
+  /**
+   * Dynamic metadata field. Consumers must narrow the type before use.
+   * Example: if (typeof metadata.key === 'string') { ... }
+   */
   metadata: z.record(z.unknown()).optional(),
 });
 
