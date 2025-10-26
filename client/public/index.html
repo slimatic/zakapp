@@ -9,6 +9,15 @@
       name="description"
       content="ZakApp - Privacy-first Islamic Zakat calculator with comprehensive asset management and yearly tracking"
     />
+    
+    <!-- Preload critical assets for faster initial render -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    
+    <!-- Preload likely next routes for faster navigation -->
+    <link rel="prefetch" href="/assets" />
+    <link rel="prefetch" href="/zakat/calculator" />
+    
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
