@@ -42,7 +42,7 @@ export const createReminderSchema = z.object({
   message: z.string().min(1).max(1000),
   priority: z.enum(['high', 'medium', 'low']).default('medium'),
   relatedSnapshotId: z.string().cuid().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 export const updateReminderSchema = createReminderSchema.partial().extend({
