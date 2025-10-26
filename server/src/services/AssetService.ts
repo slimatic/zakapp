@@ -226,7 +226,49 @@ export class AssetService {
       data: { isActive: false }
     });
 
-    return { success: true };
+    return { success: true, deletedAssetId: assetId };
+  }
+
+  /**
+   * Get deleted (soft-deleted) assets for a user
+   */
+  async getDeletedAssets(userId: string) {
+    const assets = await prisma.asset.findMany({
+      where: {
+        userId,
+        isActive: false
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    const decryptedAssets = await Promise.all(assets.map(asset => this.decryptAsset(asset)));
+    return { assets: decryptedAssets };
+  }
+
+  /**
+   * Recover a soft-deleted asset
+   */
+  async recoverAsset(userId: string, assetId: string) {
+    // Check if asset exists and belongs to user
+    const asset = await prisma.asset.findFirst({
+      where: {
+        id: assetId,
+        userId,
+        isActive: false
+      }
+    });
+
+    if (!asset) {
+      throw new Error('Deleted asset not found');
+    }
+
+    // Recover asset
+    const recoveredAsset = await prisma.asset.update({
+      where: { id: assetId },
+      data: { isActive: true }
+    });
+
+    return this.decryptAsset(recoveredAsset);
   }
 
   /**
@@ -447,7 +489,19 @@ export class AssetService {
       }
     }
 
-    return decrypted;
+    // Transform to match shared Asset interface
+    return {
+      assetId: asset.id,
+      name: asset.name,
+      category: asset.category.toLowerCase(),
+      subCategory: decrypted.metadata?.subCategory || '',
+      value: asset.value,
+      currency: asset.currency,
+      description: decrypted.metadata?.description || asset.notes || '',
+      zakatEligible: decrypted.metadata?.zakatEligible ?? true,
+      createdAt: asset.createdAt.toISOString(),
+      updatedAt: asset.updatedAt.toISOString()
+    };
   }
 
   /**

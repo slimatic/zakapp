@@ -177,9 +177,31 @@ export class DatabaseManager {
    */
   private setupEventListeners(): void {
     if (this.config.enableLogging) {
-      // Note: Event listeners are disabled in Prisma v6+ by default
-      // This is a placeholder for future monitoring implementation
-      console.log('Database event logging configured');
+      // Note: Prisma v6 event listeners may have different API
+      // For now, disable event listeners to avoid TypeScript issues
+      // TODO: Update when Prisma event API is clarified
+      /*
+      this.prisma.$on('query', (e) => {
+        this.health.lastQuery = new Date();
+        console.log(`Query: ${e.query} - Duration: ${e.duration}ms`);
+      });
+
+      this.prisma.$on('error', (e) => {
+        this.health.errors.push(`${new Date().toISOString()}: ${e.message}`);
+        // Keep only last 10 errors
+        if (this.health.errors.length > 10) {
+          this.health.errors = this.health.errors.slice(-10);
+        }
+      });
+
+      this.prisma.$on('info', (e) => {
+        console.info('Database Info:', e.message);
+      });
+
+      this.prisma.$on('warn', (e) => {
+        console.warn('Database Warning:', e.message);
+      });
+      */
     }
   }
 
@@ -371,7 +393,10 @@ export class DatabaseManager {
 
     while (attempt < maxRetries) {
       try {
-        return await this.prisma.$transaction(operation);
+        // Use the callback form of $transaction for Prisma v6
+        return await this.prisma.$transaction(async (tx) => {
+          return await operation(tx as any);
+        });
       } catch (error) {
         lastError = error as Error;
         attempt++;

@@ -201,7 +201,7 @@ Select one of the 8 Quranic categories:
    - New Muslims or those inclined to Islam
 
 5. **Ar-Riqab (Freeing Slaves/Captives)** - riqab
-   - Freeing slaves or captives
+   - Freeing slaves or
 
 6. **Al-Gharimin (Those in Debt)** - gharim
    - Those burdened by debt
@@ -315,6 +315,32 @@ The Analytics Dashboard provides insights into your Zakat history and financial 
 - Islamic financial advice
 - Reminders and alerts
 
+### Advanced Analytics Features
+
+**Detailed Metrics Dashboard**
+- Access via "View Detailed Metrics" button
+- Group metrics by month, quarter, or year
+- Filter by payment categories or recipient types
+- Export metrics data as CSV or PDF
+
+**Trend Analysis**
+- Seasonal payment patterns (Ramadan peaks)
+- Growth rate calculations
+- Predictive analytics for next year
+- Confidence intervals for projections
+
+**Payment Analytics**
+- Average payment amounts by category
+- Payment frequency analysis
+- Recipient diversity metrics
+- Compliance rate tracking
+
+**Comparative Analytics**
+- Side-by-side year comparisons
+- Growth rate analysis
+- Payment distribution changes
+- Methodology consistency tracking
+
 ### Customizing Analytics
 
 **Date Range:**
@@ -329,6 +355,11 @@ The Analytics Dashboard provides insights into your Zakat history and financial 
 - Export analytics as PDF report
 - Include/exclude specific charts
 - Add custom notes
+
+**Cache Management:**
+- Clear analytics cache for fresh calculations
+- View cache size and refresh status
+- Manual cache refresh option
 
 ---
 
@@ -543,6 +574,18 @@ ZakApp automatically creates reminders to help you stay on track with Zakat obli
 - Islamic finance insights
 - Priority: Low
 - Example: "Learn about the 8 categories of Zakat recipients"
+
+**5. Custom Reminders**
+- Create personalized reminders
+- Set custom dates and frequencies
+- Link to specific snapshots or payments
+- Example: "Quarterly Zakat payment due"
+
+**6. Automated Reminders**
+- System-generated based on payment patterns
+- Nisab threshold alerts
+- Asset value update reminders
+- Compliance tracking reminders
 
 ### Viewing Reminders
 

@@ -91,7 +91,7 @@ describe('Comprehensive ZakatService Methodology Tests', () => {
   const createCalculationRequest = (method: string, assets: Asset[], customNisab?: number): ZakatCalculationRequest => ({
     calculationDate: new Date().toISOString(),
     calendarType: 'lunar',
-    method,
+    methodology: method as 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM',
     includeAssets: assets.map(asset => asset.assetId),
     ...(customNisab && { customNisab })
   });

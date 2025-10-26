@@ -3,6 +3,7 @@ import { Response, Request } from 'express';
 import { AuthenticatedRequest } from '../types';
 import { authenticate } from '../middleware/AuthMiddleware';
 import { validateSchema } from '../middleware/ValidationMiddleware';
+import { asyncHandler } from '../middleware/ErrorHandler';
 import { ZakatEngine } from '../services/zakatEngine';
 import { CurrencyService } from '../services/currencyService';
 import { CalendarService } from '../services/calendarService';
@@ -83,9 +84,21 @@ router.post('/calculate',
     try {
       const { method, calendarType, calculationDate, includeAssets, customNisab } = req.body;
 
+      // Map method to methodology (API uses 'method', engine uses 'methodology')
+      const methodologyMap: Record<string, 'STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM'> = {
+        'standard': 'STANDARD',
+        'hanafi': 'HANAFI',
+        'shafii': 'SHAFII',
+        'maliki': 'CUSTOM', // Map to CUSTOM for now
+        'hanbali': 'CUSTOM', // Map to CUSTOM for now
+        'custom': 'CUSTOM'
+      };
+
+      const methodology = methodologyMap[method] || 'STANDARD';
+
       // Prepare calculation request
       const calcRequest = {
-        methodology: method,
+        methodology,
         calendarType: calendarType || 'lunar',
         calculationDate: calculationDate || new Date().toISOString(),
         includeAssets: includeAssets || [],
@@ -372,6 +385,52 @@ router.get('/receipts/:token',
       res.status(400).json(response);
     }
   }
+);
+
+/**
+ * GET /api/zakat/history
+ * Get calculation history for authenticated user
+ */
+router.get('/history',
+  authenticate,
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated'
+        }
+      });
+    }
+
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const methodology = req.query.methodology as string;
+      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+      const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+
+      const result = await calculationHistoryService.getCalculationHistory(userId, {
+        page,
+        limit,
+        methodology,
+        startDate,
+        endDate
+      });
+
+      const response = createResponse(true, result);
+      res.status(200).json(response);
+    } catch (error) {
+      const response = createResponse(false, undefined, {
+        code: 'HISTORY_FETCH_ERROR',
+        message: 'Failed to fetch calculation history',
+        details: [error instanceof Error ? error.message : 'Unknown error']
+      });
+      res.status(500).json(response);
+    }
+  })
 );
 
 export default router;

@@ -200,7 +200,7 @@ describe('ZakatEngine Core Unit Tests', () => {
   describe('Standard methodology', () => {
     test('should treat all liquid assets as zakatable', async () => {
       const request = {
-        methodology: 'STANDARD' as const,
+        methodology: 'STANDARD',
         calendarType: 'lunar' as const,
 
         calculationDate: '2024-01-01',
@@ -224,7 +224,7 @@ describe('ZakatEngine Core Unit Tests', () => {
         }
       ];
 
-      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets: Asset[] });
+      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets?: Asset[]; userId?: string });
 
       expect(result).toBeDefined();
       expect(result.result).toBeDefined();
@@ -235,7 +235,7 @@ describe('ZakatEngine Core Unit Tests', () => {
   describe('Hanafi methodology', () => {
     test('should have different nisab calculation', async () => {
       const request = {
-        methodology: 'HANAFI' as const,
+        methodology: 'HANAFI',
         calendarType: 'lunar' as const,
 
         calculationDate: '2024-01-01',
@@ -259,7 +259,7 @@ describe('ZakatEngine Core Unit Tests', () => {
         }
       ];
 
-      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets: Asset[] });
+      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets?: Asset[]; userId?: string });
 
       expect(result).toBeDefined();
       expect(result.methodology.id).toBe('hanafi');
@@ -270,7 +270,7 @@ describe('ZakatEngine Core Unit Tests', () => {
   describe('Shafi\'i methodology', () => {
     test('should have specific asset treatment', async () => {
       const request = {
-        methodology: 'SHAFII' as const,
+        methodology: 'SHAFII',
         calendarType: 'lunar' as const,
 
         calculationDate: '2024-01-01',
@@ -294,7 +294,7 @@ describe('ZakatEngine Core Unit Tests', () => {
         }
       ];
 
-      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets: Asset[] });
+      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets?: Asset[]; userId?: string });
 
       expect(result).toBeDefined();
       expect(result.methodology.id).toBe('shafii');
@@ -341,7 +341,7 @@ describe('ZakatEngine Core Unit Tests', () => {
         }
       ];
 
-      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets: Asset[] });
+      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets?: Asset[]; userId?: string });
 
       expect(result).toBeDefined();
       // The calculation should account for debts when includeDebts is true
@@ -383,7 +383,7 @@ describe('ZakatEngine Core Unit Tests', () => {
         }
       ];
 
-      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets: Asset[] });
+      const result = await zakatEngine.calculateZakat({ ...request, assets } as ZakatCalculationRequest & { assets?: Asset[]; userId?: string });
 
       expect(result).toBeDefined();
       expect(result.result.totals.totalZakatDue).toBe(0); // Should be zero below nisab
