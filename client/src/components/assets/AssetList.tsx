@@ -35,81 +35,6 @@ export const AssetList: React.FC = React.memo(() => {
     }).format(amount);
   }, []);
 
-  // Virtual scrolling row renderer
-  const AssetRow = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => {
-    const asset = assets[index];
-    return (
-      <div style={style} className="p-3">
-        <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-200">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">
-                  {getCategoryIcon(asset.category)}
-                </span>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 truncate">
-                    {asset.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 capitalize">
-                    {asset.category} {asset.subCategory && `• ${asset.subCategory}`}
-                  </p>
-                </div>
-              </div>
-              {asset.zakatEligible && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  Zakat Eligible
-                </span>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-500">Value:</span>
-                <span className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(asset.value, asset.currency)}
-                </span>
-              </div>
-
-              {asset.description && (
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {asset.description}
-                </p>
-              )}
-
-              <div className="flex justify-between items-center text-xs text-gray-500">
-                <span>Added {new Date(asset.createdAt).toLocaleDateString()}</span>
-                {asset.updatedAt !== asset.createdAt && (
-                  <span>Updated {new Date(asset.updatedAt).toLocaleDateString()}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4 flex space-x-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setEditingAsset(asset)}
-                className="flex-1"
-              >
-                ✏️ Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                as={Link}
-                to={`/assets/${asset.assetId}`}
-                className="flex-1"
-              >
-                👁️ View
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }, [assets, getCategoryIcon, formatCurrency]);
-
   if (isLoading) return <LoadingSpinner />;
   if (error) return <ErrorMessage error={error} />;
 
@@ -232,9 +157,86 @@ export const AssetList: React.FC = React.memo(() => {
             width="100%" // Container width
             itemCount={assets.length} // Number of items
             itemSize={280} // Height of each item (approximate card height)
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {AssetRow}
+            {({ index, style }) => {
+              const asset = assets[index];
+              
+              // Safety check - asset might be undefined during initial render
+              if (!asset) {
+                return null;
+              }
+              
+              return (
+                <div style={style} className="p-3">
+                  <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-200">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-2xl">
+                            {getCategoryIcon(asset.category)}
+                          </span>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 truncate">
+                              {asset.name}
+                            </h3>
+                            <p className="text-sm text-gray-500 capitalize">
+                              {asset.category} {asset.subCategory && `• ${asset.subCategory}`}
+                            </p>
+                          </div>
+                        </div>
+                        {asset.zakatEligible && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Zakat Eligible
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-500">Value:</span>
+                          <span className="text-lg font-semibold text-gray-900">
+                            {formatCurrency(asset.value, asset.currency)}
+                          </span>
+                        </div>
+
+                        {asset.description && (
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {asset.description}
+                          </p>
+                        )}
+
+                        <div className="flex justify-between items-center text-xs text-gray-500">
+                          <span>Added {new Date(asset.createdAt).toLocaleDateString()}</span>
+                          {asset.updatedAt !== asset.createdAt && (
+                            <span>Updated {new Date(asset.updatedAt).toLocaleDateString()}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex space-x-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setEditingAsset(asset)}
+                          className="flex-1"
+                        >
+                          ✏️ Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          as={Link}
+                          to={`/assets/${asset.assetId}`}
+                          className="flex-1"
+                        >
+                          👁️ View
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }}
           </List>
         </div>
       )}
