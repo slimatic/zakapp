@@ -95,7 +95,6 @@ const sendMetricToBackend = async (metric: Metric): Promise<void> => {
       rating: getMetricRating(metric),
       delta: metric.delta,
       id: metric.id,
-      navigationType: metric.navigationType,
       timestamp: Date.now(),
       url: window.location.href,
       userAgent: navigator.userAgent,
@@ -174,10 +173,10 @@ export const initPerformanceMonitoring = (): void => {
  * Report all metrics manually (useful for SPA route changes)
  */
 export const reportAllMetrics = (): void => {
-  getCLS(handleMetric, { reportAllChanges: true });
+  getCLS(handleMetric, true);
   getFID(handleMetric);
   getFCP(handleMetric);
-  getLCP(handleMetric, { reportAllChanges: true });
+  getLCP(handleMetric, true);
   getTTFB(handleMetric);
 };
 
