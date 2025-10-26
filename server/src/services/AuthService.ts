@@ -38,6 +38,7 @@ export class AuthService {
    * Register a new user with encrypted sensitive data
    */
   async register(userData: CreateUserDto): Promise<{ user: any; tokens: AuthTokens }> {
+
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {

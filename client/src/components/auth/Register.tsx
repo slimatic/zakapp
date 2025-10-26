@@ -39,12 +39,13 @@ export const Register: React.FC = () => {
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
-    if (!formData.username.trim()) {
-      errors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      errors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      errors.username = 'Username can only contain letters, numbers, and underscores';
+    // Username is optional; if provided, validate constraints
+    if (formData.username && formData.username.trim()) {
+      if (formData.username.length < 3) {
+        errors.username = 'Username must be at least 3 characters';
+      } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+        errors.username = 'Username can only contain letters, numbers, and underscores';
+      }
     }
 
     if (!formData.firstName.trim()) {
@@ -155,6 +156,7 @@ export const Register: React.FC = () => {
               placeholder="First name"
               value={formData.firstName}
               onChange={handleChange}
+              dataTestId="first-name-input"
               error={formErrors.firstName}
               label="First Name"
             />
@@ -167,6 +169,7 @@ export const Register: React.FC = () => {
               placeholder="Last name"
               value={formData.lastName}
               onChange={handleChange}
+              dataTestId="last-name-input"
               error={formErrors.lastName}
               label="Last Name"
             />
@@ -180,6 +183,7 @@ export const Register: React.FC = () => {
               placeholder="Email address"
               value={formData.email}
               onChange={handleChange}
+              dataTestId="email-input"
               error={formErrors.email}
               label="Email Address"
             />
@@ -234,6 +238,7 @@ export const Register: React.FC = () => {
               placeholder="Confirm password"
               value={formData.confirmPassword}
               onChange={handleChange}
+              dataTestId="confirm-password-input"
               error={formErrors.confirmPassword}
               label="Confirm Password"
             />
@@ -260,6 +265,7 @@ export const Register: React.FC = () => {
             type="submit"
             disabled={isLoading}
             isLoading={isLoading}
+            dataTestId="register-button"
             className="w-full"
           >
             Create account

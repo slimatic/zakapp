@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
 
 // Log API configuration in development mode
 if (process.env.NODE_ENV === 'development') {
@@ -130,12 +130,12 @@ class ApiService {
         };
       }
       
-      // Backend returns: { success, accessToken, refreshToken, user }
+      // Backend returns: { success, data: { tokens: { accessToken, refreshToken }, user } }
       return {
         success: true,
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        user: result.user
+        accessToken: result.data?.tokens?.accessToken,
+        refreshToken: result.data?.tokens?.refreshToken,
+        user: result.data?.user
       };
     } catch (error) {
       console.error('Registration error:', error);

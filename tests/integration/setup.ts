@@ -1,5 +1,5 @@
 // Integration test setup
-import { PrismaClient } from '../../server/node_modules/@prisma/client';
+import { initTestDatabase, cleanTestDatabase } from '../../server/prisma/test-setup';
 import path from 'path';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -7,7 +7,9 @@ import fs from 'fs';
 // Load test environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../server/.env.test') });
 
-let prisma: PrismaClient;
+// Override DATABASE_URL to use test database BEFORE any server code is imported
+process.env.DATABASE_URL = `file:${path.resolve(__dirname, '../../server/data/test-integration.db')}`;
+process.env.TEST_DATABASE_URL = process.env.DATABASE_URL;
 
 // Create unique database name based on test file or timestamp
 const testFileName = process.env.JEST_WORKER_ID || `test-${Date.now()}`;
@@ -56,7 +58,9 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // Clean up test database connection
-  await prisma.$disconnect();
+  if (prisma) {
+    await prisma.$disconnect();
+  }
   console.log('✅ Test database disconnected');
 });
 
