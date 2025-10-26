@@ -5,6 +5,8 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   helpText?: string;
+  // optional test id to help e2e tests
+  dataTestId?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(({
@@ -13,6 +15,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
   helpText,
   className,
   id,
+  dataTestId,
   ...props
 }, ref) => {
   const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
@@ -30,6 +33,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
       <input
         ref={ref}
         id={inputId}
+        data-testid={dataTestId}
         className={clsx(
           'block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 sm:text-sm',
           error

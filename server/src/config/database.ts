@@ -385,7 +385,7 @@ export class DatabaseManager {
    * Execute transaction with automatic retry
    */
   public async executeTransaction<T>(
-    operation: (prisma: PrismaClient) => Promise<T>,
+    operation: (prisma: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>) => Promise<T>,
     maxRetries = 3
   ): Promise<T> {
     let attempt = 0;
