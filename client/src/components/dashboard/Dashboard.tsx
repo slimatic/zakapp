@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAssets, useZakatHistory } from '../../services/apiHooks';
 import { LoadingSpinner, ErrorMessage } from '../ui';
 import type { Asset } from '@zakapp/shared';
 
-export const Dashboard: React.FC = () => {
+export const Dashboard: React.FC = React.memo(() => {
   // Fetch assets and zakat history data
   const { data: assetsData, isLoading: assetsLoading, error: assetsError } = useAssets();
   const { data: historyData, isLoading: historyLoading, error: historyError } = useZakatHistory();
@@ -12,10 +12,15 @@ export const Dashboard: React.FC = () => {
   const assets = assetsData?.data?.assets || [];
   const history = historyData?.data?.calculations || [];
 
-  // Calculate dashboard metrics
-  const totalAssetValue = assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
-  const lastCalculation = history.length > 0 ? history[0] : null;
-  const lastZakatAmount = lastCalculation?.zakatAmount || 0;
+  // Calculate dashboard metrics with memoization
+  const dashboardMetrics = useMemo(() => {
+    const totalAssetValue = assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
+    const lastCalculation = history.length > 0 ? history[0] : null;
+    const lastZakatAmount = lastCalculation?.zakatAmount || 0;
+    return { totalAssetValue, lastZakatAmount, lastCalculation };
+  }, [assets, history]);
+
+  const { totalAssetValue, lastZakatAmount, lastCalculation } = dashboardMetrics;
 
   const formatCurrency = (amount: number, currency: string = 'USD'): string => {
     return new Intl.NumberFormat('en-US', {
@@ -268,4 +273,4 @@ export const Dashboard: React.FC = () => {
       </div>
     </>
   );
-};
+});
