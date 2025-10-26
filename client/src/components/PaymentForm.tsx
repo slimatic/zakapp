@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Button } from '@components/ui/Button';
-import { Input } from '@components/ui/Input';
-import { Select } from '@components/ui/Select';
-import { TextArea } from '@components/ui/TextArea';
-import { LoadingSpinner } from '@components/ui/LoadingSpinner';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Select } from './ui/Select';
+import { TextArea } from './ui/TextArea';
+import { LoadingSpinner } from './ui/LoadingSpinner';
 
 export interface PaymentFormData {
   amount: string;
