@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult, body, param, query } from 'express-validator';
 import { z } from 'zod';
+import { VALID_ASSET_CATEGORY_VALUES } from '@zakapp/shared';
 
 // Extend Request type for file uploads
 interface RequestWithFile extends Request {
@@ -351,13 +352,13 @@ export const validateIdParam = [
  */
 export const assetCreateSchema = z.object({
   name: z.string().min(1).max(255),
-  category: z.enum(['cash', 'gold', 'silver', 'crypto', 'business', 'investment', 'property', 'other']),
+  category: z.enum([...VALID_ASSET_CATEGORY_VALUES] as [string, ...string[]]),
   value: positiveNumberSchema,
   currency: currencySchema,
   acquisitionDate: z.string().datetime().or(z.date()),
   description: z.string().max(1000).optional(),
   notes: z.string().max(2000).optional(),
-  metadata: z.record(z.string(), z.any()).optional()
+  metadata: z.record(z.string(), z.unknown()).optional()
 });
 
 /**

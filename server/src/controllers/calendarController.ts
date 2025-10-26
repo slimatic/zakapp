@@ -11,6 +11,18 @@ import { PrismaClient } from '@prisma/client';
 const calendarService = new CalendarService();
 const prisma = new PrismaClient();
 
+/**
+ * Safely extracts error message from unknown error type
+ * @param error - The caught error (unknown type in strict mode)
+ * @returns Error message string or default message
+ */
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'An unexpected error occurred';
+};
+
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
@@ -65,7 +77,7 @@ export const convertDate = async (req: AuthenticatedRequest, res: Response) => {
     // eslint-disable-next-line no-console
     console.error('Calendar conversion error:', error);
 
-    if (error instanceof Error && error.message.includes('Invalid date format')) {
+    if (getErrorMessage(error).includes('Invalid date format')) {
       return res.status(400).json({
         success: false,
         error: 'INVALID_DATE_FORMAT',
@@ -127,7 +139,7 @@ export const calculateZakatYear = async (req: AuthenticatedRequest, res: Respons
     // eslint-disable-next-line no-console
     console.error('Zakat year calculation error:', error);
 
-    if (error instanceof Error && error.message.includes('Invalid date format')) {
+    if (getErrorMessage(error).includes('Invalid date format')) {
       return res.status(400).json({
         success: false,
         error: 'INVALID_DATE_FORMAT',

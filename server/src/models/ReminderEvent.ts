@@ -192,6 +192,7 @@ export class ReminderEventModel {
       limit?: number;
       status?: ReminderStatus;
       priority?: ReminderPriority;
+      eventType?: ReminderEventType;
       sortOrder?: 'asc' | 'desc';
     } = {}
   ): Promise<{ data: ReminderEvent[]; total: number }> {
@@ -208,6 +209,10 @@ export class ReminderEventModel {
 
       if (options.priority) {
         where.priority = options.priority;
+      }
+
+      if (options.eventType) {
+        where.eventType = options.eventType;
       }
 
       const [reminders, total] = await Promise.all([

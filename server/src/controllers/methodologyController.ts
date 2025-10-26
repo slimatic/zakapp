@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../types';
 import { MethodologyConfigService } from '../services/methodologyConfigService';
 import { CreateMethodologyConfig, UpdateMethodologyConfig } from '@zakapp/shared';
 import { AppError } from '../middleware/ErrorHandler';
+import { AuthenticatedRequest } from '../types';
 
 const methodologyService = new MethodologyConfigService();
 
@@ -35,8 +35,8 @@ export const getMethodologies = async (req: AuthenticatedRequest, res: Response)
     if (!req.userId) {
       return res.status(401).json({
         success: false,
-        error: 'UNAUTHENTICATED',
-        message: 'User not authenticated'
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
       });
     }
 
@@ -60,8 +60,8 @@ export const getMethodology = async (req: AuthenticatedRequest, res: Response) =
     if (!req.userId) {
       return res.status(401).json({
         success: false,
-        error: 'UNAUTHENTICATED',
-        message: 'User not authenticated'
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
       });
     }
 
@@ -86,8 +86,8 @@ export const updateMethodology = async (req: AuthenticatedRequest, res: Response
     if (!req.userId) {
       return res.status(401).json({
         success: false,
-        error: 'UNAUTHENTICATED',
-        message: 'User not authenticated'
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
       });
     }
 
@@ -113,8 +113,8 @@ export const createCustomMethodology = async (req: AuthenticatedRequest, res: Re
     if (!req.userId) {
       return res.status(401).json({
         success: false,
-        error: 'UNAUTHENTICATED',
-        message: 'User not authenticated'
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
       });
     }
 
@@ -139,8 +139,8 @@ export const deleteCustomMethodology = async (req: AuthenticatedRequest, res: Re
     if (!req.userId) {
       return res.status(401).json({
         success: false,
-        error: 'UNAUTHENTICATED',
-        message: 'User not authenticated'
+        error: 'UNAUTHORIZED',
+        message: 'Authentication required'
       });
     }
 

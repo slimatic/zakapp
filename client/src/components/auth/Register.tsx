@@ -14,7 +14,22 @@ export const Register: React.FC = () => {
     confirmPassword: '',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [showPasswordHints, setShowPasswordHints] = useState(false);
   const { isAuthenticated, register, isLoading, error } = useAuth();
+
+  // Password strength checker
+  const getPasswordStrength = (password: string) => {
+    const checks = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[!@#$%^&*]/.test(password)
+    };
+    return checks;
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -99,6 +114,9 @@ export const Register: React.FC = () => {
       password: formData.password,
       confirmPassword: formData.confirmPassword
     });
+    
+    // If registration failed, the error will be shown in the error banner
+    // The backend validation errors are already handled by the error state
   };
 
   return (
@@ -176,13 +194,40 @@ export const Register: React.FC = () => {
               type="password"
               autoComplete="new-password"
               required
-              placeholder="Password (min 8 characters)"
+              placeholder="Password"
               value={formData.password}
               onChange={handleChange}
-              dataTestId="password-input"
+              onFocus={() => setShowPasswordHints(true)}
               error={formErrors.password}
               label="Password"
             />
+            
+            {/* Password requirements with live validation */}
+            {showPasswordHints && (
+              <div className="text-xs space-y-1 mt-1 -mt-3 px-1 py-2 bg-blue-50 rounded-md border border-blue-200">
+                <p className="font-semibold text-blue-900 mb-1">Password must include:</p>
+                <div className={`flex items-center gap-1 ${passwordStrength.length ? 'text-green-600' : 'text-gray-600'}`}>
+                  <span>{passwordStrength.length ? '✓' : '○'}</span>
+                  <span>At least 8 characters</span>
+                </div>
+                <div className={`flex items-center gap-1 ${passwordStrength.uppercase ? 'text-green-600' : 'text-gray-600'}`}>
+                  <span>{passwordStrength.uppercase ? '✓' : '○'}</span>
+                  <span>One uppercase letter (A-Z)</span>
+                </div>
+                <div className={`flex items-center gap-1 ${passwordStrength.lowercase ? 'text-green-600' : 'text-gray-600'}`}>
+                  <span>{passwordStrength.lowercase ? '✓' : '○'}</span>
+                  <span>One lowercase letter (a-z)</span>
+                </div>
+                <div className={`flex items-center gap-1 ${passwordStrength.number ? 'text-green-600' : 'text-gray-600'}`}>
+                  <span>{passwordStrength.number ? '✓' : '○'}</span>
+                  <span>One number (0-9)</span>
+                </div>
+                <div className={`flex items-center gap-1 ${passwordStrength.special ? 'text-green-600' : 'text-gray-600'}`}>
+                  <span>{passwordStrength.special ? '✓' : '○'}</span>
+                  <span>One special character (!@#$%^&*)</span>
+                </div>
+              </div>
+            )}
 
             <Input
               id="confirmPassword"
