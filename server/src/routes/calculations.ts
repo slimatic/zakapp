@@ -36,9 +36,9 @@ const SaveCalculationSchema = z.object({
   nisabThreshold: z.number().min(0),
   zakatDue: z.number().min(0),
   zakatRate: z.number().min(0).max(100).optional().default(2.5),
-  assetBreakdown: z.record(z.any()),
+  assetBreakdown: z.record(z.unknown()),
   notes: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.unknown()).optional(),
   zakatYearStart: z.string().datetime(),
   zakatYearEnd: z.string().datetime(),
   methodologyConfigId: z.string().uuid().optional()

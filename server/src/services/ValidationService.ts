@@ -9,7 +9,7 @@ export const AssetCreateSchema = z.object({
   currency: z.string().length(3, 'Currency must be 3 characters').default('USD'),
   acquisitionDate: z.date().optional(),
   description: z.string().max(1000, 'Description too long').optional(),
-  metadata: z.record(z.string(), z.any()).optional()
+  metadata: z.record(z.string(), z.unknown()).optional()
 });
 
 export const AssetUpdateSchema = AssetCreateSchema.partial();
@@ -93,7 +93,7 @@ export const PaymentCreateSchema = z.object({
   paymentMethod: z.enum(['cash', 'bank_transfer', 'check', 'online', 'other']),
   receiptNumber: z.string().max(100).optional(),
   notes: z.string().max(1000).optional(),
-  metadata: z.record(z.string(), z.any()).optional()
+  metadata: z.record(z.string(), z.unknown()).optional()
 });
 
 // Snapshot validation schemas
@@ -103,7 +103,7 @@ export const SnapshotCreateSchema = z.object({
   tags: z.array(z.string().max(50)).max(10, 'Too many tags').optional(),
   includeAssets: z.array(z.string().uuid()).optional(),
   includeLiabilities: z.array(z.string().uuid()).optional(),
-  metadata: z.record(z.string(), z.any()).optional()
+  metadata: z.record(z.string(), z.unknown()).optional()
 });
 
 export class ValidationService {
