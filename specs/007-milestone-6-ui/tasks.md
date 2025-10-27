@@ -44,9 +44,9 @@
 
 ---
 
-## Phase 1: Setup & Infrastructure (T001-T007)
+## Phase 1: Setup & Infrastructure (T001-T007) ✅
 
-### T001: Install Accessibility Dependencies
+### T001: Install Accessibility Dependencies ✅
 **File**: `client/package.json`
 ```bash
 cd client && npm install --save \
@@ -58,8 +58,9 @@ cd client && npm install --save \
   react-focus-lock@^2.9.6
 ```
 **Goal**: Install UI primitives for accessible components
+**Status**: COMPLETE
 
-### T002: Install PWA and Performance Dependencies
+### T002: Install PWA and Performance Dependencies ✅
 **File**: `client/package.json`
 ```bash
 cd client && npm install --save \
@@ -75,7 +76,7 @@ npm install --save-dev \
 ```
 **Goal**: Install PWA and performance monitoring tools
 
-### T003 [P]: Install Testing Dependencies
+### T003 [P]: Install Testing Dependencies ✅
 **File**: `client/package.json`
 ```bash
 cd client && npm install --save-dev \
@@ -86,7 +87,7 @@ cd client && npm install --save-dev \
 ```
 **Goal**: Install accessibility and performance testing tools
 
-### T004 [P]: Configure Lighthouse CI
+### T004 [P]: Configure Lighthouse CI ✅
 **File**: `.lighthouse/lighthouserc.json`
 ```json
 {
@@ -109,7 +110,7 @@ cd client && npm install --save-dev \
 ```
 **Goal**: Set up Lighthouse CI with score thresholds
 
-### T005 [P]: Configure Vite PWA Plugin
+### T005 [P]: Configure Vite PWA Plugin ✅
 **File**: `client/vite.config.ts`
 - Add vite-plugin-pwa to plugins
 - Configure manifest generation
@@ -117,14 +118,14 @@ cd client && npm install --save-dev \
 - Configure workbox options
 **Goal**: Enable PWA build capabilities
 
-### T006 [P]: Set up Accessibility Testing Infrastructure
+### T006 [P]: Set up Accessibility Testing Infrastructure ✅
 **File**: `client/src/tests/setup.ts`
 - Import and configure jest-axe
 - Add toHaveNoViolations matcher
 - Set up axe-core configuration
 **Goal**: Enable automated accessibility testing
 
-### T007: **🔸 COMMIT CHECKPOINT**
+### T007: **🔸 COMMIT CHECKPOINT** ✅
 **Commit Message**: `chore: Set up Milestone 6 infrastructure and dependencies
 
 - Install accessibility libraries (Radix UI, react-aria)
@@ -138,7 +139,7 @@ cd client && npm install --save-dev \
 
 ## Phase 2: Accessibility Compliance - WCAG 2.1 AA (T008-T022)
 
-### T008 [P]: Add Skip Navigation Link
+### T008 [P]: Add Skip Navigation Link ✅
 **File**: `client/src/components/common/SkipLink.tsx`
 - Create skip-to-main-content component
 - Position visually hidden, visible on focus
@@ -146,7 +147,7 @@ cd client && npm install --save-dev \
 **Goal**: Enable keyboard users to bypass navigation
 **Testing**: Tab on page load → skip link appears and works
 
-### T009 [P]: Implement Keyboard Navigation for Navigation Component
+### T009 [P]: Implement Keyboard Navigation for Navigation Component ✅
 **File**: `client/src/components/common/Navigation.tsx`
 - Add keyboard event handlers (Enter, Space, Arrow keys)
 - Implement focus management
@@ -155,7 +156,7 @@ cd client && npm install --save-dev \
 **Goal**: Full keyboard accessibility for navigation
 **Testing**: Navigate site using Tab/Arrow keys only
 
-### T010 [P]: Add ARIA Labels and Roles to Forms
+### T010 [P]: Add ARIA Labels and Roles to Forms ✅
 **File**: `client/src/components/forms/AssetForm.tsx`
 - Associate labels with inputs (htmlFor/id)
 - Add aria-describedby for help text
@@ -164,7 +165,7 @@ cd client && npm install --save-dev \
 **Goal**: Screen reader-friendly forms
 **Testing**: Navigate form with screen reader
 
-### T011 [P]: Implement Focus Indicators
+### T011 [P]: Implement Focus Indicators ✅
 **File**: `client/src/styles/accessibility.css`
 - Define visible focus ring styles
 - Ensure 3:1 contrast ratio for focus indicators
@@ -173,7 +174,7 @@ cd client && npm install --save-dev \
 **Goal**: Visible keyboard focus throughout app
 **Testing**: Tab through app → all elements show focus ring
 
-### T012 [P]: Fix Color Contrast Issues
+### T012 [P]: Fix Color Contrast Issues ✅
 **Files**: 
 - `client/src/styles/globals.css`
 - `client/tailwind.config.js`
@@ -183,7 +184,7 @@ cd client && npm install --save-dev \
 **Goal**: Meet WCAG AA contrast requirements
 **Testing**: Run axe audit → 0 contrast violations
 
-### T013 [P]: Add Semantic HTML Structure
+### T013 [P]: Add Semantic HTML Structure ✅
 **Files**:
 - `client/src/pages/Dashboard.tsx`
 - `client/src/pages/zakat/Calculator.tsx`
@@ -194,7 +195,7 @@ cd client && npm install --save-dev \
 **Goal**: Proper document structure for screen readers
 **Testing**: Screen reader announces landmarks correctly
 
-### T014 [P]: Implement Accessible Modal Dialogs
+### T014 [P]: Implement Accessible Modal Dialogs ✅
 **File**: `client/src/components/common/Modal.tsx`
 - Replace custom modal with Radix Dialog
 - Implement focus trapping
@@ -204,7 +205,7 @@ cd client && npm install --save-dev \
 **Goal**: WCAG-compliant modal interactions
 **Testing**: Open modal with keyboard → focus trapped, Escape closes
 
-### T015 [P]: Add Accessible Tooltips
+### T015 [P]: Add Accessible Tooltips ✅
 **File**: `client/src/components/common/Tooltip.tsx`
 - Use Radix Tooltip or react-aria useTooltip
 - Add aria-describedby relationship
@@ -213,7 +214,7 @@ cd client && npm install --save-dev \
 **Goal**: Keyboard and screen reader accessible tooltips
 **Testing**: Focus element → tooltip appears and announces
 
-### T016 [P]: Create Accessible Data Tables
+### T016 [P]: Create Accessible Data Tables ✅
 **File**: `client/src/components/assets/AssetTable.tsx`
 - Add <thead>, <tbody>, <th> structure
 - Add scope="col" and scope="row"
@@ -222,7 +223,7 @@ cd client && npm install --save-dev \
 **Goal**: Screen reader-friendly tables
 **Testing**: Screen reader announces column/row headers
 
-### T017 [P]: Add Text Alternatives for Charts
+### T017 [P]: Add Text Alternatives for Charts ✅
 **File**: `client/src/components/dashboard/Charts.tsx`
 - Add aria-label with data summary
 - Provide text-based data table alternative
@@ -230,7 +231,7 @@ cd client && npm install --save-dev \
 **Goal**: Chart data accessible to screen reader users
 **Testing**: Screen reader announces chart purpose and data
 
-### T018 [P]: Implement Accessible Form Validation
+### T018 [P]: Implement Accessible Form Validation ✅
 **Files**:
 - `client/src/components/forms/AssetForm.tsx`
 - `client/src/components/auth/LoginForm.tsx`
@@ -241,7 +242,7 @@ cd client && npm install --save-dev \
 **Goal**: Accessible error feedback
 **Testing**: Submit invalid form → errors announced by screen reader
 
-### T019 [P]: Add Image Alt Text
+### T019 [P]: Add Image Alt Text ✅
 **Files**: All components with images
 - Add meaningful alt text to all <img> elements
 - Use empty alt="" for decorative images
@@ -249,7 +250,7 @@ cd client && npm install --save-dev \
 **Goal**: All images accessible to screen readers
 **Testing**: Screen reader announces image purposes
 
-### T020 [P]: Implement Accessible Dropdown Menus
+### T020 [P]: Implement Accessible Dropdown Menus ✅
 **File**: `client/src/components/common/DropdownMenu.tsx`
 - Use Radix DropdownMenu or react-aria
 - Implement keyboard navigation (Arrow keys)
@@ -258,14 +259,14 @@ cd client && npm install --save-dev \
 **Goal**: Keyboard-accessible dropdowns
 **Testing**: Navigate dropdown with keyboard
 
-### T021 [P]: Fix Language Declaration
+### T021 [P]: Fix Language Declaration ✅
 **File**: `client/index.html`
 - Add lang="en" to <html> tag
 - Add lang attribute to any content in different languages
 **Goal**: Screen readers use correct pronunciation
 **Testing**: Validate HTML lang attributes
 
-### T022: **🔸 COMMIT CHECKPOINT**
+### T022: **🔸 COMMIT CHECKPOINT** ✅ ✅
 **Commit Message**: `feat: Implement WCAG 2.1 AA accessibility compliance
 
 - Add skip navigation link
@@ -671,7 +672,7 @@ UX target: 80% task completion, 4.0/5.0 satisfaction`
 
 ## Phase 6: Testing & Validation (T058-T065)
 
-### T058 [P]: Create Automated Accessibility Tests
+### T058 [P]: Create Automated Accessibility Tests ✅
 **Files**:
 - `client/src/tests/accessibility/keyboard-navigation.test.tsx`
 - `client/src/tests/accessibility/screen-reader.test.tsx`
@@ -682,7 +683,7 @@ UX target: 80% task completion, 4.0/5.0 satisfaction`
 **Goal**: Prevent accessibility regressions
 **Testing**: npm run test:a11y → all pass
 
-### T059 [P]: Create Performance Tests
+### T059 [P]: Create Performance Tests ✅
 **Files**:
 - `client/src/tests/performance/core-web-vitals.test.ts`
 - `client/src/tests/performance/bundle-size.test.ts`
@@ -692,15 +693,17 @@ UX target: 80% task completion, 4.0/5.0 satisfaction`
 **Goal**: Catch performance regressions
 **Testing**: npm run test:perf → all pass
 
-### T060 [P]: Create PWA Tests
+### T060 [P]: Create PWA Tests ✅
 **Files**:
 - `client/src/tests/pwa/service-worker.test.ts`
 - `client/src/tests/pwa/offline.test.tsx`
 - `client/src/tests/pwa/installation.test.ts`
+- `client/src/tests/pwa/update.test.ts`
 - Test SW registration
 - Test offline functionality
 - Test installation flow
-**Goal**: Verify PWA features
+- Test service worker update mechanism and user notification (FR-032)
+**Goal**: Verify PWA features including SW lifecycle
 **Testing**: npm run test:pwa → all pass
 
 ### T061: Run Manual Accessibility Audit ✅
@@ -724,7 +727,7 @@ UX target: 80% task completion, 4.0/5.0 satisfaction`
 **Testing**: All Lighthouse scores meet targets
 **Result**: ✅ ALL TARGETS MET - Perf: 94.5/100, A11y: 100/100, PWA: 100/100, BP: 97.5/100, SEO: 97/100 - CI/CD configured
 
-### T063: Create Usability Test Scenarios
+### T063: Create Usability Test Scenarios ✅
 **File**: `specs/007-milestone-6-ui/usability-test-plan.md`
 - Define 3 key task scenarios
 - Create participant screening criteria
