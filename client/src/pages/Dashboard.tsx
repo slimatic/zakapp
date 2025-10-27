@@ -154,7 +154,7 @@ export const Dashboard: React.FC = () => {
           <Link to="/assets/new">
             <Button variant="secondary">Add Asset</Button>
           </Link>
-          <Link to="/zakat/calculator">
+          <Link to="/calculate">
             <Button variant="primary">Calculate Zakat</Button>
           </Link>
         </div>
@@ -234,7 +234,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Link>
           
-          <Link to="/zakat/calculator" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+          <Link to="/calculate" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
             <span className="text-2xl mr-3">🧮</span>
             <div>
               <p className="font-medium text-gray-900">Calculate Zakat</p>
@@ -242,7 +242,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Link>
           
-          <Link to="/zakat/history" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+          <Link to="/history" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
             <span className="text-2xl mr-3">📈</span>
             <div>
               <p className="font-medium text-gray-900">View History</p>
@@ -250,7 +250,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Link>
           
-          <Link to="/user/profile" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+          <Link to="/settings" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
             <span className="text-2xl mr-3">⚙️</span>
             <div>
               <p className="font-medium text-gray-900">Settings</p>
@@ -314,7 +314,7 @@ export const Dashboard: React.FC = () => {
         <article className="bg-white rounded-lg shadow p-6" aria-labelledby="zakat-status-heading">
           <div className="flex items-center justify-between mb-4">
             <h3 id="zakat-status-heading" className="text-xl font-semibold text-gray-900">Zakat Status</h3>
-            <Link to="/zakat/history">
+            <Link to="/history">
               <Button variant="ghost" size="sm">View History</Button>
             </Link>
           </div>
@@ -348,7 +348,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               )}
 
-              <Link to="/zakat/calculator" className="block">
+              <Link to="/calculate" className="block">
                 <Button variant="primary" className="w-full">
                   Calculate Current Zakat
                 </Button>
@@ -359,7 +359,7 @@ export const Dashboard: React.FC = () => {
               <span className="text-4xl mb-4 block">🕌</span>
               <p className="font-medium">No calculations yet</p>
               <p className="text-sm mt-1">Calculate your Zakat obligations</p>
-              <Link to="/zakat/calculator" className="mt-4 inline-block">
+              <Link to="/calculate" className="mt-4 inline-block">
                 <Button variant="primary" size="sm">Start Calculation</Button>
               </Link>
             </div>
@@ -373,7 +373,7 @@ export const Dashboard: React.FC = () => {
       <article className="bg-white rounded-lg shadow p-6" aria-labelledby="recent-calc-heading">
         <div className="flex items-center justify-between mb-4">
           <h3 id="recent-calc-heading" className="text-xl font-semibold text-gray-900">Recent Calculations</h3>
-          <Link to="/zakat/history">
+          <Link to="/history">
             <Button variant="ghost" size="sm">View All</Button>
           </Link>
         </div>
@@ -403,7 +403,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="mt-4">
             <Link
-              to="/zakat/calculator"
+              to="/calculate"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
             >
               Calculate Zakat Now

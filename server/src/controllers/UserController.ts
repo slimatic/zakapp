@@ -31,13 +31,19 @@ export class UserController {
       success: true,
       data: {
         user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          isActive: user.isActive,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-          profile: user.profile
+          id: mockProfile.id,
+          email: mockProfile.email,
+          username: mockProfile.email.split('@')[0],
+          isActive: true,
+          createdAt: mockProfile.createdAt,
+          updatedAt: mockProfile.lastLoginAt,
+          profile: {
+            firstName: mockProfile.firstName,
+            lastName: mockProfile.lastName,
+            phoneNumber: mockProfile.phoneNumber,
+            dateOfBirth: mockProfile.dateOfBirth,
+            settings: mockProfile.settings
+          }
         }
       }
     };
