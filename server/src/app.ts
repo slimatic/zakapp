@@ -11,6 +11,12 @@ import 'dotenv/config';
 import authRoutes from './routes/auth';
 import assetRoutes from './routes/assets';
 import calculationsRoutes from './routes/calculations';
+import zakatRoutes from './routes/zakat';
+import trackingRoutes from './routes/tracking';
+import analyticsRoutes from './routes/analytics';
+import snapshotsRoutes from './routes/snapshots';
+import paymentsRoutes from './routes/payments';
+import userRoutes from './routes/user';
 
 // Import middleware
 // import { DatabaseManager } from './config/database';
@@ -52,6 +58,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/calculations', calculationsRoutes);
+app.use('/api/zakat', zakatRoutes);
+app.use('/api/tracking', trackingRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/snapshots', snapshotsRoutes);
+app.use('/api/payments', paymentsRoutes);
+app.use('/api/user', userRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

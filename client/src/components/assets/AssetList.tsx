@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAssets } from '../../services/apiHooks';
 import { Asset, AssetCategoryType } from '@zakapp/shared';
 import { LoadingSpinner, ErrorMessage, Button } from '../ui';
 import { AssetForm } from './AssetForm';
 
-export const AssetList: React.FC = () => {
+export const AssetList: React.FC = React.memo(() => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   
   const { data: assetsData, isLoading, error } = useAssets();
-  const assets = assetsData?.data?.assets || [];
+  const assets = React.useMemo(() => assetsData?.data?.assets || [], [assetsData]);
 
-  const getCategoryIcon = (category: AssetCategoryType): string => {
+  const getCategoryIcon = useCallback((category: AssetCategoryType): string => {
     const icons: Record<AssetCategoryType, string> = {
       cash: '💵',
       gold: '🪙',
@@ -25,14 +25,14 @@ export const AssetList: React.FC = () => {
       expenses: '🧾'
     };
     return icons[category] || '📦';
-  };
+  }, []);
 
-  const formatCurrency = (amount: number, currency: string): string => {
+  const formatCurrency = useCallback((amount: number, currency: string): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency || 'USD',
     }).format(amount);
-  };
+  }, []);
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <ErrorMessage error={error} />;
@@ -280,4 +280,4 @@ export const AssetList: React.FC = () => {
       )}
     </div>
   );
-};
+});

@@ -84,6 +84,8 @@ export const useCreateAsset = () => {
     mutationFn: (assetData: any) => apiService.createAsset(assetData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['zakat-summary'] });
     },
   });
 };
@@ -97,6 +99,8 @@ export const useUpdateAsset = () => {
     onSuccess: (data: any, variables: any) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['assets', variables.assetId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['zakat-summary'] });
     },
   });
 };
@@ -108,6 +112,8 @@ export const useDeleteAsset = () => {
     mutationFn: (assetId: string) => apiService.deleteAsset(assetId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['zakat-summary'] });
     },
   });
 };

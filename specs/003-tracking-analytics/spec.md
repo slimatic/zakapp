@@ -31,10 +31,31 @@
 
 ---
 
+## Clarifications
+
+### Session 2025-10-27 (Morning) - Snapshot Workflow
+
+- Q: When creating a snapshot, which assets should be automatically included? → A: All assets in portfolio (regardless of category)
+- Q: When a snapshot is in DRAFT status and an asset is modified, how should the draft snapshot update? → A: Manual refresh - User clicks "Refresh Snapshot" button to update values
+- Q: What should happen if a finalized snapshot needs correction? → A: Unlock with reason - Provide justification, edit, then re-finalize (audit trail maintained)
+
+### Session 2025-10-27 (Afternoon) - Islamic Accounting Alignment
+
+**Context**: Proper Zakat accounting involves Nisab threshold, Hawl (lunar year), and calculation of Zakat base per Islamic principles.
+
+- Q: What should we call the record that captures wealth at the end of a Zakat year? → A: **Nisab Year Record** (emphasizes threshold requirement and yearly Hawl cycle)
+- Q: How should the system track when wealth first reaches Nisab (Hawl start date)? → A: **Aggregate only** - Track when total wealth (all assets combined) reaches Nisab threshold
+- Q: What should happen during the draft period before Hawl completes? → A: **Live tracking** - Draft record continuously shows current wealth until Hawl (lunar year) completes
+- Q: How should Nisab threshold be calculated (gold vs silver standard)? → A: **User chooses once** - Select gold (87.48g) or silver (612.36g) standard in settings, applies to all years
+- Q: What qualifies as deductible "immediate, necessary liabilities"? → A: **User discretion with guidance** - User marks which liabilities to deduct following their chosen scholarly opinion
+
+---
+
 ## User Scenarios & Testing
 
 ### Primary User Story
-As a ZakApp user who has been calculating Zakat for multiple years, I need to track my Zakat history, record payments, and analyze trends over time, so that I can maintain accurate Islamic financial records, ensure timely payments, and understand how my zakatable wealth changes year over year.
+
+As a ZakApp user who has been calculating Zakat for multiple years, I need to track my Zakat history through **Nisab Year Records**, record payments, and analyze trends over time, so that I can maintain accurate Islamic financial records following proper Hawl (lunar year) accounting, ensure timely payments, and understand how my zakatable wealth changes year over year.
 
 ### Acceptance Scenarios
 
@@ -81,72 +102,84 @@ As a ZakApp user who has been calculating Zakat for multiple years, I need to tr
 ### Functional Requirements
 
 #### Historical Tracking
+
 - **FR-001**: System MUST maintain a complete historical record of all Zakat calculations performed by each user
-- **FR-002**: System MUST create automatic yearly snapshots of user assets, liabilities, and calculation results
+- **FR-002**: System MUST create Nisab Year Records that automatically include ALL assets from user's portfolio at time of creation
 - **FR-003**: System MUST preserve the calculation methodology used for each historical calculation
 - **FR-004**: System MUST allow users to view detailed breakdowns of any historical calculation
 - **FR-005**: System MUST track which calculations represent official annual Zakat vs exploratory calculations
-- **FR-006**: Historical records MUST be immutable once marked as finalized
+- **FR-006**: Nisab Year Records MUST be immutable once marked as finalized, with unlock capability requiring justification and audit trail
 - **FR-007**: System MUST support both Gregorian and Islamic calendar date tracking for all records
+- **FR-008**: Draft Nisab Year Records MUST provide live tracking that continuously shows current wealth until Hawl (lunar year) completes
+- **FR-009**: Finalized Nisab Year Records MUST support unlock workflow: provide reason → edit → re-finalize, with full audit trail (who, when, why)
+- **FR-010**: System MUST track Hawl start date when user's aggregate wealth first reaches Nisab threshold
+- **FR-011**: System MUST calculate Nisab threshold based on user's chosen standard: gold (87.48g) or silver (612.36g) at current market prices
+- **FR-012**: System MUST allow users to mark which liabilities are deductible from Zakat base with scholarly guidance displayed
 
 #### Payment Recording
-- **FR-008**: System MUST allow users to record Zakat payment details including amount, recipient, and date
-- **FR-009**: System MUST support partial payment recording when Zakat is distributed to multiple recipients
-- **FR-010**: System MUST link payment records to their corresponding Zakat calculations
-- **FR-011**: Users MUST be able to add notes and documentation to payment records
-- **FR-012**: System MUST track payment status for each calculation: unpaid, partially paid, fully paid
-- **FR-013**: System MUST calculate and display remaining unpaid Zakat obligations
-- **FR-014**: Payment records MUST support receipt attachment (references to documentation)
-- **FR-015**: System MUST allow payment record editing with audit trail preservation
+
+- **FR-013**: System MUST allow users to record Zakat payment details including amount, recipient, and date
+- **FR-014**: System MUST support partial payment recording when Zakat is distributed to multiple recipients
+- **FR-015**: System MUST link payment records to their corresponding Nisab Year Records
+- **FR-016**: Users MUST be able to add notes and documentation to payment records
+- **FR-017**: System MUST track payment status for each calculation: unpaid, partially paid, fully paid
+- **FR-018**: System MUST calculate and display remaining unpaid Zakat obligations
+- **FR-019**: Payment records MUST support receipt attachment (references to documentation)
+- **FR-020**: System MUST allow payment record editing with audit trail preservation
 
 #### Analytics and Visualization
-- **FR-016**: System MUST provide an analytics dashboard showing key Zakat metrics over time
-- **FR-017**: Dashboard MUST display year-over-year wealth trends and Zakat amount changes
-- **FR-018**: System MUST visualize asset composition changes across multiple years
-- **FR-019**: Analytics MUST show Zakat payment consistency and coverage rates
-- **FR-020**: System MUST provide comparative analysis between selected years
-- **FR-021**: Visualizations MUST use clear, colorful charts that are easy to understand
-- **FR-022**: System MUST calculate and display aggregate statistics: total Zakat paid, average annual Zakat, wealth growth rate
-- **FR-023**: Analytics MUST respect user privacy and never aggregate data across users
+
+- **FR-021**: System MUST provide an analytics dashboard showing key Zakat metrics over time
+- **FR-022**: Dashboard MUST display year-over-year wealth trends and Zakat amount changes
+- **FR-023**: System MUST visualize asset composition changes across multiple Nisab Year Records
+- **FR-024**: Analytics MUST show Zakat payment consistency and coverage rates
+- **FR-025**: System MUST provide comparative analysis between selected Nisab Year Records
+- **FR-026**: Visualizations MUST use clear, colorful charts that are easy to understand
+- **FR-027**: System MUST calculate and display aggregate statistics: total Zakat paid, average annual Zakat, wealth growth rate
+- **FR-028**: Analytics MUST respect user privacy and never aggregate data across users
 
 #### Progress Tracking and Reminders
-- **FR-024**: System MUST track the user's Zakat anniversary date based on their preferred calendar
-- **FR-025**: Dashboard MUST display time remaining until next Zakat calculation is due
-- **FR-026**: System MUST show progress indicators for asset documentation completeness
-- **FR-027**: System MUST highlight changes since last year's calculation to help users update data
-- **FR-028**: System MUST display upcoming obligations and suggest action items
+
+- **FR-029**: System MUST track the user's Hawl completion date (lunar year anniversary) based on when aggregate wealth first reached Nisab
+- **FR-030**: Dashboard MUST display time remaining until Hawl completes and Zakat becomes due
+- **FR-031**: System MUST show progress indicators for asset documentation completeness
+- **FR-032**: System MUST highlight changes since last Nisab Year Record to help users update data
+- **FR-033**: System MUST display upcoming obligations and suggest action items
 
 #### Annual Summaries
-- **FR-029**: System MUST generate comprehensive annual summary reports for each Zakat year
-- **FR-030**: Annual summary MUST include: total Zakat calculated, amount paid, payment recipients, methodology used, asset breakdown, and comparative analysis with previous years
-- **FR-031**: Summary MUST include Islamic jurisprudence references relevant to the user's calculations
-- **FR-032**: System MUST allow users to add personal notes to annual summaries
-- **FR-033**: Annual summaries MUST be exportable in multiple formats
+
+- **FR-034**: System MUST generate comprehensive annual summary reports for each Zakat year based on Nisab Year Records
+- **FR-035**: Annual summary MUST include: total Zakat calculated, amount paid, payment recipients, methodology used, asset breakdown, Nisab threshold used, Hawl dates, and comparative analysis with previous years
+- **FR-036**: Summary MUST include Islamic jurisprudence references relevant to the user's calculations
+- **FR-037**: System MUST allow users to add personal notes to annual summaries
+- **FR-038**: Annual summaries MUST be exportable in multiple formats
 
 #### Export Capabilities
-- **FR-034**: System MUST support exporting Zakat history in CSV format for spreadsheet analysis
-- **FR-035**: System MUST support exporting detailed reports in PDF format for record-keeping
-- **FR-036**: System MUST support exporting raw data in JSON format for data portability
-- **FR-037**: Export functionality MUST allow date range selection for partial history exports
-- **FR-038**: PDF exports MUST include professional formatting suitable for official documentation
-- **FR-039**: CSV exports MUST include all relevant data fields with clear column headers
-- **FR-040**: JSON exports MUST preserve complete data structure including relationships
-- **FR-041**: All exports MUST respect user privacy and include only user-specific data
+
+- **FR-039**: System MUST support exporting Zakat history in CSV format for spreadsheet analysis
+- **FR-040**: System MUST support exporting detailed reports in PDF format for record-keeping
+- **FR-041**: System MUST support exporting raw data in JSON format for data portability
+- **FR-042**: Export functionality MUST allow date range selection for partial history exports
+- **FR-043**: PDF exports MUST include professional formatting suitable for official documentation
+- **FR-044**: CSV exports MUST include all relevant data fields with clear column headers
+- **FR-045**: JSON exports MUST preserve complete data structure including relationships
+- **FR-046**: All exports MUST respect user privacy and include only user-specific data
 
 #### Data Import
-- **FR-042**: System MUST support importing historical Zakat data from CSV files
-- **FR-043**: Import functionality MUST validate data format and completeness before acceptance
-- **FR-044**: System MUST provide clear error messages for invalid import data
-- **FR-045**: Import process MUST allow users to review and confirm data before final import
-- **FR-046**: Imported data MUST undergo Islamic compliance validation
+
+- **FR-047**: System MUST support importing historical Zakat data from CSV files
+- **FR-048**: Import functionality MUST validate data format and completeness before acceptance
+- **FR-049**: System MUST provide clear error messages for invalid import data
+- **FR-050**: Import process MUST allow users to review and confirm data before final import
+- **FR-051**: Imported data MUST undergo Islamic compliance validation
 
 ### Key Entities
 
-- **Yearly Snapshot**: Represents a complete record of user assets, liabilities, and Zakat calculation at a specific point in time (annual Zakat calculation date). Includes: date (both Gregorian and Islamic calendar), total zakatable wealth, Zakat amount, methodology used, asset breakdown, calculation details, and status (draft, finalized).
+- **Nisab Year Record** (formerly "Yearly Snapshot"): Represents a complete record of user's zakatable wealth and Zakat calculation following Islamic accounting principles. **Automatically includes ALL assets from user's portfolio** at creation time. Includes: Hawl start date (when aggregate wealth first reached Nisab threshold), Hawl completion date (lunar year anniversary ~354 days later), Nisab threshold used (based on gold 87.48g or silver 612.36g at current market prices), total zakatable wealth, deductible liabilities (user-selected with scholarly guidance), net Zakat base, Zakat amount (2.5% of base), methodology used, asset breakdown, calculation details, and status (draft, finalized). **Draft records provide live tracking showing current wealth until Hawl completes; finalized records are immutable but can be unlocked with justification (audit trail: who, when, why maintained).**
 
-- **Payment Record**: Represents a recorded Zakat payment. Includes: amount paid, payment date, recipient name/category, recipient type (individual, charity organization, etc.), notes, receipt reference, and link to corresponding calculation.
+- **Payment Record**: Represents a recorded Zakat payment linked to a specific Nisab Year Record. Includes: amount paid, payment date, recipient name/category (one of eight Quranic categories: poor, needy, those reconciling hearts, travelers in need, etc.), recipient type (individual, charity organization), notes, receipt reference, and link to corresponding Nisab Year Record.
 
-- **Analytics Metric**: Represents calculated statistical data for dashboard visualization. Includes: metric type (wealth trend, Zakat consistency, asset composition), time period, calculated value, comparison values, and visualization type (chart, graph, table).
+- **Analytics Metric**: Represents calculated statistical data for dashboard visualization. Includes: metric type (wealth trend across Hawl cycles, Zakat payment consistency, asset composition changes), time period, calculated value, comparison values, and visualization type (chart, graph, table).
 
 - **Annual Summary**: Represents a comprehensive yearly report combining calculation, payment, and analysis data. Includes: Islamic calendar year, Gregorian date range, total Zakat calculated, total paid, outstanding amount, recipient summary, asset breakdown, methodology used, comparative analysis with previous years, and user notes.
 

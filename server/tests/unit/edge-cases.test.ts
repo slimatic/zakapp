@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { PaymentService } from '../../../src/services/payment-service';
-import { AnalyticsService } from '../../../src/services/analytics-service';
-import { ReminderService } from '../../../src/services/reminder-service';
-import { ExportService } from '../../../src/services/export-service';
+import { PaymentService } from '../../src/services/payment-service';
+import { AnalyticsService } from '../../src/services/analytics-service';
+import { ReminderService } from '../../src/services/reminder-service';
+import { ExportService } from '../../src/services/export-service';
 
 describe('Edge Cases: Payment Service', () => {
   beforeEach(() => {

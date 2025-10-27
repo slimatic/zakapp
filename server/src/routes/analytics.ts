@@ -242,4 +242,72 @@ router.post('/cache/clear', authenticateToken, async (req: AuthenticatedRequest,
   }
 });
 
+/**
+ * POST /api/analytics/web-vitals
+ * 
+ * T036: Analytics Endpoint for Core Web Vitals
+ * Receives performance metrics from the frontend (web-vitals library)
+ * Metrics: CLS, FID, FCP, LCP, TTFB
+ * 
+ * These metrics help track real-user performance and identify regressions
+ */
+router.post('/web-vitals', async (req, res) => {
+  try {
+    const {
+      name,
+      value,
+      rating,
+      delta,
+      id,
+      timestamp,
+      url,
+      userAgent,
+    } = req.body;
+
+    // Validate required fields
+    if (!name || value === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'INVALID_METRIC',
+        message: 'Metric name and value are required',
+      });
+    }
+
+    // Log metric for monitoring (in production, store in database)
+    console.log('[Web Vitals]', {
+      name,
+      value: typeof value === 'number' ? `${value.toFixed(2)}` : value,
+      rating,
+      url,
+      timestamp: timestamp ? new Date(timestamp).toISOString() : new Date().toISOString(),
+    });
+
+    // TODO: Store in database for analytics dashboard
+    // await prisma.webVital.create({
+    //   data: {
+    //     name,
+    //     value,
+    //     rating,
+    //     delta,
+    //     metricId: id,
+    //     timestamp: new Date(timestamp),
+    //     url,
+    //     userAgent,
+    //   },
+    // });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Metric recorded successfully',
+    });
+  } catch (error) {
+    console.error('[Analytics] Error recording web vital:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'INTERNAL_ERROR',
+      message: 'Failed to record metric',
+    });
+  }
+});
+
 export default router;

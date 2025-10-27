@@ -8,8 +8,6 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-export { API_BASE_URL };
-
 export interface LoginRequest {
   email?: string;
   username?: string;
@@ -360,8 +358,8 @@ class ApiService {
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
     const url = params.toString()
-      ? `${API_BASE_URL}/zakat/snapshots?${params.toString()}`
-      : `${API_BASE_URL}/zakat/snapshots`;
+      ? `${API_BASE_URL}/snapshots?${params.toString()}`
+      : `${API_BASE_URL}/snapshots`;
 
     const response = await fetch(url, {
       headers: this.getAuthHeaders()
@@ -370,14 +368,14 @@ class ApiService {
   }
 
   async getSnapshot(snapshotId: string): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/snapshots/${snapshotId}`, {
+    const response = await fetch(`${API_BASE_URL}/snapshots/${snapshotId}`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
   }
 
   async deleteSnapshot(snapshotId: string): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/snapshots/${snapshotId}`, {
+    const response = await fetch(`${API_BASE_URL}/snapshots/${snapshotId}`, {
       method: 'DELETE',
       headers: this.getAuthHeaders()
     });
@@ -385,7 +383,7 @@ class ApiService {
   }
 
   async compareSnapshots(fromId: string, toId: string): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/snapshots/compare?from=${fromId}&to=${toId}`, {
+    const response = await fetch(`${API_BASE_URL}/snapshots/compare?from=${fromId}&to=${toId}`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
@@ -393,7 +391,7 @@ class ApiService {
 
   async getSnapshotStats(year?: number): Promise<ApiResponse> {
     const params = year ? `?year=${year}` : '';
-    const response = await fetch(`${API_BASE_URL}/zakat/snapshots/stats${params}`, {
+    const response = await fetch(`${API_BASE_URL}/snapshots/stats${params}`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
