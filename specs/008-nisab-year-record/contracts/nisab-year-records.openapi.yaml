@@ -1,0 +1,481 @@
+openapi: 3.0.3
+info:
+  title: Nisab Year Records API
+  description: API for managing Nisab Year Records (Islamic Zakat tracking with Hawl monitoring)
+  version: 1.0.0
+
+paths:
+  /api/nisab-year-records:
+    get:
+      summary: List all Nisab Year Records for authenticated user
+      tags: [NisabYearRecords]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, FINALIZED, UNLOCKED, ALL]
+          description: Filter by record status
+        - name: year
+          in: query
+          schema:
+            type: integer
+          description: Filter by Gregorian year
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  records:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NisabYearRecord'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    post:
+      summary: Create a new Nisab Year Record (DRAFT)
+      tags: [NisabYearRecords]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hawlStartDate, nisabBasis]
+              properties:
+                hawlStartDate:
+                  type: string
+                  format: date-time
+                  description: When aggregate wealth first reached Nisab
+                nisabBasis:
+                  type: string
+                  enum: [gold, silver]
+                  description: Nisab threshold standard
+                nisabThresholdAtStart:
+                  type: number
+                  description: Locked Nisab value (will be calculated if omitted)
+                userNotes:
+                  type: string
+                  description: Optional user notes
+      responses:
+        '201':
+          description: Record created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  record:
+                    $ref: '#/components/schemas/NisabYearRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/nisab-year-records/{id}:
+    get:
+      summary: Get specific Nisab Year Record details
+      tags: [NisabYearRecords]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  record:
+                    $ref: '#/components/schemas/NisabYearRecord'
+                  auditTrail:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditTrailEntry'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    put:
+      summary: Update Nisab Year Record (with status transition validation)
+      tags: [NisabYearRecords]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [DRAFT, FINALIZED, UNLOCKED]
+                  description: Target status (validates transitions)
+                totalLiabilities:
+                  type: number
+                  description: Updated deductible liabilities
+                userNotes:
+                  type: string
+                unlockReason:
+                  type: string
+                  description: Required when transitioning to UNLOCKED (min 10 chars)
+      responses:
+        '200':
+          description: Record updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  record:
+                    $ref: '#/components/schemas/NisabYearRecord'
+                  auditEntry:
+                    $ref: '#/components/schemas/AuditTrailEntry'
+        '400':
+          description: Invalid status transition or missing unlock reason
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "INVALID_TRANSITION"
+                  message:
+                    type: string
+                    example: "Cannot finalize record: Hawl has not completed yet"
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      summary: Delete Nisab Year Record (only DRAFT status allowed)
+      tags: [NisabYearRecords]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Record deleted successfully"
+        '400':
+          description: Cannot delete finalized or unlocked records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "DELETE_NOT_ALLOWED"
+                  message:
+                    type: string
+                    example: "Cannot delete FINALIZED records. Unlock first if corrections are needed."
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/nisab-year-records/{id}/finalize:
+    post:
+      summary: Finalize a DRAFT Nisab Year Record (lock for immutability)
+      tags: [NisabYearRecords]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                override:
+                  type: boolean
+                  description: Allow premature finalization (before Hawl completion)
+                acknowledgePremature:
+                  type: boolean
+                  description: Required if override=true
+      responses:
+        '200':
+          description: Record finalized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  record:
+                    $ref: '#/components/schemas/NisabYearRecord'
+        '400':
+          description: Hawl not complete or invalid override
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "HAWL_NOT_COMPLETE"
+                  message:
+                    type: string
+                    example: "Cannot finalize: Hawl completes in 45 days"
+                  daysRemaining:
+                    type: integer
+
+  /api/nisab-year-records/{id}/unlock:
+    post:
+      summary: Unlock a FINALIZED record for editing (requires reason)
+      tags: [NisabYearRecords]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  minLength: 10
+                  description: Justification for unlocking (min 10 characters)
+      responses:
+        '200':
+          description: Record unlocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  record:
+                    $ref: '#/components/schemas/NisabYearRecord'
+                  auditEntry:
+                    $ref: '#/components/schemas/AuditTrailEntry'
+        '400':
+          description: Invalid reason or already unlocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "INVALID_UNLOCK_REASON"
+                  message:
+                    type: string
+                    example: "Unlock reason must be at least 10 characters"
+
+components:
+  schemas:
+    NisabYearRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        hawlStartDate:
+          type: string
+          format: date-time
+        hawlStartDateHijri:
+          type: string
+          example: "1446-03-15"
+        hawlCompletionDate:
+          type: string
+          format: date-time
+        hawlCompletionDateHijri:
+          type: string
+          example: "1447-03-09"
+        nisabThresholdAtStart:
+          type: number
+          description: Decrypted value for display
+        nisabBasis:
+          type: string
+          enum: [gold, silver]
+        status:
+          type: string
+          enum: [DRAFT, FINALIZED, UNLOCKED]
+        totalWealth:
+          type: number
+          description: Decrypted aggregate wealth
+        totalLiabilities:
+          type: number
+        zakatableWealth:
+          type: number
+        zakatAmount:
+          type: number
+        methodologyUsed:
+          type: string
+        gregorianYear:
+          type: integer
+        hijriYear:
+          type: integer
+        isPrimary:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        finalizedAt:
+          type: string
+          format: date-time
+          nullable: true
+        # Live-tracked fields (DRAFT only)
+        currentTotalWealth:
+          type: number
+          description: Real-time aggregate wealth (DRAFT records only)
+        daysRemaining:
+          type: integer
+          description: Days until Hawl completion
+        isHawlComplete:
+          type: boolean
+        canFinalize:
+          type: boolean
+
+    AuditTrailEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        nisabYearRecordId:
+          type: string
+        userId:
+          type: string
+        eventType:
+          type: string
+          enum: [CREATED, FINALIZED, UNLOCKED, EDITED, REFINALIZED]
+        timestamp:
+          type: string
+          format: date-time
+        unlockReason:
+          type: string
+          nullable: true
+        changesSummary:
+          type: object
+          description: Decrypted JSON of field changes
+        beforeState:
+          type: object
+          nullable: true
+        afterState:
+          type: object
+          nullable: true
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "UNAUTHORIZED"
+              message:
+                type: string
+                example: "Authentication token required"
+    
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: "NOT_FOUND"
+              message:
+                type: string
+                example: "Nisab Year Record not found"
+    
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
