@@ -42,7 +42,12 @@
     "start": "NODE_OPTIONS=--no-deprecation react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lighthouse": "lhci autorun",
+    "lighthouse:ci": "lhci autorun --config=lighthouserc.json",
+    "lighthouse:desktop": "lighthouse http://localhost:3000 --preset=desktop --view",
+    "lighthouse:mobile": "lighthouse http://localhost:3000 --preset=mobile --view",
+    "lighthouse:pwa": "lighthouse http://localhost:3000 --only-categories=pwa --view"
   },
   "eslintConfig": {
     "extends": [

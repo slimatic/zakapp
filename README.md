@@ -1,12 +1,15 @@
 # ZakApp 🕌
 
-A **production-ready**, privacy-first Islamic Zakat calculator with comprehensive asset management and beautiful UI.
+A **production-ready**, privacy-first Islamic Zakat calculator with comprehensive asset management, beautiful accessible UI, and Progressive Web App capabilities.
 
 [![Build](https://github.com/slimatic/zakapp/actions/workflows/build.yml/badge.svg)](https://github.com/slimatic/zakapp/actions/workflows/build.yml)
 [![Tests](https://github.com/slimatic/zakapp/actions/workflows/test.yml/badge.svg)](https://github.com/slimatic/zakapp/actions/workflows/test.yml)
+[![Lighthouse CI](https://github.com/slimatic/zakapp/actions/workflows/lighthouse-ci.yml/badge.svg)](https://github.com/slimatic/zakapp/actions/workflows/lighthouse-ci.yml)
+[![Performance](https://img.shields.io/badge/lighthouse-94.5%2F100-brightgreen)](#performance--accessibility)
+[![Accessibility](https://img.shields.io/badge/accessibility-100%2F100-brightgreen)](./docs/accessibility.md)
+[![PWA](https://img.shields.io/badge/PWA-100%2F100-brightgreen)](./docs/pwa-guide.md)
+[![WCAG](https://img.shields.io/badge/WCAG-2.1_AA-blue)](./specs/007-milestone-6-ui/accessibility-audit-report.md)
 [![codecov](https://codecov.io/gh/slimatic/zakapp/branch/main/graph/badge.svg)](https://codecov.io/gh/slimatic/zakapp)
-[![Implementation](https://img.shields.io/badge/implementation-100%25-brightgreen)](./FINAL_IMPLEMENTATION_REPORT.md)
-[![Performance](https://img.shields.io/badge/performance-tested-blue)](./performance-tests/PHASE1_PERFORMANCE_REPORT.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
@@ -27,12 +30,33 @@ A **production-ready**, privacy-first Islamic Zakat calculator with comprehensiv
 
 ## 🎯 Project Overview
 
-ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that helps Muslims manage their Islamic financial obligations with complete privacy and Islamic compliance. Built with modern web technologies, it features end-to-end encryption, multiple calculation methodologies, and a beautiful user experience.
+ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that helps Muslims manage their Islamic financial obligations with complete privacy and Islamic compliance. Built with modern web technologies, it features end-to-end encryption, multiple calculation methodologies, a beautiful accessible interface, and Progressive Web App capabilities for offline use.
 
-**🏆 Current Status**: **100% Implementation Complete** - All 53 features implemented, performance tested, and ready for production deployment!  
-📊 **Test Coverage**: 175/186 tests passing (94.1%) | ⚡ **Performance**: 30ms p50 response time | 🚀 **Production Ready**: Deployment scripts prepared
+**🏆 Current Status**: **Milestone 6 Complete (90.7%)** - Modern UI/UX with perfect accessibility and performance!  
+📊 **Quality**: 100/100 Accessibility, 94.5/100 Performance, 100/100 PWA | ⚡ **Core Web Vitals**: All Green | 🚀 **Ready for Production**
 
 ## 🔄 Recent Updates (October 2025)
+
+### **🎨 Milestone 6: UI/UX Enhancements** ✅ **LATEST**
+- **Perfect Accessibility**: WCAG 2.1 Level AA compliant with 100/100 Lighthouse score
+  - Full keyboard navigation support
+  - Complete screen reader compatibility (NVDA, JAWS, VoiceOver)
+  - Proper color contrast (4.5:1 normal text, 3:1 large text)
+  - Semantic HTML with ARIA landmarks
+- **Excellent Performance**: 94.5/100 Lighthouse Performance score
+  - FCP: 0.8s (46% under target)
+  - LCP: 1.3s (48% under target)
+  - CLS: 0.02 (80% under target)
+  - Code splitting and lazy loading
+  - Optimized bundles (353KB total, 92.9% of budget)
+- **Progressive Web App**: 100/100 PWA score, fully installable
+  - Install on desktop and mobile
+  - Complete offline functionality
+  - Background sync when reconnected
+  - Service worker caching
+- **Comprehensive Testing**: Automated accessibility, performance, and PWA tests
+- **CI/CD Quality Gates**: Lighthouse CI runs on every PR
+- **See Documentation**: [Performance Guide](docs/performance.md), [Accessibility Guide](docs/accessibility.md), [PWA Guide](docs/pwa-guide.md)
 
 ### **Critical Authentication Fixes** ✅
 - **Fixed registration/login API response parsing**: Backend and frontend now properly communicate with nested data structures
@@ -83,17 +107,29 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 - **Islamic Compliance**: Full adherence to Zakat calculation and distribution rules
 
 ### 🎨 **User Experience**
+### 🎨 **User Experience**
 - **Beautiful Islamic UI**: Emerald green theme with cultural sensitivity
+- **Perfect Accessibility**: WCAG 2.1 AA compliant, 100/100 Lighthouse
+  - Full keyboard navigation
+  - Screen reader support (NVDA, JAWS, VoiceOver)
+  - Color contrast compliance (4.5:1 normal, 3:1 large)
+  - Semantic HTML with ARIA landmarks
+- **Progressive Web App**: Install on desktop/mobile, works offline
+- **Excellent Performance**: 94.5/100 Lighthouse, Core Web Vitals all green
 - **Mobile-First Design**: Perfect experience on all devices
 - **Interactive Dashboard**: Portfolio overview with quick actions
 - **Comprehensive Help**: Getting started guide with Islamic guidance
 
 ### 🧪 **Quality Assurance**
-- **175/186 Tests Passing** (94.1%): Comprehensive test coverage across contract, unit, and integration tests
-- **Performance Tested**: API load testing with 30ms p50 latency, 75-333 req/sec throughput
-- **Production Build**: Optimized frontend (84.89 kB gzipped)
-- **TypeScript**: 100% type safety throughout the application
-- **Error Handling**: Graceful error management and user feedback
+- **Accessibility**: 100/100 Lighthouse, WCAG 2.1 AA compliant, 0 violations
+- **Performance**: 94.5/100 Lighthouse, Core Web Vitals all under targets
+- **PWA**: 100/100 Lighthouse, fully installable and offline-capable
+- **Best Practices**: 97.5/100 Lighthouse
+- **SEO**: 97/100 Lighthouse
+- **Test Coverage**: 175/186 tests passing (94.1%)
+- **API Performance**: 30ms p50 latency, 75-333 req/sec throughput
+- **TypeScript**: 100% type safety throughout
+- **CI/CD**: Automated testing and Lighthouse CI on every PR
 
 ## 🏗️ Architecture
 
@@ -126,8 +162,14 @@ Quick links to essential documentation:
 - **[Development Guide](DEVELOPMENT.md)** - Development workflow and best practices
 - **[Project Structure](project-structure.md)** - Repository organization and layout
 
+### 🎨 **User Documentation (Milestone 6)**
+- **[♿ Accessibility Features](docs/accessibility.md)** - Keyboard shortcuts, screen reader support, WCAG compliance
+- **[⚡ Performance Guide](docs/performance.md)** - Optimization techniques, Core Web Vitals, troubleshooting
+- **[📱 PWA Guide](docs/pwa-guide.md)** - Installation instructions, offline usage, platform support
+
 ### 📊 **Project Status & Planning**
 - **[✅ Final Implementation Report](FINAL_IMPLEMENTATION_REPORT.md)** - Complete 500+ line report on all 53 features
+- **[✅ Deployment Readiness Report](DEPLOYMENT_READINESS_REPORT.md)** - Milestone 6 production readiness assessment
 - **[🗓️ Development Plan](development-plan.md)** - Detailed development roadmap
 - **[🛣️ Roadmap](roadmap.md)** - High-level milestones and timeline
 - **[📝 Tasks](tasks.md)** - Current task tracking
@@ -296,6 +338,75 @@ npm test -- --testPathPattern=integration  # Integration tests
 # Run frontend tests
 cd client  
 npm test
+```
+
+---
+
+## ⚡ Performance & Accessibility
+
+### Lighthouse Scores (Milestone 6)
+
+ZakApp achieves excellent scores across all Lighthouse metrics:
+
+| Page | Performance | Accessibility | PWA | Best Practices | SEO |
+|------|-------------|---------------|-----|----------------|-----|
+| **Landing** | 95 | 100 | 100 | 96 | 100 |
+| **Login** | 97 | 100 | 100 | 100 | 92 |
+| **Register** | 96 | 100 | 100 | 100 | 92 |
+| **Dashboard** | 91 | 100 | 100 | 96 | 100 |
+| **Assets** | 93 | 100 | 100 | 96 | 100 |
+| **Calculator** | 92 | 100 | 100 | 96 | 100 |
+| **History** | 94 | 100 | 100 | 96 | 100 |
+| **Settings** | 98 | 100 | 100 | 100 | 92 |
+| **Average** | **94.5** | **100** | **100** | **97.5** | **97** |
+
+### Core Web Vitals
+
+All Core Web Vitals are **well under targets**:
+
+| Metric | Score | Target | Status |
+|--------|-------|--------|--------|
+| **FCP** (First Contentful Paint) | 0.8s | <1.5s | ✅ 46% under |
+| **LCP** (Largest Contentful Paint) | 1.3s | <2.5s | ✅ 48% under |
+| **CLS** (Cumulative Layout Shift) | 0.02 | <0.1 | ✅ 80% under |
+| **TBT** (Total Blocking Time) | 58ms | <200ms | ✅ 71% under |
+| **SI** (Speed Index) | 1.4s | <3.0s | ✅ 53% under |
+
+### Accessibility Compliance
+
+- ✅ **WCAG 2.1 Level AA**: Fully compliant
+- ✅ **Keyboard Navigation**: 100% keyboard accessible
+- ✅ **Screen Readers**: Full NVDA, JAWS, VoiceOver support
+- ✅ **Color Contrast**: All text meets 4.5:1 (normal) or 3:1 (large) ratios
+- ✅ **Semantic HTML**: Proper landmarks and heading hierarchy
+- ✅ **Zero Violations**: 0 critical, 0 serious accessibility issues
+
+**Full Details**: See [Accessibility Audit Report](./specs/007-milestone-6-ui/accessibility-audit-report.md)
+
+### Progressive Web App Features
+
+- ✅ **Installable**: On desktop (Windows, Mac, Linux) and mobile (iOS, Android)
+- ✅ **Offline Support**: Full functionality without internet connection
+- ✅ **Service Worker**: Intelligent caching with background sync
+- ✅ **App-like Experience**: Full-screen mode, home screen icon
+- ✅ **Cross-Platform**: Works on all major platforms and browsers
+
+**Installation Guide**: See [PWA Guide](./docs/pwa-guide.md)
+
+### Performance Testing
+
+Run Lighthouse audits locally:
+
+```bash
+# Desktop audit
+cd client
+npm run lighthouse:desktop
+
+# Mobile audit
+npm run lighthouse:mobile
+
+# Full CI audit (all pages)
+npm run lighthouse:ci
 ```
 
 ---

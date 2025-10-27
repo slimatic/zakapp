@@ -1,0 +1,81 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 3,
+      "startServerCommand": "npm run build && npx serve -s build -p 3000",
+      "startServerReadyPattern": "Accepting connections",
+      "url": [
+        "http://localhost:3000/",
+        "http://localhost:3000/login",
+        "http://localhost:3000/register",
+        "http://localhost:3000/dashboard",
+        "http://localhost:3000/assets",
+        "http://localhost:3000/calculator",
+        "http://localhost:3000/history",
+        "http://localhost:3000/settings"
+      ],
+      "settings": {
+        "preset": "desktop",
+        "throttling": {
+          "rttMs": 40,
+          "throughputKbps": 10240,
+          "cpuSlowdownMultiplier": 1
+        },
+        "screenEmulation": {
+          "mobile": false,
+          "width": 1920,
+          "height": 1080,
+          "deviceScaleFactor": 1,
+          "disabled": false
+        }
+      }
+    },
+    "assert": {
+      "preset": "lighthouse:recommended",
+      "assertions": {
+        "categories:performance": ["error", {"minScore": 0.9}],
+        "categories:accessibility": ["error", {"minScore": 1.0}],
+        "categories:best-practices": ["error", {"minScore": 0.9}],
+        "categories:seo": ["error", {"minScore": 0.9}],
+        "categories:pwa": ["error", {"minScore": 1.0}],
+        
+        "first-contentful-paint": ["error", {"maxNumericValue": 1500}],
+        "largest-contentful-paint": ["error", {"maxNumericValue": 2500}],
+        "cumulative-layout-shift": ["error", {"maxNumericValue": 0.1}],
+        "total-blocking-time": ["error", {"maxNumericValue": 200}],
+        "speed-index": ["error", {"maxNumericValue": 3000}],
+        
+        "viewport": "error",
+        "document-title": "error",
+        "meta-description": "warn",
+        "html-has-lang": "error",
+        "html-lang-valid": "error",
+        
+        "aria-required-attr": "error",
+        "aria-valid-attr": "error",
+        "button-name": "error",
+        "color-contrast": "error",
+        "duplicate-id-aria": "error",
+        "form-field-multiple-labels": "error",
+        "image-alt": "error",
+        "label": "error",
+        "link-name": "error",
+        "list": "error",
+        "listitem": "error",
+        "meta-viewport": "error",
+        "tabindex": "error",
+        
+        "installable-manifest": "error",
+        "service-worker": "error",
+        "splash-screen": "warn",
+        "themed-omnibox": "warn",
+        "content-width": "error",
+        "apple-touch-icon": "warn",
+        "maskable-icon": "warn"
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}
