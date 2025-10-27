@@ -1,0 +1,210 @@
+/**
+ * Accessibility Styles
+ * 
+ * This file contains styles specifically for accessibility features
+ * to ensure WCAG 2.1 AA compliance.
+ */
+
+/* Skip Link - Visually hidden but focusable */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  z-index: 100;
+  padding: 8px 16px;
+  background-color: #4f46e5;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 0 0 4px 0;
+  transition: top 0.2s ease-in-out;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid #fbbf24;
+  outline-offset: 2px;
+}
+
+/* Focus Indicators - Visible keyboard focus for all interactive elements */
+/* Remove default browser outline and replace with custom ring */
+*:focus {
+  outline: none;
+}
+
+/* Custom focus ring with high contrast (3:1 ratio for UI components) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="tab"]:focus-visible {
+  outline: 3px solid #fbbf24;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+  border-radius: 4px;
+}
+
+/* Focus ring for dark backgrounds */
+.dark a:focus-visible,
+.dark button:focus-visible,
+.dark input:focus-visible,
+.dark textarea:focus-visible,
+.dark select:focus-visible,
+.dark [tabindex]:not([tabindex="-1"]):focus-visible {
+  outline-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+/* Focus within - for containers that have focused children */
+.focus-within:focus-within {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Show on focus for sr-only elements that should be focusable */
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline-width: 4px;
+    outline-offset: 3px;
+  }
+}
+
+/* Reduced motion support for focus transitions */
+@media (prefers-reduced-motion: reduce) {
+  .skip-link {
+    transition: none;
+  }
+  
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    transition: none;
+  }
+}
+
+/* Error states - don't rely solely on color */
+.error-indicator,
+[aria-invalid="true"] {
+  border-left: 4px solid #ef4444;
+  padding-left: 12px;
+}
+
+.error-indicator::before,
+[aria-invalid="true"]::before {
+  content: "⚠️";
+  margin-right: 8px;
+  speak: literal-punctuation;
+}
+
+/* Success states */
+.success-indicator,
+[aria-invalid="false"] {
+  border-left: 4px solid #10b981;
+  padding-left: 12px;
+}
+
+.success-indicator::before {
+  content: "✓";
+  margin-right: 8px;
+  color: #10b981;
+  font-weight: bold;
+}
+
+/* Loading states - accessible spinner */
+.loading-spinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #4f46e5;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner {
+    animation: none;
+    border-left-color: #4f46e5;
+    opacity: 0.6;
+  }
+}
+
+/* Keyboard-only focus (hide focus ring for mouse users) */
+.js-focus-visible :focus:not(.focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Ensure minimum touch target size (44x44px for mobile) */
+@media (pointer: coarse) {
+  a,
+  button,
+  input[type="checkbox"],
+  input[type="radio"],
+  [role="button"],
+  [role="link"] {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Focus trap indicator for modals */
+.focus-trap-active {
+  /* Visual indicator that focus is trapped (optional) */
+  position: relative;
+}
+
+.focus-trap-active::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+  pointer-events: none;
+}

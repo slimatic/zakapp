@@ -141,7 +141,7 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             Assalamu Alaikum, {user?.username}
@@ -154,13 +154,17 @@ export const Dashboard: React.FC = () => {
           <Link to="/assets/new">
             <Button variant="secondary">Add Asset</Button>
           </Link>
-          <Link to="/zakat/calculator">
+          <Link to="/calculate">
             <Button variant="primary">Calculate Zakat</Button>
           </Link>
         </div>
-      </div>
+      </header>
 
+      {/* Main Dashboard Content */}
+      <main role="main" aria-label="Dashboard overview">
       {/* Stats Overview Cards */}
+      <section aria-labelledby="stats-heading" className="mb-6">
+        <h2 id="stats-heading" className="sr-only">Statistics Overview</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
@@ -214,10 +218,13 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      </section>
 
       {/* Quick Actions */}
+      <section aria-labelledby="quick-actions-heading">
+        <h2 id="quick-actions-heading" className="sr-only">Quick Actions</h2>
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 border border-green-200">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link to="/assets" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
             <span className="text-2xl mr-3">📦</span>
@@ -227,7 +234,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Link>
           
-          <Link to="/zakat/calculator" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+          <Link to="/calculate" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
             <span className="text-2xl mr-3">🧮</span>
             <div>
               <p className="font-medium text-gray-900">Calculate Zakat</p>
@@ -235,7 +242,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Link>
           
-          <Link to="/zakat/history" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+          <Link to="/history" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
             <span className="text-2xl mr-3">📈</span>
             <div>
               <p className="font-medium text-gray-900">View History</p>
@@ -243,7 +250,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Link>
           
-          <Link to="/user/profile" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+          <Link to="/settings" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
             <span className="text-2xl mr-3">⚙️</span>
             <div>
               <p className="font-medium text-gray-900">Settings</p>
@@ -252,13 +259,16 @@ export const Dashboard: React.FC = () => {
           </Link>
         </div>
       </div>
+      </section>
 
       {/* Main Content Grid */}
+      <section aria-labelledby="content-heading">
+        <h2 id="content-heading" className="sr-only">Recent Assets and Zakat Status</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Assets */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <article className="bg-white rounded-lg shadow p-6" aria-labelledby="recent-assets-heading">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Assets</h2>
+            <h3 id="recent-assets-heading" className="text-xl font-semibold text-gray-900">Recent Assets</h3>
             <Link to="/assets">
               <Button variant="ghost" size="sm">View All</Button>
             </Link>
@@ -298,13 +308,13 @@ export const Dashboard: React.FC = () => {
               ))}
             </div>
           )}
-        </div>
+        </article>
 
         {/* Zakat Status */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <article className="bg-white rounded-lg shadow p-6" aria-labelledby="zakat-status-heading">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Zakat Status</h2>
-            <Link to="/zakat/history">
+            <h3 id="zakat-status-heading" className="text-xl font-semibold text-gray-900">Zakat Status</h3>
+            <Link to="/history">
               <Button variant="ghost" size="sm">View History</Button>
             </Link>
           </div>
@@ -338,7 +348,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               )}
 
-              <Link to="/zakat/calculator" className="block">
+              <Link to="/calculate" className="block">
                 <Button variant="primary" className="w-full">
                   Calculate Current Zakat
                 </Button>
@@ -349,19 +359,21 @@ export const Dashboard: React.FC = () => {
               <span className="text-4xl mb-4 block">🕌</span>
               <p className="font-medium">No calculations yet</p>
               <p className="text-sm mt-1">Calculate your Zakat obligations</p>
-              <Link to="/zakat/calculator" className="mt-4 inline-block">
+              <Link to="/calculate" className="mt-4 inline-block">
                 <Button variant="primary" size="sm">Start Calculation</Button>
               </Link>
             </div>
           )}
-        </div>
+        </article>
       </div>
+      </section>
 
       {/* Recent Calculations */}
-      <div className="bg-white rounded-lg shadow p-6 mt-6">
+      <section aria-labelledby="recent-calc-heading">
+      <article className="bg-white rounded-lg shadow p-6" aria-labelledby="recent-calc-heading">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Recent Calculations</h2>
-          <Link to="/zakat/history">
+          <h3 id="recent-calc-heading" className="text-xl font-semibold text-gray-900">Recent Calculations</h3>
+          <Link to="/history">
             <Button variant="ghost" size="sm">View All</Button>
           </Link>
         </div>
@@ -369,14 +381,16 @@ export const Dashboard: React.FC = () => {
         <div className="text-center text-gray-600">
           <p>Visit the history page to view your calculations</p>
         </div>
-      </div>
+      </article>
+      </section>
 
       {/* Upcoming Reminders */}
-      <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <aside aria-labelledby="reminders-heading">
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg leading-6 font-medium text-yellow-900">Upcoming Zakat Reminder</h3>
+              <h3 id="reminders-heading" className="text-lg leading-6 font-medium text-yellow-900">Upcoming Zakat Reminder</h3>
               <p className="mt-1 text-sm text-yellow-700">
                 Your next Zakat payment is due in approximately 6 months (based on Hijri calendar).
               </p>
@@ -389,7 +403,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="mt-4">
             <Link
-              to="/zakat/calculator"
+              to="/calculate"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
             >
               Calculate Zakat Now
@@ -400,14 +414,16 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      </aside>
 
       {/* Islamic Calendar Integration */}
+      <aside aria-labelledby="calendar-heading">
       <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-6 border border-emerald-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <span className="text-3xl mr-4">🌙</span>
+            <span className="text-3xl mr-4" aria-hidden="true">🌙</span>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Islamic Calendar</h3>
+              <h3 id="calendar-heading" className="text-lg font-semibold text-gray-900">Islamic Calendar</h3>
               <p className="text-gray-600">
                 Today: {new Intl.DateTimeFormat('en-US-u-ca-islamic', { 
                   day: 'numeric', 
@@ -423,6 +439,8 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      </aside>
+      </main>
     </div>
   );
 };

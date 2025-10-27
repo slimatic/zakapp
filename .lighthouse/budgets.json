@@ -1,0 +1,80 @@
+{
+  "description": "Performance budgets for ZakApp",
+  "budgets": [
+    {
+      "path": "/*",
+      "timings": [
+        {
+          "metric": "first-contentful-paint",
+          "budget": 1500,
+          "tolerance": 100
+        },
+        {
+          "metric": "largest-contentful-paint",
+          "budget": 2500,
+          "tolerance": 200
+        },
+        {
+          "metric": "cumulative-layout-shift",
+          "budget": 0.1,
+          "tolerance": 0.02
+        },
+        {
+          "metric": "first-input-delay",
+          "budget": 100,
+          "tolerance": 20
+        },
+        {
+          "metric": "time-to-interactive",
+          "budget": 3500,
+          "tolerance": 300
+        },
+        {
+          "metric": "total-blocking-time",
+          "budget": 300,
+          "tolerance": 50
+        }
+      ],
+      "resourceSizes": [
+        {
+          "resourceType": "script",
+          "budget": 200
+        },
+        {
+          "resourceType": "stylesheet",
+          "budget": 50
+        },
+        {
+          "resourceType": "image",
+          "budget": 500
+        },
+        {
+          "resourceType": "font",
+          "budget": 100
+        },
+        {
+          "resourceType": "document",
+          "budget": 50
+        },
+        {
+          "resourceType": "total",
+          "budget": 1000
+        }
+      ],
+      "resourceCounts": [
+        {
+          "resourceType": "script",
+          "budget": 30
+        },
+        {
+          "resourceType": "stylesheet",
+          "budget": 10
+        },
+        {
+          "resourceType": "third-party",
+          "budget": 5
+        }
+      ]
+    }
+  ]
+}
