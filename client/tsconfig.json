@@ -40,6 +40,10 @@
   ],
   "exclude": [
     "**/*.stories.tsx",
-    "**/*.stories.ts"
+    "**/*.stories.ts",
+    "**/*.test.tsx",
+    "**/*.test.ts",
+    "**/__tests__/**",
+    "**/tests/**"
   ]
 }
