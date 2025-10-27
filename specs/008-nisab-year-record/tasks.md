@@ -44,7 +44,7 @@
 - [x] T002 Install moment-hijri types (`npm install --save-dev @types/moment-hijri` in server/)
 - [x] T003 Configure metals-api.com client in server/src/config/preciousMetalsApi.ts
 - [x] T004 Add environment variable METALS_API_KEY to .env.example and deployment docs
-- [ ] **🔸 COMMIT CHECKPOINT**: Commit setup milestone with dependencies and configuration
+- [x] **🔸 COMMIT CHECKPOINT**: Commit setup milestone with dependencies and configuration
 
 ## Phase 3.2: Database Migration
 - [ ] T005 Create Prisma migration: Rename yearly_snapshots to nisab_year_records (server/prisma/migrations/)
