@@ -53,7 +53,6 @@ describe('Keyboard Navigation Accessibility', () => {
     });
 
     it('should allow tab navigation through all links', async () => {
-      const user = userEvent.setup();
       render(<NavigationMock />);
       
       const homeLink = screen.getByRole('link', { name: /home/i });
@@ -62,27 +61,26 @@ describe('Keyboard Navigation Accessibility', () => {
       const settingsButton = screen.getByRole('button', { name: /settings/i });
 
       // Tab through navigation
-      await user.tab();
+      userEvent.tab();
       expect(homeLink).toHaveFocus();
       
-      await user.tab();
+      userEvent.tab();
       expect(assetsLink).toHaveFocus();
       
-      await user.tab();
+      userEvent.tab();
       expect(calculatorLink).toHaveFocus();
       
-      await user.tab();
+      userEvent.tab();
       expect(settingsButton).toHaveFocus();
     });
 
     it('should allow shift+tab to navigate backwards', async () => {
-      const user = userEvent.setup();
       render(<NavigationMock />);
       
       const settingsButton = screen.getByRole('button', { name: /settings/i });
       settingsButton.focus();
 
-      await user.tab({ shift: true });
+      userEvent.tab({ shift: true });
       expect(screen.getByRole('link', { name: /calculator/i })).toHaveFocus();
     });
   });
@@ -95,25 +93,25 @@ describe('Keyboard Navigation Accessibility', () => {
     });
 
     it('should tab through form fields in logical order', async () => {
-      const user = userEvent.setup();
+      // Use userEvent directly (v13 API)
       render(<FormMock />);
       
       const nameInput = screen.getByLabelText(/name/i);
       const amountInput = screen.getByLabelText(/amount/i);
       const submitButton = screen.getByRole('button', { name: /submit/i });
 
-      await user.tab();
+      userEvent.tab();
       expect(nameInput).toHaveFocus();
       
-      await user.tab();
+      userEvent.tab();
       expect(amountInput).toHaveFocus();
       
-      await user.tab();
+      userEvent.tab();
       expect(submitButton).toHaveFocus();
     });
 
     it('should submit form on Enter key', async () => {
-      const user = userEvent.setup();
+      // Use userEvent directly (v13 API)
       const handleSubmit = jest.fn((e) => e.preventDefault());
       
       const { container } = render(
@@ -126,7 +124,7 @@ describe('Keyboard Navigation Accessibility', () => {
       const input = container.querySelector('input');
       if (input) {
         input.focus();
-        await user.keyboard('{Enter}');
+        userEvent.keyboard('{Enter}');
         expect(handleSubmit).toHaveBeenCalled();
       }
     });
@@ -141,7 +139,7 @@ describe('Keyboard Navigation Accessibility', () => {
     });
 
     it('should trap focus within modal', async () => {
-      const user = userEvent.setup();
+      // Use userEvent directly (v13 API)
       const onClose = jest.fn();
       render(<ModalMock isOpen={true} onClose={onClose} />);
       
@@ -151,26 +149,26 @@ describe('Keyboard Navigation Accessibility', () => {
       // Focus should cycle between modal elements
       closeButton.focus();
       
-      await user.tab();
+      userEvent.tab();
       expect(actionButton).toHaveFocus();
       
-      await user.tab();
+      userEvent.tab();
       expect(closeButton).toHaveFocus();
     });
 
     it('should close on Escape key', async () => {
-      const user = userEvent.setup();
+      // Use userEvent directly (v13 API)
       const onClose = jest.fn();
       render(<ModalMock isOpen={true} onClose={onClose} />);
       
-      await user.keyboard('{Escape}');
+      userEvent.keyboard('{Escape}');
       expect(onClose).toHaveBeenCalled();
     });
   });
 
   describe('Skip Link', () => {
     it('should allow skipping to main content', async () => {
-      const user = userEvent.setup();
+      // Use userEvent directly (v13 API)
       const { container } = render(
         <div>
           <a href="#main-content" className="skip-link">
@@ -189,7 +187,7 @@ describe('Keyboard Navigation Accessibility', () => {
       const mainContent = container.querySelector('#main-content');
 
       skipLink.focus();
-      await user.keyboard('{Enter}');
+      userEvent.keyboard('{Enter}');
       
       expect(mainContent).toHaveFocus();
     });
@@ -197,7 +195,7 @@ describe('Keyboard Navigation Accessibility', () => {
 
   describe('Dropdown Menu', () => {
     it('should navigate with arrow keys', async () => {
-      const user = userEvent.setup();
+      // Use userEvent directly (v13 API)
       render(
         <div role="menu">
           <button role="menuitem">Option 1</button>
@@ -210,18 +208,18 @@ describe('Keyboard Navigation Accessibility', () => {
       
       options[0].focus();
       
-      await user.keyboard('{ArrowDown}');
+      userEvent.keyboard('{ArrowDown}');
       expect(options[1]).toHaveFocus();
       
-      await user.keyboard('{ArrowDown}');
+      userEvent.keyboard('{ArrowDown}');
       expect(options[2]).toHaveFocus();
       
-      await user.keyboard('{ArrowUp}');
+      userEvent.keyboard('{ArrowUp}');
       expect(options[1]).toHaveFocus();
     });
 
     it('should select option with Enter or Space', async () => {
-      const user = userEvent.setup();
+      // Use userEvent directly (v13 API)
       const handleClick = jest.fn();
       
       render(
@@ -235,17 +233,17 @@ describe('Keyboard Navigation Accessibility', () => {
       const option = screen.getByRole('menuitem');
       option.focus();
       
-      await user.keyboard('{Enter}');
+      userEvent.keyboard('{Enter}');
       expect(handleClick).toHaveBeenCalledTimes(1);
       
-      await user.keyboard(' ');
+      userEvent.keyboard(' ');
       expect(handleClick).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('Tab Panel Navigation', () => {
     it('should navigate tabs with arrow keys', async () => {
-      const user = userEvent.setup();
+      // Use userEvent directly (v13 API)
       render(
         <div role="tablist">
           <button role="tab" aria-selected={true} aria-controls="panel1">
@@ -264,13 +262,13 @@ describe('Keyboard Navigation Accessibility', () => {
       
       tabs[0].focus();
       
-      await user.keyboard('{ArrowRight}');
+      userEvent.keyboard('{ArrowRight}');
       expect(tabs[1]).toHaveFocus();
       
-      await user.keyboard('{ArrowRight}');
+      userEvent.keyboard('{ArrowRight}');
       expect(tabs[2]).toHaveFocus();
       
-      await user.keyboard('{ArrowLeft}');
+      userEvent.keyboard('{ArrowLeft}');
       expect(tabs[1]).toHaveFocus();
     });
   });

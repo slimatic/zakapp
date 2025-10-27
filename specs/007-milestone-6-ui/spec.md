@@ -112,7 +112,7 @@
 #### Performance Optimization
 
 6. **Initial Page Load**
-   - **Given** a user accessing the application on 3G connection
+   - **Given** a user accessing the application on 3G connection (simulated: 1.6 Mbps download, 750 Kbps upload, 150ms RTT)
    - **When** landing page loads
    - **Then** First Contentful Paint occurs within 1.5 seconds
 
@@ -129,7 +129,7 @@
 9. **Core Web Vitals**
    - **Given** Google Lighthouse audit on any page
    - **When** performance metrics are calculated
-   - **Then** scores are: LCP <2.5s, FID <100ms, CLS <0.1, Performance score >90
+   - **Then** scores are: LCP <2.5s, FID <100ms, CLS <0.1, Performance score ≥90 (90-100 range considered passing)
 
 #### Progressive Web App Features
 
@@ -148,10 +148,10 @@
     - **When** user returns to the application
     - **Then** new version is downloaded in background and user is prompted to refresh
 
-13. **Push Notifications**
-    - **Given** a user who has enabled notifications
+13. **Web Push Notifications**
+    - **Given** a user who has granted push notification permission
     - **When** a Zakat payment reminder is due
-    - **Then** notification appears even when app is closed (with user permission)
+    - **Then** push notification appears even when app is closed
 
 #### User Experience Testing
 
@@ -201,7 +201,7 @@
   - Least recently used data is removed automatically
   - User is notified if critical data cannot be cached
 
-- **What happens when** user denies notification permissions?
+- **What happens when** user denies push notification permission?
   - Application continues to function normally
   - In-app reminders remain available
 
@@ -232,11 +232,11 @@
 
 #### Performance Optimization
 
-- **FR-013**: System MUST achieve First Contentful Paint (FCP) within 1.5 seconds on 3G connection
+- **FR-013**: System MUST achieve First Contentful Paint (FCP) within 1.5 seconds on 3G connection (simulated: 1.6 Mbps download, 750 Kbps upload, 150ms RTT)
 - **FR-014**: System MUST achieve Largest Contentful Paint (LCP) within 2.5 seconds
 - **FR-015**: System MUST maintain First Input Delay (FID) under 100 milliseconds
 - **FR-016**: System MUST maintain Cumulative Layout Shift (CLS) under 0.1
-- **FR-017**: System MUST achieve Google Lighthouse Performance score above 90
+- **FR-017**: System MUST achieve Google Lighthouse Performance score ≥90 (90-100 range, measured on simulated 3G with 4x CPU throttling)
 - **FR-018**: System MUST limit initial JavaScript bundle to under 200KB gzipped
 - **FR-019**: System MUST implement code splitting to load features on demand
 - **FR-020**: System MUST lazy load images and non-critical assets
@@ -253,7 +253,7 @@
 - **FR-028**: System MUST cache critical assets and previously viewed pages for offline access
 - **FR-029**: System MUST display appropriate offline fallback pages when network unavailable
 - **FR-030**: System MUST provide "Add to Home Screen" installation prompt on supported devices
-- **FR-031**: System MUST support push notifications for Zakat reminders (with user permission)
+- **FR-031**: System MUST support web push notifications for Zakat reminders (requires user-granted push notification permission)
 - **FR-032**: System MUST implement service worker update mechanism with user notification
 - **FR-033**: System MUST handle background sync for failed requests when offline
 - **FR-034**: System MUST provide standalone app experience when installed (no browser UI)
@@ -263,7 +263,7 @@
 
 #### User Experience Testing & Quality
 
-- **FR-038**: System MUST conduct usability testing with minimum 10 representative users
+- **FR-038**: System MUST conduct usability testing with minimum 10 representative users (demographics: 40% new to Zakat calculation, 30% with disabilities, 30% age 50+, gender-balanced, diverse tech proficiency)
 - **FR-039**: System MUST achieve minimum 80% task completion rate in usability testing
 - **FR-040**: System MUST collect and analyze user feedback on key workflows
 - **FR-041**: System MUST implement analytics to track user behavior and identify pain points
@@ -281,7 +281,7 @@
 
 #### Browser & Device Support
 
-- **NFR-001**: System MUST support last 2 versions of Chrome, Firefox, Safari, and Edge
+- **NFR-001**: System MUST support last 2 major versions of Chrome, Firefox, Safari, and Edge (e.g., Chrome 120-121 as of Jan 2025, automatically updated quarterly)
 - **NFR-002**: System MUST function on iOS Safari 14+ and Android Chrome 90+
 - **NFR-003**: System MUST be responsive for viewport widths from 320px to 2560px
 - **NFR-004**: System MUST support touch, mouse, and keyboard input methods
@@ -305,7 +305,7 @@
 - ✅ **Accessibility**: Pass automated WCAG 2.1 AA validation with zero violations
 - ✅ **Accessibility**: Complete manual testing with screen readers (NVDA, JAWS, VoiceOver)
 - ✅ **Accessibility**: Achieve 100% keyboard navigation coverage
-- ✅ **Performance**: Lighthouse Performance score >90 on all major pages
+- ✅ **Performance**: Lighthouse Performance score ≥90 on all major pages (90-100 range)
 - ✅ **Performance**: Core Web Vitals in "Good" range (75th percentile)
 - ✅ **Performance**: Initial bundle size reduced by minimum 30%
 - ✅ **PWA**: Pass PWA Lighthouse audit with score of 100
@@ -328,14 +328,14 @@
 ### Assumptions
 - Users have modern browsers (last 2 years)
 - HTTPS is available for PWA features
-- Push notification infrastructure can be implemented
+- Web push notification infrastructure can be implemented
 - Sufficient server resources for performance optimization
-- Users consent to optional PWA features (notifications, installation)
+- Users consent to optional PWA features (web push notifications, installation)
 
 ### External Constraints
 - WCAG 2.1 AA is the target compliance level (not AAA)
 - Service worker requires HTTPS in production
-- Push notifications require user permission
+- Web push notifications require user-granted permission
 - Some older browsers may have limited PWA support
 
 ---
@@ -411,16 +411,30 @@
 
 ---
 
+## Requirements Traceability
+
+This section maps functional requirements to implementation tasks for tracking purposes:
+
+- **Accessibility (FR-001 to FR-012)**: Tasks T001-T012 (Phase 1)
+- **Performance (FR-013 to FR-023)**: Tasks T013-T023 (Phase 2)
+- **PWA Features (FR-024 to FR-037)**: Tasks T024-T037, T042-T047 (Phases 3-4)
+- **UX Quality (FR-038 to FR-050)**: Tasks T048-T057, T064-T065 (Phases 5-6)
+- **Testing & Validation**: Tasks T058-T063 (Phase 6)
+
+See [tasks.md](./tasks.md) for detailed task breakdown and implementation status.
+
+---
+
 ## Next Steps
 
-1. **Planning Phase**: Break down requirements into concrete implementation tasks
-2. **Accessibility Audit**: Conduct baseline accessibility assessment of current state
-3. **Performance Baseline**: Measure current performance metrics for comparison
-4. **PWA Planning**: Design offline strategy and service worker architecture
-5. **Testing Protocol**: Define usability testing scenarios and recruit participants
-6. **Implementation**: Execute enhancements in priority order
-7. **Validation**: Conduct comprehensive testing and compliance verification
-8. **Documentation**: Update user guides with accessibility features
+1. **Planning Phase**: Break down requirements into concrete implementation tasks → See [plan.md](./plan.md)
+2. **Accessibility Audit**: Conduct baseline accessibility assessment of current state → T061
+3. **Performance Baseline**: Measure current performance metrics for comparison → T058
+4. **PWA Planning**: Design offline strategy and service worker architecture → See [research.md](./research.md)
+5. **Testing Protocol**: Define usability testing scenarios and recruit participants → T064
+6. **Implementation**: Execute enhancements in priority order → Tasks T001-T070
+7. **Validation**: Conduct comprehensive testing and compliance verification → Phase 6
+8. **Documentation**: Update user guides with accessibility features → [quickstart.md](./quickstart.md)
 
 ---
 
