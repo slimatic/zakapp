@@ -31,6 +31,16 @@
 
 ---
 
+## Clarifications
+
+### Session 2025-10-27
+
+- Q: When creating a snapshot, which assets should be automatically included? → A: All assets in portfolio (regardless of category)
+- Q: When a snapshot is in DRAFT status and an asset is modified, how should the draft snapshot update? → A: Manual refresh - User clicks "Refresh Snapshot" button to update values
+- Q: What should happen if a finalized snapshot needs correction? → A: Unlock with reason - Provide justification, edit, then re-finalize (audit trail maintained)
+
+---
+
 ## User Scenarios & Testing
 
 ### Primary User Story
@@ -81,23 +91,27 @@ As a ZakApp user who has been calculating Zakat for multiple years, I need to tr
 ### Functional Requirements
 
 #### Historical Tracking
+
 - **FR-001**: System MUST maintain a complete historical record of all Zakat calculations performed by each user
-- **FR-002**: System MUST create automatic yearly snapshots of user assets, liabilities, and calculation results
+- **FR-002**: System MUST create yearly snapshots that automatically include ALL assets from user's portfolio at time of creation
 - **FR-003**: System MUST preserve the calculation methodology used for each historical calculation
 - **FR-004**: System MUST allow users to view detailed breakdowns of any historical calculation
 - **FR-005**: System MUST track which calculations represent official annual Zakat vs exploratory calculations
-- **FR-006**: Historical records MUST be immutable once marked as finalized
+- **FR-006**: Historical records MUST be immutable once marked as finalized, with unlock capability requiring justification and audit trail
 - **FR-007**: System MUST support both Gregorian and Islamic calendar date tracking for all records
+- **FR-008**: Draft snapshots MUST provide manual "Refresh Snapshot" button to update asset values from current portfolio
+- **FR-009**: Finalized snapshots MUST support unlock workflow: provide reason → edit → re-finalize, with full audit trail (who, when, why)
 
 #### Payment Recording
-- **FR-008**: System MUST allow users to record Zakat payment details including amount, recipient, and date
-- **FR-009**: System MUST support partial payment recording when Zakat is distributed to multiple recipients
-- **FR-010**: System MUST link payment records to their corresponding Zakat calculations
-- **FR-011**: Users MUST be able to add notes and documentation to payment records
-- **FR-012**: System MUST track payment status for each calculation: unpaid, partially paid, fully paid
-- **FR-013**: System MUST calculate and display remaining unpaid Zakat obligations
-- **FR-014**: Payment records MUST support receipt attachment (references to documentation)
-- **FR-015**: System MUST allow payment record editing with audit trail preservation
+
+- **FR-010**: System MUST allow users to record Zakat payment details including amount, recipient, and date
+- **FR-011**: System MUST support partial payment recording when Zakat is distributed to multiple recipients
+- **FR-012**: System MUST link payment records to their corresponding Zakat calculations
+- **FR-013**: Users MUST be able to add notes and documentation to payment records
+- **FR-014**: System MUST track payment status for each calculation: unpaid, partially paid, fully paid
+- **FR-015**: System MUST calculate and display remaining unpaid Zakat obligations
+- **FR-016**: Payment records MUST support receipt attachment (references to documentation)
+- **FR-017**: System MUST allow payment record editing with audit trail preservation
 
 #### Analytics and Visualization
 - **FR-016**: System MUST provide an analytics dashboard showing key Zakat metrics over time
@@ -142,7 +156,7 @@ As a ZakApp user who has been calculating Zakat for multiple years, I need to tr
 
 ### Key Entities
 
-- **Yearly Snapshot**: Represents a complete record of user assets, liabilities, and Zakat calculation at a specific point in time (annual Zakat calculation date). Includes: date (both Gregorian and Islamic calendar), total zakatable wealth, Zakat amount, methodology used, asset breakdown, calculation details, and status (draft, finalized).
+- **Yearly Snapshot**: Represents a complete record of user assets, liabilities, and Zakat calculation at a specific point in time (annual Zakat calculation date). **Automatically includes ALL assets from user's portfolio** at creation time. Includes: date (both Gregorian and Islamic calendar), total zakatable wealth, Zakat amount, methodology used, asset breakdown, calculation details, and status (draft, finalized). **Draft snapshots can be manually refreshed to reflect current asset values; finalized snapshots are immutable but can be unlocked with justification (audit trail maintained).**
 
 - **Payment Record**: Represents a recorded Zakat payment. Includes: amount paid, payment date, recipient name/category, recipient type (individual, charity organization, etc.), notes, receipt reference, and link to corresponding calculation.
 
