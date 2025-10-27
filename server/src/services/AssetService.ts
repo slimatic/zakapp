@@ -185,9 +185,21 @@ export class AssetService {
     // Prepare update data
     const updatePayload: any = { ...updateData };
 
-    // Encrypt metadata if provided
+    // Handle metadata: merge with existing metadata
     if (updateData.metadata) {
-      updatePayload.metadata = await EncryptionService.encryptObject(updateData.metadata, ENCRYPTION_KEY);
+      // Decrypt existing metadata if it exists
+      let existingMetadata = {};
+      if (existingAsset.metadata) {
+        try {
+          existingMetadata = await EncryptionService.decryptObject(existingAsset.metadata, ENCRYPTION_KEY);
+        } catch {
+          existingMetadata = {};
+        }
+      }
+      
+      // Merge new metadata with existing
+      const mergedMetadata = { ...existingMetadata, ...updateData.metadata };
+      updatePayload.metadata = await EncryptionService.encryptObject(mergedMetadata, ENCRYPTION_KEY);
     }
 
     // Update category to uppercase if provided

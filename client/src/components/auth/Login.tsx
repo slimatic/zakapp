@@ -39,8 +39,9 @@ export const Login: React.FC = () => {
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} aria-label="Login form">
+          <div className="space-y-4" role="group" aria-labelledby="credentials-group">
+            <h3 id="credentials-group" className="sr-only">Login Credentials</h3>
             <Input
               id="username"
               name="username"
@@ -53,6 +54,9 @@ export const Login: React.FC = () => {
               onChange={(e) => setUsername(e.target.value)}
               dataTestId="email-input"
               error={error && !username ? 'Username or email is required' : undefined}
+              aria-required="true"
+              aria-invalid={!!(error && !username)}
+              aria-describedby={error && !username ? 'username-error' : undefined}
             />
 
             <Input
@@ -67,13 +71,16 @@ export const Login: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               dataTestId="password-input"
               error={error && !password ? 'Password is required' : undefined}
+              aria-required="true"
+              aria-invalid={!!(error && !password)}
+              aria-describedby={error && !password ? 'password-error' : undefined}
             />
           </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4">
+          <div className="rounded-md bg-red-50 p-4" role="alert" aria-live="polite">
             <div className="flex">
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0" aria-hidden="true">
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>

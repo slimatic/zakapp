@@ -254,9 +254,21 @@ router.post('/',
         return;
       }
 
-      const { category, name, value, currency, description } = validation.data;
+      const { category, name, value, currency, description, subCategory, zakatEligible } = validation.data;
 
       const userId = req.userId!;
+      
+      // Build metadata object
+      const metadata: any = {};
+      if (description) {
+        metadata.description = description;
+      }
+      if (subCategory) {
+        metadata.subCategory = subCategory;
+      }
+      if (zakatEligible !== undefined) {
+        metadata.zakatEligible = zakatEligible;
+      }
       
       // Use the AssetService to create the asset
       const assetService = new AssetService();
@@ -266,8 +278,8 @@ router.post('/',
         value,
         currency,
         acquisitionDate: new Date(), // Default to current date
-        metadata: { description }, // Store description in metadata
-        notes: description // Also store as notes
+        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        notes: description // Also store description as notes
       });
       
       const response = createResponse(true, { asset });
@@ -305,10 +317,24 @@ router.put('/:id',
       }
 
       // Transform request data to match UpdateAssetDto
-      const { description, ...otherData } = req.body;
+      const { description, subCategory, zakatEligible, ...otherData } = req.body;
       const updateData: Partial<UpdateAssetDto> = { ...otherData };
-      if (description) {
-        updateData.metadata = { description };
+      
+      // Build metadata object with all the extra fields
+      const metadataFields: any = {};
+      if (description !== undefined) {
+        metadataFields.description = description;
+      }
+      if (subCategory !== undefined) {
+        metadataFields.subCategory = subCategory;
+      }
+      if (zakatEligible !== undefined) {
+        metadataFields.zakatEligible = zakatEligible;
+      }
+      
+      // Only set metadata if we have fields to update
+      if (Object.keys(metadataFields).length > 0) {
+        updateData.metadata = metadataFields;
       }
 
       // Use AssetService to update the asset

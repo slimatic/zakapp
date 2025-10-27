@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { AnalyticsService } from '../../../src/services/analytics-service';
+import { AnalyticsService } from '../../src/services/analytics-service';
 
 describe('AnalyticsService Performance Tests', () => {
   describe('calculateTrends performance', () => {
