@@ -40,10 +40,10 @@
 - **Shared**: `shared/src/`
 
 ## Phase 3.1: Setup
-- [ ] T001 Install moment-hijri dependency (`npm install moment-hijri` in server/)
-- [ ] T002 Install moment-hijri types (`npm install --save-dev @types/moment-hijri` in server/)
-- [ ] T003 Configure metals-api.com client in server/src/config/preciousMetalsApi.ts
-- [ ] T004 Add environment variable METALS_API_KEY to .env.example and deployment docs
+- [x] T001 Install moment-hijri dependency (`npm install moment-hijri` in server/)
+- [x] T002 Install moment-hijri types (`npm install --save-dev @types/moment-hijri` in server/)
+- [x] T003 Configure metals-api.com client in server/src/config/preciousMetalsApi.ts
+- [x] T004 Add environment variable METALS_API_KEY to .env.example and deployment docs
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit setup milestone with dependencies and configuration
 
 ## Phase 3.2: Database Migration
