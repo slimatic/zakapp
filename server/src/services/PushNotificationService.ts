@@ -5,9 +5,24 @@
  * Uses Web Push protocol with VAPID authentication.
  */
 
-import webpush from 'web-push';
-import { prisma } from '../lib/prisma';
-import { logger } from '../lib/logger';
+// Dynamically require optional dependency 'web-push' to avoid compile-time errors when it's not installed
+let webpush: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  webpush = require('web-push');
+} catch (err) {
+  // web-push is optional in some environments (tests, CI). We'll handle absence gracefully.
+  webpush = null;
+}
+
+import { prisma } from '../config/database';
+
+// Lightweight logger wrapper to avoid tight coupling with ErrorLogger in this module
+const logger = {
+  info: (...args: any[]) => console.log(...args),
+  warn: (...args: any[]) => console.warn(...args),
+  error: (...args: any[]) => console.error(...args),
+};
 
 // VAPID keys for push notifications
 // In production, these should be environment variables

@@ -1,7 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
-import { PaymentService } from '../../../src/services/payment-service';
-import { ReminderService } from '../../../src/services/reminder-service';
-import { ExportService } from '../../../src/services/export-service';
+import { PaymentService } from '../../src/services/payment-service';
+import { ReminderService } from '../../src/services/reminder-service';
+import { ExportService } from '../../src/services/export-service';
 
 describe('Security Audit: Payment Data Handling', () => {
   describe('PaymentService Security', () => {

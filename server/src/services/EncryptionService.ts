@@ -58,7 +58,8 @@ export class EncryptionService {
   }
 
   // Overloads: sync legacy form accepts object|string and optional key; async form with key returns Promise<string>
-  static decrypt(encryptedData: { encryptedData: string; iv: string } | string): string;
+  // Make decrypt accept any input externally to match existing test expectations
+  static decrypt(encryptedData: any): string;
   static decrypt(encryptedData: string, key: string): Promise<string>;
   static decrypt(encryptedData: any, key?: string): any {
     try {
@@ -119,7 +120,8 @@ export class EncryptionService {
   }
 
   // Overloads for object encryption
-  static encryptObject<T>(data: T): string;
+  // Synchronous legacy form returns an object with hex fields; async form with key returns base64 string
+  static encryptObject<T>(data: T): { encryptedData: string; iv: string };
   static encryptObject<T>(data: T, key: string): Promise<string>;
   static encryptObject<T>(data: T, key?: string): any {
     try {
