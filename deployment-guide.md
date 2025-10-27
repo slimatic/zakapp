@@ -370,7 +370,30 @@ FRONTEND_URL=https://your-domain.com
 BACKEND_URL=https://api.your-domain.com
 SSL_CERT_PATH=/app/ssl/cert.pem
 SSL_KEY_PATH=/app/ssl/key.pem
+
+# Precious Metals API (for Nisab calculations)
+METALS_API_KEY=your-metals-api-production-key
 ```
+
+**Required for Nisab Year Record Feature:**
+
+The `METALS_API_KEY` environment variable is required for the Nisab Year Record feature to function properly. This API key is used to fetch current gold and silver spot prices for calculating Islamic Zakat Nisab thresholds.
+
+```env
+# Precious Metals API Configuration
+# Sign up at: https://metals-api.com/signup
+# Free tier: 50 requests/month (sufficient with 24-hour caching)
+METALS_API_KEY=your-metals-api-key-here
+```
+
+**Setup Instructions:**
+
+1. Sign up for a free account at [metals-api.com](https://metals-api.com/signup)
+2. Copy your API key from the dashboard
+3. Add the key to your `.env` file (development) or `.env.prod` (production)
+4. Restart the backend server to apply changes
+
+**Note:** The application caches precious metal prices for 24 hours to minimize API calls and stay within the free tier limit (50 requests/month).
 
 ### Port Configuration
 
