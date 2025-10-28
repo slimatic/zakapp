@@ -39,23 +39,7 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
   describe('Successful Deletion', () => {
     it('should delete DRAFT record', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          userId,
-          status: 'DRAFT',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        },
+        data: createNisabYearRecordData(userId, { status: 'DRAFT' }),
       });
 
       const response = await request(app)
@@ -77,24 +61,7 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
   describe('Delete Restrictions', () => {
     it('should reject delete of FINALIZED record', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          userId,
-          status: 'FINALIZED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-          finalizedAt: new Date(),
-        },
+        data: createFinalizedRecord(userId),
       });
 
       const response = await request(app)
@@ -117,23 +84,7 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
 
     it('should reject delete of UNLOCKED record', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          userId,
-          status: 'UNLOCKED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        },
+        data: createUnlockedRecord(userId),
       });
 
       const response = await request(app)
@@ -149,24 +100,7 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
 
     it('should provide helpful error message for finalized record deletion', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          userId,
-          status: 'FINALIZED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-          finalizedAt: new Date(),
-        },
+        data: createFinalizedRecord(userId),
       });
 
       const response = await request(app)
@@ -203,23 +137,7 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
 
     it('should return 404 when trying to delete another user\'s record', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          userId,
-          status: 'DRAFT',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        },
+        data: createNisabYearRecordData(userId, { status: 'DRAFT' }),
       });
 
       const otherUser = await prisma.user.create({
