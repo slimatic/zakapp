@@ -9,15 +9,15 @@
  * - "Updating..." indicator during refresh
  */
 
+import { useCallback, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useState, useCallback, useEffect } from 'react';
 import { apiService } from '../services/api';
-import type { NisabYearRecordResponse, LiveHawlData } from '@zakapp/shared';
+import type { NisabYearRecordWithLiveTracking, LiveTrackingData } from '@zakapp/shared';
 
 export interface UseHawlStatusResult {
   // Data
-  record: NisabYearRecordResponse | undefined;
-  liveHawlData: LiveHawlData | undefined;
+  record: NisabYearRecordWithLiveTracking | undefined;
+  liveHawlData: LiveTrackingData | undefined;
   
   // State
   isLoading: boolean;
@@ -57,11 +57,11 @@ export interface UseHawlStatusResult {
  *   </div>
  * );
  */
-export function useHawlStatus(
-  recordId: string | undefined,
-  enabled: boolean = true,
-  pollInterval: number = 5000
-): UseHawlStatusResult {
+export const useHawlStatus = (
+  recordId?: string,
+  pollInterval: number = 5000,
+  enabled: boolean = true
+): UseHawlStatusResult => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
@@ -89,7 +89,7 @@ export function useHawlStatus(
         if (!response.success) {
           throw new Error(response.message || 'Failed to fetch record');
         }
-        return response.data as NisabYearRecordResponse;
+        return response.data as NisabYearRecordWithLiveTracking;
       } finally {
         // Clear updating state after debounce
         const timer = setTimeout(() => {
@@ -101,18 +101,18 @@ export function useHawlStatus(
     enabled: enabled && !!recordId,
     refetchInterval: recordId ? pollInterval : false, // Poll only if we have a recordId
     staleTime: 2000, // Consider data stale after 2 seconds
-    cacheTime: 5000, // Keep cache for 5 seconds
+    gcTime: 5 * 60 * 1000, // Keep cache for 5 minutes before garbage collection
     retry: 1,
     retryDelay: 1000,
   });
 
   // Calculate metrics from live Hawl data
-  const liveHawlData = record?.liveHawlData;
+  const liveHawlData = record?.liveTracking;
   
   const daysRemaining = liveHawlData?.daysRemaining ?? null;
   const isHawlComplete = liveHawlData?.canFinalize ?? false;
-  const daysElapsed = liveHawlData?.daysElapsed ?? null;
-  const progressPercent = liveHawlData?.progressPercent ?? null;
+  const daysElapsed = daysRemaining !== null ? 354 - daysRemaining : null;
+  const progressPercent = liveHawlData?.hawlProgress ?? null;
 
   // Handle cleanup
   useEffect(() => {
@@ -146,7 +146,7 @@ export function useHawlStatus(
     refetch,
     dismiss,
   };
-}
+};
 
 /**
  * Hook to check if Hawl is complete

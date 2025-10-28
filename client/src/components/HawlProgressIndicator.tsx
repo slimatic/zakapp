@@ -11,13 +11,13 @@
 
 import React, { useMemo } from 'react';
 import { useHawlStatus } from '../hooks/useHawlStatus';
-import type { NisabYearRecordResponse } from '@zakapp/shared';
+import type { NisabYearRecordWithLiveTracking } from '@zakapp/shared';
 
 export interface HawlProgressIndicatorProps {
   /**
    * The Nisab Year Record to track
    */
-  record: NisabYearRecordResponse;
+  record: NisabYearRecordWithLiveTracking;
 
   /**
    * Optional custom className
@@ -57,7 +57,7 @@ export const HawlProgressIndicator: React.FC<HawlProgressIndicatorProps> = ({
   onHawlComplete,
   progressColor = 'blue',
 }) => {
-  const { liveHawlData, isUpdating } = useHawlStatus(record.id, record.status === 'DRAFT');
+  const { liveHawlData, isUpdating } = useHawlStatus(record.id, 5000);
 
   // Calculate display values
   const {
@@ -68,9 +68,9 @@ export const HawlProgressIndicator: React.FC<HawlProgressIndicatorProps> = ({
     startDate,
   } = useMemo(() => {
     const data = liveHawlData || {};
-    const remaining = data.daysRemaining ?? 0;
-    const elapsed = data.daysElapsed ?? 0;
-    const percent = data.progressPercent ?? 0;
+    const remaining = (data as any)?.daysRemaining ?? 0;
+    const elapsed = (data as any)?.daysElapsed ?? 0;
+    const percent = (data as any)?.hawlProgress ?? 0;
 
     return {
       daysRemaining: remaining,
@@ -219,14 +219,6 @@ export const HawlProgressIndicator: React.FC<HawlProgressIndicatorProps> = ({
           </div>
         )}
 
-        {/* Hawl interrupted status */}
-        {record.status === 'DRAFT' && liveHawlData?.hawlStatus === 'INTERRUPTED' && (
-          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
-            <p className="text-sm font-medium text-amber-700">
-              ⚠ Wealth fell below Nisab threshold. Hawl tracking paused.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

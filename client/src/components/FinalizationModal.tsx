@@ -13,13 +13,12 @@
 import React, { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
-import type { NisabYearRecordResponse } from '@zakapp/shared';
 
 export interface FinalizationModalProps {
   /**
    * The record to finalize
    */
-  record: NisabYearRecordResponse;
+  record: any;
 
   /**
    * Whether modal is open
@@ -32,9 +31,9 @@ export interface FinalizationModalProps {
   onClose: () => void;
 
   /**
-   * Callback after successful finalization
+   * Callback when record is finalized
    */
-  onFinalized?: (finalRecord: NisabYearRecordResponse) => void;
+  onFinalized?: (finalRecord: any) => void;
 
   /**
    * Optional: disable finalization (e.g., if Hawl not complete)
@@ -87,7 +86,7 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
   const [finalizationNotes, setFinalizationNotes] = useState('');
 
   // Mutation for finalization
-  const { mutate: finalize, isLoading: isSubmitting, error } = useMutation({
+  const { mutate: finalize, isPending, error } = useMutation({
     mutationFn: async () => {
       const response = await apiService.finalizeNisabYearRecord(record.id, {
         finalizationNotes,
@@ -97,7 +96,7 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
         throw new Error(response.message || 'Finalization failed');
       }
 
-      return response.data as NisabYearRecordResponse;
+      return response.data;
     },
     onSuccess: (finalRecord) => {
       onFinalized?.(finalRecord);
@@ -226,7 +225,7 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
                 placeholder="Add any notes about this finalization..."
                 className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:border-blue-500 focus:outline-none"
                 rows={3}
-                disabled={isSubmitting}
+                disabled={isPending}
               />
               <p className="mt-1 text-xs text-gray-500">
                 {finalizationNotes.length}/500 characters
@@ -251,17 +250,17 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
           <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 flex gap-3">
             <button
               onClick={onClose}
-              disabled={isSubmitting}
+              disabled={isPending}
               className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
-              disabled={isSubmitting || disabled}
+              disabled={isPending || disabled}
               className="flex-1 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isSubmitting ? (
+              {isPending ? (
                 <>
                   <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                   Finalizing...

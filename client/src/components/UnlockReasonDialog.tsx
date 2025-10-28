@@ -12,13 +12,12 @@
 import React, { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
-import type { NisabYearRecordResponse } from '@zakapp/shared';
 
 export interface UnlockReasonDialogProps {
   /**
    * The record to unlock
    */
-  record: NisabYearRecordResponse;
+  record: any;
 
   /**
    * Whether dialog is open
@@ -33,7 +32,7 @@ export interface UnlockReasonDialogProps {
   /**
    * Callback after successful unlock
    */
-  onUnlocked?: (unlockedRecord: NisabYearRecordResponse) => void;
+  onUnlocked?: (unlockedRecord: any) => void;
 
   /**
    * Optional custom className
@@ -80,7 +79,7 @@ export const UnlockReasonDialog: React.FC<UnlockReasonDialogProps> = ({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Mutation for unlock
-  const { mutate: unlock, isLoading: isSubmitting, error } = useMutation({
+  const { mutate: unlock, isPending, error } = useMutation({
     mutationFn: async () => {
       // Client-side validation
       const errors: string[] = [];
@@ -110,7 +109,7 @@ export const UnlockReasonDialog: React.FC<UnlockReasonDialogProps> = ({
         throw new Error(response.message || 'Unlock failed');
       }
 
-      return response.data as NisabYearRecordResponse;
+      return response.data as any;
     },
     onSuccess: (unlockedRecord) => {
       onUnlocked?.(unlockedRecord);
@@ -227,7 +226,7 @@ export const UnlockReasonDialog: React.FC<UnlockReasonDialogProps> = ({
                     : 'border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
                 }`}
                 rows={4}
-                disabled={isSubmitting}
+                disabled={isPending}
                 aria-invalid={validationErrors.length > 0}
                 aria-describedby={validationErrors.length > 0 ? 'error-message' : 'char-count'}
                 maxLength={500}
@@ -270,18 +269,18 @@ export const UnlockReasonDialog: React.FC<UnlockReasonDialogProps> = ({
           <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 flex gap-3">
             <button
               onClick={onClose}
-              disabled={isSubmitting}
+              disabled={isPending}
               className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
-              disabled={isSubmitting || !isValid}
+              disabled={isPending || !isValid}
               className="flex-1 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               aria-label={isValid ? 'Unlock record' : 'Reason must be between 10 and 500 characters'}
             >
-              {isSubmitting ? (
+              {isPending ? (
                 <>
                   <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                   Unlocking...
