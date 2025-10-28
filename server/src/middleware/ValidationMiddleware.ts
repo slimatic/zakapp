@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult, body, param, query } from 'express-validator';
 import { z } from 'zod';
-import { VALID_ASSET_CATEGORY_VALUES } from '@zakapp/shared';
+// Import directly from constants to avoid module resolution issues
+import { VALID_ASSET_CATEGORY_VALUES } from '@zakapp/shared/dist/constants';
 
 // Extend Request type for file uploads
 interface RequestWithFile extends Request {

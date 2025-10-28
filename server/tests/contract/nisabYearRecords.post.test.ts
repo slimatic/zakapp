@@ -27,7 +27,7 @@ describe('POST /api/nisab-year-records - Contract Tests', () => {
       },
     });
     userId = user.id;
-    authToken = generateAccessToken({ userId: user.id, email: user.email, role: 'user' });
+    authToken = generateAccessToken(user.id);
   });
 
   afterAll(async () => {
