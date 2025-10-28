@@ -5,7 +5,6 @@
  * Supports encrypted sensitive data: unlock reasons, change summaries, state snapshots
  */
 
-import { injectable } from 'tsyringe';
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
 import { EncryptionService } from './encryption-service';
@@ -15,14 +14,18 @@ import type {
   CreateAuditTrailEntryDto,
 } from '@zakapp/shared';
 
-@injectable()
 export class AuditTrailService {
   private logger = new Logger('AuditTrailService');
+  private prisma: PrismaClient;
+  private encryptionService: EncryptionService;
 
   constructor(
-    private prisma: PrismaClient,
-    private encryptionService: EncryptionService
-  ) {}
+    prisma?: PrismaClient,
+    encryptionService?: EncryptionService
+  ) {
+    this.prisma = prisma || new PrismaClient();
+    this.encryptionService = encryptionService || new EncryptionService();
+  }
 
   /**
    * Record an audit trail event

@@ -5,7 +5,6 @@
  * Handles CRUD operations, status transitions, and live tracking
  */
 
-import { injectable } from 'tsyringe';
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
 import { EncryptionService } from './encryption-service';
@@ -25,18 +24,30 @@ import type {
   LiveHawlData,
 } from '@zakapp/shared';
 
-@injectable()
 export class NisabYearRecordService {
   private logger = new Logger('NisabYearRecordService');
+  private prisma: PrismaClient;
+  private encryptionService: EncryptionService;
+  private auditTrailService: AuditTrailService;
+  private nisabCalculationService: NisabCalculationService;
+  private hawlTrackingService: HawlTrackingService;
+  private wealthAggregationService: WealthAggregationService;
 
   constructor(
-    private prisma: PrismaClient,
-    private encryptionService: EncryptionService,
-    private auditTrailService: AuditTrailService,
-    private nisabCalculationService: NisabCalculationService,
-    private hawlTrackingService: HawlTrackingService,
-    private wealthAggregationService: WealthAggregationService
-  ) {}
+    prisma?: PrismaClient,
+    encryptionService?: EncryptionService,
+    auditTrailService?: AuditTrailService,
+    nisabCalculationService?: NisabCalculationService,
+    hawlTrackingService?: HawlTrackingService,
+    wealthAggregationService?: WealthAggregationService
+  ) {
+    this.prisma = prisma || new PrismaClient();
+    this.encryptionService = encryptionService || new EncryptionService();
+    this.auditTrailService = auditTrailService || new AuditTrailService();
+    this.nisabCalculationService = nisabCalculationService || new NisabCalculationService();
+    this.hawlTrackingService = hawlTrackingService || new HawlTrackingService();
+    this.wealthAggregationService = wealthAggregationService || new WealthAggregationService();
+  }
 
   /**
    * Create a new Nisab Year Record

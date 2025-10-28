@@ -8,7 +8,6 @@
  * - Calculates live Hawl metrics
  */
 
-import { injectable } from 'tsyringe';
 import moment from 'moment';
 import 'moment-hijri';
 import { Logger } from '../utils/logger';
@@ -22,17 +21,21 @@ import type {
   HawlInterruptionEvent,
 } from '@zakapp/shared';
 
-@injectable()
 export class HawlTrackingService {
   private readonly HAWL_DURATION_DAYS = 354; // Lunar year
   private readonly HAWL_TOLERANCE_DAYS = 5; // ±5 days for calendar adjustment
 
   private logger = new Logger('HawlTrackingService');
+  private wealthAggregationService: WealthAggregationService;
+  private nisabCalculationService: NisabCalculationService;
 
   constructor(
-    private wealthAggregationService: WealthAggregationService,
-    private nisabCalculationService: NisabCalculationService
-  ) {}
+    wealthAggregationService?: WealthAggregationService,
+    nisabCalculationService?: NisabCalculationService
+  ) {
+    this.wealthAggregationService = wealthAggregationService || new WealthAggregationService();
+    this.nisabCalculationService = nisabCalculationService || new NisabCalculationService();
+  }
 
   /**
    * Detect Nisab achievement - checks if user's wealth has reached Nisab threshold
