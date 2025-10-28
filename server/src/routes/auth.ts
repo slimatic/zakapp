@@ -10,8 +10,9 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { EncryptionService } from '../services/EncryptionService';
+import { Logger } from '../utils/logger';
 
-// const prisma = new PrismaClient();
+const logger = new Logger('AuthRoutes');
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-for-development-purposes-32';
 
 // Lazy initialization of Prisma client
@@ -248,7 +249,7 @@ router.post('/register',
       const passwordHash = await bcrypt.hash(password, 12);
 
       // Create encrypted profile and settings
-      const profileData = { 
+      let profileData: any = { 
         firstName, 
         lastName,
         phoneNumber,
@@ -302,6 +303,18 @@ router.post('/register',
 
       const refreshToken = jwtService.createRefreshToken(user.id);
 
+      // Decrypt profile data
+      if (user.profile) {
+        try {
+          profileData = await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY);
+        } catch (error) {
+          logger.error('Failed to decrypt profile data', error);
+          profileData = {}; // Reset on error
+        }
+      } else {
+        profileData = {};
+      }
+
       // Respond with standard format matching contract expectations
       res.status(201).json({
         success: true,
@@ -310,8 +323,8 @@ router.post('/register',
             id: user.id,
             email: user.email,
             username: user.username,
-            firstName: JSON.parse(user.profile || '{}').firstName,
-            lastName: JSON.parse(user.profile || '{}').lastName,
+            firstName: profileData.firstName || '',
+            lastName: profileData.lastName || '',
             isActive: user.isActive,
             preferences: {
               calendar: user.preferredCalendar,
@@ -640,14 +653,14 @@ router.get('/me',
         return;
       }
 
-      // Parse profile to get name
+      // Decrypt profile to get name
       let profile = { firstName: '', lastName: '' };
       try {
         if (user.profile) {
-          profile = JSON.parse(user.profile);
+          profile = await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY);
         }
-      } catch {
-        // Ignore parse errors
+      } catch (error) {
+        logger.error('Failed to decrypt profile in /me endpoint', error);
       }
 
       res.status(200).json({

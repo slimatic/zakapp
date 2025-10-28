@@ -6,7 +6,7 @@
  */
 
 import { Logger } from '../utils/logger';
-import cron from 'node-cron';
+import * as cron from 'node-cron';
 import { PrismaClient } from '@prisma/client';
 import { NisabCalculationService } from '../services/nisabCalculationService';
 import { HawlTrackingService } from '../services/hawlTrackingService';
