@@ -9,6 +9,7 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app';
 import { generateAccessToken } from '../../src/utils/jwt';
+import { createNisabYearRecordData } from '../helpers/nisabYearRecordFactory';
 
 const prisma = new PrismaClient();
 
@@ -30,27 +31,12 @@ describe('GET /api/nisab-year-records/:id - Contract Tests', () => {
     userId = user.id;
     authToken = generateAccessToken(user.id);
 
-    // Create test record
+    // Create test record using factory
     const record = await prisma.yearlySnapshot.create({
-      data: {
-        userId,
-        status: 'DRAFT',
-        nisabBasis: 'GOLD',
+      data: createNisabYearRecordData(userId, {
         hawlStartDate: new Date(),
         hawlCompletionDate: new Date(Date.now() + 354 * 24 * 60 * 60 * 1000),
-        calculationDate: new Date(),
-        gregorianYear: 2025,
-        gregorianMonth: 10,
-        gregorianDay: 28,
-        hijriYear: 1446,
-        hijriMonth: 3,
-        hijriDay: 15,
-        totalWealth: '10000',
-        totalLiabilities: '1000',
-        zakatableWealth: '9000',
-        zakatAmount: '225',
-        methodologyUsed: 'standard',
-      },
+      }),
     });
     recordId = record.id;
   });
@@ -131,7 +117,8 @@ describe('GET /api/nisab-year-records/:id - Contract Tests', () => {
         },
       });
 
-      isActive: true,
+      passwordHash: 'hash',
+        isActive: true,
       },
     });
 
