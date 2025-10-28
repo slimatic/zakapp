@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import { ExportController } from '../controllers/ExportController';
 
 const router = Router();
 const exportController = new ExportController();
 
 // All export routes require authentication
-router.use(authenticateToken);
+router.use(authMiddleware);
 
 // Export routes
 router.post('/full', exportController.full.bind(exportController));

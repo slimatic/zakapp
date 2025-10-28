@@ -5,7 +5,7 @@ import { ZakatEngine } from '../services/zakatEngine';
 import { CurrencyService } from '../services/currencyService';
 import { CalendarService } from '../services/calendarService';
 import { NisabService } from '../services/NisabService';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 
 const router = express.Router();
 const calculationHistoryService = new CalculationHistoryService();
@@ -85,7 +85,7 @@ const UpdateNotesSchema = z.object({
  * Save a new calculation to history
  */
 router.post('/',
-  authenticateToken,
+  authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Validate request body
@@ -161,7 +161,7 @@ router.post('/',
  * List calculation history with filters and pagination
  */
 router.get('/',
-  authenticateToken,
+  authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Validate query parameters
@@ -222,7 +222,7 @@ router.get('/',
  * Get trend analysis for calculations over time
  */
 router.get('/trends/analysis',
-  authenticateToken,
+  authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Validate query parameters
@@ -274,7 +274,7 @@ router.get('/trends/analysis',
  * Get a specific calculation by ID
  */
 router.get('/:id',
-  authenticateToken,
+  authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Get user ID from auth token
@@ -323,7 +323,7 @@ router.get('/:id',
  * Compare multiple calculations
  */
 router.post('/compare',
-  authenticateToken,
+  authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Validate request body
@@ -396,7 +396,7 @@ router.post('/compare',
  * Update calculation notes
  */
 router.patch('/:id/notes',
-  authenticateToken,
+  authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Validate request body
@@ -462,7 +462,7 @@ router.patch('/:id/notes',
  * Delete a calculation from history
  */
 router.delete('/:id',
-  authenticateToken,
+  authMiddleware,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Get user ID from auth token

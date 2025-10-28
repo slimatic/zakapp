@@ -12,12 +12,9 @@
  */
 
 import { Router, Response } from 'express';
-import { container } from 'tsyringe';
+import { AuthenticatedRequest, authMiddleware } from '../middleware/auth';
 import { NisabYearRecordService } from '../services/nisabYearRecordService';
 import { AuditTrailService } from '../services/auditTrailService';
-import { AuthenticatedRequest, authMiddleware } from '../middleware/auth';
-import { validationMiddleware } from '../middleware/validation';
-import { AppError } from '../utils/appError';
 import type {
   CreateNisabYearRecordDto,
   UpdateNisabYearRecordDto,
@@ -30,8 +27,9 @@ const router = Router();
 // Middleware: All routes require authentication
 router.use(authMiddleware);
 
-const nisabYearRecordService = container.resolve(NisabYearRecordService);
-const auditTrailService = container.resolve(AuditTrailService);
+// Create service instances
+const nisabYearRecordService = new NisabYearRecordService();
+const auditTrailService = new AuditTrailService();
 
 /**
  * T050: GET /api/nisab-year-records
@@ -62,7 +60,7 @@ router.get('/api/nisab-year-records', async (req: AuthenticatedRequest, res: Res
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const filters: any = {};
+    const filters: Record<string, any> = {};
     if (req.query.status) {
       filters.status = (req.query.status as string).split(',');
     }
@@ -103,10 +101,13 @@ router.get('/api/nisab-year-records', async (req: AuthenticatedRequest, res: Res
  * 
  * Request body:
  * {
- *   hijriYear: string,      // Required: Format YYYYH (e.g., 1445H)
- *   nisabBasis: string,     // Required: GOLD or SILVER
- *   currency: string,       // Optional: Currency code (default: USD)
- *   notes: string           // Optional: User notes
+ *   hawlStartDate: string|Date,        // Required: ISO date when wealth reached Nisab
+ *   hawlStartDateHijri: string,        // Required: Hijri date (e.g., 1445-01-01H)
+ *   hawlCompletionDate: string|Date,   // Required: Calculated end of 354-day Hawl
+ *   hawlCompletionDateHijri: string,   // Required: Hijri date of completion
+ *   nisabBasis: string,                // Required: GOLD or SILVER
+ *   totalWealth?: number,              // Optional: Initial wealth
+ *   userNotes?: string                 // Optional: User notes
  * }
  * 
  * Response:
@@ -120,11 +121,19 @@ router.post('/api/nisab-year-records', async (req: AuthenticatedRequest, res: Re
     const dto: CreateNisabYearRecordDto = req.body;
 
     // Basic validation
-    if (!dto.hijriYear) {
+    if (!dto.hawlStartDate) {
       return res.status(400).json({
         success: false,
         error: 'VALIDATION_ERROR',
-        message: 'hijriYear is required',
+        message: 'hawlStartDate is required',
+      });
+    }
+
+    if (!dto.hawlStartDateHijri) {
+      return res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'hawlStartDateHijri is required',
       });
     }
 
@@ -352,7 +361,8 @@ router.post(
  * 
  * Request body:
  * {
- *   reason: string          // Required: Min 10 chars, max 500 chars
+ *   recordId: string,       // Required: Record ID to unlock
+ *   unlockReason: string    // Required: Min 10 chars, max 500 chars
  * }
  * 
  * Response:
@@ -369,27 +379,27 @@ router.post(
     try {
       const dto: UnlockRecordDto = req.body;
 
-      if (!dto.reason) {
+      if (!dto.unlockReason) {
         return res.status(400).json({
           success: false,
           error: 'VALIDATION_ERROR',
-          message: 'reason is required',
+          message: 'unlockReason is required',
         });
       }
 
-      if (dto.reason.length < 10) {
+      if (dto.unlockReason.length < 10) {
         return res.status(400).json({
           success: false,
           error: 'VALIDATION_ERROR',
-          message: 'reason must be at least 10 characters',
+          message: 'unlockReason must be at least 10 characters',
         });
       }
 
-      if (dto.reason.length > 500) {
+      if (dto.unlockReason.length > 500) {
         return res.status(400).json({
           success: false,
           error: 'VALIDATION_ERROR',
-          message: 'reason must not exceed 500 characters',
+          message: 'unlockReason must not exceed 500 characters',
         });
       }
 
@@ -437,12 +447,23 @@ router.post(
  *     entries: AuditTrailEntry[],
  *     integrity: AuditTrailIntegrity
  *   }
+/**
+ * T056: GET /api/nisab-year-records/:id/audit
+ * Get audit trail for a record
+ * 
+ * Response:
+ * {
+ *   success: true,
+ *   data: {
+ *     entries: AuditTrailEntry[],
+ *     integrity: { isValid: boolean; issues: string[] }
+ *   }
  * }
  */
 router.get('/api/nisab-year-records/:id/audit', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    // Verify user owns the record first
-    const record = await nisabYearRecordService.getRecord(req.userId, req.params.id);
+    // Verify user owns the record first (authorization check)
+    await nisabYearRecordService.getRecord(req.userId, req.params.id);
 
     const entries = await auditTrailService.getAuditTrail(req.params.id);
     const integrity = await auditTrailService.verifyAuditTrailIntegrity(req.params.id);
