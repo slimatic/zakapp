@@ -42,6 +42,9 @@ model User {
   annualSummaries  AnnualSummary[]   @relation("UserAnnualSummaries")
   reminderEvents   ReminderEvent[]   @relation("UserReminderEvents")
 
+  // Nisab Year Record Audit Trail (NEW - Feature 008)
+  auditTrailEntries AuditTrailEntry[] @relation("UserAuditTrails")
+
   // Calculation History (Feature 004)
   calculationHistory CalculationHistory[]
 
@@ -441,37 +444,52 @@ model UserWorkflow {
 // ============================================================================
 
 model YearlySnapshot {
-  id                  String   @id @default(cuid())
-  userId              String
-  calculationDate     DateTime
-  gregorianYear       Int
-  gregorianMonth      Int
-  gregorianDay        Int
-  hijriYear           Int
-  hijriMonth          Int
-  hijriDay            Int
-  totalWealth         String   // Encrypted
-  totalLiabilities    String   // Encrypted
-  zakatableWealth     String   // Encrypted
-  zakatAmount         String   // Encrypted
-  methodologyUsed     String
-  nisabThreshold      String   // Encrypted
-  nisabType           String   // gold or silver
-  status              String   // draft or finalized
-  assetBreakdown      String   // Encrypted JSON
-  calculationDetails  String   // Encrypted JSON
-  userNotes           String?  // Encrypted
-  isPrimary           Boolean  @default(false)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  userId                 String
+  
+  // Hawl Tracking (NEW FIELDS)
+  hawlStartDate          DateTime?
+  hawlStartDateHijri     String?
+  hawlCompletionDate     DateTime?
+  hawlCompletionDateHijri String?
+  nisabThresholdAtStart  String?  // Encrypted - Value locked at Hawl start
+  nisabBasis             String?  // "gold" or "silver"
+  
+  // Existing Fields (preserved)
+  calculationDate        DateTime
+  gregorianYear          Int
+  gregorianMonth         Int
+  gregorianDay           Int
+  hijriYear              Int
+  hijriMonth             Int
+  hijriDay               Int
+  totalWealth            String   // Encrypted
+  totalLiabilities       String   // Encrypted
+  zakatableWealth        String   // Encrypted
+  zakatAmount            String   // Encrypted
+  methodologyUsed        String
+  nisabThreshold         String   // Encrypted (deprecated in favor of nisabThresholdAtStart)
+  nisabType              String   // (deprecated in favor of nisabBasis)
+  
+  // Status Management (UPDATED - now supports DRAFT, FINALIZED, UNLOCKED)
+  status                 String   // "DRAFT", "FINALIZED", "UNLOCKED"
+  
+  assetBreakdown         String   // Encrypted JSON
+  calculationDetails     String   // Encrypted JSON
+  userNotes              String?  // Encrypted
+  isPrimary              Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  finalizedAt            DateTime? // NEW - Timestamp of finalization
 
   // Relationships
-  user                User            @relation("UserYearlySnapshots", fields: [userId], references: [id], onDelete: Cascade)
-  payments            PaymentRecord[]
-  summary             AnnualSummary?
-  reminders           ReminderEvent[]
+  user                   User              @relation("UserYearlySnapshots", fields: [userId], references: [id], onDelete: Cascade)
+  payments               PaymentRecord[]
+  summary                AnnualSummary?
+  reminders              ReminderEvent[]
+  auditTrail             AuditTrailEntry[] // NEW relationship
 
-  @@map("yearly_snapshots")
+  @@map("nisab_year_records")
   @@index([userId, calculationDate(sort: Desc)])
   @@index([userId, gregorianYear])
   @@index([userId, hijriYear])
@@ -479,7 +497,48 @@ model YearlySnapshot {
   @@index([userId, isPrimary])
   @@index([userId, createdAt(sort: Desc)])
   @@index([userId, gregorianYear, gregorianMonth])
-  @@index([userId, status, gregorianYear]) // Performance: Combined status + year filtering
+  @@index([userId, status, gregorianYear])
+  @@index([userId, hawlStartDate]) // NEW: Hawl tracking indexes
+  @@index([userId, hawlCompletionDate]) // NEW: Hawl completion queries
+}
+
+// NEW: Audit Trail Entry for Nisab Year Record unlock/edit events
+model AuditTrailEntry {
+  id                     String   @id @default(cuid())
+  nisabYearRecordId      String   // Foreign key to YearlySnapshot (nisab_year_records)
+  userId                 String   // User who performed the action
+  eventType              String   // "UNLOCKED", "EDITED", "REFINALIZED", "CREATED", "FINALIZED"
+  timestamp              DateTime @default(now())
+  unlockReason           String?  // Encrypted - Required for UNLOCKED events (min 10 chars)
+  changesSummary         String?  // Encrypted JSON - What fields were modified
+  beforeState            String?  // Encrypted JSON - Snapshot before change
+  afterState             String?  // Encrypted JSON - Snapshot after change
+  ipAddress              String?  // Security tracking (optional)
+  userAgent              String?  // Security tracking (optional)
+
+  // Relationships
+  nisabYearRecord        YearlySnapshot @relation(fields: [nisabYearRecordId], references: [id], onDelete: Cascade)
+  user                   User            @relation("UserAuditTrails", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_trail_entries")
+  @@index([nisabYearRecordId, timestamp(sort: Desc)])
+  @@index([userId, timestamp(sort: Desc)])
+  @@index([eventType])
+}
+
+// NEW: Precious Metal Price Cache for Nisab calculations
+model PreciousMetalPrice {
+  id                     String   @id @default(cuid())
+  metalType              String   // "gold" or "silver"
+  pricePerGram           Float    // In base currency (USD)
+  currency               String   @default("USD")
+  fetchedAt              DateTime @default(now())
+  sourceApi              String   @default("metals-api.com")
+  expiresAt              DateTime // fetchedAt + 24 hours
+
+  @@map("precious_metal_prices")
+  @@index([metalType, fetchedAt(sort: Desc)])
+  @@unique([metalType, fetchedAt]) // Prevent duplicate fetches
 }
 
 model PaymentRecord {
