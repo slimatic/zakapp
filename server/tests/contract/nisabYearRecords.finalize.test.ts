@@ -40,25 +40,11 @@ describe('POST /api/nisab-year-records/:id/finalize - Contract Tests', () => {
     it('should finalize DRAFT record when Hawl is complete', async () => {
       const pastDate = new Date(Date.now() - 355 * 24 * 60 * 60 * 1000); // 355 days ago
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
+        data: createNisabYearRecordData(userId, {
           status: 'DRAFT',
-          nisabBasis: 'GOLD',
           hawlStartDate: pastDate,
           hawlCompletionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // Yesterday
-          calculationDate: new Date(),
-          gregorianYear: 2024,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1445,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        } as any,
+        }),
       });
 
       const response = await request(app)
