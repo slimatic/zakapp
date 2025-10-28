@@ -1,24 +1,23 @@
 /**
  * NisabComparisonWidget Component (T061)
  * 
- * Displays current wealth vs Nisab threshold
+ * Displays wealth vs Nisab threshold comparison
  * Features:
  * - Visual bar chart
- * - Percentage above/below Nisab
  * - Color-coded (green if above, red if below)
- * - Live updates
+ * - Percentage calculation
+ * - Difference amount display
  */
 
 import React, { useMemo } from 'react';
-import { useHawlStatus } from '../hooks/useHawlStatus';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
-import type { NisabYearRecordResponse } from '@zakapp/shared';
+import { useHawlStatus } from '../hooks/useHawlStatus';
 
 export interface NisabComparisonWidgetProps {
   /**
    * The Nisab Year Record
    */
-  record: NisabYearRecordResponse;
+  record: any;
 
   /**
    * Current zakatble wealth
@@ -67,8 +66,8 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   onStatusChange,
   showDetails = true,
 }) => {
-  const { nisabAmount, currency } = useNisabThreshold(record.currency);
-  const { liveHawlData, isUpdating } = useHawlStatus(record.id, record.status === 'DRAFT');
+  const { nisabAmount } = useNisabThreshold(record.currency);
+  const { liveHawlData, isUpdating } = useHawlStatus(record.id, 5000);
 
   // Calculate wealth and comparison
   const {
@@ -79,8 +78,8 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
     differenceAmount,
   } = useMemo(() => {
     // Use live data if available, otherwise use passed wealth
-    const wealth = liveHawlData?.currentWealth || currentWealth || record.nisabThresholdAtStart || 0;
-    const nisab = nisabAmount || record.nisabThresholdAtStart || 0;
+    const wealth = (liveHawlData?.currentTotalWealth) || currentWealth || parseFloat(record.nisabThresholdAtStart) || 0;
+    const nisab = (nisabAmount) || parseFloat(record.nisabThresholdAtStart) || 0;
 
     const isWealthAbove = wealth >= nisab;
     const diff = isWealthAbove ? wealth - nisab : nisab - wealth;
@@ -112,7 +111,6 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
     }
   }, [isAbove, onStatusChange]);
 
-  const statusColor = isAbove ? 'green' : 'red';
   const statusLabel = isAbove ? 'Above Nisab' : 'Below Nisab';
   const statusBg = isAbove ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
   const statusBadge = isAbove ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
