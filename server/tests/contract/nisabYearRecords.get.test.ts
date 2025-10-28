@@ -50,25 +50,9 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
     });
 
     it('should return records with correct properties when data exists', async () => {
-      // Create test record
+      // Create test record using factory
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          userId,
-          status: 'DRAFT',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        },
+        data: createNisabYearRecordData(userId),
       });
 
       const response = await request(app)
@@ -92,44 +76,24 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
 
   describe('Query Parameter Filtering', () => {
     beforeEach(async () => {
-      // Create test records with different statuses
+      // Create test records with different statuses using factory
       await prisma.yearlySnapshot.createMany({
         data: [
-          {
-            userId,
+          createNisabYearRecordData(userId, {
             status: 'DRAFT',
             nisabBasis: 'GOLD',
             calculationDate: new Date('2025-01-01'),
             gregorianYear: 2025,
             gregorianMonth: 1,
             gregorianDay: 1,
-            hijriYear: 1446,
-            hijriMonth: 6,
-            hijriDay: 20,
-            totalWealth: '10000',
-            totalLiabilities: '1000',
-            zakatableWealth: '9000',
-            zakatAmount: '225',
-            methodologyUsed: 'standard',
-          },
-          {
-            userId,
-            status: 'FINALIZED',
+          }),
+          createFinalizedRecord(userId, {
             nisabBasis: 'SILVER',
             calculationDate: new Date('2024-01-01'),
             gregorianYear: 2024,
             gregorianMonth: 1,
             gregorianDay: 1,
-            hijriYear: 1445,
-            hijriMonth: 6,
-            hijriDay: 20,
-            totalWealth: '15000',
-            totalLiabilities: '2000',
-            zakatableWealth: '13000',
-            zakatAmount: '325',
-            methodologyUsed: 'standard',
-            finalizedAt: new Date(),
-          },
+          }),
         ],
       });
     });
@@ -208,25 +172,12 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
         },
       });
 
-      await prisma.yearlySnapshot.create({
-        data: {
-          userId: otherUser.id,
-          status: 'DRAFT',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '5000',
-          totalLiabilities: '500',
-          zakatableWealth: '4500',
-          zakatAmount: '112.50',
-          methodologyUsed: 'standard',
-        },
+      // Create record for another user
+      const otherRecord = await prisma.yearlySnapshot.create({
+        data: createNisabYearRecordData(otherUser.id),
       });
+
+      const response = await request(app)
 
       const response = await request(app)
         .get('/api/nisab-year-records')
@@ -248,25 +199,11 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
   describe('Live Tracking for DRAFT Records', () => {
     it('should include live tracking fields for DRAFT records', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          userId,
+        data: createNisabYearRecordData(userId, {
           status: 'DRAFT',
-          nisabBasis: 'GOLD',
           hawlStartDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
           hawlCompletionDate: new Date(Date.now() + 324 * 24 * 60 * 60 * 1000), // 324 days from now
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        },
+        }),
       });
 
       const response = await request(app)
