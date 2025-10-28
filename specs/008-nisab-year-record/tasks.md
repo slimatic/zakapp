@@ -71,27 +71,27 @@
 - [x] T020 [P] Contract test POST /api/nisab-year-records/:id/unlock in server/tests/contract/nisabYearRecords.unlock.test.ts
 
 ### Service Layer Tests
-- [ ] T021 [P] Unit tests for NisabCalculationService in server/tests/unit/services/nisabCalculationService.test.ts
-- [ ] T022 [P] Unit tests for HawlTrackingService in server/tests/unit/services/hawlTrackingService.test.ts
-- [ ] T023 [P] Unit tests for WealthAggregationService in server/tests/unit/services/wealthAggregationService.test.ts
-- [ ] T024 [P] Unit tests for AuditTrailService in server/tests/unit/services/auditTrailService.test.ts
-- [ ] T025 [P] Unit tests for NisabYearRecordService in server/tests/unit/services/nisabYearRecordService.test.ts
+- [x] T021 [P] Unit tests for NisabCalculationService in server/tests/unit/services/nisabCalculationService.test.ts
+- [x] T022 [P] Unit tests for HawlTrackingService in server/tests/unit/services/hawlTrackingService.test.ts
+- [x] T023 [P] Unit tests for WealthAggregationService in server/tests/unit/services/wealthAggregationService.test.ts
+- [x] T024 [P] Unit tests for AuditTrailService in server/tests/unit/services/auditTrailService.test.ts
+- [x] T025 [P] Unit tests for NisabYearRecordService in server/tests/unit/services/nisabYearRecordService.test.ts
 
 ### Integration Tests
-- [ ] T026 [P] Integration test: Nisab achievement detection in server/tests/integration/hawlDetection.test.ts
-- [ ] T027 [P] Integration test: Live wealth tracking in server/tests/integration/liveTracking.test.ts
-- [ ] T028 [P] Integration test: Hawl interruption (wealth drop) in server/tests/integration/hawlInterruption.test.ts
-- [ ] T029 [P] Integration test: Finalization workflow in server/tests/integration/finalization.test.ts
-- [ ] T030 [P] Integration test: Unlock/edit/refinalize in server/tests/integration/unlockEdit.test.ts
-- [ ] T031 [P] Integration test: Status transition validation in server/tests/integration/statusTransitions.test.ts
-- [ ] T032 [P] Integration test: Invalid operations (error handling) in server/tests/integration/invalidOperations.test.ts
+- [x] T026 [P] Integration test: Nisab achievement detection in server/tests/integration/hawlDetection.test.ts
+- [x] T027 [P] Integration test: Live wealth tracking in server/tests/integration/liveTracking.test.ts
+- [x] T028 [P] Integration test: Hawl interruption (wealth drop) in server/tests/integration/hawlInterruption.test.ts
+- [x] T029 [P] Integration test: Finalization workflow in server/tests/integration/finalization.test.ts
+- [x] T030 [P] Integration test: Unlock/edit/refinalize in server/tests/integration/unlockEdit.test.ts
+- [x] T031 [P] Integration test: Status transition validation in server/tests/integration/statusTransitions.test.ts
+- [x] T032 [P] Integration test: Invalid operations (error handling) in server/tests/integration/invalidOperations.test.ts
 
 ### Frontend Component Tests
-- [ ] T033 [P] Component test for HawlProgressIndicator in client/tests/components/HawlProgressIndicator.test.tsx
-- [ ] T034 [P] Component test for NisabComparisonWidget in client/tests/components/NisabComparisonWidget.test.tsx
-- [ ] T035 [P] Component test for FinalizationModal in client/tests/components/FinalizationModal.test.tsx
-- [ ] T036 [P] Component test for UnlockReasonDialog in client/tests/components/UnlockReasonDialog.test.tsx
-- [ ] T037 [P] Component test for AuditTrailView in client/tests/components/AuditTrailView.test.tsx
+- [x] T033 [P] Component test for HawlProgressIndicator in client/tests/components/HawlProgressIndicator.test.tsx
+- [x] T034 [P] Component test for NisabComparisonWidget in client/tests/components/NisabComparisonWidget.test.tsx
+- [x] T035 [P] Component test for FinalizationModal in client/tests/components/FinalizationModal.test.tsx
+- [x] T036 [P] Component test for UnlockReasonDialog in client/tests/components/UnlockReasonDialog.test.tsx
+- [x] T037 [P] Component test for AuditTrailView in client/tests/components/AuditTrailView.test.tsx
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit TDD test suite (all tests must be failing)
 
