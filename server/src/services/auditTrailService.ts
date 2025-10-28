@@ -7,7 +7,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
-import { EncryptionService } from './encryption-service';
+import { EncryptionService } from './EncryptionService';
 import type {
   AuditTrailEntry,
   AuditEventType,
@@ -63,19 +63,24 @@ export class AuditTrailService {
       let encryptedInterruptionDetails: string | undefined;
 
       if (details?.reason) {
-        encryptedReason = this.encryptionService.encrypt(details.reason);
+        const encrypted = EncryptionService.encrypt(details.reason);
+        encryptedReason = JSON.stringify(encrypted);
       }
       if (details?.changesSummary) {
-        encryptedChangesSummary = this.encryptionService.encrypt(JSON.stringify(details.changesSummary));
+        const encrypted = EncryptionService.encrypt(JSON.stringify(details.changesSummary));
+        encryptedChangesSummary = JSON.stringify(encrypted);
       }
       if (details?.beforeState) {
-        encryptedBeforeState = this.encryptionService.encrypt(JSON.stringify(details.beforeState));
+        const encrypted = EncryptionService.encrypt(JSON.stringify(details.beforeState));
+        encryptedBeforeState = JSON.stringify(encrypted);
       }
       if (details?.afterState) {
-        encryptedAfterState = this.encryptionService.encrypt(JSON.stringify(details.afterState));
+        const encrypted = EncryptionService.encrypt(JSON.stringify(details.afterState));
+        encryptedAfterState = JSON.stringify(encrypted);
       }
       if (details?.interruptionDetails) {
-        encryptedInterruptionDetails = this.encryptionService.encrypt(JSON.stringify(details.interruptionDetails));
+        const encrypted = EncryptionService.encrypt(JSON.stringify(details.interruptionDetails));
+        encryptedInterruptionDetails = JSON.stringify(encrypted);
       }
 
       // Create audit trail entry (immutable, append-only)
@@ -86,10 +91,9 @@ export class AuditTrailService {
           eventType,
           timestamp: new Date(),
           unlockReason: encryptedReason,
-          changesSummary: encryptedChangesSummary,
+          changesSummary: encryptedInterruptionDetails || encryptedChangesSummary,
           beforeState: encryptedBeforeState,
           afterState: encryptedAfterState,
-          interruptionDetails: encryptedInterruptionDetails,
         },
       });
 
@@ -258,10 +262,10 @@ export class AuditTrailService {
         return null;
       }
 
-      const decrypted = this.encryptionService.decrypt(value as string);
+      const decrypted = EncryptionService.decrypt(value as string);
 
       // Try to parse as JSON if applicable
-      if (field === 'changesSummary' || field === 'beforeState' || field === 'afterState' || field === 'interruptionDetails') {
+      if (field === 'changesSummary' || field === 'beforeState' || field === 'afterState') {
         try {
           return JSON.parse(decrypted);
         } catch {

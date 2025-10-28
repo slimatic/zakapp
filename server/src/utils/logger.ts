@@ -24,3 +24,6 @@ export class Logger {
     }
   }
 }
+
+// Export default singleton logger instance for use in preciousMetalsApi.ts
+export const logger = new Logger('APP');

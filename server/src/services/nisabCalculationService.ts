@@ -51,17 +51,44 @@ export class NisabCalculationService {
     nisabBasis: 'GOLD' | 'SILVER' = 'GOLD'
   ): Promise<NisabThresholdData> {
     try {
-      // Fetch current prices from metals API
-      const prices = await this.preciousMetalsApi.fetchCurrentPrices(currency);
+      let goldPrice = 0;
+      let silverPrice = 0;
+
+      // Try to fetch from API if key is available
+      if (process.env.METALS_API_KEY) {
+        try {
+          const priceArray = await this.preciousMetalsApi.fetchCurrentPrices(currency);
+
+          for (const metalPrice of priceArray) {
+            if (metalPrice.metalType === 'gold') {
+              goldPrice = metalPrice.pricePerGram;
+            } else if (metalPrice.metalType === 'silver') {
+              silverPrice = metalPrice.pricePerGram;
+            }
+          }
+        } catch (apiError) {
+          this.logger.warn('Failed to fetch prices from API, using fallback values');
+        }
+      }
+
+      // Use fallback prices if API is not available (approximate USD per gram as of Oct 2025)
+      if (goldPrice === 0) {
+        goldPrice = 65.0; // Approximate $65/gram for gold
+        this.logger.info('Using fallback gold price: $65/gram');
+      }
+      if (silverPrice === 0) {
+        silverPrice = 0.75; // Approximate $0.75/gram for silver
+        this.logger.info('Using fallback silver price: $0.75/gram');
+      }
 
       // Calculate Nisab amounts
-      const goldNisab = prices.goldPrice * this.NISAB_GOLD_GRAMS;
-      const silverNisab = prices.silverPrice * this.NISAB_SILVER_GRAMS;
+      const goldNisab = goldPrice * this.NISAB_GOLD_GRAMS;
+      const silverNisab = silverPrice * this.NISAB_SILVER_GRAMS;
       const selectedNisab = nisabBasis === 'GOLD' ? goldNisab : silverNisab;
 
       return {
-        goldPrice: prices.goldPrice,
-        silverPrice: prices.silverPrice,
+        goldPrice,
+        silverPrice,
         goldNisab: Math.round(goldNisab * 100) / 100,
         silverNisab: Math.round(silverNisab * 100) / 100,
         selectedNisab: Math.round(selectedNisab * 100) / 100,

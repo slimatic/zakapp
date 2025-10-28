@@ -58,13 +58,12 @@ export class WealthAggregationService {
       const assets = await this.prisma.asset.findMany({
         where: {
           userId,
-          isDeleted: false,
+          isActive: true,
         },
         select: {
           id: true,
           category: true,
           value: true,
-          zakatEligible: true,
         },
       });
 
@@ -109,7 +108,7 @@ export class WealthAggregationService {
       const assets = await this.prisma.asset.findMany({
         where: {
           userId,
-          isDeleted: false,
+          isActive: true,
           createdAt: {
             gte: startDate,
             lte: endDate,
@@ -167,8 +166,7 @@ export class WealthAggregationService {
       where: {
         userId,
         category,
-        zakatEligible: true,
-        isDeleted: false,
+        isActive: true,
       },
     });
 
@@ -182,16 +180,14 @@ export class WealthAggregationService {
    * @returns Total liabilities
    */
   async calculateTotalLiabilities(userId: string): Promise<number> {
-    const liabilities = await this.prisma.asset.findMany({
+    const liabilities = await this.prisma.liability.findMany({
       where: {
         userId,
-        category: 'expenses', // Liabilities stored as expense category
-        zakatEligible: false,
-        isDeleted: false,
+        isActive: true,
       },
     });
 
-    return liabilities.reduce((sum, liability) => sum + liability.value, 0);
+    return liabilities.reduce((sum, liability) => sum + liability.amount, 0);
   }
 
   /**

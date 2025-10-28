@@ -3,5 +3,7 @@
  * Wraps ValidationMiddleware.ts for cleaner imports
  */
 
-export { handleValidationErrors } from './ValidationMiddleware';
+import { handleValidationErrors } from './ValidationMiddleware';
+
+export { handleValidationErrors };
 export const validationMiddleware = { handleValidationErrors };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Hawl Detection Background Job (T046)
  * 
@@ -9,11 +10,11 @@
 
 import { Logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
-import { NisabCalculationService } from './nisabCalculationService';
-import { HawlTrackingService } from './hawlTrackingService';
-import { WealthAggregationService } from './wealthAggregationService';
-import { NisabYearRecordService } from './nisabYearRecordService';
-import { AuditTrailService } from './auditTrailService';
+import { NisabCalculationService } from '../services/nisabCalculationService';
+import { HawlTrackingService } from '../services/hawlTrackingService';
+import { WealthAggregationService } from '../services/wealthAggregationService';
+import { NisabYearRecordService } from '../services/nisabYearRecordService';
+import { AuditTrailService } from '../services/auditTrailService';
 
 export interface HawlDetectionJobResult {
   startTime: Date;
@@ -69,9 +70,9 @@ export async function runHawlDetectionJob(
   try {
     logger.info('Starting Hawl detection job');
 
-    // Get all users
+    // Get all active users
     const users = await prisma.user.findMany({
-      select: { id: true, currency: true },
+      select: { id: true, preferredCalendar: true },
     });
 
     logger.info(`Processing ${users.length} users`);
@@ -81,19 +82,23 @@ export async function runHawlDetectionJob(
       try {
         result.usersProcessed++;
 
-        // Get current zakatble wealth
+        // Get current zakatable wealth
         const wealthData = await wealthAggService.calculateTotalZakatableWealth(user.id);
-        if (wealthData.total === 0) {
+        
+        // Parse the encrypted wealth data
+        const zakatableAmount = wealthData.totalZakatableWealth;
+
+        if (zakatableAmount === 0 || !zakatableAmount) {
           continue; // Skip users with no wealth
         }
 
         // Check if user has a current DRAFT record
-        const draftRecords = await prisma.nisabYearRecord.findMany({
+        const draftRecords = await prisma.yearlySnapshot.findMany({
           where: {
             userId: user.id,
             status: 'DRAFT',
           },
-          orderBy: { startDate: 'desc' },
+          orderBy: { createdAt: 'desc' },
           take: 1,
         });
 
@@ -101,27 +106,38 @@ export async function runHawlDetectionJob(
 
         // Get current Nisab threshold
         const nisabData = await nisabCalcService.calculateNisabThreshold(
-          user.currency || 'USD',
+          'USD', // Use USD as default
           'GOLD' // Default to GOLD for detection
         );
 
-        const isAboveNisab = wealthData.total >= nisabData.nisabAmount;
+        const nisabAmount = nisabData.selectedNisab;
+
+        const isAboveNisab = zakatableAmount >= nisabAmount;
 
         /**
          * Case 1: No active record AND wealth >= Nisab
          * → Create new DRAFT record (Nisab achievement)
          */
         if (!currentRecord && isAboveNisab) {
-          // Get current Hijri year
-          const hijriDate = await hawlTrackingService.toHijriDate(new Date());
-          const hijriYear = hijriDate.format('YYYY[H]');
-
-          // Create new record
-          await nisabYearRecordService.createRecord(user.id, {
-            hijriYear,
-            nisabBasis: 'GOLD',
-            currency: user.currency || 'USD',
-            notes: 'Auto-created by hawl detection job',
+          // Create new record directly
+          await prisma.yearlySnapshot.create({
+            data: {
+              userId: user.id,
+              status: 'DRAFT',
+              nisabBasis: 'GOLD',
+              calculationDate: new Date(),
+              gregorianYear: new Date().getFullYear(),
+              gregorianMonth: new Date().getMonth() + 1,
+              gregorianDay: new Date().getDate(),
+              hijriYear: 0,
+              hijriMonth: 0,
+              hijriDay: 0,
+              totalWealth: '0',
+              totalLiabilities: '0',
+              zakatableWealth: wealthData.totalZakatableWealth.toString(),
+              zakatAmount: '0',
+              methodologyUsed: 'standard',
+            } as any,
           });
 
           result.nisabAchievements++;
@@ -134,14 +150,17 @@ export async function runHawlDetectionJob(
          * Check for state transitions
          */
         if (currentRecord) {
+          // Check if Hawl not started yet
+          const hawlNotStarted = !currentRecord.hawlStartDate;
+
           // If Hawl not started yet, start it now (Nisab still above threshold)
-          if (!currentRecord.hawlStartDate && isAboveNisab) {
-            await prisma.nisabYearRecord.update({
+          if (hawlNotStarted && isAboveNisab) {
+            await prisma.yearlySnapshot.update({
               where: { id: currentRecord.id },
               data: {
                 hawlStartDate: new Date(),
-                hawlStatus: 'ACTIVE',
-              },
+                status: 'DRAFT',
+              } as any,
             });
 
             await auditTrailService.recordEvent(
@@ -151,7 +170,7 @@ export async function runHawlDetectionJob(
               {
                 afterState: {
                   hawlStartDate: new Date(),
-                  hawlStatus: 'ACTIVE',
+                  status: 'DRAFT',
                 },
               }
             );
@@ -162,14 +181,12 @@ export async function runHawlDetectionJob(
           }
 
           // If Hawl is active, check for interruption (wealth dropped below Nisab)
-          if (currentRecord.hawlStartDate && currentRecord.hawlStatus === 'ACTIVE' && !isAboveNisab) {
-            // Get previous wealth to compare (from last job run)
-            // For now, we detect any drop below Nisab
-            await prisma.nisabYearRecord.update({
+          if (currentRecord.hawlStartDate && !isAboveNisab) {
+            // Record the interruption but keep status as DRAFT
+            await prisma.yearlySnapshot.update({
               where: { id: currentRecord.id },
               data: {
-                hawlStatus: 'INTERRUPTED',
-                hawlInterruptionDate: new Date(),
+                status: 'DRAFT', // Mark as still draft, but hawl was interrupted
               },
             });
 
@@ -179,8 +196,8 @@ export async function runHawlDetectionJob(
               currentRecord.id,
               {
                 interruptionDetails: {
-                  currentWealth: wealthData.total,
-                  nisabThreshold: nisabData.nisabAmount,
+                  currentWealth: wealthData.totalZakatableWealth,
+                  nisabThreshold: nisabData.selectedNisab,
                   interruptionDate: new Date(),
                 },
               }
@@ -192,17 +209,19 @@ export async function runHawlDetectionJob(
           }
 
           // If Hawl is active and above Nisab, check for completion
-          if (currentRecord.hawlStartDate && currentRecord.hawlStatus === 'ACTIVE' && isAboveNisab) {
-            const isComplete = await hawlTrackingService.isHawlComplete(currentRecord.hawlStartDate);
+          if (currentRecord.hawlStartDate && isAboveNisab) {
+            const isComplete = await hawlTrackingService.isHawlComplete(
+              currentRecord.hawlStartDate
+            );
 
             if (isComplete) {
-              // Mark as ready for finalization (but don't finalize automatically)
-              await prisma.nisabYearRecord.update({
+              // Mark hawl completion date but keep as DRAFT
+              await prisma.yearlySnapshot.update({
                 where: { id: currentRecord.id },
                 data: {
-                  hawlStatus: 'COMPLETE',
                   hawlCompletionDate: new Date(),
-                },
+                  status: 'DRAFT', // Keep as draft, user manually finalizes
+                } as any,
               });
 
               result.hawlCompletions++;
@@ -211,17 +230,13 @@ export async function runHawlDetectionJob(
           }
 
           // If Hawl was interrupted and wealth is above Nisab again, resume it
-          if (currentRecord.hawlStatus === 'INTERRUPTED' && isAboveNisab) {
-            // Option 1: Resume from interruption point (add gap to Hawl)
-            // Option 2: Restart Hawl from now
-            // Using Option 2: Restart (more conservative, resets 354-day clock)
-            await prisma.nisabYearRecord.update({
+          if (hawlNotStarted && isAboveNisab) {
+            // Restart Hawl from now
+            await prisma.yearlySnapshot.update({
               where: { id: currentRecord.id },
               data: {
-                hawlStatus: 'ACTIVE',
-                hawlStartDate: new Date(), // Reset start date
-                hawlInterruptionDate: null,
-              },
+                hawlStartDate: new Date(),
+              } as any,
             });
 
             await auditTrailService.recordEvent(
@@ -230,7 +245,6 @@ export async function runHawlDetectionJob(
               currentRecord.id,
               {
                 afterState: {
-                  hawlStatus: 'ACTIVE',
                   hawlStartDate: new Date(),
                 },
               }
@@ -241,7 +255,9 @@ export async function runHawlDetectionJob(
         }
       } catch (userError) {
         result.errorCount++;
-        const errorMsg = `Error processing user ${user.id}: ${userError.message}`;
+        const errorMsg = `Error processing user ${user.id}: ${
+          userError instanceof Error ? userError.message : String(userError)
+        }`;
         result.errors.push(errorMsg);
         logger.error(errorMsg);
       }
@@ -263,14 +279,18 @@ export async function runHawlDetectionJob(
 
     // Performance check: warn if exceeds target
     if (result.durationMs > 30000) {
-      logger.warn(`⚠️ Hawl detection job exceeded target time: ${result.durationMs}ms > 30000ms`);
+      logger.warn(
+        `⚠️ Hawl detection job exceeded target time: ${result.durationMs}ms > 30000ms`
+      );
     }
 
     return result;
   } catch (error) {
     logger.error('Hawl detection job failed', error);
     result.errorCount++;
-    result.errors.push(`Job execution failed: ${error.message}`);
+    result.errors.push(
+      `Job execution failed: ${error instanceof Error ? error.message : String(error)}`
+    );
     throw error;
   }
 }

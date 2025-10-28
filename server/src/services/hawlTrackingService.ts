@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Hawl Tracking Service (T042)
  * 
@@ -121,6 +122,7 @@ export class HawlTrackingService {
       daysRemaining: Math.max(0, daysRemaining),
       hawlProgress: Math.min(100, Math.max(0, hawlProgress)),
       isHawlComplete: isComplete,
+      priorInterruptions: 0, // TODO: Track interruptions in audit trail
       lastUpdated: new Date(),
     };
   }
@@ -235,7 +237,7 @@ export class HawlTrackingService {
    * @returns Hijri date string (YYYY-MM-DD format)
    */
   toHijriDate(date: Date): string {
-    const hijri = moment(date).hijri();
+    const hijri = (moment(date) as any).hijri();
     return `${hijri.iYear()}-${String(hijri.iMonth() + 1).padStart(2, '0')}-${String(hijri.iDate()).padStart(2, '0')}`;
   }
 
@@ -247,7 +249,7 @@ export class HawlTrackingService {
    */
   fromHijriDate(hijriDateString: string): Date {
     const [year, month, day] = hijriDateString.split('-').map(Number);
-    return moment().iHijri(year, month - 1, day).toDate();
+    return (moment() as any).iHijri(year, month - 1, day).toDate();
   }
 
   /**
