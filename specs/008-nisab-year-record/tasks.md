@@ -98,12 +98,12 @@
 ## Phase 3.4: Core Implementation (ONLY after tests are failing)
 
 ### Shared Types Update
-- [ ] T038 Update shared types: Rename YearlySnapshot → NisabYearRecord in shared/src/types/nisabYearRecord.ts
-- [ ] T039 Add Hawl tracking types (HawlStatus, NisabBasis, RecordStatus) in shared/src/types/hawl.ts
-- [ ] T040 Add AuditTrailEntry type in shared/src/types/auditTrail.ts
+- [x] T038 Update shared types: Rename YearlySnapshot → NisabYearRecord in shared/src/types/nisabYearRecord.ts
+- [x] T039 Add Hawl tracking types (HawlStatus, NisabBasis, RecordStatus) in shared/src/types/hawl.ts
+- [x] T040 Add AuditTrailEntry type in shared/src/types/auditTrail.ts
 
 ### Service Layer Implementation
-- [ ] T041 [P] Implement NisabCalculationService in server/src/services/nisabCalculationService.ts
+- [x] T041 [P] Implement NisabCalculationService in server/src/services/nisabCalculationService.ts
   - Fetch gold/silver prices from metals-api.com
   - Calculate Nisab thresholds (87.48g gold, 612.36g silver)
   - Cache prices in precious_metal_prices table (24-hour TTL)

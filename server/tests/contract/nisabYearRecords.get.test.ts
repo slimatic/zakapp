@@ -9,6 +9,7 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app';
 import { generateAccessToken } from '../../src/utils/jwt';
+import { createNisabYearRecordData, createFinalizedRecord } from '../helpers/nisabYearRecordFactory';
 
 const prisma = new PrismaClient();
 
@@ -22,15 +23,13 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
       data: {
         email: 'test-get@example.com',
         username: 'testget',
-        passwordHash: 'hashedpassword',
-        isActive: true,
-      },
-    });
-    userId = user.id;
-    authToken = generateAccessToken({ userId: user.id, email: user.email, role: 'user' });
+      passwordHash: 'hashedpassword',
+      isActive: true,
+    },
   });
-
-  afterAll(async () => {
+  userId = user.id;
+  authToken = generateAccessToken(user.id);
+});  afterAll(async () => {
     // Cleanup
     await prisma.yearlySnapshot.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
