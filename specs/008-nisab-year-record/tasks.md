@@ -56,7 +56,7 @@
 - [x] T011 Write data transformation script for existing records (server/prisma/migrations/transform-nisab-records.ts)
 - [x] T012 Test migration rollback capability (verify down.sql or manual rollback)
 - [x] T013 Generate Prisma Client and verify schema (`npx prisma generate`)
-- [ ] **🔸 COMMIT CHECKPOINT**: Commit database migration complete
+- [x] **🔸 COMMIT CHECKPOINT**: Commit database migration complete
 
 ## Phase 3.3: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.4
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
