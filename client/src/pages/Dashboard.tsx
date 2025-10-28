@@ -6,6 +6,8 @@ import { apiService } from '../services/api';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { Button } from '../components/ui/Button';
+import { HawlProgressIndicator } from '../components/HawlProgressIndicator';
+import { NisabComparisonWidget } from '../components/NisabComparisonWidget';
 import type { Asset, ZakatCalculation } from '@zakapp/shared';
 
 interface DashboardStats {
@@ -22,6 +24,171 @@ interface DashboardData {
   recentAssets: Asset[];
   recentCalculations: ZakatCalculation[];
 }
+
+/**
+ * Hawl Tracking Section Component
+ * Displays active Nisab Year Record with Hawl progress and wealth comparison
+ */
+const HawlTrackingSection: React.FC = () => {
+  const [selectedRecordId, setSelectedRecordId] = React.useState<string | null>(null);
+
+  // Fetch active Nisab Year Records (DRAFT status)
+  const {
+    data: recordsResponse,
+    isLoading
+  } = useQuery({
+    queryKey: ['nisab-year-records', 'active'],
+    queryFn: () => apiService.getNisabYearRecords({ status: ['DRAFT'], limit: 5 }),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  const records = recordsResponse?.data?.records || [];
+  const activeRecord = selectedRecordId
+    ? records.find((r: any) => r.id === selectedRecordId)
+    : records[0]; // Default to first if available
+
+  if (isLoading) {
+    return (
+      <section aria-labelledby="hawl-heading" className="mb-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-center min-h-[200px]">
+            <LoadingSpinner size="md" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Only show section if there are active Hawl records
+  if (!records || records.length === 0) {
+    return null;
+  }
+
+  return (
+    <section aria-labelledby="hawl-heading" className="mb-6">
+      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 id="hawl-heading" className="text-2xl font-bold text-gray-900">
+              🌙 Hawl Year Tracking
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Monitor your active Nisab Year Record and wealth status
+            </p>
+          </div>
+          <Link to="/nisab-year-records">
+            <Button variant="primary" size="sm">
+              Manage Records
+            </Button>
+          </Link>
+        </div>
+
+        {activeRecord && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Hawl Progress - Left Column */}
+            <div className="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm border border-blue-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Hawl Progress
+              </h3>
+              <HawlProgressIndicator
+                record={activeRecord}
+                progressColor="blue"
+              />
+              
+              {/* Additional Hawl Info */}
+              <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-200">
+                <div>
+                  <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Nisab Basis
+                  </p>
+                  <p className="text-lg font-semibold text-gray-900 mt-1">
+                    {activeRecord.nisabBasis || 'GOLD'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Record Status
+                  </p>
+                  <div className="mt-1">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      activeRecord.recordStatus === 'DRAFT'
+                        ? 'bg-blue-100 text-blue-800'
+                        : activeRecord.recordStatus === 'FINALIZED'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {activeRecord.recordStatus}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Nisab Comparison - Right Column */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Wealth Status
+              </h3>
+              <NisabComparisonWidget
+                record={activeRecord}
+                currentWealth={activeRecord.finalZakatAmount ? 
+                  activeRecord.finalZakatAmount / 0.025 : // Back-calculate total wealth from zakat (2.5%)
+                  0
+                }
+                showDetails={false}
+              />
+              <Link to="/nisab-year-records" className="mt-4 block">
+                <Button variant="secondary" className="w-full" size="sm">
+                  View Details
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Multiple Records - Tabs */}
+        {records.length > 1 && (
+          <div className="mt-6 pt-6 border-t border-blue-200">
+            <p className="text-sm font-medium text-gray-700 mb-3">
+              Other Active Records:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {records.map((record: any) => (
+                <button
+                  key={record.id}
+                  onClick={() => setSelectedRecordId(record.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    (selectedRecordId || records[0].id) === record.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {new Date(record.startDate).toLocaleDateString()} - 
+                  {Math.round(record.liveHawlData?.daysRemaining || 0)} days remaining
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* CTA Link */}
+        <div className="mt-6 pt-6 border-t border-blue-200">
+          <p className="text-sm text-gray-600">
+            Want to start a new Nisab Year Record or manage existing ones?
+          </p>
+          <Link to="/nisab-year-records" className="mt-2 inline-block">
+            <Button variant="secondary">
+              Go to Nisab Year Records
+              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -260,6 +427,9 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
       </section>
+
+      {/* Active Nisab Year Record / Hawl Tracking */}
+      <HawlTrackingSection />
 
       {/* Main Content Grid */}
       <section aria-labelledby="content-heading">
