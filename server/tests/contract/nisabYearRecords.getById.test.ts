@@ -116,10 +116,6 @@ describe('GET /api/nisab-year-records/:id - Contract Tests', () => {
           isActive: true,
         },
       });
-
-      passwordHash: 'hash',
-        isActive: true,
-      },
     });
 
     const otherToken = generateAccessToken(otherUser.id);
