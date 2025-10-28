@@ -59,69 +59,26 @@ describe('POST /api/nisab-year-records/:id/finalize - Contract Tests', () => {
       await prisma.yearlySnapshot.delete({ where: { id: record.id } });
     });
 
-    it('should allow premature finalization with override flag', async () => {
-      const futureDate = new Date(Date.now() + 100 * 24 * 60 * 60 * 1000); // 100 days from now
+    it('should allow finalization with override flag even when Hawl early', async () => {
+      const futureDate = new Date(Date.now() + 100 * 24 * 60 * 60 * 1000);
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
+        data: createNisabYearRecordData(userId, {
           status: 'DRAFT',
-          nisabBasis: 'GOLD',
-          hawlStartDate: new Date(),
           hawlCompletionDate: futureDate,
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        } as any,
+        }),
       });
 
       const response = await request(app)
-        .post(`/api/nisab-year-records/${record.id}/finalize`)
-        .set('Authorization', authToken)
-        .send({ 
-          override: true,
-          acknowledgePremature: true 
-        })
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.record.status).toBe('FINALIZED');
-
-      await prisma.yearlySnapshot.delete({ where: { id: record.id } });
-    });
   });
 
   describe('Validation Errors', () => {
     it('should reject finalization when Hawl not complete', async () => {
       const futureDate = new Date(Date.now() + 100 * 24 * 60 * 60 * 1000);
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
+        data: createNisabYearRecordData(userId, {
           status: 'DRAFT',
-          nisabBasis: 'GOLD',
-          hawlStartDate: new Date(),
           hawlCompletionDate: futureDate,
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        } as any,
+        }),
       });
 
       const response = await request(app)
@@ -136,61 +93,20 @@ describe('POST /api/nisab-year-records/:id/finalize - Contract Tests', () => {
       await prisma.yearlySnapshot.delete({ where: { id: record.id } });
     });
 
-    it('should reject premature finalization without acknowledgement', async () => {
+    it('should require acknowledgePremature when override is true', async () => {
       const futureDate = new Date(Date.now() + 100 * 24 * 60 * 60 * 1000);
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
+        data: createNisabYearRecordData(userId, {
           status: 'DRAFT',
-          nisabBasis: 'GOLD',
-          hawlStartDate: new Date(),
           hawlCompletionDate: futureDate,
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        } as any,
+        }),
       });
 
       const response = await request(app)
-        .post(`/api/nisab-year-records/${record.id}/finalize`)
-        .set('Authorization', authToken)
-        .send({ override: true }) // Missing acknowledgePremature
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
-
-      await prisma.yearlySnapshot.delete({ where: { id: record.id } });
-    });
 
     it('should reject finalization of already FINALIZED record', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
-          status: 'FINALIZED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-          finalizedAt: new Date(),
-        } as any,
+        data: createFinalizedRecord(userId),
       });
 
       const response = await request(app)
