@@ -47,15 +47,15 @@
 - [x] **🔸 COMMIT CHECKPOINT**: Commit setup milestone with dependencies and configuration
 
 ## Phase 3.2: Database Migration
-- [ ] T005 Create Prisma migration: Rename yearly_snapshots to nisab_year_records (server/prisma/migrations/)
-- [ ] T006 Create Prisma migration: Add Hawl tracking fields (hawlStartDate, hawlCompletionDate, nisabBasis, etc.)
-- [ ] T007 Create Prisma migration: Create audit_trail_entries table
-- [ ] T008 Create Prisma migration: Create precious_metal_prices table
-- [ ] T009 Create Prisma migration: Update status enum values (draft/finalized → DRAFT/FINALIZED/UNLOCKED)
-- [ ] T010 Create Prisma migration: Add indexes for hawlStartDate, hawlCompletionDate, auditTrail
-- [ ] T011 Write data transformation script for existing records (server/prisma/migrations/transform-snapshots.ts)
-- [ ] T012 Test migration rollback capability (verify down.sql or manual rollback)
-- [ ] T013 Generate Prisma Client and verify schema (`npx prisma generate`)
+- [x] T005 Create Prisma migration: Rename yearly_snapshots to nisab_year_records (server/prisma/migrations/)
+- [x] T006 Create Prisma migration: Add Hawl tracking fields (hawlStartDate, hawlCompletionDate, nisabBasis, etc.)
+- [x] T007 Create Prisma migration: Create audit_trail_entries table
+- [x] T008 Create Prisma migration: Create precious_metal_prices table
+- [x] T009 Create Prisma migration: Update status enum values (draft/finalized → DRAFT/FINALIZED/UNLOCKED)
+- [x] T010 Create Prisma migration: Add indexes for hawlStartDate, hawlCompletionDate, auditTrail
+- [x] T011 Write data transformation script for existing records (server/prisma/migrations/transform-nisab-records.ts)
+- [x] T012 Test migration rollback capability (verify down.sql or manual rollback)
+- [x] T013 Generate Prisma Client and verify schema (`npx prisma generate`)
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit database migration complete
 
 ## Phase 3.3: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.4
