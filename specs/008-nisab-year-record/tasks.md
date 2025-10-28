@@ -62,13 +62,13 @@
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
 ### Contract Tests (API Endpoints)
-- [ ] T014 [P] Contract test GET /api/nisab-year-records in server/tests/contract/nisabYearRecords.get.test.ts
-- [ ] T015 [P] Contract test POST /api/nisab-year-records in server/tests/contract/nisabYearRecords.post.test.ts
-- [ ] T016 [P] Contract test GET /api/nisab-year-records/:id in server/tests/contract/nisabYearRecords.getById.test.ts
-- [ ] T017 [P] Contract test PUT /api/nisab-year-records/:id in server/tests/contract/nisabYearRecords.put.test.ts
-- [ ] T018 [P] Contract test DELETE /api/nisab-year-records/:id in server/tests/contract/nisabYearRecords.delete.test.ts
-- [ ] T019 [P] Contract test POST /api/nisab-year-records/:id/finalize in server/tests/contract/nisabYearRecords.finalize.test.ts
-- [ ] T020 [P] Contract test POST /api/nisab-year-records/:id/unlock in server/tests/contract/nisabYearRecords.unlock.test.ts
+- [x] T014 [P] Contract test GET /api/nisab-year-records in server/tests/contract/nisabYearRecords.get.test.ts
+- [x] T015 [P] Contract test POST /api/nisab-year-records in server/tests/contract/nisabYearRecords.post.test.ts
+- [x] T016 [P] Contract test GET /api/nisab-year-records/:id in server/tests/contract/nisabYearRecords.getById.test.ts
+- [x] T017 [P] Contract test PUT /api/nisab-year-records/:id in server/tests/contract/nisabYearRecords.put.test.ts
+- [x] T018 [P] Contract test DELETE /api/nisab-year-records/:id in server/tests/contract/nisabYearRecords.delete.test.ts
+- [x] T019 [P] Contract test POST /api/nisab-year-records/:id/finalize in server/tests/contract/nisabYearRecords.finalize.test.ts
+- [x] T020 [P] Contract test POST /api/nisab-year-records/:id/unlock in server/tests/contract/nisabYearRecords.unlock.test.ts
 
 ### Service Layer Tests
 - [ ] T021 [P] Unit tests for NisabCalculationService in server/tests/unit/services/nisabCalculationService.test.ts
