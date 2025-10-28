@@ -39,24 +39,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
   describe('Successful Unlock', () => {
     it('should unlock FINALIZED record with valid reason', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
-          status: 'FINALIZED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-          finalizedAt: new Date(),
-        } as any,
+        data: createFinalizedRecord(userId),
       });
 
       const response = await request(app)
@@ -75,24 +58,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
 
     it('should create audit trail entry with unlock reason', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
-          status: 'FINALIZED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-          finalizedAt: new Date(),
-        } as any,
+        data: createFinalizedRecord(userId),
       });
 
       const unlockReason = 'Discovered uncounted asset after finalization';
@@ -112,24 +78,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
   describe('Validation Errors', () => {
     it('should reject unlock without reason', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
-          status: 'FINALIZED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-          finalizedAt: new Date(),
-        } as any,
+        data: createFinalizedRecord(userId),
       });
 
       const response = await request(app)
@@ -146,24 +95,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
 
     it('should reject unlock with reason too short (< 10 chars)', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
-          status: 'FINALIZED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-          finalizedAt: new Date(),
-        } as any,
+        data: createFinalizedRecord(userId),
       });
 
       const response = await request(app)
@@ -181,23 +113,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
 
     it('should reject unlock of DRAFT record', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
-          status: 'DRAFT',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        } as any,
+        data: createNisabYearRecordData(userId, { status: 'DRAFT' }),
       });
 
       const response = await request(app)
@@ -213,23 +129,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
 
     it('should reject unlock of already UNLOCKED record', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
-          status: 'UNLOCKED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-        } as any,
+        data: createUnlockedRecord(userId),
       });
 
       const response = await request(app)
@@ -269,24 +169,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
 
     it('should return 404 when trying to unlock another user\'s record', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
-          status: 'FINALIZED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-          finalizedAt: new Date(),
-        } as any,
+        data: createFinalizedRecord(userId),
       });
 
       const otherUser = await prisma.user.create({
@@ -317,24 +200,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
   describe('Response Schema Validation', () => {
     it('should return correct response structure', async () => {
       const record = await prisma.yearlySnapshot.create({
-        data: {
-          user: { connect: { id: userId } },
-          status: 'FINALIZED',
-          nisabBasis: 'GOLD',
-          calculationDate: new Date(),
-          gregorianYear: 2025,
-          gregorianMonth: 10,
-          gregorianDay: 28,
-          hijriYear: 1446,
-          hijriMonth: 3,
-          hijriDay: 15,
-          totalWealth: '10000',
-          totalLiabilities: '1000',
-          zakatableWealth: '9000',
-          zakatAmount: '225',
-          methodologyUsed: 'standard',
-          finalizedAt: new Date(),
-        } as any,
+        data: createFinalizedRecord(userId),
       });
 
       const response = await request(app)
