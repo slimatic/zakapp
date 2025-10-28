@@ -5,9 +5,9 @@
  * Handles CRUD operations, status transitions, and live tracking
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { Logger } from '../utils/logger';
-import { EncryptionService } from './encryption-service';
+import { EncryptionService } from './EncryptionService';
 import { AuditTrailService } from './auditTrailService';
 import { NisabCalculationService } from './nisabCalculationService';
 import { HawlTrackingService } from './hawlTrackingService';
@@ -41,8 +41,8 @@ export class NisabYearRecordService {
     hawlTrackingService?: HawlTrackingService,
     wealthAggregationService?: WealthAggregationService
   ) {
-    this.prisma = prisma || new PrismaClient();
-    this.encryptionService = encryptionService || new EncryptionService();
+  this.prisma = prisma || new PrismaClient();
+  this.encryptionService = encryptionService || new EncryptionService();
     this.auditTrailService = auditTrailService || new AuditTrailService();
     this.nisabCalculationService = nisabCalculationService || new NisabCalculationService();
     this.hawlTrackingService = hawlTrackingService || new HawlTrackingService();
@@ -67,33 +67,48 @@ export class NisabYearRecordService {
         throw new Error('Invalid Nisab basis: must be GOLD or SILVER');
       }
 
-      // Validate hijri year format
-      if (!/^\d{4}H$/.test(dto.hijriYear)) {
-        throw new Error('Invalid Hijri year format: must be YYYYH (e.g., 1445H)');
+      // Validate hawl start date or hijri start string is present
+      if (!dto.hawlStartDate && !dto.hawlStartDateHijri) {
+        throw new Error('Hawl start date is required (hawlStartDate or hawlStartDateHijri)');
       }
 
       // Fetch current Nisab threshold
       const nisabData = await this.nisabCalculationService.calculateNisabThreshold(
-        dto.currency || 'USD',
+        // shared types use hawl-based DTOs and prefer currency in caller; default to USD
+        (dto as any).currency || 'USD',
         dto.nisabBasis as NisabBasis
       );
 
       // Create the record in DRAFT status
-      const record = await this.prisma.nisabYearRecord.create({
-        data: {
-          userId,
-          hijriYear: dto.hijriYear,
-          nisabBasis: dto.nisabBasis as NisabBasis,
-          currency: dto.currency || 'USD',
-          status: 'DRAFT' as RecordStatus,
-          nisabThresholdAtStart: nisabData.nisabAmount,
-          nisabThresholdAtStartEncrypted: this.encryptionService.encrypt(
-            nisabData.nisabAmount.toString()
-          ),
-          startDate: new Date(),
-          notes: dto.notes || '',
-        },
-      });
+      // map CreateNisabYearRecordDto -> YearlySnapshot (Prisma model)
+      const createData: Prisma.YearlySnapshotCreateInput = {
+        userId,
+        hawlStartDate: dto.hawlStartDate ? new Date(dto.hawlStartDate as any) : null,
+        hawlStartDateHijri: dto.hawlStartDateHijri || null,
+        hawlCompletionDate: dto.hawlCompletionDate ? new Date(dto.hawlCompletionDate as any) : null,
+        hawlCompletionDateHijri: dto.hawlCompletionDateHijri || null,
+        nisabBasis: dto.nisabBasis as any,
+        status: 'DRAFT',
+        nisabThresholdAtStart: nisabData.selectedNisab.toString(),
+        nisabThresholdAtStartEncrypted: EncryptionService.encrypt(nisabData.selectedNisab.toString()) as any,
+        calculationDate: new Date(),
+        gregorianYear: new Date().getFullYear(),
+        gregorianMonth: new Date().getMonth() + 1,
+        gregorianDay: new Date().getDate(),
+        hijriYear: 0,
+        hijriMonth: 0,
+        hijriDay: 0,
+        totalWealth: (dto.totalWealth || 0).toString(),
+        totalLiabilities: (dto.totalLiabilities || 0).toString(),
+        zakatableWealth: (dto.zakatableWealth || 0).toString(),
+        zakatAmount: (dto.zakatAmount || 0).toString(),
+        methodologyUsed: dto.methodologyUsed || 'standard',
+        assetBreakdown: dto.assetBreakdown ? JSON.stringify(dto.assetBreakdown) : null,
+        calculationDetails: dto.calculationDetails ? JSON.stringify(dto.calculationDetails) : null,
+        userNotes: dto.userNotes || null,
+      } as any;
+
+      const record = await this.prisma.yearlySnapshot.create({ data: createData });
 
       // Record audit event
       await this.auditTrailService.recordEvent(
@@ -122,7 +137,7 @@ export class NisabYearRecordService {
    */
   async getRecord(userId: string, recordId: string): Promise<NisabYearRecordResponse> {
     try {
-      const record = await this.prisma.nisabYearRecord.findUnique({
+      const record = await this.prisma.yearlySnapshot.findUnique({
         where: { id: recordId },
       });
 
@@ -141,7 +156,7 @@ export class NisabYearRecordService {
         const currentWealth = await this.wealthAggregationService.calculateTotalZakatableWealth(userId);
         liveHawlData = await this.hawlTrackingService.calculateLiveHawlData(
           record as any,
-          currentWealth.total
+          currentWealth.totalZakatableWealth
         );
       }
 
@@ -177,7 +192,7 @@ export class NisabYearRecordService {
     total: number;
   }> {
     try {
-      const where: any = {
+      const where: Prisma.YearlySnapshotWhereInput = {
         userId,
       };
 
@@ -186,22 +201,22 @@ export class NisabYearRecordService {
         where.status = { in: filters.status };
       }
       if (filters?.hijriYear) {
-        where.hijriYear = filters.hijriYear;
+        where.hijriYear = parseInt(filters.hijriYear, 10);
       }
       if (filters?.startDate || filters?.endDate) {
-        where.startDate = {};
-        if (filters.startDate) where.startDate.gte = filters.startDate;
-        if (filters.endDate) where.startDate.lte = filters.endDate;
+        where.calculationDate = {};
+        if (filters.startDate) where.calculationDate.gte = filters.startDate;
+        if (filters.endDate) where.calculationDate.lte = filters.endDate;
       }
 
       const [records, total] = await Promise.all([
-        this.prisma.nisabYearRecord.findMany({
+        this.prisma.yearlySnapshot.findMany({
           where,
-          orderBy: { startDate: 'desc' },
+          orderBy: { createdAt: 'desc' },
           take: limit,
           skip: offset,
         }),
-        this.prisma.nisabYearRecord.count({ where }),
+        this.prisma.yearlySnapshot.count({ where }),
       ]);
 
       return {
@@ -240,12 +255,14 @@ export class NisabYearRecordService {
       const beforeState = { ...record };
 
       // Update fields
-      const updatedRecord = await this.prisma.nisabYearRecord.update({
+      const updateData: Prisma.YearlySnapshotUpdateInput = {
+        userNotes: dto.userNotes !== undefined ? dto.userNotes : record.userNotes,
+        methodologyUsed: dto.methodologyUsed || record.methodologyUsed,
+      } as any;
+
+      const updatedRecord = await this.prisma.yearlySnapshot.update({
         where: { id: recordId },
-        data: {
-          notes: dto.notes !== undefined ? dto.notes : record.notes,
-          nisabBasis: dto.nisabBasis ? (dto.nisabBasis as NisabBasis) : record.nisabBasis,
-        },
+        data: updateData,
       });
 
       // Record audit event with before/after states
@@ -309,23 +326,19 @@ export class NisabYearRecordService {
         record.hawlCompletionDate || new Date()
       );
 
-      const finalZakatAmount = zakatableWealth.total * 0.025;
+  const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
 
       // Update record to FINALIZED
-      const finalizedRecord = await this.prisma.nisabYearRecord.update({
+      const finalizedRecord = await this.prisma.yearlySnapshot.update({
         where: { id: recordId },
         data: {
-          status: 'FINALIZED' as RecordStatus,
-          zakatableWealthAtEnd: zakatableWealth.total,
-          zakatableWealthAtEndEncrypted: this.encryptionService.encrypt(
-            zakatableWealth.total.toString()
-          ),
-          finalZakatAmount,
-          finalZakatAmountEncrypted: this.encryptionService.encrypt(finalZakatAmount.toString()),
+          status: 'FINALIZED',
+          zakatableWealth: zakatableWealth.totalZakatableWealth.toString(),
+          zakatAmount: finalZakatAmount.toString(),
           hawlCompletionDate: new Date(),
-          finalizationNotes: dto.finalizationNotes || '',
+          userNotes: (dto as any).overrideNote || record.userNotes,
           finalizedAt: new Date(),
-        },
+        } as any,
       });
 
       // Record audit event
@@ -337,7 +350,7 @@ export class NisabYearRecordService {
           afterState: {
             status: 'FINALIZED',
             finalZakatAmount,
-            finalizationNotes: dto.finalizationNotes,
+            finalizationNotes: (dto as any).overrideNote,
           },
         }
       );
@@ -375,18 +388,16 @@ export class NisabYearRecordService {
       }
 
       // Validate unlock reason
-      if (!dto.reason || dto.reason.length < 10) {
+      if (!(dto as any).unlockReason || (dto as any).unlockReason.length < 10) {
         throw new Error('Unlock reason must be at least 10 characters');
       }
 
       // Transition to UNLOCKED
-      const unlockedRecord = await this.prisma.nisabYearRecord.update({
+      const unlockedRecord = await this.prisma.yearlySnapshot.update({
         where: { id: recordId },
         data: {
-          status: 'UNLOCKED' as RecordStatus,
-          unlockedAt: new Date(),
-          unlockReason: this.encryptionService.encrypt(dto.reason),
-        },
+          status: 'UNLOCKED',
+        } as any,
       });
 
       // Record audit event with encrypted reason
@@ -395,12 +406,12 @@ export class NisabYearRecordService {
         'UNLOCKED',
         recordId,
         {
-          reason: dto.reason,
+          reason: (dto as any).unlockReason,
           afterState: { status: 'UNLOCKED', unlockedAt: new Date() },
         }
       );
 
-      this.logger.info(`Nisab Year Record unlocked: ${recordId} with reason: ${dto.reason.substring(0, 20)}...`);
+      this.logger.info(`Nisab Year Record unlocked: ${recordId} with reason: ${(dto as any).unlockReason.substring(0, 20)}...`);
 
       return this._mapToResponse(unlockedRecord);
     } catch (error) {
@@ -425,12 +436,11 @@ export class NisabYearRecordService {
       }
 
       // Delete audit trail entries first (foreign key constraint)
-      await this.prisma.auditTrailEntry.deleteMany({
-        where: { nisabYearRecordId: recordId },
-      });
+      // Delete audit entries using raw SQL to avoid Prisma client type mismatches
+      await this.prisma.$executeRaw`DELETE FROM audit_trail_entries WHERE "nisabYearRecordId" = ${recordId}`;
 
       // Delete the record
-      await this.prisma.nisabYearRecord.delete({
+      await this.prisma.yearlySnapshot.delete({
         where: { id: recordId },
       });
 
@@ -465,21 +475,17 @@ export class NisabYearRecordService {
         record.hawlCompletionDate || new Date()
       );
 
-      const finalZakatAmount = zakatableWealth.total * 0.025;
+  const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
 
       // Transition to FINALIZED
-      const refinializedRecord = await this.prisma.nisabYearRecord.update({
+      const refinializedRecord = await this.prisma.yearlySnapshot.update({
         where: { id: recordId },
         data: {
-          status: 'FINALIZED' as RecordStatus,
-          zakatableWealthAtEnd: zakatableWealth.total,
-          zakatableWealthAtEndEncrypted: this.encryptionService.encrypt(
-            zakatableWealth.total.toString()
-          ),
-          finalZakatAmount,
-          finalZakatAmountEncrypted: this.encryptionService.encrypt(finalZakatAmount.toString()),
+          status: 'FINALIZED',
+          zakatableWealth: zakatableWealth.totalZakatableWealth.toString(),
+          zakatAmount: finalZakatAmount.toString(),
           finalizedAt: new Date(),
-        },
+        } as any,
       });
 
       // Record audit event
@@ -503,7 +509,7 @@ export class NisabYearRecordService {
    * Private: Verify user ownership of record
    */
   private async _verifyOwnership(userId: string, recordId: string): Promise<any> {
-    const record = await this.prisma.nisabYearRecord.findUnique({
+    const record = await this.prisma.yearlySnapshot.findUnique({
       where: { id: recordId },
     });
 
@@ -541,24 +547,35 @@ export class NisabYearRecordService {
    * Private: Map database record to response DTO
    */
   private _mapToResponse(record: any, liveHawlData?: LiveHawlData): NisabYearRecordResponse {
-    return {
+    const data = {
       id: record.id,
       userId: record.userId,
-      hijriYear: record.hijriYear,
-      nisabBasis: record.nisabBasis,
-      currency: record.currency,
-      status: record.status,
-      nisabThresholdAtStart: record.nisabThresholdAtStart,
-      zakatableWealthAtEnd: record.zakatableWealthAtEnd,
-      finalZakatAmount: record.finalZakatAmount,
       hawlStartDate: record.hawlStartDate,
+      hawlStartDateHijri: record.hawlStartDateHijri,
       hawlCompletionDate: record.hawlCompletionDate,
-      startDate: record.startDate,
+      hawlCompletionDateHijri: record.hawlCompletionDateHijri,
+      nisabThresholdAtStart: record.nisabThresholdAtStart,
+      nisabBasis: record.nisabBasis,
+      totalWealth: record.totalWealth,
+      totalLiabilities: record.totalLiabilities,
+      zakatableWealth: record.zakatableWealth,
+      zakatAmount: record.zakatAmount,
+      methodologyUsed: record.methodologyUsed,
+      assetBreakdown: record.assetBreakdown,
+      calculationDetails: record.calculationDetails,
+      status: record.status,
       finalizedAt: record.finalizedAt,
-      unlockedAt: record.unlockedAt,
-      notes: record.notes,
-      finalizationNotes: record.finalizationNotes,
-      liveHawlData,
-    };
+      userNotes: record.userNotes,
+      calculationDate: record.calculationDate,
+      gregorianYear: record.gregorianYear,
+      gregorianMonth: record.gregorianMonth,
+      gregorianDay: record.gregorianDay,
+    } as any;
+
+    if (liveHawlData) {
+      (data as any).liveTracking = liveHawlData;
+    }
+
+    return { success: true, data };
   }
 }

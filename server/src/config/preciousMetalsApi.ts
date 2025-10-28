@@ -86,8 +86,8 @@ export class PreciousMetalsApiClient {
     };
 
     if (!this.config.apiKey) {
-      logger.warn(
-        'METALS_API_KEY not configured. Precious metals price fetching will fail.'
+      logger.info(
+        'METALS_API_KEY not configured. Using fallback precious metal prices (Gold: $65/g, Silver: $0.75/g)'
       );
     }
 

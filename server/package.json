@@ -22,6 +22,7 @@
     "@prisma/client": "^6.16.2",
     "@types/compression": "^1.8.1",
     "@zakapp/shared": "file:../shared",
+    "axios": "^1.13.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "better-sqlite3": "^12.4.1",
