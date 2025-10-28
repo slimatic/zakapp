@@ -9,8 +9,8 @@
  * - Support for GOLD or SILVER basis
  */
 
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
 
 export interface NisabThresholdData {
   nisabAmount: number;
@@ -94,7 +94,7 @@ export interface UseNisabThresholdResult {
  * 
  * if (isLoading) return <LoadingSpinner />;
  * if (error) return <ErrorMessage error={error} />;
- * if (isStale) return <WarningBanner>Prices are {daysPerformingSince} days old</WarningBanner>;
+ * if (isStale) return <WarningBanner>Prices are {daysSinceUpdate} days old</WarningBanner>;
  * 
  * return <div>Nisab: {nisabAmount} {currency}</div>;
  */
@@ -106,15 +106,19 @@ export function useNisabThreshold(
     data,
     isLoading,
     error,
-    refetch,
+    refetch: refetchQuery,
   } = useQuery({
     queryKey: ['nisab-threshold', currency, nisabBasis],
     queryFn: () => fetchNisabThreshold(currency),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes before garbage collection
     retry: 2,
     retryDelay: 5000,
   });
+
+  const refetch = useCallback(() => {
+    refetchQuery();
+  }, [refetchQuery]);
 
   // Memoize result
   const result = useMemo(
@@ -138,7 +142,7 @@ export function useNisabThreshold(
 
 /**
  * Hook to check if Nisab prices are stale
- * Simplified version for checking if data is >7 days old
+ * Simplified variant that only checks staleness
  */
 export function useNisabPriceStale(currency: string = 'USD'): boolean {
   const { isStale } = useNisabThreshold(currency);
@@ -146,8 +150,8 @@ export function useNisabPriceStale(currency: string = 'USD'): boolean {
 }
 
 /**
- * Hook to get days since last price update
- * Useful for displaying "Updated X days ago" message
+ * Hook to get days since Nisab price was last updated
+ * Simplified variant for displaying age of price data
  */
 export function useDaysSincePriceUpdate(currency: string = 'USD'): number | undefined {
   const { daysSinceUpdate } = useNisabThreshold(currency);
@@ -155,13 +159,10 @@ export function useDaysSincePriceUpdate(currency: string = 'USD'): number | unde
 }
 
 /**
- * Hook to trigger price refresh
- * Useful for manual "Refresh prices" button
+ * Hook to refresh Nisab prices manually
+ * Useful for "Refresh Prices" button functionality
  */
-export function useRefreshNisabPrices(currency: string = 'USD') {
+export function useRefreshNisabPrices(currency: string = 'USD'): () => void {
   const { refetch } = useNisabThreshold(currency);
-  
-  return {
-    refreshPrices: () => refetch(),
-  };
+  return refetch;
 }
