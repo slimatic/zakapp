@@ -5,10 +5,9 @@
  * Performance target: < 100ms for 500 assets
  */
 
-import { injectable } from 'tsyringe';
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
-import { EncryptionService } from './encryption-service';
+import { EncryptionService } from './EncryptionService';
 
 export interface WealthCalculation {
   totalZakatableWealth: number;
@@ -30,14 +29,18 @@ export interface WealthCalculation {
   timestamp: Date;
 }
 
-@injectable()
 export class WealthAggregationService {
   private logger = new Logger('WealthAggregationService');
+  private prisma: PrismaClient;
+  private encryptionService: EncryptionService;
 
   constructor(
-    private prisma: PrismaClient,
-    private encryptionService: EncryptionService
-  ) {}
+    prisma?: PrismaClient,
+    encryptionService?: EncryptionService
+  ) {
+    this.prisma = prisma || new PrismaClient();
+    this.encryptionService = encryptionService || new EncryptionService();
+  }
 
   /**
    * Calculate total zakatable wealth for a user

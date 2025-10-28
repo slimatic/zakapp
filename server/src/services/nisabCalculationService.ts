@@ -5,9 +5,8 @@
  * Integrates with metals-api.com for real-time prices with fallback caching
  */
 
-import { injectable } from 'tsyringe';
 import { PreciousMetalsApiClient } from '../config/preciousMetalsApi';
-import { EncryptionService } from './encryption-service';
+import { EncryptionService } from './EncryptionService';
 import { Logger } from '../utils/logger';
 
 export interface NisabThresholdData {
@@ -21,18 +20,22 @@ export interface NisabThresholdData {
   fetchedAt: Date;
 }
 
-@injectable()
 export class NisabCalculationService {
   private readonly NISAB_GOLD_GRAMS = 87.48;
   private readonly NISAB_SILVER_GRAMS = 612.36;
   private readonly ZAKAT_RATE = 0.025; // 2.5%
 
   private logger = new Logger('NisabCalculationService');
+  private preciousMetalsApi: PreciousMetalsApiClient;
+  private encryptionService: EncryptionService;
 
   constructor(
-    private preciousMetalsApi: PreciousMetalsApiClient,
-    private encryptionService: EncryptionService
-  ) {}
+    preciousMetalsApi?: PreciousMetalsApiClient,
+    encryptionService?: EncryptionService
+  ) {
+    this.preciousMetalsApi = preciousMetalsApi || new PreciousMetalsApiClient();
+    this.encryptionService = encryptionService || new EncryptionService();
+  }
 
   /**
    * Calculate Nisab thresholds based on current precious metals prices
@@ -124,11 +127,11 @@ export class NisabCalculationService {
    * Encrypt sensitive financial data
    * 
    * @param value - Numerical value to encrypt
-   * @returns Encrypted string value
+   * @returns Encrypted string value (Promise<string>)
    */
-  encryptFinancialData(value: number | string): string {
+  encryptFinancialData(value: number | string): any {
     const stringValue = typeof value === 'number' ? value.toString() : value;
-    return this.encryptionService.encrypt(stringValue);
+    return EncryptionService.encrypt(stringValue);
   }
 
   /**
@@ -138,7 +141,7 @@ export class NisabCalculationService {
    * @returns Decrypted numerical value
    */
   decryptFinancialData(encryptedValue: string): number {
-    const decrypted = this.encryptionService.decrypt(encryptedValue);
+    const decrypted = EncryptionService.decrypt(encryptedValue);
     return parseFloat(decrypted);
   }
 
