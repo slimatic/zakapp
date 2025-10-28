@@ -26,7 +26,7 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
       },
     });
     userId = user.id;
-    authToken = generateAccessToken({ userId: user.id, email: user.email, role: 'user' });
+    authToken = generateAccessToken(user.id);
   });
 
   afterAll(async () => {
@@ -230,11 +230,7 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
         },
       });
 
-      const otherToken = generateAccessToken({
-        userId: otherUser.id,
-        email: otherUser.email,
-        role: 'user',
-      });
+      const otherToken = generateAccessToken(otherUser.id);
 
       const response = await request(app)
         .delete(`/api/nisab-year-records/${record.id}`)

@@ -28,7 +28,7 @@ describe('GET /api/nisab-year-records/:id - Contract Tests', () => {
       },
     });
     userId = user.id;
-    authToken = generateAccessToken({ userId: user.id, email: user.email, role: 'user' });
+    authToken = generateAccessToken(user.id);
 
     // Create test record
     const record = await prisma.yearlySnapshot.create({
@@ -131,13 +131,13 @@ describe('GET /api/nisab-year-records/:id - Contract Tests', () => {
         },
       });
 
-      const otherToken = generateAccessToken({
-        userId: otherUser.id,
-        email: otherUser.email,
-        role: 'user',
-      });
+      isActive: true,
+      },
+    });
 
-      const response = await request(app)
+    const otherToken = generateAccessToken(otherUser.id);
+
+    const response = await request(app)
         .get(`/api/nisab-year-records/${recordId}`)
         .set('Authorization', `Bearer ${otherToken}`)
         .expect(404);
