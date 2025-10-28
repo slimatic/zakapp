@@ -116,11 +116,10 @@ describe('GET /api/nisab-year-records/:id - Contract Tests', () => {
           isActive: true,
         },
       });
-    });
 
-    const otherToken = generateAccessToken(otherUser.id);
+      const otherToken = generateAccessToken(otherUser.id);
 
-    const response = await request(app)
+      const response = await request(app)
         .get(`/api/nisab-year-records/${recordId}`)
         .set('Authorization', `Bearer ${otherToken}`)
         .expect(404);
