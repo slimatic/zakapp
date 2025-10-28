@@ -581,6 +581,103 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // Nisab Year Records Methods (Feature 008)
+  async getNisabYearRecords(filters?: {
+    status?: string[];
+    hijriYear?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<ApiResponse> {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status.join(','));
+    if (filters?.hijriYear) params.append('hijriYear', filters.hijriYear);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.offset) params.append('offset', filters.offset.toString());
+
+    const url = params.toString()
+      ? `/nisab-year-records?${params.toString()}`
+      : '/nisab-year-records';
+
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async createNisabYearRecord(data: {
+    hijriYear: string;
+    nisabBasis: 'GOLD' | 'SILVER';
+    currency?: string;
+    notes?: string;
+  }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async getNisabYearRecord(recordId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateNisabYearRecord(recordId: string, data: {
+    notes?: string;
+    nisabBasis?: 'GOLD' | 'SILVER';
+  }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteNisabYearRecord(recordId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async finalizeNisabYearRecord(recordId: string, data?: {
+    finalizationNotes?: string;
+  }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}/finalize`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data || {})
+    });
+    return this.handleResponse(response);
+  }
+
+  async unlockNisabYearRecord(recordId: string, data: {
+    reason: string;
+  }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}/unlock`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async getNisabYearRecordAuditTrail(recordId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}/audit`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
   // Settings Methods
   async getSettings(): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/user/settings`, {
