@@ -5,8 +5,13 @@ import { resetRateLimitStore } from '../../server/src/middleware/RateLimitMiddle
 // Helper function to load app dynamically
 const loadApp = async () => {
   try {
-    // Load compiled JavaScript version to avoid ts-node path resolution issues
-    const appModule = require('../../server/dist/server/src/app');
+    // Try loading compiled version first, fall back to source if not available
+    let appModule;
+    try {
+      appModule = require('../../server/dist/app');
+    } catch {
+      appModule = require('../../server/src/app');
+    }
     return appModule.default || appModule;
   } catch (error) {
     console.error('Failed to load app:', error);

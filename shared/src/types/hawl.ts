@@ -5,6 +5,8 @@
  * Hawl tracking involves detecting Nisab achievement, managing 354-day periods, and handling interruptions
  */
 
+import { AuditEventType } from './auditTrail';
+
 /**
  * Hawl status types
  */
@@ -200,12 +202,3 @@ export interface HawlStatusChangeNotification {
   suggestedActions?: string[];
   timestamp: Date | string;
 }
-
-export type AuditEventType =
-  | 'CREATED'
-  | 'NISAB_ACHIEVED'
-  | 'HAWL_INTERRUPTED'
-  | 'UNLOCKED'
-  | 'EDITED'
-  | 'REFINALIZED'
-  | 'FINALIZED';

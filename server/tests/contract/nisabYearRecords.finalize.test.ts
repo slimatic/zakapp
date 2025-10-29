@@ -9,7 +9,7 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app';
 import { generateAccessToken } from '../../src/utils/jwt';
-import { createNisabYearRecordData } from '../helpers/nisabYearRecordFactory';
+import { createNisabYearRecordData, createFinalizedRecord } from '../helpers/nisabYearRecordFactory';
 
 const prisma = new PrismaClient();
 
@@ -53,10 +53,11 @@ describe('POST /api/nisab-year-records/:id/finalize - Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.record.status).toBe('FINALIZED');
-      expect(response.body.record.finalizedAt).toBeDefined();
+      expect(response.body.data).toBeDefined();
+      expect(response.body.data.status).toBe('FINALIZED');
+      expect(response.body.data.finalizedAt).toBeDefined();
 
-      await prisma.yearlySnapshot.delete({ where: { id: record.id } });
+      try { await prisma.yearlySnapshot.delete({ where: { id: record.id } }); } catch (e) {}
     });
 
     it('should allow finalization with override flag even when Hawl early', async () => {
@@ -68,8 +69,26 @@ describe('POST /api/nisab-year-records/:id/finalize - Contract Tests', () => {
         }),
       });
 
+      // First, attempt without override - should fail
+      await request(app)
+        .post(`/api/nisab-year-records/${record.id}/finalize`)
+        .set('Authorization', authToken)
+        .expect(400);
+
+      // Now finalize with override and acknowledgment
       const response = await request(app)
-  });
+        .post(`/api/nisab-year-records/${record.id}/finalize`)
+        .send({ override: true, acknowledgePremature: true })
+        .set('Authorization', authToken)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeDefined();
+      expect(response.body.data.status).toBe('FINALIZED');
+      expect(response.body.data.finalizedAt).toBeDefined();
+
+      try { await prisma.yearlySnapshot.delete({ where: { id: record.id } }); } catch (e) {}
+    });
 
   describe('Validation Errors', () => {
     it('should reject finalization when Hawl not complete', async () => {
@@ -90,7 +109,7 @@ describe('POST /api/nisab-year-records/:id/finalize - Contract Tests', () => {
       expect(response.body.error).toBe('HAWL_NOT_COMPLETE');
       expect(response.body.daysRemaining).toBeGreaterThan(0);
 
-      await prisma.yearlySnapshot.delete({ where: { id: record.id } });
+      try { await prisma.yearlySnapshot.delete({ where: { id: record.id } }); } catch (e) {}
     });
 
     it('should require acknowledgePremature when override is true', async () => {
@@ -103,6 +122,15 @@ describe('POST /api/nisab-year-records/:id/finalize - Contract Tests', () => {
       });
 
       const response = await request(app)
+        .post(`/api/nisab-year-records/${record.id}/finalize`)
+        .send({ override: true })
+        .set('Authorization', authToken)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+
+      try { await prisma.yearlySnapshot.delete({ where: { id: record.id } }); } catch (e) {}
+    });
 
     it('should reject finalization of already FINALIZED record', async () => {
       const record = await prisma.yearlySnapshot.create({

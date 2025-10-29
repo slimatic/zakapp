@@ -109,26 +109,26 @@
   - Cache prices in precious_metal_prices table (24-hour TTL)
   - Handle API failures with cache fallback
 
-- [ ] T042 [P] Implement HawlTrackingService in server/src/services/hawlTrackingService.ts
+- [x] T042 [P] Implement HawlTrackingService in server/src/services/hawlTrackingService.ts ✅ COMPLETE
   - Detect Nisab achievement from aggregate wealth
   - Calculate Hawl start/completion dates (Hijri + Gregorian)
   - Create DRAFT NisabYearRecord automatically
   - Handle Hawl interruption (wealth drops below Nisab)
 
-- [ ] T043 [P] Implement WealthAggregationService in server/src/services/wealthAggregationService.ts
+- [x] T043 [P] Implement WealthAggregationService in server/src/services/wealthAggregationService.ts ✅ COMPLETE
   - Sum all zakatable assets for user
   - Calculate current Zakat amount (2.5%)
   - Compare with Nisab threshold
   - Performance target: <100ms for 500 assets
 
-- [ ] T044 [P] Implement AuditTrailService in server/src/services/auditTrailService.ts
+- [x] T044 [P] Implement AuditTrailService in server/src/services/auditTrailService.ts ✅ COMPLETE
   - Record unlock events (with reason, min 10 chars)
   - Record edit events (with changes summary)
   - Record refinalize events
   - Append-only, immutable logs
   - Encrypt sensitive fields (reason, changes, before/after state)
 
-- [ ] T045 Update NisabYearRecordService in server/src/services/nisabYearRecordService.ts
+- [x] T045 Update NisabYearRecordService in server/src/services/nisabYearRecordService.ts ✅ COMPLETE
   - Rename from SnapshotService
   - Implement status transition validation (DRAFT→FINALIZED, FINALIZED→UNLOCKED, UNLOCKED→FINALIZED)
   - Add finalize() method with Hawl completion check
@@ -136,58 +136,58 @@
   - Add live tracking for DRAFT records (no persistence)
 
 ### Background Jobs
-- [ ] T046 Implement hawlDetectionJob in server/src/jobs/hawlDetectionJob.ts
+- [x] T046 Implement hawlDetectionJob in server/src/jobs/hawlDetectionJob.ts ✅ COMPLETE
   - Run hourly via node-cron
   - Check all users' aggregate wealth
   - Detect Nisab achievement (create DRAFT record)
   - Detect Hawl interruptions (mark records)
   - Performance target: <30s completion
 
-- [ ] T047 Add hawlDetectionJob to scheduler in server/src/jobs/index.ts
+- [x] T047 Add hawlDetectionJob to scheduler in server/src/jobs/index.ts ✅ COMPLETE
   - Configure cron expression (hourly: '0 * * * *')
   - Add error handling and logging
   - Add manual trigger endpoint for testing
 
 ### API Endpoints (Routes & Controllers)
-- [ ] T048 Rename routes file: server/src/routes/snapshots.ts → server/src/routes/nisabYearRecords.ts
-- [ ] T049 Update route registration in server/src/routes/index.ts
+- [x] T048 Rename routes file: server/src/routes/snapshots.ts → server/src/routes/nisabYearRecords.ts ✅ COMPLETE
+- [x] T049 Update route registration in server/src/routes/index.ts ✅ COMPLETE
 
-- [ ] T050 Implement GET /api/nisab-year-records in server/src/routes/nisabYearRecords.ts
+- [x] T050 Implement GET /api/nisab-year-records in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
   - List all records for user
   - Filter by status (DRAFT/FINALIZED/UNLOCKED/ALL)
   - Filter by year
   - Include live tracking for DRAFT records
 
-- [ ] T051 Implement POST /api/nisab-year-records in server/src/routes/nisabYearRecords.ts
+- [x] T051 Implement POST /api/nisab-year-records in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
   - Create new DRAFT record
   - Validate hawlStartDate < hawlCompletionDate
   - Calculate Nisab threshold if not provided
   - Encrypt sensitive fields
 
-- [ ] T052 Implement GET /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts
+- [x] T052 Implement GET /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
   - Return record details
   - Include audit trail
   - Include live tracking for DRAFT
   - Decrypt sensitive fields
 
-- [ ] T053 Implement PUT /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts
+- [x] T053 Implement PUT /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
   - Update record with status transition validation
   - Require unlock reason for UNLOCKED transition
   - Create audit trail entry for edits
   - Encrypt updated fields
 
-- [ ] T054 Implement DELETE /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts
+- [x] T054 Implement DELETE /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
   - Only allow DRAFT records
   - Return descriptive error for FINALIZED/UNLOCKED
   - Cascade delete audit trail entries
 
-- [ ] T055 Implement POST /api/nisab-year-records/:id/finalize in server/src/routes/nisabYearRecords.ts
+- [x] T055 Implement POST /api/nisab-year-records/:id/finalize in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
   - Validate Hawl completion (today >= hawlCompletionDate)
   - Allow override with acknowledgePremature flag
   - Set finalizedAt timestamp
   - Create FINALIZED audit trail entry
 
-- [ ] T056 Implement POST /api/nisab-year-records/:id/unlock in server/src/routes/nisabYearRecords.ts
+- [x] T056 Implement POST /api/nisab-year-records/:id/unlock in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
   - Require unlock reason (min 10 characters)
   - Validate current status is FINALIZED
   - Create UNLOCKED audit trail entry with reason
