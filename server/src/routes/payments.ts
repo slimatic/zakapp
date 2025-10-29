@@ -4,7 +4,7 @@ import { CreatePaymentData } from '../models/payment';
 import { authMiddleware } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 import { validateSchema } from '../middleware/ValidationMiddleware';
-import { createPaymentSchema, updatePaymentSchema, paymentQuerySchema } from '../../../shared/validation';
+import { createPaymentSchema, updatePaymentSchema, paymentQuerySchema } from '@zakapp/shared';
 
 const router = express.Router();
 

@@ -6,7 +6,7 @@ import {
   SnapshotStatus,
   NisabType,
   ZakatMethodology
-} from '../../../shared/src/types/tracking';
+} from '@zakapp/shared';
 
 const prisma = new PrismaClient();
 
@@ -62,7 +62,7 @@ export class YearlySnapshotModel {
     }
 
     // Validate methodology
-    const validMethodologies: ZakatMethodology[] = ['Standard', 'Hanafi', 'Shafii', 'Custom'];
+    const validMethodologies: YearlySnapshotMethodology[] = ['Standard', 'Hanafi', 'Shafii', 'Custom'];
     if (data.methodologyUsed && !validMethodologies.includes(data.methodologyUsed)) {
       throw new Error(`Invalid methodology. Must be one of: ${validMethodologies.join(', ')}`);
     }

@@ -4,7 +4,7 @@ import {
   ReminderEventType,
   ReminderPriority,
   ReminderStatus
-} from '../../../shared/src/types/tracking';
+} from '@zakapp/shared';
 
 const prisma = new PrismaClient();
 

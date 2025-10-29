@@ -7,7 +7,7 @@ import {
   PaginationParams,
   PaginationResult,
   SnapshotStatus
-} from '../../../shared/src/types/tracking';
+} from '@zakapp/shared';
 
 /**
  * YearlySnapshotService - Business logic for yearly Zakat snapshots
