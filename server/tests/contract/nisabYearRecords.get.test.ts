@@ -178,8 +178,6 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
       });
 
       const response = await request(app)
-
-      const response = await request(app)
         .get('/api/nisab-year-records')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);

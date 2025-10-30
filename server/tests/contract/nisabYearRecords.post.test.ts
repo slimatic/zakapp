@@ -343,8 +343,8 @@ describe('POST /api/nisab-year-records - Contract Tests', () => {
       });
 
       // Encrypted fields should be different from displayed values
-      expect(dbRecord?.nisabThresholdAtStartEncrypted).toBeDefined();
-      expect(dbRecord?.nisabThresholdAtStartEncrypted).not.toBe(
+      expect(dbRecord?.nisabThresholdAtStart).toBeDefined();
+      expect(dbRecord?.nisabThresholdAtStart).not.toBe(
         response.body.record.nisabThresholdAtStart.toString()
       );
     });
