@@ -198,52 +198,53 @@
 ## Phase 3.5: Frontend Implementation
 
 ### API Client Update
-- [ ] T057 Update nisabYearRecordApi.ts in client/src/api/nisabYearRecordApi.ts
+- [x] T057 Update nisabYearRecordApi.ts in client/src/services/api.ts ✅ COMPLETE
   - Rename from snapshotApi
   - Add finalize() endpoint call
   - Add unlock() endpoint call
   - Update types for Hawl fields
+  - Added legacy wrapper methods for backward compatibility
 
 ### Custom Hooks
-- [ ] T058 [P] Create useHawlStatus hook in client/src/hooks/useHawlStatus.ts
+- [x] T058 [P] Create useHawlStatus hook in client/src/hooks/useHawlStatus.ts ✅ COMPLETE
   - Poll for live tracking updates (5-second interval)
   - Calculate daysRemaining, isHawlComplete
   - Debounce rapid updates (300ms)
   - Show "Updating..." indicator
 
-- [ ] T059 [P] Create useNisabThreshold hook in client/src/hooks/useNisabThreshold.ts
+- [x] T059 [P] Create useNisabThreshold hook in client/src/hooks/useNisabThreshold.ts ✅ COMPLETE
   - Fetch current Nisab threshold from API
   - Cache with 24-hour TTL (React Query)
   - Handle stale price warnings (>7 days)
 
 ### React Components
-- [ ] T060 [P] Create HawlProgressIndicator component in client/src/components/HawlProgressIndicator.tsx
+- [x] T060 [P] Create HawlProgressIndicator component in client/src/components/HawlProgressIndicator.tsx ✅ COMPLETE
   - Display countdown to Hawl completion
   - Show progress bar (days elapsed / 354)
   - Hijri + Gregorian dates
   - "Live" badge for DRAFT records
 
-- [ ] T061 [P] Create NisabComparisonWidget component in client/src/components/NisabComparisonWidget.tsx
+- [x] T061 [P] Create NisabComparisonWidget component in client/src/components/NisabComparisonWidget.tsx ✅ COMPLETE
   - Display current wealth vs Nisab threshold
   - Percentage above/below Nisab
   - Visual bar chart
   - Color-coded (green if above, red if below)
 
-- [ ] T062 [P] Create FinalizationModal component in client/src/components/FinalizationModal.tsx
+- [x] T062 [P] Create FinalizationModal component in client/src/components/FinalizationModal.tsx ✅ COMPLETE
   - Review screen with wealth summary
   - Zakat amount calculation breakdown
   - Premature finalization warning (if Hawl not complete)
   - Confirm/cancel buttons
   - Loading state during API call
 
-- [ ] T063 [P] Create UnlockReasonDialog component in client/src/components/UnlockReasonDialog.tsx
+- [x] T063 [P] Create UnlockReasonDialog component in client/src/components/UnlockReasonDialog.tsx ✅ COMPLETE
   - Text area for unlock reason (min 10 chars)
   - Character counter
   - Validation error display
   - Submit/cancel buttons
   - Accessible (WCAG 2.1 AA)
 
-- [ ] T064 [P] Create AuditTrailView component in client/src/components/AuditTrailView.tsx
+- [x] T064 [P] Create AuditTrailView component in client/src/components/AuditTrailView.tsx ✅ COMPLETE
   - Timeline visualization
   - Event type badges (UNLOCKED, EDITED, REFINALIZED)
   - Timestamp display (relative + absolute)
@@ -252,7 +253,7 @@
   - Collapsible details
 
 ### Page Updates
-- [ ] T065 Update NisabYearRecordsPage in client/src/pages/NisabYearRecordsPage.tsx
+- [x] T065 Update NisabYearRecordsPage in client/src/pages/NisabYearRecordsPage.tsx ✅ COMPLETE
   - Rename from SnapshotsPage
   - Integrate HawlProgressIndicator
   - Integrate NisabComparisonWidget
@@ -261,7 +262,7 @@
   - Show audit trail for finalized records
   - Filter by status tabs (All/Draft/Finalized/Unlocked)
 
-- [ ] T066 Update Dashboard in client/src/pages/Dashboard.tsx
+- [x] T066 Update Dashboard in client/src/pages/Dashboard.tsx ✅ COMPLETE
   - Add "Hawl in progress: X days remaining" message
   - Add Hawl progress indicator widget
   - Add wealth comparison widget
