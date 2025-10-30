@@ -89,6 +89,7 @@ describe('POST /api/nisab-year-records/:id/finalize - Contract Tests', () => {
 
       try { await prisma.yearlySnapshot.delete({ where: { id: record.id } }); } catch (e) {}
     });
+  });
 
   describe('Validation Errors', () => {
     it('should reject finalization when Hawl not complete', async () => {

@@ -5,7 +5,7 @@ import {
   UpdateYearlySnapshotDto,
   SnapshotStatus,
   NisabType,
-  ZakatMethodology
+  YearlySnapshotMethodology
 } from '@zakapp/shared';
 
 const prisma = new PrismaClient();
