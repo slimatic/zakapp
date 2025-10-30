@@ -47,15 +47,15 @@
 - [x] **🔸 COMMIT CHECKPOINT**: Commit setup milestone with dependencies and configuration
 
 ## Phase 3.2: Database Migration
-- [x] T005 Create Prisma migration: Rename yearly_snapshots to nisab_year_records (server/prisma/migrations/)
-- [x] T006 Create Prisma migration: Add Hawl tracking fields (hawlStartDate, hawlCompletionDate, nisabBasis, etc.)
-- [x] T007 Create Prisma migration: Create audit_trail_entries table
-- [x] T008 Create Prisma migration: Create precious_metal_prices table
-- [x] T009 Create Prisma migration: Update status enum values (draft/finalized → DRAFT/FINALIZED/UNLOCKED)
-- [x] T010 Create Prisma migration: Add indexes for hawlStartDate, hawlCompletionDate, auditTrail
-- [x] T011 Write data transformation script for existing records (server/prisma/migrations/transform-nisab-records.ts)
-- [x] T012 Test migration rollback capability (verify down.sql or manual rollback)
-- [x] T013 Generate Prisma Client and verify schema (`npx prisma generate`)
+- [x] T005 Create Prisma migration: Rename yearly_snapshots to nisab_year_records (server/prisma/migrations/) **[FR-001]**
+- [x] T006 Create Prisma migration: Add Hawl tracking fields (hawlStartDate, hawlCompletionDate, nisabBasis, etc.) **[FR-002, FR-003, FR-004, FR-005, FR-006, FR-007]**
+- [x] T007 Create Prisma migration: Create audit_trail_entries table **[FR-010]**
+- [x] T008 Create Prisma migration: Create precious_metal_prices table **[FR-011]**
+- [x] T009 Create Prisma migration: Update status enum values (draft/finalized → DRAFT/FINALIZED/UNLOCKED) **[FR-008]**
+- [x] T010 Create Prisma migration: Add indexes for hawlStartDate, hawlCompletionDate, auditTrail **[FR-002, FR-004]**
+- [x] T011 Write data transformation script for existing records (server/prisma/migrations/transform-nisab-records.ts) **[FR-001]**
+- [x] T012 Test migration rollback capability (verify down.sql or manual rollback) **[NFR-005]**
+- [x] T013 Generate Prisma Client and verify schema (`npx prisma generate`) **[FR-001]**
 - [x] **🔸 COMMIT CHECKPOINT**: Commit database migration complete
 
 ## Phase 3.3: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.4
@@ -71,27 +71,27 @@
 - [x] T020 [P] Contract test POST /api/nisab-year-records/:id/unlock in server/tests/contract/nisabYearRecords.unlock.test.ts
 
 ### Service Layer Tests
-- [x] T021 [P] Unit tests for NisabCalculationService in server/tests/unit/services/nisabCalculationService.test.ts
-- [x] T022 [P] Unit tests for HawlTrackingService in server/tests/unit/services/hawlTrackingService.test.ts
-- [x] T023 [P] Unit tests for WealthAggregationService in server/tests/unit/services/wealthAggregationService.test.ts
-- [x] T024 [P] Unit tests for AuditTrailService in server/tests/unit/services/auditTrailService.test.ts
-- [x] T025 [P] Unit tests for NisabYearRecordService in server/tests/unit/services/nisabYearRecordService.test.ts
+- [x] T021 [P] Unit tests for NisabCalculationService in server/tests/unit/services/nisabCalculationService.test.ts **[FR-020 to FR-027]**
+- [x] T022 [P] Unit tests for HawlTrackingService in server/tests/unit/services/hawlTrackingService.test.ts **[FR-012 to FR-019]**
+- [x] T023 [P] Unit tests for WealthAggregationService in server/tests/unit/services/wealthAggregationService.test.ts **[FR-028 to FR-035]**
+- [x] T024 [P] Unit tests for AuditTrailService in server/tests/unit/services/auditTrailService.test.ts **[FR-048 to FR-054]**
+- [x] T025 [P] Unit tests for NisabYearRecordService in server/tests/unit/services/nisabYearRecordService.test.ts **[FR-036 to FR-047]**
 
 ### Integration Tests
-- [x] T026 [P] Integration test: Nisab achievement detection in server/tests/integration/hawlDetection.test.ts
-- [x] T027 [P] Integration test: Live wealth tracking in server/tests/integration/liveTracking.test.ts
-- [x] T028 [P] Integration test: Hawl interruption (wealth drop) in server/tests/integration/hawlInterruption.test.ts
-- [x] T029 [P] Integration test: Finalization workflow in server/tests/integration/finalization.test.ts
-- [x] T030 [P] Integration test: Unlock/edit/refinalize in server/tests/integration/unlockEdit.test.ts
-- [x] T031 [P] Integration test: Status transition validation in server/tests/integration/statusTransitions.test.ts
-- [x] T032 [P] Integration test: Invalid operations (error handling) in server/tests/integration/invalidOperations.test.ts
+- [x] T026 [P] Integration test: Nisab achievement detection in server/tests/integration/hawlDetection.test.ts **[FR-012, FR-013, FR-014, US-001]**
+- [x] T027 [P] Integration test: Live wealth tracking in server/tests/integration/liveTracking.test.ts **[FR-031, FR-032, US-002]**
+- [x] T028 [P] Integration test: Hawl interruption (wealth drop) in server/tests/integration/hawlInterruption.test.ts **[FR-017, EC-001, US-005]**
+- [x] T029 [P] Integration test: Finalization workflow in server/tests/integration/finalization.test.ts **[FR-041, FR-043, US-003]**
+- [x] T030 [P] Integration test: Unlock/edit/refinalize in server/tests/integration/unlockEdit.test.ts **[FR-042, FR-044, FR-045, US-004]**
+- [x] T031 [P] Integration test: Status transition validation in server/tests/integration/statusTransitions.test.ts **[FR-043 to FR-046]**
+- [x] T032 [P] Integration test: Invalid operations (error handling) in server/tests/integration/invalidOperations.test.ts **[FR-046, FR-047, EC-005, EC-006]**
 
 ### Frontend Component Tests
-- [x] T033 [P] Component test for HawlProgressIndicator in client/tests/components/HawlProgressIndicator.test.tsx
-- [x] T034 [P] Component test for NisabComparisonWidget in client/tests/components/NisabComparisonWidget.test.tsx
-- [x] T035 [P] Component test for FinalizationModal in client/tests/components/FinalizationModal.test.tsx
-- [x] T036 [P] Component test for UnlockReasonDialog in client/tests/components/UnlockReasonDialog.test.tsx
-- [x] T037 [P] Component test for AuditTrailView in client/tests/components/AuditTrailView.test.tsx
+- [x] T033 [P] Component test for HawlProgressIndicator in client/tests/components/HawlProgressIndicator.test.tsx **[FR-055, FR-061]**
+- [x] T034 [P] Component test for NisabComparisonWidget in client/tests/components/NisabComparisonWidget.test.tsx **[FR-056, FR-061]**
+- [x] T035 [P] Component test for FinalizationModal in client/tests/components/FinalizationModal.test.tsx **[FR-057, FR-061]**
+- [x] T036 [P] Component test for UnlockReasonDialog in client/tests/components/UnlockReasonDialog.test.tsx **[FR-058, FR-061]**
+- [x] T037 [P] Component test for AuditTrailView in client/tests/components/AuditTrailView.test.tsx **[FR-059, FR-061]**
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit TDD test suite (all tests must be failing)
 
@@ -103,32 +103,32 @@
 - [x] T040 Add AuditTrailEntry type in shared/src/types/auditTrail.ts
 
 ### Service Layer Implementation
-- [x] T041 [P] Implement NisabCalculationService in server/src/services/nisabCalculationService.ts
+- [x] T041 [P] Implement NisabCalculationService in server/src/services/nisabCalculationService.ts **[FR-020 to FR-027]**
   - Fetch gold/silver prices from metals-api.com
   - Calculate Nisab thresholds (87.48g gold, 612.36g silver)
   - Cache prices in precious_metal_prices table (24-hour TTL)
   - Handle API failures with cache fallback
 
-- [x] T042 [P] Implement HawlTrackingService in server/src/services/hawlTrackingService.ts ✅ COMPLETE
+- [x] T042 [P] Implement HawlTrackingService in server/src/services/hawlTrackingService.ts **[FR-012 to FR-019]** ✅ COMPLETE
   - Detect Nisab achievement from aggregate wealth
   - Calculate Hawl start/completion dates (Hijri + Gregorian)
   - Create DRAFT NisabYearRecord automatically
   - Handle Hawl interruption (wealth drops below Nisab)
 
-- [x] T043 [P] Implement WealthAggregationService in server/src/services/wealthAggregationService.ts ✅ COMPLETE
+- [x] T043 [P] Implement WealthAggregationService in server/src/services/wealthAggregationService.ts **[FR-028 to FR-035]** ✅ COMPLETE
   - Sum all zakatable assets for user
   - Calculate current Zakat amount (2.5%)
   - Compare with Nisab threshold
   - Performance target: <100ms for 500 assets
 
-- [x] T044 [P] Implement AuditTrailService in server/src/services/auditTrailService.ts ✅ COMPLETE
+- [x] T044 [P] Implement AuditTrailService in server/src/services/auditTrailService.ts **[FR-048 to FR-054]** ✅ COMPLETE
   - Record unlock events (with reason, min 10 chars)
   - Record edit events (with changes summary)
   - Record refinalize events
   - Append-only, immutable logs
   - Encrypt sensitive fields (reason, changes, before/after state)
 
-- [x] T045 Update NisabYearRecordService in server/src/services/nisabYearRecordService.ts ✅ COMPLETE
+- [x] T045 Update NisabYearRecordService in server/src/services/nisabYearRecordService.ts **[FR-036 to FR-047]** ✅ COMPLETE
   - Rename from SnapshotService
   - Implement status transition validation (DRAFT→FINALIZED, FINALIZED→UNLOCKED, UNLOCKED→FINALIZED)
   - Add finalize() method with Hawl completion check
@@ -136,58 +136,58 @@
   - Add live tracking for DRAFT records (no persistence)
 
 ### Background Jobs
-- [x] T046 Implement hawlDetectionJob in server/src/jobs/hawlDetectionJob.ts ✅ COMPLETE
+- [x] T046 Implement hawlDetectionJob in server/src/jobs/hawlDetectionJob.ts **[FR-012, FR-013, FR-014, FR-017, NFR-001]** ✅ COMPLETE
   - Run hourly via node-cron
   - Check all users' aggregate wealth
   - Detect Nisab achievement (create DRAFT record)
   - Detect Hawl interruptions (mark records)
   - Performance target: <30s completion
 
-- [x] T047 Add hawlDetectionJob to scheduler in server/src/jobs/index.ts ✅ COMPLETE
+- [x] T047 Add hawlDetectionJob to scheduler in server/src/jobs/index.ts **[FR-012]** ✅ COMPLETE
   - Configure cron expression (hourly: '0 * * * *')
   - Add error handling and logging
   - Add manual trigger endpoint for testing
 
 ### API Endpoints (Routes & Controllers)
-- [x] T048 Rename routes file: server/src/routes/snapshots.ts → server/src/routes/nisabYearRecords.ts ✅ COMPLETE
-- [x] T049 Update route registration in server/src/routes/index.ts ✅ COMPLETE
+- [x] T048 Rename routes file: server/src/routes/snapshots.ts → server/src/routes/nisabYearRecords.ts **[FR-001]** ✅ COMPLETE
+- [x] T049 Update route registration in server/src/routes/index.ts **[FR-001]** ✅ COMPLETE
 
-- [x] T050 Implement GET /api/nisab-year-records in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
+- [x] T050 Implement GET /api/nisab-year-records in server/src/routes/nisabYearRecords.ts **[FR-036]** ✅ COMPLETE
   - List all records for user
   - Filter by status (DRAFT/FINALIZED/UNLOCKED/ALL)
   - Filter by year
   - Include live tracking for DRAFT records
 
-- [x] T051 Implement POST /api/nisab-year-records in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
+- [x] T051 Implement POST /api/nisab-year-records in server/src/routes/nisabYearRecords.ts **[FR-038]** ✅ COMPLETE
   - Create new DRAFT record
   - Validate hawlStartDate < hawlCompletionDate
   - Calculate Nisab threshold if not provided
   - Encrypt sensitive fields
 
-- [x] T052 Implement GET /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
+- [x] T052 Implement GET /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts **[FR-037]** ✅ COMPLETE
   - Return record details
   - Include audit trail
   - Include live tracking for DRAFT
   - Decrypt sensitive fields
 
-- [x] T053 Implement PUT /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
+- [x] T053 Implement PUT /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts **[FR-039, FR-049]** ✅ COMPLETE
   - Update record with status transition validation
   - Require unlock reason for UNLOCKED transition
   - Create audit trail entry for edits
   - Encrypt updated fields
 
-- [x] T054 Implement DELETE /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
+- [x] T054 Implement DELETE /api/nisab-year-records/:id in server/src/routes/nisabYearRecords.ts **[FR-040]** ✅ COMPLETE
   - Only allow DRAFT records
   - Return descriptive error for FINALIZED/UNLOCKED
   - Cascade delete audit trail entries
 
-- [x] T055 Implement POST /api/nisab-year-records/:id/finalize in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
+- [x] T055 Implement POST /api/nisab-year-records/:id/finalize in server/src/routes/nisabYearRecords.ts **[FR-041, FR-043]** ✅ COMPLETE
   - Validate Hawl completion (today >= hawlCompletionDate)
   - Allow override with acknowledgePremature flag
   - Set finalizedAt timestamp
   - Create FINALIZED audit trail entry
 
-- [x] T056 Implement POST /api/nisab-year-records/:id/unlock in server/src/routes/nisabYearRecords.ts ✅ COMPLETE
+- [x] T056 Implement POST /api/nisab-year-records/:id/unlock in server/src/routes/nisabYearRecords.ts **[FR-042, FR-044, FR-051]** ✅ COMPLETE
   - Require unlock reason (min 10 characters)
   - Validate current status is FINALIZED
   - Create UNLOCKED audit trail entry with reason
@@ -218,33 +218,33 @@
   - Handle stale price warnings (>7 days)
 
 ### React Components
-- [x] T060 [P] Create HawlProgressIndicator component in client/src/components/HawlProgressIndicator.tsx ✅ COMPLETE
+- [x] T060 [P] Create HawlProgressIndicator component in client/src/components/HawlProgressIndicator.tsx **[FR-055, FR-061]** ✅ COMPLETE
   - Display countdown to Hawl completion
   - Show progress bar (days elapsed / 354)
   - Hijri + Gregorian dates
   - "Live" badge for DRAFT records
 
-- [x] T061 [P] Create NisabComparisonWidget component in client/src/components/NisabComparisonWidget.tsx ✅ COMPLETE
+- [x] T061 [P] Create NisabComparisonWidget component in client/src/components/NisabComparisonWidget.tsx **[FR-056, FR-061]** ✅ COMPLETE
   - Display current wealth vs Nisab threshold
   - Percentage above/below Nisab
   - Visual bar chart
   - Color-coded (green if above, red if below)
 
-- [x] T062 [P] Create FinalizationModal component in client/src/components/FinalizationModal.tsx ✅ COMPLETE
+- [x] T062 [P] Create FinalizationModal component in client/src/components/FinalizationModal.tsx **[FR-057, FR-061]** ✅ COMPLETE
   - Review screen with wealth summary
   - Zakat amount calculation breakdown
   - Premature finalization warning (if Hawl not complete)
   - Confirm/cancel buttons
   - Loading state during API call
 
-- [x] T063 [P] Create UnlockReasonDialog component in client/src/components/UnlockReasonDialog.tsx ✅ COMPLETE
+- [x] T063 [P] Create UnlockReasonDialog component in client/src/components/UnlockReasonDialog.tsx **[FR-058, FR-061]** ✅ COMPLETE
   - Text area for unlock reason (min 10 chars)
   - Character counter
   - Validation error display
   - Submit/cancel buttons
   - Accessible (WCAG 2.1 AA)
 
-- [x] T064 [P] Create AuditTrailView component in client/src/components/AuditTrailView.tsx ✅ COMPLETE
+- [x] T064 [P] Create AuditTrailView component in client/src/components/AuditTrailView.tsx **[FR-059, FR-061]** ✅ COMPLETE
   - Timeline visualization
   - Event type badges (UNLOCKED, EDITED, REFINALIZED)
   - Timestamp display (relative + absolute)
@@ -253,7 +253,7 @@
   - Collapsible details
 
 ### Page Updates
-- [x] T065 Update NisabYearRecordsPage in client/src/pages/NisabYearRecordsPage.tsx ✅ COMPLETE
+- [x] T065 Update NisabYearRecordsPage in client/src/pages/NisabYearRecordsPage.tsx **[FR-001, FR-055 to FR-059]** ✅ COMPLETE
   - Rename from SnapshotsPage
   - Integrate HawlProgressIndicator
   - Integrate NisabComparisonWidget
@@ -262,7 +262,7 @@
   - Show audit trail for finalized records
   - Filter by status tabs (All/Draft/Finalized/Unlocked)
 
-- [x] T066 Update Dashboard in client/src/pages/Dashboard.tsx ✅ COMPLETE
+- [x] T066 Update Dashboard in client/src/pages/Dashboard.tsx **[FR-060]** ✅ COMPLETE
   - Add "Hawl in progress: X days remaining" message
   - Add Hawl progress indicator widget
   - Add wealth comparison widget
@@ -283,34 +283,34 @@
 - [ ] T073 Execute quickstart.md Scenario 7: Nisab threshold calculation (~7 min)
 
 ### Performance Validation
-- [x] T074 Performance test: Aggregate wealth calculation (<100ms for 500 assets) ✅ PASS (17ms avg)
-- [x] T075 Performance test: Precious metals API call (<2s with cache fallback) ✅ PASS (<200ms)
-- [x] T076 Performance test: Dashboard page load (<2s constitutional requirement) ✅ PASS (100ms)
-- [x] T077 Performance test: Live tracking latency (<500ms perceived as instant) ✅ VERIFIED (endpoint tested separately)
-- [x] T078 Performance test: Background Hawl detection job (<30s completion) ✅ VERIFIED (tested in integration)
+- [x] T074 Performance test: Aggregate wealth calculation (<100ms for 500 assets) **[FR-030, NFR-001]** ✅ PASS (17ms avg)
+- [x] T075 Performance test: Precious metals API call (<2s with cache fallback) **[FR-024, FR-025, NFR-001]** ✅ PASS (<200ms)
+- [x] T076 Performance test: Dashboard page load (<2s constitutional requirement) **[NFR-001]** ✅ PASS (100ms)
+- [x] T077 Performance test: Live tracking latency (<500ms perceived as instant) **[FR-031, NFR-001]** ✅ VERIFIED (endpoint tested separately)
+- [x] T078 Performance test: Background Hawl detection job (<30s completion) **[FR-012, NFR-001]** ✅ VERIFIED (tested in integration)
 
 ### Accessibility Audit
-- [x] T079 WCAG 2.1 AA audit: HawlProgressIndicator (keyboard nav, screen reader, contrast) ✅ PASS
-- [x] T080 WCAG 2.1 AA audit: NisabComparisonWidget (alt text, ARIA labels) ✅ PASS
-- [x] T081 WCAG 2.1 AA audit: FinalizationModal (focus trap, ESC key, announcements) ✅ PASS (semantic HTML)
-- [x] T082 WCAG 2.1 AA audit: UnlockReasonDialog (error announcements, label associations) ✅ PASS (5/5 checks)
-- [x] T083 WCAG 2.1 AA audit: AuditTrailView (semantic HTML, color contrast) ✅ PASS (semantic HTML)
+- [x] T079 WCAG 2.1 AA audit: HawlProgressIndicator (keyboard nav, screen reader, contrast) **[FR-061, NFR-003]** ✅ PASS
+- [x] T080 WCAG 2.1 AA audit: NisabComparisonWidget (alt text, ARIA labels) **[FR-061, NFR-003]** ✅ PASS
+- [x] T081 WCAG 2.1 AA audit: FinalizationModal (focus trap, ESC key, announcements) **[FR-061, NFR-003]** ✅ PASS (semantic HTML)
+- [x] T082 WCAG 2.1 AA audit: UnlockReasonDialog (error announcements, label associations) **[FR-061, NFR-003]** ✅ PASS (5/5 checks)
+- [x] T083 WCAG 2.1 AA audit: AuditTrailView (semantic HTML, color contrast) **[FR-061, NFR-003]** ✅ PASS (semantic HTML)
 
 ### Islamic Compliance Verification
-- [x] T084 Verify Nisab thresholds: 87.48g gold, 612.36g silver (scholarly sources) ✅ VERIFIED
+- [x] T084 Verify Nisab thresholds: 87.48g gold, 612.36g silver (scholarly sources) **[FR-022, FR-023, NFR-004]** ✅ VERIFIED
   - Gold: 87.48g (20 mithqal), Silver: 612.36g (200 dirham)
   - Sources: Reliance of the Traveller (h1.1), Simple Zakat Guide
   - Verified in shared/src/constants/islamicConstants.ts
-- [x] T085 Verify Hawl duration: 354 days lunar year (Hijri calendar accuracy) ✅ VERIFIED
+- [x] T085 Verify Hawl duration: 354 days lunar year (Hijri calendar accuracy) **[FR-015, FR-016, NFR-004]** ✅ VERIFIED
   - Duration: 354-355 days based on Hijri calendar
   - Based on: Umm al-Qura calendar system
   - Verified in shared/src/constants/islamicConstants.ts (HAWL_CONSTANTS.DAYS_LUNAR)
-- [x] T086 Verify Zakat rate: 2.5% on entire base (not excess above Nisab) ✅ VERIFIED
+- [x] T086 Verify Zakat rate: 2.5% on entire base (not excess above Nisab) **[FR-035, NFR-004]** ✅ VERIFIED
   - Rate: 2.5% (1/40) applied to entire zakatable wealth above Nisab
   - NOT just the excess above Nisab
   - Source: Quranic verse 9:60, scholarly consensus
   - Verified in shared/src/constants/islamicConstants.ts (ZAKAT_RATES.STANDARD)
-- [x] T087 Verify educational content: In-context help aligns with Simple Zakat Guide ✅ VERIFIED
+- [x] T087 Verify educational content: In-context help aligns with Simple Zakat Guide **[FR-062 to FR-066, NFR-004]** ✅ VERIFIED
   - Educational constants include comprehensive scholarly references
   - All values cite Simple Zakat Guide as primary source
   - Ready for client/src/content/nisabEducation.md implementation (T089)
@@ -319,26 +319,26 @@
 
 ## Phase 3.7: Documentation
 
-- [ ] T088 Update API documentation in docs/api.md
+- [ ] T088 Update API documentation in docs/api.md **[FR-036 to FR-042, FR-047]**
   - Document 8 new endpoints (GET, POST, PUT, DELETE, finalize, unlock)
   - Include request/response examples
   - Document error codes and messages
   - Document status transition rules
 
-- [ ] T089 Add in-context educational content in client/src/content/nisabEducation.md
+- [ ] T089 Add in-context educational content in client/src/content/nisabEducation.md **[FR-062 to FR-066]**
   - Explain Nisab concept (gold/silver thresholds)
   - Explain Hawl concept (lunar year tracking)
   - Explain why 354 days (lunar calendar)
   - Explain aggregate approach (sum all assets)
   - Reference Simple Zakat Guide
 
-- [ ] T090 Update user guide in docs/user-guide.md
+- [ ] T090 Update user guide in docs/user-guide.md **[FR-062 to FR-066, US-001 to US-006]**
   - Add section: "Understanding Nisab and Hawl"
   - Add section: "Managing Your Nisab Year Records"
   - Add section: "Finalizing and Unlocking Records"
   - Add screenshots of new UI components
 
-- [ ] T091 Document deployment migration steps in deployment-guide.md
+- [ ] T091 Document deployment migration steps in deployment-guide.md **[FR-001, NFR-005]**
   - Database migration commands
   - Environment variable setup (METALS_API_KEY)
   - Rollback procedure
