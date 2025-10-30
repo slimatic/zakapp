@@ -59,7 +59,7 @@ const GettingStarted = lazy(() => import('./components/help/GettingStarted').the
 
 // Tracking & Analytics pages - lazy loaded for optimal performance
 const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
-const SnapshotsPage = lazy(() => import('./pages/SnapshotsPage').then(m => ({ default: m.SnapshotsPage })));
+const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').then(m => ({ default: m.NisabYearRecordsPage })));
 const CreateSnapshotPage = lazy(() => import('./pages/CreateSnapshotPage').then(m => ({ default: m.CreateSnapshotPage })));
 const SnapshotDetailPage = lazy(() => import('./pages/SnapshotDetailPage').then(m => ({ default: m.SnapshotDetailPage })));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
@@ -243,7 +243,7 @@ function App() {
                   <ProtectedRoute>
                     <Layout>
                       <Suspense fallback={<HistorySkeleton />}>
-                        <SnapshotsPage />
+                        <NisabYearRecordsPage />
                       </Suspense>
                     </Layout>
                   </ProtectedRoute>
