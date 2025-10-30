@@ -342,8 +342,9 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async createSnapshot(data: any): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/snapshot`, {
+  // Nisab Year Records API (formerly snapshots)
+  async createNisabYearRecord(data: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data)
@@ -351,15 +352,16 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getSnapshots(filters?: { year?: number; page?: number; limit?: number }): Promise<ApiResponse> {
+  async getNisabYearRecords(filters?: { status?: string; year?: number; page?: number; limit?: number }): Promise<ApiResponse> {
     const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
     if (filters?.year) params.append('year', filters.year.toString());
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
     const url = params.toString()
-      ? `${API_BASE_URL}/snapshots?${params.toString()}`
-      : `${API_BASE_URL}/snapshots`;
+      ? `${API_BASE_URL}/nisab-year-records?${params.toString()}`
+      : `${API_BASE_URL}/nisab-year-records`;
 
     const response = await fetch(url, {
       headers: this.getAuthHeaders()
@@ -367,19 +369,67 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getSnapshot(snapshotId: string): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/snapshots/${snapshotId}`, {
+  async getNisabYearRecord(recordId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
   }
 
-  async deleteSnapshot(snapshotId: string): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/snapshots/${snapshotId}`, {
+  async updateNisabYearRecord(recordId: string, data: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteNisabYearRecord(recordId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}`, {
       method: 'DELETE',
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
+  }
+
+  async finalizeNisabYearRecord(recordId: string, acknowledgePremature?: boolean): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}/finalize`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ acknowledgePremature })
+    });
+    return this.handleResponse(response);
+  }
+
+  async unlockNisabYearRecord(recordId: string, reason: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}/unlock`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ reason })
+    });
+    return this.handleResponse(response);
+  }
+
+  // Legacy snapshot methods (deprecated - use nisabYearRecord methods)
+  /** @deprecated Use createNisabYearRecord instead */
+  async createSnapshot(data: any): Promise<ApiResponse> {
+    return this.createNisabYearRecord(data);
+  }
+
+  /** @deprecated Use getNisabYearRecords instead */
+  async getSnapshots(filters?: { year?: number; page?: number; limit?: number }): Promise<ApiResponse> {
+    return this.getNisabYearRecords(filters);
+  }
+
+  /** @deprecated Use getNisabYearRecord instead */
+  async getSnapshot(snapshotId: string): Promise<ApiResponse> {
+    return this.getNisabYearRecord(snapshotId);
+  }
+
+  /** @deprecated Use deleteNisabYearRecord instead */
+  async deleteSnapshot(snapshotId: string): Promise<ApiResponse> {
+    return this.deleteNisabYearRecord(snapshotId);
   }
 
   async compareSnapshots(fromId: string, toId: string): Promise<ApiResponse> {
