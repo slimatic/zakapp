@@ -134,7 +134,7 @@ export class AnnualSummaryModel {
           recipientSummary: JSON.stringify(data.recipientSummary),
           assetBreakdown: JSON.stringify(data.assetBreakdown),
           comparativeAnalysis: data.comparativeAnalysis ? JSON.stringify(data.comparativeAnalysis) : '{}',
-          methodologyUsed: data.methodologyUsed,
+          methodologyUsed: typeof data.methodologyUsed === 'string' ? data.methodologyUsed : data.methodologyUsed.id,
           nisabInfo: JSON.stringify(data.nisabInfo),
           userNotes: data.userNotes ?? null,
           version: 1
