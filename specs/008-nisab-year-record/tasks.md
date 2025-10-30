@@ -333,6 +333,23 @@
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit documentation complete
 
+## Phase 3.8: Code Quality & Refactoring
+
+### Centralization & Best Practices
+- [x] T092 Create Islamic constants centralization file in shared/src/constants/islamicConstants.ts ✅ COMPLETE
+  - Centralize all Nisab thresholds (87.48g gold, 612.36g silver) from multiple locations
+  - Define Zakat rates with scholarly references
+  - Document Hawl constants (354 days lunar year, grace periods)
+  - Add calculation helper functions (calculateNisabThreshold, calculateZakatAmount, calculateHawlCompletionDate)
+  - Include comprehensive scholarly sources and references
+  - Add deductible liability opinions and asset categorization constants
+  - Export TypeScript types for type safety
+  - Update shared/src/constants.ts to re-export new constants
+  - Deprecate legacy duplicate constants with @deprecated tags
+  - **Fixes**: Specification Analysis Report recommendation M1 - eliminates hardcoded duplications across spec.md, plan.md, tasks.md
+
+- [ ] **🔸 COMMIT CHECKPOINT**: Commit code quality improvements
+
 ## Dependencies
 
 ### Critical Path (Sequential)

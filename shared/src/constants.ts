@@ -1,13 +1,31 @@
 // Constants for the zakapp application
 
-// Zakat calculation constants
+/**
+ * Re-export comprehensive Islamic constants from dedicated module
+ * 
+ * IMPORTANT: The canonical source for Islamic Zakat constants is now
+ * in constants/islamicConstants.ts. This includes:
+ * - NISAB_THRESHOLDS (with scholarly references)
+ * - ZAKAT_RATES (with detailed explanations)
+ * - HAWL_CONSTANTS (lunar calendar calculations)
+ * - CALCULATION_METHODS (madhab-specific approaches)
+ * - Helper functions for calculations
+ * 
+ * The legacy constants below are maintained for backward compatibility
+ * but new code should use the comprehensive islamicConstants module.
+ */
+export * from './constants/islamicConstants';
+
+// Legacy Zakat calculation constants (DEPRECATED - use islamicConstants instead)
+// @deprecated Use ZAKAT_RATES from islamicConstants.ts
 export const ZAKAT_RATES = {
   STANDARD_RATE: 2.5, // 2.5% for most assets
   AGRICULTURAL_RAIN_FED: 10, // 10% for rain-fed crops
   AGRICULTURAL_IRRIGATED: 5, // 5% for irrigated crops
 } as const;
 
-// Nisab thresholds (in grams)
+// Legacy Nisab thresholds (DEPRECATED - use islamicConstants instead)
+// @deprecated Use NISAB_THRESHOLDS from islamicConstants.ts
 export const NISAB_THRESHOLDS = {
   GOLD_GRAMS: 87.48, // ~3 ounces of gold
   SILVER_GRAMS: 612.36, // ~21 ounces of silver
