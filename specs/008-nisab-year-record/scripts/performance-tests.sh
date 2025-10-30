@@ -31,17 +31,18 @@ echo ""
 check_servers() {
   echo -e "${YELLOW}Checking if servers are running...${NC}"
   
-  if ! curl -s http://localhost:3000/api/health > /dev/null 2>&1; then
-    echo -e "${RED}❌ Backend server not running on port 3000${NC}"
-    echo "   Start with: npm run server:dev"
+  # Check port 3001 (current backend)
+  if ! curl -s http://localhost:3001/api/auth/health > /dev/null 2>&1; then
+    echo -e "${RED}❌ Backend server not running on port 3001${NC}"
+    echo "   Start with: cd server && npm run dev"
     exit 1
   fi
   
-  if ! curl -s http://localhost:5173 > /dev/null 2>&1; then
-    echo -e "${YELLOW}⚠️  Frontend not running on port 5173 (optional for API tests)${NC}"
+  if ! curl -s http://localhost:3000 > /dev/null 2>&1; then
+    echo -e "${YELLOW}⚠️  Frontend not running on port 3000 (optional for API tests)${NC}"
   fi
   
-  echo -e "${GREEN}✅ Backend server is running${NC}"
+  echo -e "${GREEN}✅ Backend server is running on port 3001${NC}"
   echo ""
 }
 
@@ -55,7 +56,7 @@ test_wealth_aggregation() {
 const axios = require('axios');
 
 async function testWealthAggregation() {
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = 'http://localhost:3001/api';
   
   // Login to get token
   const loginRes = await axios.post(`${API_URL}/auth/login`, {
@@ -143,7 +144,7 @@ test_precious_metals_api() {
 const axios = require('axios');
 
 async function testPreciousMetalsAPI() {
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = 'http://localhost:3001/api';
   
   // Login
   const loginRes = await axios.post(`${API_URL}/auth/login`, {
@@ -235,7 +236,7 @@ test_live_tracking_latency() {
 const axios = require('axios');
 
 async function testLiveTracking() {
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = 'http://localhost:3001/api';
   
   // Login
   const loginRes = await axios.post(`${API_URL}/auth/login`, {
@@ -306,7 +307,7 @@ test_hawl_detection_job() {
 const axios = require('axios');
 
 async function testHawlDetectionJob() {
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = 'http://localhost:3001/api';
   
   // Login as admin or use test endpoint
   const loginRes = await axios.post(`${API_URL}/auth/login`, {
