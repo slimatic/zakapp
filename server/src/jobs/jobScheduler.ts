@@ -96,7 +96,6 @@ export class JobScheduler {
           );
         },
         {
-          scheduled: true,
           timezone: this.config.timezone || 'UTC',
         }
       );
@@ -264,11 +263,14 @@ export class JobScheduler {
     return {
       enabled: this.config.enabled,
       jobCount: this.tasks.size,
-      jobs: Array.from(this.tasks.keys()).map(jobName => ({
-        name: jobName,
-        status: this.tasks.get(jobName)?.status || 'unknown',
-        lastResult: this.lastResults.get(jobName),
-      })),
+      jobs: Array.from(this.tasks.keys()).map(jobName => {
+        const task = this.tasks.get(jobName);
+        return {
+          name: jobName,
+          status: task ? 'scheduled' : 'unknown',
+          lastResult: this.lastResults.get(jobName),
+        };
+      }),
     };
   }
 }
