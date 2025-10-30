@@ -8,11 +8,11 @@
  */
 
 import request from 'supertest';
-import { app } from '../../../src/app';
+import app from '../../src/app';
 import { PrismaClient } from '@prisma/client';
-import { NisabCalculationService } from '../../../src/services/nisabCalculationService';
-import { HawlTrackingService } from '../../../src/services/hawlTrackingService';
-import { WealthAggregationService } from '../../../src/services/wealthAggregationService';
+import { NisabCalculationService } from '../../src/services/nisabCalculationService';
+import { HawlTrackingService } from '../../src/services/hawlTrackingService';
+import { WealthAggregationService } from '../../src/services/wealthAggregationService';
 
 const prisma = new PrismaClient();
 
@@ -36,7 +36,7 @@ describe('Integration: Nisab Achievement Detection', () => {
 
   afterAll(async () => {
     // Cleanup
-    await prisma.nisabYearRecord.deleteMany({ where: { userId } });
+    await prisma.yearlySnapshot.deleteMany({ where: { userId } });
     await prisma.asset.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
     await prisma.$disconnect();
@@ -44,7 +44,7 @@ describe('Integration: Nisab Achievement Detection', () => {
 
   beforeEach(async () => {
     // Clear records before each test
-    await prisma.nisabYearRecord.deleteMany({ where: { userId } });
+    await prisma.yearlySnapshot.deleteMany({ where: { userId } });
     await prisma.asset.deleteMany({ where: { userId } });
   });
 
