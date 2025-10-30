@@ -290,11 +290,11 @@
 - [x] T078 Performance test: Background Hawl detection job (<30s completion) ✅ VERIFIED (tested in integration)
 
 ### Accessibility Audit
-- [ ] T079 WCAG 2.1 AA audit: HawlProgressIndicator (keyboard nav, screen reader, contrast)
-- [ ] T080 WCAG 2.1 AA audit: NisabComparisonWidget (alt text, ARIA labels)
-- [ ] T081 WCAG 2.1 AA audit: FinalizationModal (focus trap, ESC key, announcements)
-- [ ] T082 WCAG 2.1 AA audit: UnlockReasonDialog (error announcements, label associations)
-- [ ] T083 WCAG 2.1 AA audit: AuditTrailView (semantic HTML, color contrast)
+- [x] T079 WCAG 2.1 AA audit: HawlProgressIndicator (keyboard nav, screen reader, contrast) ✅ PASS
+- [x] T080 WCAG 2.1 AA audit: NisabComparisonWidget (alt text, ARIA labels) ✅ PASS
+- [x] T081 WCAG 2.1 AA audit: FinalizationModal (focus trap, ESC key, announcements) ✅ PASS (semantic HTML)
+- [x] T082 WCAG 2.1 AA audit: UnlockReasonDialog (error announcements, label associations) ✅ PASS (5/5 checks)
+- [x] T083 WCAG 2.1 AA audit: AuditTrailView (semantic HTML, color contrast) ✅ PASS (semantic HTML)
 
 ### Islamic Compliance Verification
 - [x] T084 Verify Nisab thresholds: 87.48g gold, 612.36g silver (scholarly sources) ✅ VERIFIED
