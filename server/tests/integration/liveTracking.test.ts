@@ -9,7 +9,8 @@
  */
 
 import request from 'supertest';
-import { app } from '../../../src/app';
+import moment from 'moment';
+import app from '../../src/app';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -50,7 +51,7 @@ describe('Integration: Live Wealth Tracking', () => {
   });
 
   afterAll(async () => {
-    await prisma.nisabYearRecord.deleteMany({ where: { userId } });
+    await prisma.yearlySnapshot.deleteMany({ where: { userId } });
     await prisma.asset.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
     await prisma.$disconnect();

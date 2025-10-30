@@ -9,7 +9,7 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app';
 import { generateAccessToken } from '../../src/utils/jwt';
-import { createNisabYearRecordData, createFinalizedRecord } from '../helpers/nisabYearRecordFactory';
+import { createNisabYearRecordData, createFinalizedRecord, createUnlockedRecord } from '../helpers/nisabYearRecordFactory';
 
 const prisma = new PrismaClient();
 
