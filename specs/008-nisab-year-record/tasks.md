@@ -296,6 +296,8 @@
   - Update record with new selection
   - Verify assetBreakdown updated correctly
   - Expected: FAIL (endpoint doesn't exist yet) ✅ TEST WRITTEN
+  - **⚠️ NEEDS FIXES**: Test uses wrong API (EncryptionService.getInstance(), prisma.nisabYearRecord instead of yearlySnapshot)
+  - See T094-T095-TEST-EXECUTION-REPORT.md for details
 
 - [x] T095 [P] Integration test for automatic asset inclusion in background job in server/tests/integration/hawlDetectionAssets.test.ts **[FR-014, FR-011a]**
   - Create assets for user that exceed Nisab
@@ -304,6 +306,8 @@
   - Verify all zakatable assets included in snapshot
   - Verify JSON structure matches: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt, totalWealth, zakatableWealth }`
   - Expected: FAIL (asset snapshot logic doesn't exist yet) ✅ TEST WRITTEN
+  - **⚠️ NEEDS FIXES**: Test uses wrong API (same issues as T094)
+  - See T094-T095-TEST-EXECUTION-REPORT.md for details
 
 - [x] **🔸 COMMIT CHECKPOINT**: Commit TDD test suite for asset auto-inclusion (all tests must be failing) ✅ DONE (commit 272cf8d)
 
