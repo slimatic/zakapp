@@ -34,7 +34,11 @@ await prisma.yearlySnapshot.deleteMany()
 ```
 
 **Impact**: All database operations fail
-**Files Affected**: Both test files use wrong model name throughout
+**Files Affected**: 
+- `server/tests/integration/assetRefresh.test.ts` (9 occurrences)
+- `server/tests/integration/hawlDetectionAssets.test.ts` (14 occurrences)
+
+**Note**: This same issue was found and fixed in `hawlTrackingService.ts` (commit 9b0a409)
 
 ### 3. Test Helper Setup
 **Problem**: Test helpers (`authHelpers`, `assetHelpers`) were missing
