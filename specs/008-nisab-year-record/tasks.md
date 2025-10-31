@@ -309,7 +309,7 @@
 
 ### Backend Implementation (ONLY after tests are failing)
 
-- [ ] T096 Update HawlTrackingService to populate assetBreakdown snapshot in server/src/services/HawlTrackingService.ts **[FR-014, FR-011a]**
+- [x] T096 Update HawlTrackingService to populate assetBreakdown snapshot in server/src/services/HawlTrackingService.ts **[FR-014, FR-011a]** ✅ COMPLETE
   - When creating DRAFT record via Nisab achievement detection
   - Fetch all zakatable assets for user via WealthAggregationService.getZakatableAssets()
   - Build assetBreakdown JSON: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt: timestamp, totalWealth: number, zakatableWealth: number }`
@@ -317,7 +317,7 @@
   - Store in nisabYearRecord.assetBreakdown field
   - Verify T095 integration test now passes
 
-- [ ] T097 Update NisabYearRecordService.createRecord() to accept asset selection in server/src/services/NisabYearRecordService.ts **[FR-038a, FR-011a]**
+- [x] T097 Update NisabYearRecordService.createRecord() to accept asset selection in server/src/services/NisabYearRecordService.ts **[FR-038a, FR-011a]** ✅ COMPLETE
   - Add optional `selectedAssetIds?: string[]` parameter to createRecord()
   - If provided, fetch only selected assets via AssetService.getByIds()
   - Build assetBreakdown snapshot from selected assets
@@ -325,7 +325,7 @@
   - If not provided (background job), auto-select all zakatable assets
   - Verify T095 integration test now passes (background job path)
 
-- [ ] T098 Add asset refresh endpoint GET /api/nisab-year-records/:id/assets/refresh in server/src/routes/nisabYearRecords.ts **[FR-032a]**
+- [x] T098 Add asset refresh endpoint GET /api/nisab-year-records/:id/assets/refresh in server/src/routes/nisab-year-records.ts **[FR-032a]** ✅ COMPLETE
   - Add route handler for GET /api/nisab-year-records/:id/assets/refresh
   - Validate record is DRAFT status (return 400 if FINALIZED/UNLOCKED)
   - Call WealthAggregationService.getZakatableAssets(userId)
@@ -333,7 +333,7 @@
   - Format: `{ assets: [{ id, name, category, value, isZakatable, addedAt }] }`
   - Verify T094 integration test now passes
 
-- [ ] **🔸 COMMIT CHECKPOINT**: Commit backend implementation (T095 and T094 integration tests should now pass)
+- [x] **🔸 COMMIT CHECKPOINT**: Commit backend implementation (T095 and T094 integration tests should now pass) ✅ DONE (commits: 5dafdaf, 8c21418)
 
 ### Frontend Implementation
 
