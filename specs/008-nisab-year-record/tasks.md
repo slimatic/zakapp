@@ -271,6 +271,87 @@
 
 - [x] **🔸 COMMIT CHECKPOINT**: Commit frontend implementation complete ✅ DONE (commits: 649d1d7, 7b1649c, dd88745, b25e894, e8406ac, 64b918f, a0b9f14)
 
+## Phase 3.5.1: Asset Auto-Inclusion Implementation (Post-Clarification)
+
+**Context**: Clarification session 2025-10-31 identified missing asset auto-inclusion functionality blocking manual testing scenarios T067-T073. Three new requirements added: FR-038a (asset selection UI), FR-032a (manual refresh), FR-011a (snapshot storage).
+
+### Backend Implementation
+- [ ] T093 Update HawlTrackingService to populate assetBreakdown snapshot in server/src/services/HawlTrackingService.ts **[FR-014, FR-011a]**
+  - When creating DRAFT record via Nisab achievement detection
+  - Fetch all zakatable assets for user via WealthAggregationService
+  - Build assetBreakdown JSON: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt: timestamp, totalWealth: number, zakatableWealth: number }`
+  - Encrypt assetBreakdown JSON via EncryptionService
+  - Store in nisabYearRecord.assetBreakdown field
+
+- [ ] T094 Add asset refresh endpoint GET /api/nisab-year-records/:id/assets/refresh in server/src/routes/nisabYearRecords.ts **[FR-032a]**
+  - Validate record is DRAFT status (return 400 if FINALIZED/UNLOCKED)
+  - Fetch current zakatable assets for user
+  - Return asset list with current values (don't persist yet)
+  - Allow frontend to display for user review/selection
+
+- [ ] T095 Update NisabYearRecordService.createRecord() to accept asset selection in server/src/services/NisabYearRecordService.ts **[FR-038a, FR-011a]**
+  - Add optional `selectedAssetIds?: string[]` parameter
+  - If provided, filter assets to only selected ones
+  - Build assetBreakdown snapshot from selected assets
+  - Encrypt and store in record
+  - If not provided, auto-select all zakatable assets (background job behavior)
+
+### Frontend Implementation
+- [ ] T096 [P] Create AssetSelectionTable component in client/src/components/tracking/AssetSelectionTable.tsx **[FR-038a]**
+  - Display table with columns: [Checkbox, Name, Category, Value, Zakatable Status, Added Date]
+  - Pre-select all zakatable assets by default
+  - Allow selection/deselection via checkboxes
+  - Show calculated totals: Total Wealth, Zakatable Wealth, Zakat Amount (2.5%)
+  - Update totals in real-time as selection changes
+  - Accessibility: WCAG 2.1 AA (keyboard nav, ARIA labels, screen reader support)
+
+- [ ] T097 [P] Add "Refresh Assets" button to NisabYearRecordCard for DRAFT records in client/src/components/tracking/NisabYearRecordCard.tsx **[FR-032a]**
+  - Show button only for DRAFT status records
+  - On click, call GET /api/nisab-year-records/:id/assets/refresh
+  - Open AssetSelectionTable modal with current assets
+  - Allow user to update selection
+  - On confirm, call PUT /api/nisab-year-records/:id with new assetBreakdown
+  - Show loading state during API calls
+
+- [ ] T098 Update NisabYearRecordsPage to integrate AssetSelectionTable in record creation flow in client/src/pages/NisabYearRecordsPage.tsx **[FR-038a]**
+  - When creating new record, fetch user's current assets
+  - Display AssetSelectionTable before showing financial input fields
+  - Auto-populate Total Wealth, Zakatable Wealth, Zakat Amount from selection
+  - Make financial fields read-only (calculated from assets)
+  - Pass selectedAssetIds to API when creating record
+
+- [ ] T099 [P] Display asset breakdown snapshot (read-only) for FINALIZED records in client/src/components/tracking/AssetBreakdownView.tsx **[FR-011a]**
+  - NEW component to display historical asset snapshot
+  - Show table of assets from assetBreakdown JSON (decrypted)
+  - Display capturedAt timestamp
+  - Show totals: Total Wealth, Zakatable Wealth
+  - Indicate this is historical snapshot (not current values)
+  - Link to current asset page if user wants to compare
+
+### Testing
+- [ ] T100 [P] Component test for AssetSelectionTable in client/tests/components/AssetSelectionTable.test.tsx
+  - Test selection/deselection functionality
+  - Test total calculations update correctly
+  - Test pre-selection of zakatable assets
+  - Test accessibility (keyboard nav, ARIA)
+
+- [ ] T101 [P] Integration test for asset refresh workflow in server/tests/integration/assetRefresh.test.ts **[FR-032a]**
+  - Create DRAFT record with initial asset snapshot
+  - Add new asset to user
+  - Call refresh endpoint
+  - Verify new asset appears in response
+  - Update record with new selection
+  - Verify assetBreakdown updated correctly
+
+- [ ] T102 [P] Integration test for automatic asset inclusion in background job in server/tests/integration/hawlDetectionAssets.test.ts **[FR-014, FR-011a]**
+  - Create assets for user that exceed Nisab
+  - Run Hawl detection job
+  - Verify DRAFT record created with assetBreakdown populated
+  - Verify all zakatable assets included in snapshot
+  - Verify totals match aggregate wealth calculation
+
+- [ ] **🔸 COMMIT CHECKPOINT**: Commit asset auto-inclusion implementation complete
+
 ## Phase 3.6: Validation & Testing
 
 ### Quickstart Scenarios (Manual Testing)
@@ -383,8 +464,10 @@
 6. **Background Jobs** (T046-T047) independent (can run after services)
 7. **API** (T048-T056) requires services complete
 8. **Frontend** (T057-T066) requires API complete
-9. **Validation** (T067-T087) requires all implementation complete
-10. **Documentation** (T088-T091) at end
+9. **Asset Auto-Inclusion** (T093-T102) requires services and frontend base complete
+10. **Validation** (T067-T087) requires ALL implementation complete including T093-T102
+11. **Documentation** (T088-T091) at end
+12. **Code Quality** (T092) at end
 
 ### Parallel Execution Opportunities
 
@@ -414,6 +497,12 @@
 
 **Accessibility Audits (can run together):**
 - T079-T083 (5 audits, different components)
+
+**Asset Auto-Inclusion Components (can run together):**
+- T096, T097, T099 (3 frontend components, independent files)
+
+**Asset Auto-Inclusion Tests (can run together):**
+- T100, T101, T102 (3 tests, different files)
 
 ## Parallel Example
 ```bash
@@ -506,11 +595,16 @@ git commit -m "feat(008): Complete setup milestone
 
 ---
 
-**Tasks Status**: ✅ READY FOR EXECUTION (91 tasks across 7 phases)
+**Tasks Status**: ✅ READY FOR EXECUTION (102 tasks across 8 phases)
 
-**Estimated Completion**: 30-40 hours with parallelization, 40-60 hours sequential
+**Updated**: 2025-10-31 (Added Phase 3.5.1: Asset Auto-Inclusion - T093-T102)
 
-**Next Action**: Begin with Phase 3.1 (Setup) tasks T001-T004
+**Estimated Completion**: 
+- Original: 30-40 hours with parallelization
+- Asset Auto-Inclusion: +8-10 hours
+- **Total: 38-50 hours with parallelization, 48-70 hours sequential**
+
+**Next Action**: Complete Phase 3.5.1 (Asset Auto-Inclusion) tasks T093-T102 before executing T067-T073 manual testing scenarios
 
 ---
 
