@@ -25,44 +25,35 @@ export class PaymentRecordService {
 
   /**
    * Encrypts sensitive payment fields
+   * Per schema: amount, recipientName, notes, receiptReference are encrypted Strings
    * @param data - Payment data to encrypt
    * @returns Encrypted data
    */
   private async encryptPaymentData(data: any): Promise<any> {
     const encrypted = { ...data };
 
-    // Encrypt financial fields
+    // Encrypt amount (stored as encrypted String)
     if (data.amount !== undefined) {
       encrypted.amount = await EncryptionService.encrypt(String(data.amount), this.encryptionKey);
     }
 
-    if (data.exchangeRate !== undefined) {
-      encrypted.exchangeRate = await EncryptionService.encrypt(String(data.exchangeRate), this.encryptionKey);
-    }
-
-    if (data.amountInOriginalCurrency !== undefined) {
-      encrypted.amountInOriginalCurrency = await EncryptionService.encrypt(
-        String(data.amountInOriginalCurrency),
-        this.encryptionKey
-      );
-    }
-
-    // Encrypt sensitive recipient information
+    // Encrypt recipient name (stored as encrypted String)
     if (data.recipientName) {
       encrypted.recipientName = await EncryptionService.encrypt(data.recipientName, this.encryptionKey);
     }
 
-    if (data.recipientContact) {
-      encrypted.recipientContact = await EncryptionService.encrypt(data.recipientContact, this.encryptionKey);
-    }
-
-    if (data.receiptNumber) {
-      encrypted.receiptNumber = await EncryptionService.encrypt(data.receiptNumber, this.encryptionKey);
-    }
-
+    // Encrypt notes if provided (stored as encrypted String)
     if (data.notes) {
       encrypted.notes = await EncryptionService.encrypt(data.notes, this.encryptionKey);
     }
+
+    // Encrypt receipt reference if provided (stored as encrypted String)
+    if (data.receiptReference) {
+      encrypted.receiptReference = await EncryptionService.encrypt(data.receiptReference, this.encryptionKey);
+    }
+
+    // exchangeRate is stored as plain Float - no encryption needed
+    // recipientType, recipientCategory, paymentMethod, status, currency are plain Strings - no encryption needed
 
     return encrypted;
   }
@@ -73,49 +64,53 @@ export class PaymentRecordService {
    * @returns Decrypted payment record
    */
   private async decryptPaymentData(payment: any): Promise<PaymentRecord> {
-    if (!payment) return payment;
-
-    const decrypted = { ...payment };
-
     try {
-      // Decrypt financial fields
+      const decrypted: any = {
+        ...payment,
+      };
+
+      // Decrypt only the fields that are actually encrypted in the database
+      // Per schema: amount, recipientName, notes, receiptReference are encrypted Strings
+      // exchangeRate is a plain Float, not encrypted
+      
       if (payment.amount) {
-        decrypted.amount = parseFloat(await EncryptionService.decrypt(payment.amount, this.encryptionKey));
-      }
-
-      if (payment.exchangeRate) {
-        decrypted.exchangeRate = parseFloat(
-          await EncryptionService.decrypt(payment.exchangeRate, this.encryptionKey)
+        decrypted.amount = parseFloat(
+          await EncryptionService.decrypt(payment.amount, this.encryptionKey)
         );
       }
 
-      if (payment.amountInOriginalCurrency) {
-        decrypted.amountInOriginalCurrency = parseFloat(
-          await EncryptionService.decrypt(payment.amountInOriginalCurrency, this.encryptionKey)
-        );
-      }
-
-      // Decrypt recipient information
       if (payment.recipientName) {
-        decrypted.recipientName = await EncryptionService.decrypt(payment.recipientName, this.encryptionKey);
-      }
-
-      if (payment.recipientContact) {
-        decrypted.recipientContact = await EncryptionService.decrypt(payment.recipientContact, this.encryptionKey);
-      }
-
-      if (payment.receiptNumber) {
-        decrypted.receiptNumber = await EncryptionService.decrypt(payment.receiptNumber, this.encryptionKey);
+        decrypted.recipientName = await EncryptionService.decrypt(
+          payment.recipientName,
+          this.encryptionKey
+        );
       }
 
       if (payment.notes) {
-        decrypted.notes = await EncryptionService.decrypt(payment.notes, this.encryptionKey);
+        decrypted.notes = await EncryptionService.decrypt(
+          payment.notes,
+          this.encryptionKey
+        );
       }
-    } catch (error) {
-      throw new Error(`Failed to decrypt payment data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
 
-    return decrypted as PaymentRecord;
+      if (payment.receiptReference) {
+        decrypted.receiptReference = await EncryptionService.decrypt(
+          payment.receiptReference,
+          this.encryptionKey
+        );
+      }
+
+      // exchangeRate, currency, recipientType, recipientCategory, paymentMethod, status
+      // are all plain fields - no decryption needed
+
+      return decrypted;
+    } catch (error) {
+      throw new Error(
+        `Failed to decrypt payment data: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
   }
 
   /**
