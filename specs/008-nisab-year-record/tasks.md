@@ -281,29 +281,29 @@
 ### Tests First (TDD) ⚠️ MUST COMPLETE BEFORE Implementation
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
-- [ ] T093 [P] Component test for AssetSelectionTable in client/tests/components/AssetSelectionTable.test.tsx **[FR-038a]**
+- [x] T093 [P] Component test for AssetSelectionTable in client/tests/components/AssetSelectionTable.test.tsx **[FR-038a]**
   - Test selection/deselection functionality
   - Test total calculations update correctly
   - Test pre-selection of zakatable assets
   - Test accessibility (keyboard nav, ARIA)
-  - Expected: FAIL (component doesn't exist yet)
+  - Expected: FAIL (component doesn't exist yet) ✅ TEST WRITTEN
 
-- [ ] T094 [P] Integration test for asset refresh workflow in server/tests/integration/assetRefresh.test.ts **[FR-032a]**
+- [x] T094 [P] Integration test for asset refresh workflow in server/tests/integration/assetRefresh.test.ts **[FR-032a]**
   - Create DRAFT record with initial asset snapshot
   - Add new asset to user
   - Call GET /api/nisab-year-records/:id/assets/refresh endpoint
   - Verify new asset appears in response
   - Update record with new selection
   - Verify assetBreakdown updated correctly
-  - Expected: FAIL (endpoint doesn't exist yet)
+  - Expected: FAIL (endpoint doesn't exist yet) ✅ TEST WRITTEN
 
-- [ ] T095 [P] Integration test for automatic asset inclusion in background job in server/tests/integration/hawlDetectionAssets.test.ts **[FR-014, FR-011a]**
+- [x] T095 [P] Integration test for automatic asset inclusion in background job in server/tests/integration/hawlDetectionAssets.test.ts **[FR-014, FR-011a]**
   - Create assets for user that exceed Nisab
   - Run Hawl detection job
   - Verify DRAFT record created with assetBreakdown populated
   - Verify all zakatable assets included in snapshot
   - Verify JSON structure matches: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt, totalWealth, zakatableWealth }`
-  - Expected: FAIL (asset snapshot logic doesn't exist yet)
+  - Expected: FAIL (asset snapshot logic doesn't exist yet) ✅ TEST WRITTEN
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit TDD test suite for asset auto-inclusion (all tests must be failing)
 
