@@ -126,7 +126,11 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         </div>
         
         {onCreateNew && (
-          <Button onClick={onCreateNew}>
+          <Button 
+            onClick={onCreateNew}
+            disabled={!snapshotId}
+            title={!snapshotId ? 'Please select a snapshot first' : undefined}
+          >
             Add Payment
           </Button>
         )}

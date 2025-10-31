@@ -68,17 +68,24 @@ interface CreatePaymentData {
   snapshotId: string;
   amount: number;
   paymentDate: string;
-  category: string;
-  recipientName?: string;
+  recipientName: string;
+  recipientType: 'individual' | 'charity' | 'organization' | 'institution';
+  recipientCategory: 'fakir' | 'miskin' | 'amil' | 'muallaf' | 'riqab' | 'gharimin' | 'fisabilillah' | 'ibnus_sabil';
+  paymentMethod: string;
   receiptReference?: string;
   notes?: string;
+  status?: string;
+  currency?: string;
+  exchangeRate?: number;
 }
 
 interface UpdatePaymentData {
   amount?: number;
   paymentDate?: string;
-  category?: string;
   recipientName?: string;
+  recipientType?: 'individual' | 'charity' | 'organization' | 'institution';
+  recipientCategory?: string;
+  paymentMethod?: string;
   receiptReference?: string;
   notes?: string;
 }
