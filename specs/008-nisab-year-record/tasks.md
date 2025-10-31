@@ -20,14 +20,17 @@
    → Background: Hawl detection job
    → API: 8 endpoints
    → Frontend: 7 new components + 3 updated pages
+   → Asset Auto-Inclusion: 3 tests + 3 backend + 4 frontend (TDD)
    → Testing: 7 quickstart scenarios
    → Documentation: API docs, user guide
 4. Apply task rules:
    → Different files = mark [P] for parallel
    → Same file = sequential (no [P])
    → Tests before implementation (TDD)
-5. Total tasks: 68 (numbered T001-T068)
-6. Dependencies: Database → Services → Jobs → API → Frontend
+5. Total tasks: 102 (numbered T001-T102)
+   → Original: 91 tasks (T001-T091)
+   → Asset Auto-Inclusion: 10 tasks (T093-T102) added 2025-10-31
+6. Dependencies: Database → Services → Jobs → API → Frontend → Asset Auto-Inclusion → Manual Testing
 ```
 
 ## Format: `[ID] [P?] Description`
@@ -275,79 +278,103 @@
 
 **Context**: Clarification session 2025-10-31 identified missing asset auto-inclusion functionality blocking manual testing scenarios T067-T073. Three new requirements added: FR-038a (asset selection UI), FR-032a (manual refresh), FR-011a (snapshot storage).
 
-### Backend Implementation
-- [ ] T093 Update HawlTrackingService to populate assetBreakdown snapshot in server/src/services/HawlTrackingService.ts **[FR-014, FR-011a]**
-  - When creating DRAFT record via Nisab achievement detection
-  - Fetch all zakatable assets for user via WealthAggregationService
-  - Build assetBreakdown JSON: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt: timestamp, totalWealth: number, zakatableWealth: number }`
-  - Encrypt assetBreakdown JSON via EncryptionService
-  - Store in nisabYearRecord.assetBreakdown field
+### Tests First (TDD) ⚠️ MUST COMPLETE BEFORE Implementation
+**CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
-- [ ] T094 Add asset refresh endpoint GET /api/nisab-year-records/:id/assets/refresh in server/src/routes/nisabYearRecords.ts **[FR-032a]**
-  - Validate record is DRAFT status (return 400 if FINALIZED/UNLOCKED)
-  - Fetch current zakatable assets for user
-  - Return asset list with current values (don't persist yet)
-  - Allow frontend to display for user review/selection
-
-- [ ] T095 Update NisabYearRecordService.createRecord() to accept asset selection in server/src/services/NisabYearRecordService.ts **[FR-038a, FR-011a]**
-  - Add optional `selectedAssetIds?: string[]` parameter
-  - If provided, filter assets to only selected ones
-  - Build assetBreakdown snapshot from selected assets
-  - Encrypt and store in record
-  - If not provided, auto-select all zakatable assets (background job behavior)
-
-### Frontend Implementation
-- [ ] T096 [P] Create AssetSelectionTable component in client/src/components/tracking/AssetSelectionTable.tsx **[FR-038a]**
-  - Display table with columns: [Checkbox, Name, Category, Value, Zakatable Status, Added Date]
-  - Pre-select all zakatable assets by default
-  - Allow selection/deselection via checkboxes
-  - Show calculated totals: Total Wealth, Zakatable Wealth, Zakat Amount (2.5%)
-  - Update totals in real-time as selection changes
-  - Accessibility: WCAG 2.1 AA (keyboard nav, ARIA labels, screen reader support)
-
-- [ ] T097 [P] Add "Refresh Assets" button to NisabYearRecordCard for DRAFT records in client/src/components/tracking/NisabYearRecordCard.tsx **[FR-032a]**
-  - Show button only for DRAFT status records
-  - On click, call GET /api/nisab-year-records/:id/assets/refresh
-  - Open AssetSelectionTable modal with current assets
-  - Allow user to update selection
-  - On confirm, call PUT /api/nisab-year-records/:id with new assetBreakdown
-  - Show loading state during API calls
-
-- [ ] T098 Update NisabYearRecordsPage to integrate AssetSelectionTable in record creation flow in client/src/pages/NisabYearRecordsPage.tsx **[FR-038a]**
-  - When creating new record, fetch user's current assets
-  - Display AssetSelectionTable before showing financial input fields
-  - Auto-populate Total Wealth, Zakatable Wealth, Zakat Amount from selection
-  - Make financial fields read-only (calculated from assets)
-  - Pass selectedAssetIds to API when creating record
-
-- [ ] T099 [P] Display asset breakdown snapshot (read-only) for FINALIZED records in client/src/components/tracking/AssetBreakdownView.tsx **[FR-011a]**
-  - NEW component to display historical asset snapshot
-  - Show table of assets from assetBreakdown JSON (decrypted)
-  - Display capturedAt timestamp
-  - Show totals: Total Wealth, Zakatable Wealth
-  - Indicate this is historical snapshot (not current values)
-  - Link to current asset page if user wants to compare
-
-### Testing
-- [ ] T100 [P] Component test for AssetSelectionTable in client/tests/components/AssetSelectionTable.test.tsx
+- [ ] T093 [P] Component test for AssetSelectionTable in client/tests/components/AssetSelectionTable.test.tsx **[FR-038a]**
   - Test selection/deselection functionality
   - Test total calculations update correctly
   - Test pre-selection of zakatable assets
   - Test accessibility (keyboard nav, ARIA)
+  - Expected: FAIL (component doesn't exist yet)
 
-- [ ] T101 [P] Integration test for asset refresh workflow in server/tests/integration/assetRefresh.test.ts **[FR-032a]**
+- [ ] T094 [P] Integration test for asset refresh workflow in server/tests/integration/assetRefresh.test.ts **[FR-032a]**
   - Create DRAFT record with initial asset snapshot
   - Add new asset to user
-  - Call refresh endpoint
+  - Call GET /api/nisab-year-records/:id/assets/refresh endpoint
   - Verify new asset appears in response
   - Update record with new selection
   - Verify assetBreakdown updated correctly
+  - Expected: FAIL (endpoint doesn't exist yet)
 
-- [ ] T102 [P] Integration test for automatic asset inclusion in background job in server/tests/integration/hawlDetectionAssets.test.ts **[FR-014, FR-011a]**
+- [ ] T095 [P] Integration test for automatic asset inclusion in background job in server/tests/integration/hawlDetectionAssets.test.ts **[FR-014, FR-011a]**
   - Create assets for user that exceed Nisab
   - Run Hawl detection job
   - Verify DRAFT record created with assetBreakdown populated
   - Verify all zakatable assets included in snapshot
+  - Verify JSON structure matches: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt, totalWealth, zakatableWealth }`
+  - Expected: FAIL (asset snapshot logic doesn't exist yet)
+
+- [ ] **🔸 COMMIT CHECKPOINT**: Commit TDD test suite for asset auto-inclusion (all tests must be failing)
+
+### Backend Implementation (ONLY after tests are failing)
+
+- [ ] T096 Update HawlTrackingService to populate assetBreakdown snapshot in server/src/services/HawlTrackingService.ts **[FR-014, FR-011a]**
+  - When creating DRAFT record via Nisab achievement detection
+  - Fetch all zakatable assets for user via WealthAggregationService.getZakatableAssets()
+  - Build assetBreakdown JSON: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt: timestamp, totalWealth: number, zakatableWealth: number }`
+  - Encrypt assetBreakdown JSON via EncryptionService.encrypt()
+  - Store in nisabYearRecord.assetBreakdown field
+  - Verify T095 integration test now passes
+
+- [ ] T097 Update NisabYearRecordService.createRecord() to accept asset selection in server/src/services/NisabYearRecordService.ts **[FR-038a, FR-011a]**
+  - Add optional `selectedAssetIds?: string[]` parameter to createRecord()
+  - If provided, fetch only selected assets via AssetService.getByIds()
+  - Build assetBreakdown snapshot from selected assets
+  - Encrypt and store in record
+  - If not provided (background job), auto-select all zakatable assets
+  - Verify T095 integration test now passes (background job path)
+
+- [ ] T098 Add asset refresh endpoint GET /api/nisab-year-records/:id/assets/refresh in server/src/routes/nisabYearRecords.ts **[FR-032a]**
+  - Add route handler for GET /api/nisab-year-records/:id/assets/refresh
+  - Validate record is DRAFT status (return 400 if FINALIZED/UNLOCKED)
+  - Call WealthAggregationService.getZakatableAssets(userId)
+  - Return asset list with current values (don't persist yet)
+  - Format: `{ assets: [{ id, name, category, value, isZakatable, addedAt }] }`
+  - Verify T094 integration test now passes
+
+- [ ] **🔸 COMMIT CHECKPOINT**: Commit backend implementation (T095 and T094 integration tests should now pass)
+
+### Frontend Implementation
+
+- [ ] T099 [P] Create AssetSelectionTable component in client/src/components/tracking/AssetSelectionTable.tsx **[FR-038a]**
+  - Display table with columns: [Checkbox, Name, Category, Value, Zakatable Status, Added Date]
+  - Pre-select all zakatable assets by default
+  - Allow selection/deselection via checkboxes
+  - Show calculated totals footer: Total Wealth, Zakatable Wealth, Zakat Amount (2.5%)
+  - Update totals in real-time as selection changes (React state)
+  - Accessibility: WCAG 2.1 AA (keyboard nav, ARIA labels, screen reader support)
+  - Props: `assets: Asset[]`, `onSelectionChange: (selectedIds: string[]) => void`, `initialSelection?: string[]`
+  - Verify T093 component test now passes
+
+- [ ] T100 Update NisabYearRecordsPage to integrate AssetSelectionTable in record creation flow in client/src/pages/NisabYearRecordsPage.tsx **[FR-038a]**
+  - When "Create Record" clicked, fetch user's current assets via `assetsApi.getAll()`
+  - Display AssetSelectionTable in creation modal/form before financial input fields
+  - Auto-populate Total Wealth, Zakatable Wealth, Zakat Amount from AssetSelectionTable selection
+  - Make financial fields read-only (calculated from assets, not user input)
+  - Pass selectedAssetIds to `nisabYearRecordsApi.create({ ...data, selectedAssetIds })`
+  - Handle loading state while fetching assets
+
+- [ ] T101 [P] Add "Refresh Assets" button to NisabYearRecordCard for DRAFT records in client/src/components/tracking/NisabYearRecordCard.tsx **[FR-032a]**
+  - Show "Refresh Assets" button only for status === "DRAFT"
+  - On click, call `nisabYearRecordsApi.refreshAssets(recordId)` (GET /api/nisab-year-records/:id/assets/refresh)
+  - Open modal with AssetSelectionTable showing current assets
+  - Pre-populate selection from existing assetBreakdown (if available)
+  - On confirm, call `nisabYearRecordsApi.update(recordId, { assetBreakdown: newSnapshot })`
+  - Show loading state during API calls (button disabled, spinner)
+  - Verify T094 workflow can be executed end-to-end
+
+- [ ] T102 [P] Display asset breakdown snapshot (read-only) for FINALIZED records in client/src/components/tracking/AssetBreakdownView.tsx **[FR-011a]**
+  - NEW component to display historical asset snapshot
+  - Props: `assetBreakdown: AssetBreakdown` (decrypted by API)
+  - Show read-only table of assets from assetBreakdown.assets array
+  - Display capturedAt timestamp (formatted as "Snapshot taken on MM/DD/YYYY at HH:MM")
+  - Show totals footer: Total Wealth, Zakatable Wealth (from assetBreakdown)
+  - Visual indicator: "Historical Snapshot (not current values)"
+  - Link to current asset page: "View current assets →"
+  - Integrate into NisabYearRecordCard for FINALIZED/UNLOCKED status
+
+- [ ] **🔸 COMMIT CHECKPOINT**: Commit frontend implementation complete (T093 component test should now pass)
   - Verify totals match aggregate wealth calculation
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit asset auto-inclusion implementation complete
@@ -464,10 +491,12 @@
 6. **Background Jobs** (T046-T047) independent (can run after services)
 7. **API** (T048-T056) requires services complete
 8. **Frontend** (T057-T066) requires API complete
-9. **Asset Auto-Inclusion** (T093-T102) requires services and frontend base complete
-10. **Validation** (T067-T087) requires ALL implementation complete including T093-T102
-11. **Documentation** (T088-T091) at end
-12. **Code Quality** (T092) at end
+9. **Asset Auto-Inclusion Tests** (T093-T095) must write and FAIL before implementation
+10. **Asset Auto-Inclusion Backend** (T096-T098) requires services (T041-T045) complete
+11. **Asset Auto-Inclusion Frontend** (T099-T102) requires backend (T096-T098) complete
+12. **Validation** (T067-T087) requires ALL implementation complete including T093-T102 ⚠️ BLOCKED
+13. **Documentation** (T088-T091) at end
+14. **Code Quality** (T092) at end
 
 ### Parallel Execution Opportunities
 
@@ -498,11 +527,11 @@
 **Accessibility Audits (can run together):**
 - T079-T083 (5 audits, different components)
 
-**Asset Auto-Inclusion Components (can run together):**
-- T096, T097, T099 (3 frontend components, independent files)
+**Asset Auto-Inclusion TDD Tests (can run together):**
+- T093, T094, T095 (3 tests for asset auto-inclusion, different files, write FIRST)
 
-**Asset Auto-Inclusion Tests (can run together):**
-- T100, T101, T102 (3 tests, different files)
+**Asset Auto-Inclusion Frontend Components (can run together):**
+- T099, T101, T102 (3 frontend components, independent files)
 
 ## Parallel Example
 ```bash
