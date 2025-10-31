@@ -5,15 +5,17 @@
  * for Nisab Year Records
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
 import HawlProgressIndicator from '../components/HawlProgressIndicator';
 import NisabComparisonWidget from '../components/NisabComparisonWidget';
 import FinalizationModal from '../components/FinalizationModal';
 import UnlockReasonDialog from '../components/UnlockReasonDialog';
 import AuditTrailView from '../components/AuditTrailView';
+import AssetSelectionTable from '../components/tracking/AssetSelectionTable';
+import type { Asset } from '../components/tracking/AssetSelectionTable';
 
 export const NisabYearRecordsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +27,9 @@ export const NisabYearRecordsPage: React.FC = () => {
   const [finalizingRecordId, setFinalizingRecordId] = useState<string | null>(null);
   const [unlockingRecordId, setUnlockingRecordId] = useState<string | null>(null);
   const [showAuditTrail, setShowAuditTrail] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [refreshingRecordId, setRefreshingRecordId] = useState<string | null>(null);
 
   // Fetch records
   const { data: recordsData, isLoading, error } = useQuery({
@@ -46,6 +51,33 @@ export const NisabYearRecordsPage: React.FC = () => {
   const records = recordsData?.records || [];
   const activeRecord = selectedRecordId ? records.find((r: any) => r.id === selectedRecordId) : null;
 
+  // Fetch assets for create modal
+  const { data: assetsData, isLoading: isLoadingAssets } = useQuery({
+    queryKey: ['assets'],
+    queryFn: async () => {
+      const response = await apiService.get('/api/assets');
+      if (!response.success) {
+        throw new Error('Failed to fetch assets');
+      }
+      return response.data.assets as Asset[];
+    },
+    enabled: showCreateModal, // Only fetch when modal is open
+  });
+
+  // Fetch assets for refresh modal
+  const { data: refreshAssetsData, isLoading: isRefreshingAssets } = useQuery({
+    queryKey: ['refresh-assets', refreshingRecordId],
+    queryFn: async () => {
+      if (!refreshingRecordId) return null;
+      const response = await apiService.get(`/api/nisab-year-records/${refreshingRecordId}/assets/refresh`);
+      if (!response.success) {
+        throw new Error('Failed to refresh assets');
+      }
+      return response.data;
+    },
+    enabled: !!refreshingRecordId,
+  });
+
   // Status badges
   const statusBadges: Record<string, { color: string; label: string }> = {
     'DRAFT': { color: 'blue', label: 'Draft' },
@@ -63,9 +95,58 @@ export const NisabYearRecordsPage: React.FC = () => {
     }).format(amount);
   };
 
+  // Create record mutation
+  const createRecordMutation = useMutation({
+    mutationFn: async (data: { selectedAssetIds: string[] }) => {
+      // Calculate totals from selected assets
+      const selectedAssets = (assetsData || []).filter((a) => data.selectedAssetIds.includes(a.id));
+      const totalWealth = selectedAssets.reduce((sum, a) => sum + a.value, 0);
+      const zakatableWealth = selectedAssets.filter((a) => a.isZakatable).reduce((sum, a) => sum + a.value, 0);
+      const zakatAmount = zakatableWealth * 0.025;
+
+      // Create record with asset selection
+      const response = await apiService.createNisabYearRecord({
+        hawlStartDate: new Date().toISOString(),
+        hawlStartDateHijri: '', // Will be calculated by backend
+        hawlCompletionDate: new Date(Date.now() + 354 * 24 * 60 * 60 * 1000).toISOString(),
+        hawlCompletionDateHijri: '', // Will be calculated by backend
+        nisabBasis: 'GOLD',
+        totalWealth,
+        zakatableWealth,
+        zakatAmount,
+        selectedAssetIds: data.selectedAssetIds,
+      });
+
+      if (!response.success) {
+        throw new Error('Failed to create record');
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nisab-year-records'] });
+      setShowCreateModal(false);
+      setSelectedAssetIds([]);
+    },
+  });
+
   // Handle creation
   const handleCreate = () => {
-    navigate('/nisab-year-records/new');
+    setShowCreateModal(true);
+  };
+
+  // Handle create submit
+  const handleCreateSubmit = () => {
+    if (selectedAssetIds.length === 0) {
+      alert('Please select at least one asset');
+      return;
+    }
+    createRecordMutation.mutate({ selectedAssetIds });
+  };
+
+  // Handle refresh assets
+  const handleRefreshAssets = (recordId: string) => {
+    setRefreshingRecordId(recordId);
   };
 
   // Handle finalization
@@ -216,6 +297,17 @@ export const NisabYearRecordsPage: React.FC = () => {
 
                         {/* Action buttons */}
                         <div className="flex gap-2">
+                          {record.status === 'DRAFT' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRefreshAssets(record.id);
+                              }}
+                              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                            >
+                              Refresh Assets
+                            </button>
+                          )}
                           {record.status === 'DRAFT' && record.liveHawlData?.canFinalize && (
                             <button
                               onClick={(e) => {
@@ -352,6 +444,123 @@ export const NisabYearRecordsPage: React.FC = () => {
             </div>
             <div className="p-6">
               <AuditTrailView recordId={showAuditTrail} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Record Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <h2 className="text-xl font-semibold text-gray-900">Create Nisab Year Record</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              {isLoadingAssets ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading assets...</p>
+                </div>
+              ) : assetsData && assetsData.length > 0 ? (
+                <>
+                  <AssetSelectionTable
+                    assets={assetsData}
+                    onSelectionChange={setSelectedAssetIds}
+                  />
+                  <div className="mt-6 flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowCreateModal(false)}
+                      className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreateSubmit}
+                      disabled={createRecordMutation.isPending || selectedAssetIds.length === 0}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      {createRecordMutation.isPending ? 'Creating...' : 'Create Record'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-gray-600">
+                  <p>No assets found. Please add assets to your portfolio first.</p>
+                  <button
+                    onClick={() => navigate('/assets')}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Go to Assets
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Refresh Assets Modal */}
+      {refreshingRecordId && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <h2 className="text-xl font-semibold text-gray-900">Refresh Assets</h2>
+              <button
+                onClick={() => setRefreshingRecordId(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              {isRefreshingAssets ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading current assets...</p>
+                </div>
+              ) : refreshAssetsData?.assets ? (
+                <>
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-sm text-blue-800">
+                      Review and update your asset selection. This will update the record with current asset values.
+                    </p>
+                  </div>
+                  <AssetSelectionTable
+                    assets={refreshAssetsData.assets}
+                    onSelectionChange={setSelectedAssetIds}
+                  />
+                  <div className="mt-6 flex justify-end gap-3">
+                    <button
+                      onClick={() => setRefreshingRecordId(null)}
+                      className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        // TODO: Implement update with new selection
+                        console.log('Update with selection:', selectedAssetIds);
+                        setRefreshingRecordId(null);
+                      }}
+                      disabled={selectedAssetIds.length === 0}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      Update Record
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-red-600">
+                  <p>Failed to load assets. Please try again.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
