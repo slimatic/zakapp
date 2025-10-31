@@ -84,15 +84,19 @@ export const PaymentsPage: React.FC = () => {
                 value={snapshotId || ''}
                 onChange={(e) => {
                   const newId = e.target.value;
-                  setSnapshotId(newId);
-                  setSearchParams({ snapshot: newId });
+                  setSnapshotId(newId || undefined);
+                  if (newId) {
+                    setSearchParams({ snapshot: newId });
+                  } else {
+                    setSearchParams({});
+                  }
                 }}
                 className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 {snapshotsData.snapshots.map((snapshot) => (
                   <option key={snapshot.id} value={snapshot.id}>
-                    {new Date(snapshot.snapshotDate).getFullYear()} - {snapshot.status}
-                    {snapshot.zakatCalculated ? ` (Zakat: $${snapshot.zakatCalculated.toFixed(2)})` : ''}
+                    {new Date(snapshot.calculationDate).getFullYear()} - {snapshot.status}
+                    {snapshot.zakatAmount ? ` (Zakat: $${snapshot.zakatAmount.toFixed(2)})` : ''}
                   </option>
                 ))}
               </select>
