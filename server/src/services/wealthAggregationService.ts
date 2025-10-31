@@ -43,6 +43,56 @@ export class WealthAggregationService {
   }
 
   /**
+   * Get all zakatable assets for a user
+   * Used for asset snapshot creation in Nisab Year Records
+   * 
+   * @param userId - User ID
+   * @returns Array of zakatable assets with id, name, category, value, isZakatable, addedAt
+   */
+  async getZakatableAssets(userId: string): Promise<Array<{
+    id: string;
+    name: string;
+    category: string;
+    value: number;
+    isZakatable: boolean;
+    addedAt: Date;
+  }>> {
+    try {
+      // Fetch all active assets for user
+      const assets = await this.prisma.asset.findMany({
+        where: {
+          userId,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          category: true,
+          value: true,
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      });
+
+      // Map to zakatable asset format
+      // All asset categories are zakatable by default in this system
+      return assets.map(asset => ({
+        id: asset.id,
+        name: asset.name,
+        category: asset.category,
+        value: asset.value,
+        isZakatable: true, // All assets in system are zakatable
+        addedAt: asset.createdAt,
+      }));
+    } catch (error) {
+      this.logger.error('Failed to fetch zakatable assets', error);
+      throw new Error(`Failed to fetch zakatable assets: ${error.message}`);
+    }
+  }
+
+  /**
    * Calculate total zakatable wealth for a user
    * Sums all zakatable assets and subtracts liabilities
    * 
