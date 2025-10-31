@@ -337,7 +337,7 @@
 
 ### Frontend Implementation
 
-- [ ] T099 [P] Create AssetSelectionTable component in client/src/components/tracking/AssetSelectionTable.tsx **[FR-038a]**
+- [x] T099 [P] Create AssetSelectionTable component in client/src/components/tracking/AssetSelectionTable.tsx **[FR-038a]** ✅ COMPLETE
   - Display table with columns: [Checkbox, Name, Category, Value, Zakatable Status, Added Date]
   - Pre-select all zakatable assets by default
   - Allow selection/deselection via checkboxes
@@ -364,7 +364,7 @@
   - Show loading state during API calls (button disabled, spinner)
   - Verify T094 workflow can be executed end-to-end
 
-- [ ] T102 [P] Display asset breakdown snapshot (read-only) for FINALIZED records in client/src/components/tracking/AssetBreakdownView.tsx **[FR-011a]**
+- [x] T102 [P] Display asset breakdown snapshot (read-only) for FINALIZED records in client/src/components/tracking/AssetBreakdownView.tsx **[FR-011a]** ✅ COMPLETE
   - NEW component to display historical asset snapshot
   - Props: `assetBreakdown: AssetBreakdown` (decrypted by API)
   - Show read-only table of assets from assetBreakdown.assets array
