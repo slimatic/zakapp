@@ -5,7 +5,7 @@
  * for Nisab Year Records
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
@@ -55,7 +55,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const { data: assetsData, isLoading: isLoadingAssets } = useQuery({
     queryKey: ['assets'],
     queryFn: async () => {
-      const response = await apiService.get('/api/assets');
+      const response = await apiService.getAssets();
       if (!response.success) {
         throw new Error('Failed to fetch assets');
       }
@@ -69,7 +69,7 @@ export const NisabYearRecordsPage: React.FC = () => {
     queryKey: ['refresh-assets', refreshingRecordId],
     queryFn: async () => {
       if (!refreshingRecordId) return null;
-      const response = await apiService.get(`/api/nisab-year-records/${refreshingRecordId}/assets/refresh`);
+      const response = await apiService.refreshNisabYearRecordAssets(refreshingRecordId);
       if (!response.success) {
         throw new Error('Failed to refresh assets');
       }
