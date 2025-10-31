@@ -305,7 +305,7 @@
   - Verify JSON structure matches: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt, totalWealth, zakatableWealth }`
   - Expected: FAIL (asset snapshot logic doesn't exist yet) ✅ TEST WRITTEN
 
-- [ ] **🔸 COMMIT CHECKPOINT**: Commit TDD test suite for asset auto-inclusion (all tests must be failing)
+- [x] **🔸 COMMIT CHECKPOINT**: Commit TDD test suite for asset auto-inclusion (all tests must be failing) ✅ DONE (commit 272cf8d)
 
 ### Backend Implementation (ONLY after tests are failing)
 
