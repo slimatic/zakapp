@@ -105,7 +105,7 @@ export class HawlTrackingService {
       for (const user of users) {
         try {
           // Check if user already has an active DRAFT record
-          const existingRecord = await this.prisma.nisabYearRecord.findFirst({
+          const existingRecord = await this.prisma.yearlySnapshot.findFirst({
             where: {
               userId: user.id,
               status: 'DRAFT',
@@ -135,7 +135,7 @@ export class HawlTrackingService {
           const hawlCompletionDate = moment().add(this.HAWL_DURATION_DAYS, 'days');
           const assetBreakdown = await this.buildAssetSnapshot(user.id);
 
-          await this.prisma.nisabYearRecord.create({
+          await this.prisma.yearlySnapshot.create({
             data: {
               userId: user.id,
               status: 'DRAFT',
