@@ -347,7 +347,7 @@
   - Props: `assets: Asset[]`, `onSelectionChange: (selectedIds: string[]) => void`, `initialSelection?: string[]`
   - Verify T093 component test now passes
 
-- [ ] T100 Update NisabYearRecordsPage to integrate AssetSelectionTable in record creation flow in client/src/pages/NisabYearRecordsPage.tsx **[FR-038a]**
+- [x] T100 Update NisabYearRecordsPage to integrate AssetSelectionTable in record creation flow in client/src/pages/NisabYearRecordsPage.tsx **[FR-038a]** ✅ COMPLETE
   - When "Create Record" clicked, fetch user's current assets via `assetsApi.getAll()`
   - Display AssetSelectionTable in creation modal/form before financial input fields
   - Auto-populate Total Wealth, Zakatable Wealth, Zakat Amount from AssetSelectionTable selection
@@ -355,7 +355,7 @@
   - Pass selectedAssetIds to `nisabYearRecordsApi.create({ ...data, selectedAssetIds })`
   - Handle loading state while fetching assets
 
-- [ ] T101 [P] Add "Refresh Assets" button to NisabYearRecordCard for DRAFT records in client/src/components/tracking/NisabYearRecordCard.tsx **[FR-032a]**
+- [x] T101 [P] Add "Refresh Assets" button to NisabYearRecordCard for DRAFT records in client/src/pages/NisabYearRecordsPage.tsx **[FR-032a]** ✅ COMPLETE
   - Show "Refresh Assets" button only for status === "DRAFT"
   - On click, call `nisabYearRecordsApi.refreshAssets(recordId)` (GET /api/nisab-year-records/:id/assets/refresh)
   - Open modal with AssetSelectionTable showing current assets
@@ -374,10 +374,10 @@
   - Link to current asset page: "View current assets →"
   - Integrate into NisabYearRecordCard for FINALIZED/UNLOCKED status
 
-- [ ] **🔸 COMMIT CHECKPOINT**: Commit frontend implementation complete (T093 component test should now pass)
+- [x] **🔸 COMMIT CHECKPOINT**: Commit frontend implementation complete (T093 component test should now pass) ✅ DONE (commits: a16ef31, a7c9b33)
   - Verify totals match aggregate wealth calculation
 
-- [ ] **🔸 COMMIT CHECKPOINT**: Commit asset auto-inclusion implementation complete
+- [x] **🔸 COMMIT CHECKPOINT**: Commit asset auto-inclusion implementation complete ✅ DONE
 
 ## Phase 3.6: Validation & Testing
 
