@@ -11,8 +11,11 @@ interface SyncManager {
   register(tag: string): Promise<void>;
 }
 
-interface ServiceWorkerRegistration {
-  readonly sync: SyncManager;
+// Extend the global ServiceWorkerRegistration interface
+declare global {
+  interface ServiceWorkerRegistration {
+    readonly sync: SyncManager;
+  }
 }
 
 interface PendingRequest {
