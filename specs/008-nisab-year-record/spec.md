@@ -2,9 +2,17 @@
 
 **Feature Branch**: `008-nisab-year-record`  
 **Created**: 2025-10-27  
-**Updated**: 2025-10-30 (Retrospective specification documentation for constitutional compliance)
+**Updated**: 2025-10-31 (Asset auto-inclusion clarification)
 **Status**: Implementation Complete (95%), Specification Documented  
 **Input**: User description: "Nisab Year Record Workflow Fix - Implement proper Islamic Zakat accounting with Hawl tracking, Nisab threshold monitoring, and live wealth aggregation"
+
+## Clarifications
+
+### Session 2025-10-31
+- Q: When creating a Nisab Year Record, what should happen with existing assets? → A: Show asset breakdown - Display a detailed list/table of all assets with their values, allow selection/deselection, then calculate totals
+- Q: For DRAFT records that update with live wealth tracking, should asset selection persist or recalculate? → A: Manual refresh - DRAFT stays with original selection, but user can click "Refresh assets" button to update the selection list
+- Q: Should the asset breakdown be stored in the database or calculated on-demand? → A: Store snapshot - Save the exact asset list with values at creation/refresh time in assetBreakdown JSON field; show historical snapshot
+- Q: When should automatic Hawl detection trigger record creation? → A: Background creates full record - Job automatically selects all zakatable assets, populates assetBreakdown snapshot, creates complete DRAFT record (user can edit via "Refresh Assets")
 
 ## Problem Statement
 
@@ -156,6 +164,10 @@
 **Priority**: HIGH | **Status**: ✅ Implemented  
 **Acceptance**: Stores price per gram in USD, includes expiration timestamp, unique constraint on metal type + fetch date
 
+**FR-011a**: Store asset breakdown snapshot in `assetBreakdown` JSON field  
+**Priority**: CRITICAL | **Status**: ❌ Missing Implementation  
+**Acceptance**: When creating or refreshing a Nisab Year Record, save complete snapshot of selected assets in encrypted `assetBreakdown` JSON field with structure: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt: timestamp, totalWealth: number, zakatableWealth: number }`; never recalculate historical values, always display from snapshot
+
 ### Category 2: Hawl Tracking & Detection
 
 **FR-012**: Background job runs hourly to check all users' aggregate wealth against Nisab  
@@ -167,8 +179,8 @@
 **Acceptance**: Compares current wealth to cached Nisab value, triggers on first crossing (not every hour)
 
 **FR-014**: Automatically create DRAFT Nisab Year Record when Nisab achieved  
-**Priority**: CRITICAL | **Status**: ✅ Implemented  
-**Acceptance**: Record includes all required Hawl fields, status set to DRAFT, user notified
+**Priority**: CRITICAL | **Status**: ⚠️ Partial Implementation  
+**Acceptance**: Record includes all required Hawl fields, status set to DRAFT, user notified, **automatically selects all zakatable assets and populates assetBreakdown snapshot with current values** (user can modify via "Refresh Assets" button later)
 
 **FR-015**: Calculate Hawl completion date using lunar calendar (~354 days)  
 **Priority**: CRITICAL | **Status**: ✅ Implemented  
@@ -246,6 +258,10 @@
 **Priority**: MEDIUM | **Status**: ✅ Implemented  
 **Acceptance**: DRAFT records show current wealth, values not saved to DB until finalized
 
+**FR-032a**: Provide manual asset refresh for DRAFT records  
+**Priority**: HIGH | **Status**: ❌ Missing Implementation  
+**Acceptance**: DRAFT records preserve originally selected assets; provide "Refresh Assets" button that reloads current asset list with updated values and allows user to adjust selection; recalculate totals based on new selection
+
 **FR-033**: Display current wealth vs Nisab threshold comparison in UI  
 **Priority**: HIGH | **Status**: ✅ Implemented  
 **Acceptance**: Visual indicator (progress bar), percentage above Nisab, color-coded status
@@ -271,6 +287,10 @@
 **FR-038**: Implement POST /api/nisab-year-records endpoint (manual record creation)  
 **Priority**: HIGH | **Status**: ✅ Implemented  
 **Acceptance**: Allows manual creation for historical records, validates required fields
+
+**FR-038a**: Display asset breakdown with selection capability in record creation UI  
+**Priority**: CRITICAL | **Status**: ❌ Missing Implementation  
+**Acceptance**: When creating a Nisab Year Record, show detailed list/table of all user assets with current values, allow selection/deselection of individual assets, automatically calculate totals (Total Wealth, Zakatable Wealth, Zakat Amount) based on selected assets, pre-select all zakatable assets by default
 
 **FR-039**: Implement PUT /api/nisab-year-records/:id endpoint (update record)  
 **Priority**: CRITICAL | **Status**: ✅ Implemented  
