@@ -3,18 +3,32 @@
  * Payment recording and management interface
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PaymentList } from '../components/tracking/PaymentList';
 import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
 import { usePayments } from '../hooks/usePayments';
+import { useSnapshots } from '../hooks/useSnapshots';
 import { Button } from '../components/ui/Button';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 export const PaymentsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const snapshotId = searchParams.get('snapshot') || undefined;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const snapshotIdParam = searchParams.get('snapshot');
+  
+  // Fetch available snapshots
+  const { data: snapshotsData, isLoading: snapshotsLoading } = useSnapshots();
+  const [snapshotId, setSnapshotId] = useState<string | undefined>(snapshotIdParam || undefined);
+  
+  // Auto-select the most recent snapshot if none is selected
+  useEffect(() => {
+    if (!snapshotId && snapshotsData?.snapshots && snapshotsData.snapshots.length > 0) {
+      const mostRecent = snapshotsData.snapshots[0]; // Assuming sorted by date desc
+      setSnapshotId(mostRecent.id);
+      setSearchParams({ snapshot: mostRecent.id });
+    }
+  }, [snapshotId, snapshotsData, setSearchParams]);
   
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
@@ -22,6 +36,10 @@ export const PaymentsPage: React.FC = () => {
   const { data: paymentsData } = usePayments({ snapshotId });
 
   const handleCreatePayment = () => {
+    if (!snapshotId) {
+      alert('Please select a snapshot first');
+      return;
+    }
     setEditingPayment(null);
     setShowCreateForm(true);
   };
@@ -55,6 +73,47 @@ export const PaymentsPage: React.FC = () => {
               ← Back to Dashboard
             </Button>
           </div>
+
+          {/* Snapshot Selector */}
+          {snapshotsData?.snapshots && snapshotsData.snapshots.length > 0 && (
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Year/Snapshot
+              </label>
+              <select
+                value={snapshotId || ''}
+                onChange={(e) => {
+                  const newId = e.target.value;
+                  setSnapshotId(newId);
+                  setSearchParams({ snapshot: newId });
+                }}
+                className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                {snapshotsData.snapshots.map((snapshot) => (
+                  <option key={snapshot.id} value={snapshot.id}>
+                    {new Date(snapshot.snapshotDate).getFullYear()} - {snapshot.status}
+                    {snapshot.zakatCalculated ? ` (Zakat: $${snapshot.zakatCalculated.toFixed(2)})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* No snapshots warning */}
+          {!snapshotsLoading && (!snapshotsData?.snapshots || snapshotsData.snapshots.length === 0) && (
+            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-yellow-800">
+                No yearly snapshots found. Please create a yearly snapshot first to record payments.
+              </p>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/tracking')}
+                className="mt-3"
+              >
+                Go to Tracking Dashboard
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Summary Cards */}
@@ -134,23 +193,35 @@ export const PaymentsPage: React.FC = () => {
                     </svg>
                   </button>
                 </div>
-                <PaymentRecordForm
-                  payment={editingPayment || undefined}
-                  snapshotId={snapshotId || ''}
-                  onSuccess={handleFormClose}
-                  onCancel={handleFormClose}
-                />
+                {snapshotId ? (
+                  <PaymentRecordForm
+                    payment={editingPayment || undefined}
+                    snapshotId={snapshotId}
+                    onSuccess={handleFormClose}
+                    onCancel={handleFormClose}
+                  />
+                ) : (
+                  <div className="p-6 text-center text-gray-600">
+                    Please select a snapshot to record payments.
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
         {/* Payment List */}
-        <PaymentList
-          snapshotId={snapshotId || ''}
-          onCreateNew={handleCreatePayment}
-          onEditPayment={handleEditPayment}
-        />
+        {snapshotId ? (
+          <PaymentList
+            snapshotId={snapshotId}
+            onCreateNew={handleCreatePayment}
+            onEditPayment={handleEditPayment}
+          />
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+            <p className="text-gray-600">Select a snapshot above to view and record payments.</p>
+          </div>
+        )}
 
         {/* Help Section */}
         <div className="mt-12 bg-green-50 border border-green-200 rounded-lg p-6">

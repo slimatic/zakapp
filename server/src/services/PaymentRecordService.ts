@@ -125,8 +125,12 @@ export class PaymentRecordService {
    * @returns Created payment record
    */
   async createPayment(userId: string, data: CreatePaymentRecordDto): Promise<PaymentRecord> {
+    console.log('PaymentRecordService.createPayment - input data:', JSON.stringify(data, null, 2));
+    
     // Encrypt sensitive data
     const encrypted = await this.encryptPaymentData(data);
+    
+    console.log('PaymentRecordService.createPayment - encrypted data:', JSON.stringify(encrypted, null, 2));
 
     // Create payment in database
     const payment = await PaymentRecordModel.create(userId, encrypted);
