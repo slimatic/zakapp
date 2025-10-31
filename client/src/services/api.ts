@@ -590,10 +590,21 @@ class ApiService {
   }
 
   async createNisabYearRecord(data: {
-    hijriYear: string;
+    hawlStartDate?: string;
+    hawlStartDateHijri?: string;
+    hawlCompletionDate?: string;
+    hawlCompletionDateHijri?: string;
     nisabBasis: 'GOLD' | 'SILVER';
-    currency?: string;
-    notes?: string;
+    totalWealth?: number;
+    totalLiabilities?: number;
+    zakatableWealth?: number;
+    zakatAmount?: number;
+    nisabThresholdAtStart?: number;
+    methodologyUsed?: string;
+    assetBreakdown?: Record<string, any>;
+    calculationDetails?: Record<string, any>;
+    userNotes?: string;
+    selectedAssetIds?: string[];
   }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/nisab-year-records`, {
       method: 'POST',
@@ -654,6 +665,13 @@ class ApiService {
 
   async getNisabYearRecordAuditTrail(recordId: string): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}/audit`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async refreshNisabYearRecordAssets(recordId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}/assets/refresh`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
