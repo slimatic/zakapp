@@ -101,6 +101,9 @@ export interface CreateNisabYearRecordDto {
   assetBreakdown?: Record<string, any>;
   calculationDetails?: Record<string, any>;
   userNotes?: string;
+
+  // Asset selection (optional, for manual record creation)
+  selectedAssetIds?: string[];
 }
 
 /**

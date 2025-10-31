@@ -290,6 +290,98 @@ router.delete('/api/nisab-year-records/:id', async (req: AuthenticatedRequest, r
 });
 
 /**
+ * T098: GET /api/nisab-year-records/:id/assets/refresh
+ * Get current zakatable assets for a DRAFT record (for manual refresh)
+ * 
+ * Validations:
+ * - Record must be DRAFT status (cannot refresh FINALIZED/UNLOCKED)
+ * - User must own the record
+ * 
+ * Response:
+ * {
+ *   success: true,
+ *   data: {
+ *     assets: Array<{
+ *       id: string,
+ *       name: string,
+ *       category: string,
+ *       value: number,
+ *       isZakatable: boolean,
+ *       addedAt: string
+ *     }>,
+ *     totalWealth: number,
+ *     zakatableWealth: number
+ *   }
+ * }
+ */
+router.get(
+  '/api/nisab-year-records/:id/assets/refresh',
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // Fetch the record
+      const record = await nisabYearRecordService.getRecord(req.userId, req.params.id);
+
+      // Validate record status
+      if (record.status !== 'DRAFT') {
+        return res.status(400).json({
+          success: false,
+          error: 'INVALID_STATUS',
+          message: 'Can only refresh assets for DRAFT records',
+        });
+      }
+
+      // Fetch current zakatable assets
+      const wealthAggregationService = nisabYearRecordService['wealthAggregationService'];
+      const assets = await wealthAggregationService.getZakatableAssets(req.userId);
+
+      // Calculate totals
+      const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
+      const zakatableWealth = assets
+        .filter(a => a.isZakatable)
+        .reduce((sum, asset) => sum + asset.value, 0);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          assets: assets.map(asset => ({
+            id: asset.id,
+            name: asset.name,
+            category: asset.category,
+            value: asset.value,
+            isZakatable: asset.isZakatable,
+            addedAt: asset.addedAt.toISOString(),
+          })),
+          totalWealth,
+          zakatableWealth,
+        },
+      });
+    } catch (error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({
+          success: false,
+          error: 'NOT_FOUND',
+          message: 'Record not found',
+        });
+      }
+
+      if (error.message.includes('Unauthorized')) {
+        return res.status(403).json({
+          success: false,
+          error: 'UNAUTHORIZED',
+          message: 'You do not have permission to access this record',
+        });
+      }
+
+      res.status(400).json({
+        success: false,
+        error: 'REFRESH_FAILED',
+        message: error.message,
+      });
+    }
+  }
+);
+
+/**
  * T055: POST /api/nisab-year-records/:id/finalize
  * Finalize a DRAFT record (transition to FINALIZED)
  * 

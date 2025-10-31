@@ -79,6 +79,47 @@ export class NisabYearRecordService {
         dto.nisabBasis as NisabBasis
       );
 
+      // Build asset breakdown snapshot if selectedAssetIds provided
+      let assetBreakdownEncrypted: string | null = null;
+      if (dto.selectedAssetIds && dto.selectedAssetIds.length > 0) {
+        // Fetch all zakatable assets
+        const allAssets = await this.wealthAggregationService.getZakatableAssets(userId);
+        
+        // Filter to selected assets only
+        const selectedAssets = allAssets.filter(asset => 
+          dto.selectedAssetIds!.includes(asset.id)
+        );
+
+        // Build asset breakdown JSON
+        const totalWealth = selectedAssets.reduce((sum, asset) => sum + asset.value, 0);
+        const zakatableWealth = selectedAssets
+          .filter(a => a.isZakatable)
+          .reduce((sum, asset) => sum + asset.value, 0);
+
+        const assetBreakdown = {
+          assets: selectedAssets.map(asset => ({
+            id: asset.id,
+            name: asset.name,
+            category: asset.category,
+            value: asset.value,
+            isZakatable: asset.isZakatable,
+            addedAt: asset.addedAt.toISOString(),
+          })),
+          capturedAt: new Date().toISOString(),
+          totalWealth,
+          zakatableWealth,
+        };
+
+        // Encrypt asset breakdown
+        assetBreakdownEncrypted = await EncryptionService.encrypt(
+          JSON.stringify(assetBreakdown),
+          process.env.ENCRYPTION_KEY!
+        );
+      } else if (dto.assetBreakdown) {
+        // Use provided assetBreakdown if no selectedAssetIds
+        assetBreakdownEncrypted = JSON.stringify(dto.assetBreakdown);
+      }
+
       // Create the record in DRAFT status
       // map CreateNisabYearRecordDto -> YearlySnapshot (Prisma model)
       const createData: Prisma.YearlySnapshotCreateInput = {
@@ -103,7 +144,7 @@ export class NisabYearRecordService {
         zakatableWealth: (dto.zakatableWealth || 0).toString(),
         zakatAmount: (dto.zakatAmount || 0).toString(),
         methodologyUsed: dto.methodologyUsed || 'standard',
-        assetBreakdown: dto.assetBreakdown ? JSON.stringify(dto.assetBreakdown) : null,
+        assetBreakdown: assetBreakdownEncrypted,
         calculationDetails: dto.calculationDetails ? JSON.stringify(dto.calculationDetails) : null,
         userNotes: dto.userNotes || null,
       } as any;
