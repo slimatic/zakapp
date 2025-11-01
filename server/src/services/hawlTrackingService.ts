@@ -143,6 +143,7 @@ export class HawlTrackingService {
               userId: user.id,
               status: 'DRAFT',
               nisabBasis,
+              nisabType: nisabBasis, // Deprecated but still required
               nisabThreshold: nisabData.selectedNisab.toString(),
               nisabThresholdAtStart: nisabData.selectedNisab.toString(),
               totalWealth: currentWealth.toString(),
