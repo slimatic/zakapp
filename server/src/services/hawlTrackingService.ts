@@ -135,6 +135,9 @@ export class HawlTrackingService {
           const hawlCompletionDate = moment().add(this.HAWL_DURATION_DAYS, 'days');
           const assetBreakdown = await this.buildAssetSnapshot(user.id);
 
+          // Get Hijri date components
+          const hijriDate = (moment(hawlStartDate.toDate()) as any).hijri();
+          
           await this.prisma.yearlySnapshot.create({
             data: {
               userId: user.id,
@@ -143,8 +146,18 @@ export class HawlTrackingService {
               nisabThreshold: nisabData.selectedNisab.toString(),
               nisabThresholdAtStart: nisabData.selectedNisab.toString(),
               totalWealth: currentWealth.toString(),
+              totalLiabilities: '0', // Initialize as 0
+              zakatableWealth: currentWealth.toString(),
               zakatAmount: this.nisabCalculationService.calculateZakat(currentWealth).toString(),
-              currency: 'USD',
+              methodologyUsed: 'Standard', // Default methodology
+              calculationDate: hawlStartDate.toDate(),
+              gregorianYear: hawlStartDate.year(),
+              gregorianMonth: hawlStartDate.month() + 1,
+              gregorianDay: hawlStartDate.date(),
+              hijriYear: hijriDate.iYear(),
+              hijriMonth: hijriDate.iMonth() + 1,
+              hijriDay: hijriDate.iDate(),
+              calculationDetails: '{}', // Empty JSON
               hawlStartDate: hawlStartDate.toDate(),
               hawlStartDateHijri: this.toHijriDate(hawlStartDate.toDate()),
               hawlCompletionDate: hawlCompletionDate.toDate(),
