@@ -60,8 +60,6 @@ const GettingStarted = lazy(() => import('./components/help/GettingStarted').the
 // Tracking & Analytics pages - lazy loaded for optimal performance
 const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
 const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').then(m => ({ default: m.NisabYearRecordsPage })));
-const CreateSnapshotPage = lazy(() => import('./pages/CreateSnapshotPage').then(m => ({ default: m.CreateSnapshotPage })));
-const SnapshotDetailPage = lazy(() => import('./pages/SnapshotDetailPage').then(m => ({ default: m.SnapshotDetailPage })));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
@@ -249,42 +247,7 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              <Route 
-                path="/tracking/snapshots/new" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<PageLoadingFallback />}>
-                        <CreateSnapshotPage />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/tracking/snapshots/:snapshotId" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<PageLoadingFallback />}>
-                        <SnapshotDetailPage />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/tracking/snapshots/:snapshotId/edit" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<PageLoadingFallback />}>
-                        <SnapshotDetailPage />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
+
               <Route 
                 path="/tracking/payments" 
                 element={
