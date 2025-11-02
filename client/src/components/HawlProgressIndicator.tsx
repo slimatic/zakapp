@@ -117,12 +117,12 @@ export const HawlProgressIndicator: React.FC<HawlProgressIndicatorProps> = ({
 
   if (record.status !== 'DRAFT') {
     return (
-      <div className={`hawl-progress-indicator hawl-status-${record.status.toLowerCase()} ${className}`}>
+      <div className={`hawl-progress-indicator hawl-status-${(record.status || 'unknown').toLowerCase()} ${className}`}>
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-medium text-gray-900">
-                Hawl Status: {record.status}
+                Hawl Status: {record.status || 'Unknown'}
               </h3>
               {record.hawlCompletionDate && (
                 <p className="mt-1 text-xs text-gray-600">
