@@ -236,6 +236,18 @@ function App() {
                 } 
               />
               <Route 
+                path="/nisab-year-records" 
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Suspense fallback={<HistorySkeleton />}>
+                        <NisabYearRecordsPage />
+                      </Suspense>
+                    </Layout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/tracking/snapshots" 
                 element={
                   <ProtectedRoute>
