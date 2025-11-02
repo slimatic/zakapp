@@ -496,6 +496,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                   {console.log('Assets data for table:', assetsData)}
                   <AssetSelectionTable
                     assets={assetsData}
+                    initialSelection={selectedAssetIds}
                     onSelectionChange={(ids) => {
                       console.log('Asset selection changed:', ids);
                       setSelectedAssetIds(ids);
