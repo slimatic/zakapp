@@ -319,17 +319,15 @@ router.get(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Fetch the record
-      const recordResponse = await nisabYearRecordService.getRecord(req.userId, req.params.id);
+      const record = await nisabYearRecordService.getRecord(req.userId, req.params.id);
       
-      if (!recordResponse.success || !recordResponse.data) {
+      if (!record) {
         return res.status(404).json({
           success: false,
           error: 'RECORD_NOT_FOUND',
           message: 'Record not found',
         });
       }
-      
-      const record = recordResponse.data;
 
       // Validate record status
       if (record.status !== 'DRAFT') {

@@ -77,8 +77,8 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
     isAbove,
     differenceAmount,
   } = useMemo(() => {
-    // Use live data if available, otherwise use passed wealth
-    const wealth = (liveHawlData?.currentTotalWealth) || currentWealth || parseFloat(record.nisabThresholdAtStart) || 0;
+    // Use live data if available, otherwise use stored wealth from record
+    const wealth = (liveHawlData?.currentTotalWealth) || currentWealth || parseFloat(record.totalWealth) || 0;
     const nisab = (nisabAmount) || parseFloat(record.nisabThresholdAtStart) || 0;
 
     const isWealthAbove = wealth >= nisab;
