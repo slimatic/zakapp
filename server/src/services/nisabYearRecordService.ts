@@ -148,7 +148,7 @@ export class NisabYearRecordService {
         zakatAmount: (dto.zakatAmount || 0).toString(),
         methodologyUsed: dto.methodologyUsed || 'standard',
         assetBreakdown: assetBreakdownEncrypted,
-        calculationDetails: dto.calculationDetails ? JSON.stringify(dto.calculationDetails) : null,
+        calculationDetails: dto.calculationDetails ? JSON.stringify(dto.calculationDetails) : JSON.stringify({}),
         userNotes: dto.userNotes || null,
         user: {
           connect: { id: userId }
