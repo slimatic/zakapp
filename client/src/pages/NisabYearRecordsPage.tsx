@@ -161,6 +161,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       alert('Please select at least one asset');
       return;
     }
+    console.log('Creating record with assets:', selectedAssetIds);
     createRecordMutation.mutate({ selectedAssetIds });
   };
 
@@ -267,6 +268,7 @@ export const NisabYearRecordsPage: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {records.map((record: any) => {
+                  console.log('Record:', record); // Debug: log record data
                   const badge = statusBadges[record.status] || { color: 'gray', label: record.status || 'Unknown' };
                   const isSelected = selectedRecordId === record.id;
 
