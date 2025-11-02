@@ -623,6 +623,6 @@ export class NisabYearRecordService {
       (data as any).liveTracking = liveHawlData;
     }
 
-    return { success: true, data };
+    return data;
   }
 }

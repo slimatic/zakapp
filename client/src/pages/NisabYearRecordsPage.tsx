@@ -53,7 +53,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   // Handle double-wrapped API response structure
   const records = Array.isArray(recordsData) 
     ? recordsData 
-    : (recordsData?.records || recordsData?.data?.records || []);
+    : (recordsData?.records || []);
   const activeRecord = selectedRecordId ? records.find((r: any) => r.id === selectedRecordId) : null;
 
   // Fetch assets for create modal

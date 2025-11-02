@@ -42,10 +42,8 @@ const HawlTrackingSection: React.FC = () => {
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  // Handle both array format and wrapped format from API
-  const records = Array.isArray(recordsResponse) 
-    ? recordsResponse 
-    : (recordsResponse?.records || recordsResponse?.data?.records || recordsResponse?.data || []);
+  // Extract records from response: API returns { records, total, ... }
+  const records = recordsResponse?.records || [];
   const activeRecord = selectedRecordId
     ? records.find((r: any) => r.id === selectedRecordId)
     : records[0]; // Default to first if available
