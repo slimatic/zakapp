@@ -42,7 +42,10 @@ const HawlTrackingSection: React.FC = () => {
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  const records = recordsResponse?.data?.records || [];
+  // Handle both array format and wrapped format from API
+  const records = Array.isArray(recordsResponse) 
+    ? recordsResponse 
+    : (recordsResponse?.records || recordsResponse?.data?.records || recordsResponse?.data || []);
   const activeRecord = selectedRecordId
     ? records.find((r: any) => r.id === selectedRecordId)
     : records[0]; // Default to first if available
@@ -111,13 +114,13 @@ const HawlTrackingSection: React.FC = () => {
                   </p>
                   <div className="mt-1">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      activeRecord.recordStatus === 'DRAFT'
+                      activeRecord.status === 'DRAFT'
                         ? 'bg-blue-100 text-blue-800'
-                        : activeRecord.recordStatus === 'FINALIZED'
+                        : activeRecord.status === 'FINALIZED'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-amber-100 text-amber-800'
                     }`}>
-                      {activeRecord.recordStatus}
+                      {activeRecord.status}
                     </span>
                   </div>
                 </div>
