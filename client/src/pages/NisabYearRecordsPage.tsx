@@ -5,7 +5,7 @@
  * for Nisab Year Records
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
@@ -20,6 +20,7 @@ import type { Asset } from '../components/tracking/AssetSelectionTable';
 export const NisabYearRecordsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const hasProcessedCreateParam = useRef(false);
 
   // State
   const [activeStatusFilter, setActiveStatusFilter] = useState<'all' | 'DRAFT' | 'FINALIZED' | 'UNLOCKED'>('all');
@@ -66,16 +67,18 @@ export const NisabYearRecordsPage: React.FC = () => {
 
   // Open create modal when ?create=true is present in the URL
   const [searchParams, setSearchParams] = useSearchParams();
+  
   useEffect(() => {
     const shouldCreate = searchParams.get('create');
-    if (shouldCreate === 'true') {
+    if (shouldCreate === 'true' && !hasProcessedCreateParam.current) {
+      hasProcessedCreateParam.current = true;
       setShowCreateModal(true);
-      // remove the query param so it doesn't re-open on refresh
-      searchParams.delete('create');
-      setSearchParams(searchParams, { replace: true });
+      // Remove the query param so it doesn't re-open on refresh
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('create');
+      setSearchParams(newParams, { replace: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams, setSearchParams]);
 
   // Fetch assets for refresh modal
   const { data: refreshAssetsData, isLoading: isRefreshingAssets } = useQuery({
