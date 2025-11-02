@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
+import { gregorianToHijri } from '../utils/calendarConverter';
 import HawlProgressIndicator from '../components/HawlProgressIndicator';
 import NisabComparisonWidget from '../components/NisabComparisonWidget';
 import FinalizationModal from '../components/FinalizationModal';
@@ -123,10 +124,22 @@ export const NisabYearRecordsPage: React.FC = () => {
       const zakatableWealth = selectedAssets.filter((a) => a.isZakatable).reduce((sum, a) => sum + a.value, 0);
       const zakatAmount = zakatableWealth * 0.025;
 
+      // Calculate Hijri dates
+      const startDate = new Date();
+      const completionDate = new Date(Date.now() + 354 * 24 * 60 * 60 * 1000);
+      const startHijri = gregorianToHijri(startDate);
+      const completionHijri = gregorianToHijri(completionDate);
+      
+      // Format Hijri dates as YYYY-MM-DDH
+      const formatHijri = (h: { hy: number; hm: number; hd: number }) => 
+        `${h.hy}-${String(h.hm).padStart(2, '0')}-${String(h.hd).padStart(2, '0')}H`;
+
       // Create record with asset selection
       const response = await apiService.createNisabYearRecord({
-        hawlStartDate: new Date().toISOString(),
-        hawlCompletionDate: new Date(Date.now() + 354 * 24 * 60 * 60 * 1000).toISOString(),
+        hawlStartDate: startDate.toISOString(),
+        hawlStartDateHijri: formatHijri(startHijri),
+        hawlCompletionDate: completionDate.toISOString(),
+        hawlCompletionDateHijri: formatHijri(completionHijri),
         nisabBasis: 'GOLD',
         totalWealth,
         zakatableWealth,
