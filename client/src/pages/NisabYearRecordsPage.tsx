@@ -144,6 +144,10 @@ export const NisabYearRecordsPage: React.FC = () => {
       setShowCreateModal(false);
       setSelectedAssetIds([]);
     },
+    onError: (error: any) => {
+      console.error('Error creating record:', error);
+      alert(`Failed to create record: ${error.message || 'Unknown error'}`);
+    },
   });
 
   // Handle creation

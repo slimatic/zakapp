@@ -53,8 +53,8 @@ export const TrackingDashboard: React.FC = () => {
           >
             <div className="text-center">
               <div className="text-2xl mb-2">📊</div>
-              <div className="font-semibold">Create Snapshot</div>
-              <div className="text-sm opacity-90">Record this year's calculation</div>
+              <div className="font-semibold">Create Nisab Year Record</div>
+              <div className="text-sm opacity-90">Track your Hawl period</div>
             </div>
           </Button>
 
@@ -154,10 +154,10 @@ export const TrackingDashboard: React.FC = () => {
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No snapshots yet</h3>
                   <p className="text-gray-600 mb-4">
-                    Create your first yearly snapshot to start tracking your Zakat history.
+                    Create your first Nisab Year Record to start tracking your Zakat history.
                   </p>
                   <Button onClick={() => navigate('/nisab-year-records?create=true')}>
-                    Create First Snapshot
+                    Create First Record
                   </Button>
                 </div>
               ) : (
