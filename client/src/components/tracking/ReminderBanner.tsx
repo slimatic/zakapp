@@ -175,15 +175,15 @@ export const ReminderBanner: React.FC<ReminderBannerProps> = ({
                   <div className="mt-3 pt-3 border-t border-gray-200">
                     <div className="flex space-x-2">
                       {reminder.eventType === 'calculation_overdue' && (
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            // Navigate to create snapshot
-                            window.location.href = '/tracking/snapshots/new';
-                          }}
-                        >
-                          Create Snapshot
-                        </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              // Navigate to Nisab Year Records create flow
+                              window.location.href = '/nisab-year-records?create=true';
+                            }}
+                          >
+                            Create Snapshot
+                          </Button>
                       )}
                       {reminder.eventType === 'payment_incomplete' && (
                         <Button
