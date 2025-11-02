@@ -247,7 +247,7 @@ export const NisabYearRecordsPage: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {records.map((record: any) => {
-                  const badge = statusBadges[record.status];
+                  const badge = statusBadges[record.status] || { color: 'gray', label: record.status || 'Unknown' };
                   const isSelected = selectedRecordId === record.id;
 
                   return (
