@@ -130,6 +130,8 @@ export class NisabYearRecordService {
         hawlCompletionDateHijri: dto.hawlCompletionDateHijri || null,
         nisabBasis: dto.nisabBasis as any,
         status: 'DRAFT',
+        nisabThreshold: nisabData.selectedNisab.toString(), // Deprecated but required by Prisma
+        nisabType: dto.nisabBasis || 'GOLD', // Deprecated but required by Prisma
         nisabThresholdAtStart: nisabData.selectedNisab.toString(),
         nisabThresholdAtStartEncrypted: EncryptionService.encrypt(nisabData.selectedNisab.toString()) as any,
         calculationDate: new Date(),
