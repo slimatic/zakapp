@@ -49,7 +49,10 @@ export const NisabYearRecordsPage: React.FC = () => {
     },
   });
 
-  const records = recordsData?.records || [];
+  // Handle double-wrapped API response structure
+  const records = Array.isArray(recordsData) 
+    ? recordsData 
+    : (recordsData?.records || recordsData?.data?.records || []);
   const activeRecord = selectedRecordId ? records.find((r: any) => r.id === selectedRecordId) : null;
 
   // Fetch assets for create modal
@@ -123,9 +126,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       // Create record with asset selection
       const response = await apiService.createNisabYearRecord({
         hawlStartDate: new Date().toISOString(),
-        hawlStartDateHijri: '', // Will be calculated by backend
         hawlCompletionDate: new Date(Date.now() + 354 * 24 * 60 * 60 * 1000).toISOString(),
-        hawlCompletionDateHijri: '', // Will be calculated by backend
         nisabBasis: 'GOLD',
         totalWealth,
         zakatableWealth,
@@ -492,9 +493,13 @@ export const NisabYearRecordsPage: React.FC = () => {
                 </div>
               ) : assetsData && assetsData.length > 0 ? (
                 <>
+                  {console.log('Assets data for table:', assetsData)}
                   <AssetSelectionTable
                     assets={assetsData}
-                    onSelectionChange={setSelectedAssetIds}
+                    onSelectionChange={(ids) => {
+                      console.log('Asset selection changed:', ids);
+                      setSelectedAssetIds(ids);
+                    }}
                   />
                   <div className="mt-6 flex justify-end gap-3">
                     <button
