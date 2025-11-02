@@ -123,7 +123,6 @@ export class NisabYearRecordService {
       // Create the record in DRAFT status
       // map CreateNisabYearRecordDto -> YearlySnapshot (Prisma model)
       const createData = {
-        userId,
         hawlStartDate: new Date(dto.hawlStartDate),
         hawlStartDateHijri: dto.hawlStartDateHijri,
         hawlCompletionDate: new Date(dto.hawlCompletionDate),
