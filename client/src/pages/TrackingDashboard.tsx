@@ -48,12 +48,12 @@ export const TrackingDashboard: React.FC = () => {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Button
-            onClick={() => navigate('/tracking/snapshots/new')}
+            onClick={() => navigate('/nisab-year-records?create=true')}
             className="h-auto py-4"
           >
             <div className="text-center">
               <div className="text-2xl mb-2">📊</div>
-              <div className="font-semibold">Create Nisab Year Record</div>
+              <div className="font-semibold">Create Snapshot</div>
               <div className="text-sm opacity-90">Record this year's calculation</div>
             </div>
           </Button>
@@ -86,7 +86,7 @@ export const TrackingDashboard: React.FC = () => {
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="text-sm font-medium text-gray-600">Total Records</div>
+            <div className="text-sm font-medium text-gray-600">Total Snapshots</div>
             <div className="text-3xl font-bold text-gray-900 mt-2">
               {totalSnapshots}
             </div>
@@ -132,10 +132,10 @@ export const TrackingDashboard: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Recent Records */}
+            {/* Recent Snapshots */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Recent Nisab Year Records</h2>
+                <h2 className="text-xl font-bold text-gray-900">Recent Snapshots</h2>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -152,12 +152,12 @@ export const TrackingDashboard: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No records yet</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No snapshots yet</h3>
                   <p className="text-gray-600 mb-4">
-                    Create your first Nisab Year Record to start tracking your Zakat history.
+                    Create your first yearly snapshot to start tracking your Zakat history.
                   </p>
-                  <Button onClick={() => navigate('/tracking/snapshots/new')}>
-                    Create First Record
+                  <Button onClick={() => navigate('/nisab-year-records?create=true')}>
+                    Create First Snapshot
                   </Button>
                 </div>
               ) : (

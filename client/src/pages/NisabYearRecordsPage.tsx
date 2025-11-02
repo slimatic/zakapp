@@ -5,8 +5,8 @@
  * for Nisab Year Records
  */
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
 import HawlProgressIndicator from '../components/HawlProgressIndicator';
@@ -63,6 +63,19 @@ export const NisabYearRecordsPage: React.FC = () => {
     },
     enabled: showCreateModal, // Only fetch when modal is open
   });
+
+  // Open create modal when ?create=true is present in the URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const shouldCreate = searchParams.get('create');
+    if (shouldCreate === 'true') {
+      setShowCreateModal(true);
+      // remove the query param so it doesn't re-open on refresh
+      searchParams.delete('create');
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fetch assets for refresh modal
   const { data: refreshAssetsData, isLoading: isRefreshingAssets } = useQuery({
