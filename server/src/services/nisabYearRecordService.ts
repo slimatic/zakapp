@@ -122,16 +122,16 @@ export class NisabYearRecordService {
 
       // Create the record in DRAFT status
       // map CreateNisabYearRecordDto -> YearlySnapshot (Prisma model)
-      const createData: Prisma.YearlySnapshotCreateInput = {
+      const createData = {
         userId,
-        hawlStartDate: dto.hawlStartDate ? new Date(dto.hawlStartDate as any) : null,
-        hawlStartDateHijri: dto.hawlStartDateHijri || null,
-        hawlCompletionDate: dto.hawlCompletionDate ? new Date(dto.hawlCompletionDate as any) : null,
-        hawlCompletionDateHijri: dto.hawlCompletionDateHijri || null,
-        nisabBasis: dto.nisabBasis as any,
+        hawlStartDate: new Date(dto.hawlStartDate),
+        hawlStartDateHijri: dto.hawlStartDateHijri,
+        hawlCompletionDate: new Date(dto.hawlCompletionDate),
+        hawlCompletionDateHijri: dto.hawlCompletionDateHijri,
+        nisabBasis: dto.nisabBasis || 'GOLD',
         status: 'DRAFT',
-        nisabThreshold: nisabData.selectedNisab.toString(), // Deprecated but required by Prisma
-        nisabType: dto.nisabBasis || 'GOLD', // Deprecated but required by Prisma
+        nisabThreshold: nisabData.selectedNisab.toString(), // Deprecated but required
+        nisabType: dto.nisabBasis || 'GOLD', // Deprecated but required
         nisabThresholdAtStart: await EncryptionService.encrypt(
           nisabData.selectedNisab.toString(),
           process.env.ENCRYPTION_KEY!
@@ -151,6 +151,9 @@ export class NisabYearRecordService {
         assetBreakdown: assetBreakdownEncrypted,
         calculationDetails: dto.calculationDetails ? JSON.stringify(dto.calculationDetails) : null,
         userNotes: dto.userNotes || null,
+        user: {
+          connect: { id: userId }
+        }
       } as any;
 
       const record = await this.prisma.yearlySnapshot.create({ data: createData });
