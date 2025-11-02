@@ -153,8 +153,10 @@ export const NisabYearRecordsPage: React.FC = () => {
 
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nisab-year-records'] });
+    onSuccess: (data) => {
+      console.log('Record created successfully:', data);
+      // Invalidate all variations of the query key (all status filters)
+      queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
       setShowCreateModal(false);
       setSelectedAssetIds([]);
     },
@@ -197,14 +199,14 @@ export const NisabYearRecordsPage: React.FC = () => {
   // Handle finalization complete
   const handleFinalizationComplete = (finalRecord: any) => {
     // Refetch records
-    queryClient.invalidateQueries({ queryKey: ['nisab-year-records'] });
+    queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
     setFinalizingRecordId(null);
   };
 
   // Handle unlock complete
   const handleUnlockComplete = (unlockedRecord: any) => {
     // Refetch records
-    queryClient.invalidateQueries({ queryKey: ['nisab-year-records'] });
+    queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
     setUnlockingRecordId(null);
   };
 
