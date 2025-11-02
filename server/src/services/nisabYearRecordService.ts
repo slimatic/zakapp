@@ -132,8 +132,10 @@ export class NisabYearRecordService {
         status: 'DRAFT',
         nisabThreshold: nisabData.selectedNisab.toString(), // Deprecated but required by Prisma
         nisabType: dto.nisabBasis || 'GOLD', // Deprecated but required by Prisma
-        nisabThresholdAtStart: nisabData.selectedNisab.toString(),
-        nisabThresholdAtStartEncrypted: EncryptionService.encrypt(nisabData.selectedNisab.toString()) as any,
+        nisabThresholdAtStart: await EncryptionService.encrypt(
+          nisabData.selectedNisab.toString(),
+          process.env.ENCRYPTION_KEY!
+        ),
         calculationDate: new Date(),
         gregorianYear: new Date().getFullYear(),
         gregorianMonth: new Date().getMonth() + 1,
