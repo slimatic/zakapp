@@ -413,11 +413,11 @@ export const NisabYearRecordsPage: React.FC = () => {
                 <div className="rounded-lg border border-gray-200 bg-white p-4">
                   <h3 className="font-semibold text-gray-900 mb-3">Details</h3>
                   <div className="space-y-2 text-sm">
-                    {activeRecord.startDate && (
+                    {activeRecord.hawlStartDate && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Started:</span>
                         <span className="font-medium text-gray-900">
-                          {new Date(activeRecord.startDate).toLocaleDateString()}
+                          {new Date(activeRecord.hawlStartDate).toLocaleDateString()}
                         </span>
                       </div>
                     )}
@@ -429,11 +429,27 @@ export const NisabYearRecordsPage: React.FC = () => {
                         </span>
                       </div>
                     )}
-                    {activeRecord.finalZakatAmount && (
+                    {activeRecord.zakatAmount && (
                       <div className="flex justify-between border-t border-gray-200 pt-2">
                         <span className="text-gray-600">Total Zakat:</span>
                         <span className="font-bold text-green-600">
-                          {formatCurrency(activeRecord.finalZakatAmount, activeRecord.currency)}
+                          {formatCurrency(parseFloat(activeRecord.zakatAmount), 'USD')}
+                        </span>
+                      </div>
+                    )}
+                    {activeRecord.totalWealth && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Wealth:</span>
+                        <span className="font-medium text-gray-900">
+                          {formatCurrency(parseFloat(activeRecord.totalWealth), 'USD')}
+                        </span>
+                      </div>
+                    )}
+                    {activeRecord.zakatableWealth && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Zakatable Wealth:</span>
+                        <span className="font-medium text-gray-900">
+                          {formatCurrency(parseFloat(activeRecord.zakatableWealth), 'USD')}
                         </span>
                       </div>
                     )}

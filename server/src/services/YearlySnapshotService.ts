@@ -197,9 +197,14 @@ export class YearlySnapshotService {
 
     // Optimization: Parallel decryption for better performance
     // Decrypts all snapshots concurrently rather than sequentially
-    const decryptedData = await Promise.all(
+    // Skip records that fail to decrypt (old format incompatibility)
+    const decryptionResults = await Promise.allSettled(
       result.data.map(snapshot => this.decryptSnapshotData(snapshot))
     );
+
+    const decryptedData = decryptionResults
+      .filter((result): result is PromiseFulfilledResult<any> => result.status === 'fulfilled')
+      .map(result => result.value);
 
     const currentPage = params.page ?? 1;
     const itemsPerPage = params.limit ?? 20;
