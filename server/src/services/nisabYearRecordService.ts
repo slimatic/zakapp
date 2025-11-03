@@ -27,7 +27,6 @@ import type {
 export class NisabYearRecordService {
   private logger = new Logger('NisabYearRecordService');
   private prisma: PrismaClient;
-  private encryptionService: EncryptionService;
   private auditTrailService: AuditTrailService;
   private nisabCalculationService: NisabCalculationService;
   private hawlTrackingService: HawlTrackingService;
@@ -35,14 +34,12 @@ export class NisabYearRecordService {
 
   constructor(
     prisma?: PrismaClient,
-    encryptionService?: EncryptionService,
     auditTrailService?: AuditTrailService,
     nisabCalculationService?: NisabCalculationService,
     hawlTrackingService?: HawlTrackingService,
     wealthAggregationService?: WealthAggregationService
   ) {
   this.prisma = prisma || new PrismaClient();
-  this.encryptionService = encryptionService || new EncryptionService();
     this.auditTrailService = auditTrailService || new AuditTrailService();
     this.nisabCalculationService = nisabCalculationService || new NisabCalculationService();
     this.hawlTrackingService = hawlTrackingService || new HawlTrackingService();
@@ -331,7 +328,7 @@ export class NisabYearRecordService {
       // Handle asset breakdown encryption
       if (dto.assetBreakdown !== undefined) {
         try {
-          const encrypted = await this.encryptionService.encrypt(JSON.stringify(dto.assetBreakdown));
+          const encrypted = await EncryptionService.encrypt(JSON.stringify(dto.assetBreakdown), process.env.ENCRYPTION_KEY!);
           updateData.assetBreakdown = encrypted;
         } catch (error) {
           this.logger.error('Failed to encrypt asset breakdown', error);
@@ -342,7 +339,7 @@ export class NisabYearRecordService {
       // Handle calculation details encryption
       if (dto.calculationDetails !== undefined) {
         try {
-          const encrypted = await this.encryptionService.encrypt(JSON.stringify(dto.calculationDetails));
+          const encrypted = await EncryptionService.encrypt(JSON.stringify(dto.calculationDetails), process.env.ENCRYPTION_KEY!);
           updateData.calculationDetails = encrypted;
         } catch (error) {
           this.logger.error('Failed to encrypt calculation details', error);
