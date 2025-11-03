@@ -14,13 +14,13 @@ import { HawlTrackingService } from './hawlTrackingService';
 import { WealthAggregationService } from './wealthAggregationService';
 import type {
   NisabYearRecord,
+  NisabYearRecordWithLiveTracking,
   RecordStatus,
   NisabBasis,
   CreateNisabYearRecordDto,
   UpdateNisabYearRecordDto,
   FinalizeRecordDto,
   UnlockRecordDto,
-  NisabYearRecordResponse,
   LiveHawlData,
 } from '@zakapp/shared';
 
@@ -60,7 +60,7 @@ export class NisabYearRecordService {
   async createRecord(
     userId: string,
     dto: CreateNisabYearRecordDto
-  ): Promise<NisabYearRecordResponse> {
+  ): Promise<NisabYearRecord | NisabYearRecordWithLiveTracking> {
     try {
       // Validate Nisab basis
       if (!['GOLD', 'SILVER'].includes(dto.nisabBasis)) {
@@ -235,7 +235,7 @@ export class NisabYearRecordService {
     limit: number = 50,
     offset: number = 0
   ): Promise<{
-    records: NisabYearRecordResponse[];
+    records: (NisabYearRecord | NisabYearRecordWithLiveTracking)[];
     total: number;
   }> {
     try {
@@ -290,7 +290,7 @@ export class NisabYearRecordService {
     userId: string,
     recordId: string,
     dto: UpdateNisabYearRecordDto
-  ): Promise<NisabYearRecordResponse> {
+  ): Promise<NisabYearRecord | NisabYearRecordWithLiveTracking> {
     try {
       const record = await this._verifyOwnership(userId, recordId);
 
@@ -347,7 +347,7 @@ export class NisabYearRecordService {
     userId: string,
     recordId: string,
     dto: FinalizeRecordDto
-  ): Promise<NisabYearRecordResponse> {
+  ): Promise<NisabYearRecord | NisabYearRecordWithLiveTracking> {
     try {
       const record = await this._verifyOwnership(userId, recordId);
 
@@ -426,7 +426,7 @@ export class NisabYearRecordService {
     userId: string,
     recordId: string,
     dto: UnlockRecordDto
-  ): Promise<NisabYearRecordResponse> {
+  ): Promise<NisabYearRecord | NisabYearRecordWithLiveTracking> {
     try {
       const record = await this._verifyOwnership(userId, recordId);
 
@@ -507,7 +507,7 @@ export class NisabYearRecordService {
    * @param recordId - Record to re-finalize
    * @returns Re-finalized record
    */
-  async refinalize(userId: string, recordId: string): Promise<NisabYearRecordResponse> {
+  async refinalize(userId: string, recordId: string): Promise<NisabYearRecord | NisabYearRecordWithLiveTracking> {
     try {
       const record = await this._verifyOwnership(userId, recordId);
 
@@ -593,7 +593,7 @@ export class NisabYearRecordService {
   /**
    * Private: Map database record to response DTO
    */
-  private _mapToResponse(record: any, liveHawlData?: LiveHawlData): NisabYearRecordResponse {
+  private _mapToResponse(record: any, liveHawlData?: LiveHawlData): NisabYearRecord | NisabYearRecordWithLiveTracking {
     const data = {
       id: record.id,
       userId: record.userId,
@@ -623,6 +623,6 @@ export class NisabYearRecordService {
       (data as any).liveTracking = liveHawlData;
     }
 
-    return data;
+    return liveHawlData ? ({ ...data, liveTracking: liveHawlData } as NisabYearRecordWithLiveTracking) : (data as NisabYearRecord);
   }
 }
