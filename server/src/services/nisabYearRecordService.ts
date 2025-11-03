@@ -182,7 +182,7 @@ export class NisabYearRecordService {
    * @param recordId - Record ID
    * @returns Record with live data
    */
-  async getRecord(userId: string, recordId: string): Promise<NisabYearRecordResponse> {
+  async getRecord(userId: string, recordId: string): Promise<NisabYearRecord> {
     try {
       const record = await this.prisma.yearlySnapshot.findUnique({
         where: { id: recordId },
