@@ -307,6 +307,49 @@ export class NisabYearRecordService {
         methodologyUsed: dto.methodologyUsed || record.methodologyUsed,
       } as any;
 
+      // Handle wealth updates
+      if (dto.totalWealth !== undefined) {
+        const wealth = typeof dto.totalWealth === 'string' ? dto.totalWealth : dto.totalWealth.toString();
+        updateData.totalWealth = wealth;
+      }
+
+      if (dto.zakatableWealth !== undefined) {
+        const wealth = typeof dto.zakatableWealth === 'string' ? dto.zakatableWealth : dto.zakatableWealth.toString();
+        updateData.zakatableWealth = wealth;
+      }
+
+      if (dto.zakatAmount !== undefined) {
+        const amount = typeof dto.zakatAmount === 'string' ? dto.zakatAmount : dto.zakatAmount.toString();
+        updateData.zakatAmount = amount;
+      }
+
+      if (dto.totalLiabilities !== undefined) {
+        const liabilities = typeof dto.totalLiabilities === 'string' ? dto.totalLiabilities : dto.totalLiabilities.toString();
+        updateData.totalLiabilities = liabilities;
+      }
+
+      // Handle asset breakdown encryption
+      if (dto.assetBreakdown !== undefined) {
+        try {
+          const encrypted = await this.encryptionService.encrypt(JSON.stringify(dto.assetBreakdown));
+          updateData.assetBreakdown = encrypted;
+        } catch (error) {
+          this.logger.error('Failed to encrypt asset breakdown', error);
+          throw new Error('Failed to encrypt asset data');
+        }
+      }
+
+      // Handle calculation details encryption
+      if (dto.calculationDetails !== undefined) {
+        try {
+          const encrypted = await this.encryptionService.encrypt(JSON.stringify(dto.calculationDetails));
+          updateData.calculationDetails = encrypted;
+        } catch (error) {
+          this.logger.error('Failed to encrypt calculation details', error);
+          throw new Error('Failed to encrypt calculation details');
+        }
+      }
+
       const updatedRecord = await this.prisma.yearlySnapshot.update({
         where: { id: recordId },
         data: updateData,
