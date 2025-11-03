@@ -16,6 +16,7 @@ import FinalizationModal from '../components/FinalizationModal';
 import UnlockReasonDialog from '../components/UnlockReasonDialog';
 import AuditTrailView from '../components/AuditTrailView';
 import AssetSelectionTable from '../components/tracking/AssetSelectionTable';
+import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
 import type { Asset } from '../components/tracking/AssetSelectionTable';
 
 export const NisabYearRecordsPage: React.FC = () => {
@@ -409,6 +410,14 @@ export const NisabYearRecordsPage: React.FC = () => {
                 {/* Nisab comparison */}
                 <NisabComparisonWidget record={activeRecord} showDetails={true} />
 
+                {/* Zakat display card */}
+                <ZakatDisplayCard 
+                  record={activeRecord}
+                  onFinalize={() => handleFinalize(activeRecord)}
+                  onRefreshAssets={() => setRefreshingRecordId(activeRecord.id)}
+                  isLoadingAssets={isRefreshingAssets}
+                />
+
                 {/* Record details */}
                 <div className="rounded-lg border border-gray-200 bg-white p-4">
                   <h3 className="font-semibold text-gray-900 mb-3">Details</h3>
@@ -426,14 +435,6 @@ export const NisabYearRecordsPage: React.FC = () => {
                         <span className="text-gray-600">Completed:</span>
                         <span className="font-medium text-gray-900">
                           {new Date(activeRecord.hawlCompletionDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
-                    {activeRecord.zakatAmount && (
-                      <div className="flex justify-between border-t border-gray-200 pt-2">
-                        <span className="text-gray-600">Total Zakat:</span>
-                        <span className="font-bold text-green-600">
-                          {formatCurrency(parseFloat(activeRecord.zakatAmount), 'USD')}
                         </span>
                       </div>
                     )}
