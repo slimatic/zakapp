@@ -624,6 +624,10 @@ class ApiService {
   async updateNisabYearRecord(recordId: string, data: {
     notes?: string;
     nisabBasis?: 'GOLD' | 'SILVER';
+    assetBreakdown?: any;
+    totalWealth?: string;
+    zakatableWealth?: string;
+    zakatAmount?: string;
   }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}`, {
       method: 'PUT',
