@@ -605,9 +605,49 @@ export const NisabYearRecordsPage: React.FC = () => {
                     </button>
                     <button
                       onClick={() => {
-                        // TODO: Implement update with new selection
-                        console.log('Update with selection:', selectedAssetIds);
-                        setRefreshingRecordId(null);
+                        if (!refreshingRecordId) return;
+                        
+                        // Build asset breakdown from selected assets
+                        const selectedAssets = refreshAssetsData.assets.filter((a: Asset) =>
+                          selectedAssetIds.includes(a.id)
+                        );
+                        
+                        const totalWealth = selectedAssets.reduce((sum: number, a: Asset) => sum + (a.value || 0), 0);
+                        const zakatableWealth = selectedAssets
+                          .filter((a: Asset) => a.isZakatable)
+                          .reduce((sum: number, a: Asset) => sum + (a.value || 0), 0);
+                        const zakatAmount = zakatableWealth * 0.025;
+                        
+                        // Update record with new asset breakdown
+                        const updateData = {
+                          assetBreakdown: {
+                            assets: selectedAssets.map((a: Asset) => ({
+                              id: a.id,
+                              name: a.name,
+                              category: a.category,
+                              value: a.value,
+                              isZakatable: a.isZakatable,
+                              addedAt: a.addedAt,
+                            })),
+                            capturedAt: new Date().toISOString(),
+                            totalWealth,
+                            zakatableWealth,
+                          },
+                          totalWealth: totalWealth.toString(),
+                          zakatableWealth: zakatableWealth.toString(),
+                          zakatAmount: zakatAmount.toString(),
+                        };
+                        
+                        // Call update endpoint
+                        apiService.updateNisabYearRecord(refreshingRecordId, updateData).then(() => {
+                          // Refresh records query to show updated values
+                          queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
+                          setRefreshingRecordId(null);
+                          setSelectedAssetIds([]);
+                        }).catch((error) => {
+                          console.error('Failed to update record:', error);
+                          alert('Failed to update record. Please try again.');
+                        });
                       }}
                       disabled={selectedAssetIds.length === 0}
                       className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
