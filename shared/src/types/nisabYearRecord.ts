@@ -111,6 +111,10 @@ export interface CreateNisabYearRecordDto {
  * Used for updating record fields (allowed in DRAFT and UNLOCKED statuses)
  */
 export interface UpdateNisabYearRecordDto {
+  // Date updates (optional)
+  hawlStartDate?: string | Date;
+  hawlCompletionDate?: string | Date;
+
   // Wealth recalculation (optional)
   totalWealth?: number;
   totalLiabilities?: number;

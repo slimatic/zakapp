@@ -628,6 +628,8 @@ class ApiService {
     totalWealth?: string;
     zakatableWealth?: string;
     zakatAmount?: string;
+    hawlStartDate?: string;
+    hawlCompletionDate?: string;
   }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}`, {
       method: 'PUT',

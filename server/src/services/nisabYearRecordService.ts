@@ -304,6 +304,15 @@ export class NisabYearRecordService {
         methodologyUsed: dto.methodologyUsed || record.methodologyUsed,
       } as any;
 
+      // Handle date updates
+      if (dto.hawlStartDate !== undefined) {
+        updateData.hawlStartDate = new Date(dto.hawlStartDate);
+      }
+
+      if (dto.hawlCompletionDate !== undefined) {
+        updateData.hawlCompletionDate = new Date(dto.hawlCompletionDate);
+      }
+
       // Handle wealth updates
       if (dto.totalWealth !== undefined) {
         const wealth = typeof dto.totalWealth === 'string' ? dto.totalWealth : dto.totalWealth.toString();
