@@ -110,11 +110,16 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
 
   if (!isOpen) return null;
 
-  const zakatAmount = record.finalZakatAmount || (record.nisabThresholdAtStart || 0) * 0.025;
+  // Parse numeric values safely from string fields
+  const totalWealth = parseFloat(record.totalWealth || '0') || 0;
+  const zakatableWealth = parseFloat(record.zakatableWealth || '0') || 0;
+  const zakatAmount = parseFloat(record.zakatAmount || record.finalZakatAmount || '0') || (zakatableWealth * 0.025);
+  const nisabThreshold = parseFloat(record.nisabThresholdAtStart || '0') || 0;
   const hawlComplete = record.liveHawlData?.canFinalize ?? false;
 
   // Format currency
   const formatCurrency = (amount: number): string => {
+    if (isNaN(amount)) return '$0.00';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: record.currency || 'USD',
@@ -176,17 +181,17 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
               <div className="flex justify-between">
                 <span className="text-sm text-gray-700">Nisab Threshold:</span>
                 <span className="font-medium text-gray-900">
-                  {formatCurrency(record.nisabThresholdAtStart || 0)}
+                  {nisabThreshold > 0 ? formatCurrency(nisabThreshold) : 'Not set'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-700">Currency:</span>
-                <span className="font-medium text-gray-900">{record.currency}</span>
+                <span className="font-medium text-gray-900">{record.currency || 'USD'}</span>
               </div>
               <div className="flex justify-between border-t border-gray-200 pt-3">
-                <span className="text-sm text-gray-700">Zakatble Wealth:</span>
+                <span className="text-sm text-gray-700">Zakatable Wealth:</span>
                 <span className="font-medium text-gray-900">
-                  {formatCurrency(record.zakatableWealthAtEnd || record.nisabThresholdAtStart || 0)}
+                  {formatCurrency(zakatableWealth)}
                 </span>
               </div>
             </div>
@@ -196,9 +201,9 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
               <div className="mb-2 text-sm font-medium text-gray-900">Zakat Calculation</div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-700">Zakatble Amount:</span>
+                  <span className="text-gray-700">Zakatable Amount:</span>
                   <span className="font-medium text-gray-900">
-                    {formatCurrency(record.zakatableWealthAtEnd || record.nisabThresholdAtStart || 0)}
+                    {formatCurrency(zakatableWealth)}
                   </span>
                 </div>
                 <div className="flex justify-between">
