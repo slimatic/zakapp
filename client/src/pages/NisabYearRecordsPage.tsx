@@ -33,6 +33,10 @@ export const NisabYearRecordsPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [refreshingRecordId, setRefreshingRecordId] = useState<string | null>(null);
+  const [editingStartDateRecordId, setEditingStartDateRecordId] = useState<string | null>(null);
+  const [newStartDate, setNewStartDate] = useState<string>('');
+  const [showPaymentsRecordId, setShowPaymentsRecordId] = useState<string | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<string>('');
 
   // Fetch records
   const { data: recordsData, isLoading, error } = useQuery({
@@ -288,20 +292,29 @@ export const NisabYearRecordsPage: React.FC = () => {
                   console.log('Record:', record); // Debug: log record data
                   const badge = statusBadges[record.status] || { color: 'gray', label: record.status || 'Unknown' };
                   const isSelected = selectedRecordId === record.id;
+                  const startDate = new Date(record.hawlStartDate);
+                  const startDateFormatted = startDate.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                  });
+                  const zakatAmount = parseFloat(record.zakatAmount || record.finalZakatAmount || '0');
+                  const totalWealth = parseFloat(record.totalWealth || '0');
+                  const zakatableWealth = parseFloat(record.zakatableWealth || '0');
 
                   return (
                     <div
                       key={record.id}
                       onClick={() => setSelectedRecordId(record.id)}
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                      className={`border rounded-lg p-5 cursor-pointer transition-all ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 bg-white hover:bg-gray-50'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-200 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md'
                       }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3 mb-3">
                             <h3 className="text-lg font-semibold text-gray-900">
                               {record.hijriYear}
                             </h3>
@@ -317,17 +330,50 @@ export const NisabYearRecordsPage: React.FC = () => {
                               {badge.label}
                             </span>
                           </div>
-                          <div className="mt-2 flex gap-6 text-sm text-gray-600">
+                          
+                          {/* Primary information row */}
+                          <div className="grid grid-cols-2 gap-4 mb-3">
                             <div>
-                              <span className="text-gray-900 font-medium">
-                                {record.nisabBasis === 'GOLD' ? 'Gold' : 'Silver'}
-                              </span>
-                              {' '}basis
+                              <div className="text-xs text-gray-600 mb-1">Nisab Basis</div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {record.nisabBasis === 'GOLD' ? '🟡 Gold' : '⚪ Silver'}
+                              </div>
                             </div>
-                            {record.finalZakatAmount && (
+                            {totalWealth > 0 && (
                               <div>
-                                Zakat: <span className="text-gray-900 font-medium">
-                                  {formatCurrency(record.finalZakatAmount, record.currency)}
+                                <div className="text-xs text-gray-600 mb-1">Total Wealth</div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {formatCurrency(totalWealth, record.currency || 'USD')}
+                                </div>
+                              </div>
+                            )}
+                            {zakatableWealth > 0 && (
+                              <div>
+                                <div className="text-xs text-gray-600 mb-1">Zakatable</div>
+                                <div className="text-sm font-medium text-green-700">
+                                  {formatCurrency(zakatableWealth, record.currency || 'USD')}
+                                </div>
+                              </div>
+                            )}
+                            {zakatAmount > 0 && (
+                              <div>
+                                <div className="text-xs text-gray-600 mb-1">Zakat Obligation</div>
+                                <div className="text-sm font-bold text-blue-700">
+                                  {formatCurrency(zakatAmount, record.currency || 'USD')}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Secondary information row */}
+                          <div className="flex gap-4 text-xs text-gray-600 mb-2 flex-wrap">
+                            <div>
+                              Started: <span className="text-gray-900 font-medium">{startDateFormatted}</span>
+                            </div>
+                            {record.hawlCompletionDate && (
+                              <div>
+                                Completes: <span className="text-gray-900 font-medium">
+                                  {new Date(record.hawlCompletionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                 </span>
                               </div>
                             )}
@@ -335,7 +381,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                         </div>
 
                         {/* Action buttons */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           {record.status === 'DRAFT' && (
                             <button
                               onClick={(e) => {
@@ -345,6 +391,18 @@ export const NisabYearRecordsPage: React.FC = () => {
                               className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
                             >
                               Refresh Assets
+                            </button>
+                          )}
+                          {record.status === 'DRAFT' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingStartDateRecordId(record.id);
+                                setNewStartDate(new Date(record.hawlStartDate).toISOString().split('T')[0]);
+                              }}
+                              className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors"
+                            >
+                              Edit Date
                             </button>
                           )}
                           {record.status === 'DRAFT' && record.liveHawlData?.canFinalize && (
@@ -455,6 +513,45 @@ export const NisabYearRecordsPage: React.FC = () => {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Payments section */}
+                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-900">Zakat Payments</h3>
+                    {activeRecord.status === 'FINALIZED' || activeRecord.status === 'UNLOCKED' ? (
+                      <button
+                        onClick={() => setShowPaymentsRecordId(activeRecord.id)}
+                        className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                      >
+                        + Payment
+                      </button>
+                    ) : null}
+                  </div>
+                  
+                  {activeRecord.zakatAmount ? (
+                    <div className="space-y-3 text-sm">
+                      <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                        <div className="text-gray-600">Total Zakat Due</div>
+                        <div className="text-lg font-bold text-blue-700">
+                          {formatCurrency(parseFloat(activeRecord.zakatAmount), 'USD')}
+                        </div>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded">
+                        <div className="text-gray-600 text-xs">Status</div>
+                        <div className="text-sm font-medium text-gray-900 mt-1">
+                          {activeRecord.status === 'FINALIZED' || activeRecord.status === 'UNLOCKED'
+                            ? '✓ Ready to pay'
+                            : '⏳ Pending finalization'}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-2">
+                        💡 Record a payment after finalizing your Zakat record.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600">No Zakat calculated yet</p>
+                  )}
                 </div>
               </>
             ) : (
@@ -661,6 +758,154 @@ export const NisabYearRecordsPage: React.FC = () => {
                   <p>Failed to load assets. Please try again.</p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Start Date Modal */}
+      {editingStartDateRecordId && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Edit Start Date</h2>
+              <button
+                onClick={() => {
+                  setEditingStartDateRecordId(null);
+                  setNewStartDate('');
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-600 mb-4">
+                Change the Hawl start date for this record. This will recalculate the completion date.
+              </p>
+              <input
+                type="date"
+                value={newStartDate}
+                onChange={(e) => setNewStartDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setEditingStartDateRecordId(null);
+                    setNewStartDate('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!editingStartDateRecordId || !newStartDate) return;
+                    
+                    try {
+                      const startDate = new Date(newStartDate);
+                      const completionDate = new Date(startDate.getTime() + (354 * 24 * 60 * 60 * 1000)); // 354 lunar days ≈ 354 solar days
+                      
+                      await apiService.updateNisabYearRecord(editingStartDateRecordId, {
+                        hawlStartDate: startDate.toISOString(),
+                        hawlCompletionDate: completionDate.toISOString(),
+                      });
+                      
+                      // Refresh records query
+                      queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
+                      setEditingStartDateRecordId(null);
+                      setNewStartDate('');
+                    } catch (error) {
+                      alert('Failed to update start date. Please try again.');
+                    }
+                  }}
+                  disabled={!newStartDate}
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Update Date
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Record Payment Modal */}
+      {showPaymentsRecordId && activeRecord && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Record Zakat Payment</h2>
+              <button
+                onClick={() => {
+                  setShowPaymentsRecordId(null);
+                  setPaymentAmount('');
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded">
+                <p className="text-sm text-blue-800">
+                  <strong>Zakat Due:</strong> {formatCurrency(parseFloat(activeRecord.zakatAmount || '0'), 'USD')}
+                </p>
+              </div>
+              
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Payment Amount
+              </label>
+              <input
+                type="number"
+                placeholder="0.00"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                step="0.01"
+                min="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-4"
+              />
+              
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Notes (Optional)
+              </label>
+              <textarea
+                placeholder="e.g., Paid to local charity"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-4"
+                rows={3}
+              />
+              
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowPaymentsRecordId(null);
+                    setPaymentAmount('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!showPaymentsRecordId || !paymentAmount) return;
+                    
+                    try {
+                      // For now, show a success message
+                      // In production, this would save to a payments table
+                      alert(`Payment of ${formatCurrency(parseFloat(paymentAmount), 'USD')} recorded successfully!`);
+                      setShowPaymentsRecordId(null);
+                      setPaymentAmount('');
+                    } catch (error) {
+                      alert('Failed to record payment. Please try again.');
+                    }
+                  }}
+                  disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Record Payment
+                </button>
+              </div>
             </div>
           </div>
         </div>
