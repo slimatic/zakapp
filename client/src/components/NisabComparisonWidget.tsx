@@ -66,7 +66,9 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   onStatusChange,
   showDetails = true,
 }) => {
-  const { nisabAmount } = useNisabThreshold(record.currency);
+  // Pass nisabBasis from record to hook to get correct Nisab threshold
+  const nisabBasis = (record.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
+  const { nisabAmount } = useNisabThreshold(record.currency, nisabBasis);
   const { liveHawlData, isUpdating } = useHawlStatus(record.id, 5000);
 
   // Calculate wealth and comparison
@@ -80,19 +82,9 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
     // Use live data if available, otherwise use stored wealth from record
     const wealth = (liveHawlData?.currentTotalWealth) || currentWealth || parseFloat(record.totalWealth) || 0;
     
-    // Use nisabAmount from hook (freshly fetched), fallback to record data if available
-    // nisabThresholdAtStart is encrypted in the record, so we prefer the live nisabAmount
-    let nisab = nisabAmount || 0;
-    
-    // If nisabAmount is not available and we have a valid record nisabThresholdAtStart value, try to use it
-    // But only if it looks like a number (not encrypted - which starts with "base64:")
-    if (nisab === 0 && record.nisabThresholdAtStart) {
-      const parsed = parseFloat(record.nisabThresholdAtStart);
-      // Only use it if it's a valid number and not 0 (encrypted data often parses to 0)
-      if (!isNaN(parsed) && parsed > 0) {
-        nisab = parsed;
-      }
-    }
+    // Use nisabAmount from hook (freshly fetched based on nisabBasis)
+    // Note: nisabThresholdAtStart in record is encrypted, so we can't parse it directly
+    const nisab = nisabAmount || 0;
 
     const isWealthAbove = wealth >= nisab;
     const diff = isWealthAbove ? wealth - nisab : nisab - wealth;

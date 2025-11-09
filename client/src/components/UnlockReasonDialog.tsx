@@ -102,7 +102,7 @@ export const UnlockReasonDialog: React.FC<UnlockReasonDialogProps> = ({
       }
 
       const response = await apiService.unlockNisabYearRecord(record.id, {
-        reason: reason.trim(),
+        unlockReason: reason.trim(),
       });
 
       if (!response.success) {
