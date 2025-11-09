@@ -28,12 +28,15 @@ export interface NisabThresholdData {
  * Get current Nisab threshold from API
  * Implemented via call to /api/zakat/nisab endpoint
  */
-async function fetchNisabThreshold(currency: string = 'USD'): Promise<NisabThresholdData> {
+async function fetchNisabThreshold(
+  currency: string = 'USD',
+  nisabBasis: 'GOLD' | 'SILVER' = 'GOLD'
+): Promise<NisabThresholdData> {
   // Note: This endpoint should be available on the backend
   // GET /api/zakat/nisab?currency=USD&basis=GOLD
   // Returns: { nisabAmount, currency, nisabBasis, goldPrice, silverPrice, fetchedAt }
   
-  const response = await fetch(`/api/zakat/nisab?currency=${currency}&basis=GOLD`, {
+  const response = await fetch(`/api/zakat/nisab?currency=${currency}&basis=${nisabBasis}`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
     }
@@ -109,7 +112,7 @@ export function useNisabThreshold(
     refetch: refetchQuery,
   } = useQuery({
     queryKey: ['nisab-threshold', currency, nisabBasis],
-    queryFn: () => fetchNisabThreshold(currency),
+    queryFn: () => fetchNisabThreshold(currency, nisabBasis),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 30 * 60 * 1000, // 30 minutes before garbage collection
     retry: 2,
