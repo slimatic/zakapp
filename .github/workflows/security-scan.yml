@@ -17,9 +17,9 @@ on:
     branches: [ main, develop, 'feature/*', 'security/*' ]
   pull_request:
     branches: [ main, develop ]
-  schedule:
-    # Run daily security scans at 2 AM UTC
-    - cron: '0 2 * * *'
+  # schedule:
+  #   # Run daily security scans at 2 AM UTC
+  #   - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       scan_type:
