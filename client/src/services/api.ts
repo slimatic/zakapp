@@ -659,7 +659,7 @@ class ApiService {
   }
 
   async unlockNisabYearRecord(recordId: string, data: {
-    reason: string;
+    unlockReason: string;
   }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/nisab-year-records/${recordId}/unlock`, {
       method: 'POST',
