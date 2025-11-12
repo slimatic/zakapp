@@ -680,6 +680,20 @@ export class NisabYearRecordService {
    * Private: Map database record to response DTO
    */
   private _mapToResponse(record: any, liveHawlData?: LiveHawlData): NisabYearRecord | NisabYearRecordWithLiveTracking {
+    // Decrypt sensitive fields
+    const decryptedTotalWealth = record.totalWealth 
+      ? EncryptionService.decrypt(record.totalWealth, process.env.ENCRYPTION_KEY!)
+      : '0';
+    const decryptedTotalLiabilities = record.totalLiabilities
+      ? EncryptionService.decrypt(record.totalLiabilities, process.env.ENCRYPTION_KEY!)
+      : '0';
+    const decryptedZakatableWealth = record.zakatableWealth
+      ? EncryptionService.decrypt(record.zakatableWealth, process.env.ENCRYPTION_KEY!)
+      : '0';
+    const decryptedZakatAmount = record.zakatAmount
+      ? EncryptionService.decrypt(record.zakatAmount, process.env.ENCRYPTION_KEY!)
+      : '0';
+
     const data = {
       id: record.id,
       userId: record.userId,
@@ -689,10 +703,10 @@ export class NisabYearRecordService {
       hawlCompletionDateHijri: record.hawlCompletionDateHijri,
       nisabThresholdAtStart: record.nisabThresholdAtStart,
       nisabBasis: record.nisabBasis,
-      totalWealth: record.totalWealth,
-      totalLiabilities: record.totalLiabilities,
-      zakatableWealth: record.zakatableWealth,
-      zakatAmount: record.zakatAmount,
+      totalWealth: decryptedTotalWealth,
+      totalLiabilities: decryptedTotalLiabilities,
+      zakatableWealth: decryptedZakatableWealth,
+      zakatAmount: decryptedZakatAmount,
       methodologyUsed: record.methodologyUsed,
       assetBreakdown: record.assetBreakdown,
       calculationDetails: record.calculationDetails,
