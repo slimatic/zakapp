@@ -444,12 +444,22 @@ export class NisabYearRecordService {
 
   const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
 
+      // Encrypt wealth and zakat amount before saving
+      const encryptedZakatableWealth = await EncryptionService.encrypt(
+        zakatableWealth.totalZakatableWealth.toString(),
+        process.env.ENCRYPTION_KEY!
+      );
+      const encryptedZakatAmount = await EncryptionService.encrypt(
+        finalZakatAmount.toString(),
+        process.env.ENCRYPTION_KEY!
+      );
+
       // Update record to FINALIZED
       // If this is a re-finalization (record.status === 'UNLOCKED'), preserve the original hawlStartDate and hawlCompletionDate where appropriate
       const updateData: any = {
         status: 'FINALIZED',
-        zakatableWealth: zakatableWealth.totalZakatableWealth.toString(),
-        zakatAmount: finalZakatAmount.toString(),
+        zakatableWealth: encryptedZakatableWealth,
+        zakatAmount: encryptedZakatAmount,
         userNotes: (dto as any).overrideNote || record.userNotes,
         finalizedAt: new Date(),
       };
