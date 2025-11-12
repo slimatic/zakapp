@@ -91,7 +91,19 @@ export const NisabYearRecordsPage: React.FC = () => {
       if (!response.success) {
         throw new Error('Failed to fetch assets');
       }
-      return response.data.assets as Asset[];
+      // Map backend asset format to component format
+      const assets = response.data.assets.map((asset: any) => ({
+        id: asset.id,
+        name: asset.name,
+        category: asset.category,
+        value: asset.value,
+        // Determine if zakatable based on category
+        // Cash, gold, silver, crypto, business, investments are zakatable
+        isZakatable: ['cash', 'gold', 'silver', 'crypto', 'business', 'investments', 'stocks'].includes(asset.category.toLowerCase()),
+        // Use createdAt as addedAt
+        addedAt: asset.createdAt || asset.acquisitionDate,
+      }));
+      return assets as Asset[];
     },
     enabled: showCreateModal, // Only fetch when modal is open
   });
@@ -120,7 +132,18 @@ export const NisabYearRecordsPage: React.FC = () => {
       if (!response.success) {
         throw new Error('Failed to refresh assets');
       }
-      return response.data;
+      // Map backend asset format to component format
+      const assets = response.data.assets.map((asset: any) => ({
+        id: asset.id,
+        name: asset.name,
+        category: asset.category,
+        value: asset.value,
+        // Determine if zakatable based on category
+        isZakatable: ['cash', 'gold', 'silver', 'crypto', 'business', 'investments', 'stocks'].includes(asset.category.toLowerCase()),
+        // Use createdAt as addedAt
+        addedAt: asset.createdAt || asset.acquisitionDate,
+      }));
+      return { ...response.data, assets };
     },
     enabled: !!refreshingRecordId,
   });
