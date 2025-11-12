@@ -313,25 +313,45 @@ export class NisabYearRecordService {
         updateData.hawlCompletionDate = new Date(dto.hawlCompletionDate);
       }
 
-      // Handle wealth updates
+      // Handle wealth updates (must be encrypted)
       if (dto.totalWealth !== undefined) {
         const wealth = typeof dto.totalWealth === 'string' ? dto.totalWealth : dto.totalWealth.toString();
-        updateData.totalWealth = wealth;
+        try {
+          updateData.totalWealth = await EncryptionService.encrypt(wealth, process.env.ENCRYPTION_KEY!);
+        } catch (error) {
+          this.logger.error('Failed to encrypt totalWealth', error);
+          throw new Error('Failed to encrypt wealth data');
+        }
       }
 
       if (dto.zakatableWealth !== undefined) {
         const wealth = typeof dto.zakatableWealth === 'string' ? dto.zakatableWealth : dto.zakatableWealth.toString();
-        updateData.zakatableWealth = wealth;
+        try {
+          updateData.zakatableWealth = await EncryptionService.encrypt(wealth, process.env.ENCRYPTION_KEY!);
+        } catch (error) {
+          this.logger.error('Failed to encrypt zakatableWealth', error);
+          throw new Error('Failed to encrypt wealth data');
+        }
       }
 
       if (dto.zakatAmount !== undefined) {
         const amount = typeof dto.zakatAmount === 'string' ? dto.zakatAmount : dto.zakatAmount.toString();
-        updateData.zakatAmount = amount;
+        try {
+          updateData.zakatAmount = await EncryptionService.encrypt(amount, process.env.ENCRYPTION_KEY!);
+        } catch (error) {
+          this.logger.error('Failed to encrypt zakatAmount', error);
+          throw new Error('Failed to encrypt zakat amount');
+        }
       }
 
       if (dto.totalLiabilities !== undefined) {
         const liabilities = typeof dto.totalLiabilities === 'string' ? dto.totalLiabilities : dto.totalLiabilities.toString();
-        updateData.totalLiabilities = liabilities;
+        try {
+          updateData.totalLiabilities = await EncryptionService.encrypt(liabilities, process.env.ENCRYPTION_KEY!);
+        } catch (error) {
+          this.logger.error('Failed to encrypt totalLiabilities', error);
+          throw new Error('Failed to encrypt liabilities data');
+        }
       }
 
       // Handle asset breakdown encryption
