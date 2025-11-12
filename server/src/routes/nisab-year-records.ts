@@ -329,12 +329,12 @@ router.get(
         });
       }
 
-      // Validate record status
-      if (record.status !== 'DRAFT') {
+      // Validate record status - allow DRAFT and UNLOCKED
+      if (record.status !== 'DRAFT' && record.status !== 'UNLOCKED') {
         return res.status(400).json({
           success: false,
           error: 'INVALID_STATUS',
-          message: 'Can only refresh assets for DRAFT records',
+          message: 'Can only refresh assets for DRAFT or UNLOCKED records',
         });
       }
 
