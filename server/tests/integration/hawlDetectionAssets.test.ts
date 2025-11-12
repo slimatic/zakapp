@@ -11,6 +11,23 @@ import { HawlTrackingService } from '../../src/services/HawlTrackingService';
 import { authHelpers } from '../helpers/authHelpers';
 import { assetHelpers } from '../helpers/assetHelpers';
 
+// Type for asset breakdown structure
+interface AssetSnapshotItem {
+  id: string;
+  name: string;
+  category: string;
+  value: number;
+  isZakatable: boolean;
+  addedAt: string | Date;
+}
+
+interface AssetBreakdown {
+  assets: AssetSnapshotItem[];
+  capturedAt: string;
+  totalWealth: number;
+  zakatableWealth: number;
+}
+
 describe('Automatic Asset Inclusion in Hawl Detection', () => {
   let hawlTrackingService: HawlTrackingService;
   let userId: string;
@@ -107,7 +124,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       expect(record.assetBreakdown).toBeTruthy();
 
       // Decrypt and verify asset breakdown
-      const assetBreakdown = JSON.parse(
+      const assetBreakdown: AssetBreakdown = JSON.parse(
         EncryptionService.decrypt(record.assetBreakdown)
       );
 
@@ -120,13 +137,13 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       // Verify all zakatable assets included
       expect(assetBreakdown.assets).toHaveLength(3);
 
-      const assetIds = assetBreakdown.assets.map((a: any) => a.id);
+      const assetIds = assetBreakdown.assets.map((a: AssetSnapshotItem) => a.id);
       expect(assetIds).toContain(assets[0].id);
       expect(assetIds).toContain(assets[1].id);
       expect(assetIds).toContain(assets[2].id);
 
       // Verify each asset has required fields
-      assetBreakdown.assets.forEach((asset: any) => {
+      assetBreakdown.assets.forEach((asset: AssetSnapshotItem) => {
         expect(asset).toHaveProperty('id');
         expect(asset).toHaveProperty('name');
         expect(asset).toHaveProperty('category');
@@ -237,7 +254,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       // Should only have 2 zakatable assets, not the residence
       expect(assetBreakdown.assets).toHaveLength(2);
       
-      const assetNames = assetBreakdown.assets.map((a: any) => a.name);
+      const assetNames = assetBreakdown.assets.map((a: AssetSnapshotItem) => a.name);
       expect(assetNames).toContain('Cash');
       expect(assetNames).toContain('Gold');
       expect(assetNames).not.toContain('Primary Residence');
@@ -431,9 +448,9 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       expect(assetBreakdown.assets).toHaveLength(2);
       
       const emptyAccount = assetBreakdown.assets.find(
-        (a: any) => a.name === 'Empty Account'
+        (a: AssetSnapshotItem) => a.name === 'Empty Account'
       );
-      expect(emptyAccount.value).toBe(0);
+      expect(emptyAccount?.value).toBe(0);
 
       // Totals should still be correct
       expect(assetBreakdown.totalWealth).toBe(7000);
@@ -442,7 +459,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
 
     it('should preserve asset order by addedAt date', async () => {
       // Create assets at different times
-      const firstAsset = await assetHelpers.createAsset(
+      await assetHelpers.createAsset(
         userId,
         {
           name: 'First Asset',
@@ -456,7 +473,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       // Wait a bit
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      const secondAsset = await assetHelpers.createAsset(
+      await assetHelpers.createAsset(
         userId,
         {
           name: 'Second Asset',
@@ -493,7 +510,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
   describe('JSON Structure Validation', () => {
     it('should match exact assetBreakdown JSON structure', async () => {
       // Create test asset
-      const asset = await assetHelpers.createAsset(
+      await assetHelpers.createAsset(
         userId,
         {
           name: 'Test Asset',

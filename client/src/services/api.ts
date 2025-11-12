@@ -334,10 +334,23 @@ class ApiService {
   }
 
   async recordPayment(data: any): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/payments`, {
+    const response = await fetch(`${API_BASE_URL}/payments`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  async getPayments(filters?: { snapshotId?: string; limit?: number; offset?: number }): Promise<ApiResponse> {
+    const params = new URLSearchParams();
+    if (filters?.snapshotId) params.append('snapshotId', filters.snapshotId);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.offset) params.append('offset', filters.offset.toString());
+    
+    const queryString = params.toString();
+    const response = await fetch(`${API_BASE_URL}/payments${queryString ? `?${queryString}` : ''}`, {
+      headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
   }
