@@ -114,6 +114,7 @@ export class WealthAggregationService {
           id: true,
           category: true,
           value: true,
+          zakatEligible: true,
         },
       });
 
