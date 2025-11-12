@@ -67,6 +67,7 @@ export class PaymentService {
       recipientCategory?: string;
       minAmount?: string;
       maxAmount?: string;
+      snapshotId?: string;
     }
   ): Promise<DecryptedPaymentData[]> {
     const {
@@ -79,10 +80,15 @@ export class PaymentService {
       recipientCategory,
       minAmount,
       maxAmount,
+      snapshotId,
     } = options || {};
 
     // Build where clause for filtering
     const where: Record<string, unknown> = { userId };
+
+    if (snapshotId) {
+      where.snapshotId = snapshotId;
+    }
 
     if (startDate || endDate) {
       const dateFilter: Record<string, Date> = {};
