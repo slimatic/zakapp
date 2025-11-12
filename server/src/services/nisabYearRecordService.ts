@@ -164,7 +164,7 @@ export class NisabYearRecordService {
 
       this.logger.info(`Nisab Year Record created: ${record.id} for user ${userId}`);
 
-      return this._mapToResponse(record);
+      return await this._mapToResponse(record);
     } catch (error) {
       this.logger.error('Failed to create Nisab Year Record', error);
       throw new Error(`Record creation failed: ${error.message}`);
@@ -204,7 +204,7 @@ export class NisabYearRecordService {
         );
       }
 
-      return this._mapToResponse(record, liveHawlData);
+      return await this._mapToResponse(record, liveHawlData);
     } catch (error) {
       this.logger.error('Failed to get record', error);
       throw error;
@@ -264,7 +264,7 @@ export class NisabYearRecordService {
       ]);
 
       return {
-        records: records.map(r => this._mapToResponse(r)),
+        records: await Promise.all(records.map(r => this._mapToResponse(r))),
         total,
       };
     } catch (error) {
@@ -395,7 +395,7 @@ export class NisabYearRecordService {
 
       this.logger.info(`Nisab Year Record updated: ${recordId}`);
 
-      return this._mapToResponse(updatedRecord);
+      return await this._mapToResponse(updatedRecord);
     } catch (error) {
       this.logger.error('Failed to update record', error);
       throw error;
@@ -490,7 +490,7 @@ export class NisabYearRecordService {
 
       this.logger.info(`Nisab Year Record finalized: ${recordId} with Zakat ${finalZakatAmount}`);
 
-      return this._mapToResponse(finalizedRecord);
+      return await this._mapToResponse(finalizedRecord);
     } catch (error) {
       this.logger.error('Failed to finalize record', error);
       throw error;
@@ -546,7 +546,7 @@ export class NisabYearRecordService {
 
       this.logger.info(`Nisab Year Record unlocked: ${recordId} with reason: ${(dto as any).unlockReason.substring(0, 20)}...`);
 
-      return this._mapToResponse(unlockedRecord);
+      return await this._mapToResponse(unlockedRecord);
     } catch (error) {
       this.logger.error('Failed to unlock record', error);
       throw error;
@@ -631,7 +631,7 @@ export class NisabYearRecordService {
 
       this.logger.info(`Nisab Year Record re-finalized: ${recordId}`);
 
-      return this._mapToResponse(refinializedRecord);
+      return await this._mapToResponse(refinializedRecord);
     } catch (error) {
       this.logger.error('Failed to refinalize record', error);
       throw error;
@@ -679,15 +679,15 @@ export class NisabYearRecordService {
   /**
    * Private: Map database record to response DTO
    */
-  private _mapToResponse(record: any, liveHawlData?: LiveHawlData): NisabYearRecord | NisabYearRecordWithLiveTracking {
+  private async _mapToResponse(record: any, liveHawlData?: LiveHawlData): Promise<NisabYearRecord | NisabYearRecordWithLiveTracking> {
     // Decrypt sensitive fields with fallback for plaintext or corrupted data
-    const safeDecrypt = (value: string | null | undefined, defaultValue: string = '0'): string => {
+    const safeDecrypt = async (value: string | null | undefined, defaultValue: string = '0'): Promise<string> => {
       if (!value) return defaultValue;
       
       try {
         // Check if value looks like encrypted data (starts with encryption marker)
         if (value.includes(':') || value.startsWith('U2FsdGVk')) {
-          return EncryptionService.decrypt(value, process.env.ENCRYPTION_KEY!);
+          return await EncryptionService.decrypt(value, process.env.ENCRYPTION_KEY!);
         }
         // If it's already plaintext (old data), return as-is
         return value;
@@ -697,10 +697,10 @@ export class NisabYearRecordService {
       }
     };
 
-    const decryptedTotalWealth = safeDecrypt(record.totalWealth);
-    const decryptedTotalLiabilities = safeDecrypt(record.totalLiabilities);
-    const decryptedZakatableWealth = safeDecrypt(record.zakatableWealth);
-    const decryptedZakatAmount = safeDecrypt(record.zakatAmount);
+    const decryptedTotalWealth = await safeDecrypt(record.totalWealth);
+    const decryptedTotalLiabilities = await safeDecrypt(record.totalLiabilities);
+    const decryptedZakatableWealth = await safeDecrypt(record.zakatableWealth);
+    const decryptedZakatAmount = await safeDecrypt(record.zakatAmount);
 
     const data = {
       id: record.id,
