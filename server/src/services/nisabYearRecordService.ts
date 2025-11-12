@@ -435,12 +435,9 @@ export class NisabYearRecordService {
         throw new Error('Cannot finalize: Hawl period not complete (354 days required)');
       }
 
-      // Calculate final Zakat
-      const zakatableWealth = await this.wealthAggregationService.calculatePeriodWealth(
-        userId,
-        record.hawlStartDate,
-        record.hawlCompletionDate || new Date()
-      );
+      // Calculate final Zakat using all current active assets
+      // Note: Hawl period tracking validates duration requirement, not which assets to include
+      const zakatableWealth = await this.wealthAggregationService.calculateTotalZakatableWealth(userId);
 
   const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
       
@@ -609,12 +606,9 @@ export class NisabYearRecordService {
         throw new Error(`Cannot refinalize record in ${record.status} status`);
       }
 
-      // Recalculate Zakat with any updated data
-      const zakatableWealth = await this.wealthAggregationService.calculatePeriodWealth(
-        userId,
-        record.hawlStartDate!,
-        record.hawlCompletionDate || new Date()
-      );
+      // Recalculate Zakat using all current active assets
+      // Note: Hawl period tracking validates duration requirement, not which assets to include
+      const zakatableWealth = await this.wealthAggregationService.calculateTotalZakatableWealth(userId);
 
   const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
       
