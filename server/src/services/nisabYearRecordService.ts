@@ -443,8 +443,15 @@ export class NisabYearRecordService {
       );
 
   const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
+      
+      // Calculate total wealth from breakdown
+      const totalWealth = Object.values(zakatableWealth.breakdown).reduce((sum: number, val: number) => sum + val, 0);
 
-      // Encrypt wealth and zakat amount before saving
+      // Encrypt all wealth fields before saving
+      const encryptedTotalWealth = await EncryptionService.encrypt(
+        totalWealth.toString(),
+        process.env.ENCRYPTION_KEY!
+      );
       const encryptedZakatableWealth = await EncryptionService.encrypt(
         zakatableWealth.totalZakatableWealth.toString(),
         process.env.ENCRYPTION_KEY!
@@ -458,6 +465,7 @@ export class NisabYearRecordService {
       // If this is a re-finalization (record.status === 'UNLOCKED'), preserve the original hawlStartDate and hawlCompletionDate where appropriate
       const updateData: any = {
         status: 'FINALIZED',
+        totalWealth: encryptedTotalWealth,
         zakatableWealth: encryptedZakatableWealth,
         zakatAmount: encryptedZakatAmount,
         userNotes: (dto as any).overrideNote || record.userNotes,
@@ -609,14 +617,32 @@ export class NisabYearRecordService {
       );
 
   const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
+      
+      // Calculate total wealth from breakdown
+      const totalWealth = Object.values(zakatableWealth.breakdown).reduce((sum: number, val: number) => sum + val, 0);
+
+      // Encrypt all wealth fields before saving
+      const encryptedTotalWealth = await EncryptionService.encrypt(
+        totalWealth.toString(),
+        process.env.ENCRYPTION_KEY!
+      );
+      const encryptedZakatableWealth = await EncryptionService.encrypt(
+        zakatableWealth.totalZakatableWealth.toString(),
+        process.env.ENCRYPTION_KEY!
+      );
+      const encryptedZakatAmount = await EncryptionService.encrypt(
+        finalZakatAmount.toString(),
+        process.env.ENCRYPTION_KEY!
+      );
 
       // Transition to FINALIZED
       const refinializedRecord = await this.prisma.yearlySnapshot.update({
         where: { id: recordId },
         data: {
           status: 'FINALIZED',
-          zakatableWealth: zakatableWealth.totalZakatableWealth.toString(),
-          zakatAmount: finalZakatAmount.toString(),
+          totalWealth: encryptedTotalWealth,
+          zakatableWealth: encryptedZakatableWealth,
+          zakatAmount: encryptedZakatAmount,
           finalizedAt: new Date(),
         } as any,
       });
