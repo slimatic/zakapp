@@ -15,15 +15,10 @@ import { assetHelpers } from '../helpers/assetHelpers';
 describe('Asset Refresh Workflow Integration Test', () => {
   let authToken: string;
   let userId: string;
-  let encryptionService: EncryptionService;
-
-  beforeAll(async () => {
-    encryptionService = EncryptionService.getInstance();
-  });
 
   beforeEach(async () => {
     // Clean database
-    await prisma.nisabYearRecord.deleteMany();
+    await prisma.yearlySnapshot.deleteMany();
     await prisma.asset.deleteMany();
     await prisma.user.deleteMany();
 
@@ -34,7 +29,7 @@ describe('Asset Refresh Workflow Integration Test', () => {
   });
 
   afterEach(async () => {
-    await prisma.nisabYearRecord.deleteMany();
+    await prisma.yearlySnapshot.deleteMany();
     await prisma.asset.deleteMany();
     await prisma.user.deleteMany();
   });
@@ -82,14 +77,14 @@ describe('Asset Refresh Workflow Integration Test', () => {
         zakatableWealth: 8000,
       };
 
-      const record = await prisma.nisabYearRecord.create({
+      const record = await prisma.yearlySnapshot.create({
         data: {
           userId,
           hawlStartDate: new Date('2025-01-01'),
           hawlStartDateHijri: '1446-06-01',
           hawlCompletionDate: new Date('2025-12-20'),
           hawlCompletionDateHijri: '1447-06-01',
-          nisabThresholdAtStart: encryptionService.encrypt('5000'),
+          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
           nisabBasis: 'gold',
           calculationDate: new Date('2025-01-01'),
           gregorianYear: 2025,
@@ -98,14 +93,14 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: encryptionService.encrypt('8000'),
-          totalLiabilities: encryptionService.encrypt('0'),
-          zakatableWealth: encryptionService.encrypt('8000'),
-          zakatAmount: encryptionService.encrypt('200'),
+          totalWealth: EncryptionService.encrypt('8000').encryptedData,
+          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
+          zakatableWealth: EncryptionService.encrypt('8000').encryptedData,
+          zakatAmount: EncryptionService.encrypt('200').encryptedData,
           methodologyUsed: 'standard',
           status: 'DRAFT',
-          assetBreakdown: encryptionService.encrypt(JSON.stringify(initialSnapshot)),
-          calculationDetails: encryptionService.encrypt(JSON.stringify({})),
+          assetBreakdown: EncryptionService.encrypt(JSON.stringify(initialSnapshot)).encryptedData,
+          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
           isPrimary: false,
         },
       });
@@ -151,26 +146,26 @@ describe('Asset Refresh Workflow Integration Test', () => {
       expect(goldAsset.addedAt).toBeDefined();
 
       // Step 6: Verify record is NOT updated (refresh doesn't persist)
-      const unchangedRecord = await prisma.nisabYearRecord.findUnique({
+      const unchangedRecord = await prisma.yearlySnapshot.findUnique({
         where: { id: record.id },
       });
       
       const storedSnapshot = JSON.parse(
-        encryptionService.decrypt(unchangedRecord!.assetBreakdown)
+        EncryptionService.decrypt(unchangedRecord!.assetBreakdown)
       );
       expect(storedSnapshot.assets).toHaveLength(2); // Still original 2 assets
     });
 
     it('should return 400 for FINALIZED record', async () => {
       // Create FINALIZED record
-      const record = await prisma.nisabYearRecord.create({
+      const record = await prisma.yearlySnapshot.create({
         data: {
           userId,
           hawlStartDate: new Date('2024-01-01'),
           hawlStartDateHijri: '1445-06-01',
           hawlCompletionDate: new Date('2024-12-20'),
           hawlCompletionDateHijri: '1446-06-01',
-          nisabThresholdAtStart: encryptionService.encrypt('5000'),
+          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
           nisabBasis: 'gold',
           calculationDate: new Date('2024-12-20'),
           gregorianYear: 2024,
@@ -179,15 +174,15 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: encryptionService.encrypt('10000'),
-          totalLiabilities: encryptionService.encrypt('0'),
-          zakatableWealth: encryptionService.encrypt('10000'),
-          zakatAmount: encryptionService.encrypt('250'),
+          totalWealth: EncryptionService.encrypt('10000').encryptedData,
+          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
+          zakatableWealth: EncryptionService.encrypt('10000').encryptedData,
+          zakatAmount: EncryptionService.encrypt('250').encryptedData,
           methodologyUsed: 'standard',
           status: 'FINALIZED',
           finalizedAt: new Date('2024-12-20'),
-          assetBreakdown: encryptionService.encrypt(JSON.stringify({ assets: [] })),
-          calculationDetails: encryptionService.encrypt(JSON.stringify({})),
+          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
+          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
           isPrimary: false,
         },
       });
@@ -205,14 +200,14 @@ describe('Asset Refresh Workflow Integration Test', () => {
 
     it('should return 400 for UNLOCKED record', async () => {
       // Create UNLOCKED record
-      const record = await prisma.nisabYearRecord.create({
+      const record = await prisma.yearlySnapshot.create({
         data: {
           userId,
           hawlStartDate: new Date('2024-01-01'),
           hawlStartDateHijri: '1445-06-01',
           hawlCompletionDate: new Date('2024-12-20'),
           hawlCompletionDateHijri: '1446-06-01',
-          nisabThresholdAtStart: encryptionService.encrypt('5000'),
+          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
           nisabBasis: 'gold',
           calculationDate: new Date('2024-12-20'),
           gregorianYear: 2024,
@@ -221,15 +216,15 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: encryptionService.encrypt('10000'),
-          totalLiabilities: encryptionService.encrypt('0'),
-          zakatableWealth: encryptionService.encrypt('10000'),
-          zakatAmount: encryptionService.encrypt('250'),
+          totalWealth: EncryptionService.encrypt('10000').encryptedData,
+          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
+          zakatableWealth: EncryptionService.encrypt('10000').encryptedData,
+          zakatAmount: EncryptionService.encrypt('250').encryptedData,
           methodologyUsed: 'standard',
           status: 'UNLOCKED',
           finalizedAt: new Date('2024-12-20'),
-          assetBreakdown: encryptionService.encrypt(JSON.stringify({ assets: [] })),
-          calculationDetails: encryptionService.encrypt(JSON.stringify({})),
+          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
+          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
           isPrimary: false,
         },
       });
@@ -258,14 +253,14 @@ describe('Asset Refresh Workflow Integration Test', () => {
       const otherUser = await authHelpers.createAuthenticatedUser();
 
       // Create record for other user
-      const record = await prisma.nisabYearRecord.create({
+      const record = await prisma.yearlySnapshot.create({
         data: {
           userId: otherUser.userId,
           hawlStartDate: new Date('2025-01-01'),
           hawlStartDateHijri: '1446-06-01',
           hawlCompletionDate: new Date('2025-12-20'),
           hawlCompletionDateHijri: '1447-06-01',
-          nisabThresholdAtStart: encryptionService.encrypt('5000'),
+          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
           nisabBasis: 'gold',
           calculationDate: new Date('2025-01-01'),
           gregorianYear: 2025,
@@ -274,14 +269,14 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: encryptionService.encrypt('10000'),
-          totalLiabilities: encryptionService.encrypt('0'),
-          zakatableWealth: encryptionService.encrypt('10000'),
-          zakatAmount: encryptionService.encrypt('250'),
+          totalWealth: EncryptionService.encrypt('10000').encryptedData,
+          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
+          zakatableWealth: EncryptionService.encrypt('10000').encryptedData,
+          zakatAmount: EncryptionService.encrypt('250').encryptedData,
           methodologyUsed: 'standard',
           status: 'DRAFT',
-          assetBreakdown: encryptionService.encrypt(JSON.stringify({ assets: [] })),
-          calculationDetails: encryptionService.encrypt(JSON.stringify({})),
+          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
+          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
           isPrimary: false,
         },
       });
@@ -309,14 +304,14 @@ describe('Asset Refresh Workflow Integration Test', () => {
       ]);
 
       // Create DRAFT record
-      const record = await prisma.nisabYearRecord.create({
+      const record = await prisma.yearlySnapshot.create({
         data: {
           userId,
           hawlStartDate: new Date('2025-01-01'),
           hawlStartDateHijri: '1446-06-01',
           hawlCompletionDate: new Date('2025-12-20'),
           hawlCompletionDateHijri: '1447-06-01',
-          nisabThresholdAtStart: encryptionService.encrypt('5000'),
+          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
           nisabBasis: 'gold',
           calculationDate: new Date('2025-01-01'),
           gregorianYear: 2025,
@@ -325,14 +320,14 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: encryptionService.encrypt('8000'),
-          totalLiabilities: encryptionService.encrypt('0'),
-          zakatableWealth: encryptionService.encrypt('8000'),
-          zakatAmount: encryptionService.encrypt('200'),
+          totalWealth: EncryptionService.encrypt('8000').encryptedData,
+          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
+          zakatableWealth: EncryptionService.encrypt('8000').encryptedData,
+          zakatAmount: EncryptionService.encrypt('200').encryptedData,
           methodologyUsed: 'standard',
           status: 'DRAFT',
-          assetBreakdown: encryptionService.encrypt(JSON.stringify({ assets: [] })),
-          calculationDetails: encryptionService.encrypt(JSON.stringify({})),
+          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
+          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
           isPrimary: false,
         },
       });
@@ -369,14 +364,14 @@ describe('Asset Refresh Workflow Integration Test', () => {
       );
 
       // Create DRAFT record
-      const record = await prisma.nisabYearRecord.create({
+      const record = await prisma.yearlySnapshot.create({
         data: {
           userId,
           hawlStartDate: new Date('2025-01-01'),
           hawlStartDateHijri: '1446-06-01',
           hawlCompletionDate: new Date('2025-12-20'),
           hawlCompletionDateHijri: '1447-06-01',
-          nisabThresholdAtStart: encryptionService.encrypt('5000'),
+          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
           nisabBasis: 'gold',
           calculationDate: new Date('2025-01-01'),
           gregorianYear: 2025,
@@ -385,14 +380,14 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: encryptionService.encrypt('8000'),
-          totalLiabilities: encryptionService.encrypt('0'),
-          zakatableWealth: encryptionService.encrypt('8000'),
-          zakatAmount: encryptionService.encrypt('200'),
+          totalWealth: EncryptionService.encrypt('8000').encryptedData,
+          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
+          zakatableWealth: EncryptionService.encrypt('8000').encryptedData,
+          zakatAmount: EncryptionService.encrypt('200').encryptedData,
           methodologyUsed: 'standard',
           status: 'DRAFT',
-          assetBreakdown: encryptionService.encrypt(JSON.stringify({ assets: [] })),
-          calculationDetails: encryptionService.encrypt(JSON.stringify({})),
+          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
+          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
           isPrimary: false,
         },
       });

@@ -13,18 +13,16 @@ import { assetHelpers } from '../helpers/assetHelpers';
 
 describe('Automatic Asset Inclusion in Hawl Detection', () => {
   let hawlTrackingService: HawlTrackingService;
-  let encryptionService: EncryptionService;
   let userId: string;
   let authToken: string;
 
   beforeAll(async () => {
     hawlTrackingService = new HawlTrackingService();
-    encryptionService = EncryptionService.getInstance();
   });
 
   beforeEach(async () => {
     // Clean database
-    await prisma.nisabYearRecord.deleteMany();
+    await prisma.yearlySnapshot.deleteMany();
     await prisma.asset.deleteMany();
     await prisma.preciousMetalPrice.deleteMany();
     await prisma.user.deleteMany();
@@ -47,7 +45,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
   });
 
   afterEach(async () => {
-    await prisma.nisabYearRecord.deleteMany();
+    await prisma.yearlySnapshot.deleteMany();
     await prisma.asset.deleteMany();
     await prisma.preciousMetalPrice.deleteMany();
     await prisma.user.deleteMany();
@@ -98,7 +96,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       await hawlTrackingService.detectNisabAchievement();
 
       // Verify DRAFT record was created
-      const records = await prisma.nisabYearRecord.findMany({
+      const records = await prisma.yearlySnapshot.findMany({
         where: { userId },
       });
 
@@ -110,7 +108,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
 
       // Decrypt and verify asset breakdown
       const assetBreakdown = JSON.parse(
-        encryptionService.decrypt(record.assetBreakdown)
+        EncryptionService.decrypt(record.assetBreakdown)
       );
 
       // Verify JSON structure
@@ -165,14 +163,14 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       await hawlTrackingService.detectNisabAchievement();
 
       // Get created record
-      const record = await prisma.nisabYearRecord.findFirst({
+      const record = await prisma.yearlySnapshot.findFirst({
         where: { userId },
       });
 
       expect(record).toBeTruthy();
 
       const assetBreakdown = JSON.parse(
-        encryptionService.decrypt(record!.assetBreakdown)
+        EncryptionService.decrypt(record!.assetBreakdown)
       );
 
       const snapshotAsset = assetBreakdown.assets[0];
@@ -228,12 +226,12 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       await hawlTrackingService.detectNisabAchievement();
 
       // Get created record
-      const record = await prisma.nisabYearRecord.findFirst({
+      const record = await prisma.yearlySnapshot.findFirst({
         where: { userId },
       });
 
       const assetBreakdown = JSON.parse(
-        encryptionService.decrypt(record!.assetBreakdown)
+        EncryptionService.decrypt(record!.assetBreakdown)
       );
 
       // Should only have 2 zakatable assets, not the residence
@@ -268,7 +266,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       await hawlTrackingService.detectNisabAchievement();
 
       // Get raw record from database
-      const record = await prisma.nisabYearRecord.findFirst({
+      const record = await prisma.yearlySnapshot.findFirst({
         where: { userId },
       });
 
@@ -276,7 +274,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       expect(() => JSON.parse(record!.assetBreakdown)).toThrow();
 
       // Verify it can be decrypted
-      const decrypted = encryptionService.decrypt(record!.assetBreakdown);
+      const decrypted = EncryptionService.decrypt(record!.assetBreakdown);
       const parsed = JSON.parse(decrypted);
       expect(parsed.assets).toHaveLength(1);
     });
@@ -286,7 +284,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       await hawlTrackingService.detectNisabAchievement();
 
       // No record should be created
-      const records = await prisma.nisabYearRecord.findMany({
+      const records = await prisma.yearlySnapshot.findMany({
         where: { userId },
       });
 
@@ -310,7 +308,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       await hawlTrackingService.detectNisabAchievement();
 
       // No record should be created
-      const records = await prisma.nisabYearRecord.findMany({
+      const records = await prisma.yearlySnapshot.findMany({
         where: { userId },
       });
 
@@ -343,12 +341,12 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       });
 
       // Get created record
-      const record = await prisma.nisabYearRecord.findFirst({
+      const record = await prisma.yearlySnapshot.findFirst({
         where: { userId },
       });
 
       const assetBreakdown = JSON.parse(
-        encryptionService.decrypt(record!.assetBreakdown)
+        EncryptionService.decrypt(record!.assetBreakdown)
       );
 
       // Snapshot should still show original value (10000), not modified value (5000)
@@ -377,7 +375,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       // Run detection first time
       await hawlTrackingService.detectNisabAchievement();
 
-      const firstRecords = await prisma.nisabYearRecord.findMany({
+      const firstRecords = await prisma.yearlySnapshot.findMany({
         where: { userId },
       });
       expect(firstRecords).toHaveLength(1);
@@ -385,7 +383,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       // Run detection second time
       await hawlTrackingService.detectNisabAchievement();
 
-      const secondRecords = await prisma.nisabYearRecord.findMany({
+      const secondRecords = await prisma.yearlySnapshot.findMany({
         where: { userId },
       });
       
@@ -421,12 +419,12 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       await hawlTrackingService.detectNisabAchievement();
 
       // Get created record
-      const record = await prisma.nisabYearRecord.findFirst({
+      const record = await prisma.yearlySnapshot.findFirst({
         where: { userId },
       });
 
       const assetBreakdown = JSON.parse(
-        encryptionService.decrypt(record!.assetBreakdown)
+        EncryptionService.decrypt(record!.assetBreakdown)
       );
 
       // Both assets should be included
@@ -473,12 +471,12 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       await hawlTrackingService.detectNisabAchievement();
 
       // Get created record
-      const record = await prisma.nisabYearRecord.findFirst({
+      const record = await prisma.yearlySnapshot.findFirst({
         where: { userId },
       });
 
       const assetBreakdown = JSON.parse(
-        encryptionService.decrypt(record!.assetBreakdown)
+        EncryptionService.decrypt(record!.assetBreakdown)
       );
 
       // Assets should be in chronological order
@@ -510,12 +508,12 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       await hawlTrackingService.detectNisabAchievement();
 
       // Get created record
-      const record = await prisma.nisabYearRecord.findFirst({
+      const record = await prisma.yearlySnapshot.findFirst({
         where: { userId },
       });
 
       const assetBreakdown = JSON.parse(
-        encryptionService.decrypt(record!.assetBreakdown)
+        EncryptionService.decrypt(record!.assetBreakdown)
       );
 
       // Verify exact structure matches specification
