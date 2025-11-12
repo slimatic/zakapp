@@ -291,8 +291,8 @@ export class NisabYearRecordService {
     try {
       const record = await this._verifyOwnership(userId, recordId);
 
-      // Only allow updates in DRAFT status
-      if (record.status !== 'DRAFT') {
+      // Allow updates in DRAFT and UNLOCKED status
+      if (record.status !== 'DRAFT' && record.status !== 'UNLOCKED') {
         throw new Error(`Cannot update record in ${record.status} status`);
       }
 
@@ -400,8 +400,8 @@ export class NisabYearRecordService {
     try {
       const record = await this._verifyOwnership(userId, recordId);
 
-      // Check if can finalize
-      if (!['DRAFT', 'REFINALIZED'].includes(record.status)) {
+      // Check if can finalize: allow DRAFT or UNLOCKED (re-finalize flow)
+      if (!['DRAFT', 'REFINALIZED', 'UNLOCKED'].includes(record.status)) {
         throw new Error(`Cannot finalize record in ${record.status} status`);
       }
 
@@ -425,16 +425,23 @@ export class NisabYearRecordService {
   const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
 
       // Update record to FINALIZED
+      // If this is a re-finalization (record.status === 'UNLOCKED'), preserve the original hawlStartDate and hawlCompletionDate where appropriate
+      const updateData: any = {
+        status: 'FINALIZED',
+        zakatableWealth: zakatableWealth.totalZakatableWealth.toString(),
+        zakatAmount: finalZakatAmount.toString(),
+        userNotes: (dto as any).overrideNote || record.userNotes,
+        finalizedAt: new Date(),
+      };
+
+      // Only set hawlCompletionDate to now when the previous status was DRAFT (first finalization)
+      if (record.status === 'DRAFT') {
+        updateData.hawlCompletionDate = new Date();
+      }
+
       const finalizedRecord = await this.prisma.yearlySnapshot.update({
         where: { id: recordId },
-        data: {
-          status: 'FINALIZED',
-          zakatableWealth: zakatableWealth.totalZakatableWealth.toString(),
-          zakatAmount: finalZakatAmount.toString(),
-          hawlCompletionDate: new Date(),
-          userNotes: (dto as any).overrideNote || record.userNotes,
-          finalizedAt: new Date(),
-        } as any,
+        data: updateData,
       });
 
       // Record audit event
