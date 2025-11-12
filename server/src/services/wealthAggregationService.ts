@@ -114,7 +114,6 @@ export class WealthAggregationService {
           id: true,
           category: true,
           value: true,
-          zakatEligible: true,
         },
       });
 
@@ -308,8 +307,8 @@ export class WealthAggregationService {
     };
 
     for (const asset of assets) {
-      if (!asset.zakatEligible) continue;
-
+      // All active assets are considered zakatable by category
+      // Specific eligibility rules are handled by ZakatEngine
       const category = asset.category.toLowerCase();
       if (category in breakdown) {
         breakdown[category as keyof typeof breakdown] += asset.value;
@@ -335,8 +334,7 @@ export class WealthAggregationService {
     const grouped: Record<string, { value: number; count: number }> = {};
 
     for (const asset of assets) {
-      if (!asset.zakatEligible) continue;
-
+      // All active assets are considered zakatable by category
       const category = asset.category.toLowerCase();
       if (!grouped[category]) {
         grouped[category] = { value: 0, count: 0 };
