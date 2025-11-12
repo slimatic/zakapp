@@ -288,7 +288,7 @@
   - Test accessibility (keyboard nav, ARIA)
   - Expected: FAIL (component doesn't exist yet) ✅ TEST WRITTEN
 
-- [x] T094 [P] Integration test for asset refresh workflow in server/tests/integration/assetRefresh.test.ts **[FR-032a]**
+- [x] T094 [P] Integration test for asset refresh workflow in server/tests/integration/assetRefresh.test.ts **[FR-032a]** ✅ API FIXES APPLIED
   - Create DRAFT record with initial asset snapshot
   - Add new asset to user
   - Call GET /api/nisab-year-records/:id/assets/refresh endpoint
@@ -296,17 +296,19 @@
   - Update record with new selection
   - Verify assetBreakdown updated correctly
   - Expected: FAIL (endpoint doesn't exist yet) ✅ TEST WRITTEN
-  - **⚠️ NEEDS FIXES**: Test uses wrong API (EncryptionService.getInstance(), prisma.nisabYearRecord instead of yearlySnapshot)
+  - ✅ FIXED: Updated to use correct Prisma API (`yearlySnapshot` instead of `nisabYearRecord`)
+  - ✅ FIXED: Updated to use static `EncryptionService.encrypt().encryptedData` and `EncryptionService.decrypt()`
   - See T094-T095-TEST-EXECUTION-REPORT.md for details
 
-- [x] T095 [P] Integration test for automatic asset inclusion in background job in server/tests/integration/hawlDetectionAssets.test.ts **[FR-014, FR-011a]**
+- [x] T095 [P] Integration test for automatic asset inclusion in background job in server/tests/integration/hawlDetectionAssets.test.ts **[FR-014, FR-011a]** ✅ API FIXES APPLIED
   - Create assets for user that exceed Nisab
   - Run Hawl detection job
   - Verify DRAFT record created with assetBreakdown populated
   - Verify all zakatable assets included in snapshot
   - Verify JSON structure matches: `{ assets: [{ id, name, category, value, isZakatable, addedAt }], capturedAt, totalWealth, zakatableWealth }`
   - Expected: FAIL (asset snapshot logic doesn't exist yet) ✅ TEST WRITTEN
-  - **⚠️ NEEDS FIXES**: Test uses wrong API (same issues as T094)
+  - ✅ FIXED: Updated to use correct Prisma API (`yearlySnapshot` instead of `nisabYearRecord`)
+  - ✅ FIXED: Updated to use static `EncryptionService.decrypt()`
   - See T094-T095-TEST-EXECUTION-REPORT.md for details
 
 - [x] **🔸 COMMIT CHECKPOINT**: Commit TDD test suite for asset auto-inclusion (all tests must be failing) ✅ DONE (commit 272cf8d)
