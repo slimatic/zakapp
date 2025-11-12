@@ -69,7 +69,14 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   // Pass nisabBasis from record to hook to get correct Nisab threshold
   const nisabBasis = (record.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
   const { nisabAmount } = useNisabThreshold(record.currency, nisabBasis);
-  const { liveHawlData, isUpdating } = useHawlStatus(record.id, 5000);
+  
+  // Only enable live tracking for DRAFT records, not FINALIZED or UNLOCKED
+  const shouldEnableLiveTracking = record.status === 'DRAFT';
+  const { liveHawlData, isUpdating } = useHawlStatus(
+    record.id, 
+    5000, 
+    shouldEnableLiveTracking
+  );
 
   // Calculate wealth and comparison
   const {
@@ -79,8 +86,11 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
     isAbove,
     differenceAmount,
   } = useMemo(() => {
-    // Use live data if available, otherwise use stored wealth from record
-    const wealth = (liveHawlData?.currentTotalWealth) || currentWealth || parseFloat(record.totalWealth) || 0;
+    // For FINALIZED/UNLOCKED records, use stored wealth (already decrypted by backend)
+    // For DRAFT records, use live data if available
+    const wealth = shouldEnableLiveTracking 
+      ? (liveHawlData?.currentTotalWealth || currentWealth || parseFloat(record.totalWealth) || 0)
+      : (currentWealth || parseFloat(record.totalWealth) || 0);
     
     // Use nisabAmount from hook (freshly fetched based on nisabBasis)
     // Note: nisabThresholdAtStart in record is encrypted, so we can't parse it directly
@@ -97,7 +107,7 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
       isAbove: isWealthAbove,
       differenceAmount: diff,
     };
-  }, [liveHawlData, currentWealth, record, nisabAmount]);
+  }, [liveHawlData, currentWealth, record, nisabAmount, shouldEnableLiveTracking]);
 
   // Format currency
   const formatCurrency = (amount: number): string => {
