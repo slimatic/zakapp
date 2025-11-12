@@ -680,19 +680,27 @@ export class NisabYearRecordService {
    * Private: Map database record to response DTO
    */
   private _mapToResponse(record: any, liveHawlData?: LiveHawlData): NisabYearRecord | NisabYearRecordWithLiveTracking {
-    // Decrypt sensitive fields
-    const decryptedTotalWealth = record.totalWealth 
-      ? EncryptionService.decrypt(record.totalWealth, process.env.ENCRYPTION_KEY!)
-      : '0';
-    const decryptedTotalLiabilities = record.totalLiabilities
-      ? EncryptionService.decrypt(record.totalLiabilities, process.env.ENCRYPTION_KEY!)
-      : '0';
-    const decryptedZakatableWealth = record.zakatableWealth
-      ? EncryptionService.decrypt(record.zakatableWealth, process.env.ENCRYPTION_KEY!)
-      : '0';
-    const decryptedZakatAmount = record.zakatAmount
-      ? EncryptionService.decrypt(record.zakatAmount, process.env.ENCRYPTION_KEY!)
-      : '0';
+    // Decrypt sensitive fields with fallback for plaintext or corrupted data
+    const safeDecrypt = (value: string | null | undefined, defaultValue: string = '0'): string => {
+      if (!value) return defaultValue;
+      
+      try {
+        // Check if value looks like encrypted data (starts with encryption marker)
+        if (value.includes(':') || value.startsWith('U2FsdGVk')) {
+          return EncryptionService.decrypt(value, process.env.ENCRYPTION_KEY!);
+        }
+        // If it's already plaintext (old data), return as-is
+        return value;
+      } catch (error) {
+        this.logger.warn(`Failed to decrypt field, returning default: ${error.message}`);
+        return defaultValue;
+      }
+    };
+
+    const decryptedTotalWealth = safeDecrypt(record.totalWealth);
+    const decryptedTotalLiabilities = safeDecrypt(record.totalLiabilities);
+    const decryptedZakatableWealth = safeDecrypt(record.zakatableWealth);
+    const decryptedZakatAmount = safeDecrypt(record.zakatAmount);
 
     const data = {
       id: record.id,
