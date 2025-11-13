@@ -117,7 +117,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
         {/* Toggle Button */}
         <button
           onClick={toggleCollapsed}
-          className="p-2 rounded-md text-gray-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          className="p-2 rounded-md text-gray-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label={isCollapsed ? 'Expand guide' : 'Collapse guide'}
           aria-expanded={!isCollapsed}
         >
@@ -209,7 +209,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                     {/* Action Button (only for current step) */}
                     {current && (
                       <button
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline focus:outline-none"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center py-2 px-3"
                         onClick={() => {
                           // Navigation will be handled by parent component
                           // This is just a visual indicator

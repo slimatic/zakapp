@@ -58,7 +58,7 @@ const EducationalModule: React.FC = () => {
 
         <button
           onClick={toggleExpanded}
-          className="p-2 rounded-md text-gray-600 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-600"
+          className="p-2 rounded-md text-gray-600 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-600 min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label={isExpanded ? 'Collapse educational content' : 'Expand educational content'}
           aria-expanded={isExpanded}
         >
