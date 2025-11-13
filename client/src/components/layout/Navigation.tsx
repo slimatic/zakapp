@@ -49,7 +49,7 @@ export const Navigation: React.FC<NavigationProps> = ({ items, className = '' })
 
   return (
     <nav 
-      className={`hidden md:flex items-center space-x-8 ${className}`}
+      className={`hidden md:flex items-center space-x-4 md:space-x-6 lg:space-x-8 ${className}`}
       aria-label="Main navigation"
     >
       {items.map((item) => (

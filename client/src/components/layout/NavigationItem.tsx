@@ -38,10 +38,10 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({
       to={href}
       className={`
         inline-flex items-center justify-center gap-2
-        px-4 py-2 rounded-md
-        text-sm font-medium
+        px-3 py-2 md:px-4 lg:px-5 rounded-md
+        text-sm md:text-base font-medium
         transition-colors duration-150
-        min-h-[44px] min-w-[44px]
+        min-h-[44px] md:min-h-[48px] min-w-[44px]
         focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600
         ${
           isActive
@@ -53,11 +53,11 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({
       aria-current={isActive ? 'page' : undefined}
     >
       {icon && (
-        <span className="flex-shrink-0" aria-hidden="true">
+        <span className="flex-shrink-0 hidden md:inline-flex w-5 h-5 lg:w-6 lg:h-6" aria-hidden="true">
           {icon}
         </span>
       )}
-      <span>{name}</span>
+      <span className="truncate">{name}</span>
     </NavLink>
   );
 };
