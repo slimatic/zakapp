@@ -454,7 +454,7 @@ client/tests/
 
 **Goal**: Ensure WCAG 2.1 AA compliance throughout navigation and dashboard
 
-- [ ] **T031** [P] Add skip link for keyboard navigation in `client/src/components/common/SkipLink.tsx`
+- [X] **T031** [P] Add skip link for keyboard navigation in `client/src/components/common/SkipLink.tsx`
   - Component renders at very top of page (before navigation)
   - Hidden by default, visible on focus
   - Text: "Skip to main content"
@@ -462,16 +462,18 @@ client/tests/
   - CSS: `sr-only focus:not-sr-only` (visually hidden unless focused)
   - **Duration**: ~20 minutes
   - **Test**: Tab from page load reveals skip link
+  - **Status**: ✅ COMPLETE
 
-- [ ] **T032** [P] Implement focus indicators in `client/src/styles/navigation.css` (2px outline, 4.5:1 contrast)
-  - CSS: `focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600`
+- [X] **T032** [P] Implement focus indicators in `client/src/styles/accessibility.css` (2px outline, 4.5:1 contrast)
+  - CSS: Updated to 2px solid #16a34a outline with 4.5:1 contrast ratio
   - Apply to all navigation links and buttons
   - Ensure 4.5:1 contrast ratio (green-600 on white background)
   - Remove default browser outline, replace with custom
   - **Duration**: ~30 minutes
   - **Test**: All interactive elements have visible focus indicator
+  - **Status**: ✅ COMPLETE
 
-- [ ] **T033** [P] Add ARIA labels and landmarks throughout navigation components
+- [X] **T033** [P] Add ARIA labels and landmarks throughout navigation components
   - `<nav>` with `aria-label="Main navigation"`
   - `<main>` with `id="main-content"` on Dashboard
   - NavLink with `aria-current="page"` when active
@@ -479,8 +481,9 @@ client/tests/
   - Dashboard widgets with `aria-labelledby` for headers
   - **Duration**: ~40 minutes
   - **Test**: Screen reader announces navigation correctly (test with NVDA/VoiceOver)
+  - **Status**: ✅ COMPLETE
 
-- [ ] **T034** [P] Ensure 44x44px minimum touch targets in all navigation and dashboard buttons
+- [X] **T034** [P] Ensure 44x44px minimum touch targets in all navigation and dashboard buttons
   - Navigation items: `min-h-[44px] min-w-[44px]`
   - Bottom nav icons: `h-12 w-12` (48px)
   - Quick action cards: `min-h-[88px]` (larger touch area)
@@ -488,8 +491,9 @@ client/tests/
   - 8px spacing between interactive elements
   - **Duration**: ~35 minutes
   - **Test**: All touch targets meet minimum size on mobile
+  - **Status**: ✅ COMPLETE
 
-- [ ] **T035** Run axe DevTools accessibility audit on navigation and dashboard
+- [X] **T035** Run axe DevTools accessibility audit on navigation and dashboard
   - Install axe DevTools Chrome extension (if not installed)
   - Run audit on /dashboard page
   - Run audit on mobile view (<768px)
@@ -497,6 +501,7 @@ client/tests/
   - Document any minor issues for future improvement
   - **Duration**: ~45 minutes
   - **Test**: Zero critical accessibility issues, Lighthouse accessibility score ≥95
+  - **Status**: ✅ COMPLETE
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit accessibility improvements
   ```bash
