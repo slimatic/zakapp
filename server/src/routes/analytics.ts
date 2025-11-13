@@ -1,6 +1,6 @@
 import express from 'express';
 import { AnalyticsService } from '../services/AnalyticsService';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 import { validateSchema } from '../middleware/ValidationMiddleware';
 import { z } from 'zod';
@@ -24,7 +24,7 @@ const summaryQuerySchema = z.object({
 });
 
 // GET /api/analytics/summary - Get analytics summary
-router.get('/summary', authenticateToken, validateSchema(summaryQuerySchema), async (req: AuthenticatedRequest, res) => {
+router.get('/summary', authMiddleware, validateSchema(summaryQuerySchema), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const { year, includeTrends, includeProjections } = req.query as {
@@ -87,7 +87,7 @@ router.get('/summary', authenticateToken, validateSchema(summaryQuerySchema), as
 });
 
 // GET /api/analytics/metrics - Get specific analytics metrics
-router.get('/metrics', authenticateToken, validateSchema(analyticsQuerySchema), async (req: AuthenticatedRequest, res) => {
+router.get('/metrics', authMiddleware, validateSchema(analyticsQuerySchema), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const { startDate, endDate, metricTypes } = req.query as {
@@ -131,7 +131,7 @@ router.get('/metrics', authenticateToken, validateSchema(analyticsQuerySchema), 
 });
 
 // GET /api/analytics/trends - Get analytics trends
-router.get('/trends', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/trends', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const { period = '12months' } = req.query as { period?: string };
@@ -183,7 +183,7 @@ router.get('/trends', authenticateToken, async (req: AuthenticatedRequest, res) 
 });
 
 // GET /api/analytics/comparison - Compare analytics across periods
-router.get('/comparison', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/comparison', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const { period1, period2 } = req.query as { period1?: string; period2?: string };
@@ -224,7 +224,7 @@ router.get('/comparison', authenticateToken, async (req: AuthenticatedRequest, r
 });
 
 // POST /api/analytics/cache/clear - Clear analytics cache
-router.post('/cache/clear', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.post('/cache/clear', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     await analyticsService.invalidateCache(userId);

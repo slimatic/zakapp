@@ -7,9 +7,15 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 // Helper function to load app dynamically
 const loadApp = async () => {
   try {
-    // Load compiled JavaScript version to avoid ts-node path resolution issues
-    const appModule = require('../../server/dist/app');
-    return appModule.default || appModule;
+    // Prefer compiled app if available
+    try {
+      const appModule = require('../../server/dist/app');
+      return appModule.default || appModule;
+    } catch (e) {
+      // Fallback to source app for tests running in dev environment
+      const appModule = require('../../server/src/app');
+      return appModule.default || appModule;
+    }
   } catch (error) {
     console.error('Failed to load app:', error);
     return null;

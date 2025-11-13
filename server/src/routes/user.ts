@@ -1,12 +1,12 @@
 import express from 'express';
 import { UserController } from '../controllers/UserController';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 
 const router = express.Router();
 const userController = new UserController();
 
 // All user routes require authentication
-router.use(authenticateToken);
+router.use(authMiddleware);
 
 // User management routes
 router.get('/profile', userController.getProfile.bind(userController));

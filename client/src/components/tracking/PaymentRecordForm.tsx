@@ -121,12 +121,12 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       const paymentData = {
         snapshotId,
         amount: parseCurrency(formData.amount),
-        category: formData.category,
-        recipient: formData.recipient.trim(),
-        description: formData.description.trim() || undefined,
+        recipientName: formData.recipient.trim(),
+        recipientType: 'individual' as const, // Default type
+        recipientCategory: formData.category,
         paymentDate: formData.paymentDate,
         paymentMethod: formData.paymentMethod,
-        reference: formData.reference.trim() || undefined,
+        receiptReference: formData.reference.trim() || undefined,
         notes: formData.notes.trim() || undefined
       };
 

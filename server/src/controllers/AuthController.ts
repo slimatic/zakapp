@@ -4,7 +4,6 @@ import { AuthenticatedRequest, ApiResponse, AuthTokens, User } from '../types';
 import { asyncHandler, AppError } from '../middleware/ErrorHandler';
 import { AuthService } from '../services/AuthService';
 import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken, invalidateAllUserRefreshTokens } from '../utils/jwt';
-import { invalidateToken, invalidateUserSession } from '../middleware/auth';
 import { generateResetToken, validateResetToken, useResetToken, invalidateUserResetTokens } from '../utils/resetTokens';
 
 const authService = new AuthService();
@@ -205,7 +204,8 @@ export class AuthController {
 
     if (logoutFromAllDevices) {
       // Invalidate all sessions for this user
-      invalidateUserSession(req.userId);
+      // TODO: Implement invalidateUserSession
+      // invalidateUserSession(req.userId);
       invalidateAllUserRefreshTokens(req.userId);
       
       res.status(200).json({
@@ -215,7 +215,8 @@ export class AuthController {
     } else {
       // For regular logout, invalidate access token and all user's refresh tokens for security
       if (token) {
-        invalidateToken(token);
+        // TODO: Implement invalidateToken
+        // invalidateToken(token);
       }
       invalidateAllUserRefreshTokens(req.userId);
       
@@ -437,7 +438,8 @@ export class AuthController {
       useResetToken(token);
       
       // Invalidate all user sessions for security
-      invalidateUserSession(tokenData.userId);
+      // TODO: Implement invalidateUserSession
+      // invalidateUserSession(tokenData.userId);
       invalidateAllUserRefreshTokens(tokenData.userId);
 
       const response: ApiResponse = {

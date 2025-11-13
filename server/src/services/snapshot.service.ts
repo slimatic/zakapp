@@ -6,7 +6,7 @@ import {
   CreateCalculationSnapshotRequest,
   SnapshotComparison,
   SnapshotAssetValue
-} from '../../../shared/src/types';
+} from '@zakapp/shared';
 
 const prisma = new PrismaClient();
 

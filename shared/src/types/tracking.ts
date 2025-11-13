@@ -14,9 +14,13 @@ export type SnapshotStatus = 'draft' | 'finalized';
 export type NisabType = 'gold' | 'silver';
 
 /**
- * Zakat calculation methodology
+ * Zakat methodology types for yearly snapshots
+ * Defines the calculation approach used for Zakat
  */
-export type ZakatMethodology = 'Standard' | 'Hanafi' | 'Shafii' | 'Custom';
+export type YearlySnapshotMethodology = 'Standard' | 'Hanafi' | 'Shafii' | 'Custom';
+
+/**
+ * Yearly Snapshot interface
 
 /**
  * YearlySnapshot entity - Historical Zakat calculation snapshot
@@ -35,7 +39,7 @@ export interface YearlySnapshot {
   totalLiabilities: number; // Encrypted in DB
   zakatableWealth: number; // Encrypted in DB
   zakatAmount: number; // Encrypted in DB
-  methodologyUsed: ZakatMethodology;
+  methodologyUsed: YearlySnapshotMethodology;
   nisabThreshold: number; // Encrypted in DB
   nisabType: NisabType;
   status: SnapshotStatus;
@@ -62,7 +66,7 @@ export interface CreateYearlySnapshotDto {
   totalLiabilities: number;
   zakatableWealth?: number;
   zakatAmount: number;
-  methodologyUsed: ZakatMethodology;
+  methodologyUsed: YearlySnapshotMethodology;
   nisabThreshold: number;
   nisabType: NisabType;
   status?: SnapshotStatus;
@@ -79,7 +83,7 @@ export interface UpdateYearlySnapshotDto {
   totalWealth?: number;
   totalLiabilities?: number;
   zakatAmount?: number;
-  methodologyUsed?: ZakatMethodology;
+  methodologyUsed?: YearlySnapshotMethodology;
   assetBreakdown?: Record<string, any>;
   calculationDetails?: Record<string, any>;
   userNotes?: string;
@@ -210,7 +214,7 @@ export interface AnnualSummary {
   recipientSummary: RecipientSummary; // Encrypted JSON in DB
   assetBreakdown: Record<string, any>; // Encrypted JSON in DB
   comparativeAnalysis?: ComparativeAnalysis; // Encrypted JSON in DB
-  methodologyUsed: ZakatMethodology;
+  methodologyUsed: YearlySnapshotMethodology;
   nisabInfo: Record<string, any>; // Encrypted JSON in DB
   userNotes?: string; // Encrypted in DB
   generatedAt: Date | string;
