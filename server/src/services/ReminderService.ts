@@ -5,7 +5,7 @@ import {
   ReminderEventType,
   ReminderPriority,
   ReminderStatus
-} from '../../../shared/src/types/tracking';
+} from '@zakapp/shared';
 
 /**
  * ReminderService - Business logic for notification management

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { CalculationSnapshotService } from '../services/snapshot.service';
-import { CreateCalculationSnapshotRequest } from '../../../shared/src/types';
+import { CreateCalculationSnapshotRequest } from '@zakapp/shared';
 
 const snapshotService = new CalculationSnapshotService();
 

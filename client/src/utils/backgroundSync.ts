@@ -5,6 +5,19 @@
  * Uses IndexedDB to persist pending requests across sessions.
  */
 
+// Type declarations for Background Sync API
+interface SyncManager {
+  getTags(): Promise<string[]>;
+  register(tag: string): Promise<void>;
+}
+
+// Extend the global ServiceWorkerRegistration interface
+declare global {
+  interface ServiceWorkerRegistration {
+    readonly sync: SyncManager;
+  }
+}
+
 interface PendingRequest {
   id: string;
   url: string;

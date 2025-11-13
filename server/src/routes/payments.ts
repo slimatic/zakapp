@@ -1,15 +1,15 @@
 import express from 'express';
 import { PaymentService } from '../services/payment-service';
 import { CreatePaymentData } from '../models/payment';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 import { validateSchema } from '../middleware/ValidationMiddleware';
-import { createPaymentSchema, updatePaymentSchema, paymentQuerySchema } from '../../../shared/validation';
+import { createPaymentSchema, updatePaymentSchema, paymentQuerySchema } from '@zakapp/shared';
 
 const router = express.Router();
 
 // POST /api/payments
-router.post('/', authenticateToken, validateSchema(createPaymentSchema), async (req: AuthenticatedRequest, res) => {
+router.post('/', authMiddleware, validateSchema(createPaymentSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = (req as any).userId;
     const data: CreatePaymentData = { ...(req.body as CreatePaymentData), userId };
@@ -22,7 +22,7 @@ router.post('/', authenticateToken, validateSchema(createPaymentSchema), async (
 });
 
 // GET /api/payments
-router.get('/', authenticateToken, validateSchema(paymentQuerySchema), async (req: AuthenticatedRequest, res) => {
+router.get('/', authMiddleware, validateSchema(paymentQuerySchema), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const query = req.query as Record<string, unknown>;
@@ -35,7 +35,7 @@ router.get('/', authenticateToken, validateSchema(paymentQuerySchema), async (re
 });
 
 // GET /api/payments/:id
-router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
   const userId = req.userId as string;
     const payment = await PaymentService.getPaymentById(req.params.id, userId);
@@ -48,7 +48,7 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
 });
 
 // PUT /api/payments/:id
-router.put('/:id', authenticateToken, validateSchema(updatePaymentSchema), async (req: AuthenticatedRequest, res) => {
+router.put('/:id', authMiddleware, validateSchema(updatePaymentSchema), async (req: AuthenticatedRequest, res) => {
   try {
   const userId = req.userId as string;
     const body = req.body as Partial<CreatePaymentData>;
@@ -61,7 +61,7 @@ router.put('/:id', authenticateToken, validateSchema(updatePaymentSchema), async
 });
 
 // DELETE /api/payments/:id
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.delete('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
   const userId = req.userId as string;
     const ok = await PaymentService.deletePayment(req.params.id, userId);

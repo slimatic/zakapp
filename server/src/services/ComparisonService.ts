@@ -1,7 +1,7 @@
 import { YearlySnapshotModel } from '../models/YearlySnapshot';
 import { PaymentRecordModel } from '../models/PaymentRecord';
 import { EncryptionService } from './EncryptionService';
-import { YearlySnapshot } from '../../../shared/src/types/tracking';
+import { YearlySnapshot } from '@zakapp/shared';
 
 /**
  * ComparisonService - Business logic for multi-snapshot analysis

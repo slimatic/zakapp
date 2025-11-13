@@ -4,9 +4,13 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 // Test setup utilities
 const loadApp = async () => {
   try {
-    // Load compiled JavaScript version to avoid ts-node path resolution issues
-    const appModule = require('../../server/dist/app');
-    return appModule.default || appModule;
+    try {
+      const appModule = require('../../server/dist/app');
+      return appModule.default || appModule;
+    } catch (e) {
+      const appModule = require('../../server/src/app');
+      return appModule.default || appModule;
+    }
   } catch (error) {
     console.error('Failed to load app:', error);
     return null;
