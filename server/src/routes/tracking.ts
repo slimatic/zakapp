@@ -581,6 +581,100 @@ router.get('/snapshots/:id/payments', authenticate, validateUserOwnership, valid
 });
 
 /**
+ * POST /api/tracking/snapshots/:id/payments
+ * Create a new payment record for a snapshot
+ */
+router.post('/snapshots/:id/payments', authenticate, validateUserOwnership, validateSnapshotId, paymentRateLimit, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return sendError(res, 'UNAUTHORIZED', 'User not authenticated', 401);
+    }
+
+    const { id: snapshotId } = req.params;
+
+    // Verify snapshot ownership
+    const snapshot = await snapshotService.getSnapshot(snapshotId, userId);
+    if (!snapshot) {
+      return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
+    }
+
+    const paymentData = {
+      ...req.body,
+      snapshotId
+    };
+
+    console.log('DEBUG - Payment data received:', JSON.stringify(paymentData, null, 2));
+
+    const payment = await paymentService.createPayment(userId, paymentData);
+
+    sendSuccess(res, { payment }, 201);
+  } catch (error: any) {
+    console.error('Error creating payment:', error);
+    sendError(res, 'INTERNAL_ERROR', error.message || 'Failed to create payment', 500);
+  }
+});
+
+/**
+ * PUT /api/tracking/snapshots/:snapshotId/payments/:paymentId
+ * Update an existing payment record
+ */
+router.put('/snapshots/:snapshotId/payments/:paymentId', authenticate, validateUserOwnership, paymentRateLimit, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return sendError(res, 'UNAUTHORIZED', 'User not authenticated', 401);
+    }
+
+    const { snapshotId, paymentId } = req.params;
+
+    // Verify snapshot ownership
+    const snapshot = await snapshotService.getSnapshot(snapshotId, userId);
+    if (!snapshot) {
+      return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
+    }
+
+    const payment = await paymentService.updatePayment(paymentId, userId, req.body);
+
+    sendSuccess(res, { payment });
+  } catch (error: any) {
+    console.error('Error updating payment:', error);
+    if (error.message === 'Payment not found') {
+      return sendError(res, 'NOT_FOUND', 'Payment not found', 404);
+    }
+    sendError(res, 'INTERNAL_ERROR', error.message || 'Failed to update payment', 500);
+  }
+});
+
+/**
+ * DELETE /api/tracking/snapshots/:snapshotId/payments/:paymentId
+ * Delete a payment record
+ */
+router.delete('/snapshots/:snapshotId/payments/:paymentId', authenticate, validateUserOwnership, paymentRateLimit, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return sendError(res, 'UNAUTHORIZED', 'User not authenticated', 401);
+    }
+
+    const { snapshotId, paymentId } = req.params;
+
+    // Verify snapshot ownership
+    const snapshot = await snapshotService.getSnapshot(snapshotId, userId);
+    if (!snapshot) {
+      return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
+    }
+
+    await paymentService.deletePayment(paymentId, userId);
+
+    sendSuccess(res, { message: 'Payment deleted successfully' });
+  } catch (error: any) {
+    console.error('Error deleting payment:', error);
+    sendError(res, 'INTERNAL_ERROR', error.message || 'Failed to delete payment', 500);
+  }
+});
+
+/**
  * GET /api/tracking/reminders
  * Get all reminders for the user
  */

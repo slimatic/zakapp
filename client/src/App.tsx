@@ -59,9 +59,7 @@ const GettingStarted = lazy(() => import('./components/help/GettingStarted').the
 
 // Tracking & Analytics pages - lazy loaded for optimal performance
 const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
-const SnapshotsPage = lazy(() => import('./pages/SnapshotsPage').then(m => ({ default: m.SnapshotsPage })));
-const CreateSnapshotPage = lazy(() => import('./pages/CreateSnapshotPage').then(m => ({ default: m.CreateSnapshotPage })));
-const SnapshotDetailPage = lazy(() => import('./pages/SnapshotDetailPage').then(m => ({ default: m.SnapshotDetailPage })));
+const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').then(m => ({ default: m.NisabYearRecordsPage })));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
@@ -238,53 +236,30 @@ function App() {
                 } 
               />
               <Route 
+                path="/nisab-year-records" 
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Suspense fallback={<HistorySkeleton />}>
+                        <NisabYearRecordsPage />
+                      </Suspense>
+                    </Layout>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/tracking/snapshots" 
                 element={
                   <ProtectedRoute>
                     <Layout>
                       <Suspense fallback={<HistorySkeleton />}>
-                        <SnapshotsPage />
+                        <NisabYearRecordsPage />
                       </Suspense>
                     </Layout>
                   </ProtectedRoute>
                 } 
               />
-              <Route 
-                path="/tracking/snapshots/new" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<PageLoadingFallback />}>
-                        <CreateSnapshotPage />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/tracking/snapshots/:snapshotId" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<PageLoadingFallback />}>
-                        <SnapshotDetailPage />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/tracking/snapshots/:snapshotId/edit" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<PageLoadingFallback />}>
-                        <SnapshotDetailPage />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
+
               <Route 
                 path="/tracking/payments" 
                 element={

@@ -48,13 +48,13 @@ export const TrackingDashboard: React.FC = () => {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Button
-            onClick={() => navigate('/tracking/snapshots/new')}
+            onClick={() => navigate('/nisab-year-records?create=true')}
             className="h-auto py-4"
           >
             <div className="text-center">
               <div className="text-2xl mb-2">📊</div>
-              <div className="font-semibold">Create Snapshot</div>
-              <div className="text-sm opacity-90">Record this year's calculation</div>
+              <div className="font-semibold">Create Nisab Year Record</div>
+              <div className="text-sm opacity-90">Track your Hawl period</div>
             </div>
           </Button>
 
@@ -154,10 +154,10 @@ export const TrackingDashboard: React.FC = () => {
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No snapshots yet</h3>
                   <p className="text-gray-600 mb-4">
-                    Create your first yearly snapshot to start tracking your Zakat history.
+                    Create your first Nisab Year Record to start tracking your Zakat history.
                   </p>
-                  <Button onClick={() => navigate('/tracking/snapshots/new')}>
-                    Create First Snapshot
+                  <Button onClick={() => navigate('/nisab-year-records?create=true')}>
+                    Create First Record
                   </Button>
                 </div>
               ) : (

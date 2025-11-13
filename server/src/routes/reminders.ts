@@ -1,6 +1,6 @@
 import express from 'express';
 import { ReminderService } from '../services/ReminderService';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 import { validateSchema } from '../middleware/ValidationMiddleware';
 import { z } from 'zod';
@@ -34,7 +34,7 @@ const reminderQuerySchema = z.object({
 });
 
 // POST /api/reminders - Create a new reminder
-router.post('/', authenticateToken, validateSchema(createReminderSchema), async (req: AuthenticatedRequest, res) => {
+router.post('/', authMiddleware, validateSchema(createReminderSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const reminderData = req.body;
@@ -55,7 +55,7 @@ router.post('/', authenticateToken, validateSchema(createReminderSchema), async 
 });
 
 // GET /api/reminders - Get user reminders
-router.get('/', authenticateToken, validateSchema(reminderQuerySchema), async (req: AuthenticatedRequest, res) => {
+router.get('/', authMiddleware, validateSchema(reminderQuerySchema), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const { status, eventType, limit = 50, offset = 0 } = req.query as {
@@ -86,7 +86,7 @@ router.get('/', authenticateToken, validateSchema(reminderQuerySchema), async (r
 });
 
 // GET /api/reminders/:id - Get a specific reminder
-router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const reminderId = req.params.id;
@@ -114,7 +114,7 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => 
 });
 
 // PUT /api/reminders/:id - Update a reminder
-router.put('/:id', authenticateToken, validateSchema(updateReminderSchema), async (req: AuthenticatedRequest, res) => {
+router.put('/:id', authMiddleware, validateSchema(updateReminderSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const reminderId = req.params.id;
@@ -145,7 +145,7 @@ router.put('/:id', authenticateToken, validateSchema(updateReminderSchema), asyn
 });
 
 // DELETE /api/reminders/:id - Delete a reminder
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.delete('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const reminderId = req.params.id;
@@ -166,7 +166,7 @@ router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) 
 });
 
 // POST /api/reminders/:id/acknowledge - Acknowledge a reminder
-router.post('/:id/acknowledge', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.post('/:id/acknowledge', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
     const reminderId = req.params.id;
@@ -194,7 +194,7 @@ router.post('/:id/acknowledge', authenticateToken, async (req: AuthenticatedRequ
 });
 
 // GET /api/reminders/upcoming - Get upcoming reminders
-router.get('/upcoming/all', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/upcoming/all', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
 

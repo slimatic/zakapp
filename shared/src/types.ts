@@ -971,3 +971,52 @@ export interface SnapshotComparison {
     valueChange: number;
   };
 }
+
+// ============================================
+// Feature 008: Nisab Year Record Types
+// ============================================
+
+// Export Nisab Year Record Types (T038)
+export {
+  RecordStatus,
+  NisabBasis,
+  NisabYearRecord,
+  CreateNisabYearRecordDto,
+  UpdateNisabYearRecordDto,
+  FinalizeRecordDto,
+  UnlockRecordDto,
+  LiveTrackingData,
+  NisabYearRecordWithLiveTracking,
+  NisabYearRecordResponse,
+  NisabYearRecordsListResponse,
+  NisabYearRecordFilters,
+  BatchNisabResponse,
+} from './types/nisabYearRecord';
+
+// Export Audit Trail Types (T039)
+export {
+  AuditEventType,
+  AuditTrailEntry,
+  CreateAuditTrailEntryDto,
+  AuditTrailResponse,
+  AuditTrailFilters,
+  ChangeRecord,
+  UnlockEventDetails,
+  FinalizationEventDetails,
+  HawlInterruptionDetails,
+  FormattedAuditTrailEntry,
+} from './types/auditTrail';
+
+// Export Hawl Tracking Types (T040)
+export {
+  HawlStatus,
+  NisabAchievementEvent,
+  HawlTrackingState,
+  HawlInterruptionEvent,
+  HawlCompletionEvent,
+  LiveHawlData,
+  HawlDetectionJobParams,
+  HawlDetectionJobResult,
+  HawlConfig,
+  HawlStatusChangeNotification,
+} from './types/hawl';
