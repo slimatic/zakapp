@@ -232,35 +232,35 @@ client/tests/
 
 **Goal**: Update routing to remove redundant pages and add Nisab Records to navigation
 
-- [ ] **T016** Remove `/calculate` route from `client/src/App.tsx`
+- [X] **T016** Remove `/calculate` route from `client/src/App.tsx`
   - Delete the `<Route path="/calculate" element={<CalculatePage />} />` line
   - Keep the CalculatePage.tsx file (don't delete yet, cleanup in T051)
   - Verify no imports broken
   - **Duration**: ~10 minutes
   - **Test**: Navigating to /calculate shows 404 or redirects
 
-- [ ] **T017** Remove `/tracking` route from `client/src/App.tsx`
+- [X] **T017** Remove `/tracking` route from `client/src/App.tsx`
   - Delete the `<Route path="/tracking" element={<TrackingDashboard />} />` line
   - Keep the TrackingDashboard.tsx file (cleanup in T051)
   - Remove any nested tracking routes (e.g., /tracking/analytics)
   - **Duration**: ~10 minutes
   - **Test**: Navigating to /tracking shows 404 or redirects
 
-- [ ] **T018** Hide `/history` route from `client/src/App.tsx`
+- [X] **T018** Hide `/history` route from `client/src/App.tsx`
   - Comment out or remove the `<Route path="/history" element={<HistoryPage />} />`
   - Add comment: "// TODO: Restore when History functionality implemented"
   - Keep HistoryPage.tsx file for future implementation
   - **Duration**: ~5 minutes
   - **Test**: Navigating to /history shows 404 or redirects
 
-- [ ] **T019** Verify `/nisab-records` route exists in `client/src/App.tsx`
+- [X] **T019** Verify `/nisab-records` route exists in `client/src/App.tsx`
   - Check that `<Route path="/nisab-records" element={<NisabYearRecordsPage />} />` exists
   - If missing, add it (should already exist from Feature 008)
   - Verify import: `import { NisabYearRecordsPage } from './pages/NisabYearRecordsPage'`
   - **Duration**: ~10 minutes
   - **Test**: Navigating to /nisab-records works correctly
 
-- [ ] **T020** Update navigation array in `client/src/components/layout/Layout.tsx` to 4 items only
+- [X] **T020** Update navigation array in `client/src/components/layout/Layout.tsx` to 4 items only
   - Change navigation array from 5 items to 4 items:
     ```typescript
     const navigation = [
