@@ -185,7 +185,7 @@ export const Dashboard: React.FC = () => {
 
   // Fetch active Nisab Year Record
   const {
-    data: recordsResponse,
+    data: recordsData,
     isLoading: recordsLoading,
     error: recordsError,
   } = useQuery({
@@ -195,13 +195,18 @@ export const Dashboard: React.FC = () => {
         status: ['DRAFT'], 
         limit: 1 
       });
-      return response;
+      return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const assets = assetsResponse?.assets || [];
-  const activeRecord = recordsResponse?.records?.[0] || null;
+  
+  // Handle double-wrapped API response structure
+  const records = Array.isArray(recordsData) 
+    ? recordsData 
+    : (recordsData?.records || []);
+  const activeRecord = records[0] || null;
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeRecord !== null;
 
