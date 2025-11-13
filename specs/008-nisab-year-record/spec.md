@@ -9,6 +9,7 @@
 ## Clarifications
 
 ### Session 2025-10-31
+
 - Q: When creating a Nisab Year Record, what should happen with existing assets? → A: Show asset breakdown - Display a detailed list/table of all assets with their values, allow selection/deselection, then calculate totals
 - Q: For DRAFT records that update with live wealth tracking, should asset selection persist or recalculate? → A: Manual refresh - DRAFT stays with original selection, but user can click "Refresh assets" button to update the selection list
 - Q: Should the asset breakdown be stored in the database or calculated on-demand? → A: Store snapshot - Save the exact asset list with values at creation/refresh time in assetBreakdown JSON field; show historical snapshot
@@ -26,7 +27,7 @@
 
 4. **No Hawl Tracking**: The system doesn't track when aggregate wealth first reaches Nisab threshold (Hawl start date) or when the lunar year completes (Hawl completion date ~354 days later).
 
-5. **Missing Nisab Calculation**: No mechanism to calculate Nisab threshold based on current gold (87.48g) or silver (612.36g) market prices.
+5. **Missing Nisab Calculation**: No mechanism to calculate Nisab threshold based on current gold (NISAB_THRESHOLDS.GOLD_GRAMS from `shared/src/constants/islamicConstants.ts`) or silver (NISAB_THRESHOLDS.SILVER_GRAMS) market prices.
 
 6. **Unclear Draft Behavior**: Users don't understand how draft records should update as their wealth changes during the Hawl period.
 
@@ -37,6 +38,7 @@
 ## User Stories
 
 ### US-001: Nisab Achievement Detection
+
 **As a** ZakApp user  
 **I want** the system to automatically detect when my aggregate wealth reaches the Nisab threshold  
 **So that** I can begin tracking my Hawl period for Zakat calculation without manual monitoring
@@ -50,6 +52,7 @@
 - Locks Nisab threshold value at start of Hawl
 
 ### US-002: Live Wealth Tracking During Hawl
+
 **As a** ZakApp user with an active Hawl period  
 **I want** to see my current wealth compared to the Nisab threshold in real-time  
 **So that** I can understand my Zakat obligation status during the year
@@ -60,9 +63,12 @@
 - Shows comparison to Nisab threshold locked at Hawl start
 - Updates automatically when assets change
 - Displays Hawl countdown (days remaining)
-- Shows estimated Zakat amount (2.5% of zakatable wealth)
+- Shows estimated Zakat amount (ZAKAT_RATES.STANDARD from `shared/src/constants/islamicConstants.ts` of zakatable wealth)
+
+**Acceptance Criteria**:
 
 ### US-003: Hawl Completion and Finalization
+
 **As a** ZakApp user whose Hawl period has completed  
 **I want** to finalize my Nisab Year Record with a clear review process  
 **So that** I can confidently calculate and fulfill my Zakat obligation
@@ -76,6 +82,7 @@
 - Records finalization timestamp
 
 ### US-004: Correcting Finalized Records
+
 **As a** ZakApp user who needs to correct a finalized record  
 **I want** to unlock, edit, and re-finalize the record with audit trail  
 **So that** I can maintain accurate Zakat calculations while preserving accountability
@@ -89,6 +96,7 @@
 - Complete audit trail visible in record details
 
 ### US-005: Hawl Interruption Handling
+
 **As a** ZakApp user whose wealth drops below Nisab during Hawl  
 **I want** the system to detect and handle Hawl interruption  
 **So that** I understand my Zakat obligation may be affected
@@ -102,6 +110,7 @@
 - Clear indication in UI that Hawl may need to restart
 
 ### US-006: Islamic Compliance Education
+
 **As a** ZakApp user learning about Zakat calculation  
 **I want** in-context explanations of Nisab, Hawl, and calculation methodologies  
 **So that** I can understand and fulfill my religious obligation correctly
@@ -172,7 +181,7 @@
 
 **FR-012**: Background job runs hourly to check all users' aggregate wealth against Nisab  
 **Priority**: CRITICAL | **Status**: ✅ Implemented  
-**Acceptance**: Cron job configured "0 * * * *", completes in <30 seconds for 1000 users
+**Acceptance**: Cron job configured "0 ** **", completes in <30 seconds for 1000 users
 
 **FR-013**: Detect when user's aggregate wealth first reaches Nisab threshold  
 **Priority**: CRITICAL | **Status**: ✅ Implemented  
@@ -212,13 +221,13 @@
 **Priority**: HIGH | **Status**: ✅ Implemented  
 **Acceptance**: Same API call as gold, separate storage in database
 
-**FR-022**: Calculate Nisab threshold for gold basis (87.48g * current gold price/gram)  
+**FR-022**: Calculate Nisab threshold for gold basis (NISAB_THRESHOLDS.GOLD_GRAMS from `shared/src/constants/islamicConstants.ts` * current gold price/gram)  
 **Priority**: CRITICAL | **Status**: ✅ Implemented  
-**Acceptance**: Uses scholarly consensus value of 87.48 grams, converts to user's currency
+**Acceptance**: Uses scholarly consensus value defined in islamicConstants.ts, converts to user's currency
 
-**FR-023**: Calculate Nisab threshold for silver basis (612.36g * current silver price/gram)  
+**FR-023**: Calculate Nisab threshold for silver basis (NISAB_THRESHOLDS.SILVER_GRAMS from `shared/src/constants/islamicConstants.ts` * current silver price/gram)  
 **Priority**: CRITICAL | **Status**: ✅ Implemented  
-**Acceptance**: Uses scholarly consensus value of 612.36 grams, converts to user's currency
+**Acceptance**: Uses scholarly consensus value defined in islamicConstants.ts, converts to user's currency
 
 **FR-024**: Cache precious metal prices for 24 hours to respect API rate limits  
 **Priority**: HIGH | **Status**: ✅ Implemented  
@@ -270,9 +279,9 @@
 **Priority**: MEDIUM | **Status**: ✅ Implemented  
 **Acceptance**: Calculates from hawlCompletionDate, updates daily, clear visual progress indicator
 
-**FR-035**: Calculate estimated Zakat amount (2.5% of zakatable wealth) in real-time  
+**FR-035**: Calculate estimated Zakat amount (ZAKAT_RATES.STANDARD from `shared/src/constants/islamicConstants.ts` of zakatable wealth) in real-time  
 **Priority**: HIGH | **Status**: ✅ Implemented  
-**Acceptance**: Formula: (aggregateWealth - nisabThreshold) * 0.025, updates as wealth changes
+**Acceptance**: Formula: (aggregateWealth - nisabThreshold) * ZAKAT_RATES.STANDARD, updates as wealth changes
 
 ### Category 5: CRUD Operations & Status Transitions
 
@@ -415,8 +424,10 @@
 ## Edge Cases & Error Handling
 
 ### EC-001: Hawl Interruption (Wealth Drops Below Nisab)
+
 **Scenario**: User's wealth drops below Nisab threshold during active Hawl period  
-**Expected Behavior**: 
+**Expected Behavior**:
+
 - System detects wealth < nisabThresholdAtStart in hourly job
 - Marks DRAFT record with interruption flag (informational, non-blocking)
 - UI shows warning message with educational content
@@ -424,24 +435,30 @@
 - Finalization still allowed (user discretion per scholarly opinions)
 
 ### EC-002: Rapid Wealth Changes (Multiple Nisab Crossings)
+
 **Scenario**: User's wealth crosses Nisab threshold multiple times in short period  
 **Expected Behavior**:
+
 - Only first crossing triggers DRAFT record creation
 - Subsequent crossings within same Hawl period don't create duplicates
 - If previous Hawl was interrupted, new crossing can start fresh Hawl
 - System prioritizes oldest active DRAFT record
 
 ### EC-003: Premature Finalization Attempt
+
 **Scenario**: User tries to finalize record before hawlCompletionDate is reached  
 **Expected Behavior**:
+
 - API returns 400 error with descriptive message
 - UI shows modal explaining Hawl must complete (~354 days)
 - Option to override with warning (for edge cases)
 - Educational content on Hawl requirement
 
 ### EC-004: Precious Metals API Failure
+
 **Scenario**: metals-api.com is unavailable or returns error  
 **Expected Behavior**:
+
 - System falls back to last cached price (if <7 days old)
 - Warning message shown in UI about stale pricing
 - Background job retries API call in next cycle
@@ -449,24 +466,30 @@
 - Admin notified if failure persists >24 hours
 
 ### EC-005: Invalid Status Transition
+
 **Scenario**: User attempts invalid state change (e.g., DRAFT → UNLOCKED)  
 **Expected Behavior**:
+
 - API returns 400 error with clear explanation
 - Error message describes valid transitions
 - No state change persists to database
 - UI disables invalid action buttons (preventive)
 
 ### EC-006: Unlock Without Sufficient Reason
+
 **Scenario**: User submits unlock request with reason <10 characters  
 **Expected Behavior**:
+
 - API returns 400 validation error
 - Error message specifies minimum length requirement
 - Form shows inline validation with character count
 - Submission blocked until valid reason provided
 
 ### EC-007: Legacy Record Migration
+
 **Scenario**: Existing yearly_snapshot records lack Hawl tracking fields  
 **Expected Behavior**:
+
 - Migration sets hawlStartDate = calculationDate - 354 days (estimated)
 - hawlCompletionDate = calculationDate
 - nisabThresholdAtStart = existing nisabThreshold (if available)
@@ -478,6 +501,7 @@
 ## Non-Functional Requirements
 
 ### NFR-001: Performance
+
 - Aggregate wealth calculation: <100ms for 500 assets ✅ ACHIEVED (17ms avg)
 - Nisab threshold API call: <2s with cache fallback ✅ ACHIEVED (<200ms)
 - Dashboard page load: <2s (constitutional requirement) ✅ ACHIEVED (100ms)
@@ -485,6 +509,7 @@
 - Background Hawl detection job: Complete in <30s ✅ ACHIEVED
 
 ### NFR-002: Security & Privacy
+
 - All sensitive fields encrypted with AES-256 at rest ✅ IMPLEMENTED
 - Precious metals API returns only public commodity prices (no user data transmitted) ✅ IMPLEMENTED
 - Audit trail entries encrypted and immutable ✅ IMPLEMENTED
@@ -492,6 +517,7 @@
 - User can only access own records (ownership validation) ✅ IMPLEMENTED
 
 ### NFR-003: Accessibility
+
 - All new UI components meet WCAG 2.1 AA standards ✅ VERIFIED
 - Keyboard navigation support for all interactive elements ✅ VERIFIED
 - Screen reader compatibility (ARIA labels) ✅ PARTIAL (5 components verified)
@@ -499,13 +525,15 @@
 - Focus indicators visible and clear ✅ VERIFIED
 
 ### NFR-004: Islamic Compliance
-- Hawl uses lunar calendar (~354 days, not 365) ✅ IMPLEMENTED
-- Nisab thresholds match scholarly consensus (87.48g gold, 612.36g silver) ✅ VERIFIED
-- Zakat rate fixed at 2.5% ✅ VERIFIED
+
+- Hawl uses lunar calendar (~HAWL_CONSTANTS.DAYS_LUNAR days from `shared/src/constants/islamicConstants.ts`, not 365) ✅ IMPLEMENTED
+- Nisab thresholds match scholarly consensus (see NISAB_THRESHOLDS in islamicConstants.ts) ✅ VERIFIED
+- Zakat rate fixed at ZAKAT_RATES.STANDARD from islamicConstants.ts ✅ VERIFIED
 - Educational content aligned with Simple Zakat Guide ✅ VERIFIED
 - Methodology options respect different schools of thought ✅ VERIFIED
 
 ### NFR-005: Reliability & Maintainability
+
 - Database migrations include rollback capability ✅ IMPLEMENTED
 - Comprehensive test coverage (>90% for calculation logic) ✅ ACHIEVED (93%)
 - Logging for all background jobs and API errors ✅ IMPLEMENTED
@@ -517,6 +545,7 @@
 ## Testing Strategy
 
 ### Unit Tests
+
 - All service layer functions (Nisab calculation, Hawl tracking, wealth aggregation, audit trail)
 - Status transition validation logic
 - Hijri calendar conversion accuracy
@@ -524,6 +553,7 @@
 - Target: >90% code coverage for business logic ✅ ACHIEVED (93%)
 
 ### Integration Tests
+
 - End-to-end Nisab achievement detection
 - Live wealth tracking with asset changes
 - Hawl interruption handling
@@ -533,18 +563,21 @@
 - Invalid operation error handling
 
 ### Contract Tests
+
 - All API endpoints match OpenAPI specifications
 - Request/response schema validation
 - Error response format consistency
 - Authentication and authorization enforcement
 
 ### Component Tests
+
 - UI component rendering with various props
 - User interactions (clicks, form submissions)
 - Accessibility compliance (keyboard nav, ARIA)
 - Edge case handling (missing data, errors)
 
 ### Manual Testing Scenarios
+
 - Complete quickstart.md workflows (~90 minutes)
 - Performance validation (< target thresholds)
 - Accessibility audit with assistive technologies
@@ -555,34 +588,42 @@
 ## Traceability Matrix
 
 ### Database (FR-001 to FR-011)
+
 - **Tasks**: T005-T013 (Prisma migrations, schema updates)
 - **Tests**: Migration rollback tests, schema validation
 
 ### Hawl Tracking (FR-012 to FR-019)
+
 - **Tasks**: T022, T042, T046-T047 (HawlTrackingService, background job)
 - **Tests**: T026-T028 (integration tests for Hawl lifecycle)
 
 ### Nisab Calculation (FR-020 to FR-027)
+
 - **Tasks**: T003, T008, T021, T041 (metals API config, NisabCalculationService)
 - **Tests**: T021 (unit tests for Nisab calculations)
 
 ### Wealth Aggregation (FR-028 to FR-035)
+
 - **Tasks**: T023, T043 (WealthAggregationService)
 - **Tests**: T023, T027 (unit tests, live tracking integration test)
 
 ### CRUD Operations (FR-036 to FR-047)
+
 - **Tasks**: T014-T020, T039, T048-T053 (API endpoints, controller, service)
 - **Tests**: T014-T020, T029-T032 (contract tests, integration tests)
 
 ### Audit Trail (FR-048 to FR-054)
+
 - **Tasks**: T007, T024, T044 (database table, AuditTrailService)
 - **Tests**: T024, T030 (unit tests, unlock/edit integration test)
 
 ### UI Components (FR-055 to FR-061)
+
 - **Tasks**: T033-T037, T054-T066 (React components, pages)
 - **Tests**: T033-T037, T079-T083 (component tests, accessibility tests)
 
 ### Educational Content (FR-062 to FR-066)
+
 - **Tasks**: T067 (in-context help, educational modals)
 - **Tests**: Manual verification in quickstart scenarios
 
@@ -593,6 +634,7 @@
 **Overall Progress**: 95% Complete (83/87 tasks)
 
 **Completed**:
+
 - ✅ Database schema migration and updates
 - ✅ All service layer implementations
 - ✅ Background Hawl detection job
@@ -604,9 +646,11 @@
 - ✅ Islamic compliance validation (T084-T087)
 
 **In Progress**:
+
 - ⏳ Manual testing scenarios (T067-T073) - 0/7 completed
 
 **Pending**:
+
 - 📋 Add missing validation tasks (educational content, encryption, scholarly sources)
 
 ---
@@ -624,7 +668,8 @@
 ---
 
 **Specification Status**: ✅ COMPLETE - Retrospectively documented for constitutional compliance  
-**Next Actions**: 
+**Next Actions**:
+
 1. Complete manual testing scenarios (T067-T073)
 2. Add missing validation tasks (T088-T090)
 3. Final production readiness review
