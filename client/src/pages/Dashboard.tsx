@@ -1,617 +1,468 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { apiService } from '../services/api';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
-import { Button } from '../components/ui/Button';
-import { HawlProgressIndicator } from '../components/HawlProgressIndicator';
-import { NisabComparisonWidget } from '../components/NisabComparisonWidget';
-import type { Asset, ZakatCalculation } from '@zakapp/shared';
-
-interface DashboardStats {
-  totalAssets: number;
-  totalValue: number;
-  zakatableAssets: number;
-  zakatableValue: number;
-  lastCalculation?: ZakatCalculation;
-  upcomingReminders: number;
-}
-
-interface DashboardData {
-  stats: DashboardStats;
-  recentAssets: Asset[];
-  recentCalculations: ZakatCalculation[];
-}
+import { DashboardHeader } from '../components/dashboard/DashboardHeader';
+import { QuickActionCard } from '../components/dashboard/QuickActionCard';
+import { ActiveRecordWidget } from '../components/dashboard/ActiveRecordWidget';
+import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
+import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
+import { SkeletonCard } from '../components/common/SkeletonLoader';
+import { useUserOnboarding } from '../hooks/useUserOnboarding';
+import type { Asset } from '@zakapp/shared';
 
 /**
- * Hawl Tracking Section Component
- * Displays active Nisab Year Record with Hawl progress and wealth comparison
+ * Educational Module Component
+ * Collapsible educational content about Zakat and Nisab
  */
-const HawlTrackingSection: React.FC = () => {
-  const [selectedRecordId, setSelectedRecordId] = React.useState<string | null>(null);
+const EducationalModule: React.FC = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  // Fetch active Nisab Year Records (DRAFT status)
-  const {
-    data: recordsResponse,
-    isLoading
-  } = useQuery({
-    queryKey: ['nisab-year-records', 'active'],
-    queryFn: () => apiService.getNisabYearRecords({ status: ['DRAFT'], limit: 5 }),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-  });
+  useEffect(() => {
+    const saved = localStorage.getItem('zakapp_educational_expanded');
+    if (saved === 'true') {
+      setIsExpanded(true);
+    }
+  }, []);
 
-  // Extract records from response: API returns { records, total, ... }
-  const records = recordsResponse?.records || [];
-  const activeRecord = selectedRecordId
-    ? records.find((r: any) => r.id === selectedRecordId)
-    : records[0]; // Default to first if available
-
-  if (isLoading) {
-    return (
-      <section aria-labelledby="hawl-heading" className="mb-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-center min-h-[200px]">
-            <LoadingSpinner size="md" />
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Only show section if there are active Hawl records
-  if (!records || records.length === 0) {
-    return null;
-  }
+  const toggleExpanded = () => {
+    const newState = !isExpanded;
+    setIsExpanded(newState);
+    localStorage.setItem('zakapp_educational_expanded', String(newState));
+  };
 
   return (
-    <section aria-labelledby="hawl-heading" className="mb-6">
-      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 id="hawl-heading" className="text-2xl font-bold text-gray-900">
-              🌙 Hawl Year Tracking
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Monitor your active Nisab Year Record and wealth status
-            </p>
+    <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-2 border-teal-200 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-teal-100 rounded-lg">
+            <svg
+              className="w-6 h-6 text-teal-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
           </div>
-          <Link to="/nisab-year-records">
-            <Button variant="primary" size="sm">
-              Manage Records
-            </Button>
-          </Link>
+          <h2 className="text-lg font-bold text-gray-900">Understanding Zakat & Nisab</h2>
         </div>
 
-        {activeRecord && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Hawl Progress - Left Column */}
-            <div className="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm border border-blue-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Hawl Progress
-              </h3>
-              <HawlProgressIndicator
-                record={activeRecord}
-                progressColor="blue"
-              />
-              
-              {/* Additional Hawl Info */}
-              <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-200">
-                <div>
-                  <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    Nisab Basis
-                  </p>
-                  <p className="text-lg font-semibold text-gray-900 mt-1">
-                    {activeRecord.nisabBasis || 'GOLD'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    Record Status
-                  </p>
-                  <div className="mt-1">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      activeRecord.status === 'DRAFT'
-                        ? 'bg-blue-100 text-blue-800'
-                        : activeRecord.status === 'FINALIZED'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {activeRecord.status}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Nisab Comparison - Right Column */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Wealth Status
-              </h3>
-              <NisabComparisonWidget
-                record={activeRecord}
-                currentWealth={activeRecord.finalZakatAmount ? 
-                  activeRecord.finalZakatAmount / 0.025 : // Back-calculate total wealth from zakat (2.5%)
-                  0
-                }
-                showDetails={false}
-              />
-              <Link to="/nisab-year-records" className="mt-4 block">
-                <Button variant="secondary" className="w-full" size="sm">
-                  View Details
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Multiple Records - Tabs */}
-        {records.length > 1 && (
-          <div className="mt-6 pt-6 border-t border-blue-200">
-            <p className="text-sm font-medium text-gray-700 mb-3">
-              Other Active Records:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {records.map((record: any) => (
-                <button
-                  key={record.id}
-                  onClick={() => setSelectedRecordId(record.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    (selectedRecordId || records[0].id) === record.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {new Date(record.startDate).toLocaleDateString()} - 
-                  {Math.round(record.liveHawlData?.daysRemaining || 0)} days remaining
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* CTA Link */}
-        <div className="mt-6 pt-6 border-t border-blue-200">
-          <p className="text-sm text-gray-600">
-            Want to start a new Nisab Year Record or manage existing ones?
-          </p>
-          <Link to="/nisab-year-records" className="mt-2 inline-block">
-            <Button variant="secondary">
-              Go to Nisab Year Records
-              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Button>
-          </Link>
-        </div>
+        <button
+          onClick={toggleExpanded}
+          className="p-2 rounded-md text-gray-600 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-600"
+          aria-label={isExpanded ? 'Collapse educational content' : 'Expand educational content'}
+          aria-expanded={isExpanded}
+        >
+          <svg
+            className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
       </div>
-    </section>
+
+      {isExpanded && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">What is Zakat?</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              Zakat is one of the Five Pillars of Islam and is an obligatory act of charity. It requires Muslims 
+              who meet specific wealth criteria to donate 2.5% of their qualifying wealth annually to those in need. 
+              Zakat purifies wealth and helps create a more equitable society.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">What is Nisab?</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              Nisab is the minimum threshold of wealth a Muslim must possess for one lunar year (Hawl) before 
+              Zakat becomes obligatory. The Nisab can be calculated based on the value of gold (85 grams) or 
+              silver (595 grams). ZakApp helps you track your wealth and determine when you've reached the Nisab threshold.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">The Hawl Period</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              The Hawl is the Islamic lunar year period (354 days) during which your wealth must remain above 
+              the Nisab threshold for Zakat to be due. ZakApp's Nisab Year Record feature helps you track this 
+              period automatically and alerts you when Zakat payment is due.
+            </p>
+          </div>
+
+          <div className="pt-4 border-t border-teal-200">
+            <h3 className="font-semibold text-gray-900 mb-3">Learn More</h3>
+            <div className="space-y-2">
+              <a
+                href="https://www.youtube.com/watch?v=SimpleZakatGuide"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
+              >
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Watch: Simple Zakat Guide (Video Series)
+              </a>
+              <a
+                href="/help"
+                className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
+              >
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Read: Detailed Zakat & Nisab Guide
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!isExpanded && (
+        <p className="text-sm text-gray-600">
+          Learn about Zakat obligations, Nisab threshold, and the Hawl period. Click to expand.
+        </p>
+      )}
+    </div>
   );
 };
 
+/**
+ * Dashboard Component - Refactored as Central Hub
+ * 
+ * Features:
+ * - Progressive disclosure based on user state
+ * - Empty state with onboarding guidance
+ * - Active record status display
+ * - Quick action cards
+ * - Educational module
+ * - Wealth summary
+ */
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const { currentStep, completedSteps } = useUserOnboarding();
 
-  // Fetch dashboard data
+  // Fetch user's assets
   const {
-    data: dashboardData,
-    isLoading,
-    error,
-    refetch
+    data: assetsResponse,
+    isLoading: assetsLoading,
+    error: assetsError,
   } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: async (): Promise<DashboardData> => {
-      // Since we don't have a specific dashboard endpoint, let's compose the data
-      const [assetsResponse, calculationsResponse] = await Promise.all([
-        apiService.getAssets(),
-        apiService.getCalculationHistory()
-      ]);
-
-      const assets = assetsResponse.data?.assets || [];
-      const calculations = calculationsResponse.data?.calculations || [];
-
-      // Calculate stats
-      const totalAssets = assets.length;
-      const totalValue = assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0);
-      const zakatableAssets = assets.filter((asset: Asset) => asset.zakatEligible).length;
-      const zakatableValue = assets
-        .filter((asset: Asset) => asset.zakatEligible)
-        .reduce((sum: number, asset: Asset) => sum + asset.value, 0);
-      
-      const recentCalculations = calculations
-        .sort((a: ZakatCalculation, b: ZakatCalculation) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 5);
-      
-      const lastCalculation = recentCalculations[0];
-
-      const stats: DashboardStats = {
-        totalAssets,
-        totalValue,
-        zakatableAssets,
-        zakatableValue,
-        lastCalculation,
-        upcomingReminders: 2 // Mock value for now
-      };
-
-      const recentAssets = assets
-        .sort((a: Asset, b: Asset) => 
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-        .slice(0, 5);
-
-      return {
-        stats,
-        recentAssets,
-        recentCalculations
-      };
+    queryKey: ['assets'],
+    queryFn: async () => {
+      const response = await apiService.getAssets();
+      return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Fetch active Nisab Year Record
+  const {
+    data: recordsResponse,
+    isLoading: recordsLoading,
+    error: recordsError,
+  } = useQuery({
+    queryKey: ['nisab-records', 'active'],
+    queryFn: async () => {
+      const response = await apiService.getNisabYearRecords({ 
+        status: ['DRAFT'], 
+        limit: 1 
+      });
+      return response;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  const getAssetCategoryIcon = (category: string) => {
-    const icons: { [key: string]: string } = {
-      cash: '💵',
-      gold: '🥇',
-      silver: '🥈',
-      business: '🏢',
-      property: '🏠',
-      stocks: '📈',
-      crypto: '₿',
-      debts: '💰',
-      expenses: '💸'
-    };
-    return icons[category] || '📦';
-  };
+  const assets = assetsResponse?.assets || [];
+  const activeRecord = recordsResponse?.records?.[0] || null;
+  const hasAssets = assets.length > 0;
+  const hasActiveRecord = activeRecord !== null;
 
-  if (isLoading) {
+  // Calculate total wealth
+  const totalWealth = assets.reduce((sum: number, asset: Asset) => {
+    return sum + (asset.value || 0);
+  }, 0);
+
+  // Get Nisab threshold (from active record or default)
+  const nisabThreshold = activeRecord?.initialNisabThreshold || 5000; // Default fallback
+
+  // Loading state
+  if (assetsLoading || recordsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" />
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        <div className="mb-6">
+          <div className="h-8 bg-gray-200 rounded animate-pulse w-1/3 mb-2" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       </div>
     );
   }
 
-  if (error) {
+  // Error state
+  if (assetsError || recordsError) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <ErrorMessage 
-          error={error} 
-          onRetry={refetch}
+        <ErrorMessage
+          error={assetsError || recordsError}
           title="Failed to load dashboard"
         />
       </div>
     );
   }
 
-  if (!dashboardData) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-gray-500">
-          No dashboard data available
-        </div>
-      </div>
-    );
-  }
+  // Quick Action Cards Configuration
+  const getQuickActions = () => {
+    if (!hasAssets) {
+      // New user: Add first asset
+      return [
+        {
+          title: 'Add Your First Asset',
+          description: 'Start tracking your wealth by adding your first asset',
+          icon: (
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          ),
+          href: '/assets/new',
+          variant: 'primary' as const,
+        },
+      ];
+    }
 
-  const { stats, recentAssets } = dashboardData;
+    if (!hasActiveRecord) {
+      // Has assets but no record: Create Nisab Record
+      return [
+        {
+          title: 'Create Nisab Record',
+          description: 'Start tracking your Hawl period to monitor Zakat obligations',
+          icon: (
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          ),
+          href: '/nisab-records',
+          variant: 'primary' as const,
+        },
+        {
+          title: 'Add More Assets',
+          description: 'Continue building your wealth portfolio',
+          icon: (
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          ),
+          href: '/assets/new',
+        },
+      ];
+    }
+
+    // Has active record: Show management actions
+    return [
+      {
+        title: 'View All Records',
+        description: 'Manage your Nisab Year Records and history',
+        icon: (
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        ),
+        href: '/nisab-records',
+      },
+      {
+        title: 'Update Assets',
+        description: 'Keep your asset values current and accurate',
+        icon: (
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        ),
+        href: '/assets',
+      },
+      {
+        title: 'Add Asset',
+        description: 'Add new assets to your portfolio',
+        icon: (
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        ),
+        href: '/assets/new',
+      },
+    ];
+  };
+
+  const quickActions = getQuickActions();
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Assalamu Alaikum, {user?.username}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Welcome to your Zakat management dashboard
-          </p>
-        </div>
-        <div className="flex space-x-3">
-          <Link to="/assets/new">
-            <Button variant="secondary">Add Asset</Button>
-          </Link>
-          <Link to="/calculate">
-            <Button variant="primary">Calculate Zakat</Button>
-          </Link>
-        </div>
-      </header>
+    <div className="container mx-auto px-4 py-6 space-y-6" id="main-content">
+      {/* Dashboard Header */}
+      <DashboardHeader
+        userName={user?.username}
+        hasAssets={hasAssets}
+        hasActiveRecord={hasActiveRecord}
+      />
 
-      {/* Main Dashboard Content */}
-      <main role="main" aria-label="Dashboard overview">
-      {/* Stats Overview Cards */}
-      <section aria-labelledby="stats-heading" className="mb-6">
-        <h2 id="stats-heading" className="sr-only">Statistics Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <span className="text-2xl">📊</span>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Assets</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalAssets}</p>
+      {/* T022: Empty State - No Assets */}
+      {!hasAssets && (
+        <div className="space-y-6">
+          {/* Onboarding Guide */}
+          <OnboardingGuide
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+          />
+
+          {/* Quick Actions for New Users */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {quickActions.map((action, index) => (
+              <QuickActionCard
+                key={index}
+                title={action.title}
+                description={action.description}
+                icon={action.icon}
+                href={action.href}
+                variant={action.variant}
+              />
+            ))}
+          </div>
+
+          {/* Educational Module */}
+          <EducationalModule />
+        </div>
+      )}
+
+      {/* T022 & T023: Has Assets State */}
+      {hasAssets && (
+        <div className="space-y-6">
+          {/* Show onboarding if not yet completed */}
+          {currentStep < 3 && (
+            <OnboardingGuide
+              currentStep={currentStep}
+              completedSteps={completedSteps}
+            />
+          )}
+
+          {/* T023: Active Record Widget */}
+          {hasActiveRecord && activeRecord && (
+            <ActiveRecordWidget record={activeRecord} />
+          )}
+
+          {/* Wealth Summary */}
+          <WealthSummaryCard
+            totalWealth={totalWealth}
+            nisabThreshold={nisabThreshold}
+            currency={user?.preferences?.currency || 'USD'}
+          />
+
+          {/* T024: Quick Action Cards */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {quickActions.map((action, index) => (
+                <QuickActionCard
+                  key={index}
+                  title={action.title}
+                  description={action.description}
+                  icon={action.icon}
+                  href={action.href}
+                  variant={action.variant}
+                />
+              ))}
             </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <span className="text-2xl">💰</span>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Value</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(stats.totalValue, user?.preferences?.currency)}
-              </p>
-            </div>
-          </div>
-        </div>
+          {/* T025: Educational Module */}
+          <EducationalModule />
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <span className="text-2xl">🕌</span>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Zakatable Value</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(stats.zakatableValue, user?.preferences?.currency)}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <span className="text-2xl">⏰</span>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Reminders</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.upcomingReminders}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      </section>
-
-      {/* Quick Actions */}
-      <section aria-labelledby="quick-actions-heading">
-        <h2 id="quick-actions-heading" className="sr-only">Quick Actions</h2>
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 border border-green-200">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link to="/assets" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <span className="text-2xl mr-3">📦</span>
-            <div>
-              <p className="font-medium text-gray-900">Manage Assets</p>
-              <p className="text-sm text-gray-600">View and edit your assets</p>
-            </div>
-          </Link>
-          
-          <Link to="/calculate" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <span className="text-2xl mr-3">🧮</span>
-            <div>
-              <p className="font-medium text-gray-900">Calculate Zakat</p>
-              <p className="text-sm text-gray-600">Run Zakat calculations</p>
-            </div>
-          </Link>
-          
-          <Link to="/history" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <span className="text-2xl mr-3">📈</span>
-            <div>
-              <p className="font-medium text-gray-900">View History</p>
-              <p className="text-sm text-gray-600">Track past calculations</p>
-            </div>
-          </Link>
-          
-          <Link to="/settings" className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-            <span className="text-2xl mr-3">⚙️</span>
-            <div>
-              <p className="font-medium text-gray-900">Settings</p>
-              <p className="text-sm text-gray-600">Manage preferences</p>
-            </div>
-          </Link>
-        </div>
-      </div>
-      </section>
-
-      {/* Active Nisab Year Record / Hawl Tracking */}
-      <HawlTrackingSection />
-
-      {/* Main Content Grid */}
-      <section aria-labelledby="content-heading">
-        <h2 id="content-heading" className="sr-only">Recent Assets and Zakat Status</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Assets */}
-        <article className="bg-white rounded-lg shadow p-6" aria-labelledby="recent-assets-heading">
-          <div className="flex items-center justify-between mb-4">
-            <h3 id="recent-assets-heading" className="text-xl font-semibold text-gray-900">Recent Assets</h3>
-            <Link to="/assets">
-              <Button variant="ghost" size="sm">View All</Button>
-            </Link>
-          </div>
-          
-          {recentAssets.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <span className="text-4xl mb-4 block">📦</span>
-              <p className="font-medium">No assets added yet</p>
-              <p className="text-sm mt-1">Start by adding your first asset</p>
-              <Link to="/assets/new" className="mt-4 inline-block">
-                <Button variant="primary" size="sm">Add Asset</Button>
+          {/* Recent Assets Summary */}
+          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Your Assets</h2>
+              <Link
+                to="/assets"
+                className="text-sm font-medium text-green-600 hover:text-green-700 hover:underline"
+              >
+                View All →
               </Link>
             </div>
-          ) : (
+
             <div className="space-y-3">
-              {recentAssets.map((asset) => (
-                <div key={asset.assetId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-3">{getAssetCategoryIcon(asset.category)}</span>
+              {assets.slice(0, 5).map((asset: Asset) => (
+                <div
+                  key={asset.assetId}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
                     <div>
                       <p className="font-medium text-gray-900">{asset.name}</p>
-                      <p className="text-sm text-gray-600 capitalize">{asset.subCategory.replace('_', ' ')}</p>
+                      <p className="text-sm text-gray-600 capitalize">
+                        {asset.category} • {asset.subCategory?.replace('_', ' ')}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">
-                      {formatCurrency(asset.value, asset.currency)}
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: asset.currency || 'USD',
+                      }).format(asset.value || 0)}
                     </p>
                     {asset.zakatEligible && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Zakatable
-                      </span>
+                      <span className="text-xs text-green-600 font-medium">Zakatable</span>
                     )}
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-        </article>
 
-        {/* Zakat Status */}
-        <article className="bg-white rounded-lg shadow p-6" aria-labelledby="zakat-status-heading">
-          <div className="flex items-center justify-between mb-4">
-            <h3 id="zakat-status-heading" className="text-xl font-semibold text-gray-900">Zakat Status</h3>
-            <Link to="/history">
-              <Button variant="ghost" size="sm">View History</Button>
-            </Link>
-          </div>
-          
-          {stats.lastCalculation ? (
-            <div className="space-y-4">
-              <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-purple-700">Last Calculation</span>
-                  <span className="text-sm text-purple-600">
-                    {new Date(stats.lastCalculation.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-purple-900 mb-1">
-                  {formatCurrency(stats.lastCalculation.totals.totalZakatDue, 'USD')}
-                </div>
-                <div className="text-sm text-purple-700">
-                  {stats.lastCalculation.method} • {stats.lastCalculation.status}
-                </div>
-              </div>
-
-              {stats.zakatableValue > 0 && (
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm font-medium text-green-700 mb-1">Current Zakatable Wealth</p>
-                  <p className="text-xl font-bold text-green-900">
-                    {formatCurrency(stats.zakatableValue, user?.preferences?.currency)}
-                  </p>
-                  <p className="text-sm text-green-600 mt-2">
-                    Estimated Zakat: ~{formatCurrency(stats.zakatableValue * 0.025, user?.preferences?.currency)}
-                  </p>
-                </div>
+              {assets.length > 5 && (
+                <Link
+                  to="/assets"
+                  className="block text-center py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  +{assets.length - 5} more assets
+                </Link>
               )}
-
-              <Link to="/calculate" className="block">
-                <Button variant="primary" className="w-full">
-                  Calculate Current Zakat
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <span className="text-4xl mb-4 block">🕌</span>
-              <p className="font-medium">No calculations yet</p>
-              <p className="text-sm mt-1">Calculate your Zakat obligations</p>
-              <Link to="/calculate" className="mt-4 inline-block">
-                <Button variant="primary" size="sm">Start Calculation</Button>
-              </Link>
-            </div>
-          )}
-        </article>
-      </div>
-      </section>
-
-      {/* Recent Calculations */}
-      <section aria-labelledby="recent-calc-heading">
-      <article className="bg-white rounded-lg shadow p-6" aria-labelledby="recent-calc-heading">
-        <div className="flex items-center justify-between mb-4">
-          <h3 id="recent-calc-heading" className="text-xl font-semibold text-gray-900">Recent Calculations</h3>
-          <Link to="/history">
-            <Button variant="ghost" size="sm">View All</Button>
-          </Link>
-        </div>
-
-        <div className="text-center text-gray-600">
-          <p>Visit the history page to view your calculations</p>
-        </div>
-      </article>
-      </section>
-
-      {/* Upcoming Reminders */}
-      <aside aria-labelledby="reminders-heading">
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 id="reminders-heading" className="text-lg leading-6 font-medium text-yellow-900">Upcoming Zakat Reminder</h3>
-              <p className="mt-1 text-sm text-yellow-700">
-                Your next Zakat payment is due in approximately 6 months (based on Hijri calendar).
-              </p>
-            </div>
-            <div className="flex-shrink-0">
-              <svg className="h-16 w-16 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
             </div>
           </div>
-          <div className="mt-4">
-            <Link
-              to="/calculate"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-            >
-              Calculate Zakat Now
-              <svg className="ml-2 -mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
-          </div>
         </div>
-      </div>
-      </aside>
-
-      {/* Islamic Calendar Integration */}
-      <aside aria-labelledby="calendar-heading">
-      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-6 border border-emerald-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <span className="text-3xl mr-4" aria-hidden="true">🌙</span>
-            <div>
-              <h3 id="calendar-heading" className="text-lg font-semibold text-gray-900">Islamic Calendar</h3>
-              <p className="text-gray-600">
-                Today: {new Intl.DateTimeFormat('en-US-u-ca-islamic', { 
-                  day: 'numeric', 
-                  month: 'long', 
-                  year: 'numeric' 
-                }).format(new Date())}
-              </p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-medium text-emerald-700">Next Recommended Zakat Period</p>
-            <p className="text-lg font-semibold text-emerald-900">Ramadan 1446</p>
-          </div>
-        </div>
-      </div>
-      </aside>
-      </main>
+      )}
     </div>
   );
 };
