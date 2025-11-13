@@ -20,15 +20,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Assets', href: '/assets' },
-    { name: 'Calculate Zakat', href: '/calculate' },
-    { name: 'Tracking & Analytics', href: '/tracking' },
-    { name: 'History', href: '/history' },
+    { name: 'Nisab Records', href: '/nisab-records' },
+    { name: 'Profile', href: '/profile' },
   ];
 
   const isActive = (href: string) => {
-    // For tracking route, also highlight when on any tracking subpage
-    if (href === '/tracking') {
-      return location.pathname.startsWith('/tracking');
+    // For nisab-records route, also highlight when on nisab-year-records
+    if (href === '/nisab-records') {
+      return location.pathname === '/nisab-records' || location.pathname.startsWith('/nisab-year-records');
     }
     return location.pathname === href;
   };
