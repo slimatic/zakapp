@@ -5,6 +5,7 @@
 **Input**: Feature specification from `/home/lunareclipse/zakapp/specs/008-nisab-year-record/spec.md`
 
 ## Execution Flow (/plan command scope)
+
 ```
 1. Load feature spec from Input path
    ✅ DONE: Spec loaded from /home/lunareclipse/zakapp/specs/008-nisab-year-record/spec.md
@@ -32,12 +33,13 @@
 
 **Primary Requirement**: Fix the Nisab Year Record workflow to properly align with Islamic Zakat accounting principles, including automated Hawl (lunar year) tracking, Nisab threshold monitoring from precious metals prices, live wealth aggregation for draft records, and comprehensive finalization/unlock workflows with audit trails.
 
-**Technical Approach**: 
+**Technical Approach**:
+
 1. **Database Migration**: Rename `yearly_snapshots` table to `nisab_year_records`, add Hawl tracking fields (hawl_start_date, hawl_completion_date, nisab_threshold_at_start, nisab_basis), and create new `audit_trail_entries` and `precious_metal_prices` tables.
 
-2. **Nisab Calculation Service**: Integrate with precious metals price API (e.g., GoldAPI.io or metals-api.com) to fetch current gold/silver prices, cache with daily TTL, and calculate Nisab thresholds (87.48g gold, 612.36g silver) in user's currency.
+2. **Nisab Calculation Service**: Integrate with precious metals price API (e.g., GoldAPI.io or metals-api.com) to fetch current gold/silver prices, cache with daily TTL, and calculate Nisab thresholds (NISAB_THRESHOLDS from `shared/src/constants/islamicConstants.ts`) in user's currency.
 
-3. **Hawl Tracking Engine**: Background job monitors aggregate zakatable wealth continuously, detects when Nisab threshold is first reached, records Hawl start date (Hijri + Gregorian), calculates completion date (~354 days lunar calendar), and creates DRAFT Nisab Year Record automatically.
+3. **Hawl Tracking Engine**: Background job monitors aggregate zakatable wealth continuously, detects when Nisab threshold is first reached, records Hawl start date (Hijri + Gregorian), calculates completion date (HAWL_CONSTANTS.DAYS_LUNAR from islamicConstants.ts, lunar calendar), and creates DRAFT Nisab Year Record automatically.
 
 4. **Live Tracking**: Frontend subscribes to real-time updates via WebSocket or polling; backend recalculates aggregate wealth on any asset change and updates DRAFT records without persisting (display-only until finalization).
 
@@ -47,50 +49,58 @@
 
 ## Technical Context
 
-**Language/Version**: 
+**Language/Version**:
+
 - Backend: TypeScript 4.9.5 + Node.js 18+ (Express.js framework)
 - Frontend: TypeScript 4.9.5 + React 18.1.1 (Create React App)
 - Database: SQLite with Prisma ORM 5.x
 
-**Primary Dependencies**: 
+**Primary Dependencies**:
+
 - Backend: Express.js, Prisma Client, bcrypt, jsonwebtoken, node-cron (scheduler), axios (API calls)
 - Frontend: React, React Query (@tanstack/react-query), Radix UI components
 - Shared: TypeScript, date-fns (Gregorian), hijri-calendar library (lunar dates)
 - New: Precious metals API client (GoldAPI.io or metals-api.com), moment-hijri for Hijri calculations
 
-**Storage**: 
+**Storage**:
+
 - SQLite database (server/zakapp.db)
 - AES-256 encryption for sensitive fields (existing EncryptionService)
 - Schema managed via Prisma migrations
 
-**Testing**: 
+**Testing**:
+
 - Backend: Jest + Supertest (API integration tests)
 - Frontend: Jest + React Testing Library + @testing-library/user-event 13.5.0
 - E2E: Playwright (critical workflows)
 - Contract: OpenAPI schema validation tests
 
-**Target Platform**: 
+**Target Platform**:
+
 - Web application (desktop/mobile browsers)
 - Self-hostable (Linux server, Docker deployment)
 - Offline-capable PWA features (existing)
 
 **Project Type**: **web** (frontend + backend monorepo structure)
 
-**Performance Goals**: 
+**Performance Goals**:
+
 - Aggregate wealth calculation: <100ms for 500 assets
 - Nisab threshold API call: <2s with cache fallback
 - Dashboard page load: <2s (constitutional requirement)
 - Live tracking updates: <500ms latency (perceived as instant)
 - Background Hawl detection job: Run hourly, complete in <30s
 
-**Constraints**: 
-- Islamic compliance: Hawl must use lunar calendar (~354 days), Nisab thresholds must match scholarly standards (87.48g gold, 612.36g silver)
+**Constraints**:
+
+- Islamic compliance: Hawl must use lunar calendar (HAWL_CONSTANTS.DAYS_LUNAR from `shared/src/constants/islamicConstants.ts`), Nisab thresholds must match scholarly standards (NISAB_THRESHOLDS in islamicConstants.ts)
 - Privacy-first: No financial data transmitted to third parties (metals API returns only public commodity prices)
 - Zero-trust: Encrypt sensitive fields (wealth amounts, Nisab values, user notes) at rest
 - Accessibility: WCAG 2.1 AA compliance for all new UI components
 - Data integrity: Audit trails must be append-only and immutable
 
-**Scale/Scope**: 
+**Scale/Scope**:
+
 - Single-user focused (household Zakat tracking)
 - Expected: 50-200 assets per user, 1-2 active Hawl cycles at a time
 - 10-20 Nisab Year Records per user over lifetime
@@ -101,6 +111,7 @@
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 ### I. Professional & Modern User Experience ✅ PASS
+
 - **Guided Workflows**: Finalization workflow includes summary review screen with clear explanation of Hawl completion (FR-034)
 - **Clear Visualizations**: Dashboard displays Hawl countdown, wealth vs Nisab comparison, progress indicators (FR-054-FR-057)
 - **Contextual Education**: In-context help for Nisab, Hawl, standard selection, deductible liabilities (FR-059-FR-063)
@@ -108,13 +119,15 @@
 - **Validation**: Usability testing scenarios to be defined in tasks.md
 
 ### II. Privacy & Security First ✅ PASS (NON-NEGOTIABLE)
+
 - **Zero-Trust Model**: All sensitive fields encrypted at rest with existing AES-256 EncryptionService
 - **Self-Hostable**: No changes to deployment model; remains fully self-hostable
 - **Third-Party Data**: Precious metals API returns only public commodity prices (no user financial data transmitted)
 - **Audit Trails**: Append-only, immutable log of all unlock/edit operations (FR-033, FR-041, FR-047)
 - **JWT Security**: No changes to existing authentication; inherits current JWT + refresh token model
 
-###III. Spec-Driven & Clear Development ✅ PASS
+### III. Spec-Driven & Clear Development ✅ PASS
+
 - **Written Specification**: Complete spec.md with 63 functional requirements before implementation
 - **Islamic Sources**: Requirements aligned with Simple Zakat Guide and Islamic accounting principles (Nisab, Hawl)
 - **Measurable Requirements**: Every FR is testable with clear acceptance criteria
@@ -122,6 +135,7 @@
 - **Traceability**: Each requirement maps to acceptance scenario or edge case
 
 ### IV. Quality & Performance ✅ PASS
+
 - **Test Coverage**: >90% coverage target for new calculation logic (Nisab calculation, Hawl tracking, aggregate wealth)
 - **Page Load**: Dashboard enhancements designed to maintain <2s load time (existing optimizations preserved)
 - **Observability**: Background jobs (Hawl detection) include logging and error monitoring hooks
@@ -129,6 +143,7 @@
 - **Performance Goals**: Explicit targets defined (aggregate calc <100ms, API calls <2s with cache)
 
 ### V. Foundational Islamic Guidance ✅ PASS
+
 - **Simple Zakat Guide Alignment**: Educational content references Simple Zakat Guide video series and site
 - **Proper Terminology**: "Nisab Year Record" reflects Islamic accounting (not generic "Yearly Snapshot")
 - **Hawl Tracking**: Lunar calendar (~354 days) used for Zakat year calculation (FR-016)
@@ -139,6 +154,12 @@
 **Initial Constitution Check Result**: ✅ PASS - No violations, proceed to Phase 0
 
 **Post-Design Constitution Check Result**: ✅ PASS - No new violations introduced
+
+### Constitutional Alignment Notes
+
+- **Hawl Tracking**: Uses HAWL_CONSTANTS.DAYS_LUNAR from `shared/src/constants/islamicConstants.ts` for lunar calendar accuracy
+- **Nisab Standards**: NISAB_THRESHOLDS from islamicConstants.ts ensures consistency across application
+- **Zakat Rate**: ZAKAT_RATES.STANDARD from islamicConstants.ts (2.5%) with scholarly references
 
 ## Project Structure
 
@@ -226,12 +247,14 @@ shared/
 **Structure Decision**: Web application (Option 2) - ZakApp uses a monorepo structure with separate `server/` (Express + TypeScript backend) and `client/` (React + TypeScript frontend) directories, plus a `shared/` directory for common TypeScript types. This feature will update existing files in both frontend and backend, add new services and components, and create a database migration for the schema changes.
 
 ## Phase 0: Outline & Research
+
 1. **Extract unknowns from Technical Context** above:
    - For each NEEDS CLARIFICATION → research task
    - For each dependency → best practices task
    - For each integration → patterns task
 
 2. **Generate and dispatch research agents**:
+
    ```
    For each unknown in Technical Context:
      Task: "Research {unknown} for {feature context}"
@@ -242,11 +265,12 @@ shared/
 3. **Consolidate findings** in `research.md` using format:
    - Decision: [what was chosen]
    - Rationale: [why chosen]
+
 ## Phase 0: Outline & Research ✅ COMPLETE
 
 **Status**: All unknowns resolved, research documented in [research.md](./research.md)
 
-### Key Decisions Made:
+### Key Decisions Made
 
 1. **Hijri Calendar Library**: moment-hijri (mature, 56k+ weekly downloads, Umm al-Qura algorithm)
 2. **Precious Metals API**: metals-api.com (free tier 50 req/month, daily caching strategy)
@@ -254,7 +278,7 @@ shared/
 4. **Live Tracking**: Backend recalculation + frontend polling (5s interval, simple & reliable)
 5. **Database Migration**: Rename-in-place with transaction safety (zero downtime)
 
-### Research Artifacts Created:
+### Research Artifacts Created
 
 - ✅ `research.md` - Complete technology decisions and rationale
 - ✅ All NEEDS CLARIFICATION items resolved
@@ -267,7 +291,7 @@ shared/
 
 **Status**: Data model defined, API contracts generated, quickstart guide created, Copilot context updated
 
-### Artifacts Generated:
+### Artifacts Generated
 
 1. **data-model.md** ✅:
    - NisabYearRecord entity (renamed from YearlySnapshot)
@@ -295,7 +319,7 @@ shared/
    - Added: Nisab Year Record entities, Hawl tracking, Islamic accounting principles
    - Preserved: Existing constitutional principles and coding standards
 
-### Design Validation:
+### Design Validation
 
 - ✅ All entities mapped to Prisma schema
 - ✅ Relationships defined (User 1:M NisabYearRecord, NisabYearRecord 1:M AuditTrailEntry)
@@ -309,7 +333,7 @@ shared/
 
 **Status**: Ready for `/tasks` command execution
 
-### Task Generation Strategy:
+### Task Generation Strategy
 
 The `/tasks` command will generate tasks.md by processing the Phase 1 design documents:
 
@@ -389,14 +413,16 @@ The `/tasks` command will generate tasks.md by processing the Phase 1 design doc
    - T057: Update user guide with Nisab Year Record workflow
    - T058: Document migration steps for deployment
 
-### Ordering Strategy:
+### Ordering Strategy
 
 **TDD Order** (tests before implementation):
+
 - Database migration → Service tests → Service implementation
 - API contract tests → Controller implementation
 - Component tests → Component implementation
 
 **Dependency Order**:
+
 1. Database layer (T001-T007)
 2. Service layer (T008-T017) - can run in parallel [P]
 3. Background jobs (T018-T020)
@@ -406,13 +432,15 @@ The `/tasks` command will generate tasks.md by processing the Phase 1 design doc
 7. Documentation (T055-T058)
 
 **Parallelization** (marked [P]):
+
 - Multiple services can be developed simultaneously
 - Frontend components independent of each other
 - Unit tests parallel with implementation
 
-### Estimated Task Count:
+### Estimated Task Count
 
 **Total**: ~58 tasks
+
 - Database: 7 tasks
 - Services: 10 tasks
 - Background Jobs: 3 tasks
@@ -421,7 +449,7 @@ The `/tasks` command will generate tasks.md by processing the Phase 1 design doc
 - Testing: 10 tasks
 - Documentation: 4 tasks
 
-### Next Command:
+### Next Command
 
 Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized tasks following this strategy.
 
@@ -433,14 +461,16 @@ Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized
 
 **Complexity Assessment**: MODERATE
 
-### New Components Added:
+### New Components Added
+
 - 1 new database table (AuditTrailEntry)
 - 1 new cache table (PreciousMetalPrice)
 - 4 new services (NisabCalculation, HawlTracking, WealthAggregation, AuditTrail)
 - 1 new background job (hawlDetection)
 - 7 new React components (Hawl progress, finalization modal, unlock dialog, audit trail, etc.)
 
-### Justification:
+### Justification
+
 - **Audit trails**: Required for compliance and trust (financial data corrections must be logged)
 - **Background job**: Required for automated Hawl detection (cannot rely on user-initiated checks)
 - **Service separation**: Follows single responsibility principle (Nisab calc, Hawl tracking, aggregation are distinct concerns)
@@ -452,7 +482,8 @@ Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized
 
 ## Progress Tracking
 
-### Phase Status:
+### Phase Status
+
 - [x] Phase 0: Research complete (/plan command) ✅
 - [x] Phase 1: Design complete (/plan command) ✅
 - [x] Phase 2: Task planning complete (/plan command - approach documented) ✅
@@ -460,13 +491,15 @@ Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized
 - [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 
-### Gate Status:
+### Gate Status
+
 - [x] Initial Constitution Check: PASS ✅
 - [x] Post-Design Constitution Check: PASS ✅
 - [x] All NEEDS CLARIFICATION resolved ✅
 - [x] Complexity deviations documented ✅
 
-### Artifacts Status:
+### Artifacts Status
+
 - [x] research.md ✅
 - [x] data-model.md ✅
 - [x] contracts/nisab-year-records.openapi.yaml ✅
@@ -485,8 +518,9 @@ Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized
 *Based on Constitution v0.2.0 - See `.specify/memory/constitution.md`*
 *Feature 008: Nisab Year Record Workflow Fix*
 *Branch: 008-nisab-year-record*
-   - Each story → integration test scenario
-   - Quickstart test = story validation steps
+
+- Each story → integration test scenario
+- Quickstart test = story validation steps
 
 5. **Update agent file incrementally** (O(1) operation):
    - Run `.specify/scripts/bash/update-agent-context.sh copilot`
@@ -500,18 +534,21 @@ Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized
 **Output**: data-model.md, /contracts/*, failing tests, quickstart.md, agent-specific file
 
 ## Phase 2: Task Planning Approach
+
 *This section describes what the /tasks command will do - DO NOT execute during /plan*
 
 **Task Generation Strategy**:
+
 - Load `.specify/templates/tasks-template.md` as base
 - Generate tasks from Phase 1 design docs (contracts, data model, quickstart)
 - Each contract → contract test task [P]
-- Each entity → model creation task [P] 
+- Each entity → model creation task [P]
 - Each user story → integration test task
 - Implementation tasks to make tests pass
 
 **Ordering Strategy**:
-- TDD order: Tests before implementation 
+
+- TDD order: Tests before implementation
 - Dependency order: Models before services before UI
 - Mark [P] for parallel execution (independent files)
 
@@ -520,6 +557,7 @@ Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized
 **IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
 
 ## Phase 3+: Future Implementation
+
 *These phases are beyond the scope of the /plan command*
 
 **Phase 3**: Task execution (/tasks command creates tasks.md)  
@@ -527,6 +565,7 @@ Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized
 **Phase 5**: Validation (run tests, execute quickstart.md, performance validation)
 
 ## Complexity Tracking
+
 *Fill ONLY if Constitution Check has violations that must be justified*
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
@@ -534,11 +573,12 @@ Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized
 | [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
 | [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
 
-
 ## Progress Tracking
+
 *This checklist is updated during execution flow*
 
 **Phase Status**:
+
 - [ ] Phase 0: Research complete (/plan command)
 - [ ] Phase 1: Design complete (/plan command)
 - [ ] Phase 2: Task planning complete (/plan command - describe approach only)
@@ -547,6 +587,7 @@ Run `/tasks` to generate complete tasks.md file with all 58 ordered, prioritized
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:
+
 - [ ] Initial Constitution Check: PASS
 - [ ] Post-Design Constitution Check: PASS
 - [ ] All NEEDS CLARIFICATION resolved
