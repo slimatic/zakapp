@@ -139,10 +139,8 @@ export const NisabYearRecordsPage: React.FC = () => {
         name: asset.name,
         category: asset.category,
         value: asset.value,
-        // Determine if zakatable based on category
-        isZakatable: ['cash', 'gold', 'silver', 'crypto', 'business', 'investments', 'stocks'].includes(asset.category.toLowerCase()),
-        // Use createdAt as addedAt
-        addedAt: asset.createdAt || asset.acquisitionDate,
+        isZakatable: asset.isZakatable, // Backend already determines this
+        addedAt: asset.addedAt, // Backend returns addedAt as ISO string
       }));
       return { ...response.data, assets };
     },
