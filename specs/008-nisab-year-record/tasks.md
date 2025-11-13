@@ -27,10 +27,11 @@
    → Different files = mark [P] for parallel
    → Same file = sequential (no [P])
    → Tests before implementation (TDD)
-5. Total tasks: 102 (numbered T001-T102)
+5. Total tasks: 105 (numbered T001-T105)
    → Original: 91 tasks (T001-T091)
    → Asset Auto-Inclusion: 10 tasks (T093-T102) added 2025-10-31
-6. Dependencies: Database → Services → Jobs → API → Frontend → Asset Auto-Inclusion → Manual Testing
+   → Delete Enhancement: 3 tasks (T103-T105) added 2025-11-13
+6. Dependencies: Database → Services → Jobs → API → Frontend → Asset Auto-Inclusion → Manual Testing → Enhancements
 ```
 
 ## Format: `[ID] [P?] Description`
@@ -615,6 +616,29 @@ git commit -m "feat(008): Complete setup milestone
    - TDD: All tests (T014-T037) before any implementation (T038-T066)
    - Dependencies: Database blocks services, services block API, API blocks frontend
 
+## Phase 3.7: Delete Functionality Enhancement (Post-Manual Testing)
+
+**Context**: Manual testing revealed that users needed ability to delete records in DRAFT and UNLOCKED status, but not FINALIZED records (which should be permanent once finalized). Original implementation only allowed deletion of DRAFT records.
+
+- [x] T103 Update deleteRecord service to allow DRAFT and UNLOCKED deletion in server/src/services/nisabYearRecordService.ts
+  - Allow deletion of DRAFT and UNLOCKED records
+  - Prevent deletion of FINALIZED records with clear error message
+  - Maintain cascade delete of audit trail entries
+
+- [x] T104 Update DELETE endpoint documentation in server/src/routes/nisab-year-records.ts
+  - Update route comment to reflect DRAFT/UNLOCKED deletion rules
+  - Maintain 409 status code for invalid status attempts
+
+- [x] T105 Add delete UI with confirmation in client/src/pages/NisabYearRecordsPage.tsx
+  - Add delete button for DRAFT and UNLOCKED records only
+  - Add confirmation dialog with warning about permanent deletion
+  - Show loading state during deletion
+  - Clear selection if deleted record was selected
+
+- [x] **🔸 COMMIT CHECKPOINT**: Commit delete functionality enhancement (commit: 264c9f9)
+
+---
+
 ## Validation Checklist
 *GATE: Checked by main() before returning*
 
@@ -630,16 +654,17 @@ git commit -m "feat(008): Complete setup milestone
 
 ---
 
-**Tasks Status**: ✅ READY FOR EXECUTION (102 tasks across 8 phases)
+**Tasks Status**: ✅ READY FOR EXECUTION (105 tasks across 9 phases)
 
-**Updated**: 2025-10-31 (Added Phase 3.5.1: Asset Auto-Inclusion - T093-T102)
+**Updated**: 2025-11-13 (Added Phase 3.7: Delete Enhancement - T103-T105)
 
 **Estimated Completion**: 
 - Original: 30-40 hours with parallelization
 - Asset Auto-Inclusion: +8-10 hours
-- **Total: 38-50 hours with parallelization, 48-70 hours sequential**
+- Delete Enhancement: +1-2 hours
+- **Total: 39-52 hours with parallelization, 50-72 hours sequential**
 
-**Next Action**: Complete Phase 3.5.1 (Asset Auto-Inclusion) tasks T093-T102 before executing T067-T073 manual testing scenarios
+**Next Action**: Continue with remaining manual testing scenarios or additional enhancements as needed
 
 ---
 
