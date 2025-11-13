@@ -32,6 +32,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const [showAuditTrail, setShowAuditTrail] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>('GOLD');
   const [refreshingRecordId, setRefreshingRecordId] = useState<string | null>(null);
   const [editingStartDateRecordId, setEditingStartDateRecordId] = useState<string | null>(null);
   const [newStartDate, setNewStartDate] = useState<string>('');
@@ -190,7 +191,7 @@ export const NisabYearRecordsPage: React.FC = () => {
         hawlStartDateHijri: formatHijri(startHijri),
         hawlCompletionDate: completionDate.toISOString(),
         hawlCompletionDateHijri: formatHijri(completionHijri),
-        nisabBasis: 'GOLD',
+        nisabBasis: nisabBasis, // Use selected nisab basis
         totalWealth,
         zakatableWealth,
         zakatAmount,
@@ -209,6 +210,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
       setShowCreateModal(false);
       setSelectedAssetIds([]);
+      setNisabBasis('GOLD'); // Reset to default
     },
     onError: (error: any) => {
       console.error('Error creating record:', error);
@@ -718,6 +720,58 @@ export const NisabYearRecordsPage: React.FC = () => {
               ) : assetsData && assetsData.length > 0 ? (
                 <>
                   {console.log('Assets data for table:', assetsData)}
+                  
+                  {/* Nisab Basis Selector */}
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      Nisab Threshold Basis
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setNisabBasis('GOLD')}
+                        className={`p-4 rounded-lg border-2 transition-all ${
+                          nisabBasis === 'GOLD'
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-gray-900">Gold (87.48g)</span>
+                          {nisabBasis === 'GOLD' && (
+                            <span className="text-blue-600">✓</span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          Most commonly used standard
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNisabBasis('SILVER')}
+                        className={`p-4 rounded-lg border-2 transition-all ${
+                          nisabBasis === 'SILVER'
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-gray-900">Silver (612.36g)</span>
+                          {nisabBasis === 'SILVER' && (
+                            <span className="text-blue-600">✓</span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          Lower threshold (more people obligated)
+                        </div>
+                      </button>
+                    </div>
+                    <p className="mt-3 text-xs text-gray-500">
+                      This determines the minimum wealth threshold for Zakat obligation. 
+                      Gold standard is higher (~$5,686), Silver standard is lower (~$459).
+                    </p>
+                  </div>
+                  
                   <AssetSelectionTable
                     assets={assetsData}
                     initialSelection={selectedAssetIds}

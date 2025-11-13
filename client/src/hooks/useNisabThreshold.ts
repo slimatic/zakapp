@@ -11,6 +11,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { API_BASE_URL } from '../services/api';
 
 export interface NisabThresholdData {
   nisabAmount: number;
@@ -32,11 +33,8 @@ async function fetchNisabThreshold(
   currency: string = 'USD',
   nisabBasis: 'GOLD' | 'SILVER' = 'GOLD'
 ): Promise<NisabThresholdData> {
-  // Note: This endpoint should be available on the backend
-  // GET /api/zakat/nisab?currency=USD&basis=GOLD
-  // Returns: { nisabAmount, currency, nisabBasis, goldPrice, silverPrice, fetchedAt }
-  
-  const response = await fetch(`/api/zakat/nisab?currency=${currency}&basis=${nisabBasis}`, {
+  // Call the existing /api/zakat/nisab endpoint using full API_BASE_URL
+  const response = await fetch(`${API_BASE_URL}/zakat/nisab`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
     }
@@ -52,13 +50,22 @@ async function fetchNisabThreshold(
     throw new Error(data.message || 'Invalid Nisab threshold response');
   }
 
-  const fetchedAt = new Date(data.data.fetchedAt);
+  // Extract data from the response
+  const { goldPrice, silverPrice } = data.data;
+  const nisabAmount = nisabBasis === 'GOLD' ? goldPrice.nisabValue : silverPrice.nisabValue;
+  const fetchedAt = new Date(data.data.lastUpdated || data.data.effectiveDate);
+  
   const now = new Date();
   const daysSinceUpdate = Math.floor((now.getTime() - fetchedAt.getTime()) / (1000 * 60 * 60 * 24));
   const isStale = daysSinceUpdate > 7; // Stale if >7 days old
 
   return {
-    ...data.data,
+    nisabAmount,
+    currency,
+    nisabBasis,
+    goldPrice: goldPrice.pricePerGram,
+    silverPrice: silverPrice.pricePerGram,
+    metalType: nisabBasis === 'GOLD' ? 'gold' : 'silver',
     fetchedAt,
     isStale,
     daysSinceUpdate,
