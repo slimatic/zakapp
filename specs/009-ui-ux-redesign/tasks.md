@@ -101,7 +101,7 @@ client/tests/
 
 ### Navigation Components
 
-- [ ] **T004** [P] Create `Navigation.tsx` component in `client/src/components/layout/Navigation.tsx`
+- [X] **T004** [P] Create `Navigation.tsx` component in `client/src/components/layout/Navigation.tsx`
   - Extract navigation logic from Layout.tsx
   - Accept `items` prop: `Array<{ name: string, href: string, icon?: React.ReactNode }>`
   - Use React Router's `useLocation()` for active state detection
@@ -110,7 +110,7 @@ client/tests/
   - **Duration**: ~45 minutes
   - **Test**: Component renders with 4 nav items
 
-- [ ] **T005** [P] Create `MobileNav.tsx` component in `client/src/components/layout/MobileNav.tsx`
+- [X] **T005** [P] Create `MobileNav.tsx` component in `client/src/components/layout/MobileNav.tsx`
   - Implement hamburger menu icon (three horizontal lines)
   - Slide-in menu from left on hamburger click
   - Overlay backdrop (semi-transparent black)
@@ -119,7 +119,7 @@ client/tests/
   - **Duration**: ~60 minutes
   - **Test**: Menu opens/closes, keyboard accessible
 
-- [ ] **T006** [P] Create `NavigationItem.tsx` reusable component in `client/src/components/layout/NavigationItem.tsx`
+- [X] **T006** [P] Create `NavigationItem.tsx` reusable component in `client/src/components/layout/NavigationItem.tsx`
   - Props: `name: string, href: string, icon?: React.ReactNode, isActive: boolean`
   - Use React Router's `NavLink` component
   - Active state: `bg-green-100 text-green-700`
@@ -130,7 +130,7 @@ client/tests/
 
 ### Dashboard Widget Components
 
-- [ ] **T007** [P] Create `DashboardHeader.tsx` in `client/src/components/dashboard/DashboardHeader.tsx`
+- [X] **T007** [P] Create `DashboardHeader.tsx` in `client/src/components/dashboard/DashboardHeader.tsx`
   - Props: `userName?: string, hasAssets: boolean, hasActiveRecord: boolean`
   - Welcome message: "Welcome to ZakApp - Your Islamic Zakat Calculator"
   - Contextual subtitle based on user state
@@ -138,7 +138,7 @@ client/tests/
   - **Duration**: ~30 minutes
   - **Test**: Different states show correct messages
 
-- [ ] **T008** [P] Create `QuickActionCard.tsx` in `client/src/components/dashboard/QuickActionCard.tsx`
+- [X] **T008** [P] Create `QuickActionCard.tsx` in `client/src/components/dashboard/QuickActionCard.tsx`
   - Props: `title: string, description: string, icon: React.ReactNode, href: string, onClick?: () => void`
   - Card design: elevated shadow, rounded corners, hover effect
   - Use React Router's `Link` or button if onClick provided
@@ -146,7 +146,7 @@ client/tests/
   - **Duration**: ~40 minutes
   - **Test**: Card is clickable and navigates correctly
 
-- [ ] **T009** [P] Create `ActiveRecordWidget.tsx` in `client/src/components/dashboard/ActiveRecordWidget.tsx`
+- [X] **T009** [P] Create `ActiveRecordWidget.tsx` in `client/src/components/dashboard/ActiveRecordWidget.tsx`
   - Props: `record: NisabYearRecord | null`
   - Display Hawl progress: "Day X of 354 - Y days remaining"
   - Visual progress bar with percentage
@@ -155,7 +155,7 @@ client/tests/
   - **Duration**: ~60 minutes
   - **Test**: Shows correct progress and status
 
-- [ ] **T010** [P] Create `WealthSummaryCard.tsx` in `client/src/components/dashboard/WealthSummaryCard.tsx`
+- [X] **T010** [P] Create `WealthSummaryCard.tsx` in `client/src/components/dashboard/WealthSummaryCard.tsx`
   - Props: `totalWealth: number, nisabThreshold: number, currency: string`
   - Display total wealth prominently
   - Show comparison to Nisab threshold
@@ -164,7 +164,7 @@ client/tests/
   - **Duration**: ~40 minutes
   - **Test**: Displays correct wealth and comparison
 
-- [ ] **T011** [P] Create `OnboardingGuide.tsx` in `client/src/components/dashboard/OnboardingGuide.tsx`
+- [X] **T011** [P] Create `OnboardingGuide.tsx` in `client/src/components/dashboard/OnboardingGuide.tsx`
   - Props: `currentStep: 1 | 2 | 3, completedSteps: number[]`
   - 3-step guide: "Add Assets → Create Record → Track Zakat"
   - Visual step indicators (numbered circles)
@@ -175,7 +175,7 @@ client/tests/
 
 ### Utility Components
 
-- [ ] **T012** [P] Create `SkeletonLoader.tsx` in `client/src/components/common/SkeletonLoader.tsx`
+- [X] **T012** [P] Create `SkeletonLoader.tsx` in `client/src/components/common/SkeletonLoader.tsx`
   - Props: `variant: 'card' | 'text' | 'circle', count?: number`
   - Shimmer animation effect
   - Content-aware shapes matching final UI
@@ -184,7 +184,7 @@ client/tests/
   - **Duration**: ~40 minutes
   - **Test**: Animations work, variants render correctly
 
-- [ ] **T013** [P] Create `Breadcrumbs.tsx` in `client/src/components/ui/Breadcrumbs.tsx`
+- [X] **T013** [P] Create `Breadcrumbs.tsx` in `client/src/components/ui/Breadcrumbs.tsx`
   - Props: `items: Array<{ label: string, href?: string }>`
   - Separator: "/" or ">" icon
   - Last item (current page) not a link
@@ -195,14 +195,14 @@ client/tests/
 
 ### Custom Hooks
 
-- [ ] **T014** [P] Create `useNavigation.ts` custom hook in `client/src/hooks/useNavigation.ts`
+- [X] **T014** [P] Create `useNavigation.ts` custom hook in `client/src/hooks/useNavigation.ts`
   - Returns: `{ currentPath: string, navigate: (path: string) => void, isActive: (path: string) => boolean }`
   - Wraps React Router's `useLocation()` and `useNavigate()`
   - isActive logic handles nested routes (e.g., /tracking/*)
   - **Duration**: ~25 minutes
   - **Test**: Hook returns correct current path and active state
 
-- [ ] **T015** [P] Create `useUserOnboarding.ts` custom hook in `client/src/hooks/useUserOnboarding.ts`
+- [X] **T015** [P] Create `useUserOnboarding.ts` custom hook in `client/src/hooks/useUserOnboarding.ts`
   - Returns: `{ currentStep: number, completedSteps: number[], markComplete: (step: number) => void }`
   - Uses React Query to fetch user's assets and records
   - Logic: Step 1 (no assets), Step 2 (has assets, no record), Step 3 (has record)
