@@ -248,7 +248,7 @@ router.put('/api/nisab-year-records/:id', async (req: AuthenticatedRequest, res:
 
 /**
  * T054: DELETE /api/nisab-year-records/:id
- * Delete a record (DRAFT status only)
+ * Delete a record (DRAFT or UNLOCKED status only, not FINALIZED)
  * 
  * Response:
  * {

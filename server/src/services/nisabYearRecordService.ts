@@ -560,7 +560,7 @@ export class NisabYearRecordService {
 
   /**
    * Delete a record
-   * Only DRAFT records can be deleted
+   * Only allowed for DRAFT and UNLOCKED records (not FINALIZED)
    * 
    * @param userId - Record owner
    * @param recordId - Record to delete
@@ -569,8 +569,12 @@ export class NisabYearRecordService {
     try {
       const record = await this._verifyOwnership(userId, recordId);
 
-      if (record.status !== 'DRAFT') {
-        throw new Error(`Cannot delete record in ${record.status} status (only DRAFT allowed)`);
+      if (record.status === 'FINALIZED') {
+        throw new Error(`Cannot delete FINALIZED record. Please unlock it first if you need to make changes.`);
+      }
+
+      if (record.status !== 'DRAFT' && record.status !== 'UNLOCKED') {
+        throw new Error(`Cannot delete record in ${record.status} status (only DRAFT or UNLOCKED allowed)`);
       }
 
       // Delete audit trail entries first (foreign key constraint)
