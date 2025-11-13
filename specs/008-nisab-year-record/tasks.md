@@ -389,13 +389,14 @@
 ## Phase 3.6: Validation & Testing
 
 ### Quickstart Scenarios (Manual Testing)
-- [ ] T067 Execute quickstart.md Scenario 1: First-time Nisab achievement & Hawl start (~10 min)
-- [ ] T068 Execute quickstart.md Scenario 2: Live tracking during Hawl (~8 min)
-- [ ] T069 Execute quickstart.md Scenario 3: Wealth falls below Nisab (interruption) (~7 min)
-- [ ] T070 Execute quickstart.md Scenario 4: Hawl completion & finalization (~10 min)
-- [ ] T071 Execute quickstart.md Scenario 5: Unlock & edit finalized record (~8 min)
-- [ ] T072 Execute quickstart.md Scenario 6: Invalid operations (error handling) (~5 min)
-- [ ] T073 Execute quickstart.md Scenario 7: Nisab threshold calculation (~7 min)
+- [x] T067 Execute quickstart.md Scenario 1: First-time Nisab achievement & Hawl start (~10 min) ✅ PASS
+- [x] T068 Execute quickstart.md Scenario 2: Live tracking during Hawl (~8 min) ✅ PASS
+- [x] T069 Execute quickstart.md Scenario 3: Wealth falls below Nisab (interruption) (~7 min) ✅ PASS
+- [x] T070 Execute quickstart.md Scenario 4: Hawl completion & finalization (~10 min) ✅ PASS
+- [x] T071 Execute quickstart.md Scenario 5: Unlock & edit finalized record (~8 min) ✅ PASS
+- [x] T072 Execute quickstart.md Scenario 6: Invalid operations (error handling) (~5 min) ✅ PASS
+- [x] T073 Execute quickstart.md Scenario 7: Nisab threshold calculation (~7 min) ✅ PASS
+
 
 ### Performance Validation
 - [x] T074 Performance test: Aggregate wealth calculation (<100ms for 500 assets) **[FR-030, NFR-001]** ✅ PASS (17ms avg)
