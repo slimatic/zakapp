@@ -135,6 +135,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items }) => {
             className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
             onClick={closeMenu}
             aria-hidden="true"
+            data-testid="mobile-nav-backdrop"
           />
 
           {/* Slide-in Menu Panel */}

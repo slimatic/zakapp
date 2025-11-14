@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 interface OnboardingGuideProps {
   currentStep: 1 | 2 | 3;
@@ -10,6 +11,7 @@ interface Step {
   title: string;
   description: string;
   action: string;
+  href: string;
 }
 
 /**
@@ -42,18 +44,21 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
       title: 'Add Assets',
       description: 'Add your wealth assets (cash, gold, investments) to begin tracking',
       action: 'Add Your First Asset',
+      href: '/assets/new',
     },
     {
       number: 2,
       title: 'Create Nisab Record',
       description: 'Start a Nisab Year Record to track your Hawl period (354 days)',
       action: 'Create Nisab Record',
+      href: '/nisab-records',
     },
     {
       number: 3,
-      title: 'Track Zakat',
-      description: 'Monitor your wealth throughout the year and calculate Zakat when due',
-      action: 'View Dashboard',
+      title: 'Track Payments',
+      description: 'Record your Zakat payments and monitor payment history',
+      action: 'Record Payment',
+      href: '/nisab-records',
     },
   ];
 
@@ -208,22 +213,45 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
 
                     {/* Action Button (only for current step) */}
                     {current && (
-                      <button
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center py-2 px-3"
-                        onClick={() => {
-                          // Navigation will be handled by parent component
-                          // This is just a visual indicator
-                        }}
+                      <Link
+                        to={step.href}
+                        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded min-h-[44px] py-2 px-3"
                       >
                         {step.action} →
-                      </button>
+                      </Link>
                     )}
 
-                    {/* Completed Badge */}
+                    {/* Completed State with Add More option */}
                     {completed && (
-                      <span className="text-xs font-medium text-green-600">
-                        ✓ Completed
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-medium text-green-600">
+                          ✓ Completed
+                        </span>
+                        {step.number === 1 && (
+                          <Link
+                            to={step.href}
+                            className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                          >
+                            Add more assets
+                          </Link>
+                        )}
+                        {step.number === 2 && (
+                          <Link
+                            to={step.href}
+                            className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                          >
+                            Create another record
+                          </Link>
+                        )}
+                        {step.number === 3 && (
+                          <Link
+                            to={step.href}
+                            className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                          >
+                            Record another payment
+                          </Link>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
