@@ -88,6 +88,11 @@ const logMetric = (metric: Metric): void => {
  * Send metric to backend analytics endpoint
  */
 const sendMetricToBackend = async (metric: Metric): Promise<void> => {
+  // Skip sending in development - endpoint doesn't exist yet
+  if (process.env.NODE_ENV === 'development') {
+    return;
+  }
+  
   try {
     const body = JSON.stringify({
       name: metric.name,
@@ -112,16 +117,12 @@ const sendMetricToBackend = async (metric: Metric): Promise<void> => {
         keepalive: true,
       }).catch(err => {
         // Silently fail in production
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Failed to send metric to backend:', err);
-        }
+        console.warn('Failed to send metric to backend:', err);
       });
     }
   } catch (error) {
     // Silently fail - don't break the app for analytics
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error sending metric:', error);
-    }
+    console.error('Error sending metric:', error);
   }
 };
 
