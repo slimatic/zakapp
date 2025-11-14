@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { apiService } from '../services/api';
 
 /**
  * useUserOnboarding custom hook - Track user's onboarding progress
@@ -23,37 +24,45 @@ export const useUserOnboarding = () => {
   const STORAGE_KEY = 'zakapp_onboarding_state';
 
   /**
-   * Fetch user's assets (using existing React Query setup)
-   * This assumes the assets query is already set up in the app
+   * Fetch user's assets (using apiService)
    */
   const { data: assetsData } = useQuery({
     queryKey: ['assets'],
     queryFn: async () => {
-      // This will use the existing assets API endpoint
-      const response = await fetch('/api/assets', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch assets');
-      return response.json();
+      const response = await apiService.getAssets();
+      return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   /**
-   * Fetch user's Nisab Year Records
+   * Fetch user's Nisab Year Records (using apiService)
+   * Use same query key as Dashboard to share cache
    */
   const { data: recordsData } = useQuery({
     queryKey: ['nisab-records'],
     queryFn: async () => {
-      const response = await fetch('/api/nisab-records', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch records');
-      return response.json();
+      // Fetch ALL records (no status filter) to check if user has any
+      const response = await apiService.getNisabYearRecords();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  /**
+   * Fetch user's payments to determine Step 3 completion
+   * Note: This endpoint may not exist yet, so we handle errors gracefully
+   */
+  const { data: paymentsData } = useQuery({
+    queryKey: ['payments'],
+    queryFn: async () => {
+      try {
+        const response = await apiService.getPayments();
+        return response.data;
+      } catch (error) {
+        // If endpoint doesn't exist or fails, return empty
+        return { payments: [] };
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -78,19 +87,22 @@ export const useUserOnboarding = () => {
    */
   const getCurrentStep = (): 1 | 2 | 3 => {
     const hasAssets = assetsData?.assets && assetsData.assets.length > 0;
-    const hasActiveRecord = recordsData?.records?.some(
-      (record: any) => record.status === 'active'
-    );
+    const hasAnyRecord = recordsData?.records && recordsData.records.length > 0;
+    const hasPayments = paymentsData?.payments && paymentsData.payments.length > 0;
 
     if (!hasAssets) {
       return 1; // Step 1: Add assets
     }
 
-    if (!hasActiveRecord) {
+    if (!hasAnyRecord) {
       return 2; // Step 2: Create Nisab record
     }
 
-    return 3; // Step 3: Track Zakat (completed onboarding)
+    if (!hasPayments) {
+      return 3; // Step 3: Record payment
+    }
+
+    return 3; // All steps complete (stay on step 3)
   };
 
   /**
@@ -98,32 +110,52 @@ export const useUserOnboarding = () => {
    */
   useEffect(() => {
     const hasAssets = assetsData?.assets && assetsData.assets.length > 0;
-    const hasActiveRecord = recordsData?.records?.some(
-      (record: any) => record.status === 'active'
-    );
+    const hasAnyRecord = recordsData?.records && recordsData.records.length > 0;
+    const hasPayments = paymentsData?.payments && paymentsData.payments.length > 0;
 
-    const newCompletedSteps: number[] = [];
+    // Debug logging
+    console.log('[useUserOnboarding] Data check:', {
+      assetsData,
+      recordsData,
+      paymentsData,
+      hasAssets,
+      hasAnyRecord,
+      hasPayments
+    });
+
+    // Build completed steps array without duplicates
+    const newCompletedSteps: Set<number> = new Set();
 
     if (hasAssets) {
-      newCompletedSteps.push(1);
+      newCompletedSteps.add(1);
     }
 
-    if (hasActiveRecord) {
-      newCompletedSteps.push(1, 2);
+    if (hasAnyRecord) {
+      newCompletedSteps.add(1); // Asset is prerequisite
+      newCompletedSteps.add(2);
     }
+
+    if (hasPayments) {
+      newCompletedSteps.add(1); // Asset is prerequisite
+      newCompletedSteps.add(2); // Record is prerequisite
+      newCompletedSteps.add(3);
+    }
+
+    const stepsArray = Array.from(newCompletedSteps).sort();
+    console.log('[useUserOnboarding] Completed steps:', stepsArray);
 
     // Only update if changed
-    if (JSON.stringify(newCompletedSteps) !== JSON.stringify(completedSteps)) {
-      setCompletedSteps(newCompletedSteps);
+    if (JSON.stringify(stepsArray) !== JSON.stringify(completedSteps.sort())) {
+      setCompletedSteps(stepsArray);
       
       // Persist to localStorage
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ completedSteps: newCompletedSteps })
+        JSON.stringify({ completedSteps: stepsArray })
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assetsData, recordsData]);
+  }, [assetsData, recordsData, paymentsData]);
 
   /**
    * Manually mark a step as complete

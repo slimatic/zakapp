@@ -43,15 +43,20 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
     return null;
   }
 
+  // Safely extract values with defaults
   const daysElapsed = record.daysElapsed || 0;
   const daysRemaining = record.daysRemaining || 354;
   const totalDays = 354; // Lunar year
   const progressPercentage = Math.min((daysElapsed / totalDays) * 100, 100);
 
   const currentWealth = record.currentWealth || 0;
-  const nisabThreshold = record.initialNisabThreshold;
+  const nisabThreshold = record.initialNisabThreshold || 5000; // Add default
+  
+  // Prevent division by zero
   const wealthDifference = currentWealth - nisabThreshold;
-  const differencePercentage = (wealthDifference / nisabThreshold) * 100;
+  const differencePercentage = nisabThreshold > 0 
+    ? (wealthDifference / nisabThreshold) * 100 
+    : 0;
 
   /**
    * Determine status color based on wealth vs Nisab

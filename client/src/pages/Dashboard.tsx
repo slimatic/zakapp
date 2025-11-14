@@ -169,6 +169,9 @@ export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const { currentStep, completedSteps } = useUserOnboarding();
 
+  // Debug logging
+  console.log('[Dashboard] Onboarding state:', { currentStep, completedSteps });
+
   // Fetch user's assets
   const {
     data: assetsResponse,
@@ -183,7 +186,7 @@ export const Dashboard: React.FC = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch active Nisab Year Record
+  // Fetch active Nisab Year Record (DRAFT = active/in-progress)
   const {
     data: recordsData,
     isLoading: recordsLoading,
@@ -192,8 +195,7 @@ export const Dashboard: React.FC = () => {
     queryKey: ['nisab-records', 'active'],
     queryFn: async () => {
       const response = await apiService.getNisabYearRecords({ 
-        status: ['DRAFT'], 
-        limit: 1 
+        status: ['DRAFT']
       });
       return response.data;
     },
@@ -202,10 +204,17 @@ export const Dashboard: React.FC = () => {
 
   const assets = assetsResponse?.assets || [];
   
-  // Handle double-wrapped API response structure
-  const records = Array.isArray(recordsData) 
+  // Handle double-wrapped API response structure and get latest record
+  const allRecords = Array.isArray(recordsData) 
     ? recordsData 
     : (recordsData?.records || []);
+  
+  // Sort by hawlStartDate descending (newest first) and take the first one
+  const records = allRecords.length > 0 
+    ? [allRecords.sort((a, b) => 
+        new Date(b.hawlStartDate).getTime() - new Date(a.hawlStartDate).getTime()
+      )[0]]
+    : [];
   const activeRecord = records[0] || null;
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeRecord !== null;
@@ -370,8 +379,8 @@ export const Dashboard: React.FC = () => {
       {/* T022 & T023: Has Assets State */}
       {hasAssets && (
         <div className="space-y-6">
-          {/* Show onboarding if not yet completed */}
-          {currentStep < 3 && (
+          {/* Show onboarding guide unless all steps are completed */}
+          {!completedSteps.includes(3) && (
             <OnboardingGuide
               currentStep={currentStep}
               completedSteps={completedSteps}
