@@ -529,7 +529,7 @@ client/tests/
 
 **Goal**: Write unit tests for navigation and dashboard components
 
-- [ ] **T036** [P] Write unit tests for `Navigation.tsx` in `client/tests/components/layout/Navigation.test.tsx`
+- [X] **T036** [P] Write unit tests for `Navigation.tsx` in `client/tests/components/layout/Navigation.test.tsx`
   - Test: Renders correct number of navigation items (4)
   - Test: Active state highlights current page
   - Test: Click navigation item navigates to correct route
@@ -537,8 +537,9 @@ client/tests/
   - Use React Testing Library: `render`, `screen`, `fireEvent`
   - **Duration**: ~50 minutes
   - **Test**: All tests pass with >80% coverage
+  - **Status**: ✅ COMPLETE
 
-- [ ] **T037** [P] Write unit tests for `MobileNav.tsx` in `client/tests/components/layout/MobileNav.test.tsx`
+- [X] **T037** [P] Write unit tests for `MobileNav.tsx` in `client/tests/components/layout/MobileNav.test.tsx`
   - Test: Hamburger button toggles menu open/close
   - Test: Menu closes on Escape key press
   - Test: Menu closes on backdrop click
@@ -546,8 +547,9 @@ client/tests/
   - Test: aria-expanded attribute updates
   - **Duration**: ~60 minutes
   - **Test**: All tests pass with >80% coverage
+  - **Status**: ✅ COMPLETE
 
-- [ ] **T038** [P] Write unit tests for dashboard widgets in `client/tests/components/dashboard/DashboardWidgets.test.tsx`
+- [X] **T038** [P] Write unit tests for dashboard widgets in `client/tests/components/dashboard/DashboardWidgets.test.tsx`
   - Test: DashboardHeader shows correct message for each user state
   - Test: QuickActionCard renders and navigates on click
   - Test: ActiveRecordWidget displays Hawl progress correctly
@@ -555,6 +557,7 @@ client/tests/
   - Test: OnboardingGuide shows correct step based on props
   - **Duration**: ~70 minutes
   - **Test**: All tests pass with >80% coverage
+  - **Status**: ✅ COMPLETE
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit unit tests
   ```bash
