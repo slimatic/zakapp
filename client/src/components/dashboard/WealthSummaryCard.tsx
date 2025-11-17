@@ -31,7 +31,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
 }) => {
   const isAboveNisab = totalWealth >= nisabThreshold;
   const difference = Math.abs(totalWealth - nisabThreshold);
-  const differencePercentage = ((totalWealth - nisabThreshold) / nisabThreshold) * 100;
+  const differencePercentage = nisabThreshold > 0 ? ((totalWealth - nisabThreshold) / nisabThreshold) * 100 : 0;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
