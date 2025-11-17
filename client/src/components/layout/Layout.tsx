@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { SkipLink } from '../common/SkipLink';
+import { MobileNav } from './MobileNav';
 import { BottomNav } from './BottomNav';
 
 interface LayoutProps {
@@ -131,6 +132,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             </div>
             <div className="flex items-center">
+              {/* Mobile Navigation Hamburger (md:hidden) */}
+              <div className="md:hidden mr-2">
+                <MobileNav items={navigation} />
+              </div>
+              
+              {/* User Dropdown Menu */}
               <div className="flex-shrink-0" ref={dropdownRef}>
                 <div className="relative">
                   <button
@@ -196,27 +203,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3" role="list">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  isActive(item.href)
-                    ? 'bg-green-100 text-green-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-                aria-current={isActive(item.href) ? 'page' : undefined}
-                role="listitem"
-              >
-                {item.name}
-              </Link>
-            ))}
           </div>
         </div>
       </nav>
