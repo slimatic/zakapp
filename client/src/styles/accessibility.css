@@ -10,7 +10,7 @@
   position: absolute;
   top: -40px;
   left: 0;
-  z-index: 100;
+  z-index: 9999;
   padding: 8px 16px;
   background-color: #4f46e5;
   color: #ffffff;

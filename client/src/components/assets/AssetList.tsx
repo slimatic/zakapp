@@ -38,7 +38,7 @@ export const AssetList: React.FC = React.memo(() => {
   if (error) return <ErrorMessage error={error} />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="main-content">
       {/* Header with Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
