@@ -21,6 +21,9 @@ const API_ENDPOINT = '/api/analytics/web-vitals';
 // Sample rate for production (1 = 100%, 0.1 = 10%)
 const SAMPLE_RATE = 0.1;
 
+// Track whether we should report metrics for this session
+let sessionShouldReport = false;
+
 /**
  * Determine if this session should report metrics
  * Uses sampling in production to reduce backend load
@@ -88,11 +91,6 @@ const logMetric = (metric: Metric): void => {
  * Send metric to backend analytics endpoint
  */
 const sendMetricToBackend = async (metric: Metric): Promise<void> => {
-  // Skip sending in development - endpoint doesn't exist yet
-  if (process.env.NODE_ENV === 'development') {
-    return;
-  }
-  
   try {
     const body = JSON.stringify({
       name: metric.name,
@@ -130,13 +128,13 @@ const sendMetricToBackend = async (metric: Metric): Promise<void> => {
  * Handle a metric report
  */
 const handleMetric = (metric: Metric): void => {
-  // Always log in development
+  // Always log in development for visibility in DevTools
   if (process.env.NODE_ENV === 'development') {
     logMetric(metric);
   }
   
-  // Send to backend if we're reporting this session
-  if (shouldReport()) {
+  // Send to backend only in production and only for sampled sessions
+  if (process.env.NODE_ENV === 'production' && sessionShouldReport) {
     sendMetricToBackend(metric);
   }
 };
@@ -146,8 +144,12 @@ const handleMetric = (metric: Metric): void => {
  * Call this once when the app loads
  */
 export const initPerformanceMonitoring = (): void => {
-  // Check if we should monitor this session
-  if (!shouldReport() && process.env.NODE_ENV !== 'development') {
+  // Determine if we should report metrics for this session
+  sessionShouldReport = shouldReport();
+  
+  // In development, always monitor for local debugging
+  // In production, only monitor if selected for reporting
+  if (!sessionShouldReport && process.env.NODE_ENV !== 'development') {
     return;
   }
   
