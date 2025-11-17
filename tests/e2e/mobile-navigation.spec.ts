@@ -178,8 +178,6 @@ test.describe('Mobile Responsive Navigation', () => {
 
   test('should not show desktop navigation on mobile', async ({ page }) => {
     // Desktop horizontal nav should be hidden
-    const desktopNav = page.locator('nav[aria-label="Main navigation"] .hidden').first();
-    
     // The desktop nav items should not be visible (or nav should have display: none)
     const desktopNavItems = page.locator('nav[aria-label="Main navigation"] a:not([class*="mobile"])');
     
