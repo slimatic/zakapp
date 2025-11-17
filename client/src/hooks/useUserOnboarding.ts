@@ -145,7 +145,12 @@ export const useUserOnboarding = () => {
     console.log('[useUserOnboarding] Completed steps:', stepsArray);
 
     // Only update if changed
-    if (JSON.stringify(stepsArray) !== JSON.stringify(completedSteps.sort())) {
+    // Compare sorted arrays without mutating state
+    const sortedCompletedSteps = [...completedSteps].sort();
+    if (
+      stepsArray.length !== sortedCompletedSteps.length ||
+      !stepsArray.every((step, i) => step === sortedCompletedSteps[i])
+    ) {
       setCompletedSteps(stepsArray);
       
       // Persist to localStorage
