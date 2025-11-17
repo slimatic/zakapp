@@ -11,6 +11,7 @@ import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { useUserOnboarding } from '../hooks/useUserOnboarding';
+import { DEFAULT_NISAB_THRESHOLD } from '@zakapp/shared';
 import type { Asset } from '@zakapp/shared';
 
 /**
@@ -229,7 +230,7 @@ export const Dashboard: React.FC = () => {
   }, 0);
 
   // Get Nisab threshold (from active record or default)
-  const nisabThreshold = activeRecord?.initialNisabThreshold || 5000; // Default fallback
+  const nisabThreshold = activeRecord?.initialNisabThreshold || DEFAULT_NISAB_THRESHOLD;
 
   // Loading state
   if (assetsLoading || recordsLoading) {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { DEFAULT_NISAB_THRESHOLD } from '@zakapp/shared';
 
 // Type matching the NisabYearRecord from Feature 008
 interface NisabYearRecord {
@@ -50,7 +51,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
   const progressPercentage = Math.min((daysElapsed / totalDays) * 100, 100);
 
   const currentWealth = record.currentWealth || 0;
-  const nisabThreshold = record.initialNisabThreshold || 5000; // Add default
+  const nisabThreshold = record.initialNisabThreshold || DEFAULT_NISAB_THRESHOLD;
   
   // Prevent division by zero
   const wealthDifference = currentWealth - nisabThreshold;

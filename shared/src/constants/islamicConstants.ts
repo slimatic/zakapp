@@ -341,6 +341,31 @@ export const FALLBACK_METAL_PRICES = {
 } as const;
 
 /**
+ * Default Nisab Threshold Fallback
+ * 
+ * Default Nisab threshold value used when no active record exists or
+ * when the active record does not have an initialNisabThreshold set.
+ * 
+ * This value represents a conservative estimate of the Nisab threshold
+ * based on silver prices (typically the lower and more accessible threshold).
+ * 
+ * @remarks
+ * This is a UI fallback value only and should not be used for actual Zakat
+ * calculations without proper scholarly consultation. Users should create
+ * a Nisab Year Record with current metal prices for accurate calculations.
+ * 
+ * @example
+ * Calculation basis (as of typical market conditions):
+ * - Silver Nisab: 612.36g / 31.1035 g/oz ≈ 19.68 oz
+ * - At ~$25/oz silver: 19.68 * $25 ≈ $492
+ * - Rounded up conservatively to $5000 for UI display purposes
+ * 
+ * @warning This is a display fallback only. Always encourage users to
+ * create proper Nisab records with current market prices.
+ */
+export const DEFAULT_NISAB_THRESHOLD = 5000 as const;
+
+/**
  * Scholarly References
  * 
  * Primary sources for Islamic rulings implemented in this application.
