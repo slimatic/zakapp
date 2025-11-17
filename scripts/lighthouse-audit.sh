@@ -168,7 +168,4 @@ node -e "
         console.log('📝 Review the HTML reports for detailed recommendations.');
         process.exit(1);
     }
-" || {
-    echo "⚠️  Some scores are below targets. This is not a blocker but should be addressed."
-    exit 0
-}
+"
