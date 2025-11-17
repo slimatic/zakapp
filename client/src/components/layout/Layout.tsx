@@ -93,8 +93,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Skip Link for keyboard navigation */}
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* Skip Link for keyboard navigation - positioned absolutely at top */}
       <SkipLink />
       
       {/* Navigation */}
