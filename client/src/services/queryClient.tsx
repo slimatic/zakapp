@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
+import { isAuthenticationError, isAuthorizationError } from './apiErrors';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -8,8 +9,12 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes
       retry: (failureCount: number, error: any) => {
-        // Don't retry on 401 or 403 errors (authentication issues)
-        if (error?.status === 401 || error?.status === 403) {
+        // Don't retry on authentication or authorization errors
+        if (isAuthenticationError(error) || isAuthorizationError(error)) {
+          return false;
+        }
+        // Don't retry on 4xx errors (client errors)
+        if (error?.statusCode >= 400 && error?.statusCode < 500) {
           return false;
         }
         return failureCount < 3;

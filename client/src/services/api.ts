@@ -1,3 +1,12 @@
+import { 
+  AuthenticationError, 
+  AuthorizationError, 
+  ValidationError, 
+  NotFoundError, 
+  NetworkError,
+  ApiError 
+} from './apiErrors';
+
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
 
 // Log API configuration in development mode
@@ -59,16 +68,41 @@ class ApiService {
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      // Handle 401 Unauthorized - clear tokens and reload to trigger redirect to login
+      // Handle 401 Unauthorized - throw custom error for React components to handle
       if (response.status === 401) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
-        throw new Error('Session expired. Please login again.');
+        throw new AuthenticationError('Session expired. Please login again.');
       }
       
+      // Handle 403 Forbidden
+      if (response.status === 403) {
+        const error = await response.json().catch(() => ({ message: 'Access denied' }));
+        throw new AuthorizationError(error.message || 'You do not have permission to perform this action.');
+      }
+      
+      // Handle 404 Not Found
+      if (response.status === 404) {
+        const error = await response.json().catch(() => ({ message: 'Resource not found' }));
+        throw new NotFoundError(error.message || 'The requested resource was not found.');
+      }
+      
+      // Handle 400 Validation Errors
+      if (response.status === 400) {
+        const error = await response.json().catch(() => ({ message: 'Validation failed' }));
+        throw new ValidationError(
+          error.message || 'Validation failed.',
+          error.details || error.errors
+        );
+      }
+      
+      // Handle other API errors
       const error = await response.json().catch(() => ({ message: 'Network error' }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+      throw new ApiError(
+        error.message || `HTTP error! status: ${response.status}`,
+        response.status,
+        error.code || 'API_ERROR'
+      );
     }
     return response.json();
   }

@@ -6,6 +6,7 @@ import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
+import { ErrorHandlerWrapper } from './components/common/ErrorHandlerWrapper';
 import {
   DashboardSkeleton,
   AssetListSkeleton,
@@ -69,8 +70,9 @@ function App() {
     <QueryProvider>
       <AuthProvider>
         <Router>
-          <div className="App">
-            <Routes>
+          <ErrorHandlerWrapper>
+            <div className="App">
+              <Routes>
               {/* Auth routes - eagerly loaded */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -238,12 +240,13 @@ function App() {
               />
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+            </Routes>
 
-          {/* PWA Features: Install prompt and update notification */}
-          <InstallPrompt />
-          <UpdateNotification />
-        </div>
+            {/* PWA Features: Install prompt and update notification */}
+            <InstallPrompt />
+            <UpdateNotification />
+          </div>
+        </ErrorHandlerWrapper>
       </Router>
     </AuthProvider>
   </QueryProvider>
