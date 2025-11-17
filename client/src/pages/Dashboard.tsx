@@ -210,10 +210,14 @@ export const Dashboard: React.FC = () => {
     : (recordsData?.records || []);
   
   // Sort by hawlStartDate descending (newest first) and take the first one
+  // Ensure allRecords items have the expected shape for typing
+  type RecordItem = { hawlStartDate?: string | null } & Record<string, any>;
   const records = allRecords.length > 0 
-    ? [allRecords.sort((a, b) => 
-        new Date(b.hawlStartDate).getTime() - new Date(a.hawlStartDate).getTime()
-      )[0]]
+    ? [allRecords.sort((a: RecordItem, b: RecordItem) => {
+        const at = a?.hawlStartDate ? new Date(a.hawlStartDate).getTime() : 0;
+        const bt = b?.hawlStartDate ? new Date(b.hawlStartDate).getTime() : 0;
+        return bt - at;
+      })[0]]
     : [];
   const activeRecord = records[0] || null;
   const hasAssets = assets.length > 0;
