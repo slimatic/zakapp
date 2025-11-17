@@ -299,27 +299,27 @@ export const NisabYearRecordsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8" id="main-content">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Nisab Year Records</h1>
-              <p className="mt-2 text-gray-600">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Nisab Year Records</h1>
+              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
                 Track Hawl periods, Nisab thresholds, and Zakat calculations
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 ← Back
               </button>
               <button
                 onClick={handleCreate}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 + New Record
               </button>
@@ -327,11 +327,11 @@ export const NisabYearRecordsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Main content */}
-          <div className="col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Status tabs */}
-            <div className="flex gap-2 border-b border-gray-200">
+            <div className="flex gap-2 border-b border-gray-200 overflow-x-auto pb-px">
               {(['all', 'DRAFT', 'FINALIZED', 'UNLOCKED'] as const).map((status) => (
                 <button
                   key={status}
@@ -339,7 +339,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                     setActiveStatusFilter(status);
                     setSelectedRecordId(null);
                   }}
-                  className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+                  className={`px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base ${
                     activeStatusFilter === status
                       ? 'border-blue-600 text-blue-600'
                       : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -389,20 +389,21 @@ export const NisabYearRecordsPage: React.FC = () => {
                     <div
                       key={record.id}
                       onClick={() => setSelectedRecordId(record.id)}
-                      className={`border rounded-lg p-5 cursor-pointer transition-all ${
+                      className={`border rounded-lg p-4 sm:p-5 cursor-pointer transition-all ${
                         isSelected
                           ? 'border-blue-500 bg-blue-50 shadow-md'
                           : 'border-gray-200 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md'
                       }`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="space-y-3">
+                        {/* Header with title and status */}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                               {record.hijriYear}
                             </h3>
                             <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
                                 badge.color === 'green'
                                   ? 'bg-green-100 text-green-800'
                                   : badge.color === 'blue'
@@ -413,57 +414,57 @@ export const NisabYearRecordsPage: React.FC = () => {
                               {badge.label}
                             </span>
                           </div>
+                        </div>
                           
-                          {/* Primary information row */}
-                          <div className="grid grid-cols-2 gap-4 mb-3">
+                        {/* Primary information grid */}
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                          <div>
+                            <div className="text-xs text-gray-600 mb-1">Nisab Basis</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {record.nisabBasis === 'GOLD' ? '🟡 Gold' : '⚪ Silver'}
+                            </div>
+                          </div>
+                          {totalWealth > 0 && (
                             <div>
-                              <div className="text-xs text-gray-600 mb-1">Nisab Basis</div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {record.nisabBasis === 'GOLD' ? '🟡 Gold' : '⚪ Silver'}
+                              <div className="text-xs text-gray-600 mb-1">Total Wealth</div>
+                              <div className="text-sm font-medium text-gray-900 truncate">
+                                {formatCurrency(totalWealth, record.currency || 'USD')}
                               </div>
                             </div>
-                            {totalWealth > 0 && (
-                              <div>
-                                <div className="text-xs text-gray-600 mb-1">Total Wealth</div>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {formatCurrency(totalWealth, record.currency || 'USD')}
-                                </div>
-                              </div>
-                            )}
-                            {zakatableWealth > 0 && (
-                              <div>
-                                <div className="text-xs text-gray-600 mb-1">Zakatable</div>
-                                <div className="text-sm font-medium text-green-700">
-                                  {formatCurrency(zakatableWealth, record.currency || 'USD')}
-                                </div>
-                              </div>
-                            )}
-                            {zakatAmount > 0 && (
-                              <div>
-                                <div className="text-xs text-gray-600 mb-1">Zakat Obligation</div>
-                                <div className="text-sm font-bold text-blue-700">
-                                  {formatCurrency(zakatAmount, record.currency || 'USD')}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Secondary information row */}
-                          <div className="flex gap-4 text-xs text-gray-600 mb-2 flex-wrap">
+                          )}
+                          {zakatableWealth > 0 && (
                             <div>
-                              Started: <span className="text-gray-900 font-medium">{startDateFormatted}</span>
-                            </div>
-                            {record.hawlCompletionDate && (
-                              <div>
-                                Completes: <span className="text-gray-900 font-medium">
-                                  {new Date(record.hawlCompletionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                </span>
+                              <div className="text-xs text-gray-600 mb-1">Zakatable</div>
+                              <div className="text-sm font-medium text-green-700 truncate">
+                                {formatCurrency(zakatableWealth, record.currency || 'USD')}
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
+                          {zakatAmount > 0 && (
+                            <div>
+                              <div className="text-xs text-gray-600 mb-1">Zakat Obligation</div>
+                              <div className="text-sm font-bold text-blue-700 truncate">
+                                {formatCurrency(zakatAmount, record.currency || 'USD')}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
-                        {/* Action buttons */}
+                        {/* Secondary information row */}
+                        <div className="flex gap-3 sm:gap-4 text-xs text-gray-600 flex-wrap">
+                          <div>
+                            Started: <span className="text-gray-900 font-medium">{startDateFormatted}</span>
+                          </div>
+                          {record.hawlCompletionDate && (
+                            <div>
+                              Completes: <span className="text-gray-900 font-medium">
+                                {new Date(record.hawlCompletionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action buttons - optimized for mobile */}
                         <div className="flex gap-2 flex-wrap">
                           {record.status === 'DRAFT' && (
                             <button
@@ -471,9 +472,9 @@ export const NisabYearRecordsPage: React.FC = () => {
                                 e.stopPropagation();
                                 handleRefreshAssets(record.id);
                               }}
-                              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                              className="px-2 sm:px-3 py-1.5 bg-blue-600 text-white text-xs sm:text-sm rounded hover:bg-blue-700 transition-colors whitespace-nowrap"
                             >
-                              Refresh Assets
+                              Refresh
                             </button>
                           )}
                           {(record.status === 'DRAFT' || record.status === 'UNLOCKED') && (
@@ -483,7 +484,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                                 setEditingStartDateRecordId(record.id);
                                 setNewStartDate(new Date(record.hawlStartDate).toISOString().split('T')[0]);
                               }}
-                              className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors"
+                              className="px-2 sm:px-3 py-1.5 bg-purple-600 text-white text-xs sm:text-sm rounded hover:bg-purple-700 transition-colors whitespace-nowrap"
                             >
                               Edit Date
                             </button>
@@ -494,7 +495,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                                 e.stopPropagation();
                                 handleFinalize(record);
                               }}
-                              className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                              className="px-2 sm:px-3 py-1.5 bg-green-600 text-white text-xs sm:text-sm rounded hover:bg-green-700 transition-colors whitespace-nowrap"
                             >
                               Finalize
                             </button>
@@ -505,7 +506,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                                 e.stopPropagation();
                                 handleUnlock(record);
                               }}
-                              className="px-3 py-1 bg-amber-600 text-white text-sm rounded hover:bg-amber-700 transition-colors"
+                              className="px-2 sm:px-3 py-1.5 bg-amber-600 text-white text-xs sm:text-sm rounded hover:bg-amber-700 transition-colors whitespace-nowrap"
                             >
                               Unlock
                             </button>
@@ -516,7 +517,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                                 e.stopPropagation();
                                 handleFinalize(record);
                               }}
-                              className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                              className="px-2 sm:px-3 py-1.5 bg-green-600 text-white text-xs sm:text-sm rounded hover:bg-green-700 transition-colors whitespace-nowrap"
                             >
                               Re-Finalize
                             </button>
@@ -527,7 +528,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                                 e.stopPropagation();
                                 handleDelete(record);
                               }}
-                              className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                              className="px-2 sm:px-3 py-1.5 bg-red-600 text-white text-xs sm:text-sm rounded hover:bg-red-700 transition-colors whitespace-nowrap"
                             >
                               Delete
                             </button>
@@ -537,7 +538,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                               e.stopPropagation();
                               setShowAuditTrail(record.id);
                             }}
-                            className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                            className="px-2 sm:px-3 py-1.5 bg-gray-600 text-white text-xs sm:text-sm rounded hover:bg-gray-700 transition-colors whitespace-nowrap"
                           >
                             Audit
                           </button>
@@ -550,8 +551,8 @@ export const NisabYearRecordsPage: React.FC = () => {
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="col-span-1 space-y-6">
+          {/* Sidebar - stacks below main content on mobile */}
+          <div className="lg:col-span-1 space-y-4 sm:space-y-6">
             {activeRecord ? (
               <>
                 {/* Hawl progress */}
