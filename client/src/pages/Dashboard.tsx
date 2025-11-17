@@ -12,6 +12,7 @@ import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { useUserOnboarding } from '../hooks/useUserOnboarding';
 import type { Asset } from '@zakapp/shared';
+import type { NisabYearRecord } from '../types/nisabYearRecord';
 
 /**
  * Educational Module Component
@@ -210,10 +211,8 @@ export const Dashboard: React.FC = () => {
     : (recordsData?.records || []);
   
   // Sort by hawlStartDate descending (newest first) and take the first one
-  // Ensure allRecords items have the expected shape for typing
-  type RecordItem = { hawlStartDate?: string | null } & Record<string, any>;
   const records = allRecords.length > 0 
-    ? [allRecords.sort((a: RecordItem, b: RecordItem) => {
+    ? [allRecords.sort((a: NisabYearRecord, b: NisabYearRecord) => {
         const at = a?.hawlStartDate ? new Date(a.hawlStartDate).getTime() : 0;
         const bt = b?.hawlStartDate ? new Date(b.hawlStartDate).getTime() : 0;
         return bt - at;
