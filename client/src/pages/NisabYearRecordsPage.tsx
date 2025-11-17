@@ -330,8 +330,18 @@ export const NisabYearRecordsPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Status tabs */}
-            <div className="flex gap-2 border-b border-gray-200 overflow-x-auto pb-px">
+            {/* Back button for mobile when record is selected */}
+            {selectedRecordId && (
+              <button
+                onClick={() => setSelectedRecordId(null)}
+                className="lg:hidden flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+              >
+                ← Back to list
+              </button>
+            )}
+
+            {/* Status tabs - hide on mobile when record is selected */}
+            <div className={`flex gap-2 border-b border-gray-200 overflow-x-auto pb-px ${selectedRecordId ? 'hidden lg:flex' : ''}`}>
               {(['all', 'DRAFT', 'FINALIZED', 'UNLOCKED'] as const).map((status) => (
                 <button
                   key={status}
@@ -385,11 +395,17 @@ export const NisabYearRecordsPage: React.FC = () => {
                   const totalWealth = parseFloat(record.totalWealth || '0');
                   const zakatableWealth = parseFloat(record.zakatableWealth || '0');
 
+                  // On mobile: hide non-selected records when a record is selected
+                  // On desktop: always show all records
+                  const shouldHideOnMobile = selectedRecordId && !isSelected;
+
                   return (
                     <div
                       key={record.id}
                       onClick={() => setSelectedRecordId(record.id)}
                       className={`border rounded-lg p-4 sm:p-5 cursor-pointer transition-all ${
+                        shouldHideOnMobile ? 'hidden lg:block' : ''
+                      } ${
                         isSelected
                           ? 'border-blue-500 bg-blue-50 shadow-md'
                           : 'border-gray-200 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md'
