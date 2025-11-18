@@ -10,7 +10,7 @@
   position: absolute;
   top: -40px;
   left: 0;
-  z-index: 100;
+  z-index: 9999;
   padding: 8px 16px;
   background-color: #4f46e5;
   color: #ffffff;
@@ -32,7 +32,7 @@
   outline: none;
 }
 
-/* Custom focus ring with high contrast (3:1 ratio for UI components) */
+/* Custom focus ring with high contrast (4.5:1 ratio for UI components) */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -43,9 +43,9 @@ select:focus-visible,
 [role="link"]:focus-visible,
 [role="menuitem"]:focus-visible,
 [role="tab"]:focus-visible {
-  outline: 3px solid #fbbf24;
+  outline: 2px solid #16a34a;
   outline-offset: 2px;
-  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
   border-radius: 4px;
 }
 
@@ -56,8 +56,9 @@ select:focus-visible,
 .dark textarea:focus-visible,
 .dark select:focus-visible,
 .dark [tabindex]:not([tabindex="-1"]):focus-visible {
-  outline-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+  outline: 2px solid #4ade80;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
 }
 
 /* Focus within - for containers that have focused children */
@@ -97,8 +98,9 @@ select:focus-visible,
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    outline-width: 4px;
+    outline-width: 3px;
     outline-offset: 3px;
+    outline-color: #000000;
   }
 }
 
@@ -128,7 +130,6 @@ select:focus-visible,
 [aria-invalid="true"]::before {
   content: "⚠️";
   margin-right: 8px;
-  speak: literal-punctuation;
 }
 
 /* Success states */

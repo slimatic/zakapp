@@ -155,22 +155,8 @@ function App() {
                 } 
               />
 
-              {/* Calculator - lazy loaded with calculator skeleton */}
-              <Route 
-                path="/calculate" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<CalculatorSkeleton />}>
-                        <ZakatCalculator />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
-
-              {/* History - lazy loaded with history skeleton */}
-              <Route 
+              {/* History - HIDDEN - TODO: Restore when History functionality implemented */}
+              {/* <Route 
                 path="/history" 
                 element={
                   <ProtectedRoute>
@@ -181,7 +167,7 @@ function App() {
                     </Layout>
                   </ProtectedRoute>
                 } 
-              />
+              /> */}
 
               {/* Help - lazy loaded */}
               <Route 
@@ -222,19 +208,8 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              {/* Tracking & Analytics Routes - lazy loaded with context-aware skeletons */}
-              <Route 
-                path="/tracking" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<DashboardSkeleton />}>
-                        <TrackingDashboard />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
+              
+              {/* Nisab Year Records - lazy loaded with history skeleton */}
               <Route 
                 path="/nisab-year-records" 
                 element={
@@ -247,8 +222,10 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              
+              {/* Nisab Records alias for simplified navigation */}
               <Route 
-                path="/tracking/snapshots" 
+                path="/nisab-records" 
                 element={
                   <ProtectedRoute>
                     <Layout>
@@ -260,42 +237,6 @@ function App() {
                 } 
               />
 
-              <Route 
-                path="/tracking/payments" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<HistorySkeleton />}>
-                        <PaymentsPage />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/tracking/analytics" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<DashboardSkeleton />}>
-                        <AnalyticsPage />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/tracking/comparison" 
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Suspense fallback={<PageLoadingFallback />}>
-                        <ComparisonPage />
-                      </Suspense>
-                    </Layout>
-                  </ProtectedRoute>
-                } 
-              />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
 
