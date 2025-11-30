@@ -115,15 +115,21 @@
 - **FR-006**: Dashboard MUST serve as the central hub showing overview of user's Zakat status
 - **FR-007**: Dashboard MUST display current active Nisab Year Record status (if exists)
 - **FR-008**: Dashboard MUST show total wealth summary with Nisab threshold comparison
-- **FR-009**: Dashboard MUST provide quick actions for common tasks (Add Asset, Create Record, View Records)
-- **FR-010**: Dashboard MUST show onboarding guidance for new users with no data
+- **FR-009**: Dashboard MUST provide quick actions for the following common tasks:
+  - "Add Asset": Navigate to Assets page creation form
+  - "Create Record": Navigate to Nisab Records page creation modal
+  - "View Records": Navigate to Nisab Records page list view
+- **FR-010**: Dashboard MUST show onboarding guidance for new users with no data, consisting of:
+  - Step 1: "Add Your Assets" (Link to Assets)
+  - Step 2: "Create Nisab Record" (Link to Nisab Records)
+  - Step 3: "Monitor Progress" (Explanation of Hawl)
 
 #### Assets Page
 - **FR-011**: Assets page MUST allow users to view, create, edit, and delete their financial assets
 - **FR-012**: Assets page MUST categorize assets by type (Cash, Gold, Silver, Crypto, etc.)
 - **FR-013**: Assets page MUST show zakatable status for each asset
 - **FR-014**: Assets page MUST display total wealth across all assets
-- **FR-015**: Assets page MUST provide educational tooltips explaining asset types
+- **FR-015**: Assets page MUST provide educational tooltips explaining asset types (see Tooltip Definitions)
 
 #### Nisab Records Page
 - **FR-016**: Nisab Records page MUST display all Nisab Year Records (draft, active, finalized)
@@ -135,7 +141,10 @@
 
 #### User Flow Requirements
 - **FR-022**: System MUST guide new users through: Add Assets → Create Nisab Record → Monitor Progress → Finalize & Pay
-- **FR-023**: System MUST provide contextual help/tooltips at each step explaining Islamic concepts
+- **FR-023**: System MUST provide contextual help/tooltips at each step explaining Islamic concepts:
+  - "Nisab": Minimum wealth threshold
+  - "Hawl": Lunar year holding period
+  - "Zakatable Assets": Assets subject to Zakat
 - **FR-024**: System MUST show progress indicators for multi-step processes
 - **FR-025**: System MUST allow users to return to any previous step without data loss
 
@@ -481,7 +490,7 @@
 
 ### Sitemap Validation
 - [x] All 4 primary pages clearly defined with purpose
-- [x] Nisab Records page included as primary navigation item
+- [x] Nisab Records page included as a primary navigation item
 - [x] Calculate Zakat and Tracking Analytics consolidated/removed
 - [x] History page hidden until implemented
 - [x] User flow demonstrates intuitive progression
@@ -514,3 +523,13 @@
 3. **Accessibility Audit**: Review current state against WCAG 2.1 AA baseline
 4. **User Testing**: Validate new sitemap with 3-5 users before full implementation
 5. **Incremental Rollout**: Implement changes page-by-page to avoid breaking existing functionality
+
+---
+
+### Tooltip Definitions
+- **Nisab**: "The minimum amount of wealth a Muslim must possess for a whole lunar year before Zakat becomes obligatory."
+- **Hawl**: "The lunar year period (354 days) that wealth must be held above the Nisab threshold."
+- **Zakatable Assets**: "Assets that are subject to Zakat, such as cash, gold, silver, and business inventory."
+- **Cash**: "Money on hand or in bank accounts."
+- **Gold**: "Gold jewelry, coins, or bars. Zakatable if above 85g."
+- **Silver**: "Silver jewelry, coins, or bars. Zakatable if above 595g."
