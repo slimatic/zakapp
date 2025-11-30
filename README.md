@@ -106,7 +106,20 @@ ZakApp is a **fully functional, production-ready** Islamic Zakat calculator that
 - **Smart Reminders**: Anniversary reminders with Hijri calendar integration
 - **Islamic Compliance**: Full adherence to Zakat calculation and distribution rules
 
-### 🎨 **User Experience**
+## 🧭 Navigation Structure
+
+The application features a simplified, intuitive navigation structure designed to guide users through the Zakat process:
+
+1. **Dashboard** (`/dashboard`): The central hub showing your current status, active Hawl progress, and quick actions.
+2. **Assets** (`/assets`): Manage your portfolio of zakatable assets (Gold, Silver, Cash, etc.).
+3. **Nisab Records** (`/nisab-records`): Track your yearly Zakat periods (Hawl) and calculate obligations.
+4. **Profile** (`/profile`): Manage your account settings, preferences, and data export.
+
+### Mobile Responsive Design
+- **Mobile (<768px)**: Bottom navigation bar for quick access to primary sections, with a hamburger menu for additional options.
+- **Tablet (768-1024px)**: Compact horizontal navigation.
+- **Desktop (>1024px)**: Full horizontal navigation with expanded labels.
+
 ### 🎨 **User Experience**
 - **Beautiful Islamic UI**: Emerald green theme with cultural sensitivity
 - **Perfect Accessibility**: WCAG 2.1 AA compliant, 100/100 Lighthouse

@@ -9,7 +9,6 @@ import { Layout } from './components/layout/Layout';
 import {
   DashboardSkeleton,
   AssetListSkeleton,
-  CalculatorSkeleton,
   ProfileSkeleton,
   HistorySkeleton,
   PageLoadingFallback,
@@ -47,8 +46,8 @@ const AssetImportExport = lazy(() => import('./components/assets').then(m => ({ 
 const AssetDetails = lazy(() => import('./components/assets').then(m => ({ default: m.AssetDetails })));
 
 // Zakat calculation and history
-const ZakatCalculator = lazy(() => import('./components/zakat/ZakatCalculator').then(m => ({ default: m.ZakatCalculator })));
-const History = lazy(() => import('./components/history/History').then(m => ({ default: m.History })));
+// const ZakatCalculator = lazy(() => import('./components/zakat/ZakatCalculator').then(m => ({ default: m.ZakatCalculator })));
+// const History = lazy(() => import('./components/history/History').then(m => ({ default: m.History })));
 
 // Auth pages - lazy loaded as they're separate flows
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
@@ -58,11 +57,11 @@ const ResetPassword = lazy(() => import('./pages/auth/ResetPassword').then(m => 
 const GettingStarted = lazy(() => import('./components/help/GettingStarted').then(m => ({ default: m.GettingStarted })));
 
 // Tracking & Analytics pages - lazy loaded for optimal performance
-const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
+// const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
 const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').then(m => ({ default: m.NisabYearRecordsPage })));
-const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
-const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
-const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
+// const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
+// const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+// const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
 
 function App() {
   return (
