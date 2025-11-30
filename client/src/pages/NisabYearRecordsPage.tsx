@@ -656,7 +656,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                             {payments.map((payment: any) => (
                               <div key={payment.id} className="flex justify-between items-start text-xs border-t border-green-200 pt-2 first:border-t-0 first:pt-0">
                                 <div className="flex-1">
-                                  <div className="font-medium text-gray-900">{payment.decryptedRecipientName}</div>
+                                  <div className="font-medium text-gray-900">{payment.recipientName || payment.decryptedRecipientName}</div>
                                   <div className="text-gray-600 text-xs mt-0.5">
                                     {payment.recipientType} • {payment.recipientCategory}
                                   </div>
@@ -665,7 +665,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                                   </div>
                                 </div>
                                 <div className="font-semibold text-green-700">
-                                  {formatCurrency(parseFloat(payment.decryptedAmount), payment.currency || 'USD')}
+                                  {formatCurrency(parseFloat(payment.amount || payment.decryptedAmount || '0'), payment.currency || 'USD')}
                                 </div>
                               </div>
                             ))}
@@ -674,7 +674,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                             <span className="text-gray-700">Total Paid:</span>
                             <span className="text-green-700">
                               {formatCurrency(
-                                payments.reduce((sum: number, p: any) => sum + parseFloat(p.decryptedAmount || '0'), 0),
+                                payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0),
                                 'USD'
                               )}
                             </span>
@@ -682,12 +682,12 @@ export const NisabYearRecordsPage: React.FC = () => {
                           <div className="mt-1 flex justify-between items-center text-xs">
                             <span className="text-gray-600">Remaining:</span>
                             <span className={
-                              parseFloat(activeRecord.zakatAmount) - payments.reduce((sum: number, p: any) => sum + parseFloat(p.decryptedAmount || '0'), 0) <= 0
+                              parseFloat(activeRecord.zakatAmount) - payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0) <= 0
                                 ? 'text-green-600 font-medium'
                                 : 'text-gray-700 font-medium'
                             }>
                               {formatCurrency(
-                                Math.max(0, parseFloat(activeRecord.zakatAmount) - payments.reduce((sum: number, p: any) => sum + parseFloat(p.decryptedAmount || '0'), 0)),
+                                Math.max(0, parseFloat(activeRecord.zakatAmount) - payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0)),
                                 'USD'
                               )}
                             </span>

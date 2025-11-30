@@ -351,8 +351,16 @@ class ApiService {
   }
 
   async getPayments(filters?: { snapshotId?: string; limit?: number; offset?: number }): Promise<ApiResponse> {
+    // If snapshotId is provided, use the tracking API endpoint which properly filters by snapshot
+    if (filters?.snapshotId) {
+      const response = await fetch(`${API_BASE_URL}/tracking/snapshots/${filters.snapshotId}/payments`, {
+        headers: this.getAuthHeaders()
+      });
+      return this.handleResponse(response);
+    }
+    
+    // Otherwise use the general payments endpoint
     const params = new URLSearchParams();
-    if (filters?.snapshotId) params.append('snapshotId', filters.snapshotId);
     if (filters?.limit) params.append('limit', filters.limit.toString());
     if (filters?.offset) params.append('offset', filters.offset.toString());
     
