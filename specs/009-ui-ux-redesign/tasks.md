@@ -67,21 +67,21 @@ client/tests/
 
 **Goal**: Understand current state and prepare for refactoring
 
-- [ ] **T001** Review current navigation implementation in `client/src/components/layout/Layout.tsx`
+- [x] **T001** Review current navigation implementation in `client/src/components/layout/Layout.tsx`
   - Document current 5-item navigation array
   - Identify mobile menu implementation (if exists)
   - Note active state handling logic
   - List all navigation-related CSS classes
   - **Duration**: ~20 minutes
 
-- [ ] **T002** Audit all route definitions in `client/src/App.tsx`
+- [x] **T002** Audit all route definitions in `client/src/App.tsx`
   - List all current routes: /dashboard, /assets, /calculate, /tracking, /history, /nisab-records
   - Document which routes need removal: /calculate, /tracking
   - Document which routes need hiding: /history
   - Verify /nisab-records exists in routes (should be from Feature 008)
   - **Duration**: ~15 minutes
 
-- [ ] **T003** Create feature branch backup and setup testing environment
+- [x] **T003** Create feature branch backup and setup testing environment
   - Verify `009-ui-ux-redesign` branch is active
   - Run `npm install` to ensure dependencies up to date
   - Run `npm run dev` to verify app starts successfully
@@ -216,6 +216,7 @@ client/tests/
   - Export for use in Tooltip components
   - **Duration**: ~15 minutes
   - **Test**: Content is exported and correct
+  - **Note**: Satisfies FR-015 (Assets page tooltips) and FR-023 (contextual help tooltips)
 
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit all new components
   ```bash
