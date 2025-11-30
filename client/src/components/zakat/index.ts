@@ -14,3 +14,4 @@ export { default as EducationalContent } from './EducationalContent';
 export { default as MethodologyExplainer } from './MethodologyExplainer';
 export { default as NisabExplainer } from './NisabExplainer';
 export { ZakatCalculator } from './ZakatCalculator';
+export { CalculationTrends } from './CalculationTrends';

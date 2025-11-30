@@ -39,7 +39,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const CalculationTrends: React.FC<CalculationTrendsProps> = ({ userId }) => {
+export const CalculationTrends: React.FC<CalculationTrendsProps> = ({ userId }) => {
   const [trends, setTrends] = useState<TrendData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
