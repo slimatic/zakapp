@@ -1,20 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-// Type matching the NisabYearRecord from Feature 008
+// Type matching the actual API response from the backend
 interface NisabYearRecord {
   id: string;
   userId: string;
-  startDate: string;
-  endDate: string;
-  initialNisabThreshold: number;
-  nisabMethod: string;
-  status: 'active' | 'completed' | 'finalized';
+  // API field names (as returned by the backend)
+  hawlStartDate?: string;
+  hawlCompletionDate?: string;
+  nisabThresholdAtStart?: string | number; // Can be encrypted string or decrypted number
+  totalWealth?: string | number;
+  zakatableWealth?: string | number;
+  zakatAmount?: string | number;
+  nisabBasis?: 'GOLD' | 'SILVER';
+  status?: string;
+  methodologyUsed?: string;
+  // Legacy field names (for backward compatibility)
+  startDate?: string;
+  endDate?: string;
+  initialNisabThreshold?: number;
+  nisabMethod?: string;
   daysElapsed?: number;
   daysRemaining?: number;
   currentWealth?: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ActiveRecordWidgetProps {
@@ -43,14 +53,46 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
     return null;
   }
 
-  // Safely extract values with defaults
-  const daysElapsed = record.daysElapsed || 0;
-  const daysRemaining = record.daysRemaining || 354;
+  // Get start and end dates (support both API and legacy field names)
+  const startDateStr = record.hawlStartDate || record.startDate;
+  const endDateStr = record.hawlCompletionDate || record.endDate;
+  
+  // Calculate days elapsed and remaining from dates
   const totalDays = 354; // Lunar year
+  let daysElapsed = record.daysElapsed || 0;
+  let daysRemaining = record.daysRemaining || totalDays;
+  
+  if (startDateStr) {
+    const startDate = new Date(startDateStr);
+    const today = new Date();
+    const diffTime = today.getTime() - startDate.getTime();
+    daysElapsed = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+    daysRemaining = Math.max(0, totalDays - daysElapsed);
+  }
+  
   const progressPercentage = Math.min((daysElapsed / totalDays) * 100, 100);
 
-  const currentWealth = record.currentWealth || 0;
-  const nisabThreshold = record.initialNisabThreshold || 5000; // Add default
+  // Get wealth values (support both API and legacy field names)
+  // API returns totalWealth as string, need to parse it
+  const currentWealth = record.currentWealth || 
+    (typeof record.totalWealth === 'string' ? parseFloat(record.totalWealth) : record.totalWealth) || 
+    0;
+  
+  // Nisab threshold might be encrypted (string) or a number
+  // If it's an encrypted string (contains special chars), use a default
+  let nisabThreshold = record.initialNisabThreshold || 5000;
+  if (record.nisabThresholdAtStart) {
+    if (typeof record.nisabThresholdAtStart === 'number') {
+      nisabThreshold = record.nisabThresholdAtStart;
+    } else if (typeof record.nisabThresholdAtStart === 'string') {
+      // Try to parse if it's a numeric string, otherwise it might be encrypted
+      const parsed = parseFloat(record.nisabThresholdAtStart);
+      if (!isNaN(parsed)) {
+        nisabThreshold = parsed;
+      }
+      // If it's encrypted (NaN), keep the default
+    }
+  }
   
   // Prevent division by zero
   const wealthDifference = currentWealth - nisabThreshold;

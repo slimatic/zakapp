@@ -192,7 +192,7 @@ export const Dashboard: React.FC = () => {
     isLoading: recordsLoading,
     error: recordsError,
   } = useQuery({
-    queryKey: ['nisab-records', 'active'],
+    queryKey: ['nisab-year-records', 'active'],
     queryFn: async () => {
       const response = await apiService.getNisabYearRecords({ 
         status: ['DRAFT']
