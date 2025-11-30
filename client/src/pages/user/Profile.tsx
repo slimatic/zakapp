@@ -143,12 +143,37 @@ export const Profile: React.FC = () => {
   const exportUserData = async () => {
     try {
       setShowSuccessMessage('Preparing your data export...');
-      const response = await apiService.exportUserData('json');
-      if (response.success && response.data?.downloadUrl) {
-        window.open(response.data.downloadUrl, '_blank');
-        setShowSuccessMessage('Data export ready for download!');
-      } else if (response.success) {
-        setShowSuccessMessage('Export request submitted. You will be notified when ready.');
+      
+      // Get auth token
+      const token = localStorage.getItem('accessToken');
+      
+      // Fetch the export file directly
+      const response = await fetch('http://localhost:5000/api/user/export-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ format: 'json' })
+      });
+      
+      if (response.ok) {
+        // Get the response as blob
+        const blob = await response.blob();
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `zakapp-export-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        setShowSuccessMessage('Data export downloaded successfully!');
+      } else {
+        setShowSuccessMessage('Export request submitted. Processing...');
       }
       setTimeout(() => setShowSuccessMessage(null), 5000);
     } catch {
