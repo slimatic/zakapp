@@ -723,6 +723,35 @@ class ApiService {
     });
     return this.handleResponse(response);
   }
+
+  // Password Management Methods
+  async changePassword(data: { currentPassword: string; newPassword: string }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/change-password`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  // Account Management Methods
+  async deleteAccount(password: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/account`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ password })
+    });
+    return this.handleResponse(response);
+  }
+
+  async exportUserData(format: string = 'json'): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/export-request`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ format })
+    });
+    return this.handleResponse(response);
+  }
 }
 
 export const apiService = new ApiService();
