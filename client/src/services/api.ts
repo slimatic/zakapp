@@ -351,12 +351,31 @@ class ApiService {
   }
 
   async getPayments(filters?: { snapshotId?: string; limit?: number; offset?: number }): Promise<ApiResponse> {
-    // If snapshotId is provided, use the tracking API endpoint which properly filters by snapshot
+    // If snapshotId is provided, try both PaymentRecord and legacy ZakatPayment tables
     if (filters?.snapshotId) {
-      const response = await fetch(`${API_BASE_URL}/tracking/snapshots/${filters.snapshotId}/payments`, {
+      // First try the new tracking API (PaymentRecord table)
+      const trackingResponse = await fetch(`${API_BASE_URL}/tracking/snapshots/${filters.snapshotId}/payments`, {
         headers: this.getAuthHeaders()
       });
-      return this.handleResponse(response);
+      
+      const trackingResult = await this.handleResponse(trackingResponse);
+      
+      // If we found payments in the new system, return them
+      if (trackingResult.success && trackingResult.data?.payments && trackingResult.data.payments.length > 0) {
+        return trackingResult;
+      }
+      
+      // Fall back to legacy payments API which also uses PaymentRecord table
+      // but with additional filtering support
+      const params = new URLSearchParams();
+      params.append('snapshotId', filters.snapshotId);
+      if (filters.limit) params.append('limit', filters.limit.toString());
+      if (filters.offset) params.append('offset', filters.offset.toString());
+      
+      const legacyResponse = await fetch(`${API_BASE_URL}/payments?${params.toString()}`, {
+        headers: this.getAuthHeaders()
+      });
+      return this.handleResponse(legacyResponse);
     }
     
     // Otherwise use the general payments endpoint
