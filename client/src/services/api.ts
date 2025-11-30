@@ -209,7 +209,7 @@ class ApiService {
   }
 
   async updateProfile(profileData: any): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/profile`, {
+    const response = await fetch(`${API_BASE_URL}/user/profile`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(profileData)
