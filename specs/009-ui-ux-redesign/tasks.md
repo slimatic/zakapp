@@ -210,6 +210,13 @@ client/tests/
   - **Duration**: ~40 minutes
   - **Test**: Hook calculates correct step based on user data
 
+- [X] **T053** [P] Create `TooltipContent.ts` in `client/src/components/common/TooltipContent.ts`
+  - Define constant object with tooltip text for all terms
+  - Terms: Nisab, Hawl, Zakatable Assets, Cash, Gold, Silver
+  - Export for use in Tooltip components
+  - **Duration**: ~15 minutes
+  - **Test**: Content is exported and correct
+
 - [ ] **🔸 COMMIT CHECKPOINT**: Commit all new components
   ```bash
   git add client/src/components/ client/src/hooks/
@@ -657,7 +664,7 @@ client/tests/
 
 **Goal**: Execute quickstart.md manual testing scenarios to validate feature
 
-- [ ] **T044** [P] Execute quickstart.md Scenario 1: New User First Login (8 min)
+- [x] **T044** [P] Execute quickstart.md Scenario 1: New User First Login (8 min)
   - Follow steps in `specs/009-ui-ux-redesign/quickstart.md` Scenario 1
   - Verify welcome message and onboarding guidance
   - Verify 4-item navigation (no Calculate/Tracking/History)
@@ -666,7 +673,7 @@ client/tests/
   - **Duration**: ~8 minutes
   - **Pass Criteria**: All checkboxes in Scenario 1 success criteria marked ✓
 
-- [ ] **T045** [P] Execute quickstart.md Scenario 2: Returning User with Active Record (7 min)
+- [x] **T045** [P] Execute quickstart.md Scenario 2: Returning User with Active Record (7 min)
   - Follow steps in `specs/009-ui-ux-redesign/quickstart.md` Scenario 2
   - Verify active record widget displays correctly
   - Verify quick action cards present
@@ -675,7 +682,7 @@ client/tests/
   - **Duration**: ~7 minutes
   - **Pass Criteria**: All checkboxes in Scenario 2 success criteria marked ✓
 
-- [ ] **T046** [P] Execute quickstart.md Scenario 3: Accessibility Testing (10 min)
+- [x] **T046** [P] Execute quickstart.md Scenario 3: Accessibility Testing (10 min)
   - Follow steps in `specs/009-ui-ux-redesign/quickstart.md` Scenario 3
   - Test keyboard navigation (Tab through all elements)
   - Test focus indicators (visible and high contrast)
@@ -684,7 +691,7 @@ client/tests/
   - **Duration**: ~10 minutes
   - **Pass Criteria**: All checkboxes in Scenario 3 success criteria marked ✓
 
-- [ ] **T047** [P] Execute quickstart.md Scenario 4: Mobile Responsive Layout (6 min)
+- [x] **T047** [P] Execute quickstart.md Scenario 4: Mobile Responsive Layout (6 min)
   - Follow steps in `specs/009-ui-ux-redesign/quickstart.md` Scenario 4
   - Test mobile layout (<768px): Hamburger + bottom nav
   - Test tablet layout (768-1024px): Horizontal nav
@@ -693,7 +700,7 @@ client/tests/
   - **Duration**: ~6 minutes
   - **Pass Criteria**: All checkboxes in Scenario 4 success criteria marked ✓
 
-- [ ] **T048** [P] Execute quickstart.md Scenario 5: Performance Validation (7 min)
+- [x] **T048** [P] Execute quickstart.md Scenario 5: Performance Validation (7 min)
   - Follow steps in `specs/009-ui-ux-redesign/quickstart.md` Scenario 5
   - Test initial page load (<2s)
   - Test navigation response (<100ms perceived)
@@ -703,11 +710,11 @@ client/tests/
   - **Duration**: ~7 minutes
   - **Pass Criteria**: All checkboxes in Scenario 5 success criteria marked ✓
 
-- [ ] **T049** [P] Execute quickstart.md Scenario 6: Edge Cases & Error Handling (5 min)
+- [x] **T049** [P] Execute quickstart.md Scenario 6: Edge Cases & Error Handling (5 min)
   - Follow steps in `specs/009-ui-ux-redesign/quickstart.md` Scenario 6
   - Test empty state handling (no assets, no records)
   - Test direct URL access to routes
-  - Test browser back/forward navigation
+  - Test browser back/forward navigation in multi-step flows (e.g. Create Record)
   - Test network error handling (offline mode)
   - Check console for errors
   - **Duration**: ~5 minutes
@@ -737,7 +744,7 @@ client/tests/
 
 **Goal**: Update documentation and remove obsolete code
 
-- [ ] **T050** Update README with new navigation structure
+- [x] **T050** Update README with new navigation structure
   - Add section: "Navigation Structure"
   - Document 4-item navigation: Dashboard, Assets, Nisab Records, Profile
   - Document mobile responsive behavior
@@ -746,7 +753,7 @@ client/tests/
   - **Duration**: ~30 minutes
   - **Test**: README accurately reflects new navigation
 
-- [ ] **T051** Remove unused Calculate/Tracking page code
+- [x] **T051** Remove unused Calculate/Tracking page code
   - Delete `client/src/pages/zakat/CalculatePage.tsx` (functionality moved to Nisab Records)
   - Delete `client/src/pages/TrackingDashboard.tsx` (analytics moved to Dashboard)
   - Remove any related imports from other files
@@ -754,7 +761,7 @@ client/tests/
   - **Duration**: ~20 minutes
   - **Test**: No broken imports, app compiles successfully
 
-- [ ] **T052** Create PR with comprehensive description
+- [x] **T052** Create PR with comprehensive description
   - Write PR description summarizing all changes:
     - Navigation simplified from 5 to 4 items
     - Dashboard reorganized as central hub
