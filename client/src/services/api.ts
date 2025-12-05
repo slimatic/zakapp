@@ -754,6 +754,24 @@ class ApiService {
     });
     return this.handleResponse(response);
   }
+
+  // Privacy Settings Methods (FR-018, FR-019, FR-020)
+  async getPrivacySettings(): Promise<{ success: boolean; privacySettings: { analytics: boolean; dataSharing: boolean; marketing: boolean } }> {
+    const response = await fetch(`${API_BASE_URL}/user/privacy-settings`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updatePrivacySettings(settings: { analytics?: boolean; dataSharing?: boolean; marketing?: boolean }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/privacy-settings`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(settings)
+    });
+    return this.handleResponse(response);
+  }
 }
 
 export const apiService = new ApiService();
