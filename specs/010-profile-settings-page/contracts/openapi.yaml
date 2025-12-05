@@ -1,0 +1,368 @@
+openapi: 3.0.3
+info:
+  title: ZakApp Profile Settings API
+  description: API contracts for Profile Settings Page feature
+  version: 1.0.0
+  
+servers:
+  - url: http://localhost:5000/api
+    description: Development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /user/profile:
+    get:
+      summary: Get user profile
+      description: Retrieve current user's profile information
+      operationId: getProfile
+      tags:
+        - Profile
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+          
+    put:
+      summary: Update user profile
+      description: Update user profile information and preferences
+      operationId: updateProfile
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /user/change-password:
+    post:
+      summary: Change password
+      description: Change user's password with current password verification
+      operationId: changePassword
+      tags:
+        - Security
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Validation error or current password incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/privacy-settings:
+    get:
+      summary: Get privacy settings
+      description: Retrieve user's privacy settings
+      operationId: getPrivacySettings
+      tags:
+        - Privacy
+      responses:
+        '200':
+          description: Privacy settings retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivacySettingsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+          
+    put:
+      summary: Update privacy settings
+      description: Update user's privacy settings
+      operationId: updatePrivacySettings
+      tags:
+        - Privacy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivacySettingsUpdateRequest'
+      responses:
+        '200':
+          description: Privacy settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivacySettingsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/export-request:
+    post:
+      summary: Request data export
+      description: Initiate a data export request
+      operationId: exportRequest
+      tags:
+        - Data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+      responses:
+        '200':
+          description: Export data (direct download) or export initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportDataResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/account:
+    delete:
+      summary: Delete account
+      description: Permanently delete user account and all associated data
+      operationId: deleteAccount
+      tags:
+        - Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccountRequest'
+      responses:
+        '200':
+          description: Account deletion initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Password confirmation required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        createdAt:
+          type: string
+          format: date-time
+        lastLogin:
+          type: string
+          format: date-time
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+      required:
+        - userId
+        - username
+        - email
+        - createdAt
+        - preferences
+
+    UserPreferences:
+      type: object
+      properties:
+        currency:
+          type: string
+          enum: [USD, EUR, GBP, SAR, AED, EGP, PKR, INR, MYR, IDR]
+          default: USD
+        language:
+          type: string
+          enum: [en, ar, ur, id, ms]
+          default: en
+        zakatMethod:
+          type: string
+          enum: [standard, hanafi, shafi, custom]
+          default: standard
+        calendarType:
+          type: string
+          enum: [lunar, solar]
+          default: lunar
+      required:
+        - currency
+        - language
+        - zakatMethod
+        - calendarType
+
+    ProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+        message:
+          type: string
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        email:
+          type: string
+          format: email
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+
+    PasswordChangeRequest:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          minLength: 1
+        newPassword:
+          type: string
+          minLength: 8
+      required:
+        - currentPassword
+        - newPassword
+
+    PrivacySettingsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        privacySettings:
+          type: object
+          properties:
+            dataSharing:
+              type: boolean
+            analytics:
+              type: boolean
+            marketing:
+              type: boolean
+
+    PrivacySettingsUpdateRequest:
+      type: object
+      properties:
+        analytics:
+          type: boolean
+
+    ExportRequest:
+      type: object
+      properties:
+        format:
+          type: string
+          enum: [json]
+          default: json
+
+    ExportDataResponse:
+      type: object
+      properties:
+        exportDate:
+          type: string
+          format: date-time
+        user:
+          type: object
+        assets:
+          type: array
+          items:
+            type: object
+        calculations:
+          type: array
+          items:
+            type: object
+        payments:
+          type: array
+          items:
+            type: object
+
+    DeleteAccountRequest:
+      type: object
+      properties:
+        password:
+          type: string
+      required:
+        - password
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        message:
+          type: string
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

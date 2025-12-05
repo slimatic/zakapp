@@ -44,6 +44,11 @@ export class UserController {
       throw new AppError('Current and new passwords are required', 400, ErrorCode.VALIDATION_ERROR);
     }
 
+    // FR-012: Enforce minimum password length of 8 characters
+    if (newPassword.length < 8) {
+      throw new AppError('New password must be at least 8 characters long', 400, ErrorCode.VALIDATION_ERROR);
+    }
+
     await userService.changePassword(userId, { currentPassword, newPassword });
 
     const response: ApiResponse = {
