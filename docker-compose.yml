@@ -43,6 +43,7 @@ services:
       - PORT=3001
       - DATABASE_URL=file:./prisma/data/dev.db
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000},http://127.0.0.1:${FRONTEND_PORT:-3000},http://${HOST_IP:-localhost}:${FRONTEND_PORT:-3000}}
+      - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
     healthcheck:
       test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:3001/api/auth/register || exit 0"]
       interval: 10s
