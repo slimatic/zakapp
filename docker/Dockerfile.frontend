@@ -25,8 +25,15 @@ RUN cd client && npm ci
 # Copy client source code
 COPY client/ ./client/
 
+# Copy entrypoint script
+COPY docker/frontend-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 # Set working directory to client
 WORKDIR /app/client
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["npm", "start"]
 
 # Expose port
 EXPOSE 3000
