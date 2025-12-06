@@ -1,10 +1,12 @@
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+import { getApiBaseUrl } from '../config';
+
+export const API_BASE_URL = getApiBaseUrl();
 
 // Log API configuration in development mode
 if (process.env.NODE_ENV === 'development') {
   console.log('🔧 API Configuration:', {
     baseUrl: API_BASE_URL,
-    source: process.env.REACT_APP_API_BASE_URL ? 'environment' : 'default',
+    source: window.APP_CONFIG?.API_BASE_URL ? 'runtime-config' : (process.env.REACT_APP_API_BASE_URL ? 'environment' : 'default'),
   });
 }
 
@@ -209,7 +211,7 @@ class ApiService {
   }
 
   async updateProfile(profileData: any): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/profile`, {
+    const response = await fetch(`${API_BASE_URL}/user/profile`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(profileData)
@@ -351,6 +353,8 @@ class ApiService {
   }
 
   async getPayments(filters?: { snapshotId?: string; limit?: number; offset?: number }): Promise<ApiResponse> {
+    // Use the payments endpoint with snapshotId filter
+    // This queries PaymentRecord table via PaymentService
     const params = new URLSearchParams();
     if (filters?.snapshotId) params.append('snapshotId', filters.snapshotId);
     if (filters?.limit) params.append('limit', filters.limit.toString());
@@ -719,6 +723,53 @@ class ApiService {
         ...this.getAuthHeaders(),
         'Content-Type': 'application/json'
       },
+      body: JSON.stringify(settings)
+    });
+    return this.handleResponse(response);
+  }
+
+  // Password Management Methods
+  async changePassword(data: { currentPassword: string; newPassword: string }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/change-password`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return this.handleResponse(response);
+  }
+
+  // Account Management Methods
+  async deleteAccount(password: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/account`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ password })
+    });
+    return this.handleResponse(response);
+  }
+
+  async exportUserData(format: string = 'json'): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/export-request`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ format })
+    });
+    return this.handleResponse(response);
+  }
+
+  // Privacy Settings Methods (FR-018, FR-019, FR-020)
+  async getPrivacySettings(): Promise<{ success: boolean; privacySettings: { analytics: boolean; dataSharing: boolean; marketing: boolean } }> {
+    const response = await fetch(`${API_BASE_URL}/user/privacy-settings`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updatePrivacySettings(settings: { analytics?: boolean; dataSharing?: boolean; marketing?: boolean }): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/user/privacy-settings`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
       body: JSON.stringify(settings)
     });
     return this.handleResponse(response);

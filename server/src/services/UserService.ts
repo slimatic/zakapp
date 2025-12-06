@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-for-development-purposes-32';

@@ -86,28 +86,34 @@ export const NisabYearRecordsPage: React.FC = () => {
   const payments = paymentsData || [];
 
   // Fetch assets for create modal
-  const { data: assetsData, isLoading: isLoadingAssets } = useQuery({
-    queryKey: ['assets'],
+  const { data: assetsData, isLoading: isLoadingAssets, refetch: refetchAssets } = useQuery({
+    queryKey: ['assets', 'nisab-create'],
     queryFn: async () => {
+      console.log('[NisabYearRecordsPage] Fetching assets for create modal...');
       const response = await apiService.getAssets();
+      console.log('[NisabYearRecordsPage] Assets response:', response);
       if (!response.success) {
         throw new Error('Failed to fetch assets');
       }
+      // Handle both response.data.assets and response.assets formats
+      const rawAssets = response.data?.assets || (response as any).assets || [];
       // Map backend asset format to component format
-      const assets = response.data.assets.map((asset: any) => ({
+      const assets = rawAssets.map((asset: any) => ({
         id: asset.id,
         name: asset.name,
-        category: asset.category,
+        category: asset.category || asset.type,
         value: asset.value,
         // Determine if zakatable based on category
         // Cash, gold, silver, crypto, business, investments are zakatable
-        isZakatable: ['cash', 'gold', 'silver', 'crypto', 'business', 'investments', 'stocks'].includes(asset.category.toLowerCase()),
+        isZakatable: ['cash', 'gold', 'silver', 'crypto', 'business', 'investments', 'stocks'].includes((asset.category || asset.type || '').toLowerCase()),
         // Use createdAt as addedAt
         addedAt: asset.createdAt || asset.acquisitionDate,
       }));
+      console.log('[NisabYearRecordsPage] Mapped assets:', assets);
       return assets as Asset[];
     },
     enabled: showCreateModal, // Only fetch when modal is open
+    staleTime: 0, // Always refetch when modal opens
   });
 
   // Open create modal when ?create=true is present in the URL
@@ -245,6 +251,8 @@ export const NisabYearRecordsPage: React.FC = () => {
   // Handle creation
   const handleCreate = () => {
     setShowCreateModal(true);
+    // Force refetch assets when modal opens
+    setTimeout(() => refetchAssets(), 100);
   };
 
   // Handle create submit
@@ -656,7 +664,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                             {payments.map((payment: any) => (
                               <div key={payment.id} className="flex justify-between items-start text-xs border-t border-green-200 pt-2 first:border-t-0 first:pt-0">
                                 <div className="flex-1">
-                                  <div className="font-medium text-gray-900">{payment.decryptedRecipientName}</div>
+                                  <div className="font-medium text-gray-900">{payment.recipientName || payment.decryptedRecipientName}</div>
                                   <div className="text-gray-600 text-xs mt-0.5">
                                     {payment.recipientType} • {payment.recipientCategory}
                                   </div>
@@ -665,7 +673,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                                   </div>
                                 </div>
                                 <div className="font-semibold text-green-700">
-                                  {formatCurrency(parseFloat(payment.decryptedAmount), payment.currency || 'USD')}
+                                  {formatCurrency(parseFloat(payment.amount || payment.decryptedAmount || '0'), payment.currency || 'USD')}
                                 </div>
                               </div>
                             ))}
@@ -674,7 +682,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                             <span className="text-gray-700">Total Paid:</span>
                             <span className="text-green-700">
                               {formatCurrency(
-                                payments.reduce((sum: number, p: any) => sum + parseFloat(p.decryptedAmount || '0'), 0),
+                                payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0),
                                 'USD'
                               )}
                             </span>
@@ -682,12 +690,12 @@ export const NisabYearRecordsPage: React.FC = () => {
                           <div className="mt-1 flex justify-between items-center text-xs">
                             <span className="text-gray-600">Remaining:</span>
                             <span className={
-                              parseFloat(activeRecord.zakatAmount) - payments.reduce((sum: number, p: any) => sum + parseFloat(p.decryptedAmount || '0'), 0) <= 0
+                              parseFloat(activeRecord.zakatAmount) - payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0) <= 0
                                 ? 'text-green-600 font-medium'
                                 : 'text-gray-700 font-medium'
                             }>
                               {formatCurrency(
-                                Math.max(0, parseFloat(activeRecord.zakatAmount) - payments.reduce((sum: number, p: any) => sum + parseFloat(p.decryptedAmount || '0'), 0)),
+                                Math.max(0, parseFloat(activeRecord.zakatAmount) - payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0)),
                                 'USD'
                               )}
                             </span>
