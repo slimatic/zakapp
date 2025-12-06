@@ -9,28 +9,28 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 **New to ZakApp?** Start here:
 
 1. **[Main README](../README.md)** - Project overview, quick start, and installation
-2. **[Developer Onboarding](../DEVELOPER_ONBOARDING.md)** - Complete guide for new developers
-3. **[Development Setup](../DEVELOPMENT_SETUP.md)** - Detailed environment setup instructions
-4. **[Development Guide](../DEVELOPMENT.md)** - Development workflow and best practices
+2. **[Developer Onboarding](reports/DEVELOPER_ONBOARDING.md)** - Complete guide for new developers
+3. **[Development Setup](reports/DEVELOPMENT_SETUP.md)** - Detailed environment setup instructions
+4. **[Development Guide](reports/DEVELOPMENT.md)** - Development workflow and best practices
 
 ### 🏗️ Architecture & Design
 
 **Understanding the system:**
 
-- **[Project Structure](../project-structure.md)** - Repository organization and directory layout
-- **[API Specification](../api-specification.md)** - Complete REST API documentation
+- **[Project Structure](project-structure.md)** - Repository organization and directory layout
+- **[API Specification](api/api-specification.md)** - Complete REST API documentation
 - **[Database Schema](../server/prisma/schema.prisma)** - Prisma database model
-- **[User Stories](../user-stories.md)** - Feature requirements and user flows
-- **[Project Principles](../principles.md)** - Development guidelines and philosophy
+- **[User Stories](user-stories.md)** - Feature requirements and user flows
+- **[Project Principles](principles.md)** - Development guidelines and philosophy
 
 ### 🚀 Deployment & Operations
 
 **Running ZakApp in production:**
 
-- **[Deployment Guide](../deployment-guide.md)** - General deployment instructions
+- **[Deployment Guide](deployment-guide.md)** - General deployment instructions
 - **[Production Setup Guide](guides/PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Production deployment automation
 - **[Staging Deployment Guide](guides/STAGING_DEPLOYMENT_GUIDE.md)** - Staging environment setup
-- **[Docker Guide](../DOCKER.md)** - Container deployment instructions
+- **[Docker Guide](reports/DOCKER.md)** - Container deployment instructions
 - **[CI/CD Setup](guides/CI-CD-SETUP.md)** - Continuous integration/deployment configuration
 - **[Cloudflare Tunnel Setup](guides/CLOUDFLARE_TUNNEL_SETUP.md)** - Secure tunnel configuration
 - **[Cloudflare Tunnel Quick Start](guides/CLOUDFLARE_TUNNEL_QUICK.md)** - Quick Cloudflare setup
@@ -40,7 +40,7 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 **Configuration and problem-solving:**
 
 - **[Port Configuration Guide](guides/PORT_CONFIGURATION_GUIDE.md)** - Configure custom ports, fix "Failed to fetch" errors
-- **[Database Management](../DATABASE_MANAGEMENT.md)** - Database cleanup, reset, backup, and troubleshooting
+- **[Database Management](reports/DATABASE_MANAGEMENT.md)** - Database cleanup, reset, backup, and troubleshooting
 - **[Database Portability Guide](guides/DATABASE_PORTABILITY_GUIDE.md)** - Database migration and portability
 - **[Manual Testing Guide](guides/MANUAL_TESTING_GUIDE.md)** - Manual testing procedures
 
@@ -48,16 +48,16 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 
 **Security best practices:**
 
-- **[Security Guide](../security.md)** - Security measures, authentication, encryption, and best practices
+- **[Security Guide](security.md)** - Security measures, authentication, encryption, and best practices
 
 ### 📊 Project Status & Planning
 
 **Current state and roadmap:**
 
-- **[Final Implementation Report](../FINAL_IMPLEMENTATION_REPORT.md)** - Complete 500+ line report on all 53 features
-- **[Development Plan](../development-plan.md)** - Detailed development roadmap
-- **[Roadmap](../roadmap.md)** - High-level milestones and timeline
-- **[Tasks](../tasks.md)** - Current task tracking
+- **[Final Implementation Report](reports/FINAL_IMPLEMENTATION_REPORT.md)** - Complete 500+ line report on all 53 features
+- **[Development Plan](development-plan.md)** - Detailed development roadmap
+- **[Roadmap](roadmap.md)** - High-level milestones and timeline
+- **[Tasks](tasks.md)** - Current task tracking
 - **[Changelog](../CHANGELOG.md)** - Version history and changes
 
 ### 📚 API Documentation
