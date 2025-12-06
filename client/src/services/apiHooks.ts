@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiService } from './api';
+import { apiService, UpdateProfileRequest, CreateAssetRequest, UpdateAssetRequest, AssetFilters } from './api';
 
 // Authentication hooks
 export const useLogin = () => {
@@ -53,7 +53,7 @@ export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (profileData: any) => apiService.updateProfile(profileData),
+    mutationFn: (profileData: UpdateProfileRequest) => apiService.updateProfile(profileData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', 'current'] });
     },
@@ -61,7 +61,7 @@ export const useUpdateProfile = () => {
 };
 
 // Asset management hooks
-export const useAssets = (filters?: any) => {
+export const useAssets = (filters?: AssetFilters) => {
   return useQuery({
     queryKey: ['assets', filters],
     queryFn: () => apiService.getAssets(),
@@ -81,7 +81,7 @@ export const useCreateAsset = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (assetData: any) => apiService.createAsset(assetData),
+    mutationFn: (assetData: CreateAssetRequest) => apiService.createAsset(assetData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -94,9 +94,9 @@ export const useUpdateAsset = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ assetId, assetData }: { assetId: string; assetData: any }) => 
+    mutationFn: ({ assetId, assetData }: { assetId: string; assetData: UpdateAssetRequest }) => 
       apiService.updateAsset(assetId, assetData),
-    onSuccess: (data: any, variables: any) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       queryClient.invalidateQueries({ queryKey: ['assets', variables.assetId] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
