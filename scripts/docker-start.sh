@@ -48,6 +48,18 @@ generate_secrets() {
 # =========================================
 # SECURITY WARNING: Do NOT commit this file to version control
 
+# =====================================================
+# PORT CONFIGURATION
+# =====================================================
+# Backend API Server Port (exposed on host)
+BACKEND_PORT=3001
+
+# Frontend Development Server Port (exposed on host)
+FRONTEND_PORT=3000
+
+# =====================================================
+# SECURITY SECRETS
+# =====================================================
 # JWT Authentication Secret
 JWT_SECRET=${JWT_SECRET}
 
@@ -75,6 +87,20 @@ elif grep -q "REPLACE_WITH_SECURE_SECRET" .env.docker 2>/dev/null; then
 else
     echo -e "${GREEN}✅ Using existing .env.docker${NC}"
 fi
+
+# Load port configuration from .env.docker
+if [ -f .env.docker ]; then
+    export $(grep -E "^(FRONTEND_PORT|BACKEND_PORT)=" .env.docker | xargs)
+fi
+
+# Set defaults if not configured
+FRONTEND_PORT=${FRONTEND_PORT:-3000}
+BACKEND_PORT=${BACKEND_PORT:-3001}
+
+echo -e "${BLUE}📋 Configuration:${NC}"
+echo "   Frontend Port: ${FRONTEND_PORT}"
+echo "   Backend Port:  ${BACKEND_PORT}"
+echo ""
 
 # Reset database if requested
 if $RESET_DB; then
@@ -124,16 +150,17 @@ echo -e "${GREEN}✅ ZakApp Started!${NC}"
 echo ""
 
 if [ "$BACKEND_HEALTHY" != "0" ]; then
-    echo -e "${GREEN}✅ Backend:  http://localhost:3001${NC}"
+    echo -e "${GREEN}✅ Backend:  http://localhost:${BACKEND_PORT}${NC}"
+    echo -e "   API Docs: http://localhost:${BACKEND_PORT}/api${NC}"
 else
     echo -e "${RED}❌ Backend:  Failed to start${NC}"
     echo "   Run 'docker compose logs backend' for details"
 fi
 
 if [ "$FRONTEND_HEALTHY" != "0" ]; then
-    echo -e "${GREEN}✅ Frontend: http://localhost:3000${NC}"
+    echo -e "${GREEN}✅ Frontend: http://localhost:${FRONTEND_PORT}${NC}"
 else
-    echo -e "${YELLOW}⏳ Frontend: http://localhost:3000 (starting...)${NC}"
+    echo -e "${YELLOW}⏳ Frontend: http://localhost:${FRONTEND_PORT} (starting...)${NC}"
 fi
 
 echo ""
