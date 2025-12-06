@@ -157,7 +157,7 @@ export const FeedbackWidget: React.FC = () => {
   const isValidLength = characterCount >= MIN_MESSAGE_LENGTH && characterCount <= MAX_MESSAGE_LENGTH;
 
   return (
-    <div ref={widgetRef} className="fixed bottom-6 right-6 z-50">
+    <div ref={widgetRef} className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-40 print:hidden">
       {/* Feedback Bubble */}
       <button
         onClick={toggleWidget}
@@ -191,7 +191,7 @@ export const FeedbackWidget: React.FC = () => {
         <div
           className={`
             absolute bottom-20 right-0
-            w-96 max-w-[calc(100vw-3rem)]
+            w-80 md:w-96 max-w-[calc(100vw-2rem)]
             bg-white rounded-lg shadow-2xl
             transition-all duration-300 ease-in-out
             transform origin-bottom-right
