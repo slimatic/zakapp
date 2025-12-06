@@ -16,6 +16,7 @@ services:
     environment:
       - NODE_ENV=development
       - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL:-http://${HOST_IP:-localhost}:${BACKEND_PORT:-3001}/api}
+      - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
     depends_on:
       backend:
         condition: service_healthy
