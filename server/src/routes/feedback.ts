@@ -1,5 +1,5 @@
 import express from 'express';
-import fetch from 'node-fetch';
+import axios from 'axios';
 
 const router = express.Router();
 
@@ -22,28 +22,22 @@ router.post('/', async (req, res) => {
     }
 
     // Proxy the request to the webhook
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
+    await axios.post(webhookUrl, feedback, {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(feedback),
     });
 
-    if (!response.ok) {
-      console.error(`Webhook failed: ${response.status} ${response.statusText}`);
-      return res.status(502).json({ 
-        success: false, 
-        message: 'Failed to forward feedback to external service' 
-      });
-    }
-
     return res.status(200).json({ success: true, message: 'Feedback submitted successfully' });
-  } catch (error) {
-    console.error('Feedback submission error:', error);
-    return res.status(500).json({ 
+  } catch (error: any) {
+    console.error('Feedback submission error:', error.message);
+    if (error.response) {
+      console.error('Webhook response:', error.response.status, error.response.data);
+    }
+    
+    return res.status(502).json({ 
       success: false, 
-      message: 'Internal server error processing feedback' 
+      message: 'Failed to forward feedback to external service' 
     });
   }
 });
