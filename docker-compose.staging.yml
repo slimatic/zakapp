@@ -93,6 +93,8 @@ services:
       - "3000:80"
     environment:
       - NODE_ENV=staging
+      - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
+      - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
     depends_on:
       - backend
     networks:
