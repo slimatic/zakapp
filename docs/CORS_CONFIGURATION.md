@@ -1,52 +1,42 @@
-# CORS Configuration Guide
+# External Access Configuration
 
-This guide explains how to configure Cross-Origin Resource Sharing (CORS) for ZakApp to work with localhost, IP addresses, and custom domains.
+To access ZakApp from other devices on your network (e.g., mobile phones), follow these simple steps.
 
-## Quick Start
+## Quick Setup
 
-### Development (Default)
-The application is pre-configured to work with `http://localhost:3000` by default. No changes needed for standard local development.
+1.  **Get your Host IP:**
+    Run the helper script:
+    ```bash
+    ./get-ip.sh
+    ```
 
-### Testing from Another Device (Same Network)
-To access the app from another device on your local network (e.g., phone, tablet):
+2.  **Update Configuration:**
+    Open the `.env` file in the root directory and set `HOST_IP`:
+    ```env
+    HOST_IP=192.168.x.x  # Replace with your IP from step 1
+    ```
 
-1. Find your computer's IP address:
-   ```bash
-   # Linux/Mac
-   ip addr show | grep "inet " | grep -v 127.0.0.1
-   # or
-   ifconfig | grep "inet " | grep -v 127.0.0.1
-   
-   # Windows
-   ipconfig | findstr IPv4
-   ```
+3.  **Apply Changes:**
+    Restart the application:
+    ```bash
+    docker compose up -d
+    ```
 
-2. Update the CORS configuration in `.env.docker`:
-   ```env
-   ALLOWED_ORIGINS=http://localhost:3000,http://192.168.1.100:3000
-   ```
-   Replace `192.168.1.100` with your actual IP address.
+4.  **Access the App:**
+    *   **Frontend:** `http://<YOUR_IP>:3000`
+    *   **Backend:** `http://<YOUR_IP>:3001`
 
-3. Restart the Docker containers:
-   ```bash
-   docker compose down
-   docker compose up -d
-   ```
+## How It Works
 
-4. Access from your device at: `http://192.168.1.100:3000`
+*   **Central Configuration:** The `.env` file acts as the single source of truth.
+*   **Runtime Injection:** The frontend configuration is injected at runtime, so you don't need to rebuild the application when changing IPs.
+*   **Automatic CORS:** The backend automatically allows requests from the configured `HOST_IP`.
 
-## Configuration Options
+## Troubleshooting
 
-### Option 1: Using .env.docker (Docker Deployment)
+*   **Firewall:** Ensure your computer's firewall allows incoming connections on ports `3000` and `3001`.
+*   **Network:** Ensure your phone and computer are on the same Wi-Fi network.
 
-Edit `.env.docker` and add your allowed origins:
-
-```env
-# Single origin
-ALLOWED_ORIGINS=http://localhost:3000
-
-# Multiple origins
-ALLOWED_ORIGINS=http://localhost:3000,http://192.168.1.100:3000,http://10.0.0.5:3000
 
 # With custom domain
 ALLOWED_ORIGINS=http://localhost:3000,https://zakapp.yourdomain.com
