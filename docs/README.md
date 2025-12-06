@@ -39,7 +39,8 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 
 **Configuration and problem-solving:**
 
-- **[Port Configuration Guide](guides/PORT_CONFIGURATION_GUIDE.md)** - Configure custom ports, fix "Failed to fetch" errors
+- **[Port Configuration Guide](guides/PORT_CONFIGURATION.md)** - Configure custom ports, resolve port conflicts, network access
+- **[Port Configuration Guide (Legacy)](guides/PORT_CONFIGURATION_GUIDE.md)** - Configure custom ports, fix "Failed to fetch" errors
 - **[Database Management](reports/DATABASE_MANAGEMENT.md)** - Database cleanup, reset, backup, and troubleshooting
 - **[Database Portability Guide](guides/DATABASE_PORTABILITY_GUIDE.md)** - Database migration and portability
 - **[Manual Testing Guide](guides/MANUAL_TESTING_GUIDE.md)** - Manual testing procedures
