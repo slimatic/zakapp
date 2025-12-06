@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { apiService } from '../services/api';
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
+import { apiService, ApiResponse } from '../services/api';
 import { ZakatPayment } from '@zakapp/shared';
 
 /**
@@ -8,6 +8,14 @@ import { ZakatPayment } from '@zakapp/shared';
 export interface PaymentFilters {
   year?: number;
   status?: 'completed' | 'pending' | 'cancelled';
+  page?: number;
+  limit?: number;
+}
+
+interface PaymentListResponse {
+  payments: ZakatPayment[];
+  hasNextPage?: boolean;
+  total?: number;
   page?: number;
   limit?: number;
 }
@@ -35,7 +43,7 @@ export const usePaymentRecords = (filters?: PaymentFilters) => {
         limit: filters?.limit || 20
       }),
     initialPageParam: 1,
-    getNextPageParam: (lastPage: any, pages) => {
+    getNextPageParam: (lastPage: ApiResponse<PaymentListResponse>, pages) => {
       // Assuming the API returns pagination info
       const hasNextPage = lastPage.data?.hasNextPage || lastPage.data?.payments?.length === (filters?.limit || 20);
       return hasNextPage ? pages.length + 1 : undefined;
@@ -127,11 +135,11 @@ export const useUpdatePayment = () => {
       });
 
       // Optimistically update in the payments list
-      queryClient.setQueryData(['payments'], (old: any) => {
+      queryClient.setQueryData(['payments'], (old: InfiniteData<ApiResponse<PaymentListResponse>> | undefined) => {
         if (!old?.pages) return old;
         return {
           ...old,
-          pages: old.pages.map((page: any) => ({
+          pages: old.pages.map((page) => ({
             ...page,
             data: {
               ...page.data,
@@ -192,11 +200,11 @@ export const useDeletePayment = () => {
       const previousPayment = queryClient.getQueryData(['payments', paymentId]);
 
       // Optimistically remove from the payments list
-      queryClient.setQueryData(['payments'], (old: any) => {
+      queryClient.setQueryData(['payments'], (old: InfiniteData<ApiResponse<PaymentListResponse>> | undefined) => {
         if (!old?.pages) return old;
         return {
           ...old,
-          pages: old.pages.map((page: any) => ({
+          pages: old.pages.map((page) => ({
             ...page,
             data: {
               ...page.data,
