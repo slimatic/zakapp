@@ -92,8 +92,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (token) {
         try {
           const response = await apiService.getCurrentUser();
-          if (response.success && response.data) {
-            dispatch({ type: 'LOGIN_SUCCESS', payload: response.data });
+          if (response.success && response.data?.user) {
+            // Map the API response to our User interface
+            const apiUser = response.data.user;
+            const user: User = {
+              userId: apiUser.id,
+              username: apiUser.username || apiUser.email.split('@')[0],
+              email: apiUser.email,
+              firstName: apiUser.firstName,
+              lastName: apiUser.lastName,
+              createdAt: apiUser.createdAt || new Date().toISOString(),
+              lastLogin: new Date().toISOString(),
+              preferences: {
+                currency: 'USD',
+                language: 'en',
+                zakatMethod: apiUser.preferences?.methodology || 'standard',
+                calendarType: (apiUser.preferences?.calendar || 'lunar') as 'lunar' | 'solar'
+              }
+            };
+            dispatch({ type: 'LOGIN_SUCCESS', payload: user });
           } else {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
@@ -138,6 +155,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           userId: response.user.id,
           username: response.user.username || response.user.email.split('@')[0], // Use email prefix if username not provided
           email: response.user.email,
+          firstName: response.user.firstName,
+          lastName: response.user.lastName,
           createdAt: new Date().toISOString(), // Default for now
           lastLogin: new Date().toISOString(),
           preferences: {
@@ -179,6 +198,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           userId: response.user.id,
           username: response.user.username || response.user.email.split('@')[0], // Use email prefix if username not provided
           email: response.user.email,
+          firstName: response.user.firstName,
+          lastName: response.user.lastName,
           createdAt: new Date().toISOString(), // Default for now
           lastLogin: new Date().toISOString(),
           preferences: {

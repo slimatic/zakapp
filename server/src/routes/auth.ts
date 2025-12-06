@@ -669,6 +669,9 @@ router.get('/me',
           user: {
             id: user.id,
             email: user.email,
+            username: user.username,
+            firstName: profile.firstName || '',
+            lastName: profile.lastName || '',
             name: `${profile.firstName} ${profile.lastName}`.trim() || user.email,
             preferences: {
               calendar: user.preferredCalendar,
