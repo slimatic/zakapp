@@ -122,8 +122,8 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/snapshots', snapshotsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/user', userRoutes);
-app.use('/', nisabYearRecordsRoutes); // Feature 008: Nisab Year Records routes
 app.use('/api/feedback', feedbackRoutes);
+app.use('/', nisabYearRecordsRoutes); // Feature 008: Nisab Year Records routes
 
 // Health check endpoint
 app.get('/health', (req, res) => {
