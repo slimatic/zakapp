@@ -2,7 +2,9 @@
 # Batch update finalize.test.ts and unlock.test.ts
 # Run from repository root
 
-cd server/tests/contract
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$PROJECT_ROOT/server/tests/contract"
 
 echo "Updating finalize.test.ts..."
 

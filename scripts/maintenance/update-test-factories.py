@@ -7,7 +7,7 @@ This replaces prisma.yearlySnapshot.create() calls with factory function calls.
 import re
 from pathlib import Path
 
-CONTRACT_DIR = Path(__file__).parent / "server" / "tests" / "contract"
+CONTRACT_DIR = Path(__file__).parent.parent.parent / "server" / "tests" / "contract"
 
 # Pattern to match the entire create block
 CREATE_PATTERN = re.compile(

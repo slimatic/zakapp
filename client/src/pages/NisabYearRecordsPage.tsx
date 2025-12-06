@@ -1256,7 +1256,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                       // Call API to record payment with all collected data
                       const resp = await apiService.recordPayment({
                         snapshotId: showPaymentsRecordId,
-                        amount: parseFloat(paymentAmount).toFixed(2),
+                        amount: parseFloat(paymentAmount),
                         paymentDate: new Date(),
                         recipientName: paymentRecipientName,
                         recipientType: paymentRecipientType as any,
