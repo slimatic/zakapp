@@ -12,7 +12,7 @@ CREATE TABLE "audit_trail_entries" (
     "ipAddress" TEXT,
     "userAgent" TEXT,
     CONSTRAINT "audit_trail_entries_nisabYearRecordId_fkey" FOREIGN KEY ("nisabYearRecordId") REFERENCES "yearly_snapshots" ("id") ON DELETE CASCADE,
-    CONSTRAINT "audit_trail_entries_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE
+    CONSTRAINT "audit_trail_entries_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users" ("id") ON DELETE CASCADE
 );
 
 -- Step 2: Create new precious_metal_prices table

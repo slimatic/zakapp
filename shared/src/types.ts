@@ -15,6 +15,8 @@ export interface User {
   userId: string;
   username: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
   createdAt: string;
   lastLogin?: string;
   preferences: UserPreferences;
