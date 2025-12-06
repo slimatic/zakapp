@@ -31,6 +31,12 @@ ZakApp is a **privacy-first Islamic Zakat calculator** designed to help Muslims 
    - Frontend: http://localhost:3000
    - Backend: http://localhost:3001
 
+> **💡 Tip**: If ports 3000 or 3001 are already in use, you can easily change them:
+> 1. Edit `FRONTEND_PORT` and `BACKEND_PORT` in `.env.docker`
+> 2. Run `docker compose down && docker compose up -d`
+> 
+> See [Port Configuration Guide](docs/guides/PORT_CONFIGURATION.md) for details.
+
 ### Mobile Access
 To access the application from other devices on your network:
 ```bash
