@@ -147,10 +147,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     id="user-menu-button"
                     aria-expanded={isOpen}
                     aria-haspopup="true"
-                    aria-label={`User menu for ${user?.username}`}
+                    aria-label={`User menu for ${user?.firstName || user?.username || user?.email}`}
                   >
                     <span className="text-gray-700 text-sm mr-2">
-                      Welcome, {user?.username}!
+                      Welcome, {user?.firstName || user?.username || user?.email?.split('@')[0]}!
                     </span>
                     <svg 
                       className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} 

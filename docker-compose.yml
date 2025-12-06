@@ -7,14 +7,16 @@ services:
       - '3000:3000'
     volumes:
       - ./client:/app/client
-      - ./shared:/app/shared
+      - ./shared/src:/app/shared/src
       - /app/client/node_modules
       - /app/shared/node_modules
+      - /app/shared/dist
     environment:
       - NODE_ENV=development
-      - REACT_APP_API_URL=http://localhost:3001
+      - REACT_APP_API_BASE_URL=http://localhost:3001/api
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     command: npm start
 
   backend:
@@ -25,17 +27,27 @@ services:
       - '3001:3001'
     volumes:
       - ./server:/app/server
-      - ./shared:/app/shared
+      - ./shared/src:/app/shared/src
       - /app/server/node_modules
       - /app/shared/node_modules
-      - ./server/prisma/data:/app/server/prisma/data
+      - /app/shared/dist
+      - zakapp-db:/app/server/prisma/data
+    env_file:
+      - .env.docker
     environment:
       - NODE_ENV=development
       - PORT=3001
-      - JWT_SECRET=ced44baf98e206664e577f47c4fb069d82a5ba75869ad45aa07c08982f9f3767
-      - ENCRYPTION_KEY=7cad0964108a87ec94589cd32fbfcae4
       - DATABASE_URL=file:./prisma/data/dev.db
-    command: npm run dev
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:3001/api/auth/register || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+
+volumes:
+  zakapp-db:
+    name: zakapp-database
 
 networks:
   default:
