@@ -1,10 +1,12 @@
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+import { getApiBaseUrl } from '../config';
+
+export const API_BASE_URL = getApiBaseUrl();
 
 // Log API configuration in development mode
 if (process.env.NODE_ENV === 'development') {
   console.log('🔧 API Configuration:', {
     baseUrl: API_BASE_URL,
-    source: process.env.REACT_APP_API_BASE_URL ? 'environment' : 'default',
+    source: window.APP_CONFIG?.API_BASE_URL ? 'runtime-config' : (process.env.REACT_APP_API_BASE_URL ? 'environment' : 'default'),
   });
 }
 

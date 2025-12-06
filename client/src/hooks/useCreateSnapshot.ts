@@ -5,8 +5,9 @@
 
 import { useMutation, useQueryClient, UseMutationResult } from '@tanstack/react-query';
 import type { CreateYearlySnapshotDto, YearlySnapshot } from '@zakapp/shared/types/tracking';
+import { getApiBaseUrl } from '../config';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = getApiBaseUrl();
 
 interface CreateSnapshotResponse {
   snapshot: YearlySnapshot;

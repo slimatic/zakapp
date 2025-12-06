@@ -96,7 +96,7 @@ export const NisabYearRecordsPage: React.FC = () => {
         throw new Error('Failed to fetch assets');
       }
       // Handle both response.data.assets and response.assets formats
-      const rawAssets = response.data?.assets || response.assets || [];
+      const rawAssets = response.data?.assets || (response as any).assets || [];
       // Map backend asset format to component format
       const assets = rawAssets.map((asset: any) => ({
         id: asset.id,

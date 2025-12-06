@@ -170,10 +170,10 @@ The application features a simplified, intuitive navigation structure designed t
 Quick links to essential documentation:
 
 ### 📋 **Getting Started**
-- **[Developer Onboarding](DEVELOPER_ONBOARDING.md)** - Complete guide for new developers
-- **[Development Setup](DEVELOPMENT_SETUP.md)** - Detailed environment setup instructions
-- **[Development Guide](DEVELOPMENT.md)** - Development workflow and best practices
-- **[Project Structure](project-structure.md)** - Repository organization and layout
+- **[Developer Onboarding](docs/reports/DEVELOPER_ONBOARDING.md)** - Complete guide for new developers
+- **[Development Setup](docs/reports/DEVELOPMENT_SETUP.md)** - Detailed environment setup instructions
+- **[Development Guide](docs/reports/DEVELOPMENT.md)** - Development workflow and best practices
+- **[Project Structure](docs/project-structure.md)** - Repository organization and layout
 
 ### 🎨 **User Documentation (Milestone 6)**
 - **[♿ Accessibility Features](docs/accessibility.md)** - Keyboard shortcuts, screen reader support, WCAG compliance
@@ -181,30 +181,30 @@ Quick links to essential documentation:
 - **[📱 PWA Guide](docs/pwa-guide.md)** - Installation instructions, offline usage, platform support
 
 ### 📊 **Project Status & Planning**
-- **[✅ Final Implementation Report](FINAL_IMPLEMENTATION_REPORT.md)** - Complete 500+ line report on all 53 features
-- **[✅ Deployment Readiness Report](DEPLOYMENT_READINESS_REPORT.md)** - Milestone 6 production readiness assessment
-- **[🗓️ Development Plan](development-plan.md)** - Detailed development roadmap
-- **[🛣️ Roadmap](roadmap.md)** - High-level milestones and timeline
-- **[📝 Tasks](tasks.md)** - Current task tracking
+- **[✅ Final Implementation Report](docs/reports/FINAL_IMPLEMENTATION_REPORT.md)** - Complete 500+ line report on all 53 features
+- **[✅ Deployment Readiness Report](docs/reports/DEPLOYMENT_READINESS_REPORT.md)** - Milestone 6 production readiness assessment
+- **[🗓️ Development Plan](docs/development-plan.md)** - Detailed development roadmap
+- **[🛣️ Roadmap](docs/roadmap.md)** - High-level milestones and timeline
+- **[📝 Tasks](docs/tasks.md)** - Current task tracking
 - **[📜 Changelog](CHANGELOG.md)** - Version history and changes
 
 ### 🔧 **Technical Reference**
-- **[📖 API Specification](api-specification.md)** - Complete REST API documentation
+- **[📖 API Specification](docs/api/api-specification.md)** - Complete REST API documentation
 - **[🔄 OpenAPI Specification](docs/api/openapi.yaml)** - Machine-readable API specification
 - **[🏗️ Complete Specification](specs/001-zakapp-specification-complete/)** - Detailed API contracts and data models
-- **[👤 User Stories](user-stories.md)** - Feature requirements and user flows
-- **[📏 Project Principles](principles.md)** - Development guidelines and philosophy
-- **[🔒 Security Guide](security.md)** - Security measures and best practices
+- **[👤 User Stories](docs/user-stories.md)** - Feature requirements and user flows
+- **[📏 Project Principles](docs/principles.md)** - Development guidelines and philosophy
+- **[🔒 Security Guide](docs/security.md)** - Security measures and best practices
 
 ### 🚀 **Deployment & Operations**
-- **[🚀 Deployment Guide](deployment-guide.md)** - General deployment instructions
+- **[🚀 Deployment Guide](docs/deployment-guide.md)** - General deployment instructions
 - **[🏭 Production Setup](docs/guides/PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Production deployment automation
 - **[🎭 Staging Deployment](docs/guides/STAGING_DEPLOYMENT_GUIDE.md)** - Staging environment setup
-- **[🐳 Docker Guide](DOCKER.md)** - Container deployment instructions
+- **[🐳 Docker Guide](docs/reports/DOCKER.md)** - Container deployment instructions
 - **[🔄 CI/CD Setup](docs/guides/CI-CD-SETUP.md)** - Continuous integration/deployment
 
 ### 🛠️ **Configuration & Troubleshooting**
-- **[🗄️ Database Management](DATABASE_MANAGEMENT.md)** - Database operations, cleanup, reset, backup
+- **[🗄️ Database Management](docs/reports/DATABASE_MANAGEMENT.md)** - Database operations, cleanup, reset, backup
 - **[🔧 Port Configuration](docs/guides/PORT_CONFIGURATION_GUIDE.md)** - Configure custom ports, fix "Failed to fetch" errors
 - **[💾 Database Portability](docs/guides/DATABASE_PORTABILITY_GUIDE.md)** - Database migration and portability
 - **[🧪 Manual Testing Guide](docs/guides/MANUAL_TESTING_GUIDE.md)** - Manual testing procedures
@@ -213,15 +213,14 @@ Quick links to essential documentation:
 ### 📚 **Additional Resources**
 - **[🗂️ Documentation Archive](docs/archive/ARCHIVE_INDEX.md)** - 80+ historical reports and completion documents
 - **[⚡ Performance Testing](performance-tests/PHASE1_PERFORMANCE_REPORT.md)** - API load testing results
-- **[🔍 Code Analysis](CODE_ANALYSIS_FINDINGS.md)** - Comprehensive code analysis findings
+- **[🔍 Code Analysis](docs/reports/CODE_ANALYSIS_FINDINGS.md)** - Comprehensive code analysis findings
 
 ## 🚀 Local Setup & Installation
 
 ### Prerequisites
 
-- **Node.js 18+** ([Download here](https://nodejs.org/))
-- **npm** (comes with Node.js)
-- **Git** for cloning the repository
+- **Docker** and **Docker Compose**
+- **Git**
 
 ### 📥 **Step 1: Clone the Repository**
 
@@ -230,24 +229,34 @@ git clone https://github.com/slimatic/zakapp.git
 cd zakapp
 ```
 
-### 📱 **Accessing from Other Devices**
+### 🔧 **Step 2: Start the Application**
 
-Want to test on your phone or access from another computer on your network? See **[CORS Configuration Guide](CORS_CONFIGURATION.md)** for detailed instructions.
+We provide a helper script to set up the environment and start the services.
 
-**Quick setup:**
 ```bash
-# Get your IP address
-./get-ip.sh
-
-# Follow the displayed instructions to configure CORS
+# Start with Docker
+./scripts/docker-start.sh
 ```
 
-### 🔧 **Step 2: Install Dependencies**
+Or manually:
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+### 📱 **Accessing from Mobile / External Devices**
+
+To access the application from other devices on your network:
 
 ```bash
-# Install backend dependencies
-cd server
-npm install
+# Configure IP address
+./get-ip.sh
+```
+Follow the on-screen instructions to update your configuration.
+
+### 🌐 **Access the App**
+- **Frontend**: http://localhost:3000 (or your IP)
+- **Backend**: http://localhost:3001 (or your IP)
 
 # Install frontend dependencies  
 cd ../client
