@@ -230,6 +230,18 @@ git clone https://github.com/slimatic/zakapp.git
 cd zakapp
 ```
 
+### 📱 **Accessing from Other Devices**
+
+Want to test on your phone or access from another computer on your network? See **[CORS Configuration Guide](CORS_CONFIGURATION.md)** for detailed instructions.
+
+**Quick setup:**
+```bash
+# Get your IP address
+./get-ip.sh
+
+# Follow the displayed instructions to configure CORS
+```
+
 ### 🔧 **Step 2: Install Dependencies**
 
 ```bash
