@@ -16,6 +16,7 @@ import {
 import InstallPrompt from './components/pwa/InstallPrompt';
 import UpdateNotification from './components/pwa/UpdateNotification';
 import { FeedbackWidget } from './components/FeedbackWidget';
+import { getFeedbackEnabled } from './config';
 
 /**
  * T023 Performance Optimization: Route-Based Code Splitting
@@ -245,7 +246,7 @@ function App() {
           <UpdateNotification />
           
           {/* Feedback Widget - toggleable via environment variable */}
-          {process.env.REACT_APP_FEEDBACK_ENABLED === 'true' && <FeedbackWidget />}
+          {getFeedbackEnabled() && <FeedbackWidget />}
         </div>
       </Router>
     </AuthProvider>
