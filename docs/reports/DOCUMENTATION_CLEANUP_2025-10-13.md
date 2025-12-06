@@ -304,9 +304,9 @@ Categories: 8 directories
 ---
 
 **Related Documentation:**
-- [Documentation Hub](docs/README.md)
-- [Archive Index](docs/archive/ARCHIVE_INDEX.md)
-- [Guides Navigation](docs/guides/README.md)
+- [Documentation Hub](../README.md)
+- [Archive Index](../archive/ARCHIVE_INDEX.md)
+- [Guides Navigation](../guides/README.md)
 - [Main README](README.md)
 
 **Questions?** See main [README.md](README.md) or open an issue on GitHub.

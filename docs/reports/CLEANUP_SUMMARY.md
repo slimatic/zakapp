@@ -165,8 +165,8 @@ docs/archive/
 
 **After**:
 ```markdown
-- [Documentation Archive](docs/archive/ARCHIVE_INDEX.md)
-- [Implementation Verification](docs/archive/completion-reports/IMPLEMENTATION_VERIFICATION_COMPLETE.md) (archived)
+- [Documentation Archive](../archive/ARCHIVE_INDEX.md)
+- [Implementation Verification](../archive/completion-reports/IMPLEMENTATION_VERIFICATION_COMPLETE.md) (archived)
 - [Project Structure](project-structure.md)
 ```
 
@@ -359,7 +359,7 @@ Successfully cleaned up repository documentation with **zero impact on functiona
 ## Related Documentation
 
 - [CODE_ANALYSIS_FINDINGS.md](CODE_ANALYSIS_FINDINGS.md) - Full analysis report
-- [docs/archive/ARCHIVE_INDEX.md](docs/archive/ARCHIVE_INDEX.md) - Archive catalog
+- [docs/archive/ARCHIVE_INDEX.md](../archive/ARCHIVE_INDEX.md) - Archive catalog
 - [README.md](README.md) - Updated main documentation
 
 ---
