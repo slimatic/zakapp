@@ -121,13 +121,33 @@ export const FeedbackWidget: React.FC = () => {
         },
       };
 
-      // For MVP: Log to console (webhook integration later)
-      console.log('=== FEEDBACK SUBMISSION ===');
-      console.log(JSON.stringify(feedback, null, 2));
-      console.log('=========================');
+      // Check if webhook URL is configured
+      const webhookUrl = process.env.REACT_APP_FEEDBACK_WEBHOOK_URL;
 
-      // Simulate submission delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (webhookUrl) {
+        // Send to webhook
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(feedback),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
+        }
+
+        console.log('=== FEEDBACK SENT TO WEBHOOK ===');
+        console.log(`URL: ${webhookUrl}`);
+        console.log(`Status: ${response.status}`);
+        console.log('================================');
+      } else {
+        // Fallback: Log to console if no webhook configured
+        console.log('=== FEEDBACK SUBMISSION (NO WEBHOOK) ===');
+        console.log(JSON.stringify(feedback, null, 2));
+        console.log('========================================');
+      }
 
       // Success!
       setShowSuccess(true);
