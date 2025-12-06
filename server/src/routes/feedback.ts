@@ -22,7 +22,24 @@ router.post('/', async (req, res) => {
     }
 
     // Proxy the request to the webhook
-    await axios.post(webhookUrl, feedback, {
+    // Format payload based on webhook type (simple heuristic)
+    let payload: any = feedback;
+    
+    if (webhookUrl.includes('slack.com')) {
+      payload = {
+        text: `*New Feedback (${feedback.category})*\n${feedback.message}\n\n_From: ${feedback.email} on ${feedback.pageUrl}_`
+      };
+    } else if (webhookUrl.includes('discord.com')) {
+      payload = {
+        content: `**New Feedback (${feedback.category})**\n${feedback.message}\n\n*From: ${feedback.email} on ${feedback.pageUrl}*`
+      };
+    } else if (webhookUrl.includes('teams.microsoft.com')) {
+      payload = {
+        text: `**New Feedback (${feedback.category})**\n\n${feedback.message}\n\nFrom: ${feedback.email} on ${feedback.pageUrl}`
+      };
+    }
+
+    await axios.post(webhookUrl, payload, {
       headers: {
         'Content-Type': 'application/json',
       },

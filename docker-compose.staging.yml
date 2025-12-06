@@ -59,6 +59,9 @@ services:
       # CORS
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000,https://staging.zakapp.example.com}
       
+      # Feedback
+      FEEDBACK_WEBHOOK_URL: ${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
+
       # Logging
       LOG_LEVEL: info
       
