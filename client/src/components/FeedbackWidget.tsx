@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useLocation } from 'react-router-dom';
+import { getFeedbackWebhookUrl } from '../config';
 
 type FeedbackCategory = 'general' | 'bug' | 'feature' | 'question';
 
@@ -122,7 +123,7 @@ export const FeedbackWidget: React.FC = () => {
       };
 
       // Check if webhook URL is configured
-      const webhookUrl = process.env.REACT_APP_FEEDBACK_WEBHOOK_URL;
+      const webhookUrl = getFeedbackWebhookUrl();
 
       if (webhookUrl) {
         // Send to webhook
