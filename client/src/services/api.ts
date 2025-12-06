@@ -35,9 +35,14 @@ export interface AuthResponse {
     firstName?: string;
     lastName?: string;
     username?: string;
+    createdAt?: string;
     preferences?: {
       calendar?: string;
       methodology?: string;
+    };
+    settings?: {
+      currency?: string;
+      preferredCalendar?: string;
     };
   };
   message?: string;
@@ -48,6 +53,55 @@ export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
   error?: string;
+}
+
+export interface UpdateProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  email?: string;
+  preferences?: {
+    currency?: string;
+    language?: string;
+    zakatMethod?: string;
+    calendarType?: string;
+  };
+}
+
+export interface CreateAssetRequest {
+  name: string;
+  category?: string;
+  subCategory?: string;
+  type?: string;
+  value: number;
+  currency?: string;
+  description?: string;
+  isZakatable?: boolean;
+  zakatEligible?: boolean;
+  notes?: string;
+}
+
+export interface UpdateAssetRequest extends Partial<CreateAssetRequest> {}
+
+export interface CreatePaymentRequest {
+  amount: number;
+  date?: string;
+  paymentDate?: Date;
+  recipient?: string;
+  recipientName?: string;
+  recipientType?: string;
+  recipientCategory?: string;
+  paymentMethod?: string;
+  currency?: string;
+  notes?: string;
+  receiptReference?: string;
+  calculationId?: string;
+  snapshotId?: string;
+}
+
+export interface AssetFilters {
+  type?: string;
+  minValue?: number;
 }
 
 class ApiService {
@@ -170,14 +224,14 @@ class ApiService {
   }
 
   // Asset endpoints
-  async getAssets(): Promise<ApiResponse> {
+  async getAssets(filters?: AssetFilters): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/assets`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
   }
 
-  async createAsset(asset: any): Promise<ApiResponse> {
+  async createAsset(asset: CreateAssetRequest): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/assets`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
@@ -193,7 +247,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async updateAsset(assetId: string, asset: any): Promise<ApiResponse> {
+  async updateAsset(assetId: string, asset: UpdateAssetRequest): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/assets/${assetId}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
@@ -210,7 +264,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async updateProfile(profileData: any): Promise<ApiResponse> {
+  async updateProfile(profileData: UpdateProfileRequest): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/user/profile`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
@@ -343,7 +397,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async recordPayment(data: any): Promise<ApiResponse> {
+  async recordPayment(data: CreatePaymentRequest): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/payments`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
