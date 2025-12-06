@@ -4,7 +4,7 @@
 # Run this from the repository root: bash fix-remaining-tests.sh
 #
 
-cd "$(dirname "$0")/server/tests/contract" || exit 1
+cd "$(dirname "$0")/../../server/tests/contract" || exit 1
 
 echo "=== Fixing nisabYearRecords.delete.test.ts ==="
 

@@ -11,7 +11,7 @@ Updates:
 import re
 from pathlib import Path
 
-SERVICE_TESTS_DIR = Path(__file__).parent / "server" / "tests" / "unit" / "services"
+SERVICE_TESTS_DIR = Path(__file__).parent.parent.parent / "server" / "tests" / "unit" / "services"
 
 def fix_nisab_year_record_service_test():
     """Fix nisabYearRecordService.test.ts"""

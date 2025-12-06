@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$SCRIPT_DIR"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ENV_FILE="${PROJECT_ROOT}/.env.staging"
 COMPOSE_FILE="${PROJECT_ROOT}/docker-compose.staging.yml"
 
