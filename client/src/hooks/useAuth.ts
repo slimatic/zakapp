@@ -1,7 +1,7 @@
 import { useContext, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../contexts/AuthContext';
-import { apiService, LoginRequest, RegisterRequest } from '../services/api';
+import { apiService, LoginRequest, RegisterRequest, AuthResponse } from '../services/api';
 
 /**
  * Custom hook for authentication operations
@@ -23,7 +23,7 @@ export const useAuth = () => {
       const response = await apiService.login(credentials);
       return response;
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: AuthResponse) => {
       console.log('Login mutation onSuccess:', data);
       // Update auth context with user data
       if (data?.success && data?.user && data?.accessToken) {
@@ -38,7 +38,7 @@ export const useAuth = () => {
           userId: data.user.id,
           username: data.user.username,
           email: data.user.email,
-          createdAt: data.user.createdAt,
+          createdAt: data.user.createdAt || new Date().toISOString(),
           lastLogin: new Date().toISOString(),
           preferences: {
             currency: data.user.settings?.currency || 'USD',
@@ -54,7 +54,7 @@ export const useAuth = () => {
         queryClient.invalidateQueries();
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Login failed:', error);
     }
   });
@@ -65,15 +65,15 @@ export const useAuth = () => {
       const response = await apiService.register(userData);
       return response;
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: AuthResponse) => {
       // Update auth context with user data
-      if (data?.user && data?.token) {
-        contextLogin(data.user, data.token);
+      if (data?.user && data?.accessToken) {
+        contextLogin(data.user.email, data.accessToken);
         // Invalidate all queries to refetch with new auth state
         queryClient.invalidateQueries();
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Registration failed:', error);
     }
   });
