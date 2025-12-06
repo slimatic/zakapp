@@ -46,8 +46,8 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
   isLoadingAssets = false,
 }) => {
   // Parse numeric values from stored strings
-  const zakatAmount = record.zakatAmount ? parseFloat(record.zakatAmount) : 0;
-  const zakatableWealth = record.zakatableWealth ? parseFloat(record.zakatableWealth) : 0;
+  const zakatAmount = record.zakatAmount ? parseFloat(record.zakatAmount.toString()) : 0;
+  const zakatableWealth = record.zakatableWealth ? parseFloat(record.zakatableWealth.toString()) : 0;
 
   // Calculate Zakat rate for display (should always be 2.5%)
   const zakatRate = zakatableWealth > 0 ? (zakatAmount / zakatableWealth) * 100 : 0;

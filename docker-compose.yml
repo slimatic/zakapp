@@ -11,9 +11,11 @@ services:
       - /app/client/node_modules
       - /app/shared/node_modules
       - /app/shared/dist
+      - ./docker/frontend-entrypoint.sh:/docker-entrypoint.sh
+    entrypoint: ["/docker-entrypoint.sh"]
     environment:
       - NODE_ENV=development
-      - REACT_APP_API_BASE_URL=http://localhost:3001/api
+      - REACT_APP_API_BASE_URL=http://${HOST_IP:-localhost}:3001/api
     depends_on:
       backend:
         condition: service_healthy
@@ -38,7 +40,7 @@ services:
       - NODE_ENV=development
       - PORT=3001
       - DATABASE_URL=file:./prisma/data/dev.db
-      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://${HOST_IP:-localhost}:3000
     healthcheck:
       test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:3001/api/auth/register || exit 0"]
       interval: 10s
