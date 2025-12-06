@@ -86,3 +86,6 @@ dist/
 *.d.ts.map
 *.tsbuildinfo
 
+
+# Docker environment secrets
+.env.docker

@@ -86,28 +86,34 @@ export const NisabYearRecordsPage: React.FC = () => {
   const payments = paymentsData || [];
 
   // Fetch assets for create modal
-  const { data: assetsData, isLoading: isLoadingAssets } = useQuery({
-    queryKey: ['assets'],
+  const { data: assetsData, isLoading: isLoadingAssets, refetch: refetchAssets } = useQuery({
+    queryKey: ['assets', 'nisab-create'],
     queryFn: async () => {
+      console.log('[NisabYearRecordsPage] Fetching assets for create modal...');
       const response = await apiService.getAssets();
+      console.log('[NisabYearRecordsPage] Assets response:', response);
       if (!response.success) {
         throw new Error('Failed to fetch assets');
       }
+      // Handle both response.data.assets and response.assets formats
+      const rawAssets = response.data?.assets || response.assets || [];
       // Map backend asset format to component format
-      const assets = response.data.assets.map((asset: any) => ({
+      const assets = rawAssets.map((asset: any) => ({
         id: asset.id,
         name: asset.name,
-        category: asset.category,
+        category: asset.category || asset.type,
         value: asset.value,
         // Determine if zakatable based on category
         // Cash, gold, silver, crypto, business, investments are zakatable
-        isZakatable: ['cash', 'gold', 'silver', 'crypto', 'business', 'investments', 'stocks'].includes(asset.category.toLowerCase()),
+        isZakatable: ['cash', 'gold', 'silver', 'crypto', 'business', 'investments', 'stocks'].includes((asset.category || asset.type || '').toLowerCase()),
         // Use createdAt as addedAt
         addedAt: asset.createdAt || asset.acquisitionDate,
       }));
+      console.log('[NisabYearRecordsPage] Mapped assets:', assets);
       return assets as Asset[];
     },
     enabled: showCreateModal, // Only fetch when modal is open
+    staleTime: 0, // Always refetch when modal opens
   });
 
   // Open create modal when ?create=true is present in the URL
@@ -245,6 +251,8 @@ export const NisabYearRecordsPage: React.FC = () => {
   // Handle creation
   const handleCreate = () => {
     setShowCreateModal(true);
+    // Force refetch assets when modal opens
+    setTimeout(() => refetchAssets(), 100);
   };
 
   // Handle create submit
