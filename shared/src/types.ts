@@ -136,7 +136,8 @@ export interface StocksAsset extends Asset {
     | 'index_funds'
     | 'retirement_401k'
     | 'retirement_ira'
-    | 'retirement_other';
+    | 'retirement_other'
+    | '529_education';
   ticker?: string;
   shares?: number;
   dividendYield?: number;
