@@ -3,7 +3,7 @@
 # Generate config.js from environment variables
 # This allows changing the API URL and feature flags without rebuilding the container
 echo "Generating runtime config.js..."
-cat > /app/client/public/config.js <<EOF
+cat > /usr/share/nginx/html/config.js <<EOF
 window.APP_CONFIG = {
   API_BASE_URL: '${REACT_APP_API_BASE_URL:-}',
   FEEDBACK_ENABLED: '${REACT_APP_FEEDBACK_ENABLED:-true}',
@@ -12,7 +12,7 @@ window.APP_CONFIG = {
 EOF
 
 echo "Runtime config generated:"
-cat /app/client/public/config.js
+cat /usr/share/nginx/html/config.js
 
-# Execute the passed command (npm start)
+# Execute the passed command (nginx)
 exec "$@"

@@ -15,6 +15,8 @@ import {
 } from './components/common/LoadingFallback';
 import InstallPrompt from './components/pwa/InstallPrompt';
 import UpdateNotification from './components/pwa/UpdateNotification';
+import { FeedbackWidget } from './components/FeedbackWidget';
+import { getFeedbackEnabled } from './config';
 
 /**
  * T023 Performance Optimization: Route-Based Code Splitting
@@ -242,6 +244,9 @@ function App() {
           {/* PWA Features: Install prompt and update notification */}
           <InstallPrompt />
           <UpdateNotification />
+          
+          {/* Feedback Widget - toggleable via environment variable */}
+          {getFeedbackEnabled() && <FeedbackWidget />}
         </div>
       </Router>
     </AuthProvider>
