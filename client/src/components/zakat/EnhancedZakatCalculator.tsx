@@ -323,6 +323,7 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
                       type="number"
                       value={assets[key as keyof typeof assets] || ''}
                       onChange={(e) => handleAssetChange(key as keyof typeof assets, e.target.value)}
+                      onFocus={(e) => e.target.select()}
                       placeholder="0.00"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       min="0"

@@ -183,6 +183,7 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
                 type="number"
                 value={assets[key as keyof AssetInputs] || ''}
                 onChange={(e) => handleAssetChange(key as keyof AssetInputs, e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="0.00"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 min="0"

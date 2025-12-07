@@ -252,6 +252,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   step="0.01"
                   value={formData.amount}
                   onChange={handleChange}
+                  onFocus={(e) => e.target.select()}
                   className={`block w-full pl-12 pr-12 border rounded-md focus:ring-green-500 focus:border-green-500 sm:text-sm ${
                     validationErrors.amount ? 'border-red-300' : 'border-gray-300'
                   }`}

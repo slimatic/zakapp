@@ -136,6 +136,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
             min="0"
             value={formData.amount}
             onChange={(e) => handleInputChange('amount', e.target.value)}
+            onFocus={(e) => e.target.select()}
             error={errors.amount}
             placeholder="0.00"
             required

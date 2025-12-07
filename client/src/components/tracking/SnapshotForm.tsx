@@ -247,6 +247,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               step="0.01"
               value={formData.totalWealth}
               onChange={(e) => handleInputChange('totalWealth', parseFloat(e.target.value) || 0)}
+              onFocus={(e) => e.target.select()}
               required
             />
             
@@ -256,6 +257,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               step="0.01"
               value={formData.totalLiabilities}
               onChange={(e) => handleInputChange('totalLiabilities', parseFloat(e.target.value) || 0)}
+              onFocus={(e) => e.target.select()}
               required
             />
             
@@ -265,6 +267,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               step="0.01"
               value={formData.zakatableWealth}
               onChange={(e) => handleInputChange('zakatableWealth', parseFloat(e.target.value) || 0)}
+              onFocus={(e) => e.target.select()}
               required
             />
             
@@ -275,6 +278,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 step="0.01"
                 value={formData.zakatAmount}
                 onChange={(e) => handleInputChange('zakatAmount', parseFloat(e.target.value) || 0)}
+                onFocus={(e) => e.target.select()}
                 required
               />
               <Button
@@ -294,6 +298,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               step="0.01"
               value={formData.nisabThreshold}
               onChange={(e) => handleInputChange('nisabThreshold', parseFloat(e.target.value) || 0)}
+              onFocus={(e) => e.target.select()}
               required
             />
             
