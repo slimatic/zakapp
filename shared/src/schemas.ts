@@ -83,6 +83,7 @@ export const stocksAssetSchema = baseAssetSchema.extend({
     'retirement_401k',
     'retirement_ira',
     'retirement_other',
+    '529_education',
   ]),
   ticker: z.string().max(20).optional(),
   shares: z.number().min(0).optional(),

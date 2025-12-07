@@ -143,7 +143,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       { value: 'index_funds', label: 'Index Funds' },
       { value: 'retirement_401k', label: 'Retirement (401k)' },
       { value: 'retirement_ira', label: 'Retirement (IRA)' },
-      { value: 'retirement_other', label: 'Retirement (Other)' }
+      { value: 'retirement_other', label: 'Retirement (Other)' },
+      { value: '529_education', label: '529 Education Savings' }
     ],
     crypto: [
       { value: 'bitcoin', label: 'Bitcoin' },
