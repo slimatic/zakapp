@@ -252,6 +252,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               id="value"
               value={formData.value}
               onChange={(e) => handleChange('value', parseFloat(e.target.value) || 0)}
+              onFocus={(e) => e.target.select()}
               className={errors.value ? 'border-red-500' : ''}
               min="0"
               step="0.01"
