@@ -18,6 +18,7 @@ import snapshotsRoutes from './routes/snapshots';
 import paymentsRoutes from './routes/payments';
 import userRoutes from './routes/user';
 import nisabYearRecordsRoutes from './routes/nisab-year-records';
+import feedbackRoutes from './routes/feedback';
 
 // Import middleware
 // import { DatabaseManager } from './config/database';
@@ -121,6 +122,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/snapshots', snapshotsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/feedback', feedbackRoutes);
 app.use('/', nisabYearRecordsRoutes); // Feature 008: Nisab Year Records routes
 
 // Health check endpoint
