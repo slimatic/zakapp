@@ -1,4 +1,5 @@
 import React from 'react';
+import { IslamicTerm } from '../common';
 
 interface WealthSummaryCardProps {
   totalWealth: number;
@@ -91,10 +92,10 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
         <div className="flex items-start justify-between mb-2">
           <div>
             <p className={`text-sm font-medium ${isAboveNisab ? 'text-green-700' : 'text-red-700'}`}>
-              {isAboveNisab ? 'Above Nisab' : 'Below Nisab'}
+              {isAboveNisab ? 'Above ' : 'Below '}<IslamicTerm term="NISAB">Nisab</IslamicTerm>
             </p>
             <p className="text-xs text-gray-600 mt-1">
-              Nisab: ${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <IslamicTerm term="NISAB">Nisab</IslamicTerm>: ${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
           
@@ -111,8 +112,8 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
         {/* Status Message */}
         <p className="text-xs text-gray-700 mt-2">
           {isAboveNisab
-            ? 'Your wealth meets the Nisab threshold. Zakat may be due after one lunar year (Hawl).'
-            : 'Your wealth is below the Nisab threshold. No Zakat obligation at this time.'}
+            ? <>Your wealth meets the <IslamicTerm term="NISAB">Nisab</IslamicTerm> threshold. Zakat may be due after one lunar year (<IslamicTerm term="HAWL">Hawl</IslamicTerm>).</>
+            : <>Your wealth is below the <IslamicTerm term="NISAB">Nisab</IslamicTerm> threshold. No Zakat obligation at this time.</>}
         </p>
       </div>
     </div>

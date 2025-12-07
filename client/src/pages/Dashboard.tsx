@@ -11,6 +11,7 @@ import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { useUserOnboarding } from '../hooks/useUserOnboarding';
+import { IslamicTerm } from '../components/common';
 import type { Asset } from '@zakapp/shared';
 
 /**
@@ -91,7 +92,7 @@ const EducationalModule: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">What is Nisab?</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">What is <IslamicTerm term="NISAB">Nisab</IslamicTerm>?</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
               Nisab is the minimum threshold of wealth a Muslim must possess for one lunar year (Hawl) before 
               Zakat becomes obligatory. The Nisab can be calculated based on the value of gold (85 grams) or 
@@ -100,7 +101,7 @@ const EducationalModule: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">The Hawl Period</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">The <IslamicTerm term="HAWL">Hawl</IslamicTerm> Period</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
               The Hawl is the Islamic lunar year period (354 days) during which your wealth must remain above 
               the Nisab threshold for Zakat to be due. ZakApp's Nisab Year Record feature helps you track this 
@@ -147,7 +148,7 @@ const EducationalModule: React.FC = () => {
 
       {!isExpanded && (
         <p className="text-sm text-gray-600">
-          Learn about Zakat obligations, Nisab threshold, and the Hawl period. Click to expand.
+          Learn about Zakat obligations, <IslamicTerm term="NISAB">Nisab</IslamicTerm> threshold, and the <IslamicTerm term="HAWL">Hawl</IslamicTerm> period. Click to expand.
         </p>
       )}
     </div>
@@ -412,8 +413,8 @@ export const Dashboard: React.FC = () => {
                     }).format(totalWealth)} in tracked assets.
                   </h3>
                   <p className="text-gray-700 mb-4">
-                    Ready to start tracking your Zakat obligations? Create a Nisab Year Record 
-                    to monitor your Hawl period and calculate when Zakat becomes due.
+                    Ready to start tracking your Zakat obligations? Create a <IslamicTerm term="NISAB">Nisab</IslamicTerm> Year Record 
+                    to monitor your <IslamicTerm term="HAWL">Hawl</IslamicTerm> period and calculate when Zakat becomes due.
                   </p>
                   <Link
                     to="/nisab-records?create=true"

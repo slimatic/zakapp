@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { IslamicTerm } from '../common';
 
 // Type matching the actual API response from the backend
 interface NisabYearRecord {
@@ -134,7 +135,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
     <div className={`rounded-lg border-2 ${statusColors.border} ${statusColors.bg} p-6 shadow-md`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Active Hawl Period</h2>
+        <h2 className="text-xl font-bold text-gray-900">Active <IslamicTerm term="HAWL">Hawl</IslamicTerm> Period</h2>
         <span className={`text-sm font-medium ${statusColors.text}`}>
           {statusColors.status}
         </span>
@@ -179,7 +180,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
         </div>
         
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">Nisab Threshold</span>
+          <span className="text-sm text-gray-600"><IslamicTerm term="NISAB">Nisab</IslamicTerm> Threshold</span>
           <span className="text-sm font-medium text-gray-700">
             ${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>

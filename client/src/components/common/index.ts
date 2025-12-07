@@ -5,3 +5,5 @@
 
 export * from './Skeleton';
 export * from './LoadingFallback';
+export { IslamicTerm } from './IslamicTerm';
+export { HelpTooltip } from './HelpTooltip';
