@@ -370,6 +370,14 @@ export const ASSET_CATEGORIES = {
         zakatEligible: true,
         specificFields: ['accountType'],
       },
+      {
+        id: '529_education',
+        name: '529 Education Savings Plan',
+        description: 'Tax-advantaged savings plan for education expenses',
+        zakatRate: ZAKAT_RATES.STANDARD_RATE,
+        zakatEligible: true,
+        specificFields: ['accountType'],
+      },
     ],
   },
   CRYPTO: {
