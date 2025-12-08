@@ -21,17 +21,7 @@ export const PaymentsPage: React.FC = () => {
   const { data: snapshotsData, isLoading: snapshotsLoading } = useSnapshots();
   const [snapshotId, setSnapshotId] = useState<string | undefined>(snapshotIdParam || undefined);
   
-  // Auto-select the most recent Nisab Year Record if none is selected (optional behavior)
-  // Commented out to default to "All Payments" view
-  // useEffect(() => {
-  //   if (!snapshotId && snapshotsData?.snapshots && snapshotsData.snapshots.length > 0) {
-  //     const mostRecent = snapshotsData.snapshots[0]; // Assuming sorted by date desc
-  //     setSnapshotId(mostRecent.id);
-  //     setSearchParams({ snapshot: mostRecent.id });
-  //   }
-  // }, [snapshotId, snapshotsData, setSearchParams]);
-  
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  // Note: Auto-selection removed in T019 - defaults to "All Payments" view  const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
 
   const { data: paymentsData } = usePayments({ snapshotId });

@@ -170,7 +170,7 @@ export const Dashboard: React.FC = () => {
   const { currentStep, completedSteps } = useUserOnboarding();
 
   // Debug logging
-  console.log('[Dashboard] Onboarding state:', { currentStep, completedSteps });
+  // Track onboarding state for UI rendering
 
   // Fetch user's assets
   const {
