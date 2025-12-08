@@ -7,12 +7,28 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnalyticsChart } from '../components/tracking/AnalyticsChart';
 import { Button } from '../components/ui/Button';
+import { useAnalytics } from '../hooks/useAnalytics';
+import { useAssets } from '../services/apiHooks';
+import { useSnapshots } from '../hooks/useSnapshots';
+import { formatCurrency } from '../utils/formatters';
 
 type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
 
 export const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
   const [timeframe, setTimeframe] = useState<Timeframe>('last_5_years');
+
+  // Fetch data for summary statistics (T027)
+  const { data: assetsData } = useAssets();
+  const { data: snapshotsData } = useSnapshots({ limit: 100 });
+  const { data: wealthData } = useAnalytics('wealth_trend', timeframe);
+  
+  // Calculate summary statistics
+  const totalWealth = assetsData?.data?.assets?.reduce((sum, asset) => sum + asset.value, 0) || 0;
+  const totalZakatDue = snapshotsData?.snapshots?.reduce((sum, snap) => sum + (snap.zakatAmount || 0), 0) || 0;
+  const totalZakatPaid = snapshotsData?.snapshots?.reduce((sum, snap) => sum + (snap.zakatPaid || 0), 0) || 0;
+  const outstandingBalance = totalZakatDue - totalZakatPaid;
+  const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;
 
   // Map our timeframe to the AnalyticsChart timeframe prop
   // Removed unused chartTimeframe variable
@@ -137,34 +153,53 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Summary Statistics - Simplified without data dependencies */}
+          {/* Summary Statistics - T027 with real data */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Timeframe Info</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Summary Statistics</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <div className="border-l-4 border-green-500 pl-4">
-                <p className="text-sm text-gray-600">Selected Period</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1 capitalize">
-                  {timeframe.replace('_', ' ')}
+                <p className="text-sm text-gray-600">Total Wealth</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(totalWealth)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Current view</p>
+                <p className="text-xs text-gray-500 mt-1">Current assets value</p>
               </div>
 
               <div className="border-l-4 border-blue-500 pl-4">
-                <p className="text-sm text-gray-600">Chart Type</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">4</p>
-                <p className="text-xs text-gray-500 mt-1">Different visualizations</p>
+                <p className="text-sm text-gray-600">Total Zakat Due</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(totalZakatDue)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">All Nisab Years</p>
               </div>
 
-              <div className="border-l-4 border-purple-500 pl-4">
-                <p className="text-sm text-gray-600">Metrics Tracked</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">4</p>
-                <p className="text-xs text-gray-500 mt-1">Key indicators</p>
+              <div className="border-l-4 border-emerald-500 pl-4">
+                <p className="text-sm text-gray-600">Total Paid</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(totalZakatPaid)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Across all years</p>
               </div>
 
               <div className="border-l-4 border-orange-500 pl-4">
-                <p className="text-sm text-gray-600">Real-Time</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">✓</p>
-                <p className="text-xs text-gray-500 mt-1">Live data</p>
+                <p className="text-sm text-gray-600">Outstanding</p>
+                <p className={`text-2xl font-bold mt-1 ${outstandingBalance > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                  {formatCurrency(Math.abs(outstandingBalance))}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {outstandingBalance > 0 ? 'Remaining' : 'Fully paid'}
+                </p>
+              </div>
+
+              <div className="border-l-4 border-purple-500 pl-4">
+                <p className="text-sm text-gray-600">Compliance Rate</p>
+                <p className={`text-2xl font-bold mt-1 ${
+                  complianceRate >= 100 ? 'text-green-600' : 
+                  complianceRate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                }`}>
+                  {complianceRate.toFixed(0)}%
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Paid / Due ratio</p>
               </div>
             </div>
           </div>
