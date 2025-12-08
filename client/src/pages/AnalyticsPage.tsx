@@ -11,6 +11,7 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import { useAssets } from '../services/apiHooks';
 import { useSnapshots } from '../hooks/useSnapshots';
 import { formatCurrency } from '../utils/formatters';
+import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '@zakapp/shared';
 import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
@@ -18,7 +19,8 @@ type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
 
 export const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [timeframe, setTimeframe] = useState<Timeframe>('last_5_years');
+  const maskedCurrency = useMaskedCurrency();
+  const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('all_time');
 
   // Fetch data for summary statistics (T027)
   const { data: assetsData } = useAssets();
@@ -111,7 +113,7 @@ export const AnalyticsPage: React.FC = () => {
               <div className="border-l-4 border-green-500 pl-4">
                 <p className="text-sm text-gray-600">Total Wealth</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(totalWealth)}
+                  {maskedCurrency(formatCurrency(totalWealth))}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Current assets value</p>
               </div>
@@ -119,7 +121,7 @@ export const AnalyticsPage: React.FC = () => {
               <div className="border-l-4 border-blue-500 pl-4">
                 <p className="text-sm text-gray-600">Total Zakat Due</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(totalZakatDue)}
+                  {maskedCurrency(formatCurrency(totalZakatDue))}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">All Nisab Years</p>
               </div>
@@ -127,7 +129,7 @@ export const AnalyticsPage: React.FC = () => {
               <div className="border-l-4 border-emerald-500 pl-4">
                 <p className="text-sm text-gray-600">Total Paid</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(totalZakatPaid)}
+                  {maskedCurrency(formatCurrency(totalZakatPaid))}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Across all years</p>
               </div>
@@ -135,7 +137,7 @@ export const AnalyticsPage: React.FC = () => {
               <div className="border-l-4 border-orange-500 pl-4">
                 <p className="text-sm text-gray-600">Outstanding</p>
                 <p className={`text-2xl font-bold mt-1 ${outstandingBalance > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                  {formatCurrency(Math.abs(outstandingBalance))}
+                  {maskedCurrency(formatCurrency(Math.abs(outstandingBalance)))}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   {outstandingBalance > 0 ? 'Remaining' : 'Fully paid'}
