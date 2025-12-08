@@ -417,42 +417,55 @@
 
 ### Component Testing
 
-- [ ] T041 [P] [TEST] Write component test for AnalyticsPage
-  - File: `client/src/pages/AnalyticsPage.test.tsx` (create)
-  - Test: Page renders with loading state
-  - Test: Page renders with data (mock API responses)
-  - Test: Page renders empty states for each section
-  - Test: No "snapshot" text in rendered output
-  - Coverage: >80%
+- [x] T041 [P] [TEST] Write component test for AnalyticsPage ✅ COMPLETE
+  - File: `client/src/pages/AnalyticsPage.test.tsx` (created)
+  - ✅ Test: Page renders with loading state
+  - ✅ Test: Page renders with data (mocked API responses)
+  - ✅ Test: Page renders empty states for each section
+  - ✅ Test: No "snapshot" text in rendered output
+  - ✅ Test: Timeframe selector functionality
+  - ✅ Test: Summary statistics calculations
+  - ✅ Test: Help section with data source explanations
+  - Coverage target: >80%
 
-- [ ] T042 [P] [TEST] Write component test for PaymentsPage
-  - File: `client/src/pages/PaymentsPage.test.tsx` (create)
-  - Test: Page renders payment list
-  - Test: Filter by Nisab Year works
-  - Test: "Record Payment" button opens form
-  - Test: Empty state renders correctly
-  - Test: No "snapshot" text in rendered output
-  - Coverage: >80%
+- [x] T042 [P] [TEST] Write component test for PaymentsPage ✅ COMPLETE
+  - File: `client/src/pages/PaymentsPage.test.tsx` (created)
+  - ✅ Test: Page renders payment list
+  - ✅ Test: Filter by Nisab Year works
+  - ✅ Test: "Record Payment" button opens form
+  - ✅ Test: Empty state renders correctly
+  - ✅ Test: No "snapshot" text in rendered output
+  - ✅ Test: Summary statistics display
+  - ✅ Test: Help section with Islamic recipients info
+  - Coverage target: >80%
 
-- [ ] T043 [P] [TEST] Write component test for WealthTrendChart
-  - File: `client/src/components/analytics/WealthTrendChart.test.tsx` (create)
-  - Test: Chart renders with valid data
-  - Test: Empty state renders when no data
-  - Test: Loading state renders
-  - Test: Accessibility attributes present
+- [x] T043 [P] [TEST] Write component test for WealthTrendChart ✅ COMPLETE
+  - File: `client/src/components/tracking/AnalyticsChart.test.tsx` (created)
+  - ✅ Test: Chart renders with valid data
+  - ✅ Test: Empty state renders when no data
+  - ✅ Test: Loading state renders
+  - ✅ Test: Accessibility attributes present (role="region")
+  - ✅ Combined with T044 for AnalyticsChart testing
 
-- [ ] T044 [P] [TEST] Write component test for ZakatObligationsChart
-  - File: `client/src/components/analytics/ZakatObligationsChart.test.tsx` (create)
-  - Test: Chart renders with Nisab Year data
-  - Test: Shows due/paid/outstanding correctly
-  - Test: Empty state renders
-  - Test: No "snapshot" text in output
+- [x] T044 [P] [TEST] Write component test for ZakatObligationsChart ✅ COMPLETE
+  - File: `client/src/components/tracking/AnalyticsChart.test.tsx` (same file)
+  - ✅ Test: Chart renders with Nisab Year data
+  - ✅ Test: Shows due/paid/outstanding correctly
+  - ✅ Test: Empty state renders
+  - ✅ Test: No "snapshot" text in output
+  - ✅ Test: Payment distribution pie chart
+  - ✅ Test: Error handling
 
-- [ ] T045 [P] [TEST] Write component test for PaymentCard
-  - File: `client/src/components/tracking/PaymentCard.test.tsx` (create)
-  - Test: Displays payment details correctly
-  - Test: Shows linked Nisab Year information
-  - Test: No "snapshot" text in rendered output
+- [x] T045 [P] [TEST] Write component test for PaymentCard ✅ COMPLETE
+  - File: `client/src/components/tracking/PaymentCard.test.tsx` (created)
+  - ✅ Test: Displays payment details correctly
+  - ✅ Test: Shows linked Nisab Year information
+  - ✅ Test: Progress bar with color coding
+  - ✅ Test: Action buttons (edit, delete, view details)
+  - ✅ Test: No "snapshot" text in rendered output
+  - ✅ Test: Islamic calendar (Hijri) display
+  - ✅ Test: Category descriptions for recipients
+  - Coverage target: >80%
 
 ### Integration Testing
 
