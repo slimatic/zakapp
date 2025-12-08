@@ -111,30 +111,6 @@ export const PaymentsPage: React.FC = () => {
           )}
         </div>
 
-        {/* Summary Stats - Compact Design */}
-        {paymentsData?.payments && paymentsData.payments.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-            <div className="grid grid-cols-3 gap-4 divide-x divide-gray-200">
-              <div className="text-center">
-                <p className="text-xs text-gray-500 mb-1">Total Paid</p>
-                <p className="text-lg font-bold text-gray-900">
-                  ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-gray-500 mb-1">Records</p>
-                <p className="text-lg font-bold text-gray-900">{paymentCount}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-gray-500 mb-1">Average</p>
-                <p className="text-lg font-bold text-gray-900">
-                  ${(paymentCount > 0 ? totalPaid / paymentCount : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Create Form Modal */}
         {showCreateForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 sm:p-6">
