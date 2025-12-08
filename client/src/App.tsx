@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { PrivacyProvider } from './contexts/PrivacyContext';
 import { QueryProvider } from './services/queryClient';
 import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
@@ -69,9 +70,10 @@ function App() {
   return (
     <QueryProvider>
       <AuthProvider>
-        <Router>
-          <div className="App">
-            <Routes>
+        <PrivacyProvider>
+          <Router>
+            <div className="App">
+              <Routes>
               {/* Auth routes - eagerly loaded */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -277,6 +279,7 @@ function App() {
           {getFeedbackEnabled() && <FeedbackWidget />}
         </div>
       </Router>
+      </PrivacyProvider>
     </AuthProvider>
   </QueryProvider>
   );
