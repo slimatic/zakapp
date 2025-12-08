@@ -7,6 +7,189 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Milestone 5: Analytics & Payments Integration (v0.3.1)
+
+> **Feature Branch**: `017-milestone-5-ensure`  
+> **Completion Date**: December 2025  
+> **Priority**: P1 MVP + P2 Enhancements
+
+#### Overview
+
+Milestone 5 activates the Analytics Dashboard and Payments features with full integration into the existing Nisab Year Records system. This release emphasizes user-facing terminology alignment, mobile responsiveness, and comprehensive payment tracking.
+
+#### Core Features
+
+**1. Analytics Dashboard**
+- **Wealth Over Time Visualization**: Interactive line/bar/area charts showing total networth growth based on asset data
+- **Zakat Obligations Tracking**: Bar charts comparing Zakat due vs. paid for each Nisab Year Record
+- **Payment Distribution Analysis**: Pie charts breaking down payments across 8 Islamic recipient categories
+- **Summary Statistics Panel**: 5-key metrics (Total Wealth, Zakat Due, Zakat Paid, Outstanding Balance, Compliance Rate)
+- **Timeframe Selector**: View data by Last 30 Days, Last 90 Days, Last 12 Months, or All Time
+- **Chart Type Selector**: Switch between Line, Bar, Pie, and Area chart visualizations
+- **Empty States**: Helpful onboarding messages when no data available
+- **Help Section**: Educational resources and Islamic guidance on Zakat calculation
+
+**2. Payment Recording & Management**
+- **Nisab Year Integration**: Link each payment to a specific Nisab Year Record for accurate tracking
+- **8 Islamic Recipient Categories**: 
+  - Al-Fuqara (The Poor)
+  - Al-Masakin (The Needy)
+  - Al-Amilin (Administrators)
+  - Al-Muallafah Qulubuhum (Hearts Reconciled)
+  - Ar-Riqab (Freeing Captives)
+  - Al-Gharimin (Those in Debt)
+  - Fi Sabilillah (Cause of Allah)
+  - Ibn as-Sabil (Stranded Travelers)
+- **Payment Details**: Amount, date, recipient name, payment method, receipt reference, notes (encrypted)
+- **Payment History**: Chronological list with filtering by Nisab Year
+- **Payment Cards**: Visual display with progress bars, action buttons (Edit, Delete, View Details)
+- **Outstanding Balance Calculation**: Automatic recalculation (Zakat Due - Total Paid)
+- **Payment Validation**: Warnings for overpayment scenarios
+
+**3. Nisab Year Record Enhancements**
+- **Payment Progress Indicator**: Visual progress bar on each Nisab Year Record card
+  - Green (≥100%): Fully paid
+  - Yellow (1-99%): Partially paid
+  - Red (0%): No payments
+- **Payments Summary Section**: Total paid, outstanding balance, payment count, last payment date
+- **Quick Add Payment**: Pre-selected Nisab Year when adding payment from record detail page
+- **Payment List Per Year**: View all payments linked to specific Nisab Year
+- **Overpayment Handling**: Display and track excess payments as Sadaqah
+
+**4. Terminology Standardization (P1 CRITICAL)**
+- **Global Find & Replace**: Removed all "snapshot" references from user-facing UI
+- **Consistent Terminology**: 
+  - Backend: `YearlySnapshot` entity (unchanged for backward compatibility)
+  - Frontend: "Nisab Year Record" or "Nisab Year" exclusively
+  - API: Responses map `snapshot` → `nisabRecord` for frontend consumption
+- **Navigation**: Updated all menu items, breadcrumbs, page titles
+- **Labels & Tooltips**: Reviewed and updated 100+ UI strings
+- **Error Messages**: Aligned with standard terminology
+- **Help Content**: Updated educational sections
+
+**5. Mobile Optimization (P2 Enhancement)**
+- **Analytics Page**: Responsive grid layout (5 columns → 2 columns on mobile)
+- **Payments Page**: Mobile-friendly payment cards, touch-friendly buttons
+- **Charts**: Responsive chart sizing with proper aspect ratios on small screens
+- **Forms**: Touch-optimized inputs, proper keyboard handling
+- **Navigation**: Hamburger menu, swipe gestures for mobile users
+
+#### Technical Implementation
+
+**Frontend Changes:**
+- **New Pages**: 
+  - `AnalyticsPage.tsx` - Enhanced with real summary statistics (T027)
+  - Payments functionality integrated into existing `PaymentsPage.tsx`
+- **Updated Components**:
+  - `NisabYearRecordCard.tsx` - Added payment progress indicator (T031)
+  - `NisabYearRecordsPage.tsx` - Integrated payment progress bars
+  - `PaymentCard.tsx` - Enhanced display with Nisab Year context
+  - `AnalyticsChart.tsx` - Support for multiple chart types (Line, Bar, Pie, Area)
+  - `PaymentRecordForm.tsx` - Nisab Year dropdown integration
+  - `PaymentList.tsx` - Filtering by Nisab Year
+- **New Hooks**:
+  - Enhanced `useAnalytics` with multi-timeframe support
+  - Updated `usePayments` with Nisab Year filtering
+  - `useAssets` and `useSnapshots` for dashboard statistics
+- **Utilities**:
+  - `formatCurrency` - Consistent currency formatting
+  - Chart data processors for Recharts integration
+  - Progress bar color logic
+
+**Backend Changes:**
+- Routes already implemented in previous features
+- Enhanced payment validation logic
+- Outstanding balance calculation service methods
+- Payment-to-Nisab-Year linkage enforcement
+
+**Testing:**
+- **Component Tests** (5 suites, 37 test scenarios):
+  - `AnalyticsPage.test.tsx` - 8 scenarios (loading, data, empty states, terminology)
+  - `PaymentsPage.test.tsx` - 8 scenarios (filtering, summary, form, help)
+  - `AnalyticsChart.test.tsx` - 11 scenarios (all chart types, empty states, errors)
+  - `PaymentCard.test.tsx` - 10 scenarios (display, progress, actions, calendar)
+- **Manual Testing Identified**: 12 manual/integration tests documented (T046-T057)
+  - E2E workflows (login → analytics → payment recording)
+  - Accessibility testing (keyboard nav, screen readers, color contrast)
+  - Performance testing (Lighthouse, React DevTools Profiler)
+  - Cross-browser and mobile responsiveness validation
+
+**Documentation:**
+- **User Guide Updates**:
+  - `docs/user-guide/tracking.md` - Added comprehensive Analytics and Payments sections (500+ new lines)
+  - `docs/user-guide/nisab-year-records.md` - Added Payment Integration section (200+ new lines)
+- **New Content**:
+  - Viewing Analytics Dashboard walkthrough
+  - Understanding Wealth Trends guide
+  - Tracking Zakat Obligations tutorial
+  - Recording Zakat Payments step-by-step
+  - Linking Payments to Nisab Years explanation
+  - Viewing Payment History instructions
+  - Payment progress indicators guide
+  - Islamic guidance on payment recording
+
+#### Dependencies & Integration
+
+**Integrates With:**
+- Nisab Year Records system (Feature 008) - Primary integration point
+- Asset Management (Feature 004) - Data source for wealth trends
+- Payment Tracking (Feature 003) - Enhanced with Nisab Year linkage
+- Dashboard (existing) - Added Analytics navigation
+
+**External Libraries:**
+- Recharts - Chart visualizations (Line, Bar, Pie, Area)
+- React Query - Data fetching and caching (5min stale, 10min GC)
+- date-fns - Date formatting and manipulation
+- Tailwind CSS - Responsive styling and mobile optimization
+
+#### Breaking Changes
+
+**None** - This is a pure enhancement release. Existing features remain fully functional.
+
+#### Migration Notes
+
+**For Existing Users:**
+- No data migration required
+- Existing payments automatically appear in new Analytics Dashboard
+- Existing Nisab Year Records show payment progress indicators
+- All historical data preserved
+
+**For Developers:**
+- Review terminology changes if extending UI components
+- Use `nisabRecord` instead of `snapshot` in new frontend code
+- Follow established chart patterns when adding new visualizations
+- Refer to test examples for proper mocking strategies
+
+#### Known Issues & Limitations
+
+**Manual Testing Required:**
+- T046-T057: 12 manual tests identified for E2E workflows, accessibility, performance, and cross-browser compatibility
+- Lighthouse performance audit pending (target: >90 score)
+- Accessibility audit with NVDA/JAWS pending (WCAG 2.1 AA compliance)
+- Mobile device testing on real devices recommended
+
+**Future Enhancements (Out of Scope):**
+- Advanced analytics filters (date range pickers, custom comparisons)
+- Export analytics to PDF/CSV
+- Payment reminder notifications
+- Bulk payment import from CSV
+- Multi-currency payment support
+
+#### Contributors
+
+- GitHub Copilot (primary development)
+- Specification by user requirements (Milestone 5 brief)
+- Islamic guidance based on Simple Zakat Guide methodology
+
+#### Related Issues
+
+- Feature 017: Milestone 5 - Tracking & Analytics Activation
+- Feature 008: Nisab Year Records (integration dependency)
+- Feature 004: Asset Management (data source)
+- Feature 003: Payment Tracking (enhanced)
+
+---
+
 ### Added - Tracking & Analytics Feature (v0.3.0)
 
 #### Core Functionality

@@ -270,6 +270,411 @@ To delete a payment:
 
 ## Viewing Analytics
 
+> **✨ NEW in Milestone 5**: Enhanced Analytics Dashboard with wealth trends, Zakat obligation tracking, and payment history visualization.
+
+### Accessing the Analytics Dashboard
+
+**Navigation**: Main Menu → **Analytics** or Dashboard → **View Analytics**
+
+The Analytics Dashboard provides comprehensive insights into your financial tracking with interactive charts and summaries.
+
+### Dashboard Sections
+
+#### 1. Summary Statistics
+
+At the top of the dashboard, you'll see five key metrics:
+
+- 💰 **Total Wealth**: Current networth from all your assets
+- 📊 **Total Zakat Due**: Sum of all Zakat obligations from Nisab Year Records
+- ✅ **Total Zakat Paid**: Sum of all payments recorded
+- ⏳ **Outstanding Balance**: Remaining Zakat to be paid
+- 🎯 **Compliance Rate**: Percentage of obligations fulfilled (Paid ÷ Due × 100%)
+
+**Color Coding:**
+- 🟢 **Green** (≥80%): Good compliance
+- 🟡 **Yellow** (50-79%): Moderate compliance
+- 🔴 **Red** (<50%): Low compliance - consider action
+
+#### 2. Wealth Over Time (Line Chart)
+
+**Purpose**: Track your total networth growth based on your assets.
+
+**What You'll See:**
+- X-axis: Time periods (months or years based on selected timeframe)
+- Y-axis: Total wealth in your default currency
+- Line graph: Wealth trend over time
+- Data points: Clickable to see exact values
+
+**Timeframe Selector:**
+- **Last 30 Days**: Daily view for recent changes
+- **Last 90 Days**: Weekly view for quarterly trends
+- **Last 12 Months**: Monthly view for annual patterns
+- **All Time**: Yearly view for historical perspective
+
+**How to Use:**
+1. Select your preferred timeframe from the dropdown
+2. Hover over data points to see exact amounts
+3. Click chart legend items to hide/show specific data series
+4. Watch for upward/downward trends
+5. Identify growth patterns or unexpected changes
+
+**Example Insights:**
+- Steady upward trend → Wealth growing consistently
+- Spike in values → Bonus or inheritance received
+- Dip in values → Major expense or investment loss
+- Seasonal patterns → Business income fluctuations
+
+#### 3. Zakat Obligations (Bar Chart)
+
+**Purpose**: Compare Zakat due vs. paid for each Nisab Year.
+
+**What You'll See:**
+- X-axis: Nisab Year labels (e.g., "1445 AH" or "2024")
+- Y-axis: Amount in your default currency
+- Two bars per year:
+  - 🟦 **Blue**: Zakat Due (total obligation)
+  - 🟩 **Green**: Zakat Paid (payments recorded)
+
+**How to Use:**
+1. Identify years with gaps between due and paid amounts
+2. Check outstanding balances (difference between bars)
+3. Compare year-over-year Zakat amounts
+4. Verify payment completion for finalized years
+
+**Example Scenarios:**
+- Blue bar > Green bar → Outstanding payment needed
+- Blue bar = Green bar → Fully paid (100% compliance)
+- No green bar → No payments recorded yet
+- Multiple years visible → Track multi-year trends
+
+#### 4. Payment Distribution (Pie Chart)
+
+**Purpose**: Visualize how your Zakat payments are distributed across the 8 Islamic recipient categories.
+
+**What You'll See:**
+- Pie slices: Each representing a recipient category
+- Percentage labels: Proportion of total payments
+- Color-coded segments for easy identification
+- Legend: Category names and amounts
+
+**The 8 Categories:**
+1. 🟦 **Al-Fuqara (The Poor)** - Light blue
+2. 🟩 **Al-Masakin (The Needy)** - Green
+3. 🟨 **Al-Amilin (Administrators)** - Yellow
+4. 🟧 **Al-Muallafah Qulubuhum (Hearts Reconciled)** - Orange
+5. 🟥 **Ar-Riqab (Freeing Captives)** - Red
+6. 🟪 **Al-Gharimin (Those in Debt)** - Purple
+7. 🟫 **Fi Sabilillah (Cause of Allah)** - Brown
+8. ⬜ **Ibn as-Sabil (Stranded Travelers)** - Gray
+
+**How to Use:**
+1. Hover over slices to see exact amounts and percentages
+2. Click legend items to hide/show categories
+3. Identify which categories you support most
+4. Ensure diversified distribution across categories (recommended)
+5. Plan future payments to balance underrepresented categories
+
+**Islamic Guidance:**
+- Scholars recommend diversifying Zakat across multiple categories
+- Focus on local needs (Al-Fuqara, Al-Masakin) first
+- Support Islamic education (Fi Sabilillah) regularly
+- Assist community members (Al-Gharimin, Ibn as-Sabil)
+
+#### 5. Chart Type Selector
+
+**Available Chart Types:**
+- 📈 **Line Chart**: Best for trends over time
+- 📊 **Bar Chart**: Best for comparisons between categories
+- 🥧 **Pie Chart**: Best for distribution visualization
+- 📉 **Area Chart**: Best for cumulative growth view
+
+**When to Use Each:**
+- **Line**: Track wealth growth, identify seasonal patterns
+- **Bar**: Compare year-over-year Zakat obligations
+- **Pie**: Understand payment category distribution
+- **Area**: See cumulative payment progress over time
+
+### Empty States
+
+**No Data Available:**
+
+If you see "No data available" messages:
+
+1. **Wealth Over Time**: Add assets in the Assets page
+2. **Zakat Obligations**: Create a Nisab Year Record
+3. **Payment Distribution**: Record at least one payment
+
+**Getting Started:**
+1. Add your assets → Assets page
+2. Wait for automatic Nisab detection or create manual Nisab Year Record
+3. Record payments → Payments page
+4. Return to Analytics to see visualizations
+
+### Help Section
+
+At the bottom of the Analytics page, you'll find:
+
+- **📚 Educational Resources**: Links to Islamic guides on Zakat calculation
+- **❓ FAQ**: Common questions about tracking and analytics
+- **💬 Support**: Contact information for assistance
+
+---
+
+## Recording Zakat Payments
+
+> **✨ NEW in Milestone 5**: Enhanced payment recording with Nisab Year integration and improved validation.
+
+### Accessing the Payments Page
+
+**Navigation**: Main Menu → **Payments** or Nisab Year Record → **Add Payment**
+
+The Payments page allows you to record Zakat payments and link them to specific Nisab Year Records for accurate tracking.
+
+### Understanding Payment Integration
+
+**Key Concept**: Each payment is linked to a specific **Nisab Year Record** to ensure accurate tracking of which obligation you're fulfilling.
+
+**Why This Matters:**
+- Track which year's Zakat you're paying
+- Calculate outstanding balances per year
+- Maintain accurate compliance records
+- Generate year-specific payment reports
+
+### Recording a New Payment
+
+#### Step 1: Open Payment Form
+
+**From Payments Page:**
+1. Navigate to **Payments** from main menu
+2. Click **"Record Payment"** button
+3. Payment form modal opens
+
+**From Nisab Year Record:**
+1. Navigate to a specific Nisab Year Record detail page
+2. Click **"Add Payment"** button
+3. Payment form opens with Nisab Year pre-selected
+
+#### Step 2: Select Nisab Year (Required)
+
+**Nisab Year Dropdown:**
+- Lists all your Nisab Year Records
+- Format: "1445 AH (2024) - $1,250.00 due"
+- Shows year, Zakat due amount, and current status
+- Pre-selected if opened from Nisab Year Record page
+
+**How to Choose:**
+1. Identify which year's Zakat you're paying
+2. Check the "Zakat due" amount shown
+3. Select the corresponding Nisab Year
+4. Verify selection in dropdown summary
+
+**Example:**
+```
+Selected: 1445 AH (2024) - $1,250.00 due
+Outstanding: $750.00 (after recording this payment)
+```
+
+#### Step 3: Enter Payment Details
+
+**Amount*** (Required)
+- Enter the payment amount in your default currency
+- Can be partial payment (< Zakat due) or full payment
+- System validates against Nisab Year's outstanding balance
+- Warning shown if exceeds outstanding amount
+
+**Date*** (Required)
+- Select the date when payment was made
+- Defaults to today
+- Can be past date for retroactive recording
+- Format: MM/DD/YYYY
+
+**Recipient Category*** (Required)
+- Select from 8 Islamic recipient categories:
+  1. **Al-Fuqara (The Poor)** - Those with insufficient means
+  2. **Al-Masakin (The Needy)** - Those with some means but below sufficiency
+  3. **Al-Amilin (Administrators)** - Those who collect and distribute Zakat
+  4. **Al-Muallafah Qulubuhum** - New Muslims or those inclined to Islam
+  5. **Ar-Riqab (Freeing Captives)** - Freeing slaves or captives
+  6. **Al-Gharimin (Those in Debt)** - Those burdened by debt
+  7. **Fi Sabilillah (Cause of Allah)** - Islamic education, dawah, projects
+  8. **Ibn as-Sabil (Stranded Travelers)** - Travelers in need
+
+**Recipient Name** (Optional)
+- Name of individual or organization receiving payment
+- Example: "Local Islamic Center" or "Muhammad Ahmed"
+- Helps with record-keeping and tracking
+
+**Payment Method** (Optional)
+- How payment was made: Cash, Bank Transfer, Check, Online, Mobile Payment
+- Useful for financial record reconciliation
+
+**Receipt Reference** (Optional)
+- Receipt number or transaction ID
+- Example: "RCP-2024-001" or "TXN-ABC123"
+- Important for tax documentation
+
+**Notes** (Optional)
+- Additional context or details
+- Example: "Monthly Zakat distribution through mosque"
+- Encrypted for privacy
+
+#### Step 4: Review and Submit
+
+**Before Submitting:**
+1. ✅ Verify Nisab Year selection
+2. ✅ Check amount is correct
+3. ✅ Confirm date is accurate
+4. ✅ Review recipient category
+5. ✅ Add notes if needed
+
+**Click "Save Payment"**
+
+**Success Confirmation:**
+- Green success message appears
+- Payment added to Payments list
+- Nisab Year Record updated with payment
+- Outstanding balance recalculated
+- Analytics charts updated automatically
+
+### Viewing Payment History
+
+#### Payments List
+
+**What You'll See:**
+- Chronological list of all recorded payments
+- Most recent payments first
+- Payment cards showing key details
+- Filter and search options
+
+**Payment Card Information:**
+- 💰 Amount and date
+- 📅 Islamic calendar date (Hijri)
+- 📊 Nisab Year association
+- 👤 Recipient name/category
+- 🎯 Progress bar (payment ÷ Zakat due)
+- ⚙️ Action buttons (Edit, Delete, View Details)
+
+**Progress Bar Colors:**
+- 🟢 **Green** (≥100%): Nisab Year fully paid
+- 🟡 **Yellow** (1-99%): Partial payment made
+- 🔴 **Red** (0%): No payments yet
+
+#### Filtering Payments
+
+**Nisab Year Filter:**
+1. Click "Filter by Nisab Year" dropdown at top
+2. Select "All Payments" or specific Nisab Year
+3. List updates to show filtered results
+4. Clear filter to see all payments again
+
+**Search Functionality:**
+- Search by recipient name
+- Search by notes content
+- Search by category (type category name)
+
+#### Summary Statistics
+
+**At the top of Payments page:**
+- 📊 **Total Payments**: Count of all recorded payments
+- 💰 **Total Amount Paid**: Sum of all payment amounts
+- 📅 **Average Payment**: Total ÷ Count
+- 🎯 **Payment Rate**: Payments per month/year
+
+### Payment Actions
+
+#### View Payment Details
+
+**How to Access:**
+1. Click anywhere on a payment card
+2. Or click "View Details" button
+3. Payment detail modal opens
+
+**What You'll See:**
+- Full payment information
+- Nisab Year context (year label, Zakat due, progress)
+- Recipient details
+- Payment method and reference
+- Creation and update timestamps
+- Notes (if any)
+
+#### Edit Payment
+
+**How to Edit:**
+1. Click "Edit" button on payment card
+2. Payment form opens with existing data
+3. Modify fields as needed
+4. Click "Update Payment"
+
+**What Can Be Edited:**
+- Amount
+- Date
+- Recipient category
+- Recipient name
+- Payment method
+- Receipt reference
+- Notes
+
+**What Cannot Be Edited:**
+- Nisab Year association (delete and recreate if needed)
+- Payment ID (system-generated)
+
+#### Delete Payment
+
+**How to Delete:**
+1. Click "Delete" button on payment card
+2. Confirmation dialog appears
+3. Click "Confirm Delete"
+4. Payment removed from system
+
+**Impact of Deletion:**
+- Payment removed from Payments list
+- Nisab Year Record's zakatPaid reduced by payment amount
+- Outstanding balance recalculated
+- Analytics charts updated
+- Action cannot be undone
+
+**Best Practice**: Only delete if payment was entered in error. For corrections, use Edit instead.
+
+### Payment Recording Tips
+
+✅ **DO:**
+- Record payments promptly after making them
+- Link to correct Nisab Year for accuracy
+- Include recipient details for better tracking
+- Save receipt references for tax documentation
+- Add notes for context (who, why, special circumstances)
+- Review outstanding balances regularly
+
+❌ **DON'T:**
+- Record same payment multiple times (check history first)
+- Forget to select Nisab Year (payment won't link correctly)
+- Edit payments without verifying impact on outstanding balance
+- Delete payments unnecessarily (use Edit for corrections)
+
+### Islamic Guidance on Payment Recording
+
+**Diversification Recommended:**
+- Try to support multiple recipient categories
+- Focus on local needs first (Al-Fuqara, Al-Masakin)
+- Support Islamic education (Fi Sabilillah) regularly
+- Assist community members (Al-Gharimin, Ibn as-Sabil)
+
+**Payment Timing:**
+- Pay Zakat as soon as Hawl completes (Nisab Year finalized)
+- Can make partial payments throughout the year
+- Can pay in advance if needed (check with scholar)
+- Record historical payments to maintain accurate records
+
+**Documentation:**
+- Keep receipts for all Zakat payments (tax deduction purposes)
+- Record recipient information for transparency
+- Maintain notes for personal accountability
+- Export payment history annually for records
+
+---
+
+## Viewing Analytics
+
 The Analytics Dashboard provides insights into your Zakat history and financial trends.
 
 ### Accessing Analytics
