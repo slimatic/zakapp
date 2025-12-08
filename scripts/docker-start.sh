@@ -108,10 +108,6 @@ if $RESET_DB; then
     docker volume rm zakapp-database 2>/dev/null || true
 fi
 
-# Stop any existing containers
-echo -e "${YELLOW}📦 Stopping existing containers...${NC}"
-docker compose down 2>/dev/null || true
-
 if $REBUILD; then
     echo -e "${YELLOW}🔨 Rebuilding images (this may take a few minutes)...${NC}"
     docker compose build --no-cache
@@ -119,6 +115,10 @@ else
     echo -e "${YELLOW}🔨 Building images (using cache)...${NC}"
     docker compose build
 fi
+
+# Stop any existing containers after build to minimize downtime
+echo -e "${YELLOW}📦 Stopping existing containers...${NC}"
+docker compose down 2>/dev/null || true
 
 # Start services
 echo -e "${YELLOW}▶️  Starting services...${NC}"
