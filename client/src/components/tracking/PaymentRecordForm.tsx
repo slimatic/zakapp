@@ -262,6 +262,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             onChange={(e) => handleInputChange('amount', e.target.value)}
             error={errors.amount}
             className="text-right"
+            autoSelectOnFocus={true}
           />
           <p className="text-xs text-gray-500 mt-1">
             Enter the amount in your local currency

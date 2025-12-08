@@ -7,20 +7,11 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   helpText?: string;
   // optional test id to help e2e tests
   dataTestId?: string;
+  // auto-select text on focus (useful for monetary inputs)
+  autoSelectOnFocus?: boolean;
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(({
-  label,
-  error,
-  helpText,
-  className,
-  id,
-  dataTestId,
-  ...props
-}, ref) => {
-  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
-
-  return (
+export const Input = forwardRef<HTMLInputElement, InputProps>(({\n  label,\n  error,\n  helpText,\n  className,\n  id,\n  dataTestId,\n  autoSelectOnFocus = false,\n  onFocus,\n  ...props\n}, ref) => {\n  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');\n\n  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {\n    if (autoSelectOnFocus) {\n      e.target.select();\n    }\n    onFocus?.(e);\n  };\n\n  return (
     <div className="space-y-1">
       {label && (
         <label
@@ -34,6 +25,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
         ref={ref}
         id={inputId}
         data-testid={dataTestId}
+        onFocus={handleFocus}
         className={clsx(
           'block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 sm:text-sm',
           error
