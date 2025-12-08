@@ -37,7 +37,10 @@ export function usePayments(
         throw new Error('No authentication token found');
       }
 
-      let url = `${API_BASE_URL}/tracking/snapshots/${snapshotId}/payments`;
+      // If no snapshotId, fetch all payments; otherwise fetch for specific snapshot
+      let url = snapshotId 
+        ? `${API_BASE_URL}/tracking/snapshots/${snapshotId}/payments`
+        : `${API_BASE_URL}/tracking/payments`;
       
       if (category) {
         const params = new URLSearchParams({ category });
@@ -59,7 +62,7 @@ export function usePayments(
       const result = await response.json();
       return result.data;
     },
-    enabled: enabled && !!snapshotId,
+    enabled: enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000 // 10 minutes
   });
