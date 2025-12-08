@@ -1160,7 +1160,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                 snapshotId={activeRecord.id}
                 onSuccess={() => {
                   setShowPaymentsRecordId(null);
-                  queryClient.invalidateQueries({ queryKey: ['payments', activeRecord.id] });
+                  queryClient.invalidateQueries({ queryKey: ['payments'] });
                   queryClient.invalidateQueries({ queryKey: ['nisab-year-records'] });
                 }}
                 onCancel={() => setShowPaymentsRecordId(null)}
