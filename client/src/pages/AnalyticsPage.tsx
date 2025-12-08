@@ -224,7 +224,7 @@ export const AnalyticsPage: React.FC = () => {
                 <ul className="list-disc list-inside space-y-1 mt-2">
                   <li><strong>Wealth Over Time</strong>: Tracks your asset values continuously, independent of Zakat calculations</li>
                   <li><strong>Zakat Obligations</strong>: Shows due/paid/outstanding amounts per Nisab Year Record (each representing one Hawl period)</li>
-                  <li><strong>Asset Distribution</strong>: Current snapshot of your wealth by asset type (cash, gold, investments, etc.)</li>
+                  <li><strong>Asset Distribution</strong>: Current breakdown of your wealth by asset type (cash, gold, investments, etc.)</li>
                   <li><strong>Payment Distribution</strong>: Breakdown of Zakat payments by Islamic recipient category</li>
                 </ul>
                 <p className="mt-3 pt-3 border-t border-blue-200">
