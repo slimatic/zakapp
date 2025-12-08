@@ -168,7 +168,7 @@ const EducationalModule: React.FC = () => {
  */
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { currentStep, shouldShowOnboarding, markStepCompleted } = useUserOnboarding();
+  const { currentStep, shouldShowOnboarding, markStepCompleted, completedSteps } = useUserOnboarding();
   const maskedCurrency = useMaskedCurrency();
 
   // Debug logging
