@@ -28,6 +28,14 @@ export type YearlySnapshotMethodology = 'Standard' | 'Hanafi' | 'Shafii' | 'Cust
 export interface YearlySnapshot {
   id: string;
   userId: string;
+  // Hawl Tracking
+  hawlStartDate?: Date | string | null;
+  hawlStartDateHijri?: string | null;
+  hawlCompletionDate?: Date | string | null;
+  hawlCompletionDateHijri?: string | null;
+  nisabThresholdAtStart?: number | null; // Encrypted in DB
+  nisabBasis?: string | null;
+  // Calculation Data
   calculationDate: Date | string;
   gregorianYear: number;
   gregorianMonth: number;
@@ -47,6 +55,7 @@ export interface YearlySnapshot {
   calculationDetails?: Record<string, any>; // Encrypted JSON in DB
   userNotes?: string; // Encrypted in DB
   isPrimary: boolean;
+  finalizedAt?: Date | string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
