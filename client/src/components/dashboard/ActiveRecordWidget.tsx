@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 
 // Type matching the actual API response from the backend
 interface NisabYearRecord {
@@ -49,6 +50,8 @@ interface ActiveRecordWidgetProps {
  * @param record - Active Nisab Year Record (null if none exists)
  */
 export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }) => {
+  const maskedCurrency = useMaskedCurrency();
+  
   if (!record) {
     return null;
   }
@@ -174,14 +177,14 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-600">Current Wealth</span>
           <span className="text-lg font-bold text-gray-900">
-            ${currentWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {maskedCurrency(`$${currentWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
           </span>
         </div>
         
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-600">Nisab Threshold</span>
           <span className="text-sm font-medium text-gray-700">
-            ${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {maskedCurrency(`$${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
           </span>
         </div>
 
@@ -189,8 +192,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Difference</span>
             <span className={`text-sm font-bold ${statusColors.text}`}>
-              {wealthDifference >= 0 ? '+' : ''}
-              ${Math.abs(wealthDifference).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {maskedCurrency(`${wealthDifference >= 0 ? '+' : ''}$${Math.abs(wealthDifference).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
               {' '}({differencePercentage >= 0 ? '+' : ''}{differencePercentage.toFixed(1)}%)
             </span>
           </div>

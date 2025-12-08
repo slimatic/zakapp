@@ -1,4 +1,5 @@
 import React from 'react';
+import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 
 interface WealthSummaryCardProps {
   totalWealth: number;
@@ -32,6 +33,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
   const isAboveNisab = totalWealth >= nisabThreshold;
   const difference = Math.abs(totalWealth - nisabThreshold);
   const differencePercentage = ((totalWealth - nisabThreshold) / nisabThreshold) * 100;
+  const maskedCurrency = useMaskedCurrency();
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -81,7 +83,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
       <div className="mb-4">
         <p className="text-sm text-gray-600 mb-1">Total Wealth</p>
         <p className="text-3xl md:text-4xl font-bold text-gray-900">
-          ${totalWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {maskedCurrency(`$${totalWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
         </p>
         <p className="text-xs text-gray-500 mt-1">{currency}</p>
       </div>
@@ -94,13 +96,13 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
               {isAboveNisab ? 'Above Nisab' : 'Below Nisab'}
             </p>
             <p className="text-xs text-gray-600 mt-1">
-              Nisab: ${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              Nisab: {maskedCurrency(`$${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
             </p>
           </div>
           
           <div className="text-right">
             <p className={`text-lg font-bold ${isAboveNisab ? 'text-green-700' : 'text-red-700'}`}>
-              {isAboveNisab ? '+' : '-'}${difference.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {maskedCurrency(`${isAboveNisab ? '+' : '-'}$${difference.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
             </p>
             <p className="text-xs text-gray-600">
               {isAboveNisab ? '+' : ''}{differencePercentage.toFixed(1)}%
