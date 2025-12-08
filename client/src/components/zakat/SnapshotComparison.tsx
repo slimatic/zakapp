@@ -61,7 +61,7 @@ const SnapshotComparison: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Snapshot Comparison</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Nisab Year Comparison</h1>
           <p className="text-gray-600">Compare Zakat calculations across different periods</p>
         </div>
         <div className="flex space-x-2">
@@ -108,14 +108,14 @@ const SnapshotComparison: React.FC = () => {
                 ))}
               </select>
               {fromLoading ? (
-                <div className="text-sm text-gray-500">Loading snapshots...</div>
+                <div className="text-sm text-gray-500">Loading records...</div>
               ) : (
                 <select
                   value={selectedFromSnapshot}
                   onChange={(e) => setSelectedFromSnapshot(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select a snapshot</option>
+                  <option value="">Select a Nisab Year</option>
                   {fromSnapshots?.data?.snapshots?.map((snapshot: any) => (
                     <option key={snapshot.id} value={snapshot.id}>
                       {new Date(snapshot.calculationDate).toLocaleDateString()} - {formatCurrency(snapshot.zakatDue || 0)}
@@ -145,14 +145,14 @@ const SnapshotComparison: React.FC = () => {
                 ))}
               </select>
               {toLoading ? (
-                <div className="text-sm text-gray-500">Loading snapshots...</div>
+                <div className="text-sm text-gray-500">Loading records...</div>
               ) : (
                 <select
                   value={selectedToSnapshot}
                   onChange={(e) => setSelectedToSnapshot(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select a snapshot</option>
+                  <option value="">Select a Nisab Year</option>
                   {toSnapshots?.data?.snapshots?.map((snapshot: any) => (
                     <option key={snapshot.id} value={snapshot.id}>
                       {new Date(snapshot.calculationDate).toLocaleDateString()} - {formatCurrency(snapshot.zakatDue || 0)}
@@ -171,7 +171,7 @@ const SnapshotComparison: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Comparing snapshots...</p>
+              <p className="text-gray-600">Comparing Nisab Years...</p>
             </div>
           </div>
         ) : comparison?.data ? (
@@ -313,14 +313,14 @@ const SnapshotComparison: React.FC = () => {
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-medium text-gray-700">From Snapshot:</span>
+                  <span className="font-medium text-gray-700">From Nisab Year:</span>
                   <div className="text-gray-600 mt-1">
                     Date: {new Date(comparison.data.fromSnapshot?.calculationDate).toLocaleDateString()}<br/>
                     Methodology: {comparison.data.fromSnapshot?.methodology}
                   </div>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">To Snapshot:</span>
+                  <span className="font-medium text-gray-700">To Nisab Year:</span>
                   <div className="text-gray-600 mt-1">
                     Date: {new Date(comparison.data.toSnapshot?.calculationDate).toLocaleDateString()}<br/>
                     Methodology: {comparison.data.toSnapshot?.methodology}
@@ -335,9 +335,9 @@ const SnapshotComparison: React.FC = () => {
               <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Select snapshots to compare</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Select Nisab Years to compare</h3>
               <p className="text-gray-500">
-                Choose snapshots from different periods to see how your Zakat situation has changed over time.
+                Choose Nisab Year Records from different periods to see how your Zakat situation has changed over time.
               </p>
             </div>
           </div>
@@ -348,9 +348,9 @@ const SnapshotComparison: React.FC = () => {
             <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Select snapshots to compare</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Select Nisab Years to compare</h3>
             <p className="text-gray-500">
-              Choose snapshots from different periods to see how your Zakat situation has changed over time.
+              Choose Nisab Year Records from different periods to see how your Zakat situation has changed over time.
             </p>
           </div>
         </div>

@@ -553,6 +553,29 @@ router.get('/comparison', authenticate, validateUserOwnership, validateCompariso
 // Additional helpful endpoints beyond T037-T044
 
 /**
+ * GET /api/tracking/payments
+ * Get all payment records for the authenticated user across all Nisab Year Records
+ * Supports filtering by category
+ */
+router.get('/payments', authenticate, paymentRateLimit, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return sendError(res, 'UNAUTHORIZED', 'User not authenticated', 401);
+    }
+
+    const { category } = req.query;
+
+    const payments = await paymentService.getAllPayments(userId, category as string | undefined);
+
+    sendSuccess(res, { payments });
+  } catch (error: any) {
+    console.error('Error fetching all payments:', error);
+    sendError(res, 'INTERNAL_ERROR', 'Failed to fetch payments', 500);
+  }
+});
+
+/**
  * GET /api/tracking/snapshots/:id/payments
  * Get all payment records for a snapshot
  */

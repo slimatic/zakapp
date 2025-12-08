@@ -64,67 +64,25 @@ export const AssetList: React.FC = React.memo(() => {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary Stats - Compact Design */}
       {assets.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-sm">#</span>
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Assets</dt>
-                    <dd className="text-lg font-medium text-gray-900">{assets.length}</dd>
-                  </dl>
-                </div>
-              </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 divide-x divide-gray-200">
+            <div className="text-center">
+              <p className="text-xs text-gray-500 mb-1">Total Assets</p>
+              <p className="text-lg font-bold text-gray-900">{assets.length}</p>
             </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 font-semibold text-sm">✓</span>
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Zakat Eligible</dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {assets.filter((asset: Asset) => asset.zakatEligible).length}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
+            <div className="text-center">
+              <p className="text-xs text-gray-500 mb-1">Zakat Eligible</p>
+              <p className="text-lg font-bold text-green-600">
+                {assets.filter((asset: Asset) => asset.zakatEligible).length}
+              </p>
             </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <span className="text-yellow-600 font-semibold text-sm">$</span>
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Value</dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {formatCurrency(
-                        assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0),
-                        'USD'
-                      )}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
+            <div className="text-center">
+              <p className="text-xs text-gray-500 mb-1">Total Value</p>
+              <p className="text-lg font-bold text-gray-900">
+                ${assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              </p>
             </div>
           </div>
         </div>
@@ -150,63 +108,60 @@ export const AssetList: React.FC = React.memo(() => {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {assets.map((asset: Asset) => (
             <div key={asset.assetId} className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-200">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                    <span className="text-xl flex-shrink-0">
                       {getCategoryIcon(asset.category)}
                     </span>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-semibold text-gray-900 truncate">
                         {asset.name}
                       </h3>
-                      <p className="text-sm text-gray-500 capitalize">
+                      <p className="text-xs text-gray-500 capitalize truncate">
                         {asset.category} {asset.subCategory && `• ${asset.subCategory}`}
                       </p>
                     </div>
                   </div>
                   {asset.zakatEligible && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Zakat Eligible
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0 ml-2">
+                      Eligible
                     </span>
                   )}
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-500">Value:</span>
-                    <span className="text-lg font-semibold text-gray-900">
+                    <span className="text-xs font-medium text-gray-500">Value:</span>
+                    <span className="text-base font-semibold text-gray-900">
                       {formatCurrency(asset.value, asset.currency)}
                     </span>
                   </div>
 
                   {asset.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    <p className="text-xs text-gray-600 line-clamp-2">
                       {asset.description}
                     </p>
                   )}
 
-                  <div className="flex justify-between items-center text-xs text-gray-500">
+                  <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
                     <span>Added {new Date(asset.createdAt).toLocaleDateString()}</span>
-                    {asset.updatedAt !== asset.createdAt && (
-                      <span>Updated {new Date(asset.updatedAt).toLocaleDateString()}</span>
-                    )}
                   </div>
                 </div>
 
-                <div className="mt-6 flex justify-end space-x-3">
+                <div className="mt-4 flex justify-end space-x-3 pt-3 border-t border-gray-100">
                   <Link
                     to={`/assets/${asset.assetId}`}
-                    className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                    className="text-blue-600 hover:text-blue-900 text-xs font-medium"
                   >
-                    View Details
+                    View
                   </Link>
                   <button
                     onClick={() => setEditingAsset(asset)}
-                    className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+                    className="text-gray-600 hover:text-gray-900 text-xs font-medium"
                   >
                     Edit
                   </button>

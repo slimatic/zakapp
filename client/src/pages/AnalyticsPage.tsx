@@ -7,12 +7,30 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnalyticsChart } from '../components/tracking/AnalyticsChart';
 import { Button } from '../components/ui/Button';
+import { useAnalytics } from '../hooks/useAnalytics';
+import { useAssets } from '../services/apiHooks';
+import { useSnapshots } from '../hooks/useSnapshots';
+import { formatCurrency } from '../utils/formatters';
+import type { Asset } from '@zakapp/shared';
+import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
 
 export const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
   const [timeframe, setTimeframe] = useState<Timeframe>('last_5_years');
+
+  // Fetch data for summary statistics (T027)
+  const { data: assetsData } = useAssets();
+  const { data: snapshotsData } = useSnapshots({ limit: 100 });
+  const { data: wealthData } = useAnalytics('wealth_trend', timeframe);
+  
+  // Calculate summary statistics
+  const totalWealth = assetsData?.data?.assets?.reduce((sum: number, asset: Asset) => sum + asset.value, 0) || 0;
+  const totalZakatDue = snapshotsData?.snapshots?.reduce((sum: number, snap: YearlySnapshot) => sum + (snap.zakatAmount || 0), 0) || 0;
+  const totalZakatPaid = snapshotsData?.snapshots?.reduce((sum: number, snap: YearlySnapshot) => sum + (snap.zakatAmount || 0), 0) || 0;
+  const outstandingBalance = totalZakatDue - totalZakatPaid;
+  const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;
 
   // Map our timeframe to the AnalyticsChart timeframe prop
   // Removed unused chartTimeframe variable
@@ -86,85 +104,104 @@ export const AnalyticsPage: React.FC = () => {
 
         {/* Charts Grid */}
         <div className="space-y-8">
-          {/* Wealth Trend */}
+          {/* Section 1: Wealth Over Time (Asset-based) */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Wealth Trend Over Time</h2>
+                <h2 className="text-xl font-bold text-gray-900">Wealth Over Time</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Track your zakatable wealth growth year by year
+                  Track your total asset value growth independent of Nisab Year Records
                 </p>
               </div>
             </div>
               <AnalyticsChart metricType="wealth_trend" visualizationType="line_chart" height={400} />
           </div>
 
-          {/* Zakat Obligations */}
+          {/* Section 2: Zakat Obligations (Nisab Record-based) */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Zakat Obligations</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Annual Zakat due amounts and payment status
+                  Annual Zakat due, paid, and outstanding amounts per Nisab Year Record
                 </p>
               </div>
             </div>
               <AnalyticsChart metricType="zakat_trend" visualizationType="bar_chart" height={400} />
           </div>
 
-          {/* Two Column Layout for Pie Charts */}
+          {/* Section 3: Asset Distribution */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Asset Composition */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Asset Distribution</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Current wealth breakdown by asset type and category
+                </p>
+              </div>
+                <AnalyticsChart metricType="asset_composition" visualizationType="pie_chart" height={350} />
+            </div>
+
             {/* Payment Distribution */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-900">Payment Distribution</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Breakdown by recipient category
+                  Zakat payments breakdown by Islamic recipient category
                 </p>
               </div>
                 <AnalyticsChart metricType="payment_distribution" visualizationType="pie_chart" height={350} />
             </div>
-
-            {/* Asset Composition */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Asset Composition</h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  Current wealth breakdown by asset type
-                </p>
-              </div>
-                <AnalyticsChart metricType="asset_composition" visualizationType="pie_chart" height={350} />
-            </div>
           </div>
 
-          {/* Summary Statistics - Simplified without data dependencies */}
+          {/* Summary Statistics - T027 with real data */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Timeframe Info</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Summary Statistics</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <div className="border-l-4 border-green-500 pl-4">
-                <p className="text-sm text-gray-600">Selected Period</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1 capitalize">
-                  {timeframe.replace('_', ' ')}
+                <p className="text-sm text-gray-600">Total Wealth</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(totalWealth)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Current view</p>
+                <p className="text-xs text-gray-500 mt-1">Current assets value</p>
               </div>
 
               <div className="border-l-4 border-blue-500 pl-4">
-                <p className="text-sm text-gray-600">Chart Type</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">4</p>
-                <p className="text-xs text-gray-500 mt-1">Different visualizations</p>
+                <p className="text-sm text-gray-600">Total Zakat Due</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(totalZakatDue)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">All Nisab Years</p>
               </div>
 
-              <div className="border-l-4 border-purple-500 pl-4">
-                <p className="text-sm text-gray-600">Metrics Tracked</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">4</p>
-                <p className="text-xs text-gray-500 mt-1">Key indicators</p>
+              <div className="border-l-4 border-emerald-500 pl-4">
+                <p className="text-sm text-gray-600">Total Paid</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(totalZakatPaid)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Across all years</p>
               </div>
 
               <div className="border-l-4 border-orange-500 pl-4">
-                <p className="text-sm text-gray-600">Real-Time</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">✓</p>
-                <p className="text-xs text-gray-500 mt-1">Live data</p>
+                <p className="text-sm text-gray-600">Outstanding</p>
+                <p className={`text-2xl font-bold mt-1 ${outstandingBalance > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                  {formatCurrency(Math.abs(outstandingBalance))}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {outstandingBalance > 0 ? 'Remaining' : 'Fully paid'}
+                </p>
+              </div>
+
+              <div className="border-l-4 border-purple-500 pl-4">
+                <p className="text-sm text-gray-600">Compliance Rate</p>
+                <p className={`text-2xl font-bold mt-1 ${
+                  complianceRate >= 100 ? 'text-green-600' : 
+                  complianceRate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                }`}>
+                  {complianceRate.toFixed(0)}%
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Paid / Due ratio</p>
               </div>
             </div>
           </div>
@@ -184,16 +221,16 @@ export const AnalyticsPage: React.FC = () => {
               </h3>
               <div className="text-sm text-blue-700 mt-2 space-y-2">
                 <p>
-                  These analytics help you understand patterns in your Zakat obligations and giving over time:
+                  This dashboard uses <strong>two separate data sources</strong> to provide comprehensive insights:
                 </p>
                 <ul className="list-disc list-inside space-y-1 mt-2">
-                  <li><strong>Wealth Trend</strong>: Shows how your zakatable wealth has grown or decreased</li>
-                  <li><strong>Zakat Obligations</strong>: Displays annual Zakat due amounts and payment status</li>
-                  <li><strong>Payment Distribution</strong>: Shows which recipient categories you've supported</li>
-                  <li><strong>Asset Composition</strong>: Breaks down your wealth by asset type</li>
+                  <li><strong>Wealth Over Time</strong>: Tracks your asset values continuously, independent of Zakat calculations</li>
+                  <li><strong>Zakat Obligations</strong>: Shows due/paid/outstanding amounts per Nisab Year Record (each representing one Hawl period)</li>
+                  <li><strong>Asset Distribution</strong>: Current breakdown of your wealth by asset type (cash, gold, investments, etc.)</li>
+                  <li><strong>Payment Distribution</strong>: Breakdown of Zakat payments by Islamic recipient category</li>
                 </ul>
-                <p className="mt-2">
-                  Use these insights to plan future Zakat payments and ensure balanced wealth management.
+                <p className="mt-3 pt-3 border-t border-blue-200">
+                  <strong>Note:</strong> Assets are tracked continuously for wealth trends, while Nisab Year Records are created when your wealth reaches the nisab threshold and maintains it for a full lunar year (Hawl).
                 </p>
               </div>
             </div>

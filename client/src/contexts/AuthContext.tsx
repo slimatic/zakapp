@@ -132,7 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      console.log('Attempting login with username/email:', email);
+      // Attempting login
       // Support both username and email - backend now accepts either
       // If it looks like an email, send as email; otherwise send as username
       const isEmail = email.includes('@');
@@ -141,7 +141,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         : { username: email, password };
       
       const response = await apiService.login(credentials);
-      console.log('Login response:', { ...response, accessToken: response.accessToken ? '[PRESENT]' : '[MISSING]' });
+      // Login successful
       
       if (response.success && response.accessToken && response.user) {
         localStorage.setItem('accessToken', response.accessToken);
@@ -182,9 +182,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      console.log('Attempting registration with:', { ...userData, password: '[HIDDEN]' });
       const response = await apiService.register(userData);
-      console.log('Registration response:', { ...response, accessToken: response.accessToken ? '[PRESENT]' : '[MISSING]' });
+      // Registration successful
       
       if (response.success && response.accessToken && response.user) {
         localStorage.setItem('accessToken', response.accessToken);

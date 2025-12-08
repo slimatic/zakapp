@@ -148,16 +148,34 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
   }
 
   if (!chartData || chartData.length === 0) {
+    // Provide context-specific empty state messages
+    let emptyMessage = 'No data available';
+    let emptyHint = `Create some Nisab Year Records to see ${title || metricType.replace(/_/g, ' ')}`;
+    
+    if (metricType === 'wealth_trend') {
+      emptyMessage = 'No asset data available';
+      emptyHint = 'Add assets to your portfolio to track wealth over time';
+    } else if (metricType === 'zakat_trend') {
+      emptyMessage = 'No Nisab Year Records found';
+      emptyHint = 'Create a Nisab Year Record to track Zakat obligations';
+    } else if (metricType === 'payment_distribution') {
+      emptyMessage = 'No payments recorded yet';
+      emptyHint = 'Record Zakat payments to see distribution by category';
+    } else if (metricType === 'asset_composition') {
+      emptyMessage = 'No assets found';
+      emptyHint = 'Add assets to your portfolio to see composition breakdown';
+    }
+    
     return (
       <div className="flex flex-col items-center justify-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200" style={{ height: compact ? 200 : height }}>
         <svg className="h-16 w-16 mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 00-2 2h-2a2 2 0 00-2-2z" />
         </svg>
         <p className="text-center font-medium text-gray-700">
-          No data available
+          {emptyMessage}
         </p>
-        <p className="text-sm text-gray-500 mt-1">
-          Create some snapshots to see {title || metricType.replace(/_/g, ' ')}
+        <p className="text-sm text-gray-500 mt-1 max-w-xs text-center">
+          {emptyHint}
         </p>
       </div>
     );
@@ -307,15 +325,19 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 ${compact ? 'p-4' : 'p-6'}`}>
+    <div 
+      className={`bg-white rounded-lg border border-gray-200 ${compact ? 'p-4' : 'p-6'}`}
+      role="region"
+      aria-label={`${title || metricType.replace(/_/g, ' ')} chart`}
+    >
       {/* Header */}
       {!compact && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-900" id={`chart-title-${metricType}`}>
             {title || metricType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
           </h3>
           {analytics?.metadata && (
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 mt-1" id={`chart-desc-${metricType}`}>
               {analytics.metadata.period} • Last updated: {new Date(analytics.metadata.lastUpdated).toLocaleDateString()}
             </p>
           )}
@@ -323,7 +345,12 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
       )}
 
       {/* Chart */}
-      <div className="w-full">
+      <div 
+        className="w-full" 
+        role="img"
+        aria-labelledby={`chart-title-${metricType}`}
+        aria-describedby={`chart-desc-${metricType}`}
+      >
         {renderChart()}
       </div>
 
