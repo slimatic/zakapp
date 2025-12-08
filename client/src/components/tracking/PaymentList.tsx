@@ -13,6 +13,7 @@ import { Input } from '../ui/Input';
 import { PaymentCard } from './PaymentCard';
 import { PaymentDetailModal } from './PaymentDetailModal';
 import { formatCurrency } from '../../utils/formatters';
+import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 interface PaymentListProps {
@@ -53,6 +54,8 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   onDeletePayment,
   compact = false
 }) => {
+  const maskedCurrency = useMaskedCurrency();
+  
   // Filters state
   const [filters, setFilters] = useState({
     category: 'all',
@@ -243,7 +246,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="text-sm font-medium text-green-800">Total Paid</div>
             <div className="text-2xl font-bold text-green-900">
-              {formatCurrency(totalAmount)}
+              {maskedCurrency(formatCurrency(totalAmount))}
             </div>
           </div>
           
@@ -264,7 +267,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="text-sm font-medium text-orange-800">Average Payment</div>
             <div className="text-2xl font-bold text-orange-900">
-              {formatCurrency(sortedAndFilteredPayments.length > 0 ? totalAmount / sortedAndFilteredPayments.length : 0)}
+              {maskedCurrency(formatCurrency(sortedAndFilteredPayments.length > 0 ? totalAmount / sortedAndFilteredPayments.length : 0))}
             </div>
           </div>
         </div>

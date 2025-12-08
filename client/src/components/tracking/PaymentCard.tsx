@@ -7,6 +7,7 @@
 import React from 'react';
 import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
 import { formatGregorianDate } from '../../utils/calendarConverter';
+import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
 import { Button } from '../ui/Button';
 
@@ -44,7 +45,7 @@ const PAYMENT_METHODS: Record<string, string> = {
  * PaymentCard component with React.memo for performance
  * Only re-renders when payment data or callbacks change
  */
-const PaymentCardComponent: React.FC<PaymentCardProps> = ({
+export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
   payment,
   nisabYear,
   onEdit,
@@ -52,6 +53,8 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
   onViewDetails,
   compact = false
 }) => {
+  const maskedCurrency = useMaskedCurrency();
+  
   const categoryLabel = ZAKAT_RECIPIENTS[payment.recipientCategory] || payment.recipientCategory;
   const methodLabel = PAYMENT_METHODS[payment.paymentMethod] || payment.paymentMethod;
 
@@ -70,7 +73,7 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
           </div>
           <div className="text-left sm:text-right flex-shrink-0">
             <div className="text-base sm:text-lg font-bold text-green-600">
-              {formatCurrency(payment.amount, payment.currency as CurrencyCode)}
+              {maskedCurrency(formatCurrency(payment.amount, payment.currency as CurrencyCode))}
             </div>
             <div className="text-xs text-gray-500">
               {formatGregorianDate(new Date(payment.paymentDate))}
@@ -86,7 +89,7 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
                 {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
               </span>
               <span className="text-blue-700 whitespace-nowrap">
-                Due: <span className="font-semibold text-blue-900">{formatCurrency(nisabYear.zakatAmount || 0)}</span>
+                Due: <span className="font-semibold text-blue-900">{maskedCurrency(formatCurrency(nisabYear.zakatAmount || 0))}</span>
               </span>
             </div>
           </div>

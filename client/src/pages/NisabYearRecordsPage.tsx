@@ -18,6 +18,7 @@ import AuditTrailView from '../components/AuditTrailView';
 import AssetSelectionTable from '../components/tracking/AssetSelectionTable';
 import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
 import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
+import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '../components/tracking/AssetSelectionTable';
 
 export const NisabYearRecordsPage: React.FC = () => {
@@ -161,13 +162,15 @@ export const NisabYearRecordsPage: React.FC = () => {
   };
 
   // Format currency
+  const maskedCurrency = useMaskedCurrency();
   const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-    return new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     }).format(amount);
+    return maskedCurrency(formatted);
   };
 
   // Create record mutation
