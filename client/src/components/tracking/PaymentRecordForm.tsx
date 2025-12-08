@@ -174,10 +174,10 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   const submitError = createPaymentMutation.error || updatePaymentMutation.error;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
           {isEditing ? 'Edit Payment Record' : 'Add Payment Record'}
         </h3>
         <p className="text-sm text-gray-600 mt-1">
@@ -250,7 +250,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       )}
 
       {/* Amount */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Amount Paid *
@@ -303,7 +303,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       </div>
 
       {/* Recipient Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Recipient Name/Organization *
@@ -336,19 +336,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       </div>
 
       {/* Optional Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
-          <Input
-            type="text"
-            placeholder="Brief description of the payment"
-            value={formData.description}
-            onChange={(e) => handleInputChange('description', e.target.value)}
-          />
-        </div>
-
+      <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Reference/Transaction ID
@@ -394,11 +382,11 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       )}
 
       {/* Form Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t">
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-1 sm:flex-none"
+          className="w-full sm:w-auto sm:min-w-[120px]"
         >
           {isLoading ? (
             <>
@@ -416,7 +404,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             variant="secondary"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 sm:flex-none"
+            className="w-full sm:w-auto sm:min-w-[120px]"
           >
             Cancel
           </Button>
@@ -424,20 +412,17 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       </div>
 
       {/* Islamic Information */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h4 className="text-sm font-medium text-green-800">
-              Islamic Guidelines for Zakat Distribution
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+        <div className="flex items-start gap-2">
+          <svg className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+          <div className="flex-1">
+            <h4 className="text-xs sm:text-sm font-medium text-green-800">
+              Islamic Guidelines
             </h4>
-            <p className="text-sm text-green-700 mt-1">
-              The Quran specifies eight categories of people eligible to receive Zakat (Quran 9:60). 
-              Choose the appropriate category that best describes your recipient to ensure Islamic compliance.
+            <p className="text-xs text-green-700 mt-0.5">
+              The Quran specifies eight categories of people eligible to receive Zakat (Quran 9:60).
             </p>
           </div>
         </div>

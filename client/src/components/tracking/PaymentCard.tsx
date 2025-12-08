@@ -56,20 +56,20 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
   const methodLabel = PAYMENT_METHODS[payment.paymentMethod] || payment.paymentMethod;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-      <div className="flex flex-col gap-2">
+    <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3 hover:shadow-md transition-shadow">
+      <div className="flex flex-col gap-1.5 sm:gap-2">
         {/* Header with recipient and amount */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-3">
           <div className="flex-1 min-w-0">
             <h4 className="font-semibold text-gray-900 text-sm truncate">
               {payment.recipientName}
             </h4>
-            <p className="text-xs text-gray-600 mt-0.5">
+            <p className="text-xs text-gray-600">
               {categoryLabel}
             </p>
           </div>
-          <div className="text-right flex-shrink-0">
-            <div className="text-lg font-bold text-green-600">
+          <div className="text-left sm:text-right flex-shrink-0">
+            <div className="text-base sm:text-lg font-bold text-green-600">
               {formatCurrency(payment.amount, payment.currency as CurrencyCode)}
             </div>
             <div className="text-xs text-gray-500">
@@ -80,19 +80,14 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
 
         {/* Nisab Year Context */}
         {nisabYear && (
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-2">
+          <div className="bg-blue-50 border border-blue-200 rounded p-1.5 sm:p-2">
             <div className="flex items-center justify-between gap-2 text-xs">
-              <div className="flex-1">
-                <span className="font-medium text-blue-800">
-                  {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
-                </span>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <span className="text-blue-700">Due: </span>
-                <span className="font-semibold text-blue-900">
-                  {formatCurrency(nisabYear.zakatAmount || 0)}
-                </span>
-              </div>
+              <span className="font-medium text-blue-800 truncate">
+                {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
+              </span>
+              <span className="text-blue-700 whitespace-nowrap">
+                Due: <span className="font-semibold text-blue-900">{formatCurrency(nisabYear.zakatAmount || 0)}</span>
+              </span>
             </div>
           </div>
         )}
@@ -121,11 +116,11 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-1 pt-1 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-0.5 sm:gap-1 pt-1 border-t border-gray-100">
           {onViewDetails && (
             <button
               onClick={() => onViewDetails(payment)}
-              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
             >
               Details
             </button>
@@ -134,7 +129,7 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
           {onEdit && (
             <button
               onClick={() => onEdit(payment)}
-              className="px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
             >
               Edit
             </button>
@@ -143,7 +138,7 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
           {onDelete && (
             <button
               onClick={() => onDelete(payment.id)}
-              className="px-2 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
             >
               Delete
             </button>
