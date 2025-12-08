@@ -78,42 +78,81 @@ export class YearlySnapshotService {
 
     const decrypted = { ...snapshot };
 
+    // Helper to safely decrypt or return original if not encrypted
+    const safeDecrypt = async (value: any): Promise<string> => {
+      if (value === undefined || value === null) return value;
+      
+      // If it's a number, it's not encrypted
+      if (typeof value === 'number') return String(value);
+      
+      // If it's a string but doesn't look like "iv:ciphertext", assume plain text
+      // EncryptionService.encrypt produces "base64:base64"
+      if (typeof value === 'string' && !value.includes(':')) {
+        return value;
+      }
+
+      try {
+        return await EncryptionService.decrypt(value, this.encryptionKey);
+      } catch (error) {
+        // If decryption fails, assume it's plain text (legacy data)
+        console.warn(`Failed to decrypt field, using raw value: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        return String(value);
+      }
+    };
+
     try {
       // Decrypt financial fields
-      if (snapshot.totalWealth) {
-        decrypted.totalWealth = parseFloat(await EncryptionService.decrypt(snapshot.totalWealth, this.encryptionKey));
+      if (snapshot.totalWealth !== undefined) {
+        const val = await safeDecrypt(snapshot.totalWealth);
+        decrypted.totalWealth = parseFloat(val);
       }
 
-      if (snapshot.totalLiabilities) {
-        decrypted.totalLiabilities = parseFloat(await EncryptionService.decrypt(snapshot.totalLiabilities, this.encryptionKey));
+      if (snapshot.totalLiabilities !== undefined) {
+        const val = await safeDecrypt(snapshot.totalLiabilities);
+        decrypted.totalLiabilities = parseFloat(val);
       }
 
-      if (snapshot.zakatableWealth) {
-        decrypted.zakatableWealth = parseFloat(await EncryptionService.decrypt(snapshot.zakatableWealth, this.encryptionKey));
+      if (snapshot.zakatableWealth !== undefined) {
+        const val = await safeDecrypt(snapshot.zakatableWealth);
+        decrypted.zakatableWealth = parseFloat(val);
       }
 
-      if (snapshot.zakatAmount) {
-        decrypted.zakatAmount = parseFloat(await EncryptionService.decrypt(snapshot.zakatAmount, this.encryptionKey));
+      if (snapshot.zakatAmount !== undefined) {
+        const val = await safeDecrypt(snapshot.zakatAmount);
+        decrypted.zakatAmount = parseFloat(val);
       }
 
-      if (snapshot.nisabThreshold) {
-        decrypted.nisabThreshold = parseFloat(await EncryptionService.decrypt(snapshot.nisabThreshold, this.encryptionKey));
+      if (snapshot.nisabThreshold !== undefined) {
+        const val = await safeDecrypt(snapshot.nisabThreshold);
+        decrypted.nisabThreshold = parseFloat(val);
       }
 
       // Decrypt JSON fields
       if (snapshot.assetBreakdown) {
-        decrypted.assetBreakdown = JSON.parse(await EncryptionService.decrypt(snapshot.assetBreakdown, this.encryptionKey));
+        const val = await safeDecrypt(snapshot.assetBreakdown);
+        try {
+          decrypted.assetBreakdown = typeof val === 'string' ? JSON.parse(val) : val;
+        } catch (e) {
+          decrypted.assetBreakdown = val;
+        }
       }
 
       if (snapshot.calculationDetails) {
-        decrypted.calculationDetails = JSON.parse(await EncryptionService.decrypt(snapshot.calculationDetails, this.encryptionKey));
+        const val = await safeDecrypt(snapshot.calculationDetails);
+        try {
+          decrypted.calculationDetails = typeof val === 'string' ? JSON.parse(val) : val;
+        } catch (e) {
+          decrypted.calculationDetails = val;
+        }
       }
 
       if (snapshot.userNotes) {
-        decrypted.userNotes = await EncryptionService.decrypt(snapshot.userNotes, this.encryptionKey);
+        decrypted.userNotes = await safeDecrypt(snapshot.userNotes);
       }
     } catch (error) {
-      throw new Error(`Failed to decrypt snapshot data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error(`Failed to decrypt snapshot data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Fallback to returning the snapshot as-is to prevent crashing
+      return snapshot;
     }
 
     return decrypted as YearlySnapshot;
