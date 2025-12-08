@@ -14,7 +14,7 @@ import { formatGregorianDate } from '../../utils/calendarConverter';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 interface PaymentListProps {
-  snapshotId: string;
+  snapshotId?: string; // Made optional for "All Payments" view
   onCreateNew?: () => void;
   onEditPayment?: (payment: PaymentRecord) => void;
   onDeletePayment?: (paymentId: string) => void;
@@ -128,8 +128,6 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         {onCreateNew && (
           <Button 
             onClick={onCreateNew}
-            disabled={!snapshotId}
-            title={!snapshotId ? 'Please select a snapshot first' : undefined}
           >
             Add Payment
           </Button>

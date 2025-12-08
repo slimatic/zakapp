@@ -17,18 +17,19 @@ export const PaymentsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const snapshotIdParam = searchParams.get('snapshot');
   
-  // Fetch available snapshots
+  // Fetch available Nisab Year Records
   const { data: snapshotsData, isLoading: snapshotsLoading } = useSnapshots();
   const [snapshotId, setSnapshotId] = useState<string | undefined>(snapshotIdParam || undefined);
   
-  // Auto-select the most recent snapshot if none is selected
-  useEffect(() => {
-    if (!snapshotId && snapshotsData?.snapshots && snapshotsData.snapshots.length > 0) {
-      const mostRecent = snapshotsData.snapshots[0]; // Assuming sorted by date desc
-      setSnapshotId(mostRecent.id);
-      setSearchParams({ snapshot: mostRecent.id });
-    }
-  }, [snapshotId, snapshotsData, setSearchParams]);
+  // Auto-select the most recent Nisab Year Record if none is selected (optional behavior)
+  // Commented out to default to "All Payments" view
+  // useEffect(() => {
+  //   if (!snapshotId && snapshotsData?.snapshots && snapshotsData.snapshots.length > 0) {
+  //     const mostRecent = snapshotsData.snapshots[0]; // Assuming sorted by date desc
+  //     setSnapshotId(mostRecent.id);
+  //     setSearchParams({ snapshot: mostRecent.id });
+  //   }
+  // }, [snapshotId, snapshotsData, setSearchParams]);
   
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
@@ -36,10 +37,8 @@ export const PaymentsPage: React.FC = () => {
   const { data: paymentsData } = usePayments({ snapshotId });
 
   const handleCreatePayment = () => {
-    if (!snapshotId) {
-      alert('Please select a snapshot first');
-      return;
-    }
+    // Allow creating payment even without specific Nisab Year selected
+    // User will need to select it in the form
     setEditingPayment(null);
     setShowCreateForm(true);
   };
@@ -74,11 +73,11 @@ export const PaymentsPage: React.FC = () => {
             </Button>
           </div>
 
-          {/* Snapshot Selector */}
+          {/* Nisab Year Selector */}
           {snapshotsData?.snapshots && snapshotsData.snapshots.length > 0 && (
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Year/Snapshot
+                Filter by Nisab Year
               </label>
               <select
                 value={snapshotId || ''}
@@ -93,6 +92,7 @@ export const PaymentsPage: React.FC = () => {
                 }}
                 className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
+                <option value="">All Payments</option>
                 {snapshotsData.snapshots.map((snapshot) => (
                   <option key={snapshot.id} value={snapshot.id}>
                     {new Date(snapshot.calculationDate).getFullYear()} - {snapshot.status}
@@ -103,11 +103,11 @@ export const PaymentsPage: React.FC = () => {
             </div>
           )}
 
-          {/* No snapshots warning */}
+          {/* No Nisab Years warning */}
           {!snapshotsLoading && (!snapshotsData?.snapshots || snapshotsData.snapshots.length === 0) && (
             <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-800">
-                No yearly snapshots found. Please create a yearly snapshot first to record payments.
+                No Nisab Year Records found. Please create a Nisab Year Record first to record payments.
               </p>
               <Button
                 variant="primary"
@@ -197,35 +197,23 @@ export const PaymentsPage: React.FC = () => {
                     </svg>
                   </button>
                 </div>
-                {snapshotId ? (
-                  <PaymentRecordForm
-                    payment={editingPayment || undefined}
-                    snapshotId={snapshotId}
-                    onSuccess={handleFormClose}
-                    onCancel={handleFormClose}
-                  />
-                ) : (
-                  <div className="p-6 text-center text-gray-600">
-                    Please select a snapshot to record payments.
-                  </div>
-                )}
+                <PaymentRecordForm
+                  payment={editingPayment || undefined}
+                  snapshotId={snapshotId}
+                  onSuccess={handleFormClose}
+                  onCancel={handleFormClose}
+                />
               </div>
             </div>
           </div>
         )}
 
         {/* Payment List */}
-        {snapshotId ? (
-          <PaymentList
-            snapshotId={snapshotId}
-            onCreateNew={handleCreatePayment}
-            onEditPayment={handleEditPayment}
-          />
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-            <p className="text-gray-600">Select a snapshot above to view and record payments.</p>
-          </div>
-        )}
+        <PaymentList
+          snapshotId={snapshotId}
+          onCreateNew={handleCreatePayment}
+          onEditPayment={handleEditPayment}
+        />
 
         {/* Help Section */}
         <div className="mt-12 bg-green-50 border border-green-200 rounded-lg p-6">
