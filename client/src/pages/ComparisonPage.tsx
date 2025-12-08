@@ -89,7 +89,7 @@ export const ComparisonPage: React.FC = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Year-Over-Year Comparison</h1>
               <p className="text-gray-600 mt-2">
-                Compare multiple yearly snapshots to analyze trends and changes
+                Compare multiple Nisab Year Records to analyze trends and changes
               </p>
             </div>
             <Button variant="secondary" onClick={() => navigate('/tracking')}>
@@ -104,10 +104,10 @@ export const ComparisonPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Selected Snapshots: {selectedIds.length} / 5
+                  Selected Nisab Years: {selectedIds.length} / 5
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Select 2-5 finalized snapshots to compare
+                  Select 2-5 finalized Nisab Year Records to compare
                 </p>
               </div>
               <div className="flex items-center space-x-3">
@@ -152,10 +152,10 @@ export const ComparisonPage: React.FC = () => {
           <>
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Select Snapshots to Compare
+                Select Nisab Year Records to Compare
               </h2>
               <p className="text-sm text-gray-600">
-                Only finalized snapshots can be compared. Click on a snapshot to select/deselect it.
+                Only finalized Nisab Year Records can be compared. Click on a record to select/deselect it.
               </p>
             </div>
 
@@ -174,13 +174,13 @@ export const ComparisonPage: React.FC = () => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <h3 className="mt-4 text-lg font-medium text-gray-900">No Finalized Snapshots</h3>
+                <h3 className="mt-4 text-lg font-medium text-gray-900">No Finalized Nisab Year Records</h3>
                 <p className="mt-2 text-gray-600">
-                  You need at least 2 finalized snapshots to perform a comparison.
+                  You need at least 2 finalized Nisab Year Records to perform a comparison.
                 </p>
                 <div className="mt-6">
                   <Button onClick={() => navigate('/tracking/snapshots')}>
-                    Go to Snapshots
+                    Go to Nisab Records
                   </Button>
                 </div>
               </div>
@@ -199,13 +199,13 @@ export const ComparisonPage: React.FC = () => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <h3 className="mt-4 text-lg font-medium text-gray-900">Need More Snapshots</h3>
+                <h3 className="mt-4 text-lg font-medium text-gray-900">Need More Nisab Year Records</h3>
                 <p className="mt-2 text-gray-600">
-                  You have 1 finalized snapshot. Create and finalize at least one more to compare.
+                  You have 1 finalized Nisab Year Record. Create and finalize at least one more to compare.
                 </p>
                 <div className="mt-6">
                   <Button onClick={() => navigate('/tracking/snapshots')}>
-                    Create Another Snapshot
+                    Create Another Record
                   </Button>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export const ComparisonPage: React.FC = () => {
               </h3>
               <div className="text-sm text-purple-700 mt-2 space-y-2">
                 <p>
-                  Comparing snapshots helps you understand how your wealth and Zakat obligations have changed over time:
+                  Comparing Nisab Year Records helps you understand how your wealth and Zakat obligations have changed over time:
                 </p>
                 <ul className="list-disc list-inside space-y-1 mt-2">
                   <li><strong>Wealth Growth</strong>: See how your zakatable wealth increased or decreased</li>
@@ -269,7 +269,7 @@ export const ComparisonPage: React.FC = () => {
                   <li><strong>Liability Management</strong>: Monitor changes in your debts and obligations</li>
                 </ul>
                 <p className="mt-2">
-                  <strong>Tip:</strong> Compare snapshots from the same time of year for the most accurate year-over-year analysis.
+                  <strong>Tip:</strong> Compare Nisab Year Records from the same time of year for the most accurate year-over-year analysis.
                 </p>
               </div>
             </div>

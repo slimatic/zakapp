@@ -3,14 +3,16 @@
  * Lists payment records with filtering and categorization
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { usePayments } from '../../hooks/usePayments';
+import { useSnapshots } from '../../hooks/useSnapshots';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { Input } from '../ui/Input';
+import { PaymentCard } from './PaymentCard';
+import { PaymentDetailModal } from './PaymentDetailModal';
 import { formatCurrency } from '../../utils/formatters';
-import { formatGregorianDate } from '../../utils/calendarConverter';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 interface PaymentListProps {
@@ -60,17 +62,115 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     endDate: ''
   });
 
+  // Sorting state (T021)
+  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'created'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Pagination state (T022)
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
+
+  // Detail modal state (T023)
+  const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(null);
+
   // Fetch payments
   const { data, isLoading, error, refetch } = usePayments({
     snapshotId,
     category: filters.category === 'all' ? undefined : filters.category
-    // Note: Additional filters like paymentMethod, search, dates would need backend support
   });
+
+  // Fetch snapshots for Nisab Year context
+  const { data: snapshotsData } = useSnapshots({ limit: 100 });
 
   const payments = data?.payments || [];
 
+  // Create a map of snapshots by ID for quick lookup
+  const snapshotsMap = useMemo(() => {
+    const map = new Map();
+    snapshotsData?.snapshots?.forEach(snapshot => {
+      map.set(snapshot.id, snapshot);
+    });
+    return map;
+  }, [snapshotsData]);
+
+  // Sort and filter payments (T021)
+  const sortedAndFilteredPayments = useMemo(() => {
+    let filtered = [...payments];
+
+    // Apply client-side filters
+    if (filters.paymentMethod !== 'all') {
+      filtered = filtered.filter(p => p.paymentMethod === filters.paymentMethod);
+    }
+
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.recipientName.toLowerCase().includes(searchLower) ||
+        p.notes?.toLowerCase().includes(searchLower) ||
+        p.receiptReference?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (filters.startDate) {
+      filtered = filtered.filter(p => 
+        new Date(p.paymentDate) >= new Date(filters.startDate)
+      );
+    }
+
+    if (filters.endDate) {
+      filtered = filtered.filter(p => 
+        new Date(p.paymentDate) <= new Date(filters.endDate)
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'date':
+          comparison = new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime();
+          break;
+        case 'amount':
+          comparison = a.amount - b.amount;
+          break;
+        case 'created':
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [payments, filters, sortBy, sortOrder]);
+
+  // Paginate results (T022)
+  const totalPages = Math.ceil(sortedAndFilteredPayments.length / itemsPerPage);
+  const paginatedPayments = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedAndFilteredPayments.slice(startIndex, endIndex);
+  }, [sortedAndFilteredPayments, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when filters or sorting changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, sortBy, sortOrder]);
+
   const handleFilterChange = (field: string, value: string) => {
     setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSortChange = (field: 'date' | 'amount' | 'created') => {
+    if (sortBy === field) {
+      // Toggle sort order if same field
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new field with default descending order
+      setSortBy(field);
+      setSortOrder('desc');
+    }
   };
 
   const clearFilters = () => {
@@ -89,9 +189,9 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                           filters.startDate || 
                           filters.endDate;
 
-  // Calculate totals
-  const totalAmount = payments.reduce((sum: number, payment: PaymentRecord) => sum + payment.amount, 0);
-  const categoryTotals = payments.reduce((acc: Record<string, number>, payment: PaymentRecord) => {
+  // Calculate totals using sorted/filtered payments
+  const totalAmount = sortedAndFilteredPayments.reduce((sum: number, payment: PaymentRecord) => sum + payment.amount, 0);
+  const categoryTotals = sortedAndFilteredPayments.reduce((acc: Record<string, number>, payment: PaymentRecord) => {
     acc[payment.recipientCategory] = (acc[payment.recipientCategory] || 0) + payment.amount;
     return acc;
   }, {});
@@ -121,7 +221,10 @@ export const PaymentList: React.FC<PaymentListProps> = ({
             Payment Records
           </h3>
           <p className="text-gray-600 mt-1">
-            {payments.length ? `${payments.length} payments recorded` : 'Track your Zakat payments'}
+            {sortedAndFilteredPayments.length ? `${sortedAndFilteredPayments.length} payments` : 'Track your Zakat payments'}
+            {hasActiveFilters && sortedAndFilteredPayments.length !== payments.length && (
+              <span className="text-sm text-gray-500"> (filtered from {payments.length})</span>
+            )}
           </p>
         </div>
         
@@ -135,7 +238,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
       </div>
 
       {/* Summary Cards */}
-      {!compact && payments.length > 0 && (
+      {!compact && sortedAndFilteredPayments.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="text-sm font-medium text-green-800">Total Paid</div>
@@ -161,11 +264,62 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="text-sm font-medium text-orange-800">Average Payment</div>
             <div className="text-2xl font-bold text-orange-900">
-              {formatCurrency(totalAmount / payments.length)}
+              {formatCurrency(sortedAndFilteredPayments.length > 0 ? totalAmount / sortedAndFilteredPayments.length : 0)}
             </div>
           </div>
         </div>
       )}
+
+      {/* Sorting Controls (T021) */}
+      <div className="flex flex-wrap items-center gap-3 bg-white border border-gray-200 rounded-lg p-3">
+        <span className="text-sm font-medium text-gray-700">Sort by:</span>
+        
+        <button
+          onClick={() => handleSortChange('date')}
+          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+            sortBy === 'date'
+              ? 'bg-green-100 text-green-800 font-medium'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Payment Date
+          {sortBy === 'date' && (
+            <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+          )}
+        </button>
+
+        <button
+          onClick={() => handleSortChange('amount')}
+          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+            sortBy === 'amount'
+              ? 'bg-green-100 text-green-800 font-medium'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Amount
+          {sortBy === 'amount' && (
+            <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+          )}
+        </button>
+
+        <button
+          onClick={() => handleSortChange('created')}
+          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+            sortBy === 'created'
+              ? 'bg-green-100 text-green-800 font-medium'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Created Date
+          {sortBy === 'created' && (
+            <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+          )}
+        </button>
+
+        <div className="ml-auto text-sm text-gray-600">
+          {sortOrder === 'asc' ? 'Oldest first' : 'Newest first'}
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="bg-gray-50 p-4 rounded-lg">
@@ -253,7 +407,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
       </div>
 
       {/* Payment List */}
-      {payments.length === 0 ? (
+      {sortedAndFilteredPayments.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -273,83 +427,112 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           )}
         </div>
       ) : (
-        <div className="space-y-4">
-          {payments.map((payment) => (
-            <div key={payment.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                {/* Payment Info */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">
-                        {payment.recipientName}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {ZAKAT_RECIPIENTS.find(cat => cat.value === payment.recipientCategory)?.label}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-green-600">
-                        {formatCurrency(payment.amount)}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {formatGregorianDate(new Date(payment.paymentDate))}
-                      </div>
-                    </div>
-                  </div>
+        <>
+          <div className="space-y-4">
+            {paginatedPayments.map((payment) => (
+              <PaymentCard
+                key={payment.id}
+                payment={payment}
+                nisabYear={snapshotsMap.get(payment.snapshotId)}
+                onEdit={onEditPayment}
+                onDelete={onDeletePayment}
+                onViewDetails={setSelectedPayment}
+                compact={compact}
+              />
+            ))}
+          </div>
 
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                    <span className="flex items-center">
-                      <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                      {PAYMENT_METHODS.find(method => method.value === payment.paymentMethod)?.label}
-                    </span>
+          {/* Payment Detail Modal (T023) */}
+          {selectedPayment && (
+            <PaymentDetailModal
+              payment={selectedPayment}
+              nisabYear={snapshotsMap.get(selectedPayment.snapshotId)}
+              onClose={() => setSelectedPayment(null)}
+              onEdit={(payment) => {
+                setSelectedPayment(null);
+                onEditPayment?.(payment);
+              }}
+              onDelete={onDeletePayment}
+            />
+          )}
 
-                    {payment.receiptReference && (
-                      <span className="flex items-center">
-                        <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16l4-2 4 2V4M7 4h10M7 4H5a2 2 0 00-2 2v14a2 2 0 002 2h2" />
-                        </svg>
-                        Ref: {payment.receiptReference}
-                      </span>
-                    )}
-                  </div>
+          {/* Pagination Controls (T022) */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200">
+              <div className="text-sm text-gray-600">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, sortedAndFilteredPayments.length)} of {sortedAndFilteredPayments.length} payments
+              </div>
 
-                  {payment.notes && (
-                    <p className="text-xs text-gray-500 mt-2 italic">
-                      {payment.notes}
-                    </p>
-                  )}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                >
+                  First
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  ← Previous
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    // Show pages around current page
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-1 text-sm rounded ${
+                          currentPage === pageNum
+                            ? 'bg-green-600 text-white font-medium'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  {onEditPayment && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEditPayment(payment)}
-                    >
-                      Edit
-                    </Button>
-                  )}
-                  
-                  {onDeletePayment && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDeletePayment(payment.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      Delete
-                    </Button>
-                  )}
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next →
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                >
+                  Last
+                </Button>
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );
