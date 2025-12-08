@@ -15,6 +15,7 @@
  */
 
 import React from 'react';
+import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { NisabYearRecord, NisabYearRecordWithLiveTracking } from '../../types/nisabYearRecord';
 
 interface ZakatDisplayCardProps {
@@ -45,6 +46,8 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
   onRefreshAssets,
   isLoadingAssets = false,
 }) => {
+  const maskedCurrency = useMaskedCurrency();
+  
   // Parse numeric values from stored strings
   const zakatAmount = record.zakatAmount ? parseFloat(record.zakatAmount.toString()) : 0;
   const zakatableWealth = record.zakatableWealth ? parseFloat(record.zakatableWealth.toString()) : 0;
@@ -82,14 +85,14 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
       <div className="mb-4 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-green-200">
         <div className="text-sm text-gray-600 mb-1">Calculated Zakat Due</div>
         <div className="text-3xl font-bold text-green-700 mb-2">
-          {formatCurrency(zakatAmount, 'USD')}
+          {maskedCurrency(formatCurrency(zakatAmount, 'USD'))}
         </div>
         
         {/* Calculation breakdown */}
         <div className="text-xs text-gray-600 space-y-1">
           <div className="flex justify-between">
             <span>Zakatable Wealth:</span>
-            <span className="font-medium text-gray-900">{formatCurrency(zakatableWealth, 'USD')}</span>
+            <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(zakatableWealth, 'USD'))}</span>
           </div>
           <div className="flex justify-between">
             <span>Zakat Rate:</span>
@@ -97,7 +100,7 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
           </div>
           <div className="text-xs text-gray-500 italic mt-2">
             {zakatableWealth > 0 
-              ? `${formatCurrency(zakatableWealth, 'USD')} × 2.5% = ${formatCurrency(zakatAmount, 'USD')}`
+              ? `${maskedCurrency(formatCurrency(zakatableWealth, 'USD'))} × 2.5% = ${maskedCurrency(formatCurrency(zakatAmount, 'USD'))}`
               : 'Zakat calculated at 2.5% of zakatable wealth'}
           </div>
         </div>
