@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { formatCurrency } from '../../utils/formatters';
-import { formatGregorianDate, gregorianToHijri } from '../../utils/calendarConverter';
+import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
+import { formatGregorianDate, gregorianToHijri, HIJRI_MONTHS } from '../../utils/calendarConverter';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
 import { Button } from '../ui/Button';
 
@@ -112,7 +112,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
             <div className="text-sm font-medium text-green-800 mb-2">Payment Amount</div>
             <div className="text-4xl font-bold text-green-600">
-              {formatCurrency(payment.amount, payment.currency)}
+              {formatCurrency(payment.amount, payment.currency as CurrencyCode)}
             </div>
             {payment.exchangeRate !== 1 && (
               <div className="text-sm text-green-700 mt-2">
@@ -160,7 +160,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
                     {formatGregorianDate(new Date(payment.paymentDate))}
                   </div>
                   <div className="text-xs text-gray-600">
-                    {hijriDate.day} {hijriDate.monthName} {hijriDate.year} AH
+                    {hijriDate.hd} {HIJRI_MONTHS[hijriDate.hm - 1]} {hijriDate.hy} AH
                   </div>
                 </div>
               </div>
@@ -207,55 +207,18 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="text-sm font-medium text-blue-800 mb-1">Hawl Period</div>
+                    <div className="text-sm font-medium text-blue-800 mb-1">Nisab Year</div>
                     <div className="text-sm text-blue-900">
-                      {new Date(nisabYear.hawlStartDate).getFullYear()} Islamic Year
+                      {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
                     </div>
                     <div className="text-xs text-blue-700 mt-1">
-                      {formatGregorianDate(new Date(nisabYear.hawlStartDate))} - {formatGregorianDate(new Date(nisabYear.hawlEndDate))}
+                      Calculated: {formatGregorianDate(new Date(nisabYear.calculationDate))}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium text-blue-800 mb-1">Total Zakat Due</div>
                     <div className="text-lg font-bold text-blue-900">
-                      {formatCurrency(nisabYear.zakatAmount || 0, nisabYear.currency)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-blue-200 space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-blue-700">Total Paid:</span>
-                    <span className="font-semibold text-blue-900">
-                      {formatCurrency(nisabYear.zakatPaid || 0, nisabYear.currency)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-blue-700">Outstanding:</span>
-                    <span className={`font-semibold ${
-                      (nisabYear.zakatAmount || 0) - (nisabYear.zakatPaid || 0) <= 0 
-                        ? 'text-green-600' 
-                        : 'text-orange-600'
-                    }`}>
-                      {formatCurrency(
-                        Math.max(0, (nisabYear.zakatAmount || 0) - (nisabYear.zakatPaid || 0)),
-                        nisabYear.currency
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="mt-3">
-                    <div className="w-full bg-blue-100 rounded-full h-3">
-                      <div 
-                        className="bg-blue-600 h-3 rounded-full transition-all"
-                        style={{ 
-                          width: `${Math.min(100, ((nisabYear.zakatPaid || 0) / (nisabYear.zakatAmount || 1)) * 100)}%` 
-                        }}
-                      />
-                    </div>
-                    <div className="text-xs text-blue-700 mt-1.5 text-center font-medium">
-                      {Math.round(((nisabYear.zakatPaid || 0) / (nisabYear.zakatAmount || 1)) * 100)}% of Zakat obligation fulfilled
+                      {formatCurrency(nisabYear.zakatAmount || 0)}
                     </div>
                   </div>
                 </div>

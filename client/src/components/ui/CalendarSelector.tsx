@@ -296,5 +296,3 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
     </div>
   );
 };
-
-export default CalendarSelector;

@@ -182,7 +182,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      const response = await api.post('/api/v1/auth/register', userData);
+      const response = await apiService.register(userData);
       // Registration successful
       
       if (response.success && response.accessToken && response.user) {
