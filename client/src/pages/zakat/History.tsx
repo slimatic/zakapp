@@ -41,7 +41,7 @@ interface YearlySnapshot {
 
 /**
  * Zakat History & Tracking Page
- * Comprehensive calculation history, yearly snapshots, payment tracking,
+ * Comprehensive calculation history, Nisab Year Records, payment tracking,
  * and historical trend analysis with visualizations
  */
 export const History: React.FC = () => {
@@ -478,7 +478,7 @@ export const History: React.FC = () => {
             {activeTab === 'yearly' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">Yearly Snapshots</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Nisab Year Records</h3>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(parseInt(e.target.value))}
@@ -500,7 +500,7 @@ export const History: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Yearly snapshots table */}
+                {/* Nisab Year Records table */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>

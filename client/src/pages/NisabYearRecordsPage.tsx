@@ -17,6 +17,7 @@ import UnlockReasonDialog from '../components/UnlockReasonDialog';
 import AuditTrailView from '../components/AuditTrailView';
 import AssetSelectionTable from '../components/tracking/AssetSelectionTable';
 import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
+import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
 import type { Asset } from '../components/tracking/AssetSelectionTable';
 
 export const NisabYearRecordsPage: React.FC = () => {
@@ -89,9 +90,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const { data: assetsData, isLoading: isLoadingAssets, refetch: refetchAssets } = useQuery({
     queryKey: ['assets', 'nisab-create'],
     queryFn: async () => {
-      console.log('[NisabYearRecordsPage] Fetching assets for create modal...');
       const response = await apiService.getAssets();
-      console.log('[NisabYearRecordsPage] Assets response:', response);
       if (!response.success) {
         throw new Error('Failed to fetch assets');
       }
@@ -109,7 +108,7 @@ export const NisabYearRecordsPage: React.FC = () => {
         // Use createdAt as addedAt
         addedAt: asset.createdAt || asset.acquisitionDate,
       }));
-      console.log('[NisabYearRecordsPage] Mapped assets:', assets);
+      // Assets mapped and ready for selection
       return assets as Asset[];
     },
     enabled: showCreateModal, // Only fetch when modal is open
@@ -210,7 +209,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      console.log('Record created successfully:', data);
+      // Record created successfully
       // Invalidate all variations of the query key (all status filters)
       queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
       setShowCreateModal(false);
@@ -261,7 +260,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       alert('Please select at least one asset');
       return;
     }
-    console.log('Creating record with assets:', selectedAssetIds);
+    // Creating record with selected assets
     createRecordMutation.mutate({ selectedAssetIds });
   };
 
@@ -390,7 +389,7 @@ export const NisabYearRecordsPage: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {records.map((record: any) => {
-                  console.log('Record:', record); // Debug: log record data
+                  // Render record card
                   const badge = statusBadges[record.status] || { color: 'gray', label: record.status || 'Unknown' };
                   const isSelected = selectedRecordId === record.id;
                   const startDate = new Date(record.hawlStartDate);
@@ -650,6 +649,38 @@ export const NisabYearRecordsPage: React.FC = () => {
                   
                   {activeRecord.zakatAmount ? (
                     <div className="space-y-3 text-sm">
+                      {/* Payment Progress Indicator - T031 */}
+                      {activeRecord.zakatAmount && parseFloat(activeRecord.zakatAmount) > 0 && (
+                        <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-medium text-gray-600">Payment Progress</span>
+                            <span className={`text-sm font-bold ${
+                              payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0) >= parseFloat(activeRecord.zakatAmount)
+                                ? 'text-green-600'
+                                : payments.length > 0
+                                ? 'text-yellow-600'
+                                : 'text-red-600'
+                            }`}>
+                              {((payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0) / parseFloat(activeRecord.zakatAmount)) * 100).toFixed(0)}% paid
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0) >= parseFloat(activeRecord.zakatAmount)
+                                  ? 'bg-green-500'
+                                  : payments.length > 0
+                                  ? 'bg-yellow-500'
+                                  : 'bg-red-500'
+                              }`}
+                              style={{ 
+                                width: `${Math.min(100, (payments.reduce((sum: number, p: any) => sum + parseFloat(p.amount || p.decryptedAmount || '0'), 0) / parseFloat(activeRecord.zakatAmount)) * 100)}%` 
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="p-3 bg-blue-50 rounded border border-blue-200">
                         <div className="text-gray-600">Total Zakat Due</div>
                         <div className="text-lg font-bold text-blue-700">
@@ -889,7 +920,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                     assets={assetsData}
                     initialSelection={selectedAssetIds}
                     onSelectionChange={(ids) => {
-                      console.log('Asset selection changed:', ids);
+                      // Asset selection updated
                       setSelectedAssetIds(ids);
                     }}
                   />
@@ -1122,180 +1153,15 @@ export const NisabYearRecordsPage: React.FC = () => {
                 </p>
               </div>
               
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Payment Amount <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    value={paymentAmount}
-                    onChange={(e) => setPaymentAmount(e.target.value)}
-                    step="0.01"
-                    min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Recipient Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Local Masjid or Individual Name"
-                    value={paymentRecipientName}
-                    onChange={(e) => setPaymentRecipientName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Recipient Type <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={paymentRecipientType}
-                    onChange={(e) => setPaymentRecipientType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="individual">Individual</option>
-                    <option value="organization">Organization</option>
-                    <option value="charity">Charity</option>
-                    <option value="mosque">Mosque</option>
-                    <option value="family">Family</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Recipient Category <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={paymentRecipientCategory}
-                    onChange={(e) => setPaymentRecipientCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="poor">Poor & Needy</option>
-                    <option value="orphans">Orphans</option>
-                    <option value="widows">Widows</option>
-                    <option value="education">Education</option>
-                    <option value="healthcare">Healthcare</option>
-                    <option value="infrastructure">Infrastructure</option>
-                    <option value="general">General / Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Payment Method <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="cash">Cash</option>
-                    <option value="bank_transfer">Bank Transfer</option>
-                    <option value="check">Check</option>
-                    <option value="crypto">Cryptocurrency</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Receipt Reference (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Receipt #12345"
-                    value={paymentReceiptReference}
-                    onChange={(e) => setPaymentReceiptReference(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Notes (Optional)
-                  </label>
-                  <textarea
-                    placeholder="e.g., Paid to local charity for orphan support"
-                    value={paymentNotes}
-                    onChange={(e) => setPaymentNotes(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    rows={3}
-                  />
-                </div>
-              </div>
-              
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setShowPaymentsRecordId(null);
-                    setPaymentAmount('');
-                    setPaymentRecipientName('');
-                    setPaymentRecipientType('charity');
-                    setPaymentRecipientCategory('general');
-                    setPaymentMethod('cash');
-                    setPaymentNotes('');
-                    setPaymentReceiptReference('');
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!showPaymentsRecordId || !paymentAmount || !paymentRecipientName || !paymentRecipientType || !paymentRecipientCategory || !paymentMethod) return;
-
-                    try {
-                      // Call API to record payment with all collected data
-                      const resp = await apiService.recordPayment({
-                        snapshotId: showPaymentsRecordId,
-                        amount: parseFloat(paymentAmount),
-                        paymentDate: new Date(),
-                        recipientName: paymentRecipientName,
-                        recipientType: paymentRecipientType as any,
-                        recipientCategory: paymentRecipientCategory as any,
-                        paymentMethod: paymentMethod as any,
-                        currency: 'USD',
-                        notes: paymentNotes || undefined,
-                        receiptReference: paymentReceiptReference || undefined,
-                      });
-
-                      if (!resp.success) {
-                        throw new Error(resp.message || 'Failed to record payment');
-                      }
-
-                      // Invalidate any payments queries and refresh records
-                      queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
-                      queryClient.invalidateQueries({ queryKey: ['payments'], exact: false });
-                      queryClient.invalidateQueries({ queryKey: ['zakat-payments'], exact: false });
-
-                      alert(`Payment of ${formatCurrency(parseFloat(paymentAmount), 'USD')} recorded successfully!`);
-                      setShowPaymentsRecordId(null);
-                      setPaymentAmount('');
-                      setPaymentRecipientName('');
-                      setPaymentRecipientType('charity');
-                      setPaymentRecipientCategory('general');
-                      setPaymentMethod('cash');
-                      setPaymentNotes('');
-                      setPaymentReceiptReference('');
-                    } catch (error: any) {
-                      console.error('Failed to record payment:', error);
-                      alert(`Failed to record payment: ${error.message || 'Please try again'}`);
-                    }
-                  }}
-                  disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || !paymentRecipientName || !paymentRecipientType || !paymentRecipientCategory || !paymentMethod}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  Record Payment
-                </button>
-              </div>
+              <PaymentRecordForm
+                snapshotId={activeRecord.id}
+                onSuccess={() => {
+                  setShowPaymentsRecordId(null);
+                  queryClient.invalidateQueries({ queryKey: ['payments', activeRecord.id] });
+                  queryClient.invalidateQueries({ queryKey: ['nisab-year-records'] });
+                }}
+                onCancel={() => setShowPaymentsRecordId(null)}
+              />
             </div>
           </div>
         </div>
@@ -1304,4 +1170,8 @@ export const NisabYearRecordsPage: React.FC = () => {
   );
 };
 
-export default NisabYearRecordsPage;
+
+
+
+
+

@@ -17,29 +17,19 @@ export const PaymentsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const snapshotIdParam = searchParams.get('snapshot');
   
-  // Fetch available snapshots
+  // Fetch available Nisab Year Records
   const { data: snapshotsData, isLoading: snapshotsLoading } = useSnapshots();
   const [snapshotId, setSnapshotId] = useState<string | undefined>(snapshotIdParam || undefined);
   
-  // Auto-select the most recent snapshot if none is selected
-  useEffect(() => {
-    if (!snapshotId && snapshotsData?.snapshots && snapshotsData.snapshots.length > 0) {
-      const mostRecent = snapshotsData.snapshots[0]; // Assuming sorted by date desc
-      setSnapshotId(mostRecent.id);
-      setSearchParams({ snapshot: mostRecent.id });
-    }
-  }, [snapshotId, snapshotsData, setSearchParams]);
-  
+  // Note: Auto-selection removed in T019 - defaults to "All Payments" view
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
 
   const { data: paymentsData } = usePayments({ snapshotId });
 
   const handleCreatePayment = () => {
-    if (!snapshotId) {
-      alert('Please select a snapshot first');
-      return;
-    }
+    // Allow creating payment even without specific Nisab Year selected
+    // User will need to select it in the form
     setEditingPayment(null);
     setShowCreateForm(true);
   };
@@ -74,11 +64,11 @@ export const PaymentsPage: React.FC = () => {
             </Button>
           </div>
 
-          {/* Snapshot Selector */}
+          {/* Nisab Year Selector */}
           {snapshotsData?.snapshots && snapshotsData.snapshots.length > 0 && (
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Year/Snapshot
+                Filter by Nisab Year
               </label>
               <select
                 value={snapshotId || ''}
@@ -93,6 +83,7 @@ export const PaymentsPage: React.FC = () => {
                 }}
                 className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
+                <option value="">All Payments</option>
                 {snapshotsData.snapshots.map((snapshot) => (
                   <option key={snapshot.id} value={snapshot.id}>
                     {new Date(snapshot.calculationDate).getFullYear()} - {snapshot.status}
@@ -103,11 +94,11 @@ export const PaymentsPage: React.FC = () => {
             </div>
           )}
 
-          {/* No snapshots warning */}
+          {/* No Nisab Years warning */}
           {!snapshotsLoading && (!snapshotsData?.snapshots || snapshotsData.snapshots.length === 0) && (
             <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-800">
-                No yearly snapshots found. Please create a yearly snapshot first to record payments.
+                No Nisab Year Records found. Please create a Nisab Year Record first to record payments.
               </p>
               <Button
                 variant="primary"
@@ -120,64 +111,29 @@ export const PaymentsPage: React.FC = () => {
           )}
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Paid</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                    minimumFractionDigits: 2,
-                  }).format(totalPaid)}
-                </p>
-          <PaymentList
-            snapshotId={snapshotId || ''}
-            onCreateNew={handleCreatePayment}
-            onEditPayment={handleEditPayment}
-          />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Payment Records</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{paymentCount}</p>
-              </div>
-              <div className="bg-blue-100 rounded-full p-3">
-                <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                  <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Average Payment</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                    minimumFractionDigits: 2,
-                  }).format(paymentCount > 0 ? totalPaid / paymentCount : 0)}
+        {/* Summary Stats - Compact Design */}
+        {paymentsData?.payments && paymentsData.payments.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+            <div className="grid grid-cols-3 gap-4 divide-x divide-gray-200">
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-1">Total Paid</p>
+                <p className="text-lg font-bold text-gray-900">
+                  ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="bg-purple-100 rounded-full p-3">
-                <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                </svg>
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-1">Records</p>
+                <p className="text-lg font-bold text-gray-900">{paymentCount}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-1">Average</p>
+                <p className="text-lg font-bold text-gray-900">
+                  ${(paymentCount > 0 ? totalPaid / paymentCount : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Create Form Modal */}
         {showCreateForm && (
@@ -197,35 +153,23 @@ export const PaymentsPage: React.FC = () => {
                     </svg>
                   </button>
                 </div>
-                {snapshotId ? (
-                  <PaymentRecordForm
-                    payment={editingPayment || undefined}
-                    snapshotId={snapshotId}
-                    onSuccess={handleFormClose}
-                    onCancel={handleFormClose}
-                  />
-                ) : (
-                  <div className="p-6 text-center text-gray-600">
-                    Please select a snapshot to record payments.
-                  </div>
-                )}
+                <PaymentRecordForm
+                  payment={editingPayment || undefined}
+                  snapshotId={snapshotId}
+                  onSuccess={handleFormClose}
+                  onCancel={handleFormClose}
+                />
               </div>
             </div>
           </div>
         )}
 
         {/* Payment List */}
-        {snapshotId ? (
-          <PaymentList
-            snapshotId={snapshotId}
-            onCreateNew={handleCreatePayment}
-            onEditPayment={handleEditPayment}
-          />
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-            <p className="text-gray-600">Select a snapshot above to view and record payments.</p>
-          </div>
-        )}
+        <PaymentList
+          snapshotId={snapshotId}
+          onCreateNew={handleCreatePayment}
+          onEditPayment={handleEditPayment}
+        />
 
         {/* Help Section */}
         <div className="mt-12 bg-green-50 border border-green-200 rounded-lg p-6">

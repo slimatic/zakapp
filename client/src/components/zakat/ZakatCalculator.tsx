@@ -55,11 +55,7 @@ export const ZakatCalculator: React.FC = () => {
         customNisab: undefined // Use default nisab
       };
 
-      console.log('Sending calculation request:', calculationRequest);
-
       const response = await apiService.calculateZakat(calculationRequest);
-      
-      console.log('API Response:', response);
       
       // Handle response based on actual structure returned from backend
       if (response.success) {

@@ -61,8 +61,8 @@ const GettingStarted = lazy(() => import('./components/help/GettingStarted').the
 // Tracking & Analytics pages - lazy loaded for optimal performance
 // const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
 const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').then(m => ({ default: m.NisabYearRecordsPage })));
-// const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
-// const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 // const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
 
 function App() {
@@ -232,6 +232,34 @@ function App() {
                     <Layout>
                       <Suspense fallback={<HistorySkeleton />}>
                         <NisabYearRecordsPage />
+                      </Suspense>
+                    </Layout>
+                  </ProtectedRoute>
+                } 
+              />
+
+              {/* Payments Page */}
+              <Route 
+                path="/payments" 
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Suspense fallback={<HistorySkeleton />}>
+                        <PaymentsPage />
+                      </Suspense>
+                    </Layout>
+                  </ProtectedRoute>
+                } 
+              />
+
+              {/* Analytics Page */}
+              <Route 
+                path="/analytics" 
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Suspense fallback={<HistorySkeleton />}>
+                        <AnalyticsPage />
                       </Suspense>
                     </Layout>
                   </ProtectedRoute>
