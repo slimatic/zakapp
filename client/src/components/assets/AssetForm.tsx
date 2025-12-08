@@ -259,6 +259,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               aria-required="true"
               aria-invalid={!!errors.value}
               aria-describedby={errors.value ? 'value-error' : undefined}
+              autoSelectOnFocus={true}
             />
             {errors.value && (
               <p id="value-error" className="mt-1 text-sm text-red-600" role="alert">

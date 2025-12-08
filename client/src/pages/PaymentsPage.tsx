@@ -111,42 +111,19 @@ export const PaymentsPage: React.FC = () => {
           )}
         </div>
 
-        {/* Summary Stats - Compact Design */}
-        {paymentsData?.payments && paymentsData.payments.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-            <div className="grid grid-cols-3 gap-4 divide-x divide-gray-200">
-              <div className="text-center">
-                <p className="text-xs text-gray-500 mb-1">Total Paid</p>
-                <p className="text-lg font-bold text-gray-900">
-                  ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-gray-500 mb-1">Records</p>
-                <p className="text-lg font-bold text-gray-900">{paymentCount}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-gray-500 mb-1">Average</p>
-                <p className="text-lg font-bold text-gray-900">
-                  ${(paymentCount > 0 ? totalPaid / paymentCount : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Create Form Modal */}
         {showCreateForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto shadow-xl">
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                     {editingPayment ? 'Edit Payment Record' : 'Record New Payment'}
                   </h2>
                   <button
                     onClick={handleFormClose}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 p-1"
+                    aria-label="Close modal"
                   >
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
