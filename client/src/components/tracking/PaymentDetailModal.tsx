@@ -6,6 +6,7 @@
 import React from 'react';
 import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
 import { formatGregorianDate, gregorianToHijri, HIJRI_MONTHS } from '../../utils/calendarConverter';
+import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
 import { Button } from '../ui/Button';
 
@@ -84,7 +85,9 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
   onEdit,
   onDelete
 }) => {
-  const categoryInfo = ZAKAT_RECIPIENTS[payment.recipientCategory];
+  const maskedCurrency = useMaskedCurrency();
+  
+  const recipientCategory = ZAKAT_RECIPIENTS[payment.recipientCategory];
   const hijriDate = gregorianToHijri(new Date(payment.paymentDate));
 
   return (
@@ -112,7 +115,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
             <div className="text-sm font-medium text-green-800 mb-2">Payment Amount</div>
             <div className="text-4xl font-bold text-green-600">
-              {formatCurrency(payment.amount, payment.currency as CurrencyCode)}
+              {maskedCurrency(formatCurrency(payment.amount, payment.currency as CurrencyCode))}
             </div>
             {payment.exchangeRate !== 1 && (
               <div className="text-sm text-green-700 mt-2">
@@ -218,7 +221,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
                   <div className="text-right">
                     <div className="text-sm font-medium text-blue-800 mb-1">Total Zakat Due</div>
                     <div className="text-lg font-bold text-blue-900">
-                      {formatCurrency(nisabYear.zakatAmount || 0)}
+                      {maskedCurrency(formatCurrency(nisabYear.zakatAmount || 0))}
                     </div>
                   </div>
                 </div>

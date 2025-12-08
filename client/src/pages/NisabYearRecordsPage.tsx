@@ -18,6 +18,7 @@ import AuditTrailView from '../components/AuditTrailView';
 import AssetSelectionTable from '../components/tracking/AssetSelectionTable';
 import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
 import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
+import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '../components/tracking/AssetSelectionTable';
 
 export const NisabYearRecordsPage: React.FC = () => {
@@ -161,13 +162,15 @@ export const NisabYearRecordsPage: React.FC = () => {
   };
 
   // Format currency
+  const maskedCurrency = useMaskedCurrency();
   const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-    return new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     }).format(amount);
+    return maskedCurrency(formatted);
   };
 
   // Create record mutation
@@ -481,7 +484,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                           {record.hawlCompletionDate && (
                             <div>
                               Completes: <span className="text-gray-900 font-medium">
-                                {new Date(record.hawlCompletionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                {new Date(record.hawlCompletionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                               </span>
                             </div>
                           )}
@@ -1141,12 +1144,15 @@ export const NisabYearRecordsPage: React.FC = () => {
                   setPaymentNotes('');
                   setPaymentReceiptReference('');
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 p-1"
+                aria-label="Close modal"
               >
-                ✕
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded">
                 <p className="text-sm text-blue-800">
                   <strong>Zakat Due:</strong> {formatCurrency(parseFloat(activeRecord.zakatAmount || '0'), 'USD')}
@@ -1157,7 +1163,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                 snapshotId={activeRecord.id}
                 onSuccess={() => {
                   setShowPaymentsRecordId(null);
-                  queryClient.invalidateQueries({ queryKey: ['payments', activeRecord.id] });
+                  queryClient.invalidateQueries({ queryKey: ['payments'] });
                   queryClient.invalidateQueries({ queryKey: ['nisab-year-records'] });
                 }}
                 onCancel={() => setShowPaymentsRecordId(null)}

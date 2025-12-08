@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { PrivacyProvider } from './contexts/PrivacyContext';
 import { QueryProvider } from './services/queryClient';
 import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
@@ -17,6 +18,7 @@ import InstallPrompt from './components/pwa/InstallPrompt';
 import UpdateNotification from './components/pwa/UpdateNotification';
 import { FeedbackWidget } from './components/FeedbackWidget';
 import { getFeedbackEnabled } from './config';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 /**
  * T023 Performance Optimization: Route-Based Code Splitting
@@ -69,11 +71,13 @@ function App() {
   return (
     <QueryProvider>
       <AuthProvider>
-        <Router>
-          <div className="App">
-            <Routes>
-              {/* Auth routes - eagerly loaded */}
-              <Route path="/login" element={<Login />} />
+        <PrivacyProvider>
+          <Router>
+            <ErrorBoundary>
+              <div className="App">
+                <Routes>
+                {/* Auth routes - eagerly loaded */}
+                <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route 
                 path="/forgot-password" 
@@ -276,7 +280,9 @@ function App() {
           {/* Feedback Widget - toggleable via environment variable */}
           {getFeedbackEnabled() && <FeedbackWidget />}
         </div>
+        </ErrorBoundary>
       </Router>
+      </PrivacyProvider>
     </AuthProvider>
   </QueryProvider>
   );
