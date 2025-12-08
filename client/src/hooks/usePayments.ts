@@ -129,13 +129,17 @@ export function useCreatePayment(): UseMutationResult<PaymentRecord, Error, Crea
       return result.data;
     },
     onSuccess: (_, variables) => {
-      // Invalidate payments query to refetch
+      // Invalidate all payment queries to refetch
       queryClient.invalidateQueries({ 
-        queryKey: ['payments', { snapshotId: variables.snapshotId }] 
+        queryKey: ['payments'] 
       });
-      // Also invalidate snapshot to update payment totals
+      // Also invalidate snapshots to update payment totals
       queryClient.invalidateQueries({ 
-        queryKey: ['snapshots', variables.snapshotId] 
+        queryKey: ['snapshots'] 
+      });
+      // Invalidate nisab year records to update payment counts
+      queryClient.invalidateQueries({ 
+        queryKey: ['nisab-year-records'] 
       });
     }
   });
@@ -179,13 +183,17 @@ export function useUpdatePayment(): UseMutationResult<
       return result.data;
     },
     onSuccess: (_, variables) => {
-      // Invalidate payments query to refetch
+      // Invalidate all payment queries to refetch
       queryClient.invalidateQueries({ 
-        queryKey: ['payments', { snapshotId: variables.snapshotId }] 
+        queryKey: ['payments'] 
       });
-      // Also invalidate snapshot to update payment totals
+      // Also invalidate snapshots to update payment totals
       queryClient.invalidateQueries({ 
-        queryKey: ['snapshots', variables.snapshotId] 
+        queryKey: ['snapshots'] 
+      });
+      // Invalidate nisab year records to update payment counts
+      queryClient.invalidateQueries({ 
+        queryKey: ['nisab-year-records'] 
       });
     }
   });
