@@ -1126,9 +1126,9 @@ export const NisabYearRecordsPage: React.FC = () => {
 
       {/* Record Payment Modal */}
       {showPaymentsRecordId && activeRecord && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <h2 className="text-xl font-semibold text-gray-900">Record Zakat Payment</h2>
               <button
                 onClick={() => {
@@ -1141,12 +1141,15 @@ export const NisabYearRecordsPage: React.FC = () => {
                   setPaymentNotes('');
                   setPaymentReceiptReference('');
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 p-1"
+                aria-label="Close modal"
               >
-                ✕
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded">
                 <p className="text-sm text-blue-800">
                   <strong>Zakat Due:</strong> {formatCurrency(parseFloat(activeRecord.zakatAmount || '0'), 'USD')}
