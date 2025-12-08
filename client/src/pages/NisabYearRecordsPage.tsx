@@ -481,7 +481,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                           {record.hawlCompletionDate && (
                             <div>
                               Completes: <span className="text-gray-900 font-medium">
-                                {new Date(record.hawlCompletionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                {new Date(record.hawlCompletionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                               </span>
                             </div>
                           )}
