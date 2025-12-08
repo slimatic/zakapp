@@ -86,54 +86,54 @@ export const AnalyticsPage: React.FC = () => {
 
         {/* Charts Grid */}
         <div className="space-y-8">
-          {/* Wealth Trend */}
+          {/* Section 1: Wealth Over Time (Asset-based) */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Wealth Trend Over Time</h2>
+                <h2 className="text-xl font-bold text-gray-900">Wealth Over Time</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Track your zakatable wealth growth year by year
+                  Track your total asset value growth independent of Nisab Year Records
                 </p>
               </div>
             </div>
               <AnalyticsChart metricType="wealth_trend" visualizationType="line_chart" height={400} />
           </div>
 
-          {/* Zakat Obligations */}
+          {/* Section 2: Zakat Obligations (Nisab Record-based) */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Zakat Obligations</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Annual Zakat due amounts and payment status
+                  Annual Zakat due, paid, and outstanding amounts per Nisab Year Record
                 </p>
               </div>
             </div>
               <AnalyticsChart metricType="zakat_trend" visualizationType="bar_chart" height={400} />
           </div>
 
-          {/* Two Column Layout for Pie Charts */}
+          {/* Section 3: Asset Distribution */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Asset Composition */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Asset Distribution</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Current wealth breakdown by asset type and category
+                </p>
+              </div>
+                <AnalyticsChart metricType="asset_composition" visualizationType="pie_chart" height={350} />
+            </div>
+
             {/* Payment Distribution */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-900">Payment Distribution</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Breakdown by recipient category
+                  Zakat payments breakdown by Islamic recipient category
                 </p>
               </div>
                 <AnalyticsChart metricType="payment_distribution" visualizationType="pie_chart" height={350} />
-            </div>
-
-            {/* Asset Composition */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Asset Composition</h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  Current wealth breakdown by asset type
-                </p>
-              </div>
-                <AnalyticsChart metricType="asset_composition" visualizationType="pie_chart" height={350} />
             </div>
           </div>
 
@@ -184,16 +184,16 @@ export const AnalyticsPage: React.FC = () => {
               </h3>
               <div className="text-sm text-blue-700 mt-2 space-y-2">
                 <p>
-                  These analytics help you understand patterns in your Zakat obligations and giving over time:
+                  This dashboard uses <strong>two separate data sources</strong> to provide comprehensive insights:
                 </p>
                 <ul className="list-disc list-inside space-y-1 mt-2">
-                  <li><strong>Wealth Trend</strong>: Shows how your zakatable wealth has grown or decreased</li>
-                  <li><strong>Zakat Obligations</strong>: Displays annual Zakat due amounts and payment status</li>
-                  <li><strong>Payment Distribution</strong>: Shows which recipient categories you've supported</li>
-                  <li><strong>Asset Composition</strong>: Breaks down your wealth by asset type</li>
+                  <li><strong>Wealth Over Time</strong>: Tracks your asset values continuously, independent of Zakat calculations</li>
+                  <li><strong>Zakat Obligations</strong>: Shows due/paid/outstanding amounts per Nisab Year Record (each representing one Hawl period)</li>
+                  <li><strong>Asset Distribution</strong>: Current snapshot of your wealth by asset type (cash, gold, investments, etc.)</li>
+                  <li><strong>Payment Distribution</strong>: Breakdown of Zakat payments by Islamic recipient category</li>
                 </ul>
-                <p className="mt-2">
-                  Use these insights to plan future Zakat payments and ensure balanced wealth management.
+                <p className="mt-3 pt-3 border-t border-blue-200">
+                  <strong>Note:</strong> Assets are tracked continuously for wealth trends, while Nisab Year Records are created when your wealth reaches the nisab threshold and maintains it for a full lunar year (Hawl).
                 </p>
               </div>
             </div>
