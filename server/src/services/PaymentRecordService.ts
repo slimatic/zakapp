@@ -200,6 +200,25 @@ export class PaymentRecordService {
   }
 
   /**
+   * Lists all payments for a user across all Nisab Year Records
+   * @param userId - User ID for authorization
+   * @param category - Optional category filter
+   * @returns Array of decrypted payments
+   */
+  async getAllPayments(userId: string, category?: string): Promise<PaymentRecord[]> {
+    const options: any = {};
+    if (category) {
+      options.recipientCategory = category;
+    }
+    
+    const result = await PaymentRecordModel.findByUser(userId, options);
+    
+    return await Promise.all(
+      result.data.map(payment => this.decryptPaymentData(payment))
+    );
+  }
+
+  /**
    * Lists payments for a specific snapshot
    * @param snapshotId - Snapshot ID
    * @param userId - User ID for authorization
