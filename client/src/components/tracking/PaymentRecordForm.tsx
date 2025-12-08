@@ -142,12 +142,14 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
         snapshotId: selectedSnapshotId,
         amount: parseCurrency(formData.amount),
         recipientName: formData.recipient.trim(),
-        recipientType: 'individual' as const, // Default type
+        recipientType: 'individual' as const,
         recipientCategory: formData.category,
         paymentDate: formData.paymentDate,
-        paymentMethod: formData.paymentMethod,
+        paymentMethod: formData.paymentMethod as 'cash' | 'bank_transfer' | 'check' | 'online' | 'other',
         receiptReference: formData.reference.trim() || undefined,
-        notes: formData.notes.trim() || undefined
+        notes: formData.notes.trim() || undefined,
+        currency: 'USD',
+        status: 'recorded' as const
       };
 
       let result: PaymentRecord;
@@ -284,30 +286,20 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Zakat Recipient Category *
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <select
+          value={formData.category}
+          onChange={(e) => handleInputChange('category', e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
           {ZAKAT_RECIPIENTS.map((category) => (
-            <div key={category.value} className="relative">
-              <label className="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                <input
-                  type="radio"
-                  name="category"
-                  value={category.value}
-                  checked={formData.category === category.value}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
-                  className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
-                />
-                <div className="ml-3 flex-1">
-                  <div className="text-sm font-medium text-gray-900">
-                    {category.label}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {category.description}
-                  </div>
-                </div>
-              </label>
-            </div>
+            <option key={category.value} value={category.value}>
+              {category.label}
+            </option>
           ))}
-        </div>
+        </select>
+        <p className="mt-1 text-xs text-gray-500">
+          {ZAKAT_RECIPIENTS.find(c => c.value === formData.category)?.description}
+        </p>
       </div>
 
       {/* Recipient Details */}
@@ -338,7 +330,6 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             <option value="bank_transfer">Bank Transfer</option>
             <option value="check">Check</option>
             <option value="online">Online Payment</option>
-            <option value="cryptocurrency">Cryptocurrency</option>
             <option value="other">Other</option>
           </select>
         </div>
@@ -388,9 +379,17 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       {/* Error Display */}
       {submitError && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-600">
-            {typeof submitError === 'string' ? submitError : 'Failed to save payment record. Please try again.'}
-          </p>
+          <div className="flex items-start">
+            <svg className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800">Failed to save payment</p>
+              <p className="text-sm text-red-600 mt-1">
+                {submitError instanceof Error ? submitError.message : String(submitError)}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

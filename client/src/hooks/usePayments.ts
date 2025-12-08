@@ -81,6 +81,7 @@ interface CreatePaymentData {
   status?: string;
   currency?: string;
   exchangeRate?: number;
+  calculationId?: string;
 }
 
 interface UpdatePaymentData {
