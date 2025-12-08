@@ -3,8 +3,9 @@
  * Form for creating/editing Zakat payment records with Islamic recipient categories
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCreatePayment, useUpdatePayment } from '../../hooks/usePayments';
+import { useSnapshots } from '../../hooks/useSnapshots';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
@@ -17,7 +18,7 @@ const parseCurrency = (value: string): number => {
 };
 
 interface PaymentRecordFormProps {
-  snapshotId: string;
+  snapshotId?: string;
   payment?: PaymentRecord; // For editing existing payments
   onSuccess?: (payment: PaymentRecord) => void;
   onCancel?: () => void;
@@ -38,13 +39,27 @@ const ZAKAT_RECIPIENTS = [
 type ZakatRecipientCategory = typeof ZAKAT_RECIPIENTS[number]['value'];
 
 export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
-  snapshotId,
+  snapshotId: propSnapshotId,
   payment,
   onSuccess,
   onCancel
 }) => {
   const isEditing = !!payment;
+  const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>(propSnapshotId || payment?.snapshotId || '');
   
+  // Fetch snapshots if not provided via props
+  const { data: snapshotsData, isLoading: isLoadingSnapshots } = useSnapshots({
+    status: 'all', // Fetch all to allow selection, though typically we want active ones
+    enabled: !propSnapshotId
+  });
+
+  // Update selected snapshot if prop changes
+  useEffect(() => {
+    if (propSnapshotId) {
+      setSelectedSnapshotId(propSnapshotId);
+    }
+  }, [propSnapshotId]);
+
   // Form state
   const [formData, setFormData] = useState({
     amount: payment?.amount?.toString() || '',
@@ -76,6 +91,11 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+
+    // Snapshot validation
+    if (!selectedSnapshotId) {
+      newErrors.snapshotId = 'Please select a Nisab Year Record';
+    }
 
     // Amount validation
     const amount = parseCurrency(formData.amount);
@@ -119,7 +139,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
 
     try {
       const paymentData = {
-        snapshotId,
+        snapshotId: selectedSnapshotId,
         amount: parseCurrency(formData.amount),
         recipientName: formData.recipient.trim(),
         recipientType: 'individual' as const, // Default type
@@ -135,7 +155,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       if (isEditing && payment) {
         result = await updatePaymentMutation.mutateAsync({
           id: payment.id,
-          snapshotId: snapshotId,
+          snapshotId: selectedSnapshotId,
           data: paymentData
         });
       } else {
@@ -162,6 +182,71 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
           Record your Zakat payment according to Islamic guidelines
         </p>
       </div>
+
+      {/* Snapshot Selection (if not provided via props) */}
+      {!propSnapshotId ? (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Nisab Year Record *
+            <span className="ml-2 text-xs font-normal text-gray-500">
+              (Select the Hawl period for this payment)
+            </span>
+          </label>
+          {isLoadingSnapshots ? (
+            <div className="flex items-center text-sm text-gray-500">
+              <LoadingSpinner size="sm" className="mr-2" />
+              Loading records...
+            </div>
+          ) : (
+            <>
+              <select
+                value={selectedSnapshotId}
+                onChange={(e) => setSelectedSnapshotId(e.target.value)}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                  errors.snapshotId ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                }`}
+              >
+                <option value="">Select a Nisab Year Record</option>
+                {snapshotsData?.snapshots.map((snapshot) => (
+                  <option key={snapshot.id} value={snapshot.id}>
+                    {new Date(snapshot.createdAt).getFullYear()} - {snapshot.status} 
+                    {snapshot.hawlStartDate ? ` (Started: ${new Date(snapshot.hawlStartDate).toLocaleDateString()})` : ''}
+                  </option>
+                ))}
+              </select>
+              {!errors.snapshotId && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Link this payment to a specific Nisab Year (Hawl period) for accurate tracking
+                </p>
+              )}
+            </>
+          )}
+          {errors.snapshotId && (
+            <p className="mt-1 text-sm text-red-600">{errors.snapshotId}</p>
+          )}
+        </div>
+      ) : (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Nisab Year Record
+          </label>
+          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
+            <div className="flex items-center justify-between">
+              <span>
+                {snapshotsData?.snapshots.find(s => s.id === propSnapshotId)?.hawlStartDate 
+                  ? `${new Date(snapshotsData.snapshots.find(s => s.id === propSnapshotId)!.hawlStartDate!).getFullYear()} Nisab Year`
+                  : 'Selected Nisab Year Record'}
+              </span>
+              <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              This payment will be linked to the selected Nisab Year Record
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Amount */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
