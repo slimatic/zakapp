@@ -209,8 +209,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
                 <option value="">Select a Nisab Year Record</option>
                 {snapshotsData?.snapshots.map((snapshot) => (
                   <option key={snapshot.id} value={snapshot.id}>
-                    {new Date(snapshot.createdAt).getFullYear()} - {snapshot.status} 
-                    {snapshot.hawlStartDate ? ` (Started: ${new Date(snapshot.hawlStartDate).toLocaleDateString()})` : ''}
+                    {snapshot.gregorianYear} ({snapshot.hijriYear} AH) - {snapshot.status}
                   </option>
                 ))}
               </select>
@@ -233,8 +232,8 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
             <div className="flex items-center justify-between">
               <span>
-                {snapshotsData?.snapshots.find(s => s.id === propSnapshotId)?.hawlStartDate 
-                  ? `${new Date(snapshotsData.snapshots.find(s => s.id === propSnapshotId)!.hawlStartDate!).getFullYear()} Nisab Year`
+                {snapshotsData?.snapshots.find(s => s.id === propSnapshotId)?.gregorianYear 
+                  ? `${snapshotsData.snapshots.find(s => s.id === propSnapshotId)!.gregorianYear} Nisab Year`
                   : 'Selected Nisab Year Record'}
               </span>
               <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">

@@ -159,5 +159,3 @@ export const InfoIcon: React.FC<{ className?: string }> = ({ className = '' }) =
     </span>
   );
 };
-
-export default Tooltip;

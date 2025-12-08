@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
 import { formatGregorianDate } from '../../utils/calendarConverter';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
 import { Button } from '../ui/Button';
@@ -70,7 +70,7 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
           </div>
           <div className="text-right ml-4 flex-shrink-0">
             <div className="text-xl font-bold text-green-600">
-              {formatCurrency(payment.amount, payment.currency)}
+              {formatCurrency(payment.amount, payment.currency as CurrencyCode)}
             </div>
             <div className="text-xs text-gray-500 mt-0.5">
               {formatGregorianDate(new Date(payment.paymentDate))}
@@ -87,53 +87,25 @@ const PaymentCardComponent: React.FC<PaymentCardProps> = ({
                   Linked Nisab Year Record
                 </div>
                 <div className="text-sm font-semibold text-blue-900">
-                  Hawl: {new Date(nisabYear.hawlStartDate).getFullYear()} 
-                  {' '}({formatGregorianDate(new Date(nisabYear.hawlStartDate))} - {formatGregorianDate(new Date(nisabYear.hawlEndDate))})
+                  Year: {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
+                  {' '}(Calculated: {formatGregorianDate(new Date(nisabYear.calculationDate))})
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
                 <div className="text-xs text-blue-700 mb-1">Zakat Due</div>
                 <div className="text-sm font-semibold text-blue-900">
-                  {formatCurrency(nisabYear.zakatAmount || 0, nisabYear.currency)}
+                  {formatCurrency(nisabYear.zakatAmount || 0)}
                 </div>
               </div>
             </div>
             
-            {/* Payment progress for this Nisab Year */}
+            {/* Nisab Year context - showing only calculated Zakat */}
             <div className="mt-3 pt-3 border-t border-blue-200">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-blue-700">Total Paid for this Hawl:</span>
+                <span className="text-blue-700">Zakat Due for this Year:</span>
                 <span className="font-semibold text-blue-900">
-                  {formatCurrency(nisabYear.zakatPaid || 0, nisabYear.currency)}
+                  {formatCurrency(nisabYear.zakatAmount || 0)}
                 </span>
-              </div>
-              <div className="flex justify-between items-center text-xs mt-1">
-                <span className="text-blue-700">Outstanding Balance:</span>
-                <span className={`font-semibold ${
-                  (nisabYear.zakatAmount || 0) - (nisabYear.zakatPaid || 0) <= 0 
-                    ? 'text-green-600' 
-                    : 'text-orange-600'
-                }`}>
-                  {formatCurrency(
-                    Math.max(0, (nisabYear.zakatAmount || 0) - (nisabYear.zakatPaid || 0)),
-                    nisabYear.currency
-                  )}
-                </span>
-              </div>
-              
-              {/* Progress bar */}
-              <div className="mt-2">
-                <div className="w-full bg-blue-100 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ 
-                      width: `${Math.min(100, ((nisabYear.zakatPaid || 0) / (nisabYear.zakatAmount || 1)) * 100)}%` 
-                    }}
-                  />
-                </div>
-                <div className="text-xs text-blue-700 mt-1 text-center">
-                  {Math.round(((nisabYear.zakatPaid || 0) / (nisabYear.zakatAmount || 1)) * 100)}% paid
-                </div>
               </div>
             </div>
           </div>

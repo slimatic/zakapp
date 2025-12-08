@@ -11,6 +11,8 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import { useAssets } from '../services/apiHooks';
 import { useSnapshots } from '../hooks/useSnapshots';
 import { formatCurrency } from '../utils/formatters';
+import type { Asset } from '@zakapp/shared';
+import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
 
@@ -24,9 +26,9 @@ export const AnalyticsPage: React.FC = () => {
   const { data: wealthData } = useAnalytics('wealth_trend', timeframe);
   
   // Calculate summary statistics
-  const totalWealth = assetsData?.data?.assets?.reduce((sum, asset) => sum + asset.value, 0) || 0;
-  const totalZakatDue = snapshotsData?.snapshots?.reduce((sum, snap) => sum + (snap.zakatAmount || 0), 0) || 0;
-  const totalZakatPaid = snapshotsData?.snapshots?.reduce((sum, snap) => sum + (snap.zakatPaid || 0), 0) || 0;
+  const totalWealth = assetsData?.data?.assets?.reduce((sum: number, asset: Asset) => sum + asset.value, 0) || 0;
+  const totalZakatDue = snapshotsData?.snapshots?.reduce((sum: number, snap: YearlySnapshot) => sum + (snap.zakatAmount || 0), 0) || 0;
+  const totalZakatPaid = snapshotsData?.snapshots?.reduce((sum: number, snap: YearlySnapshot) => sum + (snap.zakatAmount || 0), 0) || 0;
   const outstandingBalance = totalZakatDue - totalZakatPaid;
   const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;
 

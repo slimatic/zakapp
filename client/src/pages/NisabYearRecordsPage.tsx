@@ -90,7 +90,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const { data: assetsData, isLoading: isLoadingAssets, refetch: refetchAssets } = useQuery({
     queryKey: ['assets', 'nisab-create'],
     queryFn: async () => {
-      const response = await fetchAssets();
+      const response = await apiService.getAssets();
       if (!response.success) {
         throw new Error('Failed to fetch assets');
       }
