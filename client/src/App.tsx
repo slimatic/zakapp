@@ -18,6 +18,7 @@ import InstallPrompt from './components/pwa/InstallPrompt';
 import UpdateNotification from './components/pwa/UpdateNotification';
 import { FeedbackWidget } from './components/FeedbackWidget';
 import { getFeedbackEnabled } from './config';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 /**
  * T023 Performance Optimization: Route-Based Code Splitting
@@ -72,10 +73,11 @@ function App() {
       <AuthProvider>
         <PrivacyProvider>
           <Router>
-            <div className="App">
-              <Routes>
-              {/* Auth routes - eagerly loaded */}
-              <Route path="/login" element={<Login />} />
+            <ErrorBoundary>
+              <div className="App">
+                <Routes>
+                {/* Auth routes - eagerly loaded */}
+                <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route 
                 path="/forgot-password" 
@@ -278,6 +280,7 @@ function App() {
           {/* Feedback Widget - toggleable via environment variable */}
           {getFeedbackEnabled() && <FeedbackWidget />}
         </div>
+        </ErrorBoundary>
       </Router>
       </PrivacyProvider>
     </AuthProvider>
