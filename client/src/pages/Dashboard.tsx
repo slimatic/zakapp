@@ -11,6 +11,7 @@ import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { useUserOnboarding } from '../hooks/useUserOnboarding';
+import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '@zakapp/shared';
 
 /**
@@ -167,7 +168,8 @@ const EducationalModule: React.FC = () => {
  */
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { currentStep, completedSteps } = useUserOnboarding();
+  const { currentStep, shouldShowOnboarding, markStepCompleted } = useUserOnboarding();
+  const maskedCurrency = useMaskedCurrency();
 
   // Debug logging
   // Track onboarding state for UI rendering
@@ -495,10 +497,10 @@ export const Dashboard: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">
-                      {new Intl.NumberFormat('en-US', {
+                      {maskedCurrency(new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: asset.currency || 'USD',
-                      }).format(asset.value || 0)}
+                      }).format(asset.value || 0))}
                     </p>
                     {asset.zakatEligible && (
                       <span className="text-xs text-green-600 font-medium">Zakatable</span>
