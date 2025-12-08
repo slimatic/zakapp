@@ -112,7 +112,7 @@ const EducationalModule: React.FC = () => {
             <h3 className="font-semibold text-gray-900 mb-3">Learn More</h3>
             <div className="space-y-2">
               <a
-                href="https://www.youtube.com/watch?v=SimpleZakatGuide"
+                href="https://youtube.com/playlist?list=PLXguldgkbZPffh6p4efOetXkTeJATAbcS&si=CoJ4JB5dLrJDgNS7"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
