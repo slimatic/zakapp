@@ -84,7 +84,7 @@ const COMPARISON_ROWS: ComparisonRow[] = [
 
 export const ComparisonTable: React.FC<ComparisonTableProps> = ({
   snapshotIds,
-  title = 'Snapshot Comparison',
+  title = 'Nisab Year Comparison',
   compact = false
 }) => {
   const { data: comparison, isLoading, error } = useComparison({ snapshotIds });
@@ -113,8 +113,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 00-2 2h-2a2 2 0 00-2-2z" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No snapshots to compare</h3>
-        <p className="text-gray-600">Select multiple snapshots to see a side-by-side comparison.</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No Nisab Year Records to compare</h3>
+        <p className="text-gray-600">Select multiple Nisab Year Records to see a side-by-side comparison.</p>
       </div>
     );
   }
@@ -130,7 +130,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
             {title}
           </h3>
           <p className="text-gray-600 mt-1">
-            Comparing {snapshots.length} snapshots side by side
+            Comparing {snapshots.length} Nisab Year Records side by side
           </p>
         </div>
 

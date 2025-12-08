@@ -130,7 +130,7 @@ const ZakatDashboard: React.FC = () => {
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
               </svg>
-              Create Snapshot
+              Create Nisab Record
             </Link>
           </div>
         </div>
@@ -184,10 +184,10 @@ const ZakatDashboard: React.FC = () => {
             )}
           </div>
 
-          {/* Recent Calculations/Snapshots */}
+          {/* Recent Nisab Year Records */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Snapshots</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Recent Nisab Records</h2>
               <Link
                 to="/zakat/snapshots"
                 className="text-sm text-blue-600 hover:text-blue-800"
@@ -227,7 +227,7 @@ const ZakatDashboard: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No snapshots created yet</p>
+              <p className="text-gray-500 text-sm">No Nisab Year Records created yet</p>
             )}
           </div>
         </div>

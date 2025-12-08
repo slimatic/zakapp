@@ -387,6 +387,208 @@ Zakat Amount = Zakatable Wealth × 2.5%
 
 ---
 
+## Payment Integration
+
+> **✨ NEW in Milestone 5**: Track Zakat payments directly linked to Nisab Year Records for accurate compliance monitoring.
+
+### Understanding Payment Tracking
+
+Each Nisab Year Record can have multiple **Zakat payments** linked to it. This allows you to:
+
+- Track which year's Zakat obligation you're fulfilling
+- Calculate outstanding balances per year
+- Monitor payment progress with visual indicators
+- Maintain accurate compliance records
+
+**Key Concept**: Payments are always linked to a specific Nisab Year Record, creating a clear connection between obligation and fulfillment.
+
+### Viewing Payments in Nisab Year Record
+
+**Navigation**: Nisab Year Record Detail Page → Scroll to "Payments" section
+
+#### Payment Progress Indicator
+
+At the top of each Nisab Year Record card, you'll see a **payment progress bar**:
+
+**Visual Elements:**
+- Progress bar showing payment percentage
+- Percentage label above bar (e.g., "75% Paid")
+- Color-coded based on progress
+
+**Color Coding:**
+- 🟢 **Green** (≥100%): Fully paid or overpaid
+- 🟡 **Yellow** (1-99%): Partially paid
+- 🔴 **Red** (0%): No payments recorded yet
+
+**Calculation:**
+```
+Progress = (Total Paid ÷ Zakat Due) × 100%
+```
+
+**Example:**
+- Zakat Due: $1,000
+- Total Paid: $750
+- Progress: 75% (Yellow bar, partially paid)
+- Outstanding: $250
+
+#### Payments Summary Section
+
+**What You'll See:**
+- **Total Paid**: Sum of all payments for this Nisab Year
+- **Outstanding Balance**: Zakat Due - Total Paid
+- **Payment Count**: Number of payments recorded
+- **Last Payment**: Date of most recent payment
+- **Payment List**: Chronological list of all linked payments
+
+**Payment Details:**
+Each payment shows:
+- Amount and date
+- Recipient category (e.g., Al-Fuqara, Al-Masakin)
+- Recipient name (if provided)
+- Payment method (if provided)
+- Action buttons (View, Edit, Delete)
+
+### Adding Payments from Nisab Year Record
+
+**Quick Add:**
+
+1. Navigate to Nisab Year Record detail page
+2. Scroll to "Payments" section
+3. Click **"Add Payment"** button
+4. Payment form opens with this Nisab Year pre-selected
+5. Enter payment details (amount, date, recipient, etc.)
+6. Click "Save Payment"
+
+**Benefit**: The Nisab Year is automatically pre-selected, saving time and ensuring correct linkage.
+
+**Alternative**: Navigate to main Payments page and select Nisab Year manually.
+
+### Outstanding Balance Calculation
+
+**Automatic Updates:**
+
+When you record a payment:
+1. ✅ Payment amount added to "Total Paid"
+2. ✅ Outstanding Balance recalculated (Zakat Due - Total Paid)
+3. ✅ Progress bar updated with new percentage
+4. ✅ Analytics charts refreshed
+5. ✅ Dashboard compliance metrics updated
+
+**Example Workflow:**
+
+**Initial State:**
+- Zakat Due: $1,000
+- Total Paid: $0
+- Outstanding: $1,000
+- Progress: 0% (Red)
+
+**After First Payment ($400):**
+- Zakat Due: $1,000
+- Total Paid: $400
+- Outstanding: $600
+- Progress: 40% (Yellow)
+
+**After Second Payment ($600):**
+- Zakat Due: $1,000
+- Total Paid: $1,000
+- Outstanding: $0
+- Progress: 100% (Green)
+
+### Overpayment Handling
+
+**What Happens:**
+
+If you pay more than the Zakat due amount:
+- Progress bar shows >100% (Green)
+- Outstanding balance shows $0 (or negative for overpayment)
+- System displays "Fully Paid" badge
+- Overpayment treated as additional Sadaqah (voluntary charity)
+
+**Example:**
+- Zakat Due: $1,000
+- Total Paid: $1,200
+- Progress: 120% (Green)
+- Note: "$200 paid as additional Sadaqah"
+
+**Islamic Guidance**: Paying more than required Zakat is permissible and rewarded. The excess is considered voluntary charity (Sadaqah).
+
+### Payment History Per Nisab Year
+
+**Why This Matters:**
+
+Each Nisab Year Record shows only payments linked to that specific year. This provides:
+
+- Clear separation between different years' obligations
+- Accurate compliance tracking per year
+- Easy audit trail for each Hawl period
+- Year-specific payment reports
+
+**Example Scenario:**
+
+You have 3 Nisab Year Records:
+- 1444 AH (2023): 5 payments, $1,500 total → Fully paid
+- 1445 AH (2024): 3 payments, $800 total → Partially paid
+- 1446 AH (2025): 0 payments, $0 total → Not paid yet
+
+Each record's detail page shows only its own payments and calculates its own outstanding balance independently.
+
+### Payment Filtering
+
+**From Main Payments Page:**
+
+To view payments for a specific Nisab Year:
+1. Navigate to main **Payments** page
+2. Click "Filter by Nisab Year" dropdown
+3. Select desired Nisab Year (e.g., "1445 AH (2024)")
+4. List updates to show only payments for that year
+
+**Benefits:**
+- Focus on specific year's payments
+- Verify payment totals match expectations
+- Review payment distribution across categories
+- Audit year-specific compliance
+
+### Unlocking and Payment Impact
+
+**Important Note:**
+
+When you unlock a FINALIZED Nisab Year Record to make corrections:
+- Existing payments remain linked
+- If you change the Zakat Due amount, outstanding balance recalculates
+- Payment progress percentage updates automatically
+- Payments themselves are NOT modified
+
+**Example:**
+
+Original:
+- Zakat Due: $1,000
+- Total Paid: $500
+- Outstanding: $500
+- Progress: 50%
+
+After Unlocking and Editing (Zakat Due changed to $1,200):
+- Zakat Due: $1,200 (changed)
+- Total Paid: $500 (unchanged)
+- Outstanding: $700 (recalculated)
+- Progress: 42% (recalculated)
+
+**Best Practice**: Review payment totals after unlocking and re-finalizing to ensure they still align with your records.
+
+### Deleting Nisab Year Records with Payments
+
+**Warning:**
+
+If you attempt to delete a Nisab Year Record that has linked payments:
+1. System shows warning: "This record has X payment(s) linked to it"
+2. You must choose action:
+   - **Option A**: Delete payments too (recommended if entry was error)
+   - **Option B**: Unlink payments (payments remain but no longer associated with a year)
+   - **Option C**: Cancel deletion
+
+**Recommendation**: Avoid deleting FINALIZED records with payments. Use Unlock → Edit for corrections instead.
+
+---
+
 ## Best Practices
 
 ### 1. Keep Assets Updated
