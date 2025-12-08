@@ -110,16 +110,16 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className={compact ? 'text-xl font-semibold' : 'text-2xl font-bold'}>
-            Yearly Snapshots
+            Nisab Year Records
           </h2>
           <p className="text-gray-600 mt-1">
-            {pagination ? `${pagination.totalItems} snapshots` : 'Your Zakat calculation history'}
+            {pagination ? `${pagination.totalItems} records` : 'Your Zakat calculation history'}
           </p>
         </div>
         
         {onCreateNew && (
           <Button onClick={onCreateNew}>
-            Create New Snapshot
+            Create New Record
           </Button>
         )}
       </div>
@@ -224,15 +224,15 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No snapshots found</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No records found</h3>
           <p className="text-gray-600 mb-4">
             {filters.status !== 'all' || filters.year 
-              ? 'No snapshots match your current filters.' 
-              : 'Create your first yearly snapshot to start tracking your Zakat history.'}
+              ? 'No Nisab Year Records match your current filters.' 
+              : 'Create your first Nisab Year Record to start tracking your Zakat history.'}
           </p>
           {onCreateNew && (
             <Button onClick={onCreateNew}>
-              Create Your First Snapshot
+              Create Your First Record
             </Button>
           )}
         </div>
