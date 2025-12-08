@@ -11,7 +11,27 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   autoSelectOnFocus?: boolean;
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(({\n  label,\n  error,\n  helpText,\n  className,\n  id,\n  dataTestId,\n  autoSelectOnFocus = false,\n  onFocus,\n  ...props\n}, ref) => {\n  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');\n\n  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {\n    if (autoSelectOnFocus) {\n      e.target.select();\n    }\n    onFocus?.(e);\n  };\n\n  return (
+export const Input = forwardRef<HTMLInputElement, InputProps>(({
+  label,
+  error,
+  helpText,
+  className,
+  id,
+  dataTestId,
+  autoSelectOnFocus = false,
+  onFocus,
+  ...props
+}, ref) => {
+  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (autoSelectOnFocus) {
+      e.target.select();
+    }
+    onFocus?.(e);
+  };
+
+  return (
     <div className="space-y-1">
       {label && (
         <label
