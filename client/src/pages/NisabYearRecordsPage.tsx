@@ -90,9 +90,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const { data: assetsData, isLoading: isLoadingAssets, refetch: refetchAssets } = useQuery({
     queryKey: ['assets', 'nisab-create'],
     queryFn: async () => {
-      console.log('[NisabYearRecordsPage] Fetching assets for create modal...');
-      const response = await apiService.getAssets();
-      console.log('[NisabYearRecordsPage] Assets response:', response);
+      const response = await fetchAssets();
       if (!response.success) {
         throw new Error('Failed to fetch assets');
       }
@@ -110,7 +108,7 @@ export const NisabYearRecordsPage: React.FC = () => {
         // Use createdAt as addedAt
         addedAt: asset.createdAt || asset.acquisitionDate,
       }));
-      console.log('[NisabYearRecordsPage] Mapped assets:', assets);
+      // Assets mapped and ready for selection
       return assets as Asset[];
     },
     enabled: showCreateModal, // Only fetch when modal is open
@@ -211,7 +209,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      console.log('Record created successfully:', data);
+      // Record created successfully
       // Invalidate all variations of the query key (all status filters)
       queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
       setShowCreateModal(false);
@@ -262,7 +260,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       alert('Please select at least one asset');
       return;
     }
-    console.log('Creating record with assets:', selectedAssetIds);
+    // Creating record with selected assets
     createRecordMutation.mutate({ selectedAssetIds });
   };
 
@@ -391,7 +389,7 @@ export const NisabYearRecordsPage: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {records.map((record: any) => {
-                  console.log('Record:', record); // Debug: log record data
+                  // Render record card
                   const badge = statusBadges[record.status] || { color: 'gray', label: record.status || 'Unknown' };
                   const isSelected = selectedRecordId === record.id;
                   const startDate = new Date(record.hawlStartDate);
@@ -922,7 +920,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                     assets={assetsData}
                     initialSelection={selectedAssetIds}
                     onSelectionChange={(ids) => {
-                      console.log('Asset selection changed:', ids);
+                      // Asset selection updated
                       setSelectedAssetIds(ids);
                     }}
                   />
