@@ -21,7 +21,8 @@ export const PaymentsPage: React.FC = () => {
   const { data: snapshotsData, isLoading: snapshotsLoading } = useSnapshots();
   const [snapshotId, setSnapshotId] = useState<string | undefined>(snapshotIdParam || undefined);
   
-  // Note: Auto-selection removed in T019 - defaults to "All Payments" view  const [showCreateForm, setShowCreateForm] = useState(false);
+  // Note: Auto-selection removed in T019 - defaults to "All Payments" view
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
 
   const { data: paymentsData } = usePayments({ snapshotId });

@@ -66,7 +66,8 @@ describe('PaymentCard', () => {
     it('shows payment category', () => {
       render(<PaymentCard payment={mockPayment} />);
       
-      expect(screen.getByText(/fakir/i)).toBeInTheDocument();
+      // Component shows human-readable category name
+      expect(screen.getByText(/Al-Fuqara|The Poor/i)).toBeInTheDocument();
     });
 
     it('displays payment method', () => {
