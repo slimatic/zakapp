@@ -248,6 +248,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               value={formData.totalWealth}
               onChange={(e) => handleInputChange('totalWealth', parseFloat(e.target.value) || 0)}
               required
+              autoSelectOnFocus={true}
             />
             
             <Input
@@ -257,6 +258,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               value={formData.totalLiabilities}
               onChange={(e) => handleInputChange('totalLiabilities', parseFloat(e.target.value) || 0)}
               required
+              autoSelectOnFocus={true}
             />
             
             <Input
@@ -266,6 +268,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               value={formData.zakatableWealth}
               onChange={(e) => handleInputChange('zakatableWealth', parseFloat(e.target.value) || 0)}
               required
+              autoSelectOnFocus={true}
             />
             
             <div className="space-y-2">
@@ -276,6 +279,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 value={formData.zakatAmount}
                 onChange={(e) => handleInputChange('zakatAmount', parseFloat(e.target.value) || 0)}
                 required
+                autoSelectOnFocus={true}
               />
               <Button
                 type="button"
@@ -295,6 +299,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               value={formData.nisabThreshold}
               onChange={(e) => handleInputChange('nisabThreshold', parseFloat(e.target.value) || 0)}
               required
+              autoSelectOnFocus={true}
             />
             
             <div>
