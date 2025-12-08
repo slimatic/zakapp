@@ -25,7 +25,7 @@ export const AnalyticsPage: React.FC = () => {
   // Fetch data for summary statistics (T027)
   const { data: assetsData } = useAssets();
   const { data: snapshotsData } = useSnapshots({ limit: 100 });
-  const { data: wealthData } = useAnalytics('wealth_trend', timeframe);
+  const { data: wealthData } = useAnalytics('wealth_trend', selectedTimeframe);
   
   // Calculate summary statistics
   const totalWealth = assetsData?.data?.assets?.reduce((sum: number, asset: Asset) => sum + asset.value, 0) || 0;
@@ -61,9 +61,9 @@ export const AnalyticsPage: React.FC = () => {
             <label className="text-sm font-medium text-gray-700">Time Period:</label>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setTimeframe('last_year')}
+                onClick={() => setSelectedTimeframe('last_year')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  timeframe === 'last_year'
+                  selectedTimeframe === 'last_year'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
@@ -71,9 +71,9 @@ export const AnalyticsPage: React.FC = () => {
                 Last Year
               </button>
               <button
-                onClick={() => setTimeframe('last_3_years')}
+                onClick={() => setSelectedTimeframe('last_3_years')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  timeframe === 'last_3_years'
+                  selectedTimeframe === 'last_3_years'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
@@ -81,9 +81,9 @@ export const AnalyticsPage: React.FC = () => {
                 Last 3 Years
               </button>
               <button
-                onClick={() => setTimeframe('last_5_years')}
+                onClick={() => setSelectedTimeframe('last_5_years')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  timeframe === 'last_5_years'
+                  selectedTimeframe === 'last_5_years'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
@@ -91,9 +91,9 @@ export const AnalyticsPage: React.FC = () => {
                 Last 5 Years
               </button>
               <button
-                onClick={() => setTimeframe('all_time')}
+                onClick={() => setSelectedTimeframe('all_time')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  timeframe === 'all_time'
+                  selectedTimeframe === 'all_time'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}

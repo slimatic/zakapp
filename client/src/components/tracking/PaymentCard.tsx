@@ -150,10 +150,4 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
       </div>
     </div>
   );
-};
-
-/**
- * Memoized PaymentCard export
- * Prevents re-renders when props haven't changed
- */
-export const PaymentCard = React.memo(PaymentCardComponent);
+});
