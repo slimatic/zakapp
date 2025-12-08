@@ -1,6 +1,7 @@
 /**
  * PaymentCard Component - T020
  * Individual payment card showing details with linked Nisab Year context
+ * Memoized for performance optimization (T062)
  */
 
 import React from 'react';
@@ -39,7 +40,11 @@ const PAYMENT_METHODS: Record<string, string> = {
   'other': 'Other'
 };
 
-export const PaymentCard: React.FC<PaymentCardProps> = ({
+/**
+ * PaymentCard component with React.memo for performance
+ * Only re-renders when payment data or callbacks change
+ */
+const PaymentCardComponent: React.FC<PaymentCardProps> = ({
   payment,
   nisabYear,
   onEdit,
@@ -209,3 +214,9 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
     </div>
   );
 };
+
+/**
+ * Memoized PaymentCard export
+ * Prevents re-renders when props haven't changed
+ */
+export const PaymentCard = React.memo(PaymentCardComponent);
