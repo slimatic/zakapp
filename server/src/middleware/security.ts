@@ -40,11 +40,11 @@ export const snapshotRateLimit = rateLimit({
 
 /**
  * Rate limiter for analytics/comparison queries
- * Stricter due to computational expense
+ * Moderate limits - allowing for page loads with multiple charts
  */
 export const analyticsRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30, // 30 requests per 15 minutes
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 50, // 50 requests per 5 minutes (allows ~10 page refreshes)
   message: {
     success: false,
     error: {
