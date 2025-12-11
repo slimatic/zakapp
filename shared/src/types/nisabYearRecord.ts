@@ -88,6 +88,7 @@ export interface CreateNisabYearRecordDto {
   hawlCompletionDate: Date | string;
   hawlCompletionDateHijri: string;
   nisabBasis: NisabBasis;
+  currency?: string;
 
   // Wealth calculation (optional on creation, can be updated later)
   totalWealth?: number;

@@ -46,6 +46,7 @@ const Settings = lazy(() => import('./pages/user/Settings').then(m => ({ default
 // Asset management pages
 const AssetList = lazy(() => import('./components/assets').then(m => ({ default: m.AssetList })));
 const AssetFormPage = lazy(() => import('./components/assets').then(m => ({ default: m.AssetFormPage })));
+const AssetEditPage = lazy(() => import('./pages/assets/AssetEditPage').then(m => ({ default: m.AssetEditPage })));
 const AssetImportExport = lazy(() => import('./components/assets').then(m => ({ default: m.AssetImportExport })));
 const AssetDetails = lazy(() => import('./components/assets').then(m => ({ default: m.AssetDetails })));
 
@@ -158,6 +159,18 @@ function App() {
                     </Layout>
                   </ProtectedRoute>
                 } 
+              />
+              <Route 
+                path="/assets/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <AssetEditPage />
+                      </Suspense>
+                    </Layout>
+                  </ProtectedRoute>
+                }
               />
 
               {/* History - HIDDEN - TODO: Restore when History functionality implemented */}

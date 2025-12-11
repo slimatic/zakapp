@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCreatePayment, useUpdatePayment } from '../../hooks/usePayments';
-import { useSnapshots } from '../../hooks/useSnapshots';
+import { useSnapshots } from '../../hooks/useZakatSnapshots';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';

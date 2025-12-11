@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useSnapshots } from '../hooks/useSnapshots';
+import { useSnapshots } from '../hooks';
 import { useComparison } from '../hooks/useComparison';
 import { ComparisonTable } from '../components/tracking/ComparisonTable';
 import { SnapshotCard } from '../components/tracking/SnapshotCard';
@@ -77,8 +77,9 @@ export const ComparisonPage: React.FC = () => {
     );
   }
 
-  const snapshots = snapshotsData?.snapshots || [];
-  const finalized = snapshots.filter(s => s.status === 'finalized');
+  // Extract snapshots array safely
+  const snapshots = (snapshotsData as any)?.data?.snapshots || [];
+  const finalized = snapshots.filter((s: any) => s.status === 'finalized');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,7 +93,7 @@ export const ComparisonPage: React.FC = () => {
                 Compare multiple Nisab Year Records to analyze trends and changes
               </p>
             </div>
-            <Button variant="secondary" onClick={() => navigate('/tracking')}>
+            <Button variant="secondary" onClick={() => navigate('/dashboard')}>
               ← Back to Dashboard
             </Button>
           </div>
@@ -211,7 +212,7 @@ export const ComparisonPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {finalized.map(snapshot => {
+                {finalized.map((snapshot: any) => {
                   const isSelected = selectedIds.includes(snapshot.id);
                   return (
                     <div

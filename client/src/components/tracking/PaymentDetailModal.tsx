@@ -142,10 +142,10 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
                 <span className="text-sm font-medium text-gray-600">Category:</span>
                 <div className="bg-blue-50 border border-blue-200 rounded p-3">
                   <div className="text-sm font-semibold text-blue-900 mb-1">
-                    {categoryInfo?.label || payment.recipientCategory}
+                    {recipientCategory?.label || payment.recipientCategory}
                   </div>
                   <div className="text-xs text-blue-700">
-                    {categoryInfo?.description || 'Eligible Zakat recipient category'}
+                    {recipientCategory?.description || 'Eligible Zakat recipient category'}
                   </div>
                 </div>
               </div>
