@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { usePayments } from '../../hooks/usePayments';
-import { useSnapshots } from '../../hooks/useSnapshots';
+import { useSnapshots } from '../../hooks/useZakatSnapshots';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
@@ -15,6 +15,7 @@ import { PaymentDetailModal } from './PaymentDetailModal';
 import { formatCurrency } from '../../utils/formatters';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
+import type { NisabYearRecord } from '../../types/nisabYearRecord';
 
 interface PaymentListProps {
   snapshotId?: string; // Made optional for "All Payments" view
@@ -90,7 +91,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   // Create a map of snapshots by ID for quick lookup
   const snapshotsMap = useMemo(() => {
     const map = new Map();
-    snapshotsData?.snapshots?.forEach(snapshot => {
+    snapshotsData?.data?.records?.forEach((snapshot: NisabYearRecord) => {
       map.set(snapshot.id, snapshot);
     });
     return map;

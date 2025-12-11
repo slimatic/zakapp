@@ -8,6 +8,7 @@ export interface SnapshotFilters {
   year?: number;
   page?: number;
   limit?: number;
+  status?: string[];
 }
 
 /**

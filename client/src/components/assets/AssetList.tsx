@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAssets } from '../../services/apiHooks';
 import { Asset, AssetCategoryType } from '@zakapp/shared';
 import { LoadingSpinner, ErrorMessage, Button } from '../ui';
@@ -10,6 +10,7 @@ export const AssetList: React.FC = React.memo(() => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
+  const navigate = useNavigate();
   
   const { data: assetsData, isLoading, error } = useAssets();
   const assets = React.useMemo(() => assetsData?.data?.assets || [], [assetsData]);
@@ -45,7 +46,7 @@ export const AssetList: React.FC = React.memo(() => {
   return (
     <div className="space-y-6" id="main-content">
       {/* Header with Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Your Assets</h1>
           <p className="text-gray-600 mt-1">
@@ -116,6 +117,15 @@ export const AssetList: React.FC = React.memo(() => {
           >
             ➕ Add Asset
           </Button>
+              {/* Dashboard Back Button */}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate('/dashboard')}
+                className="whitespace-nowrap"
+              >
+                ← Back to Dashboard
+              </Button>
         </div>
       </div>
 
