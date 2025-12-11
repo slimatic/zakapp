@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { useSnapshots } from '../../hooks/useSnapshots';
+import { useSnapshots } from '../../hooks/useZakatSnapshots';
 import { SnapshotCard } from './SnapshotCard';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';

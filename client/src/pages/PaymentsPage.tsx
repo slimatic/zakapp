@@ -8,7 +8,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PaymentList } from '../components/tracking/PaymentList';
 import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
 import { usePayments } from '../hooks/usePayments';
-import { useSnapshots } from '../hooks/useSnapshots';
+import { useSnapshots } from '../hooks';
 import { Button } from '../components/ui/Button';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
@@ -26,6 +26,9 @@ export const PaymentsPage: React.FC = () => {
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
 
   const { data: paymentsData } = usePayments({ snapshotId });
+  
+  // Extract records array from API response
+  const snapshots = snapshotsData?.data?.records || [];
 
   const handleCreatePayment = () => {
     // Allow creating payment even without specific Nisab Year selected
@@ -44,8 +47,8 @@ export const PaymentsPage: React.FC = () => {
     setEditingPayment(null);
   };
 
-  const totalPaid = paymentsData?.payments.reduce((sum, p) => sum + p.amount, 0) || 0;
-  const paymentCount = paymentsData?.payments.length || 0;
+  const totalPaid = paymentsData?.payments?.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0;
+  const paymentCount = paymentsData?.payments?.length || 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,53 +62,60 @@ export const PaymentsPage: React.FC = () => {
                 Record and track your Zakat distributions to recipients
               </p>
             </div>
-            <Button variant="secondary" onClick={() => navigate('/tracking')}>
+            <Button variant="secondary" onClick={() => navigate('/dashboard')}>
               ← Back to Dashboard
             </Button>
           </div>
 
           {/* Nisab Year Selector */}
-          {snapshotsData?.snapshots && snapshotsData.snapshots.length > 0 && (
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filter by Nisab Year
+          {snapshots && snapshots.length > 0 && (
+            <div>
+              <label htmlFor="snapshot-select" className="block text-sm font-medium text-gray-700 mb-2">
+                Filter by Nisab Year Record
               </label>
               <select
-                value={snapshotId || ''}
+                id="snapshot-select"
+                value={snapshotId || 'all'}
                 onChange={(e) => {
-                  const newId = e.target.value;
-                  setSnapshotId(newId || undefined);
-                  if (newId) {
-                    setSearchParams({ snapshot: newId });
-                  } else {
-                    setSearchParams({});
-                  }
+                  const value = e.target.value;
+                  setSnapshotId(value === 'all' ? undefined : value);
+                  setSearchParams(value === 'all' ? {} : { snapshot: value });
                 }}
-                className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
-                <option value="">All Payments</option>
-                {snapshotsData.snapshots.map((snapshot) => (
-                  <option key={snapshot.id} value={snapshot.id}>
-                    {new Date(snapshot.calculationDate).getFullYear()} - {snapshot.status}
-                    {snapshot.zakatAmount ? ` (Zakat: $${snapshot.zakatAmount.toFixed(2)})` : ''}
-                  </option>
-                ))}
+                <option value="all">All Payments</option>
+                {snapshots.map((snapshot: any) => {
+                  // Parse zakatAmount - it might be encrypted string or number
+                  const zakatAmount = typeof snapshot.zakatAmount === 'string' 
+                    ? parseFloat(snapshot.zakatAmount) 
+                    : snapshot.zakatAmount;
+                  const displayAmount = zakatAmount && !isNaN(zakatAmount) 
+                    ? ` (Zakat: $${zakatAmount.toFixed(2)})` 
+                    : '';
+                  
+                  return (
+                    <option key={snapshot.id} value={snapshot.id}>
+                      {snapshot.calculationDate ? new Date(snapshot.calculationDate).getFullYear() : 'N/A'} - {snapshot.status}
+                      {displayAmount}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
 
           {/* No Nisab Years warning */}
-          {!snapshotsLoading && (!snapshotsData?.snapshots || snapshotsData.snapshots.length === 0) && (
+          {!snapshotsLoading && snapshots.length === 0 && (
             <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-800">
                 No Nisab Year Records found. Please create a Nisab Year Record first to record payments.
               </p>
               <Button
                 variant="primary"
-                onClick={() => navigate('/tracking')}
+                onClick={() => navigate('/dashboard')}
                 className="mt-3"
               >
-                Go to Tracking Dashboard
+                Go to Dashboard
               </Button>
             </div>
           )}

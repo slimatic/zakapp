@@ -58,8 +58,8 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
@@ -71,8 +71,8 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
@@ -85,13 +85,15 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
       useSnapshots.mockReturnValue({
         data: {
-          snapshots: [
-            { id: '1', calculationDate: '2024-01-01', status: 'FINALIZED', zakatAmount: 250 },
-            { id: '2', calculationDate: '2023-01-01', status: 'FINALIZED', zakatAmount: 300 }
-          ]
+          data: {
+            records: [
+              { id: '1', calculationDate: '2024-01-01', status: 'FINALIZED', zakatAmount: 250 },
+              { id: '2', calculationDate: '2023-01-01', status: 'FINALIZED', zakatAmount: 300 }
+            ]
+          }
         },
         isLoading: false
       });
@@ -106,12 +108,14 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
       useSnapshots.mockReturnValue({
         data: {
-          snapshots: [
-            { id: '1', calculationDate: '2024-01-01', status: 'FINALIZED', zakatAmount: 250 }
-          ]
+          data: {
+            records: [
+              { id: '1', calculationDate: '2024-01-01', status: 'FINALIZED', zakatAmount: 250 }
+            ]
+          }
         },
         isLoading: false
       });
@@ -141,7 +145,7 @@ describe('PaymentsPage', () => {
         },
         isLoading: false
       });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
@@ -154,8 +158,8 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
@@ -168,8 +172,8 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
@@ -188,8 +192,8 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
@@ -203,12 +207,14 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
       useSnapshots.mockReturnValue({
         data: {
-          snapshots: [
-            { id: '1', calculationDate: '2024-01-01', status: 'FINALIZED' }
-          ]
+          data: {
+            records: [
+              { id: '1', calculationDate: '2024-01-01', status: 'FINALIZED' }
+            ]
+          }
         },
         isLoading: false
       });
@@ -223,12 +229,14 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
       useSnapshots.mockReturnValue({
         data: {
-          snapshots: [
-            { id: '1', calculationDate: '2024-01-01', status: 'FINALIZED' }
-          ]
+          data: {
+            records: [
+              { id: '1', calculationDate: '2024-01-01', status: 'FINALIZED' }
+            ]
+          }
         },
         isLoading: false
       });
@@ -244,8 +252,8 @@ describe('PaymentsPage', () => {
       const { usePayments } = require('../hooks/usePayments');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      usePayments.mockReturnValue({ data: { payments: [] }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      usePayments.mockReturnValue({ data: { payments: [ ] } }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 

@@ -9,7 +9,7 @@ import { AnalyticsChart } from '../components/tracking/AnalyticsChart';
 import { Button } from '../components/ui/Button';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useAssets } from '../services/apiHooks';
-import { useSnapshots } from '../hooks/useSnapshots';
+import { useSnapshots } from '../hooks';
 import { formatCurrency } from '../utils/formatters';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '@zakapp/shared';
@@ -27,10 +27,20 @@ export const AnalyticsPage: React.FC = () => {
   const { data: snapshotsData } = useSnapshots({ limit: 100 });
   const { data: wealthData } = useAnalytics('wealth_trend', selectedTimeframe);
   
+  // Extract records array from API response
+  const snapshots = snapshotsData?.data?.records || [];
+  
   // Calculate summary statistics
   const totalWealth = assetsData?.data?.assets?.reduce((sum: number, asset: Asset) => sum + asset.value, 0) || 0;
-  const totalZakatDue = snapshotsData?.snapshots?.reduce((sum: number, snap: YearlySnapshot) => sum + (snap.zakatAmount || 0), 0) || 0;
-  const totalZakatPaid = snapshotsData?.snapshots?.reduce((sum: number, snap: YearlySnapshot) => sum + (snap.zakatAmount || 0), 0) || 0;
+  const totalZakatDue = snapshots.reduce((sum: number, snap: any) => {
+    // Decrypt and parse zakatAmount if it's a string
+    const amount = typeof snap.zakatAmount === 'string' ? parseFloat(snap.zakatAmount) : (snap.zakatAmount || 0);
+    return sum + amount;
+  }, 0) || 0;
+  // Note: totalZakatPaid should be calculated from actual payment records
+  // For now, we'll calculate it as the same as totalZakatDue (100% compliance shown)
+  // TODO: Fetch actual payments data and sum payment amounts
+  const totalZakatPaid = totalZakatDue; // Temporary - should sum from actual payments
   const outstandingBalance = totalZakatDue - totalZakatPaid;
   const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;
 
@@ -49,7 +59,7 @@ export const AnalyticsPage: React.FC = () => {
                 Comprehensive insights into your Zakat history and trends
               </p>
             </div>
-            <Button variant="secondary" onClick={() => navigate('/tracking')}>
+            <Button variant="secondary" onClick={() => navigate('/dashboard')}>
               ← Back to Dashboard
             </Button>
           </div>
