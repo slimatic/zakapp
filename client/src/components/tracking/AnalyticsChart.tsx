@@ -64,10 +64,20 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
 }) => {
   const { data: analytics, isLoading, error } = useAnalytics(metricType, timeframe);
 
+  // Show user-friendly message for rate limiting
+  const is429Error = error?.message?.includes('Too many requests');
+
   // Format data for chart consumption
   const chartData = useMemo(() => {
-    if (!analytics?.data) return [];
-    return formatChartData(analytics.data, metricType);
+    // API returns { metric, data, metadata, summary }
+    // where data contains the actual chart data (trend, composition, distribution)
+    const chartDataSource = analytics?.data || analytics;
+    
+    if (!chartDataSource) {
+      return [];
+    }
+    
+    return formatChartData(chartDataSource, metricType);
   }, [analytics, metricType]);
 
   // Determine visualization type based on metric if not specified
@@ -125,19 +135,23 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6" style={{ minHeight: compact ? 200 : height }}>
+      <div className={`border rounded-lg p-6 ${is429Error ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'}`} style={{ minHeight: compact ? 200 : height }}>
         <div className="flex items-start">
-          <svg className="h-6 w-6 text-red-600 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className={`h-6 w-6 mr-3 flex-shrink-0 ${is429Error ? 'text-yellow-600' : 'text-red-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <h3 className="text-sm font-medium text-red-800">Failed to load analytics</h3>
-            <p className="text-sm text-red-700 mt-1">
-              {error.message || 'Unable to fetch analytics data. Please try again later.'}
+            <h3 className={`text-sm font-medium ${is429Error ? 'text-yellow-800' : 'text-red-800'}`}>
+              {is429Error ? 'Too many requests' : 'Failed to load analytics'}
+            </h3>
+            <p className={`text-sm mt-1 ${is429Error ? 'text-yellow-700' : 'text-red-700'}`}>
+              {is429Error 
+                ? 'Please wait a moment and refresh the page to try again.' 
+                : error.message || 'Unable to fetch analytics data. Please try again later.'}
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="text-sm text-red-800 underline mt-2 hover:text-red-900"
+              className={`text-sm underline mt-2 ${is429Error ? 'text-yellow-800 hover:text-yellow-900' : 'text-red-800 hover:text-red-900'}`}
             >
               Refresh page
             </button>

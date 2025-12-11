@@ -123,6 +123,12 @@ export function useAnalytics(
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Failed to fetch analytics' }));
+        // Don't retry on rate limit errors
+        if (response.status === 429) {
+          const rateLimitError: any = new Error('Too many requests. Please wait a moment.');
+          rateLimitError.status = 429;
+          throw rateLimitError;
+        }
         throw new Error(error.error?.message || error.message || 'Failed to fetch analytics');
       }
 
@@ -131,7 +137,14 @@ export function useAnalytics(
     },
     enabled,
     staleTime: staleTimeMs, // Optimized per metric type (15-60 minutes)
-    gcTime: staleTimeMs * 2 // Double the staleTime for garbage collection
+    gcTime: staleTimeMs * 2, // Double the staleTime for garbage collection
+    retry: (failureCount, error: any) => {
+      // Don't retry on rate limit errors
+      if (error?.status === 429) return false;
+      // Retry other errors up to 2 times
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000) // Exponential backoff: 1s, 2s, 4s...
   });
 }
 
