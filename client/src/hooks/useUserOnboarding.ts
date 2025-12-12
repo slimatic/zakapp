@@ -40,7 +40,7 @@ export const useUserOnboarding = () => {
    * Use same query key as Dashboard to share cache
    */
   const { data: recordsData } = useQuery({
-    queryKey: ['nisab-records'],
+    queryKey: ['nisab-year-records'],
     queryFn: async () => {
       // Fetch ALL records (no status filter) to check if user has any
       const response = await apiService.getNisabYearRecords();
