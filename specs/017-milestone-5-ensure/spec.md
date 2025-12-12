@@ -91,7 +91,7 @@ As a user, I want to see a summary of payments made towards a specific Nisab Yea
 - What happens when a user has no historical data? (Should show empty states/onboarding for analytics)
 - How does the system handle different currencies in payment history? (Should convert or display original currency)
 - What happens if the backend services are offline? (Should show graceful error messages)
-- What happens if a user deletes a Nisab Year Record that has payments? (Payments should either be deleted or unlinked - prefer unlinked or warning).
+- What happens if a user deletes a Nisab Year Record that has payments? (Strictly prohibited. User must delete linked payments first before deleting the Nisab Year Record. Show clear error message).
 
 ## Clarifications
 
