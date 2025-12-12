@@ -14,37 +14,25 @@ export const AssetDetails: React.FC = () => {
   const { data: assetData, isLoading, error, refetch } = useAsset(id!);
   const deleteMutation = useDeleteAsset();
 
-  const asset: Asset | null = assetData?.data || null;
+  // API returns { success: true, data: { asset: Asset } }
+  // Normalize for both shapes (legacy frontend or API) to avoid runtime errors
+  const asset: Asset | null = (assetData?.data && (assetData.data.asset || assetData.data)) || null;
 
-  const handleDelete = () => {
-    if (!safeAsset) return;
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${safeAsset.name}"? This action cannot be undone.`
-    );
-
-    if (confirmed) {
-      deleteMutation.mutate(safeAsset.assetId, {
-        onSuccess: () => {
-          navigate('/assets');
-        },
-        onError: (error: any) => {
-          console.error('Failed to delete asset:', error);
-          alert('Failed to delete safeAsset. Please try again.');
-        }
-      });
-    }
-  };
-
-  const formatCurrency = (value: number, currency: string) => {
+  const formatCurrency = (value: number | string | undefined, currency: string | undefined) => {
+    const parsed = typeof value === 'string' ? parseFloat(value) : value;
+    const finalValue = typeof parsed === 'number' && !isNaN(parsed) ? parsed : 0;
+    const finalCurrency = currency || 'USD';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency || 'USD'
-    }).format(value);
+      currency: finalCurrency
+    }).format(finalValue);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString?: string | Date | null) => {
+    if (!dateString) return 'Invalid Date';
+    const d = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    if (isNaN(d.getTime())) return 'Invalid Date';
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -131,6 +119,27 @@ export const AssetDetails: React.FC = () => {
   // TypeScript type narrowing assertion
   const safeAsset: Asset = asset;
 
+  const handleDelete = () => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${safeAsset.name}"? This action cannot be undone.`
+    );
+
+    if (confirmed) {
+      deleteMutation.mutate(safeAsset.assetId, {
+        onSuccess: () => {
+          navigate('/assets');
+        },
+        onError: (error: any) => {
+          console.error('Failed to delete asset:', error);
+          alert('Failed to delete asset. Please try again.');
+        }
+      });
+    }
+  };
+
+  // Normalize numeric value for reliable calculations
+  const numericValue = typeof safeAsset.value === 'string' ? parseFloat(safeAsset.value as any) : (safeAsset.value || 0);
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
@@ -172,8 +181,8 @@ export const AssetDetails: React.FC = () => {
         {/* Value */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Current Value</h3>
-          <p className="text-3xl font-bold text-green-600">
-            {formatCurrency(safeAsset.value, safeAsset.currency)}
+            <p className="text-3xl font-bold text-green-600">
+            {formatCurrency(numericValue, safeAsset.currency)}
           </p>
           <p className="text-sm text-gray-500 mt-1">{safeAsset.currency}</p>
         </div>
@@ -284,10 +293,10 @@ export const AssetDetails: React.FC = () => {
           </h3>
           <div className="space-y-3">
             <p className="text-sm text-green-800">
-              <span className="font-medium">Zakatable Value:</span> {formatCurrency(safeAsset.value, safeAsset.currency)}
+              <span className="font-medium">Zakatable Value:</span> {formatCurrency(numericValue, safeAsset.currency)}
             </p>
             <p className="text-sm text-green-800">
-              <span className="font-medium">Estimated Zakat (2.5%):</span> {formatCurrency(safeAsset.value * 0.025, safeAsset.currency)}
+              <span className="font-medium">Estimated Zakat (2.5%):</span> {formatCurrency(numericValue * 0.025, safeAsset.currency)}
             </p>
             <p className="text-xs text-green-600">
               * This is an estimate. Actual Zakat calculation depends on your total wealth, 
@@ -306,11 +315,7 @@ export const AssetDetails: React.FC = () => {
         </Link>
         
         <div className="flex space-x-3">
-          <Link to={`/calculate?includeAsset=${safeAsset.assetId}`}>
-            <Button variant="primary">
-              Calculate Zakat
-            </Button>
-          </Link>
+          {/* Calculate Zakat currently has no route; hide until feature is available */}
         </div>
       </div>
     </div>

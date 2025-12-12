@@ -5,7 +5,8 @@
  * Handles CRUD operations, status transitions, and live tracking
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import type { Prisma, YearlySnapshot } from '@prisma/client';
 import { Logger } from '../utils/logger';
 import { EncryptionService } from './EncryptionService';
 import { AuditTrailService } from './auditTrailService';
@@ -22,6 +23,7 @@ import type {
   FinalizeRecordDto,
   UnlockRecordDto,
   LiveHawlData,
+  LiveTrackingData,
 } from '@zakapp/shared';
 
 export class NisabYearRecordService {
@@ -71,8 +73,7 @@ export class NisabYearRecordService {
 
       // Fetch current Nisab threshold
       const nisabData = await this.nisabCalculationService.calculateNisabThreshold(
-        // shared types use hawl-based DTOs and prefer currency in caller; default to USD
-        (dto as any).currency || 'USD',
+        dto.currency || 'USD',
         dto.nisabBasis as NisabBasis
       );
 
@@ -117,9 +118,14 @@ export class NisabYearRecordService {
         assetBreakdownEncrypted = JSON.stringify(dto.assetBreakdown);
       }
 
+      // Ensure assetBreakdown is not null
+      if (!assetBreakdownEncrypted) {
+        assetBreakdownEncrypted = await EncryptionService.encrypt('{}', process.env.ENCRYPTION_KEY!);
+      }
+
       // Create the record in DRAFT status
       // map CreateNisabYearRecordDto -> YearlySnapshot (Prisma model)
-      const createData = {
+      const createData: Record<string, unknown> = {
         hawlStartDate: new Date(dto.hawlStartDate),
         hawlStartDateHijri: dto.hawlStartDateHijri,
         hawlCompletionDate: new Date(dto.hawlCompletionDate),
@@ -136,9 +142,9 @@ export class NisabYearRecordService {
         gregorianYear: new Date().getFullYear(),
         gregorianMonth: new Date().getMonth() + 1,
         gregorianDay: new Date().getDate(),
-        hijriYear: 0,
-        hijriMonth: 0,
-        hijriDay: 0,
+        hijriYear: dto.hawlStartDateHijri ? parseInt(dto.hawlStartDateHijri.split('-')[0]) : 0,
+        hijriMonth: dto.hawlStartDateHijri ? parseInt(dto.hawlStartDateHijri.split('-')[1]) : 0,
+        hijriDay: dto.hawlStartDateHijri ? parseInt(dto.hawlStartDateHijri.split('-')[2]) : 0,
         totalWealth: (dto.totalWealth || 0).toString(),
         totalLiabilities: (dto.totalLiabilities || 0).toString(),
         zakatableWealth: (dto.zakatableWealth || 0).toString(),
@@ -150,16 +156,16 @@ export class NisabYearRecordService {
         user: {
           connect: { id: userId }
         }
-      } as any;
+      };
 
-      const record = await this.prisma.yearlySnapshot.create({ data: createData });
+      const record = await this.prisma.yearlySnapshot.create({ data: createData as Prisma.YearlySnapshotCreateInput });
 
       // Record audit event
       await this.auditTrailService.recordEvent(
         userId,
         'CREATED',
         record.id,
-        { afterState: record as any }
+        { afterState: record as Record<string, unknown> }
       );
 
       this.logger.info(`Nisab Year Record created: ${record.id} for user ${userId}`);
@@ -195,16 +201,17 @@ export class NisabYearRecordService {
       }
 
       // Add live tracking data if DRAFT
-      let liveHawlData: LiveHawlData | undefined;
+      let liveTrackingData: LiveTrackingData | undefined;
       if (record.status === 'DRAFT' && record.hawlStartDate) {
         const currentWealth = await this.wealthAggregationService.calculateTotalZakatableWealth(userId);
-        liveHawlData = await this.hawlTrackingService.calculateLiveHawlData(
-          record as any,
+        const liveHawlData = await this.hawlTrackingService.calculateLiveHawlData(
+          record as { hawlStartDate: Date; nisabThreshold: string; [key: string]: unknown },
           currentWealth.totalZakatableWealth
         );
+        liveTrackingData = this._convertLiveHawlToLiveTracking(liveHawlData);
       }
 
-      return await this._mapToResponse(record, liveHawlData);
+      return await this._mapToResponse(record, liveTrackingData);
     } catch (error) {
       this.logger.error('Failed to get record', error);
       throw error;
@@ -299,10 +306,10 @@ export class NisabYearRecordService {
       const beforeState = { ...record };
 
       // Update fields
-      const updateData: Prisma.YearlySnapshotUpdateInput = {
+      const updateData: Record<string, unknown> = {
         userNotes: dto.userNotes !== undefined ? dto.userNotes : record.userNotes,
         methodologyUsed: dto.methodologyUsed || record.methodologyUsed,
-      } as any;
+      };
 
       // Handle date updates
       if (dto.hawlStartDate !== undefined) {
@@ -389,7 +396,7 @@ export class NisabYearRecordService {
         {
           changesSummary: this._getChangedFields(beforeState, updatedRecord),
           beforeState,
-          afterState: updatedRecord as any,
+          afterState: updatedRecord as Record<string, unknown>,
         }
       );
 
@@ -430,7 +437,7 @@ export class NisabYearRecordService {
         throw new Error('Cannot finalize: Hawl not started');
       }
 
-      const isHawlComplete = await this.hawlTrackingService.isHawlComplete(record.hawlStartDate);
+      const isHawlComplete = await this.hawlTrackingService.isHawlComplete(record.hawlStartDate as Date);
       if (!isHawlComplete) {
         throw new Error('Cannot finalize: Hawl period not complete (354 days required)');
       }
@@ -465,7 +472,7 @@ export class NisabYearRecordService {
         totalWealth: encryptedTotalWealth,
         zakatableWealth: encryptedZakatableWealth,
         zakatAmount: encryptedZakatAmount,
-        userNotes: (dto as any).overrideNote || record.userNotes,
+        userNotes: ('overrideNote' in dto ? (dto as { overrideNote?: string }).overrideNote : undefined) || record.userNotes,
         finalizedAt: new Date(),
       };
 
@@ -488,7 +495,7 @@ export class NisabYearRecordService {
           afterState: {
             status: 'FINALIZED',
             finalZakatAmount,
-            finalizationNotes: (dto as any).overrideNote,
+            finalizationNotes: ('overrideNote' in dto ? (dto as { overrideNote?: string }).overrideNote : undefined),
           },
         }
       );
@@ -526,7 +533,8 @@ export class NisabYearRecordService {
       }
 
       // Validate unlock reason
-      if (!(dto as any).unlockReason || (dto as any).unlockReason.length < 10) {
+      const unlockReason = ('unlockReason' in dto ? (dto as { unlockReason?: string }).unlockReason : undefined);
+      if (!unlockReason || unlockReason.length < 10) {
         throw new Error('Unlock reason must be at least 10 characters');
       }
 
@@ -544,12 +552,12 @@ export class NisabYearRecordService {
         'UNLOCKED',
         recordId,
         {
-          reason: (dto as any).unlockReason,
+          reason: unlockReason,
           afterState: { status: 'UNLOCKED', unlockedAt: new Date() },
         }
       );
 
-      this.logger.info(`Nisab Year Record unlocked: ${recordId} with reason: ${(dto as any).unlockReason.substring(0, 20)}...`);
+      this.logger.info(`Nisab Year Record unlocked: ${recordId} with reason: ${unlockReason.substring(0, 20)}...`);
 
       return await this._mapToResponse(unlockedRecord);
     } catch (error) {
@@ -665,7 +673,7 @@ export class NisabYearRecordService {
   /**
    * Private: Verify user ownership of record
    */
-  private async _verifyOwnership(userId: string, recordId: string): Promise<any> {
+  private async _verifyOwnership(userId: string, recordId: string): Promise<{ id: string; userId: string; status: string; [key: string]: unknown }> {
     const record = await this.prisma.yearlySnapshot.findUnique({
       where: { id: recordId },
     });
@@ -684,8 +692,8 @@ export class NisabYearRecordService {
   /**
    * Private: Get changed fields between two states
    */
-  private _getChangedFields(before: any, after: any): Record<string, any> {
-    const changes: Record<string, any> = {};
+  private _getChangedFields(before: Record<string, unknown>, after: Record<string, unknown>): Record<string, unknown> {
+    const changes: Record<string, unknown> = {};
 
     const trackFields = ['notes', 'nisabBasis', 'status'];
     for (const field of trackFields) {
@@ -703,38 +711,33 @@ export class NisabYearRecordService {
   /**
    * Private: Map database record to response DTO
    */
-  private async _mapToResponse(record: any, liveHawlData?: LiveHawlData): Promise<NisabYearRecord | NisabYearRecordWithLiveTracking> {
+  private async _mapToResponse(record: YearlySnapshot, liveTrackingData?: LiveTrackingData): Promise<NisabYearRecord | NisabYearRecordWithLiveTracking> {
     // Decrypt sensitive fields with fallback for plaintext or corrupted data
-    const safeDecrypt = async (value: string | null | undefined, defaultValue: string = '0'): Promise<string> => {
+    const safeDecrypt = async (value: string | null | undefined, defaultValue = '0'): Promise<string> => {
       if (!value) return defaultValue;
-      
       try {
-        // Check if value looks like encrypted data (starts with encryption marker)
-        if (value.includes(':') || value.startsWith('U2FsdGVk')) {
-          return await EncryptionService.decrypt(value, process.env.ENCRYPTION_KEY!);
-        }
-        // If it's already plaintext (old data), return as-is
-        return value;
-      } catch (error) {
-        this.logger.warn(`Failed to decrypt field, returning default: ${error.message}`);
-        return defaultValue;
+        const decrypted = await EncryptionService.decrypt(value, process.env.ENCRYPTION_KEY!);
+        return decrypted || defaultValue;
+      } catch {
+        // If decryption fails, assume it's plaintext or return default
+        return !isNaN(Number(value)) ? value : defaultValue;
       }
     };
 
-    const decryptedTotalWealth = await safeDecrypt(record.totalWealth);
-    const decryptedTotalLiabilities = await safeDecrypt(record.totalLiabilities);
-    const decryptedZakatableWealth = await safeDecrypt(record.zakatableWealth);
-    const decryptedZakatAmount = await safeDecrypt(record.zakatAmount);
+    const decryptedTotalWealth = await safeDecrypt(record.totalWealth as string | null | undefined);
+    const decryptedTotalLiabilities = await safeDecrypt(record.totalLiabilities as string | null | undefined);
+    const decryptedZakatableWealth = await safeDecrypt(record.zakatableWealth as string | null | undefined);
+    const decryptedZakatAmount = await safeDecrypt(record.zakatAmount as string | null | undefined);
 
-    const data = {
+    const baseRecord: NisabYearRecord = {
       id: record.id,
       userId: record.userId,
-      hawlStartDate: record.hawlStartDate,
-      hawlStartDateHijri: record.hawlStartDateHijri,
-      hawlCompletionDate: record.hawlCompletionDate,
-      hawlCompletionDateHijri: record.hawlCompletionDateHijri,
+      hawlStartDate: record.hawlStartDate as Date | string,
+      hawlStartDateHijri: record.hawlStartDateHijri || '',
+      hawlCompletionDate: record.hawlCompletionDate as Date | string,
+      hawlCompletionDateHijri: record.hawlCompletionDateHijri || '',
       nisabThresholdAtStart: record.nisabThresholdAtStart,
-      nisabBasis: record.nisabBasis,
+      nisabBasis: (record.nisabBasis as NisabBasis) || 'GOLD',
       totalWealth: decryptedTotalWealth,
       totalLiabilities: decryptedTotalLiabilities,
       zakatableWealth: decryptedZakatableWealth,
@@ -742,19 +745,35 @@ export class NisabYearRecordService {
       methodologyUsed: record.methodologyUsed,
       assetBreakdown: record.assetBreakdown,
       calculationDetails: record.calculationDetails,
-      status: record.status,
+      status: record.status as RecordStatus,
       finalizedAt: record.finalizedAt,
       userNotes: record.userNotes,
       calculationDate: record.calculationDate,
       gregorianYear: record.gregorianYear,
       gregorianMonth: record.gregorianMonth,
       gregorianDay: record.gregorianDay,
-    } as any;
+      hijriYear: record.hijriYear,
+      hijriMonth: record.hijriMonth,
+      hijriDay: record.hijriDay,
+      isPrimary: record.isPrimary,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+    };
 
-    if (liveHawlData) {
-      (data as any).liveTracking = liveHawlData;
-    }
+    return liveTrackingData
+      ? ({ ...baseRecord, liveTracking: liveTrackingData } as NisabYearRecordWithLiveTracking)
+      : baseRecord;
+  }
 
-    return liveHawlData ? ({ ...data, liveTracking: liveHawlData } as NisabYearRecordWithLiveTracking) : (data as NisabYearRecord);
+  private _convertLiveHawlToLiveTracking(liveHawlData: LiveHawlData): LiveTrackingData {
+    return {
+      currentTotalWealth: liveHawlData.currentWealth,
+      nisabThreshold: liveHawlData.nisabThreshold,
+      daysRemaining: liveHawlData.daysRemaining,
+      hawlProgress: liveHawlData.hawlProgress,
+      isHawlComplete: liveHawlData.isHawlComplete,
+      canFinalize: liveHawlData.canFinalize,
+      lastUpdated: liveHawlData.lastUpdated,
+    };
   }
 }

@@ -28,3 +28,4 @@ export {
   useSnapshotStats
 } from './useZakatSnapshots';
 export type { SnapshotFilters } from './useZakatSnapshots';
+export { useComparison } from './useComparison';

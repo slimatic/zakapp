@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { useSnapshots, useCompareSnapshots } from '../../hooks';
+import { useNisabYearRecords, useCompareSnapshots } from '../../hooks';
 
 /**
- * SnapshotComparison Component - T025
+ * SnapshotComparison Component - T025 (Now using Nisab Year Record terminology)
  *
- * Provides comprehensive comparison between two Zakat calculation snapshots
+ * Provides comprehensive comparison between two Nisab Year Records (Zakat calculations)
  * with visual charts, growth metrics, and export functionality.
  */
 const SnapshotComparison: React.FC = () => {
@@ -13,11 +13,15 @@ const SnapshotComparison: React.FC = () => {
   const [selectedFromSnapshot, setSelectedFromSnapshot] = useState<string>('');
   const [selectedToSnapshot, setSelectedToSnapshot] = useState<string>('');
 
-  // Fetch snapshots for both years
-  const { data: fromSnapshots, isLoading: fromLoading } = useSnapshots({ year: fromYear });
-  const { data: toSnapshots, isLoading: toLoading } = useSnapshots({ year: toYear });
+  // Fetch Nisab Year Records for both years
+  const { data: fromNisabRecords, isLoading: fromLoading } = useNisabYearRecords({
+    limit: 100
+  });
+  const { data: toNisabRecords, isLoading: toLoading } = useNisabYearRecords({
+    limit: 100
+  });
 
-  // Compare selected snapshots
+  // Compare selected Nisab Year Records
   const { data: comparison, isLoading: comparisonLoading } = useCompareSnapshots(
     selectedFromSnapshot,
     selectedToSnapshot
@@ -115,10 +119,10 @@ const SnapshotComparison: React.FC = () => {
                   onChange={(e) => setSelectedFromSnapshot(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select a Nisab Year</option>
-                  {fromSnapshots?.data?.snapshots?.map((snapshot: any) => (
-                    <option key={snapshot.id} value={snapshot.id}>
-                      {new Date(snapshot.calculationDate).toLocaleDateString()} - {formatCurrency(snapshot.zakatDue || 0)}
+                  <option value="">Select a Nisab Year Record</option>
+                  {fromNisabRecords?.records?.map((record: any) => (
+                    <option key={record.id} value={record.id}>
+                      {new Date(record.calculationDate || record.createdAt).toLocaleDateString()} - {formatCurrency(record.zakatAmount || 0)}
                     </option>
                   ))}
                 </select>
@@ -152,10 +156,10 @@ const SnapshotComparison: React.FC = () => {
                   onChange={(e) => setSelectedToSnapshot(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select a Nisab Year</option>
-                  {toSnapshots?.data?.snapshots?.map((snapshot: any) => (
-                    <option key={snapshot.id} value={snapshot.id}>
-                      {new Date(snapshot.calculationDate).toLocaleDateString()} - {formatCurrency(snapshot.zakatDue || 0)}
+                  <option value="">Select a Nisab Year Record</option>
+                  {toNisabRecords?.records?.map((record: any) => (
+                    <option key={record.id} value={record.id}>
+                      {new Date(record.calculationDate || record.createdAt).toLocaleDateString()} - {formatCurrency(record.zakatAmount || 0)}
                     </option>
                   ))}
                 </select>
