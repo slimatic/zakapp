@@ -47,7 +47,7 @@ export const GettingStarted: React.FC = () => {
                 Use our comprehensive calculator to determine your Zakat obligation based on 
                 authentic Islamic methodologies.
               </p>
-              <a href="/calculate" className="text-green-600 hover:text-green-700 font-medium">
+              <a href="/nisab-records" className="text-green-600 hover:text-green-700 font-medium">
                 Calculate Zakat →
               </a>
             </div>
@@ -216,7 +216,7 @@ export const GettingStarted: React.FC = () => {
           <a href="/assets" className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
             Start Adding Assets
           </a>
-          <a href="/calculate" className="border border-green-600 text-green-600 px-6 py-2 rounded-md hover:bg-green-50">
+          <a href="/nisab-records" className="border border-green-600 text-green-600 px-6 py-2 rounded-md hover:bg-green-50">
             Calculate Zakat
           </a>
         </div>
