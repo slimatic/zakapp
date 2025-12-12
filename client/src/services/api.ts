@@ -428,8 +428,22 @@ class ApiService {
   }
 
   /** @deprecated Use getNisabYearRecords instead */
-  async getSnapshots(filters?: { year?: number; page?: number; limit?: number }): Promise<ApiResponse> {
-    return this.getNisabYearRecords(filters);
+  async getSnapshots(filters?: { year?: number; page?: number; limit?: number; status?: string[] }): Promise<ApiResponse> {
+    const result = await this.getNisabYearRecords({
+      ...filters,
+      status: filters?.status
+    });
+    // Map 'records' to 'snapshots' for backward compatibility
+    if (result.data && result.data.records) {
+      return {
+        ...result,
+        data: {
+          ...result.data,
+          snapshots: result.data.records
+        }
+      };
+    }
+    return result;
   }
 
   /** @deprecated Use getNisabYearRecord instead */
