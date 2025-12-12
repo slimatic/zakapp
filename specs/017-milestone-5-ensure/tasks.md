@@ -32,7 +32,7 @@
 - [x] T002 ✅ Verify navigation links added to `client/src/components/layout/Layout.tsx`
 - [x] T003 ✅ Verify PaymentRecordForm enhanced with Nisab Year dropdown in `client/src/components/tracking/PaymentRecordForm.tsx`
 - [x] T004 ✅ Run backend tests to verify AnalyticsService functionality: `cd server && npm test -- AnalyticsService.test.ts`
-- [x] T005 ✅ Run backend tests to verify PaymentService functionality: SKIPPED - No tests exist yet
+- [x] T005 ✅ Create and run unit tests for PaymentService (CRUD, encryption, linking) to ensure reliability of financial data handling.
 - [x] T006 ✅ Verify React Query hooks exist: `client/src/hooks/useAnalytics.ts`, `client/src/hooks/usePayments.ts`, `client/src/hooks/useSnapshots.ts`
 
 **Checkpoint**: ✅ Infrastructure verified - user story enhancements can proceed
@@ -144,6 +144,10 @@
   - ✅ Error message: "Please select a Nisab Year Record" (CORRECT)
   - ✅ Form submission blocked without Nisab Year
   - ✅ Error state styling applied to dropdown when validation fails
+
+- [ ] T018 [US2] Implement "Prevent Deletion" logic for Nisab Records with linked payments
+  - Backend: Add check in `deleteNisabYearRecord` (or equivalent) to throw error if payments exist.
+  - Frontend: Show clear error message if deletion fails due to linked payments.
 
 **Checkpoint**: Payment recording with Nisab Year linking fully functional and tested
 
