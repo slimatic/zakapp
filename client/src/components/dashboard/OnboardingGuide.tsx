@@ -58,7 +58,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
       title: 'Track Payments',
       description: 'Record your Zakat payments and monitor payment history',
       action: 'Record Payment',
-      href: '/nisab-records',
+      href: '/payments',
     },
   ];
 
