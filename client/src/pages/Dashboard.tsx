@@ -11,6 +11,7 @@ import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { useUserOnboarding } from '../hooks/useUserOnboarding';
+import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '@zakapp/shared';
 
@@ -230,8 +231,10 @@ export const Dashboard: React.FC = () => {
     return sum + (asset.value || 0);
   }, 0);
 
-  // Get Nisab threshold (from active record or default)
-  const nisabThreshold = activeRecord?.initialNisabThreshold || 5000; // Default fallback
+  // Get Nisab threshold (use live value for consistency with other pages)
+  const nisabBasis = (activeRecord?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
+  const { nisabAmount } = useNisabThreshold('USD', nisabBasis);
+  const nisabThreshold = nisabAmount || 5000; // Default fallback
 
   // Loading state
   if (assetsLoading || recordsLoading) {
