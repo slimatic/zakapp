@@ -47,13 +47,11 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   const isEditing = !!payment;
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>(propSnapshotId || payment?.snapshotId || '');
   
-  // Fetch snapshots if not provided via props (only fetch when needed)
+  // Fetch snapshots if not provided via props (always call hook but conditionally enable)
   const shouldFetchSnapshots = !propSnapshotId;
-  const { data: snapshotsData, isLoading: isLoadingSnapshots } = useSnapshots(
-    shouldFetchSnapshots ? {
-      status: ['active', 'finalized'], // Fetch active and finalized records for selection
-    } : undefined
-  );
+  const { data: snapshotsData, isLoading: isLoadingSnapshots } = useSnapshots({
+    status: ['active', 'finalized'], // Fetch active and finalized records for selection
+  });
 
   // Update selected snapshot if prop changes
   useEffect(() => {
