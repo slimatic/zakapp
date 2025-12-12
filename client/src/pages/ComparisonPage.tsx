@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useSnapshots } from '../hooks/useSnapshots';
+import { useNisabYearRecords } from '../hooks/useNisabYearRecords';
 import { useComparison } from '../hooks/useComparison';
 import { ComparisonTable } from '../components/tracking/ComparisonTable';
 import { SnapshotCard } from '../components/tracking/SnapshotCard';
@@ -18,11 +18,11 @@ export const ComparisonPage: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showComparison, setShowComparison] = useState(false);
 
-  // Get snapshot IDs from URL if provided
+  // Get Nisab Year Record IDs from URL if provided
   useEffect(() => {
-    const snapshotsParam = searchParams.get('snapshots');
-    if (snapshotsParam) {
-      const ids = snapshotsParam.split(',').filter(Boolean);
+    const recordIdsParam = searchParams.get('snapshots');
+    if (recordIdsParam) {
+      const ids = recordIdsParam.split(',').filter(Boolean);
       setSelectedIds(ids);
       if (ids.length >= 2) {
         setShowComparison(true);
@@ -30,7 +30,7 @@ export const ComparisonPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  const { data: snapshotsData, isLoading: isLoadingSnapshots } = useSnapshots({
+  const { data: nisabRecordsData, isLoading: isLoadingNisabRecords } = useNisabYearRecords({
     page: 1,
     limit: 100,
   });
@@ -40,22 +40,22 @@ export const ComparisonPage: React.FC = () => {
     enabled: showComparison && selectedIds.length >= 2,
   });
 
-  const handleToggleSnapshot = (snapshotId: string) => {
+  const handleToggleRecord = (recordId: string) => {
     setSelectedIds(prev => {
-      if (prev.includes(snapshotId)) {
-        return prev.filter(id => id !== snapshotId);
+      if (prev.includes(recordId)) {
+        return prev.filter(id => id !== recordId);
       }
       if (prev.length >= 5) {
-        alert('Maximum 5 snapshots can be compared at once');
+        alert('Maximum 5 Nisab Year Records can be compared at once');
         return prev;
       }
-      return [...prev, snapshotId];
+      return [...prev, recordId];
     });
   };
 
   const handleCompare = () => {
     if (selectedIds.length < 2) {
-      alert('Please select at least 2 snapshots to compare');
+      alert('Please select at least 2 Nisab Year Records to compare');
       return;
     }
     setShowComparison(true);
@@ -69,7 +69,7 @@ export const ComparisonPage: React.FC = () => {
     navigate('/tracking/comparison');
   };
 
-  if (isLoadingSnapshots) {
+  if (isLoadingNisabRecords) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner />
@@ -77,8 +77,9 @@ export const ComparisonPage: React.FC = () => {
     );
   }
 
-  const snapshots = snapshotsData?.snapshots || [];
-  const finalized = snapshots.filter(s => s.status === 'finalized');
+  // Extract Nisab Year Records array safely
+  const nisabRecords = nisabRecordsData?.records || [];
+  const finalized = nisabRecords.filter((record: any) => record.status === 'finalized');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,7 +93,7 @@ export const ComparisonPage: React.FC = () => {
                 Compare multiple Nisab Year Records to analyze trends and changes
               </p>
             </div>
-            <Button variant="secondary" onClick={() => navigate('/tracking')}>
+            <Button variant="secondary" onClick={() => navigate('/dashboard')}>
               ← Back to Dashboard
             </Button>
           </div>
@@ -211,20 +212,20 @@ export const ComparisonPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {finalized.map(snapshot => {
-                  const isSelected = selectedIds.includes(snapshot.id);
+                {finalized.map((record: any) => {
+                  const isSelected = selectedIds.includes(record.id);
                   return (
                     <div
-                      key={snapshot.id}
+                      key={record.id}
                       className={`cursor-pointer transition-all ${
                         isSelected
                           ? 'ring-4 ring-green-500 ring-opacity-50'
                           : 'hover:ring-2 hover:ring-gray-300'
                       }`}
-                      onClick={() => handleToggleSnapshot(snapshot.id)}
+                      onClick={() => handleToggleRecord(record.id)}
                     >
                       <SnapshotCard
-                        snapshot={snapshot}
+                        snapshot={record}
                         compact
                       />
                       {isSelected && (

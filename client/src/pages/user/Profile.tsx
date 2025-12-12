@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
-import { apiService } from '../../services/api';
+import { apiService, API_BASE_URL } from '../../services/api';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
@@ -174,7 +175,7 @@ export const Profile: React.FC = () => {
       const token = localStorage.getItem('accessToken');
       
       // Fetch the export file directly
-      const response = await fetch('http://localhost:5000/api/user/export-request', {
+      const response = await fetch(`${API_BASE_URL}/user/export-request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -659,6 +660,26 @@ export const Profile: React.FC = () => {
                     <Button variant="primary" onClick={exportUserData}>
                       Export Data
                     </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Asset Import/Export Link */}
+              <div className="bg-indigo-50 rounded-lg p-6">
+                <div className="flex items-start">
+                  <span className="text-2xl mr-4" aria-hidden="true">🔄</span>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Asset Import & Export
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Bulk import assets from CSV or export your asset portfolio specifically.
+                    </p>
+                    <Link to="/assets/import-export">
+                      <Button variant="secondary">
+                        Manage Asset Data
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
