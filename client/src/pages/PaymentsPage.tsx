@@ -28,7 +28,7 @@ export const PaymentsPage: React.FC = () => {
   const { data: paymentsData } = usePayments({ snapshotId });
   
   // Extract records array from API response
-  const snapshots = snapshotsData?.data?.records || [];
+  const snapshots = snapshotsData?.snapshots || [];
 
   const handleCreatePayment = () => {
     // Allow creating payment even without specific Nisab Year selected

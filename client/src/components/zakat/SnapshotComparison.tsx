@@ -116,7 +116,7 @@ const SnapshotComparison: React.FC = () => {
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select a Nisab Year</option>
-                  {fromSnapshots?.data?.snapshots?.map((snapshot: any) => (
+                  {fromSnapshots?.snapshots?.map((snapshot: any) => (
                     <option key={snapshot.id} value={snapshot.id}>
                       {new Date(snapshot.calculationDate).toLocaleDateString()} - {formatCurrency(snapshot.zakatDue || 0)}
                     </option>
@@ -153,7 +153,7 @@ const SnapshotComparison: React.FC = () => {
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select a Nisab Year</option>
-                  {toSnapshots?.data?.snapshots?.map((snapshot: any) => (
+                  {toSnapshots?.snapshots?.map((snapshot: any) => (
                     <option key={snapshot.id} value={snapshot.id}>
                       {new Date(snapshot.calculationDate).toLocaleDateString()} - {formatCurrency(snapshot.zakatDue || 0)}
                     </option>

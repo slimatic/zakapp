@@ -3,7 +3,7 @@
  * Form for creating/editing Zakat payment records with Islamic recipient categories
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useCreatePayment, useUpdatePayment } from '../../hooks/usePayments';
 import { useSnapshots } from '../../hooks/useZakatSnapshots';
 import { Button } from '../ui/Button';
@@ -47,25 +47,20 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   const isEditing = !!payment;
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>(propSnapshotId || payment?.snapshotId || '');
   
-  // Fetch snapshots if not provided via props (always call hook but conditionally enable)
-  const shouldFetchSnapshots = !propSnapshotId;
-  const { data: snapshotsData, isLoading: isLoadingSnapshots, error: snapshotsError } = useSnapshots({
-    status: ['active', 'finalized'], // Fetch active and finalized records for selection
+  // Fetch snapshots so user can select Nisab Year Records when creating a payment
+  const {
+    data: snapshotsData,
+    isLoading: isLoadingSnapshots,
+    error: snapshotsError
+  } = useSnapshots({
+    status: ['active', 'finalized'],
+    limit: 100,
   });
-
-  // Debug logging
-  useEffect(() => {
-    console.log('PaymentRecordForm - Snapshots Data:', {
-      snapshotsData,
-      fullData: JSON.stringify(snapshotsData),
-      hasSnapshots: !!snapshotsData?.snapshots,
-      hasRecords: !!snapshotsData?.records,
-      isLoading: isLoadingSnapshots,
-      error: snapshotsError,
-      shouldFetch: shouldFetchSnapshots,
-      propSnapshotId
-    });
-  }, [snapshotsData, isLoadingSnapshots, snapshotsError, shouldFetchSnapshots, propSnapshotId]);
+  const snapshots = snapshotsData?.snapshots ?? [];
+  const lockedSnapshot = useMemo(
+    () => (propSnapshotId ? snapshots.find((snapshot) => snapshot.id === propSnapshotId) : undefined),
+    [propSnapshotId, snapshots]
+  );
 
   // Update selected snapshot if prop changes
   useEffect(() => {
@@ -76,17 +71,18 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
 
   // Auto-select the latest Nisab Year Record when none is selected
   useEffect(() => {
-    if (!selectedSnapshotId && snapshotsData?.snapshots && snapshotsData.snapshots.length > 0) {
+    if (!propSnapshotId && !selectedSnapshotId && snapshots.length > 0) {
       // Sort by calculation date descending to get the most recent
-      const sortedSnapshots = [...snapshotsData.snapshots].sort((a, b) => {
-        const dateA = new Date(a.calculationDate).getTime();
-        const dateB = new Date(b.calculationDate).getTime();
+      const sortedSnapshots = [...snapshots].sort((a, b) => {
+        const fallbackA = a.hawlCompletionDate || a.hawlStartDate || a.createdAt || a.updatedAt;
+        const fallbackB = b.hawlCompletionDate || b.hawlStartDate || b.createdAt || b.updatedAt;
+        const dateA = new Date(a.calculationDate || fallbackA || 0).getTime();
+        const dateB = new Date(b.calculationDate || fallbackB || 0).getTime();
         return dateB - dateA; // Most recent first
       });
-      console.log('Auto-selecting latest snapshot:', sortedSnapshots[0]);
       setSelectedSnapshotId(sortedSnapshots[0].id);
     }
-  }, [selectedSnapshotId, snapshotsData]);
+  }, [propSnapshotId, selectedSnapshotId, snapshots]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -235,17 +231,31 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
                   errors.snapshotId ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
                 }`}
+                disabled={isLoadingSnapshots}
               >
                 <option value="">Select a Nisab Year Record</option>
-                {snapshotsData?.snapshots?.map((snapshot) => (
+                {snapshots.map((snapshot) => (
                   <option key={snapshot.id} value={snapshot.id}>
-                    {snapshot.gregorianYear} ({snapshot.hijriYear} AH) - {snapshot.status}
+                    {snapshot.gregorianYear || snapshot.calculationYear || 'N/A'} ({snapshot.hijriYear ?? 'Hijri N/A'} AH) - {snapshot.status}
                   </option>
                 ))}
               </select>
-              {!errors.snapshotId && (
+              {isLoadingSnapshots && (
+                <p className="mt-1 text-xs text-gray-500">Loading Nisab Year Records…</p>
+              )}
+              {!isLoadingSnapshots && !errors.snapshotId && snapshots.length === 0 && (
+                <p className="mt-1 text-xs text-gray-500">
+                  No Nisab Year Records found. Create a Nisab Year Record before recording a payment.
+                </p>
+              )}
+              {!isLoadingSnapshots && !errors.snapshotId && snapshots.length > 0 && (
                 <p className="mt-1 text-xs text-gray-500">
                   Link this payment to a specific Nisab Year (Hawl period) for accurate tracking
+                </p>
+              )}
+              {snapshotsError && (
+                <p className="mt-1 text-xs text-red-600">
+                  Unable to load Nisab Year Records. Please try again.
                 </p>
               )}
             </>
@@ -262,8 +272,8 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
             <div className="flex items-center justify-between">
               <span>
-                {snapshotsData?.snapshots?.find(s => s.id === propSnapshotId)?.gregorianYear 
-                  ? `${snapshotsData.snapshots.find(s => s.id === propSnapshotId)!.gregorianYear} Nisab Year`
+                {lockedSnapshot?.gregorianYear
+                  ? `${lockedSnapshot.gregorianYear} Nisab Year`
                   : 'Selected Nisab Year Record'}
               </span>
               <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">

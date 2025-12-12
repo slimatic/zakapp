@@ -27,8 +27,8 @@ export const AnalyticsPage: React.FC = () => {
   const { data: snapshotsData } = useSnapshots({ limit: 100 });
   const { data: wealthData } = useAnalytics('wealth_trend', selectedTimeframe);
   
-  // Extract records array from API response
-  const snapshots = snapshotsData?.data?.records || [];
+  // Extract snapshots array from API response
+  const snapshots = snapshotsData?.snapshots || [];
   
   // Calculate summary statistics
   const totalWealth = assetsData?.data?.assets?.reduce((sum: number, asset: Asset) => sum + asset.value, 0) || 0;

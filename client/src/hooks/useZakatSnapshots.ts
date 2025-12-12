@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/api';
+import type { NisabYearRecord } from '../types/nisabYearRecord';
 
 /**
  * Filter options for snapshot queries.
@@ -8,7 +9,22 @@ export interface SnapshotFilters {
   year?: number;
   page?: number;
   limit?: number;
-  status?: string[];
+  status?: string | string[];
+}
+
+export interface SnapshotListResult {
+  snapshots: NisabYearRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  pagination: {
+    totalItems: number;
+    pageSize: number;
+    currentPage: number;
+    hasMore: boolean;
+  };
+  raw?: Record<string, unknown>;
 }
 
 /**
@@ -24,13 +40,63 @@ export interface SnapshotFilters {
  * @param filters - Optional filters for year and pagination
  * @returns Query result with snapshots list
  */
-export const useSnapshots = (filters?: SnapshotFilters) => {
+export const useSnapshots = (
+  filters?: SnapshotFilters,
+  options?: {
+    enabled?: boolean;
+  }
+) => {
   return useQuery({
     queryKey: ['zakat-snapshots', filters],
-    queryFn: async () => {
-      const result = await apiService.getSnapshots(filters);
-      console.log('useSnapshots - API Result:', result);
-      return result;
+    enabled: options?.enabled ?? true,
+    queryFn: async (): Promise<SnapshotListResult> => {
+      const normalizedFilters = filters ? { ...filters } : undefined;
+      const requestFilters = normalizedFilters
+        ? {
+            year: normalizedFilters.year,
+            page: normalizedFilters.page,
+            limit: normalizedFilters.limit,
+            status: typeof normalizedFilters.status === 'string'
+              ? [normalizedFilters.status]
+              : normalizedFilters.status,
+          }
+        : undefined;
+
+      const response = await apiService.getSnapshots(requestFilters);
+      const payload = (response?.data ?? {}) as Record<string, unknown>;
+      const snapshotsFromPayload = (payload.snapshots as NisabYearRecord[] | undefined)
+        ?? (payload.records as NisabYearRecord[] | undefined)
+        ?? [];
+      const snapshots = Array.isArray(snapshotsFromPayload) ? snapshotsFromPayload : [];
+
+      const limitFromResponse = typeof payload.limit === 'number' ? (payload.limit as number) : undefined;
+      const limitFromFilters = normalizedFilters?.limit;
+      const derivedLimit = snapshots.length > 0 ? snapshots.length : undefined;
+      const limit = limitFromResponse ?? limitFromFilters ?? derivedLimit ?? 0;
+
+      const offsetFromResponse = typeof payload.offset === 'number' ? (payload.offset as number) : undefined;
+      const page = normalizedFilters?.page ?? 1;
+      const offset = offsetFromResponse ?? (limit ? (page - 1) * limit : 0);
+
+      const total = typeof payload.total === 'number' ? (payload.total as number) : snapshots.length;
+      const hasMore = typeof payload.hasMore === 'boolean'
+        ? (payload.hasMore as boolean)
+        : offset + limit < total;
+
+      return {
+        snapshots,
+        total,
+        limit,
+        offset,
+        hasMore,
+        pagination: {
+          totalItems: total,
+          pageSize: limit,
+          currentPage: page,
+          hasMore,
+        },
+        raw: payload,
+      };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 3,
