@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
+import { useNisabThreshold } from '../../hooks/useNisabThreshold';
 
 // Type matching the actual API response from the backend
 interface NisabYearRecord {
@@ -52,6 +53,10 @@ interface ActiveRecordWidgetProps {
 export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }) => {
   const maskedCurrency = useMaskedCurrency();
   
+  // Get live Nisab threshold for consistency
+  const nisabBasis = (record?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
+  const { nisabAmount } = useNisabThreshold('USD', nisabBasis);
+  
   if (!record) {
     return null;
   }
@@ -82,9 +87,11 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
     0;
   
   // Nisab threshold might be encrypted (string) or a number
-  // If it's an encrypted string (contains special chars), use a default
-  let nisabThreshold = record.initialNisabThreshold || 5000;
-  if (record.nisabThresholdAtStart) {
+  // Use live value if available, otherwise fall back to record value or default
+  let nisabThreshold = nisabAmount || record.initialNisabThreshold || 5000;
+  
+  // If we don't have a live value yet, try to use the record's stored value
+  if (!nisabAmount && record.nisabThresholdAtStart) {
     if (typeof record.nisabThresholdAtStart === 'number') {
       nisabThreshold = record.nisabThresholdAtStart;
     } else if (typeof record.nisabThresholdAtStart === 'string') {
