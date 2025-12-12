@@ -91,7 +91,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   // Create a map of snapshots by ID for quick lookup
   const snapshotsMap = useMemo(() => {
     const map = new Map();
-    snapshotsData?.data?.records?.forEach((snapshot: NisabYearRecord) => {
+    snapshotsData?.snapshots?.forEach((snapshot: NisabYearRecord) => {
       map.set(snapshot.id, snapshot);
     });
     return map;

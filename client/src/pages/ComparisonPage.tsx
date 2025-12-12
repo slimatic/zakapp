@@ -78,7 +78,7 @@ export const ComparisonPage: React.FC = () => {
   }
 
   // Extract snapshots array safely
-  const snapshots = (snapshotsData as any)?.data?.snapshots || [];
+  const snapshots = snapshotsData?.snapshots || [];
   const finalized = snapshots.filter((s: any) => s.status === 'finalized');
 
   return (
