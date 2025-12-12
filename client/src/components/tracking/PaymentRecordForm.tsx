@@ -3,13 +3,14 @@
  * Form for creating/editing Zakat payment records with Islamic recipient categories
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useCreatePayment, useUpdatePayment } from '../../hooks/usePayments';
-import { useSnapshots } from '../../hooks/useSnapshots';
+import { useNisabYearRecords } from '../../hooks/useNisabYearRecords';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
+import type { NisabYearRecord } from '../../types/nisabYearRecord';
 
 // Helper function to parse currency input
 const parseCurrency = (value: string): number => {
@@ -18,6 +19,11 @@ const parseCurrency = (value: string): number => {
 };
 
 interface PaymentRecordFormProps {
+  /**
+   * Preferred prop for linking a payment to a Nisab Year Record.
+   * `snapshotId` is temporarily kept for backwards compatibility and will be removed.
+   */
+  nisabRecordId?: string;
   snapshotId?: string;
   payment?: PaymentRecord; // For editing existing payments
   onSuccess?: (payment: PaymentRecord) => void;
@@ -38,38 +44,88 @@ const ZAKAT_RECIPIENTS = [
 
 type ZakatRecipientCategory = typeof ZAKAT_RECIPIENTS[number]['value'];
 
-export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
-  snapshotId: propSnapshotId,
-  payment,
-  onSuccess,
-  onCancel
-}) => {
-  const isEditing = !!payment;
-  const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>(propSnapshotId || payment?.snapshotId || '');
-  
-  // Fetch snapshots if not provided via props
-  const { data: snapshotsData, isLoading: isLoadingSnapshots } = useSnapshots({
-    status: 'all', // Fetch all to allow selection, though typically we want active ones
-    enabled: !propSnapshotId
-  });
+type PaymentMethod = 'cash' | 'bank_transfer' | 'check' | 'online' | 'other';
 
-  // Update selected snapshot if prop changes
-  useEffect(() => {
-    if (propSnapshotId) {
-      setSelectedSnapshotId(propSnapshotId);
+interface PaymentFormState {
+  amount: string;
+  category: ZakatRecipientCategory;
+  recipient: string;
+  description: string;
+  paymentDate: string;
+  paymentMethod: PaymentMethod;
+  reference: string;
+  notes: string;
+}
+
+export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: PaymentRecordFormProps) => {
+  const {
+    nisabRecordId,
+    snapshotId: deprecatedSnapshotId,
+    payment,
+    onSuccess,
+    onCancel,
+  } = props;
+  const isEditing = !!payment;
+  const paymentSnapshotId = payment?.snapshotId ?? '';
+  const resolvedPropRecordId = nisabRecordId ?? deprecatedSnapshotId ?? paymentSnapshotId;
+  const lockedRecordIdFromProps = nisabRecordId ?? deprecatedSnapshotId ?? null;
+  const [selectedRecordId, setSelectedRecordId] = useState<string>(resolvedPropRecordId || '');
+
+  // Fetch Nisab Year Records so user can select them when creating a payment
+  const {
+    data: nisabRecordsData,
+    isLoading: isLoadingNisabRecords,
+    error: nisabRecordsError
+  } = useNisabYearRecords(
+    {
+      status: ['DRAFT', 'FINALIZED', 'UNLOCKED'],
+      limit: 100,
     }
-  }, [propSnapshotId]);
+  );
+  const nisabRecords = nisabRecordsData?.records ?? [];
+  const lockedNisabRecord = useMemo(() => (
+    lockedRecordIdFromProps
+      ? nisabRecords.find((record: NisabYearRecord) => record.id === lockedRecordIdFromProps)
+      : undefined
+  ), [lockedRecordIdFromProps, nisabRecords]);
+
+  const shouldLockRecordSelection = Boolean(lockedRecordIdFromProps);
+
+  // Update selected record if prop changes
+  useEffect(() => {
+    if (resolvedPropRecordId) {
+      setSelectedRecordId(resolvedPropRecordId);
+    }
+  }, [resolvedPropRecordId]);
+
+  // Auto-select the latest Nisab Year Record when none is provided
+  useEffect(() => {
+    // Only auto-select if no record is locked from props AND no record is currently selected AND records are available
+    if (!lockedRecordIdFromProps && !selectedRecordId && nisabRecords.length > 0) {
+      const sortedRecords = [...nisabRecords].sort((a, b) => {
+        const fallbackA = a.hawlCompletionDate || a.hawlStartDate || a.updatedAt || a.createdAt;
+        const fallbackB = b.hawlCompletionDate || b.hawlStartDate || b.updatedAt || b.createdAt;
+        const dateA = new Date(a.calculationDate || fallbackA || 0).getTime();
+        const dateB = new Date(b.calculationDate || fallbackB || 0).getTime();
+        return dateB - dateA;
+      });
+
+      if (sortedRecords.length > 0) {
+        setSelectedRecordId(sortedRecords[0].id);
+      }
+    }
+  }, [lockedRecordIdFromProps, selectedRecordId, nisabRecords]);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PaymentFormState>({
     amount: payment?.amount?.toString() || '',
     category: payment?.recipientCategory || ('fakir' as ZakatRecipientCategory),
     recipient: payment?.recipientName || '',
-    description: '', // Not stored in PaymentRecord, use notes instead
-    paymentDate: payment?.paymentDate ? 
+    description: '',
+    paymentDate: payment?.paymentDate ?
       (typeof payment.paymentDate === 'string' ? payment.paymentDate.slice(0, 10) : payment.paymentDate.toISOString().slice(0, 10)) :
-      new Date().toISOString().slice(0, 10), // YYYY-MM-DD format
-    paymentMethod: payment?.paymentMethod || 'cash',
+      new Date().toISOString().slice(0, 10),
+    paymentMethod: (payment?.paymentMethod as PaymentMethod) || 'cash',
     reference: payment?.receiptReference || '',
     notes: payment?.notes || ''
   });
@@ -80,24 +136,21 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   const createPaymentMutation = useCreatePayment();
   const updatePaymentMutation = useUpdatePayment();
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Clear error for this field
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+  const handleInputChange = <K extends keyof PaymentFormState>(field: K, value: PaymentFormState[K]) => {
+    setFormData((prev: PaymentFormState) => ({ ...prev, [field]: value }));
+
+    if (errors[field as string]) {
+      setErrors((prev: Record<string, string>) => ({ ...prev, [field as string]: '' }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Snapshot validation
-    if (!selectedSnapshotId) {
-      newErrors.snapshotId = 'Please select a Nisab Year Record';
+    if (!selectedRecordId) {
+      newErrors.nisabRecordId = 'Please select a Nisab Year Record';
     }
 
-    // Amount validation
     const amount = parseCurrency(formData.amount);
     if (!formData.amount.trim()) {
       newErrors.amount = 'Amount is required';
@@ -105,14 +158,12 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       newErrors.amount = 'Amount must be a positive number';
     }
 
-    // Recipient validation
     if (!formData.recipient.trim()) {
       newErrors.recipient = 'Recipient is required';
     } else if (formData.recipient.length < 2) {
       newErrors.recipient = 'Recipient must be at least 2 characters';
     }
 
-    // Payment date validation
     if (!formData.paymentDate) {
       newErrors.paymentDate = 'Payment date is required';
     } else {
@@ -120,7 +171,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       const now = new Date();
       const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
       const oneYearFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
-      
+
       if (paymentDate < oneYearAgo) {
         newErrors.paymentDate = 'Payment date cannot be more than 1 year ago';
       } else if (paymentDate > oneYearFromNow) {
@@ -134,12 +185,12 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
       const paymentData = {
-        snapshotId: selectedSnapshotId,
+        snapshotId: selectedRecordId,
         amount: parseCurrency(formData.amount),
         recipientName: formData.recipient.trim(),
         recipientType: 'individual' as const,
@@ -153,11 +204,11 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       };
 
       let result: PaymentRecord;
-      
+
       if (isEditing && payment) {
         result = await updatePaymentMutation.mutateAsync({
           id: payment.id,
-          snapshotId: selectedSnapshotId,
+          snapshotId: selectedRecordId,
           data: paymentData
         });
       } else {
@@ -185,8 +236,8 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
         </p>
       </div>
 
-      {/* Snapshot Selection (if not provided via props) */}
-      {!propSnapshotId ? (
+      {/* Nisab Year Record selection (if not locked via props) */}
+      {!shouldLockRecordSelection ? (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Nisab Year Record *
@@ -194,36 +245,57 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
               (Select the Hawl period for this payment)
             </span>
           </label>
-          {isLoadingSnapshots ? (
+          {isLoadingNisabRecords ? (
             <div className="flex items-center text-sm text-gray-500">
               <LoadingSpinner size="sm" className="mr-2" />
-              Loading records...
+              Loading Nisab Year Records...
             </div>
           ) : (
             <>
               <select
-                value={selectedSnapshotId}
-                onChange={(e) => setSelectedSnapshotId(e.target.value)}
+                value={selectedRecordId}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                  const value = e.target.value;
+                  setSelectedRecordId(value);
+
+                  if (errors.nisabRecordId) {
+                    setErrors((prev: Record<string, string>) => ({ ...prev, nisabRecordId: '' }));
+                  }
+                }}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                  errors.snapshotId ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                  errors.nisabRecordId ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
                 }`}
+                disabled={isLoadingNisabRecords}
               >
                 <option value="">Select a Nisab Year Record</option>
-                {snapshotsData?.snapshots.map((snapshot) => (
-                  <option key={snapshot.id} value={snapshot.id}>
-                    {snapshot.gregorianYear} ({snapshot.hijriYear} AH) - {snapshot.status}
+                {nisabRecords.map((record: NisabYearRecord) => (
+                  <option key={record.id} value={record.id}>
+                    {record.gregorianYear || record.calculationYear || 'N/A'} ({record.hijriYear ?? 'Hijri N/A'} AH) - {record.status}
                   </option>
                 ))}
               </select>
-              {!errors.snapshotId && (
+              {isLoadingNisabRecords && (
+                <p className="mt-1 text-xs text-gray-500">Loading Nisab Year Records...</p>
+              )}
+              {!isLoadingNisabRecords && !errors.nisabRecordId && nisabRecords.length === 0 && (
+                <p className="mt-1 text-xs text-gray-500">
+                  No Nisab Year Records found. Create a Nisab Year Record before recording a payment.
+                </p>
+              )}
+              {!isLoadingNisabRecords && !errors.nisabRecordId && nisabRecords.length > 0 && (
                 <p className="mt-1 text-xs text-gray-500">
                   Link this payment to a specific Nisab Year (Hawl period) for accurate tracking
                 </p>
               )}
+              {nisabRecordsError && (
+                <p className="mt-1 text-xs text-red-600">
+                  Unable to load Nisab Year Records. Please try again.
+                </p>
+              )}
             </>
           )}
-          {errors.snapshotId && (
-            <p className="mt-1 text-sm text-red-600">{errors.snapshotId}</p>
+          {errors.nisabRecordId && (
+            <p className="mt-1 text-sm text-red-600">{errors.nisabRecordId}</p>
           )}
         </div>
       ) : (
@@ -234,9 +306,9 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
             <div className="flex items-center justify-between">
               <span>
-                {snapshotsData?.snapshots.find(s => s.id === propSnapshotId)?.gregorianYear 
-                  ? `${snapshotsData.snapshots.find(s => s.id === propSnapshotId)!.gregorianYear} Nisab Year`
-                  : 'Selected Nisab Year Record'}
+                {lockedNisabRecord?.gregorianYear
+                  ? `${lockedNisabRecord.gregorianYear} Nisab Year`
+                  : lockedNisabRecord?.name || 'Selected Nisab Year Record'}
               </span>
               <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -289,7 +361,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
         </label>
         <select
           value={formData.category}
-          onChange={(e) => handleInputChange('category', e.target.value)}
+          onChange={(e) => handleInputChange('category', e.target.value as ZakatRecipientCategory)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
         >
           {ZAKAT_RECIPIENTS.map((category) => (
@@ -324,7 +396,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
           </label>
           <select
             value={formData.paymentMethod}
-            onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
+            onChange={(e) => handleInputChange('paymentMethod', e.target.value as PaymentMethod)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             <option value="cash">Cash</option>

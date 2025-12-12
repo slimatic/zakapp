@@ -551,3 +551,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### Fixed
+- **Asset Duplication**: Fixed an issue where assets could be duplicated due to double-submission on the asset creation form. Added submission state locking and client-side list deduplication.
+- **Payment Form Dropdown**: Fixed an issue where the Nisab Year dropdown was empty when "All Payments" filter was selected.
+- **Dashboard Nisab Threshold**: Fixed the dashboard widget to display the live Nisab threshold instead of a placeholder value.
+- **Help Page Links**: Corrected broken links in the Help section to point to the correct routes.
+- **Terminology**: Standardized "Nisab Year Record" terminology across the application (replacing "Snapshot").

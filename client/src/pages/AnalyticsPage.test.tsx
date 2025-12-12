@@ -102,10 +102,12 @@ describe('AnalyticsPage', () => {
 
       useSnapshots.mockReturnValue({
         data: { 
-          snapshots: [
-            { id: '1', zakatAmount: 250, zakatPaid: 200 },
-            { id: '2', zakatAmount: 300, zakatPaid: 300 }
-          ] 
+          data: {
+            records: [
+              { id: '1', zakatAmount: 250, zakatPaid: 200 },
+              { id: '2', zakatAmount: 300, zakatPaid: 300 }
+            ]
+          }
         },
         isLoading: false
       });
@@ -138,7 +140,7 @@ describe('AnalyticsPage', () => {
       });
 
       useSnapshots.mockReturnValue({
-        data: { snapshots: [] },
+        data: { data: { records: [] } } },
         isLoading: false
       });
 
@@ -156,9 +158,9 @@ describe('AnalyticsPage', () => {
       const { useAssets } = require('../services/apiHooks');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      useAnalytics.mockReturnValue({ data: { data: [] }, isLoading: false });
+      useAnalytics.mockReturnValue({ data: { data: [ ] } }, isLoading: false });
       useAssets.mockReturnValue({ data: { data: { assets: [] } }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<AnalyticsPage />, { wrapper: createWrapper() });
       
@@ -174,9 +176,9 @@ describe('AnalyticsPage', () => {
       const { useAssets } = require('../services/apiHooks');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      useAnalytics.mockReturnValue({ data: { data: [] }, isLoading: false });
+      useAnalytics.mockReturnValue({ data: { data: [ ] } }, isLoading: false });
       useAssets.mockReturnValue({ data: { data: { assets: [] } }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<AnalyticsPage />, { wrapper: createWrapper() });
       
@@ -192,9 +194,9 @@ describe('AnalyticsPage', () => {
       const { useAssets } = require('../services/apiHooks');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      useAnalytics.mockReturnValue({ data: { data: [] }, isLoading: false });
+      useAnalytics.mockReturnValue({ data: { data: [ ] } }, isLoading: false });
       useAssets.mockReturnValue({ data: { data: { assets: [] } }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<AnalyticsPage />, { wrapper: createWrapper() });
 
@@ -211,9 +213,9 @@ describe('AnalyticsPage', () => {
       const { useAssets } = require('../services/apiHooks');
       const { useSnapshots } = require('../hooks/useSnapshots');
 
-      useAnalytics.mockReturnValue({ data: { data: [] }, isLoading: false });
+      useAnalytics.mockReturnValue({ data: { data: [ ] } }, isLoading: false });
       useAssets.mockReturnValue({ data: { data: { assets: [] } }, isLoading: false });
-      useSnapshots.mockReturnValue({ data: { snapshots: [] }, isLoading: false });
+      useSnapshots.mockReturnValue({ data: { data: { records: [] } } }, isLoading: false });
 
       render(<AnalyticsPage />, { wrapper: createWrapper() });
 

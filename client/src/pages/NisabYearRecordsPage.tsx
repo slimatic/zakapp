@@ -19,6 +19,7 @@ import AssetSelectionTable from '../components/tracking/AssetSelectionTable';
 import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
 import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
+import { Button } from '../components/ui/Button';
 import type { Asset } from '../components/tracking/AssetSelectionTable';
 
 export const NisabYearRecordsPage: React.FC = () => {
@@ -177,9 +178,9 @@ export const NisabYearRecordsPage: React.FC = () => {
   const createRecordMutation = useMutation({
     mutationFn: async (data: { selectedAssetIds: string[] }) => {
       // Calculate totals from selected assets
-      const selectedAssets = (assetsData || []).filter((a) => data.selectedAssetIds.includes(a.id));
-      const totalWealth = selectedAssets.reduce((sum, a) => sum + a.value, 0);
-      const zakatableWealth = selectedAssets.filter((a) => a.isZakatable).reduce((sum, a) => sum + a.value, 0);
+      const selectedAssets = (assetsData || []).filter((a: Asset) => data.selectedAssetIds.includes(a.id));
+      const totalWealth = selectedAssets.reduce((sum: number, a: Asset) => sum + a.value, 0);
+      const zakatableWealth = selectedAssets.filter((a: Asset) => a.isZakatable).reduce((sum: number, a: Asset) => sum + a.value, 0);
       const zakatAmount = zakatableWealth * 0.025;
 
       // Calculate Hijri dates
@@ -201,17 +202,15 @@ export const NisabYearRecordsPage: React.FC = () => {
         nisabBasis: nisabBasis, // Use selected nisab basis
         totalWealth,
         zakatableWealth,
-        zakatAmount,
-        selectedAssetIds: data.selectedAssetIds,
       });
 
       if (!response.success) {
-        throw new Error('Failed to create record');
+        throw new Error(response.message || 'Failed to create record');
       }
 
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Record created successfully
       // Invalidate all variations of the query key (all status filters)
       queryClient.invalidateQueries({ queryKey: ['nisab-year-records'], exact: false });
@@ -321,12 +320,14 @@ export const NisabYearRecordsPage: React.FC = () => {
               </p>
             </div>
             <div className="flex gap-2 sm:gap-3">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => navigate('/dashboard')}
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="whitespace-nowrap"
               >
-                ← Back
-              </button>
+                ← Back to Dashboard
+              </Button>
               <button
                 onClick={handleCreate}
                 className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -426,7 +427,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                             <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-                              {record.hijriYear}
+                              {record.hijriYear && record.hijriYear > 0 ? `${record.hijriYear} H` : startDateFormatted}
                             </h3>
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${

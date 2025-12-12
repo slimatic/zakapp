@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { AnalyticsMetricModel } from '../models/AnalyticsMetric';
 import { YearlySnapshotModel } from '../models/YearlySnapshot';
 import { PaymentRecordModel } from '../models/PaymentRecord';
@@ -6,6 +7,8 @@ import {
   AnalyticsMetric,
   AnalyticsMetricType
 } from '@zakapp/shared';
+
+const prisma = new PrismaClient();
 
 /**
  * AnalyticsService - Business logic for analytics calculations with caching
@@ -114,7 +117,35 @@ export class AnalyticsService {
       limit: 1000
     });
 
-    const trendData = snapshots.data
+    // Decrypt snapshot data
+    const decryptedSnapshots = await Promise.all(
+      snapshots.data.map(async (s: any) => {
+        try {
+          const totalWealthStr = String(s.totalWealth || '');
+          const zakatableWealthStr = String(s.zakatableWealth || '');
+          
+          return {
+            ...s,
+            totalWealth: totalWealthStr.includes(':')
+              ? await EncryptionService.decrypt(totalWealthStr, this.encryptionKey)
+              : totalWealthStr,
+            zakatableWealth: zakatableWealthStr.includes(':')
+              ? await EncryptionService.decrypt(zakatableWealthStr, this.encryptionKey)
+              : zakatableWealthStr
+          };
+        } catch (e) {
+          // If decryption fails, use as-is
+          return s;
+        }
+      })
+    );
+
+    let trendData: Array<{
+      year: number;
+      date: Date | string;
+      totalWealth: string;
+      zakatableWealth: string;
+    }> = decryptedSnapshots
       .filter(s => {
         const calcDate = new Date(s.calculationDate);
         return calcDate >= startDate && calcDate <= endDate;
@@ -122,10 +153,32 @@ export class AnalyticsService {
       .map(s => ({
         year: s.gregorianYear,
         date: s.calculationDate,
-        totalWealth: s.totalWealth,
-        zakatableWealth: s.zakatableWealth
+        totalWealth: String(s.totalWealth),
+        zakatableWealth: String(s.zakatableWealth)
       }))
       .sort((a, b) => a.year - b.year);
+
+    // If no snapshots, show current assets as a single data point
+    if (trendData.length === 0) {
+      const assets = await prisma.asset.findMany({
+        where: { userId, isActive: true }
+      });
+      const currentYear = new Date().getFullYear();
+      const totalWealthNum = assets.reduce((sum, a) => sum + a.value, 0);
+
+      console.log(`[Analytics] No Nisab Year Records found. Creating trend from ${assets.length} assets. Total wealth: ${totalWealthNum}`);
+
+      if (totalWealthNum > 0) {
+        trendData = [{
+          year: currentYear,
+          date: new Date(),
+          totalWealth: totalWealthNum.toString(),
+          zakatableWealth: totalWealthNum.toString()
+        }];
+      }
+    } else {
+      console.log(`[Analytics] Found ${trendData.length} Nisab Year Records for wealth trend`);
+    }
 
     // Store in cache
     const metric = await AnalyticsMetricModel.createOrUpdate(
@@ -173,7 +226,33 @@ export class AnalyticsService {
       limit: 1000
     });
 
-    const trendData = snapshots.data
+    // Decrypt snapshot data
+    const decryptedSnapshots = await Promise.all(
+      snapshots.data.map(async (s: any) => {
+        try {
+          const zakatAmountStr = String(s.zakatAmount || '');
+          const zakatableWealthStr = String(s.zakatableWealth || '');
+          const nisabThresholdStr = String(s.nisabThreshold || '');
+          
+          return {
+            ...s,
+            zakatAmount: zakatAmountStr.includes(':')
+              ? await EncryptionService.decrypt(zakatAmountStr, this.encryptionKey)
+              : zakatAmountStr,
+            zakatableWealth: zakatableWealthStr.includes(':')
+              ? await EncryptionService.decrypt(zakatableWealthStr, this.encryptionKey)
+              : zakatableWealthStr,
+            nisabThreshold: nisabThresholdStr.includes(':')
+              ? await EncryptionService.decrypt(nisabThresholdStr, this.encryptionKey)
+              : nisabThresholdStr
+          };
+        } catch (e) {
+          return s;
+        }
+      })
+    );
+
+    const trendData = decryptedSnapshots
       .filter(s => {
         const calcDate = new Date(s.calculationDate);
         return calcDate >= startDate && calcDate <= endDate;
@@ -235,10 +314,29 @@ export class AnalyticsService {
       endDate
     });
 
+    // Decrypt payment amounts
+    const decryptedPayments = await Promise.all(
+      payments.data.map(async (p: any) => {
+        try {
+          const amountStr = String(p.amount || '0');
+          const decryptedAmount = amountStr.includes(':')
+            ? await EncryptionService.decrypt(amountStr, this.encryptionKey)
+            : amountStr;
+          
+          return {
+            ...p,
+            amount: parseFloat(decryptedAmount) || 0
+          };
+        } catch (e) {
+          return { ...p, amount: 0 };
+        }
+      })
+    );
+
     const categoryMap = new Map<string, { count: number; totalAmount: number }>();
     let totalAmount = 0;
 
-    for (const payment of payments.data) {
+    for (const payment of decryptedPayments) {
       const amount = payment.amount;
       totalAmount += amount;
 
@@ -302,29 +400,69 @@ export class AnalyticsService {
       limit: 1000
     });
 
-    const compositionData = snapshots.data
-      .filter(s => {
-        const calcDate = new Date(s.calculationDate);
-        return calcDate >= startDate && calcDate <= endDate;
-      })
-      .map(s => {
-        // Parse asset breakdown (it's encrypted in DB)
-        let breakdown = {};
-        try {
-          breakdown = typeof s.assetBreakdown === 'string'
-            ? JSON.parse(s.assetBreakdown)
-            : s.assetBreakdown;
-        } catch (e) {
-          breakdown = {};
-        }
+    let compositionData: Array<{
+      year: number;
+      date: Date | string;
+      breakdown: any;
+    }> = await Promise.all(
+      snapshots.data
+        .filter(s => {
+          const calcDate = new Date(s.calculationDate);
+          return calcDate >= startDate && calcDate <= endDate;
+        })
+        .map(async (s: any) => {
+          // Parse and decrypt asset breakdown
+          let breakdown = {};
+          try {
+            let breakdownStr = String(s.assetBreakdown || '{}');
+            // Decrypt if encrypted
+            if (breakdownStr.includes(':')) {
+              breakdownStr = await EncryptionService.decrypt(breakdownStr, this.encryptionKey);
+            }
+            breakdown = JSON.parse(breakdownStr);
+          } catch (e) {
+            breakdown = {};
+          }
 
-        return {
-          year: s.gregorianYear,
-          date: s.calculationDate,
-          breakdown
-        };
-      })
-      .sort((a, b) => a.year - b.year);
+          return {
+            year: s.gregorianYear,
+            date: s.calculationDate,
+            breakdown
+          };
+        })
+    ).then(data => data.sort((a, b) => a.year - b.year));
+
+    // If no snapshot data, create composition from current active assets
+    if (compositionData.length === 0) {
+      const assets = await prisma.asset.findMany({
+        where: { userId, isActive: true }
+      });
+
+      console.log(`[Analytics] No Nisab Year Records for composition. Using ${assets.length} current assets`);
+
+      if (assets.length > 0) {
+        const totalWealthNum = assets.reduce((sum, a) => sum + a.value, 0);
+        compositionData = [{
+          year: new Date().getFullYear(),
+          date: new Date(),
+          breakdown: {
+            assets: assets.map(a => ({
+              id: a.id,
+              name: a.name,
+              category: a.category,
+              value: a.value.toString(),
+              isZakatable: true,
+              addedAt: a.createdAt
+            })),
+            capturedAt: new Date().toISOString(),
+            totalWealth: totalWealthNum.toString(),
+            zakatableWealth: totalWealthNum.toString()
+          }
+        }];
+      }
+    } else {
+      console.log(`[Analytics] Found ${compositionData.length} Nisab Year Records for composition`);
+    }
 
     // Store
     const metric = await AnalyticsMetricModel.createOrUpdate(

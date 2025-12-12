@@ -1,17 +1,17 @@
 /**
- * SnapshotCard Component - T059
- * Displays a yearly snapshot with status badge and quick actions
+ * SnapshotCard Component - T059 (Updated for Nisab Year Records)
+ * Displays a Nisab Year Record with status badge and quick actions
  */
 
 import React from 'react';
 import { clsx } from 'clsx';
-import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
+import type { NisabYearRecord } from '../../types/nisabYearRecord';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/formatters';
 import { formatDualCalendar } from '../../utils/calendarConverter';
 
 interface SnapshotCardProps {
-  snapshot: YearlySnapshot;
+  snapshot: NisabYearRecord;
   onView?: () => void;
   onEdit?: () => void;
   onFinalize?: () => void;
@@ -47,16 +47,28 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
       bgColor: 'bg-green-100',
       textColor: 'text-green-800',
       dotColor: 'bg-green-400'
+    },
+    active: {
+      label: 'Active',
+      bgColor: 'bg-blue-100',
+      textColor: 'text-blue-800',
+      dotColor: 'bg-blue-400'
     }
-  };
+  } as const;
 
-  const status = statusConfig[snapshot.status];
+  const statusKey = (snapshot.status || 'draft') as 'draft' | 'finalized' | 'active';
+  const status = statusConfig[statusKey];
 
-  const zakatPercentage = snapshot.totalWealth > 0 
-    ? ((snapshot.zakatAmount / snapshot.totalWealth) * 100).toFixed(2)
+  const totalWealth = typeof snapshot.totalWealth === 'string' ? parseFloat(snapshot.totalWealth) : snapshot.totalWealth || 0;
+  const zakatAmount = typeof snapshot.zakatAmount === 'string' ? parseFloat(snapshot.zakatAmount) : snapshot.zakatAmount || 0;
+  const zakatableWealth = typeof snapshot.zakatableWealth === 'string' ? parseFloat(snapshot.zakatableWealth) : snapshot.zakatableWealth || 0;
+  const nisabThreshold = typeof snapshot.nisabThresholdAtStart === 'string' ? parseFloat(snapshot.nisabThresholdAtStart) : snapshot.nisabThresholdAtStart || 0;
+
+  const zakatPercentage = totalWealth > 0 
+    ? ((zakatAmount / totalWealth) * 100).toFixed(2)
     : '0.00';
 
-  const aboveNisab = snapshot.zakatableWealth >= snapshot.nisabThreshold;
+  const aboveNisab = zakatableWealth >= nisabThreshold;
 
   return (
     <div className={clsx(
@@ -81,13 +93,8 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
               'font-semibold text-gray-900',
               compact ? 'text-lg' : 'text-xl'
             )}>
-              {snapshot.gregorianYear} ({snapshot.hijriYear} AH)
+              {snapshot.calculationYear || snapshot.gregorianYear || 'N/A'} ({snapshot.hijriYear || 'N/A'} AH)
             </h3>
-            {snapshot.isPrimary && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                Primary
-              </span>
-            )}
           </div>
         </div>
 
@@ -106,10 +113,10 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
       <div className="mb-4">
         <p className="text-sm text-gray-600">
           <span className="font-medium">Calculation Date:</span>{' '}
-          {formatDualCalendar(new Date(snapshot.calculationDate))}
+          {snapshot.calculationDate ? formatDualCalendar(new Date(snapshot.calculationDate)) : 'N/A'}
         </p>
         <p className="text-sm text-gray-600">
-          <span className="font-medium">Methodology:</span> {snapshot.methodologyUsed}
+          <span className="font-medium">Methodology:</span> {snapshot.methodologyUsed || 'Standard'}
         </p>
       </div>
 
@@ -121,14 +128,14 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wide">Total Wealth</p>
           <p className="text-lg font-semibold text-gray-900">
-            {formatCurrency(snapshot.totalWealth)}
+            {formatCurrency(totalWealth)}
           </p>
         </div>
         
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Due</p>
           <p className="text-lg font-semibold text-green-600">
-            {formatCurrency(snapshot.zakatAmount)}
+            {formatCurrency(zakatAmount)}
           </p>
         </div>
         
@@ -137,7 +144,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">Zakatable</p>
               <p className="text-lg font-semibold text-gray-900">
-                {formatCurrency(snapshot.zakatableWealth)}
+                {formatCurrency(zakatableWealth)}
               </p>
             </div>
             
@@ -162,7 +169,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
           {aboveNisab ? '✓ Above Nisab' : '✗ Below Nisab'}
           {aboveNisab && (
             <span className="ml-1">
-              ({formatCurrency(snapshot.nisabThreshold)} {snapshot.nisabType})
+              ({formatCurrency(nisabThreshold)} {snapshot.nisabBasis || 'GOLD'})
             </span>
           )}
         </div>
@@ -233,8 +240,8 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
 
       {/* Metadata */}
       <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-        <span>Created: {new Date(snapshot.createdAt).toLocaleDateString()}</span>
-        <span>Updated: {new Date(snapshot.updatedAt).toLocaleDateString()}</span>
+        <span>Created: {snapshot.createdAt ? new Date(snapshot.createdAt).toLocaleDateString() : 'N/A'}</span>
+        <span>Updated: {snapshot.updatedAt ? new Date(snapshot.updatedAt).toLocaleDateString() : 'N/A'}</span>
       </div>
     </div>
   );

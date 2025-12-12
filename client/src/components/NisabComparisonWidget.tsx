@@ -12,6 +12,7 @@
 import React, { useMemo } from 'react';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useHawlStatus } from '../hooks/useHawlStatus';
+import { useMaskedCurrency } from '../contexts/PrivacyContext';
 
 export interface NisabComparisonWidgetProps {
   /**
@@ -66,6 +67,7 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   onStatusChange,
   showDetails = true,
 }) => {
+  const maskedCurrency = useMaskedCurrency();
   // Pass nisabBasis from record to hook to get correct Nisab threshold
   const nisabBasis = (record.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
   const { nisabAmount } = useNisabThreshold(record.currency, nisabBasis);
@@ -119,6 +121,8 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
     }).format(amount);
   };
 
+  const formatMaskedCurrency = (amount: number) => maskedCurrency(formatCurrency(amount));
+
   // Notify on status change
   React.useEffect(() => {
     if (onStatusChange) {
@@ -153,13 +157,13 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
           <div className="rounded-lg bg-white p-3">
             <div className="text-xs text-gray-600">Current Wealth</div>
             <div className="text-lg font-bold text-gray-900">
-              {formatCurrency(displayWealth)}
+              {formatMaskedCurrency(displayWealth)}
             </div>
           </div>
           <div className="rounded-lg bg-white p-3">
             <div className="text-xs text-gray-600">Nisab Threshold</div>
             <div className="text-lg font-bold text-gray-700">
-              {formatCurrency(displayNisab)}
+              {formatMaskedCurrency(displayNisab)}
             </div>
           </div>
         </div>
@@ -198,7 +202,7 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
             {isAbove ? 'Above' : 'Below'} Nisab by
           </div>
           <div className={`text-lg font-bold ${isAbove ? 'text-green-600' : 'text-red-600'}`}>
-            {isAbove ? '+' : '-'} {formatCurrency(differenceAmount)}
+            {isAbove ? '+' : '-'} {formatMaskedCurrency(differenceAmount)}
           </div>
           <div className="text-xs text-gray-500">
             ({((differenceAmount / displayNisab) * 100).toFixed(1)}%)

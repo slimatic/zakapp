@@ -24,6 +24,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createMutation = useCreateAsset();
   const updateMutation = useUpdateAsset();
@@ -53,9 +54,13 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isSubmitting || mutation.isPending) return;
+
     if (!validateForm()) {
       return;
     }
+
+    setIsSubmitting(true);
 
     if (isEditing && asset) {
       updateMutation.mutate({ assetId: asset.assetId, assetData: formData }, {
@@ -65,6 +70,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         onError: (error: any) => {
           console.error('Asset update error:', error);
           setErrors({ submit: 'Failed to update asset. Please try again.' });
+          setIsSubmitting(false);
         }
       });
     } else {
@@ -75,6 +81,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         onError: (error: any) => {
           console.error('Asset create error:', error);
           setErrors({ submit: 'Failed to create asset. Please try again.' });
+          setIsSubmitting(false);
         }
       });
     }
@@ -363,8 +370,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           <Button
             type="submit"
             variant="primary"
-            isLoading={mutation.isPending}
-            disabled={mutation.isPending}
+            isLoading={isSubmitting || mutation.isPending}
+            disabled={isSubmitting || mutation.isPending}
           >
             {isEditing ? 'Update Asset' : 'Add Asset'}
           </Button>
