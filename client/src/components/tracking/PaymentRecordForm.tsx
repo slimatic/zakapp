@@ -57,6 +57,9 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   useEffect(() => {
     console.log('PaymentRecordForm - Snapshots Data:', {
       snapshotsData,
+      fullData: JSON.stringify(snapshotsData),
+      hasSnapshots: !!snapshotsData?.snapshots,
+      hasRecords: !!snapshotsData?.records,
       isLoading: isLoadingSnapshots,
       error: snapshotsError,
       shouldFetch: shouldFetchSnapshots,
@@ -259,7 +262,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
             <div className="flex items-center justify-between">
               <span>
-                {snapshotsData?.snapshots.find(s => s.id === propSnapshotId)?.gregorianYear 
+                {snapshotsData?.snapshots?.find(s => s.id === propSnapshotId)?.gregorianYear 
                   ? `${snapshotsData.snapshots.find(s => s.id === propSnapshotId)!.gregorianYear} Nisab Year`
                   : 'Selected Nisab Year Record'}
               </span>
