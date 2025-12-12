@@ -13,6 +13,13 @@ export interface LiveTrackingData {
 export interface NisabYearRecord {
   id: string;
   status?: 'DRAFT' | 'FINALIZED' | 'UNLOCKED' | string;
+  name?: string | null;
+  gregorianYear?: number | string | null;
+  hijriYear?: number | string | null;
+  calculationYear?: number | string | null;
+  calculationDate?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   hawlStartDate?: string | null;
   hawlCompletionDate?: string | null;
   initialNisabThreshold?: number | null;
