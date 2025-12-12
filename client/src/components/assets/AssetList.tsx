@@ -13,7 +13,17 @@ export const AssetList: React.FC = React.memo(() => {
   const navigate = useNavigate();
   
   const { data: assetsData, isLoading, error } = useAssets();
-  const assets = React.useMemo(() => assetsData?.data?.assets || [], [assetsData]);
+  const assets = React.useMemo(() => {
+    const list = assetsData?.data?.assets || [];
+    // Deduplicate by assetId to prevent display issues
+    const uniqueMap = new Map();
+    list.forEach((asset: Asset) => {
+      if (!uniqueMap.has(asset.assetId)) {
+        uniqueMap.set(asset.assetId, asset);
+      }
+    });
+    return Array.from(uniqueMap.values());
+  }, [assetsData]);
   const { privacyMode, togglePrivacyMode } = usePrivacy();
   const maskedCurrency = useMaskedCurrency();
 
