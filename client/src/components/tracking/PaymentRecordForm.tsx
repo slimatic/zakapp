@@ -222,7 +222,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
                 }`}
               >
                 <option value="">Select a Nisab Year Record</option>
-                {snapshotsData?.snapshots.map((snapshot) => (
+                {snapshotsData?.snapshots?.map((snapshot) => (
                   <option key={snapshot.id} value={snapshot.id}>
                     {snapshot.gregorianYear} ({snapshot.hijriYear} AH) - {snapshot.status}
                   </option>
