@@ -8,27 +8,27 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PaymentList } from '../components/tracking/PaymentList';
 import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
 import { usePayments } from '../hooks/usePayments';
-import { useSnapshots } from '../hooks';
+import { useNisabYearRecords } from '../hooks/useNisabYearRecords';
 import { Button } from '../components/ui/Button';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 export const PaymentsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const snapshotIdParam = searchParams.get('snapshot');
+  const nisabRecordIdParam = searchParams.get('snapshot');
   
   // Fetch available Nisab Year Records
-  const { data: snapshotsData, isLoading: snapshotsLoading } = useSnapshots();
-  const [snapshotId, setSnapshotId] = useState<string | undefined>(snapshotIdParam || undefined);
+  const { data: nisabRecordsData, isLoading: nisabRecordsLoading } = useNisabYearRecords();
+  const [nisabRecordId, setNisabRecordId] = useState<string | undefined>(nisabRecordIdParam || undefined);
   
   // Note: Auto-selection removed in T019 - defaults to "All Payments" view
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
 
-  const { data: paymentsData } = usePayments({ snapshotId });
+  const { data: paymentsData } = usePayments({ snapshotId: nisabRecordId });
   
   // Extract records array from API response
-  const snapshots = snapshotsData?.snapshots || [];
+  const nisabRecords = nisabRecordsData?.records || [];
 
   const handleCreatePayment = () => {
     // Allow creating payment even without specific Nisab Year selected
@@ -68,34 +68,34 @@ export const PaymentsPage: React.FC = () => {
           </div>
 
           {/* Nisab Year Selector */}
-          {snapshots && snapshots.length > 0 && (
+          {nisabRecords && nisabRecords.length > 0 && (
             <div>
-              <label htmlFor="snapshot-select" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="nisab-record-select" className="block text-sm font-medium text-gray-700 mb-2">
                 Filter by Nisab Year Record
               </label>
               <select
-                id="snapshot-select"
-                value={snapshotId || 'all'}
+                id="nisab-record-select"
+                value={nisabRecordId || 'all'}
                 onChange={(e) => {
                   const value = e.target.value;
-                  setSnapshotId(value === 'all' ? undefined : value);
+                  setNisabRecordId(value === 'all' ? undefined : value);
                   setSearchParams(value === 'all' ? {} : { snapshot: value });
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
                 <option value="all">All Payments</option>
-                {snapshots.map((snapshot: any) => {
+                {nisabRecords.map((record: any) => {
                   // Parse zakatAmount - it might be encrypted string or number
-                  const zakatAmount = typeof snapshot.zakatAmount === 'string' 
-                    ? parseFloat(snapshot.zakatAmount) 
-                    : snapshot.zakatAmount;
+                  const zakatAmount = typeof record.zakatAmount === 'string' 
+                    ? parseFloat(record.zakatAmount) 
+                    : record.zakatAmount;
                   const displayAmount = zakatAmount && !isNaN(zakatAmount) 
                     ? ` (Zakat: $${zakatAmount.toFixed(2)})` 
                     : '';
                   
                   return (
-                    <option key={snapshot.id} value={snapshot.id}>
-                      {snapshot.calculationDate ? new Date(snapshot.calculationDate).getFullYear() : 'N/A'} - {snapshot.status}
+                    <option key={record.id} value={record.id}>
+                      {record.calculationDate ? new Date(record.calculationDate).getFullYear() : 'N/A'} - {record.status}
                       {displayAmount}
                     </option>
                   );
@@ -105,7 +105,7 @@ export const PaymentsPage: React.FC = () => {
           )}
 
           {/* No Nisab Years warning */}
-          {!snapshotsLoading && snapshots.length === 0 && (
+          {!nisabRecordsLoading && nisabRecords.length === 0 && (
             <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-800">
                 No Nisab Year Records found. Please create a Nisab Year Record first to record payments.
@@ -142,7 +142,7 @@ export const PaymentsPage: React.FC = () => {
                 </div>
                 <PaymentRecordForm
                   payment={editingPayment || undefined}
-                  snapshotId={snapshotId}
+                  nisabRecordId={nisabRecordId}
                   onSuccess={handleFormClose}
                   onCancel={handleFormClose}
                 />
@@ -153,7 +153,7 @@ export const PaymentsPage: React.FC = () => {
 
         {/* Payment List */}
         <PaymentList
-          snapshotId={snapshotId}
+          nisabRecordId={nisabRecordId}
           onCreateNew={handleCreatePayment}
           onEditPayment={handleEditPayment}
         />

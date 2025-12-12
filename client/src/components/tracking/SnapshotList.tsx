@@ -1,10 +1,10 @@
 /**
- * SnapshotList Component - T060
- * Lists yearly snapshots with pagination and filtering
+ * SnapshotList Component - T060 (Updated for Nisab Year Records)
+ * Lists yearly Nisab Year Records with pagination and filtering
  */
 
 import React, { useState } from 'react';
-import { useSnapshots } from '../../hooks/useZakatSnapshots';
+import { useNisabYearRecords } from '../../hooks/useNisabYearRecords';
 import { SnapshotCard } from './SnapshotCard';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
@@ -43,12 +43,11 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
   // Selection state for comparison
   const [selectedSnapshots, setSelectedSnapshots] = useState<string[]>([]);
 
-  // Fetch snapshots
-  const { data, isLoading, error, refetch } = useSnapshots({
+  // Fetch Nisab Year Records
+  const { data, isLoading, error, refetch } = useNisabYearRecords({
     page: filters.page,
     limit: filters.limit,
-    status: filters.status === 'all' ? undefined : filters.status,
-    year: filters.year
+    status: filters.status === 'all' ? undefined : [filters.status]
   });
 
   const handleFilterChange = (field: string, value: any) => {
@@ -72,8 +71,8 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
   };
 
   const handleSelectAll = (selected: boolean) => {
-    if (selected && data?.snapshots) {
-      setSelectedSnapshots(data.snapshots.map(s => s.id));
+    if (selected && data?.records) {
+      setSelectedSnapshots(data.records.map(r => r.id));
     } else {
       setSelectedSnapshots([]);
     }
@@ -101,7 +100,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
     );
   }
 
-  const snapshots = data?.snapshots || [];
+  const snapshots = data?.records || [];
   const pagination = data?.pagination;
 
   return (
@@ -255,11 +254,11 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
       )}
 
       {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
+      {pagination && pagination.totalItems > pagination.pageSize && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to{' '}
-            {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of{' '}
+            Showing {((pagination.currentPage - 1) * pagination.pageSize) + 1} to{' '}
+            {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of{' '}
             {pagination.totalItems} results
           </div>
           
@@ -268,7 +267,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPreviousPage}
+              disabled={pagination.currentPage === 1}
             >
               Previous
             </Button>
@@ -276,10 +275,11 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
             {/* Page numbers */}
             <div className="flex gap-1">
               {Array.from(
-                { length: Math.min(5, pagination.totalPages) },
+                { length: Math.min(5, Math.ceil(pagination.totalItems / pagination.pageSize)) },
                 (_, i) => {
                   const page = Math.max(1, pagination.currentPage - 2) + i;
-                  if (page > pagination.totalPages) return null;
+                  const totalPages = Math.ceil(pagination.totalItems / pagination.pageSize);
+                  if (page > totalPages) return null;
                   
                   return (
                     <Button
@@ -299,7 +299,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNextPage}
+              disabled={!pagination.hasMore}
             >
               Next
             </Button>

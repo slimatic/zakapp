@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { usePayments } from '../../hooks/usePayments';
-import { useSnapshots } from '../../hooks/useZakatSnapshots';
+import { useNisabYearRecords } from '../../hooks/useNisabYearRecords';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
@@ -18,7 +18,8 @@ import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
 
 interface PaymentListProps {
-  snapshotId?: string; // Made optional for "All Payments" view
+  nisabRecordId?: string;
+  snapshotId?: string; // Deprecated alias maintained for compatibility
   onCreateNew?: () => void;
   onEditPayment?: (payment: PaymentRecord) => void;
   onDeletePayment?: (paymentId: string) => void;
@@ -49,6 +50,7 @@ const PAYMENT_METHODS = [
 ];
 
 export const PaymentList: React.FC<PaymentListProps> = ({
+  nisabRecordId,
   snapshotId,
   onCreateNew,
   onEditPayment,
@@ -78,24 +80,26 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(null);
 
   // Fetch payments
+  const resolvedRecordId = nisabRecordId ?? snapshotId;
+
   const { data, isLoading, error, refetch } = usePayments({
-    snapshotId,
+    snapshotId: resolvedRecordId,
     category: filters.category === 'all' ? undefined : filters.category
   });
 
-  // Fetch snapshots for Nisab Year context
-  const { data: snapshotsData } = useSnapshots({ limit: 100 });
+  // Fetch Nisab Year Records so we can show contextual details alongside payments
+  const { data: nisabRecordsData } = useNisabYearRecords({ limit: 100 });
 
   const payments = data?.payments || [];
 
-  // Create a map of snapshots by ID for quick lookup
-  const snapshotsMap = useMemo(() => {
+  // Create a map of Nisab Year Records by ID for quick lookup when rendering payments
+  const nisabRecordMap = useMemo(() => {
     const map = new Map();
-    snapshotsData?.snapshots?.forEach((snapshot: NisabYearRecord) => {
-      map.set(snapshot.id, snapshot);
+    nisabRecordsData?.records?.forEach((record: NisabYearRecord) => {
+      map.set(record.id, record);
     });
     return map;
-  }, [snapshotsData]);
+  }, [nisabRecordsData]);
 
   // Sort and filter payments (T021)
   const sortedAndFilteredPayments = useMemo(() => {
@@ -437,7 +441,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
               <PaymentCard
                 key={payment.id}
                 payment={payment}
-                nisabYear={snapshotsMap.get(payment.snapshotId)}
+                nisabYear={nisabRecordMap.get(payment.snapshotId)}
                 onEdit={onEditPayment}
                 onDelete={onDeletePayment}
                 onViewDetails={setSelectedPayment}
@@ -450,7 +454,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           {selectedPayment && (
             <PaymentDetailModal
               payment={selectedPayment}
-              nisabYear={snapshotsMap.get(selectedPayment.snapshotId)}
+              nisabYear={nisabRecordMap.get(selectedPayment.snapshotId)}
               onClose={() => setSelectedPayment(null)}
               onEdit={(payment) => {
                 setSelectedPayment(null);

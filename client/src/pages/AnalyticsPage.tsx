@@ -9,11 +9,12 @@ import { AnalyticsChart } from '../components/tracking/AnalyticsChart';
 import { Button } from '../components/ui/Button';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useAssets } from '../services/apiHooks';
-import { useSnapshots } from '../hooks';
+import { useNisabYearRecords } from '../hooks/useNisabYearRecords';
+import { usePayments } from '../hooks/usePayments';
 import { formatCurrency } from '../utils/formatters';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '@zakapp/shared';
-import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
+import type { NisabYearRecord } from '../types/nisabYearRecord';
 
 type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
 
@@ -24,23 +25,28 @@ export const AnalyticsPage: React.FC = () => {
 
   // Fetch data for summary statistics (T027)
   const { data: assetsData } = useAssets();
-  const { data: snapshotsData } = useSnapshots({ limit: 100 });
+  const { data: nisabRecordsData } = useNisabYearRecords({ limit: 100 });
+  const { data: paymentsData } = usePayments(); // Fetch all payments
   const { data: wealthData } = useAnalytics('wealth_trend', selectedTimeframe);
   
-  // Extract snapshots array from API response
-  const snapshots = snapshotsData?.snapshots || [];
+  // Extract Nisab Year Records from API response
+  const nisabRecords = nisabRecordsData?.records || [];
   
   // Calculate summary statistics
   const totalWealth = assetsData?.data?.assets?.reduce((sum: number, asset: Asset) => sum + asset.value, 0) || 0;
-  const totalZakatDue = snapshots.reduce((sum: number, snap: any) => {
+  const totalZakatDue = nisabRecords.reduce((sum: number, record: NisabYearRecord) => {
     // Decrypt and parse zakatAmount if it's a string
-    const amount = typeof snap.zakatAmount === 'string' ? parseFloat(snap.zakatAmount) : (snap.zakatAmount || 0);
+    const amount = typeof record.zakatAmount === 'string'
+      ? parseFloat(record.zakatAmount)
+      : (record.zakatAmount || 0);
     return sum + amount;
   }, 0) || 0;
-  // Note: totalZakatPaid should be calculated from actual payment records
-  // For now, we'll calculate it as the same as totalZakatDue (100% compliance shown)
-  // TODO: Fetch actual payments data and sum payment amounts
-  const totalZakatPaid = totalZakatDue; // Temporary - should sum from actual payments
+  
+  // Calculate total Zakat paid from actual payment records
+  const totalZakatPaid = paymentsData?.payments?.reduce((sum: number, payment: any) => {
+    return sum + (payment.amount || 0);
+  }, 0) || 0;
+  
   const outstandingBalance = totalZakatDue - totalZakatPaid;
   const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;
 
