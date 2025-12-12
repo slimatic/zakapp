@@ -49,9 +49,20 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   
   // Fetch snapshots if not provided via props (always call hook but conditionally enable)
   const shouldFetchSnapshots = !propSnapshotId;
-  const { data: snapshotsData, isLoading: isLoadingSnapshots } = useSnapshots({
+  const { data: snapshotsData, isLoading: isLoadingSnapshots, error: snapshotsError } = useSnapshots({
     status: ['active', 'finalized'], // Fetch active and finalized records for selection
   });
+
+  // Debug logging
+  useEffect(() => {
+    console.log('PaymentRecordForm - Snapshots Data:', {
+      snapshotsData,
+      isLoading: isLoadingSnapshots,
+      error: snapshotsError,
+      shouldFetch: shouldFetchSnapshots,
+      propSnapshotId
+    });
+  }, [snapshotsData, isLoadingSnapshots, snapshotsError, shouldFetchSnapshots, propSnapshotId]);
 
   // Update selected snapshot if prop changes
   useEffect(() => {
@@ -69,6 +80,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
         const dateB = new Date(b.calculationDate).getTime();
         return dateB - dateA; // Most recent first
       });
+      console.log('Auto-selecting latest snapshot:', sortedSnapshots[0]);
       setSelectedSnapshotId(sortedSnapshots[0].id);
     }
   }, [selectedSnapshotId, snapshotsData]);
