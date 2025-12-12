@@ -27,7 +27,11 @@ export interface SnapshotFilters {
 export const useSnapshots = (filters?: SnapshotFilters) => {
   return useQuery({
     queryKey: ['zakat-snapshots', filters],
-    queryFn: () => apiService.getSnapshots(filters),
+    queryFn: async () => {
+      const result = await apiService.getSnapshots(filters);
+      console.log('useSnapshots - API Result:', result);
+      return result;
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
