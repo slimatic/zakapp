@@ -47,11 +47,13 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   const isEditing = !!payment;
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>(propSnapshotId || payment?.snapshotId || '');
   
-  // Fetch snapshots if not provided via props
-  const { data: snapshotsData, isLoading: isLoadingSnapshots } = useSnapshots({
-    status: 'all', // Fetch all to allow selection, though typically we want active ones
-    enabled: !propSnapshotId
-  });
+  // Fetch snapshots if not provided via props (only fetch when needed)
+  const shouldFetchSnapshots = !propSnapshotId;
+  const { data: snapshotsData, isLoading: isLoadingSnapshots } = useSnapshots(
+    shouldFetchSnapshots ? {
+      status: ['active', 'finalized'], // Fetch active and finalized records for selection
+    } : undefined
+  );
 
   // Update selected snapshot if prop changes
   useEffect(() => {
@@ -59,6 +61,19 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       setSelectedSnapshotId(propSnapshotId);
     }
   }, [propSnapshotId]);
+
+  // Auto-select the latest Nisab Year Record when none is selected
+  useEffect(() => {
+    if (!selectedSnapshotId && snapshotsData?.snapshots && snapshotsData.snapshots.length > 0) {
+      // Sort by calculation date descending to get the most recent
+      const sortedSnapshots = [...snapshotsData.snapshots].sort((a, b) => {
+        const dateA = new Date(a.calculationDate).getTime();
+        const dateB = new Date(b.calculationDate).getTime();
+        return dateB - dateA; // Most recent first
+      });
+      setSelectedSnapshotId(sortedSnapshots[0].id);
+    }
+  }, [selectedSnapshotId, snapshotsData]);
 
   // Form state
   const [formData, setFormData] = useState({
