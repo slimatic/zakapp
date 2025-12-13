@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Button } from '../ui';
 import { MethodologyCard } from './MethodologyCard';
 import { getAllMethodologies, getMethodology, DISCLAIMER } from '../../data/methodologies';
@@ -40,10 +41,10 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
       });
       
       if (!response.ok) {
-        console.error('Failed to save methodology preference');
+        toast.error('Failed to save methodology preference');
       }
     } catch (error) {
-      console.error('Error saving methodology preference:', error);
+      toast.error('Error saving methodology preference');
     }
   };
 

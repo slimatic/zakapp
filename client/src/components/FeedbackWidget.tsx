@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
 import { useLocation } from 'react-router-dom';
 import { getApiBaseUrl } from '../config';
@@ -147,7 +148,7 @@ export const FeedbackWidget: React.FC = () => {
       }, 2000);
     } catch (err) {
       setError('Failed to submit feedback. Please try again.');
-      console.error('Feedback submission error:', err);
+      toast.error('Failed to submit feedback. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

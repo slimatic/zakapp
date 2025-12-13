@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useNisabYearRecords } from '../hooks/useNisabYearRecords';
 import { useComparison } from '../hooks/useComparison';
 import { ComparisonTable } from '../components/tracking/ComparisonTable';
@@ -46,7 +47,7 @@ export const ComparisonPage: React.FC = () => {
         return prev.filter(id => id !== recordId);
       }
       if (prev.length >= 5) {
-        alert('Maximum 5 Nisab Year Records can be compared at once');
+        toast.error('Maximum 5 Nisab Year Records can be compared at once');
         return prev;
       }
       return [...prev, recordId];
@@ -55,7 +56,7 @@ export const ComparisonPage: React.FC = () => {
 
   const handleCompare = () => {
     if (selectedIds.length < 2) {
-      alert('Please select at least 2 Nisab Year Records to compare');
+      toast.error('Please select at least 2 Nisab Year Records to compare');
       return;
     }
     setShowComparison(true);

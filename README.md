@@ -51,6 +51,54 @@ To access the application from other devices on your network:
 - **Real-time Calculations**: Live portfolio totals and Zakat eligibility status.
 - **PWA Support**: Installable on mobile and desktop with offline capabilities.
 
+## 📱 Progressive Web App (PWA)
+
+ZakApp is a fully installable Progressive Web App that provides a native app-like experience on both mobile and desktop devices.
+
+### Installation Instructions
+
+#### On Mobile (iOS Safari / Android Chrome)
+1. Open ZakApp in your mobile browser at `http://your-server:3000`
+2. Tap the **Share** button (iOS) or **Menu** button (Android)
+3. Select **"Add to Home Screen"** (iOS) or **"Add to Home screen"** (Android)
+4. Confirm installation
+
+#### On Desktop (Chrome / Edge / Safari)
+1. Open ZakApp in your browser at `http://your-server:3000`
+2. Click the **Install** button in the address bar, or
+3. Click the **Menu** button (three dots) → **"Install ZakApp"**
+
+#### On Firefox
+1. Open ZakApp in Firefox at `http://your-server:3000`
+2. Click the **Install this site as an app** button in the address bar
+
+### PWA Features
+- **Offline Access**: Core functionality works without internet connection
+- **Native Experience**: App launches from home screen with splash screen
+- **Push Notifications**: Optional reminders for Zakat due dates
+- **Background Sync**: Data synchronization when connection is restored
+
+## ♿ Accessibility Statement
+
+ZakApp is committed to providing an accessible experience for all users, regardless of ability or assistive technology used.
+
+### Accessibility Features
+- **WCAG 2.1 AA Compliance**: Meets Web Content Accessibility Guidelines
+- **Keyboard Navigation**: Full keyboard accessibility with visible focus indicators
+- **Screen Reader Support**: Comprehensive ARIA labels and semantic HTML
+- **High Contrast**: Sufficient color contrast ratios for readability
+- **Touch Targets**: Minimum 44px touch targets for mobile accessibility
+- **Skip Links**: Quick navigation for keyboard and screen reader users
+
+### Assistive Technology Support
+- **Screen Readers**: Tested with NVDA, JAWS, VoiceOver, and TalkBack
+- **Voice Control**: Compatible with voice control systems
+- **Switch Control**: Switch device accessible
+- **Magnification**: Works with screen magnification tools
+
+### Feedback
+If you encounter accessibility issues or have suggestions for improvement, please [open an issue](https://github.com/slimatic/zakapp/issues) with the "accessibility" label.
+
 ## �� Documentation
 
 For detailed documentation, please visit the [Documentation Hub](docs/README.md).
