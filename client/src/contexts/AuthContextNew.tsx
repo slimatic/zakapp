@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { apiService, LoginRequest, RegisterRequest, AuthResponse } from '../services/api';
 
 interface User {
@@ -76,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     },
     onError: (error: Error) => {
-      console.error('Login failed:', error);
+      toast.error('Login failed');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       queryClient.removeQueries({ queryKey: ['currentUser'] });
@@ -103,7 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     },
     onError: (error: Error) => {
-      console.error('Registration failed:', error);
+      toast.error('Registration failed');
     },
   });
 
@@ -116,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       queryClient.clear(); // Clear all cached data
     },
     onError: (error: Error) => {
-      console.error('Logout failed:', error);
+      toast.error('Logout failed');
       // Even if logout fails on server, clear local data
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
+import toast from 'react-hot-toast';
 import { apiService } from '../services/api';
 import type { User } from '@zakapp/shared';
 
@@ -216,7 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      toast.error('Registration failed');
       dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Registration failed' });
       return false;
     }
@@ -227,7 +228,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await apiService.logout();
     } catch (error) {
       // Even if logout API fails, we still want to clear local storage
-      console.error('Logout API error:', error);
+      toast.error('Logout failed');
     } finally {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');

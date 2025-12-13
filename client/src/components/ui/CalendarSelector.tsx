@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { gregorianToHijri, hijriToGregorian, formatHijriDate, HIJRI_MONTHS } from '../../utils/calendarConverter';
 
 export interface CalendarSelectorProps {
@@ -119,7 +120,7 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
       setGregorianDate(newGregorianDate);
       onDateChange?.(newGregorianDate);
     } catch (error) {
-      console.error('Error converting Hijri to Gregorian:', error);
+      toast.error('Error converting Hijri to Gregorian');
     }
   };
 

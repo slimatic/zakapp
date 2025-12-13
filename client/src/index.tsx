@@ -10,6 +10,11 @@ import { initializeBackgroundSync } from './utils/backgroundSync';
 
 // Development helper to remove webpack-dev-server overlay which can block E2E interactions
 if (process.env.NODE_ENV === 'development') {
+  // Initialize axe-core for accessibility testing
+  import('@axe-core/react').then((axe) => {
+    axe.default(React, ReactDOM, 1000);
+  }).catch(console.error);
+
   import('./dev/disableWDSOverlay')
     .then((m) => m.disableWDSOverlay())
     .catch(() => {

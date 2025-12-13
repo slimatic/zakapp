@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Asset, AssetType, ZakatCalculation, NisabInfo, ZakatPayment } from '../../types';
 import { apiService } from '../../services/api';
 import { PaymentModal } from './PaymentModal';
@@ -75,7 +76,7 @@ export const ZakatCalculator: React.FC = () => {
         setError(errorMessage);
       }
     } catch (err) {
-      console.error('Calculation error:', err);
+      toast.error('Calculation failed');
       setError(err instanceof Error ? err.message : 'Calculation failed');
     } finally {
       setIsLoading(false);
