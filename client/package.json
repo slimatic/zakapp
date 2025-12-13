@@ -29,6 +29,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.63.0",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^6.28.1",
     "react-scripts": "5.0.1",
     "react-window": "^2.2.1",
@@ -39,6 +40,9 @@
     "zod": "^4.1.11"
   },
   "scripts": {
+    "dev": "vite",
+    "build:vite": "tsc && vite build",
+    "preview": "vite preview",
     "start": "TSC_COMPILE_ON_ERROR=true NODE_OPTIONS=--no-deprecation react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -69,11 +73,15 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
+    "@axe-core/react": "^4.10.1",
     "@types/axe-core": "^2.0.2",
+    "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.21",
     "axe-core": "^4.11.0",
     "jest-axe": "^10.0.0",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.0.0",
+    "vite-plugin-pwa": "^0.17.0"
   }
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 
 interface Calculation {
@@ -124,7 +125,7 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
       // Reload calculations
       await loadCalculations();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete calculation');
+      toast.error(err instanceof Error ? err.message : 'Failed to delete calculation');
     }
   };
 

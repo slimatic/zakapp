@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService, API_BASE_URL } from '../../services/api';
@@ -139,12 +140,12 @@ export const Profile: React.FC = () => {
     e.preventDefault();
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('New passwords do not match');
+      toast.error('New passwords do not match');
       return;
     }
     
     if (passwordData.newPassword.length < 8) {
-      alert('Password must be at least 8 characters long');
+      toast.error('Password must be at least 8 characters long');
       return;
     }
     
@@ -205,7 +206,7 @@ export const Profile: React.FC = () => {
       setTimeout(() => setShowSuccessMessage(null), 5000);
     } catch {
       setShowSuccessMessage(null);
-      alert('Failed to export data. Please try again.');
+      toast.error('Failed to export data. Please try again.');
     }
   };
 
@@ -729,7 +730,7 @@ export const Profile: React.FC = () => {
                           } catch {
                             // Revert on error
                             setPrivacySettings(prev => ({ ...prev, anonymousUsageStats: !newValue }));
-                            alert('Failed to update privacy settings. Please try again.');
+                            toast.error('Failed to update privacy settings. Please try again.');
                           }
                         }}
                         aria-labelledby="usage-stats-label"

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import toast from 'react-hot-toast';
 import { useNisabYearRecords, useCompareSnapshots } from '../../hooks';
 
 /**
@@ -52,12 +53,12 @@ const SnapshotComparison: React.FC = () => {
 
   const handleExportPDF = () => {
     // This would integrate with a PDF generation library
-    alert('PDF export functionality would be implemented here');
+    toast.error('PDF export functionality would be implemented here');
   };
 
   const handleExportExcel = () => {
     // This would generate CSV data for Excel
-    alert('Excel export functionality would be implemented here');
+    toast.error('Excel export functionality would be implemented here');
   };
 
   return (

@@ -1,4 +1,5 @@
 import React from 'react';
+import toast from 'react-hot-toast';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAsset, useDeleteAsset } from '../../services/apiHooks';
 import { Asset } from '@zakapp/shared';
@@ -130,8 +131,7 @@ export const AssetDetails: React.FC = () => {
           navigate('/assets');
         },
         onError: (error: any) => {
-          console.error('Failed to delete asset:', error);
-          alert('Failed to delete asset. Please try again.');
+          toast.error('Failed to delete asset. Please try again.');
         }
       });
     }
