@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
 import { gregorianToHijri } from '../utils/calendarConverter';
@@ -219,8 +220,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       setNisabBasis('GOLD'); // Reset to default
     },
     onError: (error: any) => {
-      console.error('Error creating record:', error);
-      alert(`Failed to create record: ${error.message || 'Unknown error'}`);
+      toast.error(`Failed to create record: ${error.message || 'Unknown error'}`);
     },
   });
 
@@ -243,8 +243,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       }
     },
     onError: (error: any) => {
-      console.error('Error deleting record:', error);
-      alert(`Failed to delete record: ${error.message || 'Unknown error'}`);
+      toast.error(`Failed to delete record: ${error.message || 'Unknown error'}`);
       setDeletingRecordId(null);
     },
   });
@@ -259,7 +258,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   // Handle create submit
   const handleCreateSubmit = () => {
     if (selectedAssetIds.length === 0) {
-      alert('Please select at least one asset');
+      toast.error('Please select at least one asset');
       return;
     }
     // Creating record with selected assets
@@ -1039,8 +1038,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                           setRefreshingRecordId(null);
                           setSelectedAssetIds([]);
                         }).catch((error) => {
-                          console.error('Failed to update record:', error);
-                          alert('Failed to update record. Please try again.');
+                          toast.error('Failed to update record. Please try again.');
                         });
                       }}
                       disabled={selectedAssetIds.length === 0}
@@ -1114,7 +1112,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                       setEditingStartDateRecordId(null);
                       setNewStartDate('');
                     } catch (error) {
-                      alert('Failed to update start date. Please try again.');
+                      toast.error('Failed to update start date. Please try again.');
                     }
                   }}
                   disabled={!newStartDate}

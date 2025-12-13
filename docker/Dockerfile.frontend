@@ -1,6 +1,8 @@
 # Frontend Dockerfile for development
 FROM node:20-alpine
 
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
+
 WORKDIR /app
 
 # Copy npmrc configuration

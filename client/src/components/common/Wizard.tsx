@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { CheckIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 
 export interface WizardStep {
@@ -223,7 +224,7 @@ export const Wizard: React.FC<WizardProps> = ({
           return;
         }
       } catch (error) {
-        console.error('Validation error:', error);
+        toast.error('Validation error');
         setIsValidating(false);
         return;
       }
@@ -257,7 +258,7 @@ export const Wizard: React.FC<WizardProps> = ({
           return;
         }
       } catch (error) {
-        console.error('Validation error:', error);
+        toast.error('Validation error');
         setIsValidating(false);
         return;
       }

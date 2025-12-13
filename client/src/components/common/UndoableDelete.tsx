@@ -6,6 +6,7 @@
  */
 
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { useUndo } from '../../utils/undoManager';
 import { useToast } from './Toast';
@@ -59,7 +60,7 @@ export const UndoableDelete: React.FC<UndoableDeleteProps> = ({
           await onDelete();
           setIsDeleting(false);
         } catch (error) {
-          console.error('Delete failed:', error);
+          toast.error('Delete failed');
           setIsDeleting(false);
         }
       },
@@ -130,7 +131,7 @@ export function useUndoableDelete() {
         try {
           await onDelete();
         } catch (error) {
-          console.error('Delete failed:', error);
+          toast.error('Delete failed');
         }
       },
       () => {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 
 interface Calculation {
@@ -228,7 +229,7 @@ export const HistoryExport: React.FC<HistoryExportProps> = ({ calculations, onEx
 
   const handleExport = async () => {
     if (calculations.length === 0) {
-      alert('No calculations to export');
+      toast.error('No calculations to export');
       return;
     }
 
@@ -251,8 +252,7 @@ export const HistoryExport: React.FC<HistoryExportProps> = ({ calculations, onEx
         onExport();
       }
     } catch (error) {
-      console.error('Export error:', error);
-      alert('Failed to export calculations');
+      toast.error('Failed to export calculations');
     } finally {
       setIsExporting(false);
     }

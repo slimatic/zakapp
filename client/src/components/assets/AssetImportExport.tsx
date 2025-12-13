@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useAssets, useCreateAsset } from '../../services/apiHooks';
 import { Asset, AssetCategoryType } from '@zakapp/shared';
 import { Button, LoadingSpinner } from '../ui';
@@ -25,7 +26,7 @@ export const AssetImportExport: React.FC = () => {
   // Export assets to CSV
   const handleExport = () => {
     if (assets.length === 0) {
-      alert('No assets to export');
+      toast.error('No assets to export');
       return;
     }
 
@@ -76,8 +77,7 @@ export const AssetImportExport: React.FC = () => {
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Export failed:', error);
-      alert('Failed to export assets. Please try again.');
+      toast.error('Failed to export assets. Please try again.');
     } finally {
       setExporting(false);
     }
@@ -86,7 +86,7 @@ export const AssetImportExport: React.FC = () => {
   // Export assets to JSON
   const handleExportJSON = () => {
     if (assets.length === 0) {
-      alert('No assets to export');
+      toast.error('No assets to export');
       return;
     }
 
@@ -125,8 +125,7 @@ export const AssetImportExport: React.FC = () => {
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Export failed:', error);
-      alert('Failed to export assets. Please try again.');
+      toast.error('Failed to export assets. Please try again.');
     } finally {
       setExporting(false);
     }
@@ -228,7 +227,7 @@ export const AssetImportExport: React.FC = () => {
         });
 
       } catch (error: any) {
-        console.error('Import failed:', error);
+        toast.error('Import failed');
         setImportResult({
           success: 0,
           failed: 1,

@@ -14,5 +14,11 @@ EOF
 echo "Runtime config generated:"
 cat /app/client/public/config.js
 
+# Ensure dependencies are up to date
+if [ "$NODE_ENV" = "development" ]; then
+  echo "Checking dependencies..."
+  npm install
+fi
+
 # Execute the passed command (npm start)
 exec "$@"
