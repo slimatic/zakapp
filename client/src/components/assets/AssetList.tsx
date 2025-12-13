@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAssets } from '../../services/apiHooks';
 import { Asset, AssetCategoryType } from '@zakapp/shared';
 import { LoadingSpinner, ErrorMessage, Button } from '../ui';
+import { SkeletonCard } from '../ui/Skeleton';
 import { AssetForm } from './AssetForm';
 import { usePrivacy, useMaskedCurrency } from '../../contexts/PrivacyContext';
 
@@ -50,7 +51,49 @@ export const AssetList: React.FC = React.memo(() => {
     return maskedCurrency(formatted);
   }, [maskedCurrency]);
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading) {
+    return (
+      <div className="space-y-6" id="main-content">
+        {/* Header skeleton */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="h-8 bg-gray-200 rounded animate-pulse w-48 mb-2" />
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-64" />
+          </div>
+          <div className="flex gap-3">
+            <div className="h-10 bg-gray-200 rounded animate-pulse w-20" />
+            <div className="h-10 bg-gray-200 rounded animate-pulse w-24" />
+            <div className="h-10 bg-gray-200 rounded animate-pulse w-32" />
+          </div>
+        </div>
+
+        {/* Summary stats skeleton */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 divide-x divide-gray-200">
+            <div className="text-center">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto mb-2" />
+              <div className="h-6 bg-gray-200 rounded animate-pulse w-8 mx-auto" />
+            </div>
+            <div className="text-center">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-20 mx-auto mb-2" />
+              <div className="h-6 bg-gray-200 rounded animate-pulse w-8 mx-auto" />
+            </div>
+            <div className="text-center">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto mb-2" />
+              <div className="h-6 bg-gray-200 rounded animate-pulse w-12 mx-auto" />
+            </div>
+          </div>
+        </div>
+
+        {/* Asset list skeleton */}
+        <div className="space-y-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
   if (error) return <ErrorMessage error={error} />;
 
   return (

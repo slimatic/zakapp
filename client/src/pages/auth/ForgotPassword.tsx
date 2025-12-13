@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { useRequestPasswordReset } from '../../services/apiHooks';
@@ -21,7 +22,7 @@ export const ForgotPassword: React.FC = () => {
       await requestResetMutation.mutateAsync(email);
       setIsSubmitted(true);
     } catch (error) {
-      console.error('Password reset request failed:', error);
+      toast.error('Password reset request failed');
     }
   };
 

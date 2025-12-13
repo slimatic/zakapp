@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import toast from 'react-hot-toast';
 import { useReminders, useAcknowledgeReminder } from '../../hooks/useReminders';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
@@ -59,7 +60,7 @@ export const ReminderBanner: React.FC<ReminderBannerProps> = ({
     try {
       await acknowledgeReminderMutation.mutateAsync(reminderId);
     } catch (error) {
-      console.error('Failed to dismiss reminder:', error);
+      toast.error('Failed to dismiss reminder');
     }
   };
 
@@ -73,7 +74,7 @@ export const ReminderBanner: React.FC<ReminderBannerProps> = ({
         )
       );
     } catch (error) {
-      console.error('Failed to dismiss all reminders:', error);
+      toast.error('Failed to dismiss all reminders');
     }
   };
 
@@ -83,7 +84,7 @@ export const ReminderBanner: React.FC<ReminderBannerProps> = ({
     try {
       await acknowledgeReminderMutation.mutateAsync(reminderId);
     } catch (error) {
-      console.error('Failed to snooze reminder:', error);
+      toast.error('Failed to snooze reminder');
     }
   };
 

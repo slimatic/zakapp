@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { formatCurrency, formatPercentage } from '../../utils/formatters';
@@ -60,8 +61,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
       const pdf = generateAnnualSummaryPDF(snapshot, payments);
       downloadPDF(pdf, `zakat-summary-${snapshot.gregorianYear}.pdf`);
     } catch (error) {
-      console.error('Failed to generate PDF:', error);
-      alert('Failed to generate PDF report. Please try again.');
+      toast.error('Failed to generate PDF report. Please try again.');
     } finally {
       setIsExporting(false);
     }
@@ -79,7 +79,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
     } else {
       // Fallback to copying to clipboard
       navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
-      alert('Summary copied to clipboard!');
+      toast.success('Summary copied to clipboard!');
     }
   };
 

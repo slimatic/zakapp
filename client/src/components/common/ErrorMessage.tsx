@@ -1,4 +1,5 @@
 import React from 'react';
+import toast from 'react-hot-toast';
 
 interface ErrorMessageProps {
   title?: string;
@@ -163,7 +164,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    toast.error('An error occurred');
   }
 
   handleRetry = () => {
