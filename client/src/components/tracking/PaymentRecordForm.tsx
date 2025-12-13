@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useCreatePayment, useUpdatePayment } from '../../hooks/usePayments';
 import { useNisabYearRecords } from '../../hooks/useNisabYearRecords';
 import { Button } from '../ui/Button';
@@ -217,7 +218,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
 
       onSuccess?.(result);
     } catch (error) {
-      console.error('Error saving payment record:', error);
+      toast.error('Error saving payment record');
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { usePaymentRecords, useDeletePayment, PaymentFilters } from '../../hooks';
 import { ZakatPayment } from '@zakapp/shared';
 
@@ -73,15 +74,14 @@ const PaymentTracking: React.FC = () => {
       try {
         await deletePaymentMutation.mutateAsync(paymentId);
       } catch (error) {
-        console.error('Failed to delete payment:', error);
-        alert('Failed to delete payment. Please try again.');
+        toast.error('Failed to delete payment. Please try again.');
       }
     }
   };
 
   const handleDownloadReceipt = (payment: ZakatPayment) => {
     // This would typically call an API to generate/download a receipt
-    alert('Receipt download functionality would be implemented here');
+    toast.error('Receipt download functionality would be implemented here');
   };
 
   const formatCurrency = (amount: number): string => {

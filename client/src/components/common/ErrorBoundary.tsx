@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
 
 interface Props {
@@ -21,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+    toast.error('An unexpected error occurred');
 
     // Check for chunk load errors (deployment updates)
     if (error.message.includes('Loading chunk') || error.message.includes('ChunkLoadError')) {

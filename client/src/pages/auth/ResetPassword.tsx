@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { useConfirmPasswordReset } from '../../services/apiHooks';
@@ -56,7 +57,7 @@ export const ResetPassword: React.FC = () => {
       });
       setIsSuccess(true);
     } catch (error) {
-      console.error('Password reset failed:', error);
+      toast.error('Password reset failed');
     }
   };
 

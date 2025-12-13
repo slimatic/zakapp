@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useCreateAsset, useUpdateAsset } from '../../services/apiHooks';
 import { Asset, AssetCategoryType } from '@zakapp/shared';
 import { Button, Input } from '../ui';
@@ -68,7 +69,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           onSuccess?.();
         },
         onError: (error: any) => {
-          console.error('Asset update error:', error);
+          toast.error('Failed to update asset. Please try again.');
           setErrors({ submit: 'Failed to update asset. Please try again.' });
           setIsSubmitting(false);
         }
@@ -79,7 +80,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           onSuccess?.();
         },
         onError: (error: any) => {
-          console.error('Asset create error:', error);
+          toast.error('Failed to create asset. Please try again.');
           setErrors({ submit: 'Failed to create asset. Please try again.' });
           setIsSubmitting(false);
         }

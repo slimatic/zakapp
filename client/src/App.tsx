@@ -19,6 +19,8 @@ import UpdateNotification from './components/pwa/UpdateNotification';
 import { FeedbackWidget } from './components/FeedbackWidget';
 import { getFeedbackEnabled } from './config';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { SkipLink } from './components/common/SkipLink';
+import { ToastProvider } from './components/ui/ToastProvider';
 
 /**
  * T023 Performance Optimization: Route-Based Code Splitting
@@ -70,13 +72,15 @@ const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ de
 
 function App() {
   return (
-    <QueryProvider>
-      <AuthProvider>
-        <PrivacyProvider>
-          <Router>
-            <ErrorBoundary>
-              <div className="App">
-                <Routes>
+    <ToastProvider>
+      <QueryProvider>
+        <AuthProvider>
+          <PrivacyProvider>
+            <Router>
+              <ErrorBoundary>
+                <div className="App">
+                  <SkipLink />
+                  <Routes>
                 {/* Auth routes - eagerly loaded */}
                 <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -298,6 +302,7 @@ function App() {
       </PrivacyProvider>
     </AuthProvider>
   </QueryProvider>
+    </ToastProvider>
   );
 }
 
