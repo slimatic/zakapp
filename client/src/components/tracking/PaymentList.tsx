@@ -101,6 +101,14 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     return map;
   }, [nisabRecordsData]);
 
+  // Helper to coerce possibly-missing or non-numeric amounts into a safe number
+  const safeAmount = (p: PaymentRecord | any) => {
+    const raw = p?.amount;
+    if (raw === null || raw === undefined) return 0;
+    const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
+    return Number.isFinite(num) ? num : 0;
+  };
+
   // Sort and filter payments (T021)
   const sortedAndFilteredPayments = useMemo(() => {
     let filtered = [...payments];
@@ -134,13 +142,13 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     // Apply sorting
     filtered.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortBy) {
         case 'date':
           comparison = new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime();
           break;
         case 'amount':
-          comparison = a.amount - b.amount;
+          comparison = safeAmount(a) - safeAmount(b);
           break;
         case 'created':
           comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -197,10 +205,11 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                           filters.startDate || 
                           filters.endDate;
 
-  // Calculate totals using sorted/filtered payments
-  const totalAmount = sortedAndFilteredPayments.reduce((sum: number, payment: PaymentRecord) => sum + payment.amount, 0);
+  // Calculate totals using sorted/filtered payments (use safeAmount to avoid NaN)
+  const totalAmount = sortedAndFilteredPayments.reduce((sum: number, payment: PaymentRecord) => sum + safeAmount(payment), 0);
   const categoryTotals = sortedAndFilteredPayments.reduce((acc: Record<string, number>, payment: PaymentRecord) => {
-    acc[payment.recipientCategory] = (acc[payment.recipientCategory] || 0) + payment.amount;
+    const cat = payment.recipientCategory || 'unknown';
+    acc[cat] = (acc[cat] || 0) + safeAmount(payment);
     return acc;
   }, {});
 

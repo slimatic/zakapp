@@ -19,6 +19,10 @@ import AuditTrailView from '../components/AuditTrailView';
 import AssetSelectionTable from '../components/tracking/AssetSelectionTable';
 import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
 import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
+import { PaymentCard } from '../components/tracking/PaymentCard';
+import { PaymentDetailModal } from '../components/tracking/PaymentDetailModal';
+import { useDeletePayment, useDeleteSnapshotPayment } from '../hooks/usePaymentRecords';
+import { usePayments } from '../hooks/usePayments';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { Button } from '../components/ui/Button';
 import type { Asset } from '../components/tracking/AssetSelectionTable';
@@ -49,6 +53,42 @@ export const NisabYearRecordsPage: React.FC = () => {
   const [paymentNotes, setPaymentNotes] = useState<string>('');
   const [paymentReceiptReference, setPaymentReceiptReference] = useState<string>('');
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
+  // Payment UI state
+  const [selectedPaymentForDetails, setSelectedPaymentForDetails] = useState<any | null>(null);
+  const [editingPayment, setEditingPayment] = useState<any | null>(null);
+  const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
+
+  const deletePaymentMutation = useDeletePayment();
+  const deleteSnapshotPaymentMutation = useDeleteSnapshotPayment();
+
+  const handleDeletePayment = (paymentId: string) => {
+    if (!window.confirm('Delete this payment? This action cannot be undone.')) return;
+    // Prefer snapshot delete when viewing payments tied to a Nisab Year Record
+    deleteSnapshotPaymentMutation.mutate(paymentId, {
+      onSuccess: () => {
+        // Invalidate payment queries so the tracking payments hook refreshes
+        queryClient.invalidateQueries({ queryKey: ['payments'] });
+        toast.success('Payment deleted');
+        if (selectedPaymentForDetails?.id === paymentId) setSelectedPaymentForDetails(null);
+        if (editingPayment?.id === paymentId) {
+          setEditingPayment(null);
+          setShowEditPaymentModal(false);
+        }
+      },
+      onError: () => {
+        // Fallback to zakat payment delete if snapshot delete fails
+        deletePaymentMutation.mutate(paymentId, {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['payments'] });
+            toast.success('Payment deleted');
+          },
+          onError: () => {
+            toast.error('Failed to delete payment');
+          }
+        });
+      }
+    });
+  };
 
   // Fetch records
   const { data: recordsData, isLoading, error } = useQuery({
@@ -73,21 +113,9 @@ export const NisabYearRecordsPage: React.FC = () => {
     : (recordsData?.records || []);
   const activeRecord = selectedRecordId ? records.find((r: any) => r.id === selectedRecordId) : null;
 
-  // Fetch payments for the selected record
-  const { data: paymentsData } = useQuery({
-    queryKey: ['payments', selectedRecordId],
-    queryFn: async () => {
-      if (!selectedRecordId) return [];
-      const response = await apiService.getPayments({ snapshotId: selectedRecordId });
-      if (!response.success) {
-        throw new Error('Failed to fetch payments');
-      }
-      return response.data?.payments || [];
-    },
-    enabled: !!selectedRecordId,
-  });
-
-  const payments = paymentsData || [];
+  // Fetch payments for the selected record using the tracking endpoint hook
+  const { data: paymentsResp } = usePayments({ snapshotId: selectedRecordId, enabled: !!selectedRecordId });
+  const payments = paymentsResp?.payments || [];
 
   // Fetch assets for create modal
   const { data: assetsData, isLoading: isLoadingAssets, refetch: refetchAssets } = useQuery({
@@ -695,21 +723,19 @@ export const NisabYearRecordsPage: React.FC = () => {
                         <div className="p-3 bg-green-50 rounded border border-green-200">
                           <div className="text-gray-600 text-xs mb-2">Payments Recorded</div>
                           <div className="space-y-2">
+                            {/* Render payment cards with actions (Details/Edit/Delete) */}
                             {payments.map((payment: any) => (
-                              <div key={payment.id} className="flex justify-between items-start text-xs border-t border-green-200 pt-2 first:border-t-0 first:pt-0">
-                                <div className="flex-1">
-                                  <div className="font-medium text-gray-900">{payment.recipientName || payment.decryptedRecipientName}</div>
-                                  <div className="text-gray-600 text-xs mt-0.5">
-                                    {payment.recipientType} • {payment.recipientCategory}
-                                  </div>
-                                  <div className="text-gray-500 text-xs mt-0.5">
-                                    {new Date(payment.paymentDate).toLocaleDateString()}
-                                  </div>
-                                </div>
-                                <div className="font-semibold text-green-700">
-                                  {formatCurrency(parseFloat(payment.amount || payment.decryptedAmount || '0'), payment.currency || 'USD')}
-                                </div>
-                              </div>
+                              <PaymentCard
+                                key={payment.id}
+                                payment={payment}
+                                nisabYear={activeRecord}
+                                onViewDetails={(p) => setSelectedPaymentForDetails(p)}
+                                onEdit={(p) => {
+                                  setEditingPayment(p);
+                                  setShowEditPaymentModal(true);
+                                }}
+                                onDelete={(id) => handleDeletePayment(id)}
+                              />
                             ))}
                           </div>
                           <div className="mt-2 pt-2 border-t border-green-200 flex justify-between items-center font-semibold">
@@ -840,6 +866,59 @@ export const NisabYearRecordsPage: React.FC = () => {
             </div>
             <div className="p-6">
               <AuditTrailView recordId={showAuditTrail} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Detail Modal */}
+      {selectedPaymentForDetails && (
+        <PaymentDetailModal
+          isOpen={true}
+          payment={selectedPaymentForDetails}
+          onClose={() => setSelectedPaymentForDetails(null)}
+          onEdit={(p: any) => {
+            setEditingPayment(p);
+            setShowEditPaymentModal(true);
+            setSelectedPaymentForDetails(null);
+          }}
+          onDelete={(id: string) => handleDeletePayment(id)}
+        />
+      )}
+
+      {/* Edit Payment Modal (used when editing from Nisab page) */}
+      {showEditPaymentModal && editingPayment && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <h2 className="text-xl font-semibold text-gray-900">Edit Payment</h2>
+              <button
+                onClick={() => setShowEditPaymentModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <PaymentRecordForm
+                payment={editingPayment}
+                nisabRecordId={activeRecord?.id}
+                onCancel={() => setShowEditPaymentModal(false)}
+                onSuccess={(p: any) => {
+                  setShowEditPaymentModal(false);
+                  queryClient.invalidateQueries({ queryKey: ['payments', selectedRecordId] });
+                  toast.success('Payment updated');
+                }}
+              />
+
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  onClick={() => handleDeletePayment(editingPayment.id)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete Payment
+                </button>
+              </div>
             </div>
           </div>
         </div>

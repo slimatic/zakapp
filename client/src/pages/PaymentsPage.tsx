@@ -47,7 +47,14 @@ export const PaymentsPage: React.FC = () => {
     setEditingPayment(null);
   };
 
-  const totalPaid = paymentsData?.payments?.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0;
+  const safeAmount = (p: any) => {
+    const raw = p?.amount;
+    if (raw === null || raw === undefined) return 0;
+    const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
+    return Number.isFinite(num) ? num : 0;
+  };
+
+  const totalPaid = paymentsData?.payments?.reduce((sum: number, p: any) => sum + safeAmount(p), 0) || 0;
   const paymentCount = paymentsData?.payments?.length || 0;
 
   return (
