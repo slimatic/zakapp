@@ -43,7 +43,8 @@
     "jest-environment-jsdom": "29.7.0",
     "jest-extended": "6.0.0",
     "supertest": "7.1.4",
-    "ts-jest": "29.4.4"
+    "ts-jest": "29.4.4",
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "@prisma/client": "6.16.2",
