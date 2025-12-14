@@ -522,3 +522,293 @@ export function calculateHawlCompletionDate(hawlStartDate: Date): Date {
 export function isZakatObligatory(wealth: number, nisabThreshold: number): boolean {
   return wealth >= nisabThreshold;
 }
+
+/**
+ * Valid Asset Category Values
+ * 
+ * Flat array of all valid asset category strings for validation purposes.
+ * Combines all categories from ZAKATABLE, NON_ZAKATABLE, and PARTIAL arrays.
+ */
+export const VALID_ASSET_CATEGORY_VALUES = [
+  ...ASSET_CATEGORIES.ZAKATABLE,
+  ...ASSET_CATEGORIES.NON_ZAKATABLE,
+  ...ASSET_CATEGORIES.PARTIAL,
+] as const;
+
+/**
+ * Passive Investment Types
+ * 
+ * Asset categories that can be marked as passive investments.
+ * These are typically investment vehicles where the owner has limited control.
+ */
+export const PASSIVE_INVESTMENT_TYPES = [
+  'STOCK',
+  'ETF',
+  'MUTUAL_FUND',
+  'ROTH_IRA',
+] as const;
+
+/**
+ * Restricted Account Types
+ * 
+ * Asset categories that can be marked as restricted accounts.
+ * These are typically retirement or tax-advantaged accounts with restrictions.
+ */
+export const RESTRICTED_ACCOUNT_TYPES = [
+  '401K',
+  'TRADITIONAL_IRA',
+  'PENSION',
+  'ROTH_IRA',
+] as const;
+
+/**
+ * Calculation Modifiers
+ * 
+ * Multipliers applied to asset values for Zakat calculation based on account type.
+ * These reflect Islamic rulings on different types of investments and accounts.
+ */
+export const CalculationModifier = {
+  /**
+   * Restricted accounts (401k, Traditional IRA, Pension) - deferred taxation
+   * These accounts are not zakatable until funds are withdrawn.
+   */
+  RESTRICTED: 0,
+
+  /**
+   * Passive investments (stocks, ETFs, mutual funds) - 30% rule applied
+   * Only 30% of the value is considered zakatable per some scholarly opinions.
+   */
+  PASSIVE: 0.3,
+
+  /**
+   * Full value calculation - 100% of asset value is zakatable
+   * Applied to cash, business assets, and other fully zakatable assets.
+   */
+  FULL: 1.0,
+} as const;
+
+/**
+ * Zakat Calculation Methodologies
+ *
+ * Comprehensive collection of Islamic Zakat calculation methodologies
+ * based on different schools of Islamic jurisprudence. Each methodology
+ * includes detailed scholarly references, regional recommendations,
+ * and informed user decision-making for zakat calculations.
+ *
+ * @remarks
+ * Methodologies are based on classical Islamic scholarship and adapted
+ * for contemporary application. Users should consult qualified scholars
+ * for specific circumstances.
+ *
+ * @see {@link MethodologyInfo} for the TypeScript interface definition
+ * @see {@link METHODOLOGY_EDUCATION} for additional educational content
+ * @see {@link REGIONAL_METHODOLOGY_MAP} for regional recommendations
+ */
+export const ZAKAT_METHODS = {
+  STANDARD: {
+    id: 'standard',
+    name: 'Standard Method (AAOIFI)',
+    description: 'Internationally recognized dual nisab method',
+    nisabBasis: 'dual_minimum',
+    businessAssetTreatment: 'market_value',
+    debtDeduction: 'immediate',
+    scholarlyBasis: ['AAOIFI FAS 9', 'Contemporary consensus'],
+    regions: ['International', 'Gulf States', 'Western countries'],
+    zakatRate: 2.5,
+    calendarSupport: ['lunar', 'solar'],
+    customRules: false,
+    suitableFor: [
+      'Muslims in diverse global locations',
+      'Those seeking internationally recognized standards',
+      'Users preferring simplified calculations',
+      'Multi-national Islamic finance institutions'
+    ],
+    pros: [
+      'Modern consensus approach',
+      'Internationally recognized standards',
+      'Simplified calculation process',
+      'Good for diverse geographic regions',
+      'Supported by contemporary Islamic finance institutions',
+      'Flexible nisab calculation based on market conditions'
+    ],
+    cons: [
+      'May not align with specific regional traditions',
+      'Simplified approach may not capture all nuances',
+      'Requires trust in contemporary scholarly consensus',
+      'Less historical precedent than traditional schools'
+    ],
+    explanation: 'The Standard method represents a modern consensus approach developed for contemporary global Muslim communities. It incorporates guidelines from Islamic finance institutions like AAOIFI and uses a dual minimum nisab approach, selecting the lower threshold between gold and silver to ensure accessibility while maintaining religious compliance.'
+  },
+  HANAFI: {
+    id: 'hanafi',
+    name: 'Hanafi School Method',
+    description: 'Silver-based nisab with comprehensive business inclusion',
+    nisabBasis: 'silver',
+    businessAssetTreatment: 'comprehensive',
+    debtDeduction: 'comprehensive',
+    scholarlyBasis: ['Al-Hidayah', 'Classical Hanafi texts'],
+    regions: ['Turkey', 'Central Asia', 'Indian subcontinent'],
+    zakatRate: 2.5,
+    calendarSupport: ['lunar', 'solar'],
+    customRules: false,
+    suitableFor: [
+      'Muslims following Hanafi jurisprudence',
+      'Residents of Turkey, Central Asia, and South Asia',
+      'Business owners with diverse asset portfolios',
+      'Those preferring comprehensive wealth assessment'
+    ],
+    pros: [
+      'Lower nisab threshold ensures broader zakat eligibility',
+      'Comprehensive business asset inclusion',
+      'Flexible debt deduction approach',
+      'Well-established scholarly precedent',
+      'Thorough wealth assessment methodology',
+      'Accommodates complex business structures'
+    ],
+    cons: [
+      'May result in higher zakat amounts for some individuals',
+      'Requires detailed business asset evaluation',
+      'Complex debt assessment needed',
+      'More time-intensive calculation process'
+    ],
+    explanation: 'The Hanafi method, based on the jurisprudence of Imam Abu Hanifa (699-767 CE), uses exclusively silver-based nisab thresholds and emphasizes comprehensive inclusion of business assets. This approach ensures broader zakat eligibility and thorough wealth assessment, making it particularly suitable for business owners and those with diverse asset portfolios.'
+  },
+  SHAFII: {
+    id: 'shafii',
+    name: 'Shafi\'i School Method',
+    description: 'Detailed categorization with dual nisab',
+    nisabBasis: 'dual_minimum',
+    businessAssetTreatment: 'categorized',
+    debtDeduction: 'conservative',
+    scholarlyBasis: ['Al-Majmu\'', 'Shafi\'i jurisprudence'],
+    regions: ['Southeast Asia', 'East Africa', 'Parts of Middle East'],
+    zakatRate: 2.5,
+    calendarSupport: ['lunar', 'solar'],
+    customRules: false,
+    suitableFor: [
+      'Muslims following Shafi\'i jurisprudence',
+      'Residents of Southeast Asia and East Africa',
+      'Those preferring detailed asset categorization',
+      'Users seeking methodical and systematic approach'
+    ],
+    pros: [
+      'Balanced nisab calculation approach',
+      'Detailed and precise asset categorization',
+      'Conservative debt treatment provides certainty',
+      'Strong methodological framework',
+      'Well-suited for diverse asset types',
+      'Systematic approach reduces calculation errors'
+    ],
+    cons: [
+      'More complex asset categorization required',
+      'Conservative debt approach may limit deductions',
+      'Requires good understanding of different asset types',
+      'May be less accessible for simple portfolios'
+    ],
+    explanation: 'The Shafi\'i method, founded by Imam al-Shafi\'i (767-820 CE), emphasizes systematic methodology and detailed asset categorization. It uses a dual minimum nisab approach while requiring precise classification of business assets and conservative debt treatment, making it ideal for those seeking methodical and thorough zakat calculations.'
+  },
+  MALIKI: {
+    id: 'maliki',
+    name: 'Maliki School Method',
+    description: 'Community-focused approach with regional adaptation',
+    nisabBasis: 'dual_flexible',
+    businessAssetTreatment: 'comprehensive',
+    debtDeduction: 'community_based',
+    scholarlyBasis: ['Al-Mudawwana', 'Bidayat al-Mujtahid', 'Maliki jurisprudence'],
+    regions: ['North Africa', 'West Africa', 'Sudan', 'Parts of Arabia'],
+    zakatRate: 2.5,
+    calendarSupport: ['lunar', 'solar'],
+    customRules: false,
+    suitableFor: [
+      'Muslims following Maliki jurisprudence',
+      'Residents of North and West Africa',
+      'Agricultural communities',
+      'Those preferring community-centric approaches'
+    ],
+    pros: [
+      'Adapts to local economic conditions',
+      'Strong agricultural asset handling',
+      'Community-centric approach',
+      'Flexible implementation based on regional needs',
+      'Considers broader economic context',
+      'Comprehensive trade goods treatment'
+    ],
+    cons: [
+      'Requires regional economic data',
+      'Complex adjustment mechanisms',
+      'Less standardized across regions',
+      'May be difficult to implement uniformly'
+    ],
+    explanation: 'The Maliki method, based on the jurisprudence of Imam Malik (711-795 CE), emphasizes community benefit and practical application. It allows for nisab adjustments based on regional economic conditions and provides detailed rules for agricultural zakat, making it particularly suitable for agricultural communities and regions with varying economic conditions.'
+  },
+  HANBALI: {
+    id: 'hanbali',
+    name: 'Hanbali School Method',
+    description: 'Conservative gold-based approach with textual emphasis',
+    nisabBasis: 'gold',
+    businessAssetTreatment: 'categorized',
+    debtDeduction: 'conservative',
+    scholarlyBasis: ['Al-Mughni', 'Hanbali classical texts', 'Ibn Taymiyyah works'],
+    regions: ['Saudi Arabia', 'Qatar', 'Parts of Gulf States'],
+    zakatRate: 2.5,
+    calendarSupport: ['lunar', 'solar'],
+    customRules: false,
+    suitableFor: [
+      'Muslims following Hanbali jurisprudence',
+      'Residents of Saudi Arabia and Gulf states',
+      'Those preferring traditional textual approaches',
+      'Users seeking conservative calculations'
+    ],
+    pros: [
+      'Clear precedential basis from Quran and Hadith',
+      'Consistent with traditional interpretations',
+      'Simplified calculation logic',
+      'Stable gold-based reference',
+      'Conservative approach ensures compliance',
+      'Well-established scholarly precedent'
+    ],
+    cons: [
+      'May exclude lower-income individuals due to higher thresholds',
+      'Less adaptive to modern financial instruments',
+      'Limited flexibility for contemporary assets',
+      'May not suit all economic contexts'
+    ],
+    explanation: 'The Hanbali method, founded by Imam Ahmad ibn Hanbal (780-855 CE), emphasizes textual adherence and conservative calculations. It prefers gold-based nisab calculations and takes a conservative approach to debt deductions, making it suitable for those seeking traditional, scripture-based zakat calculations with clear precedential foundations.'
+  },
+  CUSTOM: {
+    id: 'custom',
+    name: 'Custom Method',
+    description: 'User-defined calculation parameters',
+    nisabBasis: 'configurable',
+    businessAssetTreatment: 'configurable',
+    debtDeduction: 'configurable',
+    scholarlyBasis: ['User consultation recommended'],
+    regions: ['User-specific'],
+    zakatRate: 2.5,
+    calendarSupport: ['lunar', 'solar'],
+    customRules: true,
+    suitableFor: [
+      'Muslims with unique circumstances requiring specialized calculations',
+      'Those following specific regional practices not covered by standard methods',
+      'Users with access to qualified Islamic scholars for consultation',
+      'Communities with established local zakat practices'
+    ],
+    pros: [
+      'Maximum flexibility for unique situations',
+      'Can accommodate specific regional practices',
+      'Allows for scholarly consultation integration',
+      'Adaptable to changing circumstances',
+      'Supports specialized business models',
+      'Enables compliance with local Islamic authorities'
+    ],
+    cons: [
+      'Requires qualified scholarly guidance',
+      'May lack standardization benefits',
+      'Responsibility for correctness lies with user',
+      'May be complex to implement properly',
+      'Potential for inconsistent applications',
+      'Requires ongoing scholarly oversight'
+    ],
+    explanation: 'The Custom method provides maximum flexibility for users with unique circumstances or specific regional requirements. It allows configuration of all calculation parameters based on scholarly consultation or established local practices. This method requires careful implementation with qualified Islamic scholarship to ensure religious compliance while meeting specific needs.'
+  }
+} as const;
