@@ -50,6 +50,7 @@ const AssetList = lazy(() => import('./components/assets').then(m => ({ default:
 const AssetFormPage = lazy(() => import('./components/assets').then(m => ({ default: m.AssetFormPage })));
 const AssetEditPage = lazy(() => import('./pages/assets/AssetEditPage').then(m => ({ default: m.AssetEditPage })));
 const AssetImportExport = lazy(() => import('./components/assets').then(m => ({ default: m.AssetImportExport })));
+const PaymentImportExport = lazy(() => import('./components/payments').then(m => ({ default: m.PaymentImportExport })));
 const AssetDetails = lazy(() => import('./components/assets').then(m => ({ default: m.AssetDetails })));
 
 // Zakat calculation and history
@@ -267,6 +268,19 @@ function App() {
                     <Layout>
                       <Suspense fallback={<HistorySkeleton />}>
                         <PaymentsPage />
+                      </Suspense>
+                    </Layout>
+                  </ProtectedRoute>
+                } 
+              />
+
+              <Route 
+                path="/payments/import-export" 
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <PaymentImportExport />
                       </Suspense>
                     </Layout>
                   </ProtectedRoute>

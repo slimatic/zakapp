@@ -62,9 +62,10 @@ export const PaymentsPage: React.FC = () => {
                 Record and track your Zakat distributions to recipients
               </p>
             </div>
-            <Button variant="secondary" onClick={() => navigate('/dashboard')}>
-              ← Back to Dashboard
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Button variant="secondary" onClick={() => navigate('/dashboard')}>← Back to Dashboard</Button>
+              <Button variant="secondary" onClick={() => navigate('/payments/import-export')}>Import / Export</Button>
+            </div>
           </div>
 
           {/* Nisab Year Selector */}
