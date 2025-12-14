@@ -320,7 +320,8 @@ router.put('/payments/:id',
     amount: z.number().positive().optional(),
     paymentDate: z.string().optional(),
     recipient: z.string().optional(),
-    notes: z.string().optional()
+    notes: z.string().optional(),
+    snapshotId: z.string().optional()
   })),
   paymentRecordsController.updatePayment
 );

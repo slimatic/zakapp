@@ -69,6 +69,50 @@ export class SimpleValidation {
       }
     }
 
+    if (!isPartial || data.acquisitionDate !== undefined) {
+      if (data.acquisitionDate !== undefined) {
+        const date = new Date(data.acquisitionDate);
+        if (isNaN(date.getTime())) {
+          errors.push('Acquisition date must be a valid date');
+        } else {
+          // Compare dates ignoring time-of-day so that 'today' is allowed
+          const inputDate = new Date(date);
+          inputDate.setHours(0, 0, 0, 0);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (inputDate.getTime() > today.getTime()) {
+            errors.push('Acquisition date cannot be in the future');
+          } else {
+            validatedData.acquisitionDate = data.acquisitionDate;
+          }
+        }
+      }
+    }
+
+    if (data.notes !== undefined) {
+      if (typeof data.notes !== 'string' || data.notes.length > 1000) {
+        errors.push('Notes must be a string with maximum 1000 characters');
+      } else {
+        validatedData.notes = data.notes;
+      }
+    }
+
+    if (data.isPassiveInvestment !== undefined) {
+      if (typeof data.isPassiveInvestment !== 'boolean') {
+        errors.push('isPassiveInvestment must be a boolean');
+      } else {
+        validatedData.isPassiveInvestment = data.isPassiveInvestment;
+      }
+    }
+
+    if (data.isRestrictedAccount !== undefined) {
+      if (typeof data.isRestrictedAccount !== 'boolean') {
+        errors.push('isRestrictedAccount must be a boolean');
+      } else {
+        validatedData.isRestrictedAccount = data.isRestrictedAccount;
+      }
+    }
+
     return {
       isValid: errors.length === 0,
       errors,

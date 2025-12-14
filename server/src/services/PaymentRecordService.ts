@@ -73,31 +73,43 @@ export class PaymentRecordService {
       // Per schema: amount, recipientName, notes, receiptReference are encrypted Strings
       // exchangeRate is a plain Float, not encrypted
       
+      // Decrypt each field individually so we can surface field-specific errors
       if (payment.amount) {
-        decrypted.amount = parseFloat(
-          await EncryptionService.decrypt(payment.amount, this.encryptionKey)
-        );
+        try {
+          const decryptedAmount = await EncryptionService.decrypt(payment.amount, this.encryptionKey);
+          decrypted.amount = parseFloat(decryptedAmount);
+        } catch (fieldErr) {
+          console.error('[PaymentRecordService] Failed to decrypt field: amount for record', payment.id || '[unknown id]');
+          console.error('[PaymentRecordService] amount sample:', typeof payment.amount === 'string' ? payment.amount.slice(0, 64) : String(payment.amount));
+          throw new Error(`Decryption failed for field amount: ${fieldErr instanceof Error ? fieldErr.message : String(fieldErr)}`);
+        }
       }
 
       if (payment.recipientName) {
-        decrypted.recipientName = await EncryptionService.decrypt(
-          payment.recipientName,
-          this.encryptionKey
-        );
+        try {
+          decrypted.recipientName = await EncryptionService.decrypt(payment.recipientName, this.encryptionKey);
+        } catch (fieldErr) {
+          console.error('[PaymentRecordService] Failed to decrypt field: recipientName for record', payment.id || '[unknown id]');
+          throw new Error(`Decryption failed for field recipientName: ${fieldErr instanceof Error ? fieldErr.message : String(fieldErr)}`);
+        }
       }
 
       if (payment.notes) {
-        decrypted.notes = await EncryptionService.decrypt(
-          payment.notes,
-          this.encryptionKey
-        );
+        try {
+          decrypted.notes = await EncryptionService.decrypt(payment.notes, this.encryptionKey);
+        } catch (fieldErr) {
+          console.error('[PaymentRecordService] Failed to decrypt field: notes for record', payment.id || '[unknown id]');
+          throw new Error(`Decryption failed for field notes: ${fieldErr instanceof Error ? fieldErr.message : String(fieldErr)}`);
+        }
       }
 
       if (payment.receiptReference) {
-        decrypted.receiptReference = await EncryptionService.decrypt(
-          payment.receiptReference,
-          this.encryptionKey
-        );
+        try {
+          decrypted.receiptReference = await EncryptionService.decrypt(payment.receiptReference, this.encryptionKey);
+        } catch (fieldErr) {
+          console.error('[PaymentRecordService] Failed to decrypt field: receiptReference for record', payment.id || '[unknown id]');
+          throw new Error(`Decryption failed for field receiptReference: ${fieldErr instanceof Error ? fieldErr.message : String(fieldErr)}`);
+        }
       }
 
       // exchangeRate, currency, recipientType, recipientCategory, paymentMethod, status
@@ -105,6 +117,22 @@ export class PaymentRecordService {
 
       return decrypted;
     } catch (error) {
+      // Diagnostic logging to help identify decryption format/key issues
+      try {
+        const amountFormat = typeof payment.amount === 'string' ? payment.amount.slice(0, 64) : String(payment.amount);
+        console.error('[PaymentRecordService] Failed to decrypt payment data for record', payment.id || '[unknown id]');
+        console.error('[PaymentRecordService] Encrypted field samples: amount(sample)=', amountFormat);
+        // Use EncryptionService utilities to inspect format where possible
+        try {
+          const isAmountEncrypted = EncryptionService.isEncrypted(payment.amount as string);
+          console.error('[PaymentRecordService] EncryptionService.isEncrypted(amount)=', isAmountEncrypted);
+        } catch (inner) {
+          console.error('[PaymentRecordService] isEncrypted check failed for amount');
+        }
+      } catch (logErr) {
+        console.error('[PaymentRecordService] Failed to emit diagnostic log', logErr instanceof Error ? logErr.message : logErr);
+      }
+
       throw new Error(
         `Failed to decrypt payment data: ${
           error instanceof Error ? error.message : "Unknown error"
@@ -178,9 +206,23 @@ export class PaymentRecordService {
     });
 
     // Decrypt all payments
-    const decryptedData = await Promise.all(
+    const settled = await Promise.allSettled(
       result.data.map(payment => this.decryptPaymentData(payment))
     );
+
+    const decryptedData = settled
+      .map((s, idx) => ({ s, orig: result.data[idx] }))
+      .filter(item => item.s.status === 'fulfilled')
+      .map(item => (item.s as PromiseFulfilledResult<any>).value);
+
+    // Log any failures but continue
+    settled.forEach((s, idx) => {
+      if (s.status === 'rejected') {
+        const payment = result.data[idx];
+        console.error('[PaymentRecordService] Failed to decrypt payment id=', payment?.id || '[unknown]');
+        console.error('[PaymentRecordService] decryption error:', (s as PromiseRejectedResult).reason);
+      }
+    });
 
     const currentPage = params.page ?? 1;
     const itemsPerPage = params.limit ?? 20;
@@ -213,9 +255,23 @@ export class PaymentRecordService {
     
     const result = await PaymentRecordModel.findByUser(userId, options);
     
-    return await Promise.all(
+    const settled = await Promise.allSettled(
       result.data.map(payment => this.decryptPaymentData(payment))
     );
+
+    const decrypted = settled
+      .map((s, idx) => ({ s, orig: result.data[idx] }))
+      .filter(item => item.s.status === 'fulfilled')
+      .map(item => (item.s as PromiseFulfilledResult<any>).value);
+
+    settled.forEach((s, idx) => {
+      if (s.status === 'rejected') {
+        const payment = result.data[idx];
+        console.error('[PaymentRecordService] Failed to decrypt payment id=', payment?.id || '[unknown]');
+      }
+    });
+
+    return decrypted;
   }
 
   /**
@@ -226,10 +282,23 @@ export class PaymentRecordService {
    */
   async getPaymentsBySnapshot(snapshotId: string, userId: string): Promise<PaymentRecord[]> {
     const payments = await PaymentRecordModel.findBySnapshot(snapshotId, userId);
-    
-    return await Promise.all(
+    const settled = await Promise.allSettled(
       payments.map(payment => this.decryptPaymentData(payment))
     );
+
+    const decrypted = settled
+      .map((s, idx) => ({ s, orig: payments[idx] }))
+      .filter(item => item.s.status === 'fulfilled')
+      .map(item => (item.s as PromiseFulfilledResult<any>).value);
+
+    settled.forEach((s, idx) => {
+      if (s.status === 'rejected') {
+        const payment = payments[idx];
+        console.error('[PaymentRecordService] Failed to decrypt payment id=', payment?.id || '[unknown]');
+      }
+    });
+
+    return decrypted;
   }
 
   /**
@@ -350,6 +419,7 @@ export class PaymentRecordService {
     const payments = await Promise.all(
       result.data.map(payment => this.decryptPaymentData(payment))
     );
+    // Note: keep as-is here for statistics but handle errors upstream
 
     const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
     const verifiedCount = payments.filter(p => p.status === 'verified').length;
