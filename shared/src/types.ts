@@ -49,6 +49,29 @@ export interface AuthResponse {
 }
 
 // Asset Types
+// @deprecated Use CalculationModifier from islamicConstants.ts
+// export enum CalculationModifier {
+//   RESTRICTED = 0.0,
+//   PASSIVE = 0.3,
+//   FULL = 1.0,
+// }
+
+// @deprecated Use PASSIVE_INVESTMENT_TYPES from islamicConstants.ts
+// export const PASSIVE_INVESTMENT_TYPES = [
+//   'Stock',
+//   'ETF',
+//   'Mutual Fund',
+//   'Roth IRA',
+// ] as const;
+
+// @deprecated Use RESTRICTED_ACCOUNT_TYPES from islamicConstants.ts
+// export const RESTRICTED_ACCOUNT_TYPES = [
+//   '401k',
+//   'Traditional IRA',
+//   'Pension',
+//   'Roth IRA',
+// ] as const;
+
 export type AssetCategoryType =
   | 'cash'
   | 'gold'
@@ -68,10 +91,15 @@ export interface Asset {
   subCategory: string;
   value: number;
   currency: string;
+  acquisitionDate: string;
   description?: string;
   zakatEligible: boolean;
   createdAt: string;
   updatedAt: string;
+  // Modifier fields for dynamic zakat calculation
+  calculationModifier: number;
+  isPassiveInvestment: boolean;
+  isRestrictedAccount: boolean;
 }
 
 // Specific asset type interfaces for better type safety
