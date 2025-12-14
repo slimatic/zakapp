@@ -1,4 +1,10 @@
-export * from './types/index.js'; // Re-export from types subdirectory
-export * from './types.js'; // Re-export main types
-export * from './constants/index.js';
-export * from './validation.js';
+// Re-export core shared modules
+export * from './types';
+export * from './constants';
+export * from './validation';
+
+// Import-export utilities added in improve-import-export
+export * from './schemas';
+export * from './utils/stableId';
+export * from './utils/deterministicJson';
+export * from './utils/checksum';
