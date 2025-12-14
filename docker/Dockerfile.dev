@@ -4,6 +4,9 @@ FROM node:20-alpine
 # Install build dependencies for native modules
 RUN apk add --no-cache python3 make g++
 
+# Install TypeScript globally
+RUN npm install -g typescript@^5.2.2
+
 # Set working directory
 WORKDIR /app
 
