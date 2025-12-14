@@ -5,6 +5,17 @@
 **Status**: Draft  
 **Input**: User description: "Experimental Feature to Update the Asset to support dynamic eligibility checkboxes based on the Asset Type"
 
+## Clarifications
+
+### Session 2025-12-13
+
+- Q: Default state for the "Passive Long-Term Investment?" checkbox → A: C (Auto-set based on detected asset type/rules). The checkbox remains visible and editable so users can override the suggested state.
+
+- Q: When a user edits an asset date, should the change update historical snapshots? → A: A (Update only the asset — do not modify historical snapshots). Historical yearly snapshots must remain immutable and reflect the values at snapshot time.
+
+- Q: Which historical-records model should we use for preserving modifier state? → A: B (Replace Yearly Snapshots with Nisab Records—store historical modifier state in Nisab Records instead.)
+
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Passive Investment Zakat Calculation (Priority: P1)
@@ -91,7 +102,7 @@ As a Muslim user unfamiliar with these Zakat calculation methodologies, I want t
 
 - What happens when a user changes an asset type from "Stock" to "Cash" after checking the passive investment box? System should remove the checkbox and reset the calculation modifier to 1.0 (100%).
 
-- How does the system handle historical snapshots where an asset had a modifier applied? Historical calculations should preserve the modifier that was in effect at the time of the snapshot.
+ - How does the system handle historical Nisab Records where an asset had a modifier applied? Historical calculations should preserve the modifier that was in effect at the time of the Nisab Record.
 
 - What happens when a user has $0 or negative values in restricted accounts? System should still show $0 zakatable amount; validation should prevent negative asset values during input.
 
@@ -103,7 +114,7 @@ As a Muslim user unfamiliar with these Zakat calculation methodologies, I want t
 
 - **FR-001**: System MUST display a "Passive Long-Term Investment?" checkbox for asset types: Stock, ETF, and Mutual Fund
   
-- **FR-002**: System MUST default the "Passive Long-Term Investment?" checkbox to unchecked (active trader assumption)
+- **FR-002**: System MUST default the "Passive Long-Term Investment?" checkbox to be auto-set based on detected asset type and business rules (no fixed UI default). The checkbox must still be visible to users and remain editable so users can override the auto-set value.
 
 - **FR-003**: System MUST calculate zakatable amount as 30% of asset value when "Passive Long-Term Investment?" is checked
 
@@ -127,7 +138,7 @@ As a Muslim user unfamiliar with these Zakat calculation methodologies, I want t
 
 - **FR-013**: System MUST display the current modifier status for each asset in the asset list and calculation summary views
 
-- **FR-014**: System MUST preserve historical modifier values when creating yearly snapshots
+- **FR-014**: System MUST preserve historical modifier values when creating Nisab Records
 
 - **FR-015**: System MUST provide educational tooltips or info icons explaining each checkbox's Islamic basis and calculation impact
 
@@ -163,6 +174,11 @@ As a Muslim user unfamiliar with these Zakat calculation methodologies, I want t
   - Asset values as they were
   - Modifier flags as they were set
   - Calculated Zakat amounts using those modifiers
+ - **Nisab Record**: Historical record of assets and calculations at a point in time (replacement for Yearly Snapshots). Must preserve:
+  - Asset values as they were
+  - Modifier flags as they were set
+  - Calculated Zakat amounts using those modifiers
+
 
 ## Success Criteria *(mandatory)*
 
@@ -178,7 +194,7 @@ As a Muslim user unfamiliar with these Zakat calculation methodologies, I want t
 
 - **SC-005**: System performance remains under 2 seconds for page loads even with modifier calculations, as measured on reference hardware with 50+ assets
 
-- **SC-006**: Historical snapshots preserve modifier states with 100% accuracy, ensuring users can review past Zakat calculations with the modifiers that were in effect at that time
+- **SC-006**: Nisab Records preserve modifier states with 100% accuracy, ensuring users can review past Zakat calculations with the modifiers that were in effect at that time
 
 - **SC-007**: >95% of users successfully complete asset creation with appropriate modifiers on first attempt, as measured through usability testing
 
@@ -249,6 +265,13 @@ function shouldShowPassiveInvestmentCheckbox(assetType: string): boolean {
   return ['Stock', 'ETF', 'Mutual Fund', 'Roth IRA'].includes(assetType);
 }
 
+function defaultPassiveCheckboxState(assetType: string, assetMetadata: any): boolean {
+  // Auto-set the checkbox based on detected asset type and available heuristics
+  // e.g., treat ETFs/mutual funds as passive by default if no recent trade history
+  // Implemented as a server-side rule so UI only receives the suggested default.
+  return shouldShowPassiveInvestmentCheckbox(assetType) && /* server-provided suggestion */ true;
+}
+
 function shouldShowRestrictedAccountCheckbox(assetType: string): boolean {
   return ['401k', 'Pension', 'Traditional IRA', 'Roth IRA'].includes(assetType);
 }
@@ -280,7 +303,7 @@ Each checkbox must have an associated info icon/tooltip with:
 1. **Unit Tests**: Test calculation engine with all modifier combinations
 2. **Integration Tests**: Test UI interaction with backend calculation updates
 3. **E2E Tests**: Test complete user flows for each user story
-4. **Snapshot Tests**: Verify historical snapshot preservation of modifiers
+4. **Nisab Record Tests**: Verify historical Nisab Record preservation of modifiers
 5. **Accessibility Tests**: Ensure checkboxes and tooltips meet WCAG 2.1 AA standards
 6. **Islamic Compliance Review**: Scholarly validation of educational content and methodology
 

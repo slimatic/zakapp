@@ -1,3 +1,23 @@
+## Phase 0 — Research: Modifier Visibility & Nisab Records
+
+Summary
+- Goal: Surface asset modifiers (passive 30% and restricted 0%) prominently in the UI and replace the historical Yearly Snapshot concept with `NisabRecord` to store historical modifier state.
+- Approach: Server suggests a default (`suggestedPassiveDefault`) using simple heuristics (asset type + metadata), while the UI displays a visible checkbox under the asset value with tooltip, immediate recalculation preview, and an override that persists to the `Asset` model. Historical records are preserved in `NisabRecord` at snapshot times.
+
+Heuristics for suggested default
+- Stocks, ETFs, Mutual Funds → suggest passive=true when no recent trade history metadata exists.
+- Retirement accounts (401k, Pension, Traditional IRA) → suggested restricted=true.
+- Roth IRA → suggested restricted=true by default, but allow override to accessible and then allow passive suggestion.
+
+Risks
+- Misleading users if heuristics are wrong — mitigate via prominent tooltip and ability to override.
+- Accessibility and performance: ensure live previews are debounced and keyboard accessible (WCAG 2.1 AA).
+
+Data migration considerations
+- `Yearly Snapshot` data (if present) must be migrated into `NisabRecord` during migration or archived externally. Migration helper optional.
+
+References
+- Spec: `/specs/021-experimental-feature-update/spec.md`
 # Research: Dynamic Asset Eligibility Checkboxes
 
 **Phase**: 0 - Research  
