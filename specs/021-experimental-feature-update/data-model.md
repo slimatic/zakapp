@@ -1,3 +1,43 @@
+## Phase 1 — Data Model
+
+### New / Updated Models
+
+1. Asset (existing) — updates
+
+- Fields to add:
+  - `calculationModifier` Decimal(3,2) NOT NULL DEFAULT 1.00 -- allowed values: 0.00, 0.30, 1.00
+  - `isPassiveInvestment` Boolean NOT NULL DEFAULT false
+  - `isRestrictedAccount` Boolean NOT NULL DEFAULT false
+
+  - Persist these fields separately from encrypted asset metadata to allow indexing and fast queries.
+
+2. NisabRecord (new)
+
+Purpose: Replace Yearly Snapshot as the historical record preserving asset values and modifier state at a point in time.
+
+Schema (Prisma / SQL-ish):
+
+```
+model NisabRecord {
+  id            String   @id @default(cuid())
+  userId        String
+  createdAt     DateTime @default(now())
+  assetsJson    Json     // canonicalized asset snapshots including calculationModifier and flags
+  totalZakatable Decimal @default(0.0)
+  totalZakat     Decimal @default(0.0)
+}
+```
+
+Notes:
+- `assetsJson` contains per-asset snapshot objects including `assetId`, `value`, `currency`, `calculationModifier`, `isPassiveInvestment`, `isRestrictedAccount`, `acquisitionDate` and other non-sensitive metadata. Sensitive fields remain encrypted in the primary `assets` table if present.
+- Index `userId, createdAt` for efficient retrieval.
+
+Migration
+- Add the new columns to `assets` and create `NisabRecord` table. Provide a migration script to copy existing `Yearly Snapshot` records into `NisabRecord` if applicable.
+
+Constraints & Validation
+- Server side must enforce `calculationModifier` in {0.00,0.30,1.00}.
+- `isPassiveInvestment` must be false when `isRestrictedAccount` is true.
 # Data Model: Dynamic Asset Eligibility Checkboxes
 
 **Phase**: 1 - Data Model Design  

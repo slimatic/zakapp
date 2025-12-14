@@ -1,3 +1,35 @@
+## Quickstart — Developer steps to run local changes
+
+1. Apply database migrations (adds asset fields and `NisabRecord`):
+
+```bash
+cd /home/agentx/github-repos/zakapp/server
+npm run db:generate
+npx prisma migrate dev --name add-nisab-and-modifiers
+```
+
+2. Seed dev data (creates test user + assets):
+
+```bash
+npm run db:seed:dev
+```
+
+3. Run the backend in dev mode and the frontend dev server:
+
+```bash
+# backend
+npm run dev
+
+# frontend (from repo root)
+cd /home/agentx/github-repos/zakapp/client
+npm run dev
+```
+
+4. Manual verification checklist:
+- Open asset edit dialog; ensure a visible checkbox under asset value labeled "Passive Long-Term Investment?" and a second checkbox for "Restricted/Inaccessible Account?" where applicable.
+- Toggle the Passive checkbox and observe the live recalculation preview showing zakatable amount and Zakat owed.
+- Save asset; re-open asset to verify `acquisitionDate` and modifier flags persisted and are reflected in API response.
+- Create a Nisab Record (via UI or server cron) and verify returned `NisabRecord` contains `assetsJson` preserving modifier flags.
 # Quickstart Guide: Asset Modifiers Implementation
 
 **Feature**: 021-experimental-feature-update  
