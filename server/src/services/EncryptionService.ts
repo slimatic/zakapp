@@ -69,17 +69,158 @@ export class EncryptionService {
           if (!encryptedData) throw new Error('Encrypted data cannot be empty');
           if (!key) throw new Error('Decryption key is required');
 
-          const parts = encryptedData.split(':');
-          if (parts.length !== 2) throw new Error('Invalid encrypted data format');
+          const attemptDecrypt = async (attemptKey: string) => {
+            // Support multiple stored formats:
+            // - "ivBase64:encryptedBase64" (current)
+            // - "ivHex:encryptedHex" (older/legacy)
+            // - object { iv: hex, encryptedData: hex }
+            const decryptionKey = this.normalizeKey(attemptKey);
+            let ed = encryptedData! as any;
 
-          const [ivBase64, encryptedBase64] = parts;
-          const iv = Buffer.from(ivBase64, 'base64');
-          if (iv.length !== this.IV_LENGTH) throw new Error('Invalid IV length');
+            // If encrypted data is a Buffer, coerce to string
+            if (Buffer.isBuffer(ed)) {
+              ed = ed.toString('utf8');
+            }
 
-          const decryptionKey = this.normalizeKey(key);
-          const decipher = crypto.createDecipheriv(this.ALGORITHM, decryptionKey, iv);
-          const decrypted = Buffer.concat([decipher.update(Buffer.from(encryptedBase64, 'base64')), decipher.final()]).toString('utf8');
-          return decrypted;
+            // Coerce unexpected primitive types to string to attempt decryption
+            if (typeof ed !== 'string' && !(ed && typeof ed === 'object')) {
+              ed = String(ed);
+            }
+
+            const tryWithBuffers = (ivBuf: Buffer, cipherBuf: Buffer) => {
+              if (ivBuf.length !== this.IV_LENGTH) {
+                throw new Error('Invalid IV length');
+              }
+
+              const decipher = crypto.createDecipheriv(this.ALGORITHM, decryptionKey, ivBuf);
+              // Wrap final in try/catch to convert OpenSSL errors into thrown errors we can handle
+              const plaintextBuf = Buffer.concat([decipher.update(cipherBuf), (() => {
+                try {
+                  return decipher.final();
+                } catch (e) {
+                  // normalize error
+                  throw new Error('Failed to finalize decryption (bad key or corrupted data)');
+                }
+              })()]);
+
+              return plaintextBuf.toString('utf8');
+            };
+
+            // If encryptedData is an object with hex fields
+            if (ed && typeof ed === 'object') {
+              if (ed.iv && ed.encryptedData) {
+                const ivHex = (ed.iv || '').trim();
+                const cipherHex = (ed.encryptedData || '').trim();
+                try {
+                  const ivBuf = Buffer.from(ivHex, 'hex');
+                  const cipherBuf = Buffer.from(cipherHex, 'hex');
+                  return tryWithBuffers(ivBuf, cipherBuf);
+                } catch (e) {
+                  throw new Error('Invalid hex object encrypted payload');
+                }
+              }
+              throw new Error('Unsupported encrypted object format');
+            }
+
+            // If encryptedData is a string, attempt different encodings
+            if (typeof ed === 'string') {
+              const raw = ed.trim();
+
+              // If the string looks like JSON (legacy stored object as a string), parse and handle as object
+              if ((raw.startsWith('{') && raw.endsWith('}')) || (raw.startsWith('[') && raw.endsWith(']'))) {
+                try {
+                  const parsed = JSON.parse(raw);
+                  // If the parsed object is an encrypted-object shape, handle it
+                  if (parsed && typeof parsed === 'object' && parsed.iv && parsed.encryptedData) {
+                    const ivHex = (parsed.iv || '').trim();
+                    const cipherHex = (parsed.encryptedData || '').trim();
+                    const ivBuf = Buffer.from(ivHex, 'hex');
+                    const cipherBuf = Buffer.from(cipherHex, 'hex');
+                    return tryWithBuffers(ivBuf, cipherBuf);
+                  }
+
+                  // If parsed JSON is not an encrypted-object, assume it's plaintext JSON stored
+                  // Return the original raw string so callers (decryptObject) can parse it
+                  return raw;
+                } catch (jsonErr) {
+                  // Not JSON — continue to parsing by colon
+                }
+              }
+
+              const parts = raw.split(':');
+              if (parts.length !== 2) throw new Error('Invalid encrypted data format');
+
+              const [a, b] = parts.map(p => (p || '').trim());
+
+              // Try base64 decode first (preferred)
+              try {
+                const ivBuf = Buffer.from(a, 'base64');
+                const cipherBuf = Buffer.from(b, 'base64');
+                try {
+                  return tryWithBuffers(ivBuf, cipherBuf);
+                } catch (ivErr) {
+                  // If IV length was wrong, try swapping parts in case older data stored ciphertext:iv
+                  try {
+                    const altIvBuf = Buffer.from(b, 'base64');
+                    const altCipherBuf = Buffer.from(a, 'base64');
+                    return tryWithBuffers(altIvBuf, altCipherBuf);
+                  } catch (swapErr) {
+                    // fall through to hex attempt
+                  }
+                }
+              } catch (base64Err) {
+                // try hex as fallback
+              }
+
+              // Try hex encoded parts as fallback
+              try {
+                const ivBuf = Buffer.from(a, 'hex');
+                const cipherBuf = Buffer.from(b, 'hex');
+                try {
+                  return tryWithBuffers(ivBuf, cipherBuf);
+                } catch (ivErr) {
+                  // try swapping parts for hex as well
+                  try {
+                    const altIvBuf = Buffer.from(b, 'hex');
+                    const altCipherBuf = Buffer.from(a, 'hex');
+                    return tryWithBuffers(altIvBuf, altCipherBuf);
+                  } catch (swapErr) {
+                    // will throw below
+                  }
+                }
+              } catch (hexErr) {
+                throw new Error('Encrypted payload is neither base64 nor hex encoded');
+              }
+            }
+
+            throw new Error('Unsupported encrypted data type');
+          };
+
+          // Try primary key first
+          try {
+            return await attemptDecrypt(key);
+          } catch (primaryErr) {
+            // If primary fails, attempt any previous keys supplied via ENCRYPTION_PREVIOUS_KEYS
+            const prevRaw = process.env.ENCRYPTION_PREVIOUS_KEYS || '';
+            if (!prevRaw) {
+              throw primaryErr;
+            }
+
+            const prevKeys = prevRaw.split(',').map(k => k.trim()).filter(Boolean);
+            for (let i = 0; i < prevKeys.length; i++) {
+              try {
+                const result = await attemptDecrypt(prevKeys[i]);
+                // Log which fallback key index succeeded (do not log the key itself)
+                console.warn(`[EncryptionService] Decryption succeeded using previous key index ${i}`);
+                return result;
+              } catch (e) {
+                // continue to next previous key
+              }
+            }
+
+            // none succeeded
+            throw primaryErr;
+          }
         })();
       }
 
@@ -92,14 +233,31 @@ export class EncryptionService {
       let cipherBuf: Buffer;
 
       if (typeof encryptedData === 'string') {
-        // Could be "ivBase64:encryptedBase64" or hex-like; detect colon
-        if (encryptedData.includes(':')) {
-          const [ivBase64, encryptedBase64] = encryptedData.split(':');
-          ivBuf = Buffer.from(ivBase64, 'base64');
-          cipherBuf = Buffer.from(encryptedBase64, 'base64');
+        const raw = encryptedData.trim();
+        // If string is JSON (legacy stored object as string), parse
+        if ((raw.startsWith('{') && raw.endsWith('}')) || (raw.startsWith('[') && raw.endsWith(']'))) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.iv && parsed.encryptedData) {
+              ivBuf = Buffer.from(parsed.iv, 'hex');
+              cipherBuf = Buffer.from(parsed.encryptedData, 'hex');
+            } else {
+              // Plain JSON stored without encryption — return as-is (synchronous path expects a string)
+              return raw;
+            }
+          } catch (e) {
+            throw new Error('Invalid encrypted data format');
+          }
         } else {
-          // Treat whole string as hex ciphertext with missing iv (not expected)
-          throw new Error('Invalid encrypted data format');
+          // Could be "ivBase64:encryptedBase64" or hex-like; detect colon
+          if (raw.includes(':')) {
+            const [ivBase64, encryptedBase64] = raw.split(':');
+            ivBuf = Buffer.from((ivBase64 || '').trim(), 'base64');
+            cipherBuf = Buffer.from((encryptedBase64 || '').trim(), 'base64');
+          } else {
+            // Treat whole string as hex ciphertext with missing iv (not expected)
+            throw new Error('Invalid encrypted data format');
+          }
         }
       } else if (encryptedData && encryptedData.encryptedData && encryptedData.iv) {
         ivBuf = Buffer.from(encryptedData.iv, 'hex');
@@ -223,10 +381,28 @@ export class EncryptionService {
   private static normalizeKey(key: string): Buffer {
     try {
       let keyBuffer: Buffer;
-      
+
+      // Try base64 first
       try {
         keyBuffer = Buffer.from(key, 'base64');
       } catch {
+        keyBuffer = Buffer.alloc(0);
+      }
+
+      // If base64 didn't produce expected length and key looks hex, try hex
+      if (keyBuffer.length !== this.KEY_LENGTH && /^[0-9a-fA-F]+$/.test(key)) {
+        try {
+          const hexBuf = Buffer.from(key, 'hex');
+          if (hexBuf.length === this.KEY_LENGTH) {
+            return hexBuf;
+          }
+        } catch {
+          // ignore and fall back to utf8
+        }
+      }
+
+      // If base64 result not valid, fall back to utf8
+      if (keyBuffer.length !== this.KEY_LENGTH) {
         keyBuffer = Buffer.from(key, 'utf8');
       }
 

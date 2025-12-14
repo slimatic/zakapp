@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
+import { determineModifier, calculateAssetZakat } from '../utils/assetModifiers';
+import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
 
 // Simple in-memory store for demo - in real app this would be database
 export const userAssets: { [userId: string]: any[] } = {};
@@ -135,7 +137,7 @@ export class AssetController {
   });
 
   create = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { type, name, value, currency, description, ...otherFields } = req.body;
+    const { type, name, value, currency, description, isPassiveInvestment, isRestrictedAccount, ...otherFields } = req.body;
     const userId = req.userId!;
 
     // In test mode, clear assets if this appears to be start of a new test
@@ -165,7 +167,7 @@ export class AssetController {
     }
 
     // Validate asset type
-    const validTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER'];
+    const validTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'REAL_ESTATE', 'INVESTMENT', 'OTHER', 'STOCK', 'ETF', 'MUTUAL FUND', '401K', 'TRADITIONAL IRA', 'ROTH IRA', 'PENSION'];
     if (!validTypes.includes(type)) {
       throw new AppError('Invalid asset type', 400, ErrorCode.VALIDATION_ERROR);
     }
@@ -181,6 +183,43 @@ export class AssetController {
       throw new AppError('Invalid currency', 400, ErrorCode.VALIDATION_ERROR);
     }
 
+    // Validate modifier flags (new feature)
+    const passiveFlag = isPassiveInvestment || false;
+    const restrictedFlag = isRestrictedAccount || false;
+
+    // Passive only valid for eligible types
+    if (passiveFlag && !PASSIVE_INVESTMENT_TYPES.includes(type as any)) {
+      throw new AppError(
+        'Passive investment flag can only be set for Stock, ETF, Mutual Fund, or Roth IRA',
+        400,
+        ErrorCode.VALIDATION_ERROR
+      );
+    }
+
+    // Restricted only valid for retirement account types
+    if (restrictedFlag && !RESTRICTED_ACCOUNT_TYPES.includes(type as any)) {
+      throw new AppError(
+        'Restricted account flag can only be set for 401k, Traditional IRA, Pension, or Roth IRA',
+        400,
+        ErrorCode.VALIDATION_ERROR
+      );
+    }
+
+    // Cannot be both passive and restricted
+    if (passiveFlag && restrictedFlag) {
+      throw new AppError(
+        'Asset cannot be both passive investment and restricted account',
+        400,
+        ErrorCode.VALIDATION_ERROR
+      );
+    }
+
+    // Calculate modifier
+    const calculationModifier = determineModifier({
+      isRestrictedAccount: restrictedFlag,
+      isPassiveInvestment: passiveFlag,
+    });
+
     // Validate asset type specific fields
     if (type === 'GOLD' || type === 'SILVER') {
       if (!otherFields.weight || !otherFields.unit) {
@@ -195,11 +234,18 @@ export class AssetController {
     }
 
     // Determine if asset is zakatable based on Islamic principles
-    const zakatableTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'INVESTMENT'];
+    const zakatableTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS', 'INVESTMENT', 'STOCK', 'ETF', 'MUTUAL FUND', 'ROTH IRA'];
     const isZakatable = zakatableTypes.includes(type);
 
     // Initialize user assets if not exists
     const userAssetList = getUserAssets(userId);
+
+    // Calculate Zakat info
+    const zakatableAmount = value * calculationModifier;
+    const zakatOwed = calculationModifier > 0 ? zakatableAmount * 0.025 : 0;
+    const modifierApplied = 
+      calculationModifier === 0.0 ? 'restricted' :
+      calculationModifier === 0.3 ? 'passive' : 'full';
 
     const newAsset = {
       id: `${userId}-asset-${Date.now()}`,
@@ -209,6 +255,9 @@ export class AssetController {
       value,
       currency,
       description,
+      calculationModifier,
+      isPassiveInvestment: passiveFlag,
+      isRestrictedAccount: restrictedFlag,
       isZakatable,
       ...otherFields,
       createdAt: new Date().toISOString(),
@@ -221,7 +270,12 @@ export class AssetController {
     const response: ApiResponse = {
       success: true,
       message: 'Asset created successfully',
-      asset: newAsset
+      asset: newAsset,
+      zakatInfo: {
+        zakatableAmount,
+        zakatOwed,
+        modifierApplied,
+      }
     };
 
     res.status(201).json(response);
