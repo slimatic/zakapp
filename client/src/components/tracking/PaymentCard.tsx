@@ -54,6 +54,13 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
   compact = false
 }) => {
   const maskedCurrency = useMaskedCurrency();
+  // Helper to coerce possibly-missing or non-numeric amounts into a safe number
+  const safeAmount = (p: PaymentRecord | any) => {
+    const raw = p?.amount;
+    if (raw === null || raw === undefined) return 0;
+    const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
+    return Number.isFinite(num) ? num : 0;
+  };
   
   const categoryLabel = ZAKAT_RECIPIENTS[payment.recipientCategory] || payment.recipientCategory;
   const methodLabel = PAYMENT_METHODS[payment.paymentMethod] || payment.paymentMethod;
@@ -73,8 +80,8 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
           </div>
           <div className="text-left sm:text-right flex-shrink-0">
             <div className="text-base sm:text-lg font-bold text-green-600">
-              {maskedCurrency(formatCurrency(payment.amount, payment.currency as CurrencyCode))}
-            </div>
+                {maskedCurrency(formatCurrency(safeAmount(payment), payment.currency as CurrencyCode))}
+              </div>
             <div className="text-xs text-gray-500">
               {formatGregorianDate(new Date(payment.paymentDate))}
             </div>
@@ -88,8 +95,8 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
               <span className="font-medium text-blue-800 truncate">
                 {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
               </span>
-              <span className="text-blue-700 whitespace-nowrap">
-                Due: <span className="font-semibold text-blue-900">{maskedCurrency(formatCurrency(nisabYear.zakatAmount || 0))}</span>
+                <span className="text-blue-700 whitespace-nowrap">
+                Due: <span className="font-semibold text-blue-900">{maskedCurrency(formatCurrency(Number(nisabYear.zakatAmount) || 0))}</span>
               </span>
             </div>
           </div>
