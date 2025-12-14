@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useCreateAsset, useUpdateAsset } from '../../services/apiHooks';
 import { Asset, AssetCategoryType } from '@zakapp/shared';
 import { Button, Input } from '../ui';
+import {
+  shouldShowPassiveCheckbox,
+  shouldShowRestrictedCheckbox,
+  getPassiveInvestmentGuidance,
+  getRestrictedAccountGuidance,
+  getModifierBadge
+} from '../../utils/assetModifiers';
+import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
 
 interface AssetFormProps {
   asset?: Asset;
@@ -11,7 +19,7 @@ interface AssetFormProps {
 }
 
 /**
- * AssetForm component for creating and editing assets
+ * AssetForm component for creating and editing assets with modifier support
  */
 export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -20,18 +28,41 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     subCategory: asset?.subCategory || '',
     value: asset?.value || 0,
     currency: asset?.currency || 'USD',
+    acquisitionDate: asset?.acquisitionDate ? new Date(asset.acquisitionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     description: asset?.description || '',
-    zakatEligible: asset?.zakatEligible ?? true
+    zakatEligible: asset?.zakatEligible ?? true,
+    isPassiveInvestment: (asset as any)?.isPassiveInvestment || false,
+    isRestrictedAccount: (asset as any)?.isRestrictedAccount || false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [calculationModifier, setCalculationModifier] = useState<number>(
+    (asset as any)?.calculationModifier || 1.0
+  );
 
   const createMutation = useCreateAsset();
   const updateMutation = useUpdateAsset();
 
   const isEditing = !!asset;
   const mutation = isEditing ? updateMutation : createMutation;
+
+  // Recalculate modifier when flags change
+  useEffect(() => {
+    const newModifier = formData.isRestrictedAccount ? 0.0 :
+                       formData.isPassiveInvestment ? 0.3 : 1.0;
+    setCalculationModifier(newModifier);
+
+    // Clear passive flag if category changes to ineligible type
+    if (!PASSIVE_INVESTMENT_TYPES.includes(formData.category as any)) {
+      setFormData(prev => ({ ...prev, isPassiveInvestment: false }));
+    }
+
+    // Clear restricted flag if category changes to ineligible type
+    if (!RESTRICTED_ACCOUNT_TYPES.includes(formData.category as any)) {
+      setFormData(prev => ({ ...prev, isRestrictedAccount: false }));
+    }
+  }, [formData.category, formData.isRestrictedAccount, formData.isPassiveInvestment]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -46,6 +77,17 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
     if (!formData.currency.trim()) {
       newErrors.currency = 'Currency is required';
+    }
+
+    if (!formData.acquisitionDate) {
+      newErrors.acquisitionDate = 'Acquisition date is required';
+    } else {
+      const acquisitionDate = new Date(formData.acquisitionDate);
+      if (isNaN(acquisitionDate.getTime())) {
+        newErrors.acquisitionDate = 'Invalid acquisition date';
+      } else if (acquisitionDate > new Date()) {
+        newErrors.acquisitionDate = 'Acquisition date cannot be in the future';
+      }
     }
 
     setErrors(newErrors);
@@ -64,7 +106,17 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     setIsSubmitting(true);
 
     if (isEditing && asset) {
-      updateMutation.mutate({ assetId: asset.assetId, assetData: formData }, {
+      const assetData = {
+        ...formData,
+        category: CATEGORY_SEND_MAP[formData.category as string] || String(formData.category).toUpperCase(),
+        acquisitionDate: new Date(formData.acquisitionDate),
+        notes: formData.description,
+      };
+      delete (assetData as any).description;
+      delete (assetData as any).zakatEligible;
+      delete (assetData as any).subCategory;
+      
+      updateMutation.mutate({ assetId: asset.assetId, assetData }, {
         onSuccess: () => {
           onSuccess?.();
         },
@@ -75,7 +127,17 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         }
       });
     } else {
-      createMutation.mutate(formData, {
+      const assetData = {
+        ...formData,
+        category: CATEGORY_SEND_MAP[formData.category as string] || String(formData.category).toUpperCase(),
+        acquisitionDate: new Date(formData.acquisitionDate),
+        notes: formData.description,
+      };
+      delete (assetData as any).description;
+      delete (assetData as any).zakatEligible;
+      delete (assetData as any).subCategory;
+      
+      createMutation.mutate(assetData, {
         onSuccess: () => {
           onSuccess?.();
         },
@@ -107,6 +169,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     { value: 'debts', label: 'Debts Owed to You' },
     { value: 'expenses', label: 'Expenses' }
   ];
+
+  // Map UI category values to backend canonical categories
+  const CATEGORY_SEND_MAP: Record<string, string> = {
+    cash: 'CASH',
+    gold: 'GOLD',
+    silver: 'SILVER',
+    business: 'BUSINESS_INVENTORY',
+    property: 'PRIMARY_RESIDENCE',
+    stocks: 'INVESTMENT_ACCOUNT',
+    crypto: 'CRYPTOCURRENCY',
+    debts: 'LOAN_RECEIVABLE',
+    expenses: 'OTHER'
+  };
 
   const subCategoryOptions: Record<string, Array<{ value: string; label: string }>> = {
     cash: [
@@ -311,6 +386,32 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           </div>
         </div>
 
+        {/* Acquisition Date */}
+        <div>
+          <label htmlFor="acquisitionDate" className="block text-sm font-medium text-gray-700 mb-2">
+            Acquisition Date *
+          </label>
+          <Input
+            type="date"
+            id="acquisitionDate"
+            value={formData.acquisitionDate}
+            onChange={(e) => handleChange('acquisitionDate', e.target.value)}
+            className={errors.acquisitionDate ? 'border-red-500' : ''}
+            aria-required="true"
+            aria-invalid={!!errors.acquisitionDate}
+            aria-describedby={errors.acquisitionDate ? 'acquisitionDate-error' : 'acquisitionDate-help'}
+            max={new Date().toISOString().split('T')[0]}
+          />
+          <p id="acquisitionDate-help" className="mt-1 text-xs text-gray-500">
+            When did you acquire this asset?
+          </p>
+          {errors.acquisitionDate && (
+            <p id="acquisitionDate-error" className="mt-1 text-sm text-red-600" role="alert">
+              {errors.acquisitionDate}
+            </p>
+          )}
+        </div>
+
         {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
@@ -349,6 +450,93 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             Check this if the asset should be included in Zakat calculations
           </p>
         </div>
+
+        {/* Modifier Section: Passive Investment */}
+        {shouldShowPassiveCheckbox(formData.category as string) && (
+          <div className="border-l-4 border-blue-300 bg-blue-50 p-4 rounded">
+            <label className="flex items-start">
+              <input
+                type="checkbox"
+                id="isPassiveInvestment"
+                checked={formData.isPassiveInvestment}
+                onChange={(e) => handleChange('isPassiveInvestment', e.target.checked)}
+                disabled={formData.isRestrictedAccount}
+                className="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-describedby="passive-help"
+                aria-disabled={formData.isRestrictedAccount}
+              />
+              <span className="ml-3">
+                <span className="text-sm font-medium text-gray-700 block">
+                  Passive Investment (30% Rule)
+                </span>
+                <span className="text-xs text-gray-600 block mt-1">
+                  {getPassiveInvestmentGuidance()}
+                </span>
+              </span>
+            </label>
+            {formData.isRestrictedAccount && (
+              <p className="mt-2 text-xs text-red-600 font-medium ml-6">
+                ⚠️ Cannot be marked as both passive and restricted
+              </p>
+            )}
+            {formData.isPassiveInvestment && (
+              <div className="mt-2 ml-6 p-2 bg-blue-100 rounded">
+                <p className="text-xs text-blue-700">
+                  📊 Modifier Applied: {getModifierBadge(0.3).text}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Modifier Section: Restricted Account */}
+        {shouldShowRestrictedCheckbox(formData.category as string) && (
+          <div className="border-l-4 border-gray-300 bg-gray-50 p-4 rounded">
+            <label className="flex items-start">
+              <input
+                type="checkbox"
+                id="isRestrictedAccount"
+                checked={formData.isRestrictedAccount}
+                onChange={(e) => {
+                  handleChange('isRestrictedAccount', e.target.checked);
+                  // Auto-clear passive when restricted is enabled
+                  if (e.target.checked) {
+                    handleChange('isPassiveInvestment', false);
+                  }
+                }}
+                className="mt-1 rounded border-gray-300 text-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                aria-describedby="restricted-help"
+              />
+              <span className="ml-3">
+                <span className="text-sm font-medium text-gray-700 block">
+                  Restricted Account (Deferred Contribution)
+                </span>
+                <span className="text-xs text-gray-600 block mt-1">
+                  {getRestrictedAccountGuidance()}
+                </span>
+              </span>
+            </label>
+            {formData.isRestrictedAccount && (
+              <div className="mt-2 ml-6 p-2 bg-gray-100 rounded">
+                <p className="text-xs text-gray-700">
+                  ⏸️ Modifier Applied: {getModifierBadge(0.0).text}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Calculation Modifier Display */}
+        {(formData.isPassiveInvestment || formData.isRestrictedAccount) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <p className="text-sm text-gray-700 font-medium">
+              Calculation Modifier: <span className="font-bold text-blue-600">{(calculationModifier * 100).toFixed(1)}%</span>
+            </p>
+            <p className="text-xs text-gray-600 mt-1">
+              Your Zakat will be calculated on {calculationModifier === 1.0 ? 'the full value' : `${(calculationModifier * 100).toFixed(1)}% of`} of this asset.
+            </p>
+          </div>
+        )}
 
         {/* Submit Error */}
         {errors.submit && (
