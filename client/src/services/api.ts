@@ -398,12 +398,21 @@ class ApiService {
   }
 
   async recordPayment(data: CreatePaymentRequest): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/payments`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data)
-    });
-    return this.handleResponse(response);
+    // Prefer snapshot-specific endpoint. If `snapshotId` is provided, use
+    // POST /api/tracking/snapshots/:id/payments. Otherwise return a clear error.
+    if (data.snapshotId) {
+      const response = await fetch(`${API_BASE_URL}/tracking/snapshots/${data.snapshotId}/payments`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data)
+      });
+      return this.handleResponse(response);
+    }
+
+    return {
+      success: false,
+      message: 'snapshotId is required to record a payment'
+    };
   }
 
   async getPayments(filters?: { snapshotId?: string; limit?: number; offset?: number }): Promise<ApiResponse> {
@@ -415,7 +424,8 @@ class ApiService {
     if (filters?.offset) params.append('offset', filters.offset.toString());
     
     const queryString = params.toString();
-    const response = await fetch(`${API_BASE_URL}/payments${queryString ? `?${queryString}` : ''}`, {
+    // GET payments across all snapshots (supports optional category filter on server)
+    const response = await fetch(`${API_BASE_URL}/tracking/payments${queryString ? `?${queryString}` : ''}`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
