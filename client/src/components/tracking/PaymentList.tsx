@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import toast from 'react-hot-toast';
 import { usePayments } from '../../hooks/usePayments';
 import { useNisabYearRecords } from '../../hooks/useNisabYearRecords';
 import { Button } from '../ui/Button';
@@ -235,14 +236,128 @@ export const PaymentList: React.FC<PaymentListProps> = ({
             )}
           </p>
         </div>
-        
-        {onCreateNew && (
-          <Button 
-            onClick={onCreateNew}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (sortedAndFilteredPayments.length === 0) {
+                toast.error('No payments to export');
+                return;
+              }
+
+              // Export CSV of all filtered payments
+              try {
+                const headers = [
+                  'Payment Date',
+                  'Amount',
+                  'Currency',
+                  'Snapshot ID',
+                  'Calculation ID',
+                  'Recipient Name',
+                  'Recipient Type',
+                  'Recipient Category',
+                  'Payment Method',
+                  'Receipt Reference',
+                  'Notes',
+                  'Status'
+                ];
+
+                const rows = sortedAndFilteredPayments.map((p: any) => [
+                  p.paymentDate ? new Date(p.paymentDate).toISOString() : '',
+                  (p.amount || 0).toString(),
+                  p.currency || '',
+                  p.snapshotId || p.snapshot || '',
+                  p.calculationId || '',
+                  `"${p.recipientName || ''}"`,
+                  p.recipientType || '',
+                  p.recipientCategory || '',
+                  p.paymentMethod || '',
+                  p.receiptReference || p.receiptNumber || '',
+                  `"${p.notes || ''}"`,
+                  p.status || ''
+                ]);
+
+                const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                if (link.download !== undefined) {
+                  const url = URL.createObjectURL(blob);
+                  link.setAttribute('href', url);
+                  link.setAttribute('download', `zakapp-payments-${new Date().toISOString().split('T')[0]}.csv`);
+                  link.style.visibility = 'hidden';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                }
+              } catch (err) {
+                toast.error('Failed to export payments.');
+              }
+            }}
           >
-            Add Payment
+            Export CSV
           </Button>
-        )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (sortedAndFilteredPayments.length === 0) {
+                toast.error('No payments to export');
+                return;
+              }
+
+              try {
+                const exportData = {
+                  version: '1.0',
+                  exportDate: new Date().toISOString(),
+                  totalPayments: sortedAndFilteredPayments.length,
+                  payments: sortedAndFilteredPayments.map((p: any) => ({
+                    id: p.id,
+                    paymentDate: p.paymentDate,
+                    amount: p.amount,
+                    currency: p.currency,
+                    snapshotId: p.snapshotId || p.snapshot || null,
+                    calculationId: p.calculationId || null,
+                    recipientName: p.recipientName,
+                    recipientType: p.recipientType,
+                    recipientCategory: p.recipientCategory,
+                    paymentMethod: p.paymentMethod,
+                    receiptReference: p.receiptReference || p.receiptNumber,
+                    notes: p.notes,
+                    status: p.status
+                  }))
+                };
+
+                const jsonContent = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+                const link = document.createElement('a');
+                if (link.download !== undefined) {
+                  const url = URL.createObjectURL(blob);
+                  link.setAttribute('href', url);
+                  link.setAttribute('download', `zakapp-payments-${new Date().toISOString().split('T')[0]}.json`);
+                  link.style.visibility = 'hidden';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                }
+              } catch (err) {
+                toast.error('Failed to export payments.');
+              }
+            }}
+          >
+            Export JSON
+          </Button>
+
+          {onCreateNew && (
+            <Button onClick={onCreateNew}>
+              Add Payment
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Summary Cards */}
