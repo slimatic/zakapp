@@ -247,6 +247,58 @@ export const useDeletePayment = () => {
 };
 
 /**
+ * Hook for deleting payment records stored against a snapshot (`/payments/:id`).
+ * This is used by the Nisab Year Records UI which queries `/payments?snapshotId=...`.
+ */
+export const useDeleteSnapshotPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (paymentId: string) => apiService.deleteSnapshotPayment(paymentId),
+    onMutate: async (paymentId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['payments'] });
+      await queryClient.cancelQueries({ queryKey: ['payments', paymentId] });
+
+      const previousPayments = queryClient.getQueryData(['payments']);
+      const previousPayment = queryClient.getQueryData(['payments', paymentId]);
+
+      queryClient.setQueryData(['payments'], (old: any) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            data: {
+              ...page.data,
+              payments: page.data?.payments?.filter((p: any) => p.id !== paymentId) || []
+            }
+          }))
+        };
+      });
+
+      queryClient.removeQueries({ queryKey: ['payments', paymentId] });
+
+      return { previousPayments, previousPayment };
+    },
+    onError: (err, paymentId, context) => {
+      if (context?.previousPayments) {
+        queryClient.setQueryData(['payments'], context.previousPayments);
+      }
+      if (context?.previousPayment) {
+        queryClient.setQueryData(['payments', paymentId], context.previousPayment);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['zakat'] });
+      queryClient.invalidateQueries({ queryKey: ['calculations'] });
+    },
+    retry: 2,
+    retryDelay: 1000,
+  });
+};
+
+/**
  * Hook for fetching payment summary statistics.
  * Useful for dashboard displays and payment tracking.
  *
