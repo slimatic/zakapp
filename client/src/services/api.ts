@@ -70,15 +70,14 @@ export interface UpdateProfileRequest {
 
 export interface CreateAssetRequest {
   name: string;
-  category?: string;
-  subCategory?: string;
-  type?: string;
+  category: string;
   value: number;
   currency?: string;
-  description?: string;
-  isZakatable?: boolean;
-  zakatEligible?: boolean;
+  acquisitionDate: Date;
+  metadata?: string;
   notes?: string;
+  isPassiveInvestment?: boolean;
+  isRestrictedAccount?: boolean;
 }
 
 export interface UpdateAssetRequest extends Partial<CreateAssetRequest> {}
@@ -421,6 +420,25 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // Update a payment that is stored against a snapshot (used by Nisab Year Records UI)
+  async updateSnapshotPayment(paymentId: string, updates: Partial<{amount: number; date: string; recipient?: string; notes?: string; snapshotId?: string}>): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/payments/${paymentId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(updates)
+    });
+    return this.handleResponse(response);
+  }
+
+  // Delete a payment that is stored against a snapshot
+  async deleteSnapshotPayment(paymentId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/payments/${paymentId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
   // Legacy snapshot methods (deprecated - use nisabYearRecord methods)
   /** @deprecated Use createNisabYearRecord instead */
   async createSnapshot(data: any): Promise<ApiResponse> {
@@ -623,7 +641,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async updatePayment(paymentId: string, updates: Partial<{amount: number; date: string; recipient?: string; notes?: string}>): Promise<ApiResponse> {
+  async updatePayment(paymentId: string, updates: Partial<{amount: number; date: string; recipient?: string; notes?: string; snapshotId?: string}>): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/payments/${paymentId}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),

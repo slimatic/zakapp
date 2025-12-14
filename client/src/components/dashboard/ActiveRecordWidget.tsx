@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
+import { usePayments } from '../../hooks/usePayments';
 
 // Type matching the actual API response from the backend
 interface NisabYearRecord {
@@ -110,6 +111,29 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
     ? (wealthDifference / nisabThreshold) * 100 
     : 0;
 
+  // Safe parse for zakatAmount (could be string or number)
+  const zakatDue = useMemo(() => {
+    const raw = record.zakatAmount ?? record.zakatAmount;
+    if (raw === null || raw === undefined) return 0;
+    if (typeof raw === 'number') return raw;
+    const parsed = parseFloat(String(raw));
+    return Number.isFinite(parsed) ? parsed : 0;
+  }, [record.zakatAmount]);
+
+  // Fetch payments for this snapshot and compute total paid
+  const { data: paymentsResp } = usePayments({ snapshotId: record.id, enabled: !!record.id });
+  const payments = paymentsResp?.payments || [];
+
+  const safeAmount = (p: any) => {
+    const raw = p?.amount;
+    if (raw === null || raw === undefined) return 0;
+    const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
+    return Number.isFinite(num) ? num : 0;
+  };
+
+  const totalPaid = useMemo(() => payments.reduce((s: number, p: any) => s + safeAmount(p), 0), [payments]);
+  const zakatRemaining = Math.max(0, zakatDue - totalPaid);
+
   /**
    * Determine status color based on wealth vs Nisab
    */
@@ -205,6 +229,24 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
           </div>
         </div>
       </div>
+
+        {/* Zakat payment summary */}
+        <div className="mb-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <div className="text-xs text-gray-600">Zakat Due</div>
+              <div className="text-lg font-bold text-green-800">{maskedCurrency(`$${zakatDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-600">Payments Made</div>
+              <div className="text-lg font-bold text-gray-900">{maskedCurrency(`$${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-600">Payments Remaining</div>
+              <div className="text-lg font-bold text-red-700">{maskedCurrency(`$${zakatRemaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
+            </div>
+          </div>
+        </div>
 
       {/* Action Link */}
       <Link
