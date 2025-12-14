@@ -87,10 +87,17 @@ const createResponse = <T>(success: boolean, data?: T, error?: { code: string; m
 router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId!;
+    const { modifierType, page, limit } = req.query;
     
-    // Get user's assets using the real service
+    // Get user's assets using the real service with filter support
     const assetService = new AssetService();
-    const result = await assetService.getUserAssets(userId);
+    const filters = {
+      modifierType: modifierType as 'passive' | 'restricted' | 'full' | undefined,
+      page: page ? parseInt(page as string) : 1,
+      limit: limit ? parseInt(limit as string) : 50,
+    };
+    
+    const result = await assetService.getUserAssets(userId, filters);
     
     // Create summary statistics
     const summary = {
@@ -101,6 +108,12 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
         const category = asset.category.toLowerCase();
         counts[category] = (counts[category] || 0) + 1;
         return counts;
+      }, {} as Record<string, number>),
+      modifierBreakdown: result.assets.reduce((breakdown: Record<string, number>, asset) => {
+        const modifier = asset.calculationModifier || 1.0;
+        const label = modifier === 0.0 ? 'restricted' : modifier === 0.3 ? 'passive' : 'full';
+        breakdown[label] = (breakdown[label] || 0) + 1;
+        return breakdown;
       }, {} as Record<string, number>)
     };
 
@@ -109,7 +122,8 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
       success: true,
       data: {
         assets: result.assets,
-        summary
+        summary,
+        pagination: result.pagination
       }
     };
     
@@ -254,7 +268,7 @@ router.post('/',
         return;
       }
 
-      const { category, name, value, currency, description, subCategory, zakatEligible } = validation.data;
+      const { category, name, value, currency, description, subCategory, zakatEligible, acquisitionDate, notes, isPassiveInvestment, isRestrictedAccount } = validation.data;
 
       const userId = req.userId!;
       
@@ -277,9 +291,11 @@ router.post('/',
         name: name || `${category} asset`, // Default name if not provided
         value,
         currency,
-        acquisitionDate: new Date(), // Default to current date
+        acquisitionDate: acquisitionDate ? new Date(acquisitionDate) : new Date(), // Use provided date or default to current
         metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
-        notes: description // Also store description as notes
+        notes: notes || description, // Use notes if provided, otherwise description
+        isPassiveInvestment: isPassiveInvestment || false,
+        isRestrictedAccount: isRestrictedAccount || false,
       });
       
       const response = createResponse(true, { asset });

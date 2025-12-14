@@ -657,10 +657,18 @@ router.get('/me',
       let profile = { firstName: '', lastName: '' };
       try {
         if (user.profile) {
+          // Debug info to help diagnose unexpected stored formats (redacted)
+          try {
+            const sample = typeof user.profile === 'string' ? user.profile.slice(0, 200) : JSON.stringify(user.profile).slice(0, 200);
+            logger.debug(`Profile stored type=${typeof user.profile} sample=${sample}`);
+          } catch (dbg) {
+            // ignore debug failure
+          }
+
           profile = await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY);
         }
       } catch (error) {
-        logger.error('Failed to decrypt profile in /me endpoint', error);
+        logger.error('Failed to decrypt profile in /me endpoint: ' + (error instanceof Error ? error.message : String(error)));
       }
 
       res.status(200).json({

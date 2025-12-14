@@ -295,8 +295,12 @@ export class ZakatEngine {
         subCategory: this.mapAssetSubCategory(asset.category),
         value: asset.value,
         currency: asset.currency,
+        acquisitionDate: asset.acquisitionDate.toISOString(),
         description: asset.notes || undefined,
         zakatEligible: this.isAssetZakatEligible(asset.category),
+        calculationModifier: asset.calculationModifier ?? 1.0,
+        isPassiveInvestment: Boolean(asset.isPassiveInvestment),
+        isRestrictedAccount: Boolean(asset.isRestrictedAccount),
         createdAt: asset.createdAt.toISOString(),
         updatedAt: asset.updatedAt.toISOString()
       }));
