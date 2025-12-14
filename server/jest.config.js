@@ -15,7 +15,7 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@zakapp/shared$': '<rootDir>/../shared/dist/index.d.ts',
+    '^@zakapp/shared$': '<rootDir>/../shared/dist/index.js',
     '^@zakapp/shared/(.*)$': '<rootDir>/../shared/dist/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],

@@ -24,6 +24,7 @@
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
     "typeRoots": ["node_modules/@types", "./src/types"],
+    "types": ["jest"],
     "paths": {
       "@/*": ["./src/*"],
       "@zakapp/shared": ["../shared/dist/index.d.ts"],

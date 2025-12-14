@@ -75,6 +75,11 @@ model Asset {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // Calculation modifier fields (Feature 021)
+  calculationModifier  Float   @default(1.0)  // 0.0 (restricted), 0.3 (passive), 1.0 (full)
+  isPassiveInvestment  Boolean @default(false)
+  isRestrictedAccount  Boolean @default(false)
+
   // Relationships
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   snapshotValues SnapshotAssetValue[] // NEW relationship
@@ -85,6 +90,8 @@ model Asset {
   @@index([userId, category])
   @@index([userId, isActive])
   @@index([acquisitionDate])
+  @@index([userId, isPassiveInvestment])
+  @@index([userId, isRestrictedAccount])
 }
 
 model Liability {
@@ -712,6 +719,10 @@ model SnapshotAssetValue {
   capturedValue String   // Encrypted value at calculation time
   capturedAt    DateTime @default(now())
   isZakatable   Boolean  // Based on methodology rules
+  // Preserved modifier state at snapshot time (nullable for legacy snapshots)
+  calculationModifier  Float?
+  isPassiveInvestment  Boolean?
+  isRestrictedAccount  Boolean?
   createdAt     DateTime @default(now())
 
   // Relationships
