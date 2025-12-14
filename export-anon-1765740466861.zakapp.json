@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "appVersion": "1.0.0",
+    "schemaVersion": 1,
+    "exportedAt": "2025-12-14T19:27:46.858Z",
+    "encryptionFormats": []
+  },
+  "profile": null,
+  "assets": [],
+  "nisabRecords": [],
+  "payments": [],
+  "checksums": {
+    "assets": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "nisabRecords": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "payments": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "overall": "35b1214e50d0f2910bb449a7c64638179964ca439652311803e6a95283f4f36d"
+  }
+}
