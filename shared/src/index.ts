@@ -1,5 +1,4 @@
-export * from './types';
-export * from './types/'; // Re-export from types subdirectory
-export * from './constants';
-export * from './schemas';
-export * from './validation';
+export * from './types/index.js'; // Re-export from types subdirectory
+export * from './types.js'; // Re-export main types
+export * from './constants/index.js';
+export * from './validation.js';
