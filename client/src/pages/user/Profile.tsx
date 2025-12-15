@@ -685,6 +685,26 @@ export const Profile: React.FC = () => {
                 </div>
               </div>
 
+              {/* Payments Import/Export Link */}
+              <div className="bg-indigo-50 rounded-lg p-6">
+                <div className="flex items-start">
+                  <span className="text-2xl mr-4" aria-hidden="true">💸</span>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Payments Import & Export
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Import payment records from CSV/JSON or export your payment history for reporting.
+                    </p>
+                    <Link to="/payments/import-export">
+                      <Button variant="secondary">
+                        Manage Payments Data
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
               {/* Privacy Settings */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-900">Privacy Preferences</h3>
