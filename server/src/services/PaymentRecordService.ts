@@ -69,6 +69,7 @@ export class PaymentRecordService {
         ...payment,
       };
 
+<<<<<<< HEAD
       // Decrypt only the fields that are actually encrypted in the database
       // Per schema: amount, recipientName, notes, receiptReference are encrypted Strings
       // exchangeRate is a plain Float, not encrypted
@@ -82,33 +83,86 @@ export class PaymentRecordService {
           console.error('[PaymentRecordService] Failed to decrypt field: amount for record', payment.id || '[unknown id]');
           console.error('[PaymentRecordService] amount sample:', typeof payment.amount === 'string' ? payment.amount.slice(0, 64) : String(payment.amount));
           throw new Error(`Decryption failed for field amount: ${fieldErr instanceof Error ? fieldErr.message : String(fieldErr)}`);
+=======
+      // Decrypt only the fields that are actually encrypted in the database.
+      // Be defensive: older records or exported/imported rows may contain plain values
+      // (not encrypted) so detect encryption and fall back to raw values instead
+      // of throwing and causing 500 errors.
+
+      // Amount can be stored as an encrypted string or plain numeric string
+      if (payment.amount !== undefined && payment.amount !== null) {
+        try {
+          if (EncryptionService.isEncrypted(payment.amount as string)) {
+            const dec = await EncryptionService.decrypt(payment.amount, this.encryptionKey);
+            decrypted.amount = parseFloat(dec);
+          } else {
+            decrypted.amount = parseFloat(payment.amount as any);
+          }
+        } catch (err) {
+          console.error('Warning: failed to decrypt/parse payment.amount, falling back to raw value', err);
+          decrypted.amount = typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount;
+>>>>>>> 018-milestone-6-ui-payment-export
         }
       }
 
+      // recipientName, notes and receiptReference may be encrypted or plain text
       if (payment.recipientName) {
         try {
+<<<<<<< HEAD
           decrypted.recipientName = await EncryptionService.decrypt(payment.recipientName, this.encryptionKey);
         } catch (fieldErr) {
           console.error('[PaymentRecordService] Failed to decrypt field: recipientName for record', payment.id || '[unknown id]');
           throw new Error(`Decryption failed for field recipientName: ${fieldErr instanceof Error ? fieldErr.message : String(fieldErr)}`);
+=======
+          if (EncryptionService.isEncrypted(payment.recipientName as string)) {
+            decrypted.recipientName = await EncryptionService.decrypt(payment.recipientName, this.encryptionKey);
+          } else {
+            decrypted.recipientName = payment.recipientName;
+          }
+        } catch (err) {
+          console.error('Warning: failed to decrypt recipientName, falling back to raw value', err);
+          decrypted.recipientName = payment.recipientName;
+>>>>>>> 018-milestone-6-ui-payment-export
         }
       }
 
       if (payment.notes) {
         try {
+<<<<<<< HEAD
           decrypted.notes = await EncryptionService.decrypt(payment.notes, this.encryptionKey);
         } catch (fieldErr) {
           console.error('[PaymentRecordService] Failed to decrypt field: notes for record', payment.id || '[unknown id]');
           throw new Error(`Decryption failed for field notes: ${fieldErr instanceof Error ? fieldErr.message : String(fieldErr)}`);
+=======
+          if (EncryptionService.isEncrypted(payment.notes as string)) {
+            decrypted.notes = await EncryptionService.decrypt(payment.notes, this.encryptionKey);
+          } else {
+            decrypted.notes = payment.notes;
+          }
+        } catch (err) {
+          console.error('Warning: failed to decrypt notes, falling back to raw value', err);
+          decrypted.notes = payment.notes;
+>>>>>>> 018-milestone-6-ui-payment-export
         }
       }
 
       if (payment.receiptReference) {
         try {
+<<<<<<< HEAD
           decrypted.receiptReference = await EncryptionService.decrypt(payment.receiptReference, this.encryptionKey);
         } catch (fieldErr) {
           console.error('[PaymentRecordService] Failed to decrypt field: receiptReference for record', payment.id || '[unknown id]');
           throw new Error(`Decryption failed for field receiptReference: ${fieldErr instanceof Error ? fieldErr.message : String(fieldErr)}`);
+=======
+          if (EncryptionService.isEncrypted(payment.receiptReference as string)) {
+            decrypted.receiptReference = await EncryptionService.decrypt(payment.receiptReference, this.encryptionKey);
+          } else {
+            decrypted.receiptReference = payment.receiptReference;
+          }
+        } catch (err) {
+          console.error('Warning: failed to decrypt receiptReference, falling back to raw value', err);
+          decrypted.receiptReference = payment.receiptReference;
+>>>>>>> 018-milestone-6-ui-payment-export
         }
       }
 
