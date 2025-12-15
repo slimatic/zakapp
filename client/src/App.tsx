@@ -285,6 +285,19 @@ function App() {
                       </Suspense>
                     </Layout>
                   </ProtectedRoute>
+                }
+              />
+
+              <Route 
+                path="/payments/import-export" 
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <PaymentImportExport />
+                      </Suspense>
+                    </Layout>
+                  </ProtectedRoute>
                 } 
               />
 
