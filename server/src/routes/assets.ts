@@ -301,10 +301,20 @@ router.post('/',
       const response = createResponse(true, { asset });
       res.status(201).json(response);
     } catch (error) {
+      // Distinguish validation errors vs internal errors to return appropriate status
+      const errMsg = error instanceof Error ? error.message : 'Unknown error';
+      if (errMsg.includes('Invalid asset category') || errMsg.includes('Passive investment') || errMsg.includes('Restricted account') || errMsg.includes('cannot be both')) {
+        const response = createResponse(false, undefined, {
+          code: 'VALIDATION_ERROR',
+          message: errMsg
+        });
+        return res.status(400).json(response);
+      }
+
       const response = createResponse(false, undefined, {
         code: 'ASSET_CREATION_ERROR',
         message: 'Failed to create asset',
-        details: [error instanceof Error ? error.message : 'Unknown error']
+        details: [errMsg]
       });
       res.status(500).json(response);
     }
