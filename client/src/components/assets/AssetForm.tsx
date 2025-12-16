@@ -121,8 +121,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           onSuccess?.();
         },
         onError: (error: any) => {
-          toast.error('Failed to update asset. Please try again.');
-          setErrors({ submit: 'Failed to update asset. Please try again.' });
+          const msg = error instanceof Error ? error.message : 'Failed to update asset. Please try again.';
+          toast.error(msg);
+          setErrors({ submit: msg });
           setIsSubmitting(false);
         }
       });
@@ -142,8 +143,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           onSuccess?.();
         },
         onError: (error: any) => {
-          toast.error('Failed to create asset. Please try again.');
-          setErrors({ submit: 'Failed to create asset. Please try again.' });
+          const msg = error instanceof Error ? error.message : 'Failed to create asset. Please try again.';
+          toast.error(msg);
+          setErrors({ submit: msg });
           setIsSubmitting(false);
         }
       });

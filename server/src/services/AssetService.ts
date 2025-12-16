@@ -50,7 +50,9 @@ export class AssetService {
     // Normalize and validate asset category (accept common variants)
     const validCategories = ['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debts', 'expenses', '401k', 'traditional ira', 'roth ira', 'pension'];
 
-    const normalizeKey = (input: string) => input.trim().toLowerCase().replace(/[\s-]+/g, ' ');
+    // Normalize input by trimming, lowercasing and treating spaces, hyphens and
+    // underscores as equivalent separators (e.g. PRIMARY_RESIDENCE -> primary residence)
+    const normalizeKey = (input: string) => input.trim().toLowerCase().replace(/[_\s-]+/g, ' ');
 
     const CATEGORY_SYNONYMS: Record<string, string> = {
       'investment account': 'stocks',
