@@ -6,7 +6,8 @@ import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shar
  * Enforces modifier rules: passive only for eligible types, restricted for retirement accounts
  * Prevents simultaneous passive + restricted flags
  */
-export const createAssetSchema = z.object({
+// Core asset shape (no refinements) so update schema can use .partial() safely
+const baseAssetShape = z.object({
   category: z.string().min(1, 'Category is required'),
   name: z.string().min(1, 'Name is required').max(255, 'Name must be 255 characters or less'),
   value: z.number().min(0, 'Value must be non-negative'),
@@ -16,7 +17,10 @@ export const createAssetSchema = z.object({
   notes: z.string().max(1000, 'Notes must be 1000 characters or less').optional(),
   isPassiveInvestment: z.boolean().default(false),
   isRestrictedAccount: z.boolean().default(false),
-})
+});
+
+// Create schema with refinements applied (kept separate from shape)
+export const createAssetSchema = baseAssetShape
   .refine(
     (data) => {
       // Passive only valid for eligible types
@@ -58,10 +62,9 @@ export const createAssetSchema = z.object({
   );
 
 /**
- * Validation schema for updating an existing asset
- * All fields optional for partial updates
+ * Validation schema for creating/updating an asset
  */
-export const updateAssetSchema = createAssetSchema.partial();
+export const updateAssetSchema = baseAssetShape.partial();
 
 export type CreateAssetInput = z.infer<typeof createAssetSchema>;
 export type UpdateAssetInput = z.infer<typeof updateAssetSchema>;

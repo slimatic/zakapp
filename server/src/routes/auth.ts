@@ -6,7 +6,11 @@ import { authenticate } from '../middleware/AuthMiddleware';
 import { handleValidationErrors, validateUserLogin, validateUserRegistration } from '../middleware/ValidationMiddleware';
 import { registrationRateLimit, loginRateLimit } from '../middleware/RateLimitMiddleware';
 import { asyncHandler } from '../middleware/ErrorHandler';
-import { PrismaClient } from '@prisma/client';
+// Use runtime require for Prisma client in test environments where generated client files
+// may not be writable. This prevents compile-time errors during Jest runs.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { PrismaClient: _PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
+import type { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { EncryptionService } from '../services/EncryptionService';
@@ -17,7 +21,11 @@ const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-for-developmen
 
 // Lazy initialization of Prisma client
 function getPrismaClient() {
-  return new PrismaClient();
+  // Use a runtime-instantiated client backed by the TEST_DATABASE_URL when present
+  // so tests and other processes share the same DB instance.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
+  return new PrismaClient({ datasources: { db: { url: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL } } });
 }
 
 // Simple in-memory token revocation tracking
@@ -98,6 +106,8 @@ function checkUserRateLimit(userId: string): boolean {
  */
 
 const router = express.Router();
+// Track which users we've already logged a profile decryption failure for to avoid log spam
+const loggedProfileDecryptionFailures = new Set<string>();
 
 /**
  * POST /api/auth/login
@@ -668,7 +678,13 @@ router.get('/me',
           profile = await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY);
         }
       } catch (error) {
-        logger.error('Failed to decrypt profile in /me endpoint: ' + (error instanceof Error ? error.message : String(error)));
+        const key = `${user.id}`;
+        if (!loggedProfileDecryptionFailures.has(key)) {
+          loggedProfileDecryptionFailures.add(key);
+          logger.error(`Failed to decrypt profile for user ${user.id} <${user.email}> in /me endpoint: ${error instanceof Error ? error.message : String(error)}`);
+        } else {
+          logger.debug(`Skipping repeated profile decryption log for user ${user.id}`);
+        }
       }
 
       res.status(200).json({

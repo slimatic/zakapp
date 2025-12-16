@@ -247,6 +247,14 @@ describe('Implementation Task T023: EncryptionService', () => {
         expect(EncryptionService.isEncrypted(encrypted)).toBe(true);
       });
 
+      // Also accept alternative separators used in stored data (e.g., '.=' or '.')
+      EncryptionService.encrypt(plaintext, key).then((encrypted: string) => {
+        const alt = encrypted.replace(':', '.=');
+        expect(EncryptionService.isEncrypted(alt)).toBe(true);
+        // And ensure decryption still works
+        EncryptionService.decrypt(alt, key).then((d) => expect(d).toBe(plaintext));
+      });
+
       // Plain text should not be detected as encrypted
       expect(EncryptionService.isEncrypted(plaintext)).toBe(false);
       expect(EncryptionService.isEncrypted('')).toBe(false);

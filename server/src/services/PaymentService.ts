@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
+import { prisma } from '../utils/prisma';
 
-const prisma = new PrismaClient();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-for-development-purposes-32';
 
 export interface CreatePaymentRequest {

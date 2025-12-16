@@ -261,9 +261,9 @@ export class ZakatEngine {
    * For testing/unit purposes, returns mock assets based on assetIds
    */
   private async loadAssets(userId: string, assetIds: string[]): Promise<Asset[]> {
-    // Import PrismaClient directly to avoid issues with AssetService
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
+    // Use central prisma instance for DB access
+    const { prisma: localPrisma } = require('../utils/prisma');
+    const prisma = localPrisma;
 
     try {
       // Build where clause
