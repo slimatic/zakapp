@@ -378,6 +378,25 @@ model MigrationRecord {
   @@index([migrationName])
 }
 
+// Encryption remediation entries for admin workflows to track undecryptable records
+model EncryptionRemediation {
+  id         String   @id @default(cuid())
+  targetType String   // e.g., 'user_profile', 'payment', 'snapshot', etc.
+  targetId   String   // the id of the target record (e.g., user id or payment id)
+  status     String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, UNRECOVERABLE
+  note       String?  // Admin or automated note about the remediation
+  sampleData String?  // Short sample of the encrypted payload to inspect
+  attemptCount Int    @default(0)
+  createdBy  String?  // admin user id who created the remediation entry
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  @@map("encryption_remediations")
+  @@index([targetType])
+  @@index([targetId])
+  @@index([status])
+}
+
 model ComplianceVerification {
   id                  String   @id @default(cuid())
   calculationType     String   // ZAKAT_STANDARD, ZAKAT_HANAFI, ZAKAT_SHAFII, etc.
