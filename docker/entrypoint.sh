@@ -87,5 +87,12 @@ echo "   Database: $DB_PATH"
 echo "================================"
 echo ""
 
+# Sanity check: ensure `shared` build artifacts exist to avoid Node ESM directory import errors
+if [ ! -f /app/shared/dist/constants/index.js ]; then
+    echo "❌ FATAL: Missing /app/shared/dist/constants/index.js - shared package not built correctly"
+    echo "Contents of /app/shared/dist:"; ls -la /app/shared/dist || true
+    exit 1
+fi
+
 # Execute the main command
 exec "$@"

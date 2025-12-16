@@ -21,6 +21,22 @@ RUN cd shared && npm ci
 COPY shared/ ./shared/
 RUN cd shared && npm run build
 
+# Ensure postbuild fixes are applied inside the image (idempotent)
+RUN node ./shared/scripts/add-js-extension.cjs || true
+
+# Sanity check: ensure the `shared` build produced the `constants` runtime module
+# Node ESM will throw on directory imports if this is missing; fail early with a helpful message
+RUN if [ ! -f ./shared/dist/constants/index.js ]; then \
+		echo "ERROR: shared build missing ./shared/dist/constants/index.js" >&2; \
+		echo "Contents of ./shared/dist:"; ls -la ./shared/dist || true; \
+		exit 1; \
+	fi
+
+# Ensure dist utils directory exists in the image so downstream steps don't fail
+# When building in CI the `shared` build will populate this; create the dir here
+# as a no-op fallback for local contexts where dist wasn't prepopulated.
+RUN mkdir -p ./shared/dist/utils
+
 # Copy server package files
 COPY server/package*.json ./server/
 
