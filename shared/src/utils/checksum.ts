@@ -1,8 +1,8 @@
-import crypto from 'crypto';
-import stableStringify from './deterministicJson';
+import { sha256 } from 'js-sha256';
+import stableStringify from './deterministicJson.js';
 
 export function sha256Hex(input: string): string {
-  return crypto.createHash('sha256').update(input, 'utf8').digest('hex');
+  return sha256(input);
 }
 
 export function checksumOfArray(arr: any[]): string {
