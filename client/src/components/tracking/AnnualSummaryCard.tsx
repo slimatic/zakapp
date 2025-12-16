@@ -123,7 +123,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
             {formatCurrency(snapshot.zakatAmount)}
           </div>
           <div className="text-xs text-green-700 mt-1">
-            {formatPercentage(zakatRate / 100)} of zakatable wealth
+            {formatPercentage(zakatRate)} of zakatable wealth
           </div>
         </div>
 
@@ -133,7 +133,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
             {formatCurrency(totalPaid)}
           </div>
           <div className="text-xs text-blue-700 mt-1">
-            {formatPercentage(paymentProgress / 100)} complete
+            {formatPercentage(paymentProgress)} complete
           </div>
         </div>
 
@@ -200,7 +200,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
                       {formatCurrency(amount)}
                     </span>
                     <span className="text-gray-500 text-xs">
-                      ({formatPercentage(percentage / 100)})
+                      ({formatPercentage(percentage)})
                     </span>
                   </div>
                 </div>
