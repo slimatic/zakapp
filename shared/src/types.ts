@@ -1008,7 +1008,7 @@ export interface SnapshotComparison {
 // ============================================
 
 // Export Nisab Year Record Types (T038)
-export {
+export type {
   RecordStatus,
   NisabBasis,
   NisabYearRecord,
@@ -1025,7 +1025,7 @@ export {
 } from './types/nisabYearRecord';
 
 // Export Audit Trail Types (T039)
-export {
+export type {
   AuditEventType,
   AuditTrailEntry,
   CreateAuditTrailEntryDto,
@@ -1039,7 +1039,7 @@ export {
 } from './types/auditTrail';
 
 // Export Hawl Tracking Types (T040)
-export {
+export type {
   HawlStatus,
   NisabAchievementEvent,
   HawlTrackingState,
