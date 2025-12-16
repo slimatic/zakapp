@@ -24,8 +24,8 @@ import type {
 
 const router = Router();
 
-// Middleware: All routes require authentication
-router.use(authMiddleware);
+// Middleware: Require authentication only for nisab year records routes
+router.use('/api/nisab-year-records', authMiddleware);
 
 // Create service instances
 const nisabYearRecordService = new NisabYearRecordService();
