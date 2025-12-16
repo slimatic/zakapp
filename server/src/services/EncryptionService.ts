@@ -147,10 +147,11 @@ export class EncryptionService {
                 }
               }
 
-              const parts = raw.split(':');
-              if (parts.length !== 2) throw new Error('Invalid encrypted data format');
-
-              const [a, b] = parts.map(p => (p || '').trim());
+              // Support robust splitting on a variety of separators (':', '.=', '.', '|', ';')
+              const sepMatch = raw.match(/([A-Za-z0-9+/=]{12,})(?:[:.\|;]{1,2}=?)([A-Za-z0-9+/=]{12,})/);
+              if (!sepMatch) throw new Error('Invalid encrypted data format');
+              const a = (sepMatch[1] || '').trim();
+              const b = (sepMatch[2] || '').trim();
 
               // Try base64 decode first (preferred)
               try {
@@ -424,14 +425,15 @@ export class EncryptionService {
     try {
       if (!data || typeof data !== 'string') return false;
 
-      const parts = data.split(':');
-      if (parts.length !== 2) return false;
+      // Support multiple separators observed in stored data due to legacy/transformations:
+      // Examples: "ivBase64:encryptedBase64" (canonical), "ivBase64.=encryptedBase64", "ivBase64.encryptedBase64"
+      // Use a regex to extract two base64-like groups separated by 1-2 non-base64 separator chars
+      const match = data.match(/([A-Za-z0-9+/=]{12,})(?:[:.\|;]{1,2}=?)([A-Za-z0-9+/=]{12,})/);
+      if (!match) return false;
 
-      const [ivPart, encryptedPart] = parts;
-      
       try {
-        const iv = Buffer.from(ivPart, 'base64');
-        Buffer.from(encryptedPart, 'base64');
+        const iv = Buffer.from(match[1], 'base64');
+        Buffer.from(match[2], 'base64');
         return iv.length === this.IV_LENGTH;
       } catch {
         return false;
