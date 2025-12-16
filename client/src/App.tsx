@@ -68,6 +68,9 @@ const GettingStarted = lazy(() => import('./components/help/GettingStarted').the
 const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').then(m => ({ default: m.NisabYearRecordsPage })));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const PaymentImportExport = lazy(() => import('./components/payments/PaymentImportExport').then(m => ({ default: m.PaymentImportExport })));
+const EncryptionIssues = lazy(() => import('./pages/admin/EncryptionIssues').then(m => ({ default: m.EncryptionIssues })));
+const AdminRoute = React.lazy(() => import('./components/auth/AdminRoute').then(m => ({ default: m.AdminRoute })) as any);
+
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 // const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
 
@@ -313,6 +316,18 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+
+              <Route path="/admin/encryption" element={
+                <ProtectedRoute>
+                  <AdminRoute>
+                    <Layout>
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <EncryptionIssues />
+                      </Suspense>
+                    </Layout>
+                  </AdminRoute>
+                </ProtectedRoute>
+              } />
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>

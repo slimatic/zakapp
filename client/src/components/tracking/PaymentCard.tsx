@@ -7,6 +7,7 @@
 import React from 'react';
 import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
 import { formatGregorianDate } from '../../utils/calendarConverter';
+import { looksEncrypted } from '../../utils/encryption';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
 import { Button } from '../ui/Button';
@@ -67,12 +68,13 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3 hover:shadow-md transition-shadow">
+      {/* Mask encrypted-looking recipient names to avoid showing ciphertext to users */}
       <div className="flex flex-col gap-1.5 sm:gap-2">
         {/* Header with recipient and amount */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-3">
           <div className="flex-1 min-w-0">
             <h4 className="font-semibold text-gray-900 text-sm truncate">
-              {payment.recipientName}
+              {looksEncrypted(payment.recipientName) ? 'Encrypted recipient' : payment.recipientName}
             </h4>
             <p className="text-xs text-gray-600">
               {categoryLabel}
