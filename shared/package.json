@@ -16,9 +16,30 @@
       "require": "./dist/types/tracking.js",
       "types": "./dist/types/tracking.d.ts"
     }
+    ,"./types": {
+      "import": "./dist/types.js",
+      "require": "./dist/types.js",
+      "types": "./dist/types.d.ts"
+    },
+    "./types/*": {
+      "import": "./dist/types/*.js",
+      "require": "./dist/types/*.js",
+      "types": "./dist/types/*.d.ts"
+    }
+    ,"./constants": {
+      "import": "./dist/constants/index.js",
+      "require": "./dist/constants/index.js",
+      "types": "./dist/constants/index.d.ts"
+    },
+    "./constants/*": {
+      "import": "./dist/constants/*.js",
+      "require": "./dist/constants/*.js",
+      "types": "./dist/constants/*.d.ts"
+    }
   },
   "scripts": {
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
+    "postbuild": "node ./scripts/add-js-extension.cjs",
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src --ext .ts",
@@ -30,7 +51,8 @@
     "prebuild": "npm run clean"
   },
   "dependencies": {
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "js-sha256": "^0.10.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.7",
