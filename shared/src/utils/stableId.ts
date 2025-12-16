@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import { sha256 } from 'js-sha256';
 
 /**
  * Canonicalize a string for stableId generation.
@@ -21,7 +21,7 @@ export function canonicalize(input: string, options?: { lowercase?: boolean }) {
  */
 export function generateStableId(entityType: string, canonicalKey: string, namespace = 'zakapp') {
   const key = `${namespace}:${entityType}:${canonicalKey}`;
-  return crypto.createHash('sha256').update(key, 'utf8').digest('hex');
+  return sha256(key);
 }
 
 export default generateStableId;
