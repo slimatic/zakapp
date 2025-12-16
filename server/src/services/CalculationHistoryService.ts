@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/prisma';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
 export interface SaveCalculationRequest {

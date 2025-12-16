@@ -13,10 +13,9 @@ import { CalculationHistoryService } from '../services/CalculationHistoryService
 import { PaymentRecordsController } from '../controllers/payment-records.controller';
 import { z } from 'zod';
 import * as jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/prisma';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 /**
  * Standard API Response Format

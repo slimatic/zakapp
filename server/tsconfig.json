@@ -27,8 +27,10 @@
     "types": ["jest"],
     "paths": {
       "@/*": ["./src/*"],
-      "@zakapp/shared": ["../shared/dist/index.d.ts"],
-      "@zakapp/shared/*": ["../shared/dist/*"]
+      // During development prefer consuming shared source types directly so ts-node
+      // can compile without relying on the prebuilt `dist` declaration files.
+      "@zakapp/shared": ["../shared/src/index.ts"],
+      "@zakapp/shared/*": ["../shared/src/*"]
     }
   },
   "include": [
@@ -46,8 +48,8 @@
       "moduleResolution": "node",
       "paths": {
         "@/*": ["./src/*"],
-        "@zakapp/shared": ["../shared/dist/index.d.ts"],
-        "@zakapp/shared/*": ["../shared/dist/*"]
+        "@zakapp/shared": ["../shared/src/index.ts"],
+        "@zakapp/shared/*": ["../shared/src/*"]
       }
     }
   }
