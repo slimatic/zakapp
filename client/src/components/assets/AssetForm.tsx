@@ -174,15 +174,15 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
   // Map UI category values to backend canonical categories
   const CATEGORY_SEND_MAP: Record<string, string> = {
-    cash: 'CASH',
-    gold: 'GOLD',
-    silver: 'SILVER',
-    business: 'BUSINESS_INVENTORY',
-    property: 'PRIMARY_RESIDENCE',
-    stocks: 'INVESTMENT_ACCOUNT',
-    crypto: 'CRYPTOCURRENCY',
-    debts: 'LOAN_RECEIVABLE',
-    expenses: 'OTHER'
+    cash: 'cash',
+    gold: 'gold',
+    silver: 'silver',
+    business: 'business',
+    property: 'property',
+    stocks: 'stocks',
+    crypto: 'crypto',
+    debts: 'debts',
+    expenses: 'expenses'
   };
 
   const subCategoryOptions: Record<string, Array<{ value: string; label: string }>> = {
