@@ -121,10 +121,13 @@ class ApiService {
         window.location.href = '/login';
         throw new Error('Session expired. Please login again.');
       }
-      
-      const error = await response.json().catch(() => ({ message: 'Network error' }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+
+      const body = await response.json().catch(() => ({}));
+      // Support both shapes: { message: '...', ... } and { error: { message: '...' } }
+      const errMsg = body?.error?.message || body?.message || `HTTP error! status: ${response.status}`;
+      throw new Error(errMsg);
     }
+
     return response.json();
   }
 
