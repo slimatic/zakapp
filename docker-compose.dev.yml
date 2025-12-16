@@ -55,6 +55,9 @@ services:
       - JWT_SECRET=your-jwt-secret-change-in-production
       - DATABASE_URL=file:./prisma/data/dev.db
       - ENCRYPTION_KEY=your-encryption-key-change-in-production-dev-only
+      # Comma-separated list of previous encryption keys (base64 or hex) for fallback decryption
+      # Replace the placeholder values below with actual previous keys when available
+      - ENCRYPTION_PREVIOUS_KEYS=BASE64_PREVIOUS_KEY_1,BASE64_PREVIOUS_KEY_2
     command: npm run dev
 
 networks:
