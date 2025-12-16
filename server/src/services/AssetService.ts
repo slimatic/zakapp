@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 import { determineModifier } from '../utils/assetModifiers';
 import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
+import { prisma } from '../utils/prisma';
 
-const prisma = new PrismaClient();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
 export interface CreateAssetDto {

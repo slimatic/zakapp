@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import {
   PaymentRecord,
   CreatePaymentRecordDto,
@@ -7,8 +6,7 @@ import {
   PaymentMethod,
   PaymentStatus
 } from '@zakapp/shared';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/prisma';
 
 /**
  * PaymentRecord Model - Manages Zakat payment distribution records
