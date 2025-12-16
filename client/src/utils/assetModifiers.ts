@@ -3,7 +3,7 @@
  * Handles conditional rendering and UI state for passive/restricted checkboxes
  */
 
-import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
+import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '../constants/sharedFallback';
 
 /**
  * Determine if passive checkbox should be visible for given asset type

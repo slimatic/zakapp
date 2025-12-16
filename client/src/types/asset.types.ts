@@ -3,14 +3,14 @@
  * Re-exports shared types and adds frontend-specific utilities
  */
 
-export {
+export type {
   Asset,
   CreateAssetDto,
   UpdateAssetDto,
   CalculationModifier,
-  PASSIVE_INVESTMENT_TYPES,
-  RESTRICTED_ACCOUNT_TYPES,
 } from '@zakapp/shared';
+
+export { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '../constants/sharedFallback';
 
 export interface AssetWithZakatInfo extends Asset {
   zakatableAmount?: number;
