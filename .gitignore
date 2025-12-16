@@ -89,3 +89,7 @@ dist/
 
 # Docker environment secrets
 .env.docker
+
+# Local backups and build artifacts
+backups/
+client/build_root_backup*/
