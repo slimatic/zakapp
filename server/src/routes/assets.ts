@@ -370,12 +370,21 @@ router.put('/:id',
       const response = createResponse(true, { asset: updatedAsset });
       res.status(200).json(response);
     } catch (error) {
-      const response = createResponse(false, undefined, {
-        code: 'ASSET_UPDATE_ERROR',
-        message: 'Failed to update asset',
-        details: [error instanceof Error ? error.message : 'Unknown error']
-      });
-      res.status(500).json(response);
+        const errMsg = error instanceof Error ? error.message : 'Unknown error';
+        if (errMsg.includes('Passive investment') || errMsg.includes('Restricted account') || errMsg.includes('cannot be both')) {
+          const response = createResponse(false, undefined, {
+            code: 'VALIDATION_ERROR',
+            message: errMsg
+          });
+          return res.status(400).json(response);
+        }
+
+        const response = createResponse(false, undefined, {
+          code: 'ASSET_UPDATE_ERROR',
+          message: 'Failed to update asset',
+          details: [errMsg]
+        });
+        res.status(500).json(response);
     }
   }
 );

@@ -276,15 +276,53 @@ export class AssetService {
     // Validate modifier flags if they're being updated
     const newIsPassiveInvestment = updateData.isPassiveInvestment !== undefined ? updateData.isPassiveInvestment : existingAsset.isPassiveInvestment;
     const newIsRestrictedAccount = updateData.isRestrictedAccount !== undefined ? updateData.isRestrictedAccount : existingAsset.isRestrictedAccount;
-    const newCategory = updateData.category ? updateData.category.toUpperCase() : existingAsset.category;
+
+    // Normalize and validate new category (treat underscores/hyphens/spaces equivalently)
+    const normalizeKey = (input: string) => String(input).trim().toLowerCase().replace(/[_\s-]+/g, ' ');
+    const CATEGORY_SYNONYMS: Record<string, string> = {
+      'investment account': 'stocks',
+      'investment_account': 'stocks',
+      'investment-account': 'stocks',
+      'investment': 'stocks',
+      'stock': 'stocks',
+      'stocks': 'stocks',
+      'crypto': 'crypto',
+      'cryptocurrency': 'crypto',
+      'bank account': 'cash',
+      'bank_account': 'cash',
+      '401k': '401k',
+      'traditional ira': 'traditional ira',
+      'roth ira': 'roth ira',
+      'pension': 'pension',
+      'business inventory': 'business',
+      'business': 'business',
+      'property': 'property',
+      'primary residence': 'property',
+      'debts': 'debts',
+      'loan receivable': 'debts',
+      'expenses': 'expenses',
+      'other': 'expenses'
+    };
+
+    const newCategoryRaw = updateData.category ? updateData.category : existingAsset.category;
+    const newCategoryNormalized = CATEGORY_SYNONYMS[normalizeKey(newCategoryRaw)] || normalizeKey(newCategoryRaw);
+
+    const passiveTypes = (PASSIVE_INVESTMENT_TYPES as readonly string[]).map(s => {
+      const k = normalizeKey(String(s));
+      return CATEGORY_SYNONYMS[k] || k;
+    });
+    const restrictedTypes = (RESTRICTED_ACCOUNT_TYPES as readonly string[]).map(s => {
+      const k = normalizeKey(String(s));
+      return CATEGORY_SYNONYMS[k] || k;
+    });
 
     // Validate passive flag
-    if (newIsPassiveInvestment && !PASSIVE_INVESTMENT_TYPES.includes(newCategory as any)) {
+    if (newIsPassiveInvestment && !passiveTypes.includes(newCategoryNormalized)) {
       throw new Error('Passive investment flag can only be set for Stock, ETF, Mutual Fund, or Roth IRA');
     }
 
     // Validate restricted flag
-    if (newIsRestrictedAccount && !RESTRICTED_ACCOUNT_TYPES.includes(newCategory as any)) {
+    if (newIsRestrictedAccount && !restrictedTypes.includes(newCategoryNormalized)) {
       throw new Error('Restricted account flag can only be set for 401k, Traditional IRA, Pension, or Roth IRA');
     }
 
@@ -320,9 +358,9 @@ export class AssetService {
       updatePayload.metadata = await EncryptionService.encryptObject(mergedMetadata, ENCRYPTION_KEY);
     }
 
-    // Update category to uppercase if provided
+    // Update category to normalized canonical value (lowercase) if provided
     if (updateData.category) {
-      updatePayload.category = newCategory;
+      updatePayload.category = newCategoryNormalized;
     }
 
     const updatedAsset = await prisma.asset.update({
