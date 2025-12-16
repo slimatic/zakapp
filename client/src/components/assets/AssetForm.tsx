@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useCreateAsset, useUpdateAsset } from '../../services/apiHooks';
-import { Asset, AssetCategoryType } from '@zakapp/shared';
+import type { Asset, AssetCategoryType } from '@zakapp/shared';
 import { Button, Input } from '../ui';
 import {
   shouldShowPassiveCheckbox,
@@ -10,7 +10,7 @@ import {
   getRestrictedAccountGuidance,
   getModifierBadge
 } from '../../utils/assetModifiers';
-import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
+import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '../../constants/sharedFallback';
 
 interface AssetFormProps {
   asset?: Asset;
