@@ -1,7 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
+import { determineModifier } from '../utils/assetModifiers';
+import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
+import { prisma } from '../utils/prisma';
 
-const prisma = new PrismaClient();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-for-development-purposes-32';
 
 export interface CreateAssetDto {
@@ -12,6 +13,8 @@ export interface CreateAssetDto {
   acquisitionDate: Date;
   metadata?: any;
   notes?: string;
+  isPassiveInvestment?: boolean;
+  isRestrictedAccount?: boolean;
 }
 
 export interface UpdateAssetDto {
@@ -22,6 +25,8 @@ export interface UpdateAssetDto {
   acquisitionDate?: Date;
   metadata?: any;
   notes?: string;
+  isPassiveInvestment?: boolean;
+  isRestrictedAccount?: boolean;
 }
 
 export interface AssetFilters {
@@ -29,6 +34,7 @@ export interface AssetFilters {
   currency?: string;
   minValue?: number;
   maxValue?: number;
+  modifierType?: 'passive' | 'restricted' | 'full';
   page?: number;
   limit?: number;
   sortBy?: 'name' | 'value' | 'createdAt' | 'acquisitionDate';
@@ -38,13 +44,75 @@ export interface AssetFilters {
 export class AssetService {
   /**
    * Create a new asset
+   * Automatically calculates and applies calculation modifier based on asset flags
    */
   async createAsset(userId: string, assetData: CreateAssetDto) {
-    // Validate asset category
-    const validCategories = ['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto'];
-    if (!validCategories.includes(assetData.category.toLowerCase())) {
+    // Normalize and validate asset category (accept common variants)
+    const validCategories = ['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debts', 'expenses', '401k', 'traditional ira', 'roth ira', 'pension'];
+
+    // Normalize input by trimming, lowercasing and treating spaces, hyphens and
+    // underscores as equivalent separators (e.g. PRIMARY_RESIDENCE -> primary residence)
+    const normalizeKey = (input: string) => input.trim().toLowerCase().replace(/[_\s-]+/g, ' ');
+
+    const CATEGORY_SYNONYMS: Record<string, string> = {
+      'investment account': 'stocks',
+      'investment_account': 'stocks',
+      'investment-account': 'stocks',
+      'investment': 'stocks',
+      'stock': 'stocks',
+      'stocks': 'stocks',
+      'crypto': 'crypto',
+      'cryptocurrency': 'crypto',
+      'bank account': 'cash',
+      'bank_account': 'cash',
+      '401k': '401k',
+      'traditional ira': 'traditional ira',
+      'roth ira': 'roth ira',
+      'pension': 'pension',
+      'business inventory': 'business',
+      'business': 'business',
+      'property': 'property',
+      'primary residence': 'property',
+      'debts': 'debts',
+      'loan receivable': 'debts',
+      'expenses': 'expenses',
+      'other': 'expenses'
+    };
+
+    const rawCategory = String(assetData.category || '').trim();
+    const key = normalizeKey(rawCategory);
+    const normalizedCategory = CATEGORY_SYNONYMS[key] || key;
+
+    if (!validCategories.includes(normalizedCategory)) {
       throw new Error('Invalid asset category');
     }
+
+    // Validate modifier flags
+    const isPassiveInvestment = assetData.isPassiveInvestment || false;
+    const isRestrictedAccount = assetData.isRestrictedAccount || false;
+
+    // Passive only valid for specific types (compare case-insensitively)
+    const passiveTypes = (PASSIVE_INVESTMENT_TYPES as readonly string[]).map(s => String(s).toLowerCase());
+    if (isPassiveInvestment && !passiveTypes.includes(normalizedCategory)) {
+      throw new Error('Passive investment flag can only be set for Stock, ETF, Mutual Fund, or Roth IRA');
+    }
+
+    // Restricted only valid for specific types
+    const restrictedTypes = (RESTRICTED_ACCOUNT_TYPES as readonly string[]).map(s => String(s).toLowerCase());
+    if (isRestrictedAccount && !restrictedTypes.includes(normalizedCategory)) {
+      throw new Error('Restricted account flag can only be set for 401k, Traditional IRA, Pension, or Roth IRA');
+    }
+
+    // Cannot be both passive and restricted
+    if (isPassiveInvestment && isRestrictedAccount) {
+      throw new Error('Asset cannot be both passive investment and restricted account');
+    }
+
+    // Calculate modifier
+    const calculationModifier = determineModifier({
+      isRestrictedAccount,
+      isPassiveInvestment,
+    });
 
     // Encrypt metadata if provided
     let encryptedMetadata = null;
@@ -55,13 +123,16 @@ export class AssetService {
     const asset = await prisma.asset.create({
       data: {
         userId,
-        category: assetData.category.toUpperCase(),
+        category: normalizedCategory,
         name: assetData.name,
         value: assetData.value,
         currency: assetData.currency,
         acquisitionDate: assetData.acquisitionDate,
         metadata: encryptedMetadata,
         notes: assetData.notes || null,
+        calculationModifier,
+        isPassiveInvestment,
+        isRestrictedAccount,
         isActive: true
       }
     });
@@ -70,7 +141,7 @@ export class AssetService {
   }
 
   /**
-   * Get all assets for a user
+   * Get all assets for a user with modifier filtering support
    */
   async getUserAssets(userId: string, filters: AssetFilters = {}) {
     const {
@@ -78,6 +149,7 @@ export class AssetService {
       currency,
       minValue,
       maxValue,
+      modifierType,
       page = 1,
       limit = 50,
       sortBy = 'createdAt',
@@ -96,6 +168,21 @@ export class AssetService {
 
     if (currency) {
       where.currency = currency.toUpperCase();
+    }
+
+    // Add modifier type filter
+    if (modifierType) {
+      switch (modifierType) {
+        case 'passive':
+          where.calculationModifier = 0.3;
+          break;
+        case 'restricted':
+          where.calculationModifier = 0.0;
+          break;
+        case 'full':
+          where.calculationModifier = 1.0;
+          break;
+      }
     }
 
     if (minValue !== undefined || maxValue !== undefined) {
@@ -167,6 +254,7 @@ export class AssetService {
 
   /**
    * Update asset
+   * Recalculates modifier if flags change
    */
   async updateAsset(userId: string, assetId: string, updateData: UpdateAssetDto) {
     // Check if asset exists and belongs to user
@@ -185,6 +273,74 @@ export class AssetService {
     // Prepare update data
     const updatePayload: any = { ...updateData };
 
+    // Validate modifier flags if they're being updated
+    const newIsPassiveInvestment = updateData.isPassiveInvestment !== undefined ? updateData.isPassiveInvestment : existingAsset.isPassiveInvestment;
+    const newIsRestrictedAccount = updateData.isRestrictedAccount !== undefined ? updateData.isRestrictedAccount : existingAsset.isRestrictedAccount;
+
+    // Normalize and validate new category (treat underscores/hyphens/spaces equivalently)
+    const normalizeKey = (input: string) => String(input).trim().toLowerCase().replace(/[_\s-]+/g, ' ');
+    const CATEGORY_SYNONYMS: Record<string, string> = {
+      'investment account': 'stocks',
+      'investment_account': 'stocks',
+      'investment-account': 'stocks',
+      'investment': 'stocks',
+      'stock': 'stocks',
+      'stocks': 'stocks',
+      'crypto': 'crypto',
+      'cryptocurrency': 'crypto',
+      'bank account': 'cash',
+      'bank_account': 'cash',
+      '401k': '401k',
+      'traditional ira': 'traditional ira',
+      'roth ira': 'roth ira',
+      'pension': 'pension',
+      'business inventory': 'business',
+      'business': 'business',
+      'property': 'property',
+      'primary residence': 'property',
+      'debts': 'debts',
+      'loan receivable': 'debts',
+      'expenses': 'expenses',
+      'other': 'expenses'
+    };
+
+    const newCategoryRaw = updateData.category ? updateData.category : existingAsset.category;
+    const newCategoryNormalized = CATEGORY_SYNONYMS[normalizeKey(newCategoryRaw)] || normalizeKey(newCategoryRaw);
+
+    const passiveTypes = (PASSIVE_INVESTMENT_TYPES as readonly string[]).map(s => {
+      const k = normalizeKey(String(s));
+      return CATEGORY_SYNONYMS[k] || k;
+    });
+    const restrictedTypes = (RESTRICTED_ACCOUNT_TYPES as readonly string[]).map(s => {
+      const k = normalizeKey(String(s));
+      return CATEGORY_SYNONYMS[k] || k;
+    });
+
+    // Validate passive flag
+    if (newIsPassiveInvestment && !passiveTypes.includes(newCategoryNormalized)) {
+      throw new Error('Passive investment flag can only be set for Stock, ETF, Mutual Fund, or Roth IRA');
+    }
+
+    // Validate restricted flag
+    if (newIsRestrictedAccount && !restrictedTypes.includes(newCategoryNormalized)) {
+      throw new Error('Restricted account flag can only be set for 401k, Traditional IRA, Pension, or Roth IRA');
+    }
+
+    // Validate mutually exclusive flags
+    if (newIsPassiveInvestment && newIsRestrictedAccount) {
+      throw new Error('Asset cannot be both passive investment and restricted account');
+    }
+
+    // Recalculate modifier if flags changed
+    let calculationModifier = existingAsset.calculationModifier;
+    if (updateData.isPassiveInvestment !== undefined || updateData.isRestrictedAccount !== undefined || updateData.category) {
+      calculationModifier = determineModifier({
+        isRestrictedAccount: newIsRestrictedAccount,
+        isPassiveInvestment: newIsPassiveInvestment,
+      });
+      updatePayload.calculationModifier = calculationModifier;
+    }
+
     // Handle metadata: merge with existing metadata
     if (updateData.metadata) {
       // Decrypt existing metadata if it exists
@@ -202,9 +358,9 @@ export class AssetService {
       updatePayload.metadata = await EncryptionService.encryptObject(mergedMetadata, ENCRYPTION_KEY);
     }
 
-    // Update category to uppercase if provided
+    // Update category to normalized canonical value (lowercase) if provided
     if (updateData.category) {
-      updatePayload.category = updateData.category.toUpperCase();
+      updatePayload.category = newCategoryNormalized;
     }
 
     const updatedAsset = await prisma.asset.update({
@@ -502,15 +658,41 @@ export class AssetService {
     }
 
     // Transform to match shared Asset interface
+    // Compute a server-suggested default for the passive checkbox using simple heuristics
+    const passiveTypes = (PASSIVE_INVESTMENT_TYPES as readonly string[]).map(s => String(s).toLowerCase());
+    const categoryLower = String(asset.category || '').toLowerCase();
+
+    let suggestedPassiveDefault = false;
+    try {
+      // If category is a passive-investment type and asset is not restricted, suggest passive when no recent trade activity
+      if (passiveTypes.includes(categoryLower) && !Boolean(asset.isRestrictedAccount)) {
+        const recentTradesCount = Number(decrypted.metadata?.recentTradeCount || decrypted.metadata?.recentTradeHistory?.length || 0);
+        const lastTradeDaysAgo = decrypted.metadata?.lastTradeDaysAgo ? Number(decrypted.metadata.lastTradeDaysAgo) : null;
+
+        if (recentTradesCount === 0 && (!lastTradeDaysAgo || lastTradeDaysAgo > 90)) {
+          suggestedPassiveDefault = true;
+        }
+      }
+    } catch (e) {
+      suggestedPassiveDefault = false;
+    }
+
     return {
       assetId: asset.id,
       name: asset.name,
       category: asset.category.toLowerCase(),
+      acquisitionDate: asset.acquisitionDate.toISOString(),
       subCategory: decrypted.metadata?.subCategory || '',
       value: asset.value,
       currency: asset.currency,
       description: decrypted.metadata?.description || asset.notes || '',
       zakatEligible: decrypted.metadata?.zakatEligible ?? true,
+      // Modifier fields used by frontend + summary calculations
+      calculationModifier: asset.calculationModifier ?? 1.0,
+      isPassiveInvestment: Boolean(asset.isPassiveInvestment),
+      isRestrictedAccount: Boolean(asset.isRestrictedAccount),
+      // Server heuristic suggestion only (UI may pre-check based on this)
+      suggestedPassiveDefault,
       createdAt: asset.createdAt.toISOString(),
       updatedAt: asset.updatedAt.toISOString()
     };

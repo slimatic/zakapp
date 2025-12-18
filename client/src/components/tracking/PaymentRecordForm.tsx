@@ -6,12 +6,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useCreatePayment, useUpdatePayment } from '../../hooks/usePayments';
+import { useDeletePayment, useDeleteSnapshotPayment } from '../../hooks/usePaymentRecords';
 import { useNisabYearRecords } from '../../hooks/useNisabYearRecords';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
+import { looksEncrypted } from '../../utils/encryption';
 
 // Helper function to parse currency input
 const parseCurrency = (value: string): number => {
@@ -97,7 +99,14 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
     if (resolvedPropRecordId) {
       setSelectedRecordId(resolvedPropRecordId);
     }
-  }, [resolvedPropRecordId]);
+
+    // Warn the user if recipientName appears to be an undecryptable value
+    if (payment && looksEncrypted(payment.recipientName)) {
+      setRecipientDecryptionWarning('Recipient name could not be decrypted. Please re-enter the recipient name before saving.');
+    } else {
+      setRecipientDecryptionWarning(null);
+    }
+  }, [resolvedPropRecordId, payment]);
 
   // Auto-select the latest Nisab Year Record when none is provided
   useEffect(() => {
@@ -121,7 +130,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
   const [formData, setFormData] = useState<PaymentFormState>({
     amount: payment?.amount?.toString() || '',
     category: payment?.recipientCategory || ('fakir' as ZakatRecipientCategory),
-    recipient: payment?.recipientName || '',
+    recipient: looksEncrypted(payment?.recipientName) ? '' : payment?.recipientName || '',
     description: '',
     paymentDate: payment?.paymentDate ?
       (typeof payment.paymentDate === 'string' ? payment.paymentDate.slice(0, 10) : payment.paymentDate.toISOString().slice(0, 10)) :
@@ -132,10 +141,14 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [recipientDecryptionWarning, setRecipientDecryptionWarning] = useState<string | null>(null);
+
 
   // Mutations
   const createPaymentMutation = useCreatePayment();
   const updatePaymentMutation = useUpdatePayment();
+  const deletePaymentMutation = useDeletePayment();
+  const deleteSnapshotMutation = useDeleteSnapshotPayment();
 
   const handleInputChange = <K extends keyof PaymentFormState>(field: K, value: PaymentFormState[K]) => {
     setFormData((prev: PaymentFormState) => ({ ...prev, [field]: value }));
@@ -389,6 +402,9 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
             onChange={(e) => handleInputChange('recipient', e.target.value)}
             error={errors.recipient}
           />
+          {recipientDecryptionWarning && (
+            <p className="mt-1 text-xs text-yellow-700">{recipientDecryptionWarning}</p>
+          )}
         </div>
 
         <div>
@@ -471,7 +487,35 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
             isEditing ? 'Update Payment' : 'Save Payment'
           )}
         </Button>
-        
+        {isEditing && payment && (
+          <Button
+            type="button"
+            variant="danger"
+            onClick={async () => {
+              if (!window.confirm('Delete this payment? This action cannot be undone.')) return;
+              try {
+                // If the form is being used within a Nisab Year Record context OR the payment has a snapshot id,
+                // prefer the snapshot delete endpoint which expects `id` as identifier.
+                if (nisabRecordId || (payment as any).snapshotId) {
+                  await deleteSnapshotMutation.mutateAsync((payment as any).id);
+                } else {
+                  // For global zakat/tracking payments use the zakat API which expects `paymentId` as identifier
+                  const paymentId = (payment as any).paymentId || (payment as any).id;
+                  await deletePaymentMutation.mutateAsync(paymentId);
+                }
+                toast.success('Payment deleted');
+                onCancel?.();
+              } catch (e) {
+                toast.error('Failed to delete payment');
+              }
+            }}
+            disabled={isLoading || deletePaymentMutation.isPending || deleteSnapshotMutation.isPending}
+            className="w-full sm:w-auto sm:min-w-[120px]"
+          >
+            {deletePaymentMutation.isPending || deleteSnapshotMutation.isPending ? 'Deleting...' : 'Delete Payment'}
+          </Button>
+        )}
+
         {onCancel && (
           <Button
             type="button"

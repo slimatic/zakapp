@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { usePaymentRecords, useDeletePayment, PaymentFilters } from '../../hooks';
-import { ZakatPayment } from '@zakapp/shared';
+import { ZakatPayment } from '../../types';
 
 /**
  * PaymentTracking Component - T024

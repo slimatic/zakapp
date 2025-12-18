@@ -145,6 +145,13 @@ describe('Asset Refresh Workflow Integration Test', () => {
       });
       expect(goldAsset.addedAt).toBeDefined();
 
+      // Verify totals returned include zakatableValue and zakatableWealth matches sum of zakatableValue
+      // All created assets are fully zakatable (modifier 1.0) so zakatableWealth should equal total wealth
+      expect(response.body.data).toHaveProperty('totalWealth');
+      expect(response.body.data).toHaveProperty('zakatableWealth');
+      expect(response.body.data.totalWealth).toBe(5000 + 3000 + 2500);
+      expect(response.body.data.zakatableWealth).toBe(5000 + 3000 + 2500);
+
       // Step 6: Verify record is NOT updated (refresh doesn't persist)
       const unchangedRecord = await prisma.yearlySnapshot.findUnique({
         where: { id: record.id },
@@ -352,6 +359,12 @@ describe('Asset Refresh Workflow Integration Test', () => {
         { name: 'Cash', category: 'cash', value: 5000, isZakatable: true },
         authToken
       );
+      // Add a passive asset to ensure zakatableValue is lower
+      await assetHelpers.createAsset(
+        userId,
+        { name: 'Passive Fund', category: 'stocks', value: 6000, isZakatable: true, isPassiveInvestment: true },
+        authToken
+      );
       await assetHelpers.createAsset(
         userId,
         { name: 'House', category: 'real_estate', value: 250000, isZakatable: false },
@@ -392,17 +405,100 @@ describe('Asset Refresh Workflow Integration Test', () => {
         },
       });
 
+        it('should allow updating record with refreshed assets and persist zakatable wealth correctly', async () => {
+          // Create assets including a passive one
+          const a1 = await assetHelpers.createAsset(userId, { name: 'Cash', category: 'cash', value: 600, isZakatable: true }, authToken);
+          const a2 = await assetHelpers.createAsset(userId, { name: 'Passive Stock', category: 'stocks', value: 6000, isZakatable: true, isPassiveInvestment: true }, authToken);
+
+          // Create DRAFT record
+          const record = await prisma.yearlySnapshot.create({
+            data: {
+              userId,
+              hawlStartDate: new Date('2025-01-01'),
+              hawlStartDateHijri: '1446-06-01',
+              hawlCompletionDate: new Date('2025-12-20'),
+              hawlCompletionDateHijri: '1447-06-01',
+              nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
+              nisabBasis: 'gold',
+              calculationDate: new Date('2025-01-01'),
+              gregorianYear: 2025,
+              gregorianMonth: 1,
+              gregorianDay: 1,
+              hijriYear: 1446,
+              hijriMonth: 6,
+              hijriDay: 1,
+              totalWealth: EncryptionService.encrypt('0').encryptedData,
+              totalLiabilities: EncryptionService.encrypt('0').encryptedData,
+              zakatableWealth: EncryptionService.encrypt('0').encryptedData,
+              zakatAmount: EncryptionService.encrypt('0').encryptedData,
+              methodologyUsed: 'standard',
+              status: 'DRAFT',
+              assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
+              calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
+              isPrimary: false,
+            }
+          });
+
+          // Refresh to get current assets
+          const refreshRes = await request(app)
+            .get(`/api/nisab-year-records/${record.id}/assets/refresh`)
+            .set('Authorization', `Bearer ${authToken}`)
+            .expect(200);
+
+          const available = refreshRes.body.data.assets;
+          // Select all assets returned
+          const selected = available.map((a: any) => a);
+
+          const totalWealth = selected.reduce((s: number, a: any) => s + a.value, 0);
+          const zakatableWealth = selected.reduce((s: number, a: any) => s + (a.zakatableValue ?? a.value), 0);
+          const zakatAmount = zakatableWealth * 0.025;
+
+          // Update the record with assetBreakdown including zakatableValue
+          await request(app)
+            .put(`/api/nisab-year-records/${record.id}`)
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({
+              assetBreakdown: {
+                assets: selected.map((a: any) => ({ id: a.id, name: a.name, category: a.category, value: a.value, isZakatable: a.isZakatable, zakatableValue: a.zakatableValue, calculationModifier: a.calculationModifier, addedAt: a.addedAt })),
+                capturedAt: new Date().toISOString(),
+                totalWealth,
+                zakatableWealth,
+              },
+              totalWealth: totalWealth.toString(),
+              zakatableWealth: zakatableWealth.toString(),
+              zakatAmount: zakatAmount.toString(),
+            })
+            .expect(200);
+
+          // Read the stored record and verify encrypted assetBreakdown was saved and contains correct zakatableWealth
+          const stored = await prisma.yearlySnapshot.findUnique({ where: { id: record.id } });
+          const decrypted = JSON.parse(EncryptionService.decrypt(stored!.assetBreakdown));
+          expect(Number(decrypted.zakatableWealth)).toBe(zakatableWealth);
+        });
+
       // Refresh should return only zakatable assets
       const response = await request(app)
         .get(`/api/nisab-year-records/${record.id}/assets/refresh`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.assets).toHaveLength(2);
-      const assetNames = response.body.assets.map((a: any) => a.name);
+      expect(response.body.data).toBeDefined();
+      // Should include three zakatable assets (Cash, Passive Fund, Gold)
+      expect(response.body.data.assets).toHaveLength(3);
+      const assetNames = response.body.data.assets.map((a: any) => a.name);
       expect(assetNames).toContain('Cash');
       expect(assetNames).toContain('Gold');
+      expect(assetNames).toContain('Passive Fund');
       expect(assetNames).not.toContain('House');
+
+      // Verify Passive Fund has a reduced zakatableValue (0.3 * 6000 = 1800)
+      const passive = response.body.data.assets.find((a: any) => a.name === 'Passive Fund');
+      expect(passive).toBeDefined();
+      expect(passive.zakatableValue).toBe(6000 * 0.3);
+
+      // Verify the returned zakatableWealth equals the sum of per-asset zakatableValue
+      const expectedZakatable = response.body.data.assets.reduce((s: number, a: any) => s + (a.zakatableValue ?? a.value), 0);
+      expect(response.body.data.zakatableWealth).toBe(expectedZakatable);
     });
 
     it('should require authentication', async () => {

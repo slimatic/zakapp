@@ -15,10 +15,17 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@zakapp/shared$': '<rootDir>/../shared/dist/index.d.ts',
+    '^@zakapp/shared$': '<rootDir>/../shared/dist/index.js',
     '^@zakapp/shared/(.*)$': '<rootDir>/../shared/dist/$1',
   },
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  // Ensure test environment setup + DB migrations
+  // `setupFiles` runs before the test framework is installed – this is required
+  // so module-level imports that instantiate Prisma clients pick up the
+  // TEST_DATABASE_URL correctly.
+  setupFiles: ['<rootDir>/test/setupEnv.ts'],
+  setupFilesAfterEnv: ['<rootDir>/test/setupTests.ts', '<rootDir>/tests/setup.ts'],
+  globalSetup: '<rootDir>/test/globalSetup.ts',
+  globalTeardown: '<rootDir>/test/globalTeardown.ts',
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   coveragePathIgnorePatterns: ['/node_modules/', '/dist/'],
 };

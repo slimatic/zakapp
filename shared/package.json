@@ -2,22 +2,44 @@
   "name": "@zakapp/shared",
   "version": "1.0.0",
   "description": "Shared types and utilities for zakapp",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
       "import": "./dist/index.js",
+      "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "./types/tracking": {
-      "require": "./dist/types/tracking.js",
       "import": "./dist/types/tracking.js",
+      "require": "./dist/types/tracking.js",
       "types": "./dist/types/tracking.d.ts"
+    }
+    ,"./types": {
+      "import": "./dist/types.js",
+      "require": "./dist/types.js",
+      "types": "./dist/types.d.ts"
+    },
+    "./types/*": {
+      "import": "./dist/types/*.js",
+      "require": "./dist/types/*.js",
+      "types": "./dist/types/*.d.ts"
+    }
+    ,"./constants": {
+      "import": "./dist/constants/index.js",
+      "require": "./dist/constants/index.js",
+      "types": "./dist/constants/index.d.ts"
+    },
+    "./constants/*": {
+      "import": "./dist/constants/*.js",
+      "require": "./dist/constants/*.js",
+      "types": "./dist/constants/*.d.ts"
     }
   },
   "scripts": {
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build",
+    "postbuild": "node ./scripts/add-js-extension.cjs",
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src --ext .ts",
@@ -29,7 +51,8 @@
     "prebuild": "npm run clean"
   },
   "dependencies": {
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "js-sha256": "^0.10.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.7",
@@ -38,7 +61,7 @@
     "eslint": "^8.52.0",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
-    "typescript": "^5.2.2"
+    "typescript": "^5.9.3"
   },
   "files": [
     "dist"

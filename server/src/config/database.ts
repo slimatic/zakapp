@@ -12,7 +12,11 @@
  * - Security headers and query logging
  */
 
-import { PrismaClient } from '@prisma/client';
+// Import Prisma client at runtime so tests can run even if the generated
+// client files are not writable in the environment (some containers have
+// restricted permissions). This avoids TS compiler errors during tests.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
 import { EncryptionService } from '../services/EncryptionService';
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-for-development-purposes-32';
@@ -50,7 +54,9 @@ interface DatabaseHealth {
  */
 export class DatabaseManager {
   private static instance: DatabaseManager;
-  private prisma: PrismaClient;
+  // Prisma client instance (typed as any in test environments where generated client
+  // might not be available at runtime)
+  private prisma: any;
   private config: DatabaseConfig;
   private health: DatabaseHealth;
   private healthCheckTimer?: NodeJS.Timeout;
@@ -100,7 +106,7 @@ export class DatabaseManager {
   /**
    * Get Prisma client instance
    */
-  public getClient(): PrismaClient {
+  public getClient(): any {
     return this.prisma;
   }
 
@@ -139,7 +145,9 @@ export class DatabaseManager {
    */
   private loadConfiguration(): DatabaseConfig {
     const config: DatabaseConfig = {
-      url: process.env.DATABASE_URL || 'file:./dev.db',
+      // Prefer TEST_DATABASE_URL during tests to ensure all Prisma clients
+      // point to the same test DB when running the integration test suite.
+      url: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL || 'file:./dev.db',
       maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '10'),
       connectionTimeout: parseInt(process.env.DB_CONNECTION_TIMEOUT || '30000'),
       queryTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '10000'),
@@ -170,6 +178,9 @@ export class DatabaseManager {
     if (this.config.encryptionEnabled && !process.env.ENCRYPTION_KEY) {
       throw new Error('ENCRYPTION_KEY environment variable is required when encryption is enabled');
     }
+    // Some environments (CI, restricted containers) may not have the Prisma
+    // client generated on the fly, so prefer runtime require-based imports
+    // elsewhere to avoid compile-time errors in those environments.
   }
 
   /**
@@ -209,6 +220,9 @@ export class DatabaseManager {
    * Initialize health check monitoring
    */
   private initializeHealthChecks(): void {
+    // Skip periodic health checks during tests to avoid open handles preventing Jest exit
+    if (process.env.NODE_ENV === 'test') return;
+
     this.healthCheckTimer = setInterval(async () => {
       try {
         await this.performHealthCheck();
@@ -385,7 +399,7 @@ export class DatabaseManager {
    * Execute transaction with automatic retry
    */
   public async executeTransaction<T>(
-    operation: (prisma: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>) => Promise<T>,
+    operation: (prisma: any) => Promise<T>,
     maxRetries = 3
   ): Promise<T> {
     let attempt = 0;
@@ -422,8 +436,9 @@ export class DatabaseManager {
   public async getStatistics(): Promise<any> {
     try {
       // Use Prisma's DMMF (Data Model Meta Format) for database-agnostic table introspection
-      const { Prisma } = await import('@prisma/client');
-      const models = Prisma.dmmf?.datamodel?.models || [];
+      // Use runtime require here to avoid TS errors when generated client is not present
+      const { Prisma } = require('@prisma/client') as any;
+      const models = Prisma?.dmmf?.datamodel?.models || [];
 
       const stats: any = {
         tables: [],

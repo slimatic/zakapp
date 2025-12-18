@@ -20,6 +20,7 @@
     "test:coverage": "jest --coverage",
     "test:contract": "TS_NODE_COMPILER_OPTIONS='{\"moduleResolution\":\"node\",\"paths\":{\"@zakapp/shared\":[\"../shared/dist/index.d.ts\"],\"@zakapp/shared/*\":[\"../shared/dist/*\"]}}' jest --testPathPattern=contract",
     "test:integration": "jest --testPathPattern=integration",
+    "normalize:payments": "cd server && npx ts-node ./scripts/normalize-payments.ts",
     "test:e2e": "playwright test"
   },
   "keywords": [
@@ -43,11 +44,13 @@
     "jest-environment-jsdom": "29.7.0",
     "jest-extended": "6.0.0",
     "supertest": "7.1.4",
-    "ts-jest": "29.4.4"
+    "ts-jest": "29.4.4",
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "@prisma/client": "6.16.2",
     "@zakapp/shared": "file:shared",
-    "prisma": "6.16.2"
+    "prisma": "6.16.2",
+    "js-sha256": "^0.10.0"
   }
 }

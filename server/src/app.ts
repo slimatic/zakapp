@@ -19,6 +19,8 @@ import paymentsRoutes from './routes/payments';
 import userRoutes from './routes/user';
 import nisabYearRecordsRoutes from './routes/nisab-year-records';
 import feedbackRoutes from './routes/feedback';
+import adminEncryptionRoutes from './routes/admin/encryption';
+import debugRoutes from './routes/debug';
 
 // Import middleware
 // import { DatabaseManager } from './config/database';
@@ -123,6 +125,11 @@ app.use('/api/snapshots', snapshotsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/admin/encryption', adminEncryptionRoutes);
+// Mount development-only diagnostics
+if (process.env.NODE_ENV === 'development') {
+  app.use('/api/debug', debugRoutes);
+}
 app.use('/', nisabYearRecordsRoutes); // Feature 008: Nisab Year Records routes
 
 // Health check endpoint
@@ -136,6 +143,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ success: false, error: 'Internal server error' });
 });
 
+export { app };
 export default app;
 
 // Start server if this file is run directly

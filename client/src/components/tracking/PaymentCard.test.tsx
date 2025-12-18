@@ -243,3 +243,11 @@ describe('PaymentCard', () => {
     });
   });
 });
+
+describe('Encrypted recipient masking', () => {
+  it('shows masked placeholder when recipientName looks encrypted', () => {
+    const encryptedPayment = { ...mockPayment, recipientName: 'uqs8fcxx88Cwt8dAIjNzMw==:Ar9S5pFFoFMMc81/Gvun3g==' } as any;
+    render(<PaymentCard payment={encryptedPayment} />);
+    expect(screen.getByText(/Encrypted recipient/i)).toBeInTheDocument();
+  });
+});

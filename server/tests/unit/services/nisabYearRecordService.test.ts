@@ -189,6 +189,40 @@ describe('NisabYearRecordService', () => {
       // Assert
       expect(mockPrisma.yearlySnapshot.create).toHaveBeenCalled();
     });
+
+    it('should build asset breakdown from selectedAssetIds including zakatableValue and calculationModifier', async () => {
+      // Arrange
+      const userId = 'user1';
+      const now = new Date();
+      const recordData: any = {
+        hawlStartDate: now,
+        hawlCompletionDate: new Date(now.getTime() + 354 * 24 * 60 * 60 * 1000),
+        nisabBasis: 'GOLD',
+        selectedAssetIds: ['a1', 'a2'],
+      };
+
+      // Mock wealthAggregationService via constructor injection
+      const mockWealthService = {
+        getZakatableAssets: jest.fn().mockResolvedValue([
+          { id: 'a1', name: 'Cash', category: 'cash', value: 2100, isZakatable: true, addedAt: new Date(), calculationModifier: 1.0, zakatableValue: 2100 },
+          { id: 'a2', name: 'MSFT', category: 'stocks', value: 6000, isZakatable: true, addedAt: new Date(), calculationModifier: 0.3, zakatableValue: 1800 },
+        ])
+      } as any;
+
+      // Spy on EncryptionService.encrypt to capture the assetBreakdown payload
+      jest.spyOn(require('../../../src/services/EncryptionService'), 'encrypt' as any).mockResolvedValue('encrypted-payload');
+
+      // Construct service with injected wealth service
+      service = new (require('../../../src/services/nisabYearRecordService').NisabYearRecordService)(mockPrisma as any, mockAuditTrail as any, undefined, undefined, mockWealthService);
+
+      // Act
+      const result = await service.createRecord(userId, recordData as any);
+
+      // Assert
+      expect(mockWealthService.getZakatableAssets).toHaveBeenCalledWith(userId);
+      expect(mockPrisma.yearlySnapshot.create).toHaveBeenCalled();
+      expect(result).toBeDefined();
+    });
   });
 
   describe('getRecord', () => {

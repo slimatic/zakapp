@@ -34,6 +34,13 @@ export const AnalyticsPage: React.FC = () => {
   
   // Calculate summary statistics
   const totalWealth = assetsData?.data?.assets?.reduce((sum: number, asset: Asset) => sum + asset.value, 0) || 0;
+  const totalZakatableWealth = assetsData?.data?.assets?.reduce((sum: number, asset: any) => {
+    const isZakatable = typeof asset.zakatEligible !== 'undefined' ? Boolean(asset.zakatEligible) : true;
+    if (!isZakatable) return sum;
+    const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
+    const zakVal = typeof asset.zakatableValue === 'number' ? asset.zakatableValue : (asset.value || 0) * modifier;
+    return sum + (zakVal || 0);
+  }, 0) || 0;
   const totalZakatDue = nisabRecords.reduce((sum: number, record: NisabYearRecord) => {
     // Decrypt and parse zakatAmount if it's a string
     const amount = typeof record.zakatAmount === 'string'
@@ -131,6 +138,7 @@ export const AnalyticsPage: React.FC = () => {
                 <p className="text-2xl font-bold text-gray-900 mt-1">
                   {maskedCurrency(formatCurrency(totalWealth))}
                 </p>
+                <p className="text-sm text-gray-700 mt-1">Zakatable: <span className="font-medium">{maskedCurrency(formatCurrency(totalZakatableWealth))}</span></p>
                 <p className="text-xs text-gray-500 mt-1">Current assets value</p>
               </div>
 

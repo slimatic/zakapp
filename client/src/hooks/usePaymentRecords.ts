@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
 import { apiService, ApiResponse } from '../services/api';
-import { ZakatPayment } from '@zakapp/shared';
+import { ZakatPayment } from '../types';
 
 /**
  * Filter options for payment records queries.
@@ -144,7 +144,7 @@ export const useUpdatePayment = () => {
             data: {
               ...page.data,
               payments: page.data?.payments?.map((payment: ZakatPayment) =>
-                payment.paymentId === paymentId ? { ...payment, ...updates } : payment
+                payment.id === paymentId ? { ...payment, ...updates } : payment
               ) || []
             }
           }))
@@ -209,7 +209,7 @@ export const useDeletePayment = () => {
             data: {
               ...page.data,
               payments: page.data?.payments?.filter((payment: ZakatPayment) =>
-                payment.paymentId !== paymentId
+                payment.id !== paymentId
               ) || []
             }
           }))
@@ -240,6 +240,58 @@ export const useDeletePayment = () => {
 
       // Show success notification
       // toast.success('Payment deleted successfully');
+    },
+    retry: 2,
+    retryDelay: 1000,
+  });
+};
+
+/**
+ * Hook for deleting payment records stored against a snapshot (`/payments/:id`).
+ * This is used by the Nisab Year Records UI which queries `/payments?snapshotId=...`.
+ */
+export const useDeleteSnapshotPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (paymentId: string) => apiService.deleteSnapshotPayment(paymentId),
+    onMutate: async (paymentId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['payments'] });
+      await queryClient.cancelQueries({ queryKey: ['payments', paymentId] });
+
+      const previousPayments = queryClient.getQueryData(['payments']);
+      const previousPayment = queryClient.getQueryData(['payments', paymentId]);
+
+      queryClient.setQueryData(['payments'], (old: any) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            data: {
+              ...page.data,
+              payments: page.data?.payments?.filter((p: any) => p.id !== paymentId) || []
+            }
+          }))
+        };
+      });
+
+      queryClient.removeQueries({ queryKey: ['payments', paymentId] });
+
+      return { previousPayments, previousPayment };
+    },
+    onError: (err, paymentId, context) => {
+      if (context?.previousPayments) {
+        queryClient.setQueryData(['payments'], context.previousPayments);
+      }
+      if (context?.previousPayment) {
+        queryClient.setQueryData(['payments', paymentId], context.previousPayment);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['zakat'] });
+      queryClient.invalidateQueries({ queryKey: ['calculations'] });
     },
     retry: 2,
     retryDelay: 1000,

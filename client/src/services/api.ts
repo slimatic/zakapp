@@ -70,15 +70,14 @@ export interface UpdateProfileRequest {
 
 export interface CreateAssetRequest {
   name: string;
-  category?: string;
-  subCategory?: string;
-  type?: string;
+  category: string;
   value: number;
   currency?: string;
-  description?: string;
-  isZakatable?: boolean;
-  zakatEligible?: boolean;
+  acquisitionDate: Date;
+  metadata?: string;
   notes?: string;
+  isPassiveInvestment?: boolean;
+  isRestrictedAccount?: boolean;
 }
 
 export interface UpdateAssetRequest extends Partial<CreateAssetRequest> {}
@@ -122,11 +121,42 @@ class ApiService {
         window.location.href = '/login';
         throw new Error('Session expired. Please login again.');
       }
-      
-      const error = await response.json().catch(() => ({ message: 'Network error' }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+
+      const body = await response.json().catch(() => ({}));
+      // Support both shapes: { message: '...', ... } and { error: { message: '...' } }
+      const errMsg = body?.error?.message || body?.message || `HTTP error! status: ${response.status}`;
+      throw new Error(errMsg);
     }
+
     return response.json();
+  }
+
+  // Generic helper methods for ad-hoc endpoints (used by admin/debug pages)
+  async get(path: string): Promise<ApiResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : '/' + path}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+      const result = await response.json();
+      return result as ApiResponse;
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : 'Network error' };
+    }
+  }
+
+  async post(path: string, body?: any): Promise<ApiResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : '/' + path}`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const result = await response.json();
+      return result as ApiResponse;
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : 'Network error' };
+    }
   }
 
   // Authentication endpoints
@@ -398,12 +428,21 @@ class ApiService {
   }
 
   async recordPayment(data: CreatePaymentRequest): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/payments`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data)
-    });
-    return this.handleResponse(response);
+    // Prefer snapshot-specific endpoint. If `snapshotId` is provided, use
+    // POST /api/tracking/snapshots/:id/payments. Otherwise return a clear error.
+    if (data.snapshotId) {
+      const response = await fetch(`${API_BASE_URL}/tracking/snapshots/${data.snapshotId}/payments`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data)
+      });
+      return this.handleResponse(response);
+    }
+
+    return {
+      success: false,
+      message: 'snapshotId is required to record a payment'
+    };
   }
 
   async getPayments(filters?: { snapshotId?: string; limit?: number; offset?: number }): Promise<ApiResponse> {
@@ -415,7 +454,27 @@ class ApiService {
     if (filters?.offset) params.append('offset', filters.offset.toString());
     
     const queryString = params.toString();
-    const response = await fetch(`${API_BASE_URL}/payments${queryString ? `?${queryString}` : ''}`, {
+    // GET payments across all snapshots (supports optional category filter on server)
+    const response = await fetch(`${API_BASE_URL}/tracking/payments${queryString ? `?${queryString}` : ''}`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  // Update a payment that is stored against a snapshot (used by Nisab Year Records UI)
+  async updateSnapshotPayment(paymentId: string, updates: Partial<{amount: number; date: string; recipient?: string; notes?: string; snapshotId?: string}>): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/payments/${paymentId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(updates)
+    });
+    return this.handleResponse(response);
+  }
+
+  // Delete a payment that is stored against a snapshot
+  async deleteSnapshotPayment(paymentId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/payments/${paymentId}`, {
+      method: 'DELETE',
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);
@@ -623,7 +682,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async updatePayment(paymentId: string, updates: Partial<{amount: number; date: string; recipient?: string; notes?: string}>): Promise<ApiResponse> {
+  async updatePayment(paymentId: string, updates: Partial<{amount: number; date: string; recipient?: string; notes?: string; snapshotId?: string}>): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/payments/${paymentId}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),

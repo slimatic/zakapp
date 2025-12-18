@@ -214,6 +214,29 @@ describe('AssetSelectionTable', () => {
       expect(screen.getByText(/Zakat Amount.*262\.50/i)).toBeInTheDocument();
     });
 
+    it('should account for per-asset calculationModifier when computing zakatable totals', () => {
+      const onSelectionChange = jest.fn();
+      const assetsWithModifier = [
+        ...mockAssets,
+        { id: 'asset-5', name: 'Passive Fund', category: 'stocks', value: 6000, isZakatable: true, addedAt: '2025-04-01T00:00:00Z', calculationModifier: 0.3, zakatableValue: 1800 },
+      ];
+
+      render(
+        <AssetSelectionTable 
+          assets={assetsWithModifier as any} 
+          onSelectionChange={onSelectionChange} 
+        />
+      );
+
+      // Default selection includes zakatable assets: asset-1, asset-2, asset-4, asset-5
+      // Total Wealth = 5000 + 3000 + 2500 + 6000 = 16500
+      // Zakatable Wealth = 5000 + 3000 + 2500 + 1800 = 12300
+      // Zakat = 12300 * 0.025 = 307.50
+      expect(screen.getByText(/Total Wealth.*16,500/i)).toBeInTheDocument();
+      expect(screen.getByText(/Zakatable Wealth.*12,300/i)).toBeInTheDocument();
+      expect(screen.getByText(/Zakat Amount.*307\.50/i)).toBeInTheDocument();
+    });
+
     it('should handle zero selection (all deselected)', () => {
       const onSelectionChange = jest.fn();
       

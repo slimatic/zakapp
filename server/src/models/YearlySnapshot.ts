@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import {
   YearlySnapshot,
   CreateYearlySnapshotDto,
@@ -7,8 +6,7 @@ import {
   NisabType,
   YearlySnapshotMethodology
 } from '@zakapp/shared';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/prisma';
 
 /**
  * YearlySnapshot Model - Manages historical Zakat calculation snapshots

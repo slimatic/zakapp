@@ -87,10 +87,17 @@ const createResponse = <T>(success: boolean, data?: T, error?: { code: string; m
 router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId!;
+    const { modifierType, page, limit } = req.query;
     
-    // Get user's assets using the real service
+    // Get user's assets using the real service with filter support
     const assetService = new AssetService();
-    const result = await assetService.getUserAssets(userId);
+    const filters = {
+      modifierType: modifierType as 'passive' | 'restricted' | 'full' | undefined,
+      page: page ? parseInt(page as string) : 1,
+      limit: limit ? parseInt(limit as string) : 50,
+    };
+    
+    const result = await assetService.getUserAssets(userId, filters);
     
     // Create summary statistics
     const summary = {
@@ -101,15 +108,28 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
         const category = asset.category.toLowerCase();
         counts[category] = (counts[category] || 0) + 1;
         return counts;
+      }, {} as Record<string, number>),
+      modifierBreakdown: result.assets.reduce((breakdown: Record<string, number>, asset) => {
+        const modifier = asset.calculationModifier || 1.0;
+        const label = modifier === 0.0 ? 'restricted' : modifier === 0.3 ? 'passive' : 'full';
+        breakdown[label] = (breakdown[label] || 0) + 1;
+        return breakdown;
       }, {} as Record<string, number>)
     };
+    // Net zakatable value across selected assets: only include those marked eligible
+    (summary as any).totalZakatableValue = result.assets.reduce((sum: number, asset: any) => {
+      if (!asset.zakatEligible) return sum;
+      const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
+      return sum + (modifier * (asset.value || 0));
+    }, 0);
 
     // Match API contract format
     const response = {
       success: true,
       data: {
         assets: result.assets,
-        summary
+        summary,
+        pagination: result.pagination
       }
     };
     
@@ -254,7 +274,7 @@ router.post('/',
         return;
       }
 
-      const { category, name, value, currency, description, subCategory, zakatEligible } = validation.data;
+      const { category, name, value, currency, description, subCategory, zakatEligible, acquisitionDate, notes, isPassiveInvestment, isRestrictedAccount } = validation.data;
 
       const userId = req.userId!;
       
@@ -277,18 +297,30 @@ router.post('/',
         name: name || `${category} asset`, // Default name if not provided
         value,
         currency,
-        acquisitionDate: new Date(), // Default to current date
+        acquisitionDate: acquisitionDate ? new Date(acquisitionDate) : new Date(), // Use provided date or default to current
         metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
-        notes: description // Also store description as notes
+        notes: notes || description, // Use notes if provided, otherwise description
+        isPassiveInvestment: isPassiveInvestment || false,
+        isRestrictedAccount: isRestrictedAccount || false,
       });
       
       const response = createResponse(true, { asset });
       res.status(201).json(response);
     } catch (error) {
+      // Distinguish validation errors vs internal errors to return appropriate status
+      const errMsg = error instanceof Error ? error.message : 'Unknown error';
+      if (errMsg.includes('Invalid asset category') || errMsg.includes('Passive investment') || errMsg.includes('Restricted account') || errMsg.includes('cannot be both')) {
+        const response = createResponse(false, undefined, {
+          code: 'VALIDATION_ERROR',
+          message: errMsg
+        });
+        return res.status(400).json(response);
+      }
+
       const response = createResponse(false, undefined, {
         code: 'ASSET_CREATION_ERROR',
         message: 'Failed to create asset',
-        details: [error instanceof Error ? error.message : 'Unknown error']
+        details: [errMsg]
       });
       res.status(500).json(response);
     }
@@ -344,12 +376,21 @@ router.put('/:id',
       const response = createResponse(true, { asset: updatedAsset });
       res.status(200).json(response);
     } catch (error) {
-      const response = createResponse(false, undefined, {
-        code: 'ASSET_UPDATE_ERROR',
-        message: 'Failed to update asset',
-        details: [error instanceof Error ? error.message : 'Unknown error']
-      });
-      res.status(500).json(response);
+        const errMsg = error instanceof Error ? error.message : 'Unknown error';
+        if (errMsg.includes('Passive investment') || errMsg.includes('Restricted account') || errMsg.includes('cannot be both')) {
+          const response = createResponse(false, undefined, {
+            code: 'VALIDATION_ERROR',
+            message: errMsg
+          });
+          return res.status(400).json(response);
+        }
+
+        const response = createResponse(false, undefined, {
+          code: 'ASSET_UPDATE_ERROR',
+          message: 'Failed to update asset',
+          details: [errMsg]
+        });
+        res.status(500).json(response);
     }
   }
 );
