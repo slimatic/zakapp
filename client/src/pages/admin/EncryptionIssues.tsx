@@ -12,7 +12,7 @@ export const EncryptionIssues: React.FC = () => {
     setLoading(true);
     try {
       const res = await apiService.get('/admin/encryption/issues');
-      if (res.success) setIssues(res.issues);
+      if (res.success) setIssues((res.data as any)?.issues || []);
     } finally {
       setLoading(false);
     }

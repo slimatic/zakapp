@@ -119,7 +119,10 @@ export class EncryptionService {
                   throw new Error('Invalid hex object encrypted payload');
                 }
               }
-              throw new Error('Unsupported encrypted object format');
+
+              // Not an encrypted object shape; return a JSON string representation so callers
+              // attempting to decrypt object-like data can still parse it instead of failing.
+              return JSON.stringify(ed);
             }
 
             // If encryptedData is a string, attempt different encodings
@@ -194,7 +197,11 @@ export class EncryptionService {
               }
             }
 
-            throw new Error('Unsupported encrypted data type');
+            // As a last resort, coerce unexpected values to string instead of failing so
+            // higher-level callers (like decryptObject) can attempt to parse or handle
+            // the raw value. This avoids hard failures when stored values are not
+            // encrypted (but also not JSON) or are legacy primitives.
+            return String(ed);
           };
 
           // Try primary key first
@@ -264,7 +271,9 @@ export class EncryptionService {
         ivBuf = Buffer.from(encryptedData.iv, 'hex');
         cipherBuf = Buffer.from(encryptedData.encryptedData, 'hex');
       } else {
-        throw new Error('Invalid encrypted data format');
+        // If encryptedData is not a string and not an encrypted object, return its
+        // JSON representation so callers can parse it instead of failing outright.
+        return JSON.stringify(encryptedData);
       }
 
       if (ivBuf.length !== this.IV_LENGTH) throw new Error('Invalid IV length');
@@ -303,14 +312,34 @@ export class EncryptionService {
     try {
       if (key) {
         return (async () => {
-          const jsonString = await this.decrypt(encryptedData as string, key);
-          return JSON.parse(jsonString) as T;
+          try {
+            const jsonString = await this.decrypt(encryptedData as string, key);
+            try {
+              return JSON.parse(jsonString) as T;
+            } catch {
+              // If JSON parsing fails, return the raw string so callers can handle it
+              return (jsonString as unknown) as T;
+            }
+          } catch (err) {
+            // If decryption fails for any reason, do not throw from this helper.
+            // Return a stringified form of the original input so callers can
+            // inspect/parse it (and avoid crashing endpoints like /me).
+            try {
+              return (typeof encryptedData === 'string' ? encryptedData : JSON.stringify(encryptedData)) as unknown as T;
+            } catch (_e) {
+              return (String(encryptedData) as unknown) as T;
+            }
+          }
         })();
       }
 
       // Synchronous legacy path
       const jsonString = this.decrypt(encryptedData as any) as string;
-      return JSON.parse(jsonString) as T;
+      try {
+        return JSON.parse(jsonString) as T;
+      } catch {
+        return (jsonString as unknown) as T;
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Object decryption failed: ${errorMessage}`);
