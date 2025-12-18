@@ -112,8 +112,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         acquisitionDate: new Date(formData.acquisitionDate),
         notes: formData.description,
       };
+      // keep zakatEligible so edits to eligibility persist
       delete (assetData as any).description;
-      delete (assetData as any).zakatEligible;
       delete (assetData as any).subCategory;
       
       updateMutation.mutate({ assetId: asset.assetId, assetData }, {
@@ -134,8 +134,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         acquisitionDate: new Date(formData.acquisitionDate),
         notes: formData.description,
       };
+      // include zakatEligible for new assets as well
       delete (assetData as any).description;
-      delete (assetData as any).zakatEligible;
       delete (assetData as any).subCategory;
       
       createMutation.mutate(assetData, {
@@ -440,7 +440,14 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               type="checkbox"
               id="zakatEligible"
               checked={formData.zakatEligible}
-              onChange={(e) => handleChange('zakatEligible', e.target.checked)}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                handleChange('zakatEligible', checked);
+                // If eligibility is removed, also clear passive investment selection
+                if (!checked) {
+                  handleChange('isPassiveInvestment', false);
+                }
+              }}
               className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
               aria-describedby="zakat-help"
             />
@@ -462,10 +469,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
                 id="isPassiveInvestment"
                 checked={formData.isPassiveInvestment}
                 onChange={(e) => handleChange('isPassiveInvestment', e.target.checked)}
-                disabled={formData.isRestrictedAccount}
+                disabled={formData.isRestrictedAccount || !formData.zakatEligible}
                 className="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-describedby="passive-help"
-                aria-disabled={formData.isRestrictedAccount}
+                aria-disabled={formData.isRestrictedAccount || !formData.zakatEligible}
               />
               <span className="ml-3">
                 <span className="text-sm font-medium text-gray-700 block">
@@ -487,6 +494,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
                   📊 Modifier Applied: {getModifierBadge(0.3).text}
                 </p>
               </div>
+            )}
+            {!formData.zakatEligible && (
+              <p className="mt-2 text-xs text-gray-600 ml-6">
+                ⚠️ Passive investments can only be marked when the asset is eligible for Zakat
+              </p>
             )}
           </div>
         )}

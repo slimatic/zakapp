@@ -139,6 +139,8 @@ export const AssetDetails: React.FC = () => {
 
   // Normalize numeric value for reliable calculations
   const numericValue = typeof safeAsset.value === 'string' ? parseFloat(safeAsset.value as any) : (safeAsset.value || 0);
+  const modifier = typeof (safeAsset as any).calculationModifier === 'number' ? (safeAsset as any).calculationModifier : 1.0;
+  const zakatableValue = numericValue * modifier;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -293,10 +295,20 @@ export const AssetDetails: React.FC = () => {
           </h3>
           <div className="space-y-3">
             <p className="text-sm text-green-800">
-              <span className="font-medium">Zakatable Value:</span> {formatCurrency(numericValue, safeAsset.currency)}
+              <span className="font-medium">Original Value:</span> {formatCurrency(numericValue, safeAsset.currency)}
             </p>
+            {modifier !== 1.0 && (
+              <p className="text-sm text-green-800">
+                <span className="font-medium">Zakatable Value (after modifier {Math.round(modifier * 100)}%):</span> {formatCurrency(zakatableValue, safeAsset.currency)}
+              </p>
+            )}
+            {modifier === 1.0 && (
+              <p className="text-sm text-green-800">
+                <span className="font-medium">Zakatable Value:</span> {formatCurrency(zakatableValue, safeAsset.currency)}
+              </p>
+            )}
             <p className="text-sm text-green-800">
-              <span className="font-medium">Estimated Zakat (2.5%):</span> {formatCurrency(numericValue * 0.025, safeAsset.currency)}
+              <span className="font-medium">Estimated Zakat (2.5%):</span> {formatCurrency(zakatableValue * 0.025, safeAsset.currency)}
             </p>
             <p className="text-xs text-green-600">
               * This is an estimate. Actual Zakat calculation depends on your total wealth, 
