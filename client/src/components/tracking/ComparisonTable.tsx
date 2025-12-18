@@ -52,7 +52,7 @@ const COMPARISON_ROWS: ComparisonRow[] = [
     formatter: (_, snapshot) => {
       if (!snapshot || !snapshot.zakatableWealth || snapshot.zakatableWealth === 0) return '0%';
       const rate = (snapshot.zakatAmount / snapshot.zakatableWealth) * 100;
-      return formatPercentage(rate / 100);
+      return formatPercentage(rate);
     }
   },
   { 

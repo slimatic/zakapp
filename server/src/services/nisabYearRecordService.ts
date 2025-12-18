@@ -6,7 +6,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import type { Prisma, YearlySnapshot } from '@prisma/client';
+import type { YearlySnapshot } from '@prisma/client';
 import { Logger } from '../utils/logger';
 import { EncryptionService } from './EncryptionService';
 import { AuditTrailService } from './auditTrailService';
@@ -92,7 +92,7 @@ export class NisabYearRecordService {
         const totalWealth = selectedAssets.reduce((sum, asset) => sum + asset.value, 0);
         const zakatableWealth = selectedAssets
           .filter(a => a.isZakatable)
-          .reduce((sum, asset) => sum + asset.value, 0);
+          .reduce((sum, asset) => sum + ((asset as any).zakatableValue || asset.value || 0), 0);
 
         const assetBreakdown = {
           assets: selectedAssets.map(asset => ({
@@ -100,6 +100,8 @@ export class NisabYearRecordService {
             name: asset.name,
             category: asset.category,
             value: asset.value,
+            calculationModifier: (asset as any).calculationModifier || 1.0,
+            zakatableValue: (asset as any).zakatableValue || asset.value,
             isZakatable: asset.isZakatable,
             addedAt: asset.addedAt.toISOString(),
           })),
@@ -158,7 +160,7 @@ export class NisabYearRecordService {
         }
       };
 
-      const record = await this.prisma.yearlySnapshot.create({ data: createData as Prisma.YearlySnapshotCreateInput });
+      const record = await this.prisma.yearlySnapshot.create({ data: createData as any });
 
       // Record audit event
       await this.auditTrailService.recordEvent(
@@ -208,7 +210,8 @@ export class NisabYearRecordService {
           record as { hawlStartDate: Date; nisabThreshold: string; [key: string]: unknown },
           currentWealth.totalZakatableWealth
         );
-        liveTrackingData = this._convertLiveHawlToLiveTracking(liveHawlData);
+        // Convert live data and include both totalWealth and totalZakatableWealth for richer UI
+        liveTrackingData = this._convertLiveHawlToLiveTracking(liveHawlData, currentWealth.totalWealth, currentWealth.totalZakatableWealth);
       }
 
       return await this._mapToResponse(record, liveTrackingData);
@@ -243,7 +246,7 @@ export class NisabYearRecordService {
     total: number;
   }> {
     try {
-      const where: Prisma.YearlySnapshotWhereInput = {
+      const where: any = {
         userId,
       };
 
@@ -448,8 +451,10 @@ export class NisabYearRecordService {
 
   const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
       
-      // Calculate total wealth from breakdown
-      const totalWealth = Object.values(zakatableWealth.breakdown).reduce((sum: number, val: number) => sum + val, 0);
+      // Calculate total gross wealth. Prefer explicit totalWealth if provided by the aggregation service.
+      const totalWealth = typeof zakatableWealth.totalWealth === 'number'
+        ? zakatableWealth.totalWealth
+        : Object.values(zakatableWealth.breakdown).reduce((sum: number, val: number) => sum + val, 0);
 
       // Encrypt all wealth fields before saving
       const encryptedTotalWealth = await EncryptionService.encrypt(
@@ -624,8 +629,10 @@ export class NisabYearRecordService {
 
   const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
       
-      // Calculate total wealth from breakdown
-      const totalWealth = Object.values(zakatableWealth.breakdown).reduce((sum: number, val: number) => sum + val, 0);
+      // Calculate total gross wealth. Prefer explicit totalWealth if provided by the aggregation service.
+      const totalWealth = typeof zakatableWealth.totalWealth === 'number'
+        ? zakatableWealth.totalWealth
+        : Object.values(zakatableWealth.breakdown).reduce((sum: number, val: number) => sum + val, 0);
 
       // Encrypt all wealth fields before saving
       const encryptedTotalWealth = await EncryptionService.encrypt(
@@ -765,15 +772,18 @@ export class NisabYearRecordService {
       : baseRecord;
   }
 
-  private _convertLiveHawlToLiveTracking(liveHawlData: LiveHawlData): LiveTrackingData {
+  private _convertLiveHawlToLiveTracking(liveHawlData: LiveHawlData, currentTotalWealth?: number, currentZakatableWealth?: number): LiveTrackingData {
     return {
-      currentTotalWealth: liveHawlData.currentWealth,
+      currentTotalWealth: currentTotalWealth ?? liveHawlData.currentWealth,
+      // Also expose zakatable wealth explicitly for UI
+      // NOTE: LiveTrackingData type allows additional properties
+      ...(currentZakatableWealth !== undefined ? { currentZakatableWealth } : {}),
       nisabThreshold: liveHawlData.nisabThreshold,
       daysRemaining: liveHawlData.daysRemaining,
       hawlProgress: liveHawlData.hawlProgress,
       isHawlComplete: liveHawlData.isHawlComplete,
       canFinalize: liveHawlData.canFinalize,
       lastUpdated: liveHawlData.lastUpdated,
-    };
+    } as any;
   }
 }

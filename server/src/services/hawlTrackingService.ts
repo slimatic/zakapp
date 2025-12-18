@@ -56,9 +56,9 @@ export class HawlTrackingService {
       const assets = await this.wealthAggregationService.getZakatableAssets(userId);
 
       // Calculate totals
-      const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
+      const totalWealth = assets.reduce((sum, asset) => sum + (asset.value || 0), 0);
       const zakatableWealth = assets.filter(a => a.isZakatable)
-        .reduce((sum, asset) => sum + asset.value, 0);
+        .reduce((sum, asset) => sum + ((asset as any).zakatableValue ?? ((asset.value || 0) * ((asset as any).calculationModifier ?? 1.0))), 0);
 
       // Build asset breakdown JSON
       const assetBreakdown = {
@@ -67,6 +67,8 @@ export class HawlTrackingService {
           name: asset.name,
           category: asset.category,
           value: asset.value,
+          calculationModifier: (asset as any).calculationModifier || 1.0,
+          zakatableValue: (asset as any).zakatableValue ?? ((asset.value || 0) * ((asset as any).calculationModifier ?? 1.0)),
           isZakatable: asset.isZakatable,
           addedAt: asset.addedAt.toISOString(),
         })),

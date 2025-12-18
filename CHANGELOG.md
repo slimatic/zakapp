@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025-12-15
+- Fix: Robust decryption of payment record fields when storage used alternative separators (e.g., '.=' or '.') between IV and ciphertext. Added runtime normalization and one-off `server/scripts/normalize-payments.ts` to migrate stored records.
+
+
 All notable changes to ZakApp will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

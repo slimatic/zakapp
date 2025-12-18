@@ -22,7 +22,7 @@ jest.mock('recharts', () => ({
   AreaChart: ({ children }: any) => <div data-testid="area-chart">{children}</div>,
   Line: () => <div data-testid="line" />,
   Bar: () => <div data-testid="bar" />,
-  Pie: () => <div data-testid="pie" />,
+  Pie: ({ children }: any) => <div data-testid="pie">{children}</div>,
   Area: () => <div data-testid="area" />,
   Cell: () => <div data-testid="cell" />,
   XAxis: () => <div data-testid="x-axis" />,
@@ -110,7 +110,7 @@ describe('AnalyticsChart - Wealth Trend (T043)', () => {
       const { useAnalytics } = require('../../hooks/useAnalytics');
       useAnalytics.mockReturnValue({
         data: {
-          data: [{ period: '2024', value: 50000 }]
+          trend: [{ year: 2024, totalWealth: '50000' }]
         },
         isLoading: false,
         error: null
@@ -209,7 +209,32 @@ describe('AnalyticsChart - Payment Distribution', () => {
 
       expect(screen.getByText(/No payments recorded yet/i)).toBeInTheDocument();
     });
-  });  describe('Empty State', () => {
+
+    it('renders multiple slices when multiple payment categories exist', () => {
+      const { useAnalytics } = require('../../hooks/useAnalytics');
+      useAnalytics.mockReturnValue({
+        data: {
+          distribution: [
+            { category: 'cash', totalAmount: 1200 },
+            { category: 'gharimin', totalAmount: 300 }
+          ]
+        },
+        isLoading: false,
+        error: null
+      });
+
+      render(
+        <AnalyticsChart metricType="payment_distribution" visualizationType="pie_chart" />,
+        { wrapper: createWrapper() }
+      );
+
+      // Two categories => two rendered Cells
+      const cells = screen.getAllByTestId('cell');
+      expect(cells.length).toBe(2);
+    });
+  });
+
+  describe('Empty State', () => {
     it('shows payment-specific empty state', () => {
       const { useAnalytics } = require('../../hooks/useAnalytics');
       useAnalytics.mockReturnValue({
@@ -225,6 +250,37 @@ describe('AnalyticsChart - Payment Distribution', () => {
 
       expect(screen.getByText('No payments recorded yet')).toBeInTheDocument();
     });
+  });
+});
+
+// Additional tests for Asset Composition pie behavior
+describe('AnalyticsChart - Asset Composition (Pie)', () => {
+  it('renders multiple slices when multiple asset categories exist', () => {
+    const { useAnalytics } = require('../../hooks/useAnalytics');
+    useAnalytics.mockReturnValue({
+      data: {
+        composition: [
+          {
+            breakdown: {
+              assets: [
+                { id: 'a1', name: 'Cash', category: 'CASH', value: '1200' },
+                { id: 'a2', name: 'Gold', category: 'GOLD', value: '800' }
+              ]
+            }
+          }
+        ]
+      },
+      isLoading: false,
+      error: null
+    });
+
+    render(
+      <AnalyticsChart metricType="asset_composition" visualizationType="pie_chart" />,
+      { wrapper: createWrapper() }
+    );
+
+    const cells = screen.getAllByTestId('cell');
+    expect(cells.length).toBe(2);
   });
 });
 

@@ -81,8 +81,26 @@ describe('WealthAggregationService', () => {
           id: true,
           category: true,
           value: true,
+          calculationModifier: true,
         },
       });
+    });
+
+    it('should apply calculationModifier when present', async () => {
+      // Arrange: One passive asset with 30% modifier
+      const mockAssets = [
+        { id: '1', category: 'investments', value: 6000.0, calculationModifier: 0.3, isActive: true },
+        { id: '2', category: 'cash', value: 2100.0, isActive: true },
+      ];
+      mockPrisma.asset.findMany = jest.fn().mockResolvedValue(mockAssets as any);
+
+      // Act
+      const result = await service.calculateTotalZakatableWealth(userId);
+
+      // Assert: zakatable = 2100 + (6000 * 0.3) = 3900
+      expect(result.totalZakatableWealth).toBeCloseTo(3900.0);
+      // Gross total must still be available
+      expect(result.totalWealth).toBe(8100.0);
     });
 
     it('should handle empty asset list', async () => {

@@ -238,14 +238,21 @@ describe('Implementation Task T023: EncryptionService', () => {
   });
 
   describe('Security Features', () => {
-    it('should detect encrypted data format', () => {
+    it('should detect encrypted data format', async () => {
       const key = EncryptionService.generateKey();
       const plaintext = 'test data';
 
       // Valid encrypted data format should be detected
-      EncryptionService.encrypt(plaintext, key).then((encrypted: string) => {
-        expect(EncryptionService.isEncrypted(encrypted)).toBe(true);
-      });
+      const encryptedA = await EncryptionService.encrypt(plaintext, key);
+      expect(EncryptionService.isEncrypted(encryptedA)).toBe(true);
+
+      // Also accept alternative separators used in stored data (e.g., '.=' or '.')
+      const encryptedB = await EncryptionService.encrypt(plaintext, key);
+      const alt = encryptedB.replace(':', '.=');
+      expect(EncryptionService.isEncrypted(alt)).toBe(true);
+      // And ensure decryption still works
+      const d = await EncryptionService.decrypt(alt, key);
+      expect(d).toBe(plaintext);
 
       // Plain text should not be detected as encrypted
       expect(EncryptionService.isEncrypted(plaintext)).toBe(false);

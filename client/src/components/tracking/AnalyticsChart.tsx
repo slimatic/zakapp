@@ -111,7 +111,9 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
       return [formatCurrency(value), name];
     }
     if (metricType === 'nisab_compliance') {
-      return [formatPercentage(value / 100), name];
+      // value may be provided as decimal (0.7) or percentage (70). Normalize to 0-100 before formatting.
+      const percent = typeof value === 'number' ? (value <= 1 ? value * 100 : value) : value;
+      return [formatPercentage(percent), name];
     }
     return [formatCompactNumber(value), name];
   };
@@ -295,16 +297,23 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
 
       case 'pie_chart':
         // Transform data for pie chart
-        const pieData = Object.keys(chartData[0] || {})
-          .filter(key => key !== 'period')
-          .map((key, index) => ({
-            name: key,
-            value: chartData.reduce((sum: number, item: any) => {
-              const val = item[key];
-              return sum + (typeof val === 'number' ? val : 0);
-            }, 0),
-            fill: PIE_COLORS[index % PIE_COLORS.length]
-          }));
+        // Aggregate category values across all rows to ensure every category is included
+        const categoryMap = new Map<string, number>();
+
+        chartData.forEach((item: any) => {
+          Object.keys(item)
+            .filter(k => k !== 'period')
+            .forEach(k => {
+              const val = item[k];
+              categoryMap.set(k, (categoryMap.get(k) || 0) + (typeof val === 'number' ? val : 0));
+            });
+        });
+
+        const pieData = Array.from(categoryMap.entries()).map(([name, value], index) => ({
+          name,
+          value,
+          fill: PIE_COLORS[index % PIE_COLORS.length]
+        }));
 
         return (
           <ResponsiveContainer {...commonProps}>
@@ -317,7 +326,8 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
                 label={compact ? false : (entry: any) => {
                   const total = pieData.reduce((sum, item) => sum + item.value, 0);
                   const value = typeof entry.value === 'number' ? entry.value : 0;
-                  return `${entry.name}: ${formatPercentage(value / total)}`;
+                  // value/total is a decimal (0-1), pass isDecimal=true so formatPercentage outputs e.g. 70.0%
+                  return `${entry.name}: ${formatPercentage(value / total, 1, true)}`;
                 }}
                 outerRadius={compact ? 80 : 100}
                 fill="#8884d8"
@@ -352,7 +362,9 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
           </h3>
           {analytics?.metadata && (
             <p className="text-sm text-gray-600 mt-1" id={`chart-desc-${metricType}`}>
-              {analytics.metadata.period} • Last updated: {new Date(analytics.metadata.lastUpdated).toLocaleDateString()}
+              {String(analytics.metadata.period || '').replace(/_/g, ' ')}
+              {analytics.summary && typeof analytics.summary.cached !== 'undefined' && analytics.summary.cached ? ` • Cached` : ''}
+              {analytics.metadata.lastUpdated ? ` • Last updated: ${new Date(String(analytics.metadata.lastUpdated)).toLocaleDateString()}` : ''}
             </p>
           )}
         </div>
@@ -372,16 +384,18 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
       {analytics?.summary && !compact && (
         <div className="mt-6 pt-4 border-t border-gray-200">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {Object.entries(analytics.summary).map(([key, value]: [string, any]) => (
-              <div key={key} className="text-center">
-                <div className="text-sm font-medium text-gray-700 capitalize">
-                  {key.replace(/_/g, ' ')}
+            {Object.entries(analytics.summary)
+              .filter(([key]) => key !== 'metricType' && key !== 'cached')
+              .map(([key, value]: [string, any]) => (
+                <div key={key} className="text-center">
+                  <div className="text-sm font-medium text-gray-700 capitalize">
+                    {key.replace(/_/g, ' ')}
+                  </div>
+                  <div className="text-lg font-bold text-gray-900">
+                    {typeof value === 'number' ? formatCurrency(value) : String(value)}
+                  </div>
                 </div>
-                <div className="text-lg font-bold text-gray-900">
-                  {typeof value === 'number' ? formatCurrency(value) : String(value)}
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}

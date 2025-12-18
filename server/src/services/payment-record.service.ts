@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 import { sign } from 'jsonwebtoken';
+import { prisma } from '../utils/prisma';
 
-const prisma = new PrismaClient();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 const JWT_SECRET = process.env.JWT_SECRET || 'default-jwt-secret-for-development';
 

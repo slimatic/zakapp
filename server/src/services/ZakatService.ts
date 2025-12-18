@@ -357,6 +357,10 @@ export class ZakatService {
       currency: legacy.currency,
       description: '',
       zakatEligible: true, // Assume all assets are zakat eligible for now
+      acquisitionDate: (legacy as any).acquisitionDate || new Date().toISOString(),
+      calculationModifier: 0,
+      isPassiveInvestment: false,
+      isRestrictedAccount: false,
       createdAt: legacy.createdAt,
       updatedAt: legacy.updatedAt
     }));

@@ -90,9 +90,10 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   } = useMemo(() => {
     // For FINALIZED/UNLOCKED records, use stored wealth (already decrypted by backend)
     // For DRAFT records, use live data if available
-    const wealth = shouldEnableLiveTracking 
-      ? (liveHawlData?.currentTotalWealth || currentWealth || parseFloat(record.totalWealth) || 0)
-      : (currentWealth || parseFloat(record.totalWealth) || 0);
+    // Prefer Zakatable wealth for the comparison display; fall back to totals if missing
+    const wealth = shouldEnableLiveTracking
+      ? ((liveHawlData?.currentZakatableWealth ?? liveHawlData?.currentTotalWealth ?? currentWealth ?? parseFloat(record.zakatableWealth)) || parseFloat(record.totalWealth) || 0)
+      : ((currentWealth ?? parseFloat(record.zakatableWealth)) || parseFloat(record.totalWealth) || 0);
     
     // Use nisabAmount from hook (freshly fetched based on nisabBasis)
     // Note: nisabThresholdAtStart in record is encrypted, so we can't parse it directly
@@ -153,11 +154,17 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
         </div>
 
         {/* Main comparison */}
-        <div className="mb-4 grid grid-cols-2 gap-4">
+        <div className="mb-4 grid grid-cols-3 gap-4">
           <div className="rounded-lg bg-white p-3">
-            <div className="text-xs text-gray-600">Current Wealth</div>
+            <div className="text-xs text-gray-600">Zakatable Wealth</div>
             <div className="text-lg font-bold text-gray-900">
               {formatMaskedCurrency(displayWealth)}
+            </div>
+          </div>
+          <div className="rounded-lg bg-white p-3">
+            <div className="text-xs text-gray-600">Total Wealth</div>
+            <div className="text-lg font-bold text-gray-900">
+              {formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}
             </div>
           </div>
           <div className="rounded-lg bg-white p-3">
