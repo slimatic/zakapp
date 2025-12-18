@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import toast from 'react-hot-toast';
 import { apiService } from '../services/api';
-import type { User } from '@zakapp/shared';
+import type { User } from '../types';
 
 interface AuthState {
   user: User | null;
@@ -97,19 +97,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Map the API response to our User interface
             const apiUser = response.data.user;
             const user: User = {
-              userId: apiUser.id,
+              id: apiUser.id,
               username: apiUser.username || apiUser.email.split('@')[0],
               email: apiUser.email,
               firstName: apiUser.firstName,
               lastName: apiUser.lastName,
-              createdAt: apiUser.createdAt || new Date().toISOString(),
-              lastLogin: new Date().toISOString(),
-              preferences: {
-                currency: 'USD',
-                language: 'en',
-                zakatMethod: apiUser.preferences?.methodology || 'standard',
-                calendarType: (apiUser.preferences?.calendar || 'lunar') as 'lunar' | 'solar'
-              }
             };
             dispatch({ type: 'LOGIN_SUCCESS', payload: user });
           } else {
@@ -153,19 +145,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Convert API response user to shared User interface
         // Backend may not return username (it's optional), extract from email if needed
         const user: User = {
-          userId: response.user.id,
+          id: response.user.id,
           username: response.user.username || response.user.email.split('@')[0], // Use email prefix if username not provided
           email: response.user.email,
-          firstName: response.user.firstName,
-          lastName: response.user.lastName,
-          createdAt: new Date().toISOString(), // Default for now
-          lastLogin: new Date().toISOString(),
-          preferences: {
-            currency: 'USD',
-            language: 'en',
-            zakatMethod: response.user.preferences?.methodology || 'standard',
-            calendarType: (response.user.preferences?.calendar || 'lunar') as 'lunar' | 'solar'
-          }
+          firstName: response.user.firstName || '',
+          lastName: response.user.lastName || '',
         };
         
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
@@ -195,19 +179,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Convert API response user to shared User interface
         // Backend may not return username (it's optional), extract from email if needed
         const user: User = {
-          userId: response.user.id,
+          id: response.user.id,
           username: response.user.username || response.user.email.split('@')[0], // Use email prefix if username not provided
           email: response.user.email,
-          firstName: response.user.firstName,
-          lastName: response.user.lastName,
-          createdAt: new Date().toISOString(), // Default for now
-          lastLogin: new Date().toISOString(),
-          preferences: {
-            currency: 'USD',
-            language: 'en',
-            zakatMethod: (response.user as any).preferences?.methodology || 'standard',
-            calendarType: (response.user as any).preferences?.calendar || 'lunar'
-          }
+          firstName: response.user.firstName || '',
+          lastName: response.user.lastName || '',
         };
         
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });

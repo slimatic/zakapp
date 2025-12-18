@@ -116,6 +116,7 @@ describe('AnalyticsPage', () => {
 
       expect(screen.getByText('Summary Statistics')).toBeInTheDocument();
       expect(screen.getByText('Total Wealth')).toBeInTheDocument();
+      expect(screen.getByText(/Zakatable:/i)).toBeInTheDocument();
       expect(screen.getByText('Total Zakat Due')).toBeInTheDocument();
       expect(screen.getByText('Total Paid')).toBeInTheDocument();
       expect(screen.getByText('Outstanding')).toBeInTheDocument();

@@ -38,10 +38,10 @@ export const Profile: React.FC = () => {
     username: user?.username || '',
     email: user?.email || '',
     preferences: {
-      currency: user?.preferences?.currency || 'USD',
-      language: user?.preferences?.language || 'en',
-      zakatMethod: user?.preferences?.zakatMethod || 'standard',
-      calendarType: user?.preferences?.calendarType || 'lunar'
+      currency: (user as any)?.preferences?.currency || 'USD',
+      language: (user as any)?.preferences?.language || 'en',
+      zakatMethod: (user as any)?.preferences?.zakatMethod || 'standard',
+      calendarType: (user as any)?.preferences?.calendarType || 'lunar'
     }
   });
   

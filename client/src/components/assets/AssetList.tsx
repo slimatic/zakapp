@@ -185,7 +185,7 @@ export const AssetList: React.FC = React.memo(() => {
       {/* Summary Stats - Compact Design */}
       {assets.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="grid grid-cols-3 gap-4 divide-x divide-gray-200">
+          <div className="grid grid-cols-4 gap-4 divide-x divide-gray-200">
             <div className="text-center">
               <p className="text-xs text-gray-500 mb-1">Total Assets</p>
               <p className="text-lg font-bold text-gray-900">{assets.length}</p>
@@ -200,6 +200,16 @@ export const AssetList: React.FC = React.memo(() => {
               <p className="text-xs text-gray-500 mb-1">Total Value</p>
               <p className="text-lg font-bold text-gray-900">
                 {maskedCurrency(`$${assets.reduce((sum: number, asset: Asset) => sum + asset.value, 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`)}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-gray-500 mb-1">Total Zakatable Value</p>
+              <p className="text-lg font-bold text-gray-900">
+                {maskedCurrency(`$${assets.reduce((sum: number, asset: any) => {
+                  if (!asset.zakatEligible) return sum;
+                  const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
+                  return sum + (modifier * (asset.value || 0));
+                }, 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`)}
               </p>
             </div>
           </div>
@@ -274,15 +284,24 @@ export const AssetList: React.FC = React.memo(() => {
                       <div className="text-xs text-gray-500">{asset.currency}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
-                      {asset.zakatEligible ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Eligible
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          Not Eligible
-                        </span>
-                      )}
+                      <div className="flex flex-col items-center gap-1">
+                        {asset.zakatEligible ? (
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Eligible
+                            </span>
+                            {asset.isPassiveInvestment && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                                Passive
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            Not Eligible
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                       <Link
@@ -325,9 +344,16 @@ export const AssetList: React.FC = React.memo(() => {
                     </div>
                   </div>
                   {asset.zakatEligible && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0 ml-2">
-                      Eligible
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0 ml-2">
+                        Eligible
+                      </span>
+                      {asset.isPassiveInvestment && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 flex-shrink-0">
+                          Passive
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
 

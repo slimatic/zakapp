@@ -90,6 +90,12 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
         
         {/* Calculation breakdown */}
         <div className="text-xs text-gray-600 space-y-1">
+          {record.totalWealth && parseFloat(record.totalWealth.toString()) !== 0 && (
+            <div className="flex justify-between">
+              <span>Total Wealth:</span>
+              <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(parseFloat(record.totalWealth.toString()), 'USD'))}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>Zakatable Wealth:</span>
             <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(zakatableWealth, 'USD'))}</span>

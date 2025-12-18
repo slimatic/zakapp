@@ -3,12 +3,23 @@
  * Re-exports shared types and adds frontend-specific utilities
  */
 
-export type {
-  Asset,
-  CreateAssetDto,
-  UpdateAssetDto,
-  CalculationModifier,
-} from '@zakapp/shared';
+import type { Asset } from './index';
+
+export interface CreateAssetDto {
+  name: string;
+  category: string;
+  value: number;
+  currency?: string;
+  acquisitionDate?: string | Date;
+  metadata?: string;
+  notes?: string;
+  isPassiveInvestment?: boolean;
+  isRestrictedAccount?: boolean;
+}
+
+export type UpdateAssetDto = Partial<CreateAssetDto>;
+
+export type CalculationModifier = number; // e.g., 0.0 (restricted), 0.3 (passive), 1.0 (full)
 
 export { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '../constants/sharedFallback';
 

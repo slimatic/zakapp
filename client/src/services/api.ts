@@ -131,6 +131,34 @@ class ApiService {
     return response.json();
   }
 
+  // Generic helper methods for ad-hoc endpoints (used by admin/debug pages)
+  async get(path: string): Promise<ApiResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : '/' + path}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+      const result = await response.json();
+      return result as ApiResponse;
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : 'Network error' };
+    }
+  }
+
+  async post(path: string, body?: any): Promise<ApiResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : '/' + path}`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const result = await response.json();
+      return result as ApiResponse;
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : 'Network error' };
+    }
+  }
+
   // Authentication endpoints
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {

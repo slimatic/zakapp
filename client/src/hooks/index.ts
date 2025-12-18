@@ -27,5 +27,7 @@ export {
   useRecentSnapshots,
   useSnapshotStats
 } from './useZakatSnapshots';
+
+export { useNisabYearRecords } from './useNisabYearRecords';
 export type { SnapshotFilters } from './useZakatSnapshots';
 export { useComparison } from './useComparison';

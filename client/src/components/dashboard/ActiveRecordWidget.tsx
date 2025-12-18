@@ -58,6 +58,29 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
   const nisabBasis = (record?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
   const { nisabAmount } = useNisabThreshold('USD', nisabBasis);
   
+  // Hooks must be called unconditionally. Prepare memoized values and queries
+  // using safe accessors so they can be evaluated even if `record` is null.
+  const zakatDue = useMemo(() => {
+    const raw = record?.zakatAmount ?? record?.zakatAmount;
+    if (raw === null || raw === undefined) return 0;
+    if (typeof raw === 'number') return raw;
+    const parsed = parseFloat(String(raw));
+    return Number.isFinite(parsed) ? parsed : 0;
+  }, [record?.zakatAmount]);
+
+  const { data: paymentsResp } = usePayments({ snapshotId: record?.id, enabled: !!record?.id });
+  const payments = paymentsResp?.payments || [];
+
+  const safeAmount = (p: any) => {
+    const raw = p?.amount;
+    if (raw === null || raw === undefined) return 0;
+    const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
+    return Number.isFinite(num) ? num : 0;
+  };
+
+  const totalPaid = useMemo(() => payments.reduce((s: number, p: any) => s + safeAmount(p), 0), [payments]);
+  const zakatRemaining = Math.max(0, zakatDue - totalPaid);
+
   if (!record) {
     return null;
   }
@@ -111,28 +134,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
     ? (wealthDifference / nisabThreshold) * 100 
     : 0;
 
-  // Safe parse for zakatAmount (could be string or number)
-  const zakatDue = useMemo(() => {
-    const raw = record.zakatAmount ?? record.zakatAmount;
-    if (raw === null || raw === undefined) return 0;
-    if (typeof raw === 'number') return raw;
-    const parsed = parseFloat(String(raw));
-    return Number.isFinite(parsed) ? parsed : 0;
-  }, [record.zakatAmount]);
 
-  // Fetch payments for this snapshot and compute total paid
-  const { data: paymentsResp } = usePayments({ snapshotId: record.id, enabled: !!record.id });
-  const payments = paymentsResp?.payments || [];
-
-  const safeAmount = (p: any) => {
-    const raw = p?.amount;
-    if (raw === null || raw === undefined) return 0;
-    const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
-    return Number.isFinite(num) ? num : 0;
-  };
-
-  const totalPaid = useMemo(() => payments.reduce((s: number, p: any) => s + safeAmount(p), 0), [payments]);
-  const zakatRemaining = Math.max(0, zakatDue - totalPaid);
 
   /**
    * Determine status color based on wealth vs Nisab
