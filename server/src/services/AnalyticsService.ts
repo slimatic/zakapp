@@ -164,16 +164,24 @@ export class AnalyticsService {
         where: { userId, isActive: true }
       });
       const currentYear = new Date().getFullYear();
-      const totalWealthNum = assets.reduce((sum, a) => sum + a.value, 0);
+      const totalWealthNum = assets.reduce((sum, a: any) => sum + (a.value || 0), 0);
+      const totalZakatableNum = assets.reduce((sum, a) => {
+        const asset = a as any;
+        const isZakatable = typeof asset.zakatEligible !== 'undefined' ? Boolean(asset.zakatEligible) : true;
+        if (!isZakatable) return sum;
+        const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
+        const zakVal = typeof asset.zakatableValue === 'number' ? asset.zakatableValue : (asset.value || 0) * modifier;
+        return sum + (zakVal || 0);
+      }, 0);
 
-      console.log(`[Analytics] No Nisab Year Records found. Creating trend from ${assets.length} assets. Total wealth: ${totalWealthNum}`);
+      console.log(`[Analytics] No Nisab Year Records found. Creating trend from ${assets.length} assets. Total wealth: ${totalWealthNum} zakatable: ${totalZakatableNum}`);
 
       if (totalWealthNum > 0) {
         trendData = [{
           year: currentYear,
           date: new Date(),
           totalWealth: totalWealthNum.toString(),
-          zakatableWealth: totalWealthNum.toString()
+          zakatableWealth: totalZakatableNum.toString()
         }];
       }
     } else {
@@ -441,22 +449,32 @@ export class AnalyticsService {
       console.log(`[Analytics] No Nisab Year Records for composition. Using ${assets.length} current assets`);
 
       if (assets.length > 0) {
-        const totalWealthNum = assets.reduce((sum, a) => sum + a.value, 0);
+        const totalWealthNum = assets.reduce((sum, a) => sum + (a.value || 0), 0);
+        // Compute zakatable wealth using per-asset metadata (if available) or default calculationModifier
+        const totalZakatableNum = assets.reduce((sum, a) => {
+          const asset = a as any;
+          const isZakatable = typeof asset.zakatEligible !== 'undefined' ? Boolean(asset.zakatEligible) : true;
+          if (!isZakatable) return sum;
+          const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
+          const zakVal = (typeof asset.zakatableValue === 'number') ? asset.zakatableValue : (asset.value || 0) * modifier;
+          return sum + (zakVal || 0);
+        }, 0);
+
         compositionData = [{
           year: new Date().getFullYear(),
           date: new Date(),
           breakdown: {
             assets: assets.map(a => ({
-              id: a.id,
-              name: a.name,
-              category: a.category,
-              value: a.value.toString(),
-              isZakatable: true,
-              addedAt: a.createdAt
+              id: (a as any).id,
+              name: (a as any).name,
+              category: (a as any).category,
+              value: String((a as any).value || 0),
+              isZakatable: typeof (a as any).zakatEligible !== 'undefined' ? Boolean((a as any).zakatEligible) : true,
+              addedAt: (a as any).createdAt
             })),
             capturedAt: new Date().toISOString(),
             totalWealth: totalWealthNum.toString(),
-            zakatableWealth: totalWealthNum.toString()
+            zakatableWealth: totalZakatableNum.toString()
           }
         }];
       }

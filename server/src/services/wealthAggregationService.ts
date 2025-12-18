@@ -11,6 +11,8 @@ import { EncryptionService } from './EncryptionService';
 
 export interface WealthCalculation {
   totalZakatableWealth: number;
+  // Gross total wealth before applying calculation modifiers
+  totalWealth?: number;
   breakdown: {
     cash: number;
     gold: number;
@@ -69,6 +71,8 @@ export class WealthAggregationService {
           name: true,
           category: true,
           value: true,
+          calculationModifier: true,
+          metadata: true,
           createdAt: true,
         },
         orderBy: {
@@ -77,14 +81,31 @@ export class WealthAggregationService {
       });
 
       // Map to zakatable asset format
-      // All asset categories are zakatable by default in this system
-      return assets.map(asset => ({
-        id: asset.id,
-        name: asset.name,
-        category: asset.category,
-        value: asset.value,
-        isZakatable: true, // All assets in system are zakatable
-        addedAt: asset.createdAt,
+      // Respect per-asset metadata (zakatEligible) and decrypt when present
+      return await Promise.all(assets.map(async (asset) => {
+        let metadata: any = {};
+        try {
+          if (asset.metadata) {
+            metadata = await EncryptionService.decryptObject(asset.metadata, process.env.ENCRYPTION_KEY!);
+          }
+        } catch (e) {
+          metadata = {};
+        }
+
+        const isZakatable = metadata?.zakatEligible === undefined ? true : Boolean(metadata?.zakatEligible);
+        const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
+        const zakatableValue = isZakatable ? ((asset.value || 0) * modifier) : 0;
+
+        return {
+          id: asset.id,
+          name: asset.name,
+          category: asset.category,
+          value: asset.value,
+          isZakatable,
+          addedAt: asset.createdAt,
+          calculationModifier: modifier,
+          zakatableValue,
+        } as any;
       }));
     } catch (error) {
       this.logger.error('Failed to fetch zakatable assets', error);
@@ -114,12 +135,14 @@ export class WealthAggregationService {
           id: true,
           category: true,
           value: true,
+          calculationModifier: true,
         },
       });
 
       // Calculate breakdown by category
       const breakdown = this._calculateBreakdown(assets);
       const totalZakatableWealth = this._sumZakatableWealth(breakdown);
+      const totalWealth = assets.reduce((s, a) => s + (a.value || 0), 0);
 
       const duration = Date.now() - startTime;
       this.logger.debug(`Wealth calculation for ${userId}: ${duration}ms for ${assets.length} assets`);
@@ -130,6 +153,7 @@ export class WealthAggregationService {
 
       return {
         totalZakatableWealth,
+        totalWealth,
         breakdown,
         categories: this._groupByCategory(assets),
         timestamp: new Date(),
@@ -164,13 +188,21 @@ export class WealthAggregationService {
             lte: endDate,
           },
         },
+        select: {
+          id: true,
+          category: true,
+          value: true,
+          calculationModifier: true,
+        },
       });
 
       const breakdown = this._calculateBreakdown(assets);
       const totalZakatableWealth = this._sumZakatableWealth(breakdown);
+      const totalWealth = assets.reduce((s, a) => s + (a.value || 0), 0);
 
       return {
         totalZakatableWealth,
+        totalWealth,
         breakdown,
         categories: this._groupByCategory(assets),
         timestamp: new Date(),
@@ -307,13 +339,16 @@ export class WealthAggregationService {
     };
 
     for (const asset of assets) {
+      // Apply calculation modifier if present; default to 1.0
+      const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
+      const zakatableValue = (asset.value || 0) * modifier;
       // All active assets are considered zakatable by category
       // Specific eligibility rules are handled by ZakatEngine
-      const category = asset.category.toLowerCase();
+      const category = (asset.category || 'other').toLowerCase();
       if (category in breakdown) {
-        breakdown[category as keyof typeof breakdown] += asset.value;
+        breakdown[category as keyof typeof breakdown] += zakatableValue;
       } else {
-        breakdown.other += asset.value;
+        breakdown.other += zakatableValue;
       }
     }
 
