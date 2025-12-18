@@ -342,11 +342,11 @@ router.get(
       const wealthAggregationService = nisabYearRecordService['wealthAggregationService'];
       const assets = await wealthAggregationService.getZakatableAssets(req.userId);
 
-      // Calculate totals
-      const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
+      // Calculate totals (use per-asset zakatableValue when present)
+      const totalWealth = assets.reduce((sum, asset) => sum + (asset.value || 0), 0);
       const zakatableWealth = assets
         .filter(a => a.isZakatable)
-        .reduce((sum, asset) => sum + asset.value, 0);
+        .reduce((sum, asset) => sum + (typeof (asset as any).zakatableValue === 'number' ? (asset as any).zakatableValue : (asset.value || 0)), 0);
 
       res.status(200).json({
         success: true,
@@ -357,6 +357,8 @@ router.get(
             category: asset.category,
             value: asset.value,
             isZakatable: asset.isZakatable,
+            calculationModifier: (asset as any).calculationModifier,
+            zakatableValue: (asset as any).zakatableValue,
             addedAt: asset.addedAt.toISOString(),
           })),
           totalWealth,

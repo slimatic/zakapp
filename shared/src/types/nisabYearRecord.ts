@@ -158,6 +158,8 @@ export interface UnlockRecordDto {
  */
 export interface LiveTrackingData {
   currentTotalWealth: number; // Current sum of all assets (live calculated)
+  // Optional: currentZakatableWealth reflects wealth after modifiers and eligiblity
+  currentZakatableWealth?: number;
   nisabThreshold: number; // Current Nisab threshold
   daysRemaining: number; // Days until hawlCompletionDate
   hawlProgress: number; // Percentage (0-100)
