@@ -116,6 +116,12 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
         return breakdown;
       }, {} as Record<string, number>)
     };
+    // Net zakatable value across selected assets: only include those marked eligible
+    (summary as any).totalZakatableValue = result.assets.reduce((sum: number, asset: any) => {
+      if (!asset.zakatEligible) return sum;
+      const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
+      return sum + (modifier * (asset.value || 0));
+    }, 0);
 
     // Match API contract format
     const response = {

@@ -681,7 +681,8 @@ router.get('/me',
         const key = `${user.id}`;
         if (!loggedProfileDecryptionFailures.has(key)) {
           loggedProfileDecryptionFailures.add(key);
-          logger.error(`Failed to decrypt profile for user ${user.id} <${user.email}> in /me endpoint: ${error instanceof Error ? error.message : String(error)}`);
+          // Decryption may fail for legacy/unclean data; log at debug level and continue with fallback
+          logger.debug(`Profile decryption failed for user ${user.id} <${user.email}> in /me endpoint: ${error instanceof Error ? error.message : String(error)} - falling back to empty profile`);
         } else {
           logger.debug(`Skipping repeated profile decryption log for user ${user.id}`);
         }

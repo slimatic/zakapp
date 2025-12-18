@@ -481,7 +481,7 @@ router.get('/analytics/metrics', authenticate, validateUserOwnership, analyticsR
       return sendError(res, 'VALIDATION_ERROR', `Invalid metricType. Must be one of: ${validMetricTypes.join(', ')}`, 400);
     }
 
-    const metric = await analyticsService.getMetric(userId, metricType, {
+    const metric = await (analyticsService as any).getMetric(userId, metricType, {
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined
     });
