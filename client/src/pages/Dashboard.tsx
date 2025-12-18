@@ -169,7 +169,7 @@ const EducationalModule: React.FC = () => {
  */
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { currentStep, shouldShowOnboarding, markStepCompleted, completedSteps } = useUserOnboarding();
+  const { currentStep, markComplete, completedSteps } = useUserOnboarding();
   const maskedCurrency = useMaskedCurrency();
 
   // Debug logging
@@ -411,7 +411,7 @@ export const Dashboard: React.FC = () => {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     Great start! You have {new Intl.NumberFormat('en-US', {
                       style: 'currency',
-                      currency: user?.preferences?.currency || 'USD',
+                      currency: (user as any)?.preferences?.currency || 'USD',
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
                     }).format(totalWealth)} in tracked assets.
@@ -443,7 +443,7 @@ export const Dashboard: React.FC = () => {
           <WealthSummaryCard
             totalWealth={totalWealth}
             nisabThreshold={nisabThreshold}
-            currency={user?.preferences?.currency || 'USD'}
+            currency={(user as any)?.preferences?.currency || 'USD'}
           />
 
           {/* T024: Quick Action Cards */}

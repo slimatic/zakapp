@@ -205,9 +205,9 @@ const ZakatDashboard: React.FC = () => {
                   </div>
                 ))}
               </div>
-            ) : recentSnapshots?.snapshots?.length ? (
+            ) : (recentSnapshots?.data as any)?.snapshots?.length ? (
               <div className="space-y-3">
-                {recentSnapshots.snapshots.map((snapshot: any) => (
+                {(recentSnapshots?.data as any)?.snapshots.map((snapshot: any) => (
                   <div key={snapshot.id} className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>

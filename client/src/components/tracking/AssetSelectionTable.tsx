@@ -17,6 +17,8 @@ export interface Asset {
   category: string;
   value: number;
   isZakatable: boolean;
+  calculationModifier?: number;
+  zakatableValue?: number;
   addedAt: string;
 }
 
@@ -51,7 +53,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
     const totalWealth = selectedAssets.reduce((sum, a) => sum + a.value, 0);
     const zakatableWealth = selectedAssets
       .filter(a => a.isZakatable)
-      .reduce((sum, a) => sum + a.value, 0);
+      .reduce((sum, a) => sum + (typeof a.zakatableValue === 'number' ? a.zakatableValue : a.value), 0);
     const zakatAmount = zakatableWealth * 0.025; // 2.5%
 
     return { totalWealth, zakatableWealth, zakatAmount };
@@ -136,6 +138,9 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
               <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Value
               </th>
+              <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                Zakatable
+              </th>
               <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Zakatable
               </th>
@@ -173,6 +178,9 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
                     {formatCurrency(asset.value)}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
+                    {formatCurrency(typeof asset.zakatableValue === 'number' ? asset.zakatableValue : asset.value)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     {asset.isZakatable ? (

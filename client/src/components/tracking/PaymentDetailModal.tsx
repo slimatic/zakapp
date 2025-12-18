@@ -7,6 +7,7 @@ import React from 'react';
 import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
 import { formatGregorianDate, gregorianToHijri, HIJRI_MONTHS } from '../../utils/calendarConverter';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
+import { looksEncrypted } from '../../utils/encryption';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
 import { Button } from '../ui/Button';
 
@@ -130,7 +131,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between items-start">
                 <span className="text-sm font-medium text-gray-600">Name:</span>
-                <span className="text-sm text-gray-900 font-medium">{payment.recipientName}</span>
+                <span className="text-sm text-gray-900 font-medium">{looksEncrypted(payment.recipientName) ? 'Encrypted recipient' : payment.recipientName}</span>
               </div>
 
               <div className="flex justify-between items-start">

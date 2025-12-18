@@ -261,9 +261,9 @@ export class ZakatEngine {
    * For testing/unit purposes, returns mock assets based on assetIds
    */
   private async loadAssets(userId: string, assetIds: string[]): Promise<Asset[]> {
-    // Import PrismaClient directly to avoid issues with AssetService
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
+    // Use central prisma instance for DB access
+    const { prisma: localPrisma } = require('../utils/prisma');
+    const prisma = localPrisma;
 
     try {
       // Build where clause
@@ -295,8 +295,12 @@ export class ZakatEngine {
         subCategory: this.mapAssetSubCategory(asset.category),
         value: asset.value,
         currency: asset.currency,
+        acquisitionDate: asset.acquisitionDate.toISOString(),
         description: asset.notes || undefined,
         zakatEligible: this.isAssetZakatEligible(asset.category),
+        calculationModifier: asset.calculationModifier ?? 1.0,
+        isPassiveInvestment: Boolean(asset.isPassiveInvestment),
+        isRestrictedAccount: Boolean(asset.isRestrictedAccount),
         createdAt: asset.createdAt.toISOString(),
         updatedAt: asset.updatedAt.toISOString()
       }));

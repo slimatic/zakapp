@@ -162,6 +162,7 @@ export class Payment {
     }
 
     // Add non-sensitive fields
+    if (data.snapshotId) updateData.snapshotId = data.snapshotId;
     if (data.calculationId !== undefined) updateData.calculationId = data.calculationId;
     if (data.paymentDate) updateData.paymentDate = data.paymentDate;
     if (data.recipientType) updateData.recipientType = data.recipientType;
@@ -201,10 +202,42 @@ export class Payment {
       throw new Error('ENCRYPTION_KEY environment variable is required');
     }
 
-    const decryptedAmount = await PaymentEncryption.decryptAmount(paymentRecord.amount, encryptionKey);
-    const decryptedRecipientName = await PaymentEncryption.decryptRecipientName(paymentRecord.recipientName, encryptionKey);
-    const decryptedNotes = paymentRecord.notes ? await PaymentEncryption.decryptNotes(paymentRecord.notes, encryptionKey) : undefined;
-    const decryptedReceiptRef = paymentRecord.receiptReference ? await PaymentEncryption.decryptReceiptReference(paymentRecord.receiptReference, encryptionKey) : undefined;
+    // Attempt to decrypt sensitive fields. If decryption fails for any field,
+    // return the raw encrypted value in a companion property and continue —
+    // do NOT throw here so listing endpoints remain resilient.
+    let decryptedAmount: string | undefined;
+    let decryptedRecipientName: string | undefined;
+    let decryptedNotes: string | undefined;
+    let decryptedReceiptRef: string | undefined;
+
+    try {
+      decryptedAmount = await PaymentEncryption.decryptAmount(paymentRecord.amount, encryptionKey);
+    } catch (err) {
+      console.error(`[Payment] Failed to decrypt amount for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
+      // leave decryptedAmount undefined so callers can fallback to raw field
+    }
+
+    try {
+      decryptedRecipientName = await PaymentEncryption.decryptRecipientName(paymentRecord.recipientName, encryptionKey);
+    } catch (err) {
+      console.error(`[Payment] Failed to decrypt recipientName for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+
+    if (paymentRecord.notes) {
+      try {
+        decryptedNotes = await PaymentEncryption.decryptNotes(paymentRecord.notes, encryptionKey);
+      } catch (err) {
+        console.error(`[Payment] Failed to decrypt notes for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    if (paymentRecord.receiptReference) {
+      try {
+        decryptedReceiptRef = await PaymentEncryption.decryptReceiptReference(paymentRecord.receiptReference, encryptionKey);
+      } catch (err) {
+        console.error(`[Payment] Failed to decrypt receiptReference for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
 
     return {
       id: paymentRecord.id,
