@@ -109,7 +109,7 @@ export const FeedbackWidget: React.FC = () => {
       const feedback: FeedbackSubmission = {
         id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         timestamp: new Date().toISOString(),
-        userId: isAuthenticated && user ? user.userId : 'anonymous',
+        userId: isAuthenticated && user ? user.id : 'anonymous',
         email: isAuthenticated && user ? user.email : 'anonymous',
         pageUrl: window.location.href,
         category,

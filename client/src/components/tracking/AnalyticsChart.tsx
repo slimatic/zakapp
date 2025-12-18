@@ -362,7 +362,9 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
           </h3>
           {analytics?.metadata && (
             <p className="text-sm text-gray-600 mt-1" id={`chart-desc-${metricType}`}>
-              {analytics.metadata.period} • Last updated: {new Date(analytics.metadata.lastUpdated).toLocaleDateString()}
+              {String(analytics.metadata.period || '').replace(/_/g, ' ')}
+              {analytics.summary && typeof analytics.summary.cached !== 'undefined' && analytics.summary.cached ? ` • Cached` : ''}
+              {analytics.metadata.lastUpdated ? ` • Last updated: ${new Date(String(analytics.metadata.lastUpdated)).toLocaleDateString()}` : ''}
             </p>
           )}
         </div>
@@ -382,16 +384,18 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
       {analytics?.summary && !compact && (
         <div className="mt-6 pt-4 border-t border-gray-200">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {Object.entries(analytics.summary).map(([key, value]: [string, any]) => (
-              <div key={key} className="text-center">
-                <div className="text-sm font-medium text-gray-700 capitalize">
-                  {key.replace(/_/g, ' ')}
+            {Object.entries(analytics.summary)
+              .filter(([key]) => key !== 'metricType' && key !== 'cached')
+              .map(([key, value]: [string, any]) => (
+                <div key={key} className="text-center">
+                  <div className="text-sm font-medium text-gray-700 capitalize">
+                    {key.replace(/_/g, ' ')}
+                  </div>
+                  <div className="text-lg font-bold text-gray-900">
+                    {typeof value === 'number' ? formatCurrency(value) : String(value)}
+                  </div>
                 </div>
-                <div className="text-lg font-bold text-gray-900">
-                  {typeof value === 'number' ? formatCurrency(value) : String(value)}
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}

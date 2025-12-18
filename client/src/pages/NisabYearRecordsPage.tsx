@@ -114,7 +114,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const activeRecord = selectedRecordId ? records.find((r: any) => r.id === selectedRecordId) : null;
 
   // Fetch payments for the selected record using the tracking endpoint hook
-  const { data: paymentsResp } = usePayments({ snapshotId: selectedRecordId, enabled: !!selectedRecordId });
+  const { data: paymentsResp } = usePayments({ snapshotId: selectedRecordId || undefined, enabled: !!selectedRecordId });
   const payments = paymentsResp?.payments || [];
 
   // Fetch assets for create modal
@@ -133,9 +133,11 @@ export const NisabYearRecordsPage: React.FC = () => {
         name: asset.name,
         category: asset.category || asset.type,
         value: asset.value,
-        // Determine if zakatable based on category
-        // Cash, gold, silver, crypto, business, investments are zakatable
-        isZakatable: ['cash', 'gold', 'silver', 'crypto', 'business', 'investments', 'stocks'].includes((asset.category || asset.type || '').toLowerCase()),
+        // Determine if zakatable using server-provided flag when available
+        isZakatable: asset.zakatEligible !== undefined ? Boolean(asset.zakatEligible) : ['cash', 'gold', 'silver', 'crypto', 'business', 'investments', 'stocks'].includes((asset.category || asset.type || '').toLowerCase()),
+        calculationModifier: typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0,
+        // Only contribute zakatable value when asset is eligible
+        zakatableValue: (asset.zakatEligible === undefined ? ((asset.value || 0) * (typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0)) : (asset.zakatEligible ? ((asset.value || 0) * (typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0)) : 0)),
         // Use createdAt as addedAt
         addedAt: asset.createdAt || asset.acquisitionDate,
       }));
@@ -161,6 +163,14 @@ export const NisabYearRecordsPage: React.FC = () => {
     }
   }, [searchParams, setSearchParams]);
 
+  // Default selection for Create modal: select all zakatable assets by default
+  useEffect(() => {
+    if (assetsData && assetsData.length > 0 && selectedAssetIds.length === 0 && showCreateModal) {
+      const zakatableIds = assetsData.filter((a: Asset) => a.isZakatable).map(a => a.id);
+      setSelectedAssetIds(zakatableIds);
+    }
+  }, [assetsData, selectedAssetIds, showCreateModal]);
+
   // Fetch assets for refresh modal
   const { data: refreshAssetsData, isLoading: isRefreshingAssets } = useQuery({
     queryKey: ['refresh-assets', refreshingRecordId],
@@ -177,12 +187,22 @@ export const NisabYearRecordsPage: React.FC = () => {
         category: asset.category,
         value: asset.value,
         isZakatable: asset.isZakatable, // Backend already determines this
+        calculationModifier: typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0,
+        zakatableValue: typeof asset.zakatableValue === 'number' ? asset.zakatableValue : (asset.value || 0) * (typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0),
         addedAt: asset.addedAt, // Backend returns addedAt as ISO string
       }));
       return { ...response.data, assets };
     },
     enabled: !!refreshingRecordId,
   });
+
+  // When refresh assets are loaded, default the selection to all zakatable assets if none selected
+  useEffect(() => {
+    if (refreshAssetsData?.assets && selectedAssetIds.length === 0) {
+      const zakatableIds = refreshAssetsData.assets.filter((a: any) => a.isZakatable).map((a: any) => a.id);
+      setSelectedAssetIds(zakatableIds);
+    }
+  }, [refreshAssetsData, selectedAssetIds, setSelectedAssetIds]);
 
   // Status badges
   const statusBadges: Record<string, { color: string; label: string }> = {
@@ -209,7 +229,7 @@ export const NisabYearRecordsPage: React.FC = () => {
       // Calculate totals from selected assets
       const selectedAssets = (assetsData || []).filter((a: Asset) => data.selectedAssetIds.includes(a.id));
       const totalWealth = selectedAssets.reduce((sum: number, a: Asset) => sum + a.value, 0);
-      const zakatableWealth = selectedAssets.filter((a: Asset) => a.isZakatable).reduce((sum: number, a: Asset) => sum + a.value, 0);
+      const zakatableWealth = selectedAssets.filter((a: Asset) => a.isZakatable).reduce((sum: number, a: Asset) => sum + (typeof (a as any).zakatableValue === 'number' ? (a as any).zakatableValue : a.value), 0);
       const zakatAmount = zakatableWealth * 0.025;
 
       // Calculate Hijri dates
@@ -874,7 +894,6 @@ export const NisabYearRecordsPage: React.FC = () => {
       {/* Payment Detail Modal */}
       {selectedPaymentForDetails && (
         <PaymentDetailModal
-          isOpen={true}
           payment={selectedPaymentForDetails}
           onClose={() => setSelectedPaymentForDetails(null)}
           onEdit={(p: any) => {
@@ -1079,7 +1098,13 @@ export const NisabYearRecordsPage: React.FC = () => {
                         const totalWealth = selectedAssets.reduce((sum: number, a: Asset) => sum + (a.value || 0), 0);
                         const zakatableWealth = selectedAssets
                           .filter((a: Asset) => a.isZakatable)
-                          .reduce((sum: number, a: Asset) => sum + (a.value || 0), 0);
+                          .reduce((sum: number, a: Asset) => {
+                            // Prefer explicit zakatableValue returned by the refresh endpoint
+                            const zakVal = (a as any).zakatableValue !== undefined
+                              ? (a as any).zakatableValue
+                              : (typeof (a as any).calculationModifier === 'number' ? (a as any).calculationModifier * (a.value || 0) : (a.value || 0));
+                            return sum + zakVal;
+                          }, 0);
                         const zakatAmount = zakatableWealth * 0.025;
                         
                         // Update record with new asset breakdown
@@ -1091,6 +1116,8 @@ export const NisabYearRecordsPage: React.FC = () => {
                               category: a.category,
                               value: a.value,
                               isZakatable: a.isZakatable,
+                              zakatableValue: (a as any).zakatableValue !== undefined ? (a as any).zakatableValue : (typeof (a as any).calculationModifier === 'number' ? (a as any).calculationModifier * (a.value || 0) : (a.value || 0)),
+                              calculationModifier: (a as any).calculationModifier,
                               addedAt: a.addedAt,
                             })),
                             capturedAt: new Date().toISOString(),

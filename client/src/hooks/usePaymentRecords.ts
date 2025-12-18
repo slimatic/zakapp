@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
 import { apiService, ApiResponse } from '../services/api';
-import { ZakatPayment } from '@zakapp/shared';
+import { ZakatPayment } from '../types';
 
 /**
  * Filter options for payment records queries.
@@ -144,7 +144,7 @@ export const useUpdatePayment = () => {
             data: {
               ...page.data,
               payments: page.data?.payments?.map((payment: ZakatPayment) =>
-                payment.paymentId === paymentId ? { ...payment, ...updates } : payment
+                payment.id === paymentId ? { ...payment, ...updates } : payment
               ) || []
             }
           }))
@@ -209,7 +209,7 @@ export const useDeletePayment = () => {
             data: {
               ...page.data,
               payments: page.data?.payments?.filter((payment: ZakatPayment) =>
-                payment.paymentId !== paymentId
+                payment.id !== paymentId
               ) || []
             }
           }))
