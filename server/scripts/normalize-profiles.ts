@@ -1,57 +1,74 @@
-import { PrismaClient } from '@prisma/client';
+#!/usr/bin/env ts-node
+/**
+ * Script: normalize-profiles.ts
+ * Scans all users and identifies profile fields that are not encrypted JSON
+ * Optionally re-encrypts them with the current ENCRYPTION_KEY when --fix is provided
+ * Usage: npx ts-node scripts/normalize-profiles.ts [--fix]
+ */
+import { getPrismaClient } from '../src/utils/prisma';
 import { EncryptionService } from '../src/services/EncryptionService';
 
-const prisma = new PrismaClient();
+async function main() {
+  const fix = process.argv.includes('--fix');
+  const key = process.env.ENCRYPTION_KEY;
+  if (!key) {
+    console.error('ENCRYPTION_KEY env var is required to run this script');
+    process.exit(2);
+  }
 
-async function normalize() {
-  const users = await prisma.user.findMany({ select: { id: true, profile: true, email: true } });
-  let updated = 0;
+  const prisma = getPrismaClient();
+  const users = await prisma.user.findMany({ select: { id: true, email: true, profile: true } });
 
-  const prevRaw = process.env.ENCRYPTION_PREVIOUS_KEYS || '';
-  const prevKeys = prevRaw.split(',').map(k => k.trim()).filter(Boolean);
-  const currentKey = process.env.ENCRYPTION_KEY || '';
+  const problematic: Array<{ id: string; email: string; sample: string }> = [];
 
   for (const u of users) {
-    const profileRaw = u.profile;
-    if (!profileRaw) continue;
+    const profile = u.profile;
+    if (!profile) continue;
 
-    // Try current key first
     try {
-      await EncryptionService.decryptObject(profileRaw, currentKey);
-      continue; // already decryptable
-    } catch (e) {
-      // try previous keys
-    }
+      const dec = await EncryptionService.decryptObject(profile as any, key);
+      if (typeof dec === 'string') {
+        // decrypted to string - might be plain JSON text or legacy plaintext
+        let parsed = null;
+        try {
+          parsed = JSON.parse(dec);
+        } catch (_e) {
+          // not JSON
+        }
 
-    let decrypted: any = null;
-    for (let i = 0; i < prevKeys.length; i++) {
-      try {
-        decrypted = await EncryptionService.decryptObject(profileRaw, prevKeys[i]);
-        console.log(`User ${u.id} decrypted using previous key index ${i}`);
-        break;
-      } catch (err) {
-        // continue
+        if (!parsed) {
+          problematic.push({ id: u.id, email: u.email, sample: String(dec).slice(0, 200) });
+          if (fix) {
+            // Wrap string into an object and re-encrypt
+            const normalized = { raw: dec };
+            const encrypted = await EncryptionService.encryptObject(normalized, key);
+            await prisma.user.update({ where: { id: u.id }, data: { profile: encrypted } });
+            console.log(`[fix] Updated profile for user ${u.id} <${u.email}>`);
+          }
+        }
       }
-    }
-
-    if (decrypted) {
-      // Re-encrypt with current key
-      try {
-        const reenc = await EncryptionService.encryptObject(decrypted, currentKey);
-        await prisma.user.update({ where: { id: u.id }, data: { profile: reenc } });
-        updated++;
-        console.log(`Re-encrypted profile for user ${u.id} (${u.email})`);
-      } catch (err) {
-        console.error(`Failed to re-encrypt profile for user ${u.id}:`, err instanceof Error ? err.message : err);
+    } catch (err) {
+      problematic.push({ id: u.id, email: u.email, sample: String(profile).slice(0, 200) });
+      if (fix) {
+        try {
+          const normalized = { raw: profile };
+          const encrypted = await EncryptionService.encryptObject(normalized, key);
+          await prisma.user.update({ where: { id: u.id }, data: { profile: encrypted } });
+          console.log(`[fix] Re-encrypted profile for user ${u.id} <${u.email}> (previously unparseable)`);
+        } catch (e) {
+          console.error(`[fix] Failed to re-encrypt profile for user ${u.id}: ${e instanceof Error ? e.message : e}`);
+        }
       }
     }
   }
 
-  console.log(`Normalization complete. Updated ${updated} profiles.`);
-  await prisma.$disconnect();
+  console.log('Scan complete. Problematic profiles:', problematic.length);
+  for (const p of problematic) console.log(` - ${p.id} <${p.email}> sample=${p.sample}`);
+  if (!fix) console.log('Run with --fix to attempt automatic normalization (may produce data changes).');
+  process.exit(0);
 }
 
-normalize().catch(err => {
-  console.error('Normalization failed:', err instanceof Error ? err.message : err);
+main().catch(err => {
+  console.error('Script failed:', err instanceof Error ? err.message : err);
   process.exit(1);
 });
