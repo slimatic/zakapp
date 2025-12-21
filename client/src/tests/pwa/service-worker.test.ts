@@ -300,10 +300,23 @@ describe('Service Worker Tests', () => {
 
     it('should reload page after update', async () => {
       const reload = jest.fn();
-      Object.defineProperty(window.location, 'reload', {
-        value: reload,
-        writable: true,
-      });
+      try {
+        Object.defineProperty(window.location, 'reload', {
+          value: reload,
+          writable: true,
+        });
+      } catch (err) {
+        // Fallback: replace location object when property is non-configurable
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const originalLocation = window.location;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        delete (window as any).location;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        (window as any).location = { ...originalLocation, reload };
+      }
 
       mockServiceWorkerContainer.controller = {
         postMessage: jest.fn(),
@@ -341,15 +354,28 @@ describe('Service Worker Tests', () => {
 
   describe('Push Notifications', () => {
     it('should request notification permission', async () => {
-      Object.defineProperty(window.Notification, 'permission', {
-        value: 'default',
-        writable: true,
-      });
+      try {
+        Object.defineProperty(window.Notification, 'permission', {
+          value: 'default',
+          writable: true,
+        });
 
-      Object.defineProperty(window.Notification, 'requestPermission', {
-        value: jest.fn().mockResolvedValue('granted'),
-        writable: true,
-      });
+        Object.defineProperty(window.Notification, 'requestPermission', {
+          value: jest.fn().mockResolvedValue('granted'),
+          writable: true,
+        });
+      } catch (err) {
+        // Fallback: replace Notification object when properties are non-configurable
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const originalNotification = window.Notification;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        delete (window as any).Notification;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        (window as any).Notification = { ...originalNotification, permission: 'default', requestPermission: jest.fn().mockResolvedValue('granted') };
+      }
 
       const permission = await Notification.requestPermission();
       

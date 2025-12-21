@@ -108,20 +108,28 @@ describe('PWA Installation Tests', () => {
   describe('App Installation Status', () => {
     it('should detect if app is installed', () => {
       // Mock standalone mode
-      Object.defineProperty(window.navigator, 'standalone', {
-        value: true,
-        writable: true,
-      });
+      try {
+        Object.defineProperty(window.navigator, 'standalone', {
+          value: true,
+          writable: true,
+        });
+      } catch (err) {
+        // ignore non-configurable property
+      }
 
-      Object.defineProperty(window, 'matchMedia', {
-        value: jest.fn().mockImplementation((query) => ({
-          matches: query === '(display-mode: standalone)',
-          media: query,
-          addEventListener: jest.fn(),
-          removeEventListener: jest.fn(),
-        })),
-        writable: true,
-      });
+      try {
+        Object.defineProperty(window, 'matchMedia', {
+          value: jest.fn().mockImplementation((query) => ({
+            matches: query === '(display-mode: standalone)',
+            media: query,
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+          })),
+          writable: true,
+        });
+      } catch (err) {
+        // ignore non-configurable property
+      }
 
       const isInstalled = 
         (window.navigator as any).standalone === true ||
