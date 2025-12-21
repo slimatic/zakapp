@@ -60,7 +60,7 @@ describe('PaymentForm', () => {
     fireEvent.change(selects[0], { target: { value: 'mosque' } });
     fireEvent.change(selects[1], { target: { value: 'general' } });
     fireEvent.change(selects[2], { target: { value: 'bank_transfer' } });
-    fireEvent.change(screen.getByLabelText(/notes/i), {
+    fireEvent.change(screen.getByPlaceholderText(/optional notes about this payment/i), {
       target: { value: 'Ramadan Zakat payment' }
     });
 
