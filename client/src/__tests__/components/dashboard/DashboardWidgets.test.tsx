@@ -134,7 +134,8 @@ describe('Dashboard widgets', () => {
       expect(screen.getByRole('button', { name: /collapse guide/i })).toBeInTheDocument();
   const stepTitle = screen.getAllByText(/create nisab record/i)[0];
   expect(stepTitle).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /create nisab record/i })).toBeInTheDocument();
+      // The action is implemented as a link; assert link is present and accessible
+      expect(screen.getByRole('link', { name: /create nisab record/i })).toBeInTheDocument();
       expect(screen.getByText(/1 of 3 completed/i)).toBeInTheDocument();
       expect(screen.getByText(/✓ Completed/)).toBeInTheDocument();
     });

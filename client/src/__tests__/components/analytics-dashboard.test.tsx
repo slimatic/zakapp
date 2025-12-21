@@ -34,7 +34,7 @@ describe('AnalyticsDashboard', () => {
     const totalAmountCard = totalAmountLabel.closest('div');
     expect(totalAmountCard).toBeTruthy();
     if (totalAmountCard) {
-      expect(totalAmountCard.querySelector('div')?.textContent).toMatch(/\$15,000/);
+      expect(totalAmountCard.textContent).toMatch(/\$15,000/);
     }
   });
 
