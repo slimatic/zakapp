@@ -14,6 +14,17 @@ jest.mock('../../hooks/useAnalytics', () => ({
   useAnalytics: jest.fn()
 }));
 
+// Use manual ui mock so LoadingSpinner renders a simple test-friendly element
+jest.mock('../../components/ui');
+
+// Ensure LoadingSpinner is explicitly mocked to a simple element with a data-testid for reliable selection
+jest.mock('../../components/ui/LoadingSpinner', () => ({
+  LoadingSpinner: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'loading-spinner' });
+  }
+}));
+
 // Mock Recharts components to avoid canvas rendering issues in tests
 jest.mock('recharts', () => ({
   LineChart: ({ children }: any) => {
@@ -346,10 +357,4 @@ describe('AnalyticsChart - Error Handling', () => {
   });
 });
 
-// Mock LoadingSpinner component
-jest.mock('../../components/ui/LoadingSpinner', () => ({
-  LoadingSpinner: () => {
-    const React = require('react');
-    return React.createElement('div', { 'data-testid': 'loading-spinner' }, 'Loading...');
-  }
-}));
+
