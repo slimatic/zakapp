@@ -30,7 +30,6 @@ const mockPayment = {
   receiptReference: '',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
-  snapshotId: 's-1'
 };
 
 describe('PaymentRecordForm (delete)', () => {
@@ -40,8 +39,9 @@ describe('PaymentRecordForm (delete)', () => {
 
   const renderWithClient = (ui: React.ReactElement) => {
     const qc = new QueryClient();
-    return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
-  };
+    const React = require('react');
+    return render(React.createElement(QueryClientProvider, { client: qc }, ui));
+};
 
   it('shows delete button when editing and calls deletePayment when confirmed (no nisabRecordId)', async () => {
     window.confirm = jest.fn(() => true);

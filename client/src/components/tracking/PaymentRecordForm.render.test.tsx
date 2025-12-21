@@ -6,7 +6,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const renderWithClient = (ui: React.ReactElement) => {
   const qc = new QueryClient();
-  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+  const React = require('react');
+  return render(React.createElement(QueryClientProvider, { client: qc }, ui));
 };
 
 describe('PaymentRecordForm mount', () => {

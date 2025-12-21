@@ -1,4 +1,4 @@
-import React from 'react';
+// Avoid importing React at module scope to prevent accidental references inside jest.mock factories
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,29 +20,25 @@ jest.mock('../../services/apiHooks', () => ({
 
 // Mock UI components
 jest.mock('../ui', () => ({
-  Button: ({ children, isLoading, disabled, ...props }: any) => (
-    <button disabled={disabled || isLoading} {...props}>
-      {children}
-    </button>
-  ),
-  Input: (props: any) => <input {...props} />
+  Button: ({ children, isLoading, disabled, ...props }: any) => {
+    const React = require('react');
+    return React.createElement('button', { disabled: disabled || isLoading, ...props }, children);
+  },
+  Input: (props: any) => {
+    const React = require('react');
+    return React.createElement('input', props);
+  }
 }));
 
-const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const TestWrapper = ({ children }: { children: any }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
       mutations: { retry: false }
     }
   });
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
-    </QueryClientProvider>
-  );
+  const React = require('react');
+  return React.createElement(QueryClientProvider, { client: queryClient }, React.createElement(BrowserRouter, null, children));
 };
 
 describe('AssetFormPage', () => {

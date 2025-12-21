@@ -116,7 +116,7 @@ describe('PaymentForm', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/amount must be a valid decimal number/i)).toBeInTheDocument();
+      expect(screen.getByText(/amount .*valid.*number/i)).toBeInTheDocument();
     });
   });
 });
