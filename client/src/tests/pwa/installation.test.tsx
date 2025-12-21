@@ -324,10 +324,23 @@ describe('PWA Installation Tests', () => {
 
     it('should reload app on update', () => {
       const reload = jest.fn();
-      Object.defineProperty(window.location, 'reload', {
-        value: reload,
-        writable: true,
-      });
+      try {
+        Object.defineProperty(window.location, 'reload', {
+          value: reload,
+          writable: true,
+        });
+      } catch (err) {
+        // Fallback: replace location object when property is non-configurable
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const originalLocation = window.location;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        delete (window as any).location;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        (window as any).location = { ...originalLocation, reload };
+      }
 
       const handleUpdate = () => {
         // In real implementation, would call skipWaiting on service worker
