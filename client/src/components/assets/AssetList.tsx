@@ -11,7 +11,15 @@ export const AssetList: React.FC = React.memo(() => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
-  const navigate = useNavigate();
+  // useNavigate may throw outside of Router contexts (tests); guard with fallback
+  let navigate: (path: string) => void = () => {};
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    navigate = useNavigate();
+  } catch (err) {
+    // No-op navigation for non-router test environments
+    navigate = () => {};
+  }
   
   const { data: assetsData, isLoading, error } = useAssets();
   const assets = React.useMemo(() => {

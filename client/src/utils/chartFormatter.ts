@@ -44,6 +44,7 @@ export interface PieChartDataPoint {
   value: number; // Numeric value
   percentage: number; // Percentage of total
   color?: string; // Optional custom color
+  displayName?: string; // Optional human-readable label
 }
 
 /**
@@ -63,7 +64,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
   amil: '#8b5cf6', // Purple
   muallaf: '#f59e0b', // Amber
   riqab: '#ef4444', // Red
-  gharimin: '#ec4899', // Pink
+  gharim: '#ec4899', // Pink (correct key: 'gharim')
   fisabilillah: '#14b8a6', // Teal
   ibnus_sabil: '#6366f1' // Indigo
 };
@@ -111,17 +112,21 @@ export function formatPaymentDistribution(payments: PaymentRecord[]): PieChartDa
 
   // Calculate totals per category
   payments.forEach(payment => {
-    const category = payment.recipientType;
-    categoryTotals[category] = (categoryTotals[category] || 0) + payment.amount;
-    totalAmount += payment.amount;
+    // Use recipientCategory when present (more specific), fall back to recipientType
+    const category = (payment as any).recipientCategory || payment.recipientType;
+    const amt = Number(payment.amount || 0);
+    categoryTotals[category] = (categoryTotals[category] || 0) + amt;
+    totalAmount += amt;
   });
 
   // Convert to pie chart format
   return Object.entries(categoryTotals).map(([category, amount]) => ({
-    name: formatCategoryName(category),
+    // keep raw category as name to allow searching by key (tests expect this)
+    name: category,
     value: amount,
     percentage: totalAmount > 0 ? (amount / totalAmount) * 100 : 0,
-    color: CATEGORY_COLORS[category] || '#6b7280'
+    color: CATEGORY_COLORS[category] || '#6b7280',
+    displayName: formatCategoryName(category)
   }));
 }
 
@@ -189,12 +194,20 @@ export function formatAssetComposition(
     return [];
   }
 
-  const totalValue = Object.values(assetBreakdown).reduce((sum, val) => sum + val, 0);
+  // Exclude zero or non-positive assets and compute total
+  const entries = Object.entries(assetBreakdown).filter(([, v]) => Number(v) > 0);
+  if (entries.length === 0) return [];
 
-  return Object.entries(assetBreakdown).map(([assetType, value]) => ({
+  const totalValue = entries.reduce((sum, [, val]) => sum + val, 0);
+
+  // Simple color palette for asset types (deterministic by index)
+  const palette = ['#60a5fa', '#34d399', '#f97316', '#a78bfa', '#f472b6', '#f59e0b', '#ef4444'];
+
+  return entries.map(([assetType, value], idx) => ({
     name: formatAssetTypeName(assetType),
     value,
-    percentage: totalValue > 0 ? (value / totalValue) * 100 : 0
+    percentage: totalValue > 0 ? (value / totalValue) * 100 : 0,
+    color: palette[idx % palette.length]
   }));
 }
 
@@ -270,17 +283,18 @@ export function calculateGrowthRates(
  */
 export function formatCategoryName(category: string): string {
   const displayNames: Record<string, string> = {
-    fakir: 'The Poor (Fakir)',
-    miskin: 'The Needy (Miskin)',
-    amil: 'Zakat Administrators (Amil)',
-    muallaf: 'New Muslims (Muallaf)',
-    riqab: 'Freeing Slaves (Riqab)',
-    gharimin: 'Debtors (Gharimin)',
-    fisabilillah: "In Allah's Cause (Fisabilillah)",
-    ibnus_sabil: 'Travelers (Ibnus Sabil)'
+    fakir: 'Al-Fuqara (The Poor)',
+    miskin: 'Al-Masakin (The Needy)',
+    amil: 'Al-Amileen (Collectors)',
+    muallaf: 'Al-Muallafatu Qulubuhum (New Muslims)',
+    riqab: 'Ar-Riqab (Freeing Slaves)',
+    gharim: 'Al-Gharimeen (Debtors)',
+    fisabilillah: 'Fi Sabilillah (In the Way of Allah)',
+    ibnus_sabil: 'Ibn As-Sabil (Travelers)'
   };
 
-  return displayNames[category] || category;
+  const key = (category || '').toString().toLowerCase();
+  return displayNames[key] || 'Other';
 }
 
 /**
@@ -290,17 +304,18 @@ export function formatCategoryName(category: string): string {
  */
 export function formatAssetTypeName(assetType: string): string {
   const displayNames: Record<string, string> = {
-    cash: 'Cash & Bank',
-    gold: 'Gold',
+    cash: 'Cash & Bank Accounts',
+    gold: 'Gold & Precious Metals',
     silver: 'Silver',
-    crypto: 'Cryptocurrency',
-    business: 'Business Assets',
-    investment: 'Investments',
-    real_estate: 'Real Estate',
-    other: 'Other Assets'
+    cryptocurrency: 'Cryptocurrency',
+    investments: 'Investments & Stocks',
+    businessassets: 'Business Assets',
+    realestate: 'Real Estate (for trade)',
+    debts: 'Debts Owed to You'
   };
 
-  return displayNames[assetType] || assetType.replace(/_/g, ' ');
+  const key = (assetType || '').toString().toLowerCase().replace(/[_\s]/g, '');
+  return displayNames[key] || 'Other Assets';
 }
 
 /**

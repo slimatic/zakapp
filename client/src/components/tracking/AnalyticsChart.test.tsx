@@ -16,21 +16,66 @@ jest.mock('../../hooks/useAnalytics', () => ({
 
 // Mock Recharts components to avoid canvas rendering issues in tests
 jest.mock('recharts', () => ({
-  LineChart: ({ children }: any) => <div data-testid="line-chart">{children}</div>,
-  BarChart: ({ children }: any) => <div data-testid="bar-chart">{children}</div>,
-  PieChart: ({ children }: any) => <div data-testid="pie-chart">{children}</div>,
-  AreaChart: ({ children }: any) => <div data-testid="area-chart">{children}</div>,
-  Line: () => <div data-testid="line" />,
-  Bar: () => <div data-testid="bar" />,
-  Pie: ({ children }: any) => <div data-testid="pie">{children}</div>,
-  Area: () => <div data-testid="area" />,
-  Cell: () => <div data-testid="cell" />,
-  XAxis: () => <div data-testid="x-axis" />,
-  YAxis: () => <div data-testid="y-axis" />,
-  CartesianGrid: () => <div data-testid="cartesian-grid" />,
-  Tooltip: () => <div data-testid="tooltip" />,
-  Legend: () => <div data-testid="legend" />,
-  ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>
+  LineChart: ({ children }: any) => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'line-chart' }, children);
+  },
+  BarChart: ({ children }: any) => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'bar-chart' }, children);
+  },
+  PieChart: ({ children }: any) => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'pie-chart' }, children);
+  },
+  AreaChart: ({ children }: any) => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'area-chart' }, children);
+  },
+  Line: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'line' });
+  },
+  Bar: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'bar' });
+  },
+  Pie: ({ children }: any) => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'pie' }, children);
+  },
+  Area: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'area' });
+  },
+  Cell: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'cell' });
+  },
+  XAxis: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'x-axis' });
+  },
+  YAxis: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'y-axis' });
+  },
+  CartesianGrid: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'cartesian-grid' });
+  },
+  Tooltip: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'tooltip' });
+  },
+  Legend: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'legend' });
+  },
+  ResponsiveContainer: ({ children }: any) => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'responsive-container' }, children);
+  }
 }));
 
 const createWrapper = () => {
@@ -40,11 +85,10 @@ const createWrapper = () => {
     },
   });
 
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  return ({ children }: { children: any }) => {
+    const React = require('react');
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
+  };
 };
 
 describe('AnalyticsChart - Wealth Trend (T043)', () => {
@@ -304,5 +348,8 @@ describe('AnalyticsChart - Error Handling', () => {
 
 // Mock LoadingSpinner component
 jest.mock('../../components/ui/LoadingSpinner', () => ({
-  LoadingSpinner: () => <div data-testid="loading-spinner">Loading...</div>
+  LoadingSpinner: () => {
+    const React = require('react');
+    return React.createElement('div', { 'data-testid': 'loading-spinner' }, 'Loading...');
+  }
 }));
