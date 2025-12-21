@@ -28,8 +28,14 @@ describe('AnalyticsDashboard', () => {
 
     expect(screen.getByText('Total Payments')).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();
-    expect(screen.getByText('Total Amount')).toBeInTheDocument();
-    expect(screen.getByText(/\$15,000/)).toBeInTheDocument();
+    const totalAmountLabel = screen.getByText('Total Amount');
+    expect(totalAmountLabel).toBeInTheDocument();
+    // Ensure the total amount is rendered within the Total Amount card
+    const totalAmountCard = totalAmountLabel.closest('div');
+    expect(totalAmountCard).toBeTruthy();
+    if (totalAmountCard) {
+      expect(totalAmountCard.querySelector('div')?.textContent).toMatch(/\$15,000/);
+    }
   });
 
   it('displays monthly trends chart', async () => {
