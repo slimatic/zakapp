@@ -57,15 +57,12 @@ describe('PaymentForm', () => {
     fireEvent.change(screen.getByLabelText(/recipient name/i), {
       target: { value: 'Local Mosque' }
     });
-    fireEvent.change(screen.getByLabelText(/recipient type/i), {
-      target: { value: 'mosque' }
-    });
-    fireEvent.change(screen.getByLabelText(/recipient category/i), {
-      target: { value: 'general' }
-    });
-    fireEvent.change(screen.getByLabelText(/payment method/i), {
-      target: { value: 'bank_transfer' }
-    });
+    // Selects don't have explicit ids in markup; use combobox role to target them reliably
+    const selects = screen.getAllByRole('combobox');
+    // Order: recipient type, recipient category, payment method
+    fireEvent.change(selects[0], { target: { value: 'mosque' } });
+    fireEvent.change(selects[1], { target: { value: 'general' } });
+    fireEvent.change(selects[2], { target: { value: 'bank_transfer' } });
     fireEvent.change(screen.getByLabelText(/notes/i), {
       target: { value: 'Ramadan Zakat payment' }
     });
@@ -91,7 +88,7 @@ describe('PaymentForm', () => {
   it('shows loading state during submission', () => {
     render(<PaymentForm {...defaultProps} isLoading={true} />);
 
-    const submitButton = screen.getByRole('button', { name: /submit|save/i });
+    const submitButton = screen.getByRole('button', { name: /saving/i });
     expect(submitButton).toBeDisabled();
     expect(screen.getByText(/saving/i)).toBeInTheDocument();
   });
@@ -115,8 +112,7 @@ describe('PaymentForm', () => {
     const submitButton = screen.getByRole('button', { name: /submit|save|saving/i });
     fireEvent.click(submitButton);
 
-    await waitFor(() => {
-      expect(screen.getByText(/amount .*valid.*number|amount is required/i)).toBeInTheDocument();
-    });
+    // Use findByText for better async robustness
+    await screen.findByText(/amount .*valid.*number|amount is required/i);
   });
 });
