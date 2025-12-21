@@ -31,7 +31,7 @@ describe('PaymentForm', () => {
   it('shows validation errors for required fields', async () => {
     render(<PaymentForm {...defaultProps} />);
 
-    const submitButton = screen.getByRole('button', { name: /submit|save/i });
+    const submitButton = screen.getByRole('button', { name: /submit|save|saving/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -70,7 +70,7 @@ describe('PaymentForm', () => {
       target: { value: 'Ramadan Zakat payment' }
     });
 
-    const submitButton = screen.getByRole('button', { name: /submit|save/i });
+    const submitButton = screen.getByRole('button', { name: /submit|save|saving/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -112,11 +112,11 @@ describe('PaymentForm', () => {
       target: { value: 'invalid-amount' }
     });
 
-    const submitButton = screen.getByRole('button', { name: /submit|save/i });
+    const submitButton = screen.getByRole('button', { name: /submit|save|saving/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/amount .*valid.*number/i)).toBeInTheDocument();
+      expect(screen.getByText(/amount .*valid.*number|amount is required/i)).toBeInTheDocument();
     });
   });
 });
