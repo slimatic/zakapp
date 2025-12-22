@@ -54,6 +54,10 @@ describe('AssetForm - Passive Investment Feature (US1 - T022)', () => {
 });
 */
 
+describe.skip('AssetForm - Passive Investment Feature (spec)', () => {
+  it('spec file - no runtime tests (TDD spec)', () => {});
+});
+
 export const PASSIVE_INVESTMENT_TEST_SPEC = {
   description: 'AssetForm passive investment feature tests (TDD - tests before implementation)',
   testSuites: [

@@ -89,9 +89,24 @@ describe('pdfGenerator utility', () => {
     mockDoc = {
       setFontSize: jest.fn(),
       setFont: jest.fn(),
+      setTextColor: jest.fn(),
       text: jest.fn(),
-      addPage: jest.fn(),
+      addPage: jest.fn(function () {
+        // simulate adding a page by incrementing pageCount
+        this._pageCount = (this._pageCount || 1) + 1;
+      }),
       save: jest.fn(),
+      setPage: jest.fn(function (page: number) {
+        this._currentPage = page;
+      }),
+      getNumberOfPages: jest.fn(function () {
+        return this._pageCount || 1;
+      }),
+      splitTextToSize: jest.fn((text: string) => {
+        // simple splitter for tests: return single line or split on newlines
+        if (!text) return [''];
+        return String(text).split('\n');
+      }),
       internal: {
         pageSize: {
           getWidth: jest.fn().mockReturnValue(210),
@@ -100,7 +115,10 @@ describe('pdfGenerator utility', () => {
       },
       lastAutoTable: {
         finalY: 100
-      }
+      },
+      // internal page counter
+      _pageCount: 1,
+      _currentPage: 1
     };
 
     (jsPDF as jest.MockedClass<typeof jsPDF>).mockImplementation(() => mockDoc);
@@ -305,56 +323,52 @@ describe('pdfGenerator utility', () => {
     it('should include receipt reference number', () => {
       generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
-      expect(mockDoc.text).toHaveBeenCalledWith(
-        expect.stringContaining('RCPT-2024-001'),
-        expect.any(Number),
-        expect.any(Number),
-        expect.any(Object)
+      // Receipt ID is written without alignment/options in its own column
+      expect((mockDoc.text as jest.Mock).mock.calls).toEqual(
+        expect.arrayContaining([
+          expect.arrayContaining([expect.stringContaining('RCPT-2024-001'), expect.any(Number), expect.any(Number)])
+        ])
       );
     });
 
     it('should include payment amount', () => {
       generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
-      // Should format and display the amount
-      expect(mockDoc.text).toHaveBeenCalledWith(
-        expect.stringContaining('1,000'),
-        expect.any(Number),
-        expect.any(Number),
-        expect.any(Object)
+      // Should format and display the amount (calls may not include options)
+      expect((mockDoc.text as jest.Mock).mock.calls).toEqual(
+        expect.arrayContaining([
+          expect.arrayContaining([expect.stringContaining('1,000'), expect.any(Number), expect.any(Number)])
+        ])
       );
     });
 
     it('should include payment date', () => {
       generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
-      expect(mockDoc.text).toHaveBeenCalledWith(
-        expect.stringContaining('Jul'),
-        expect.any(Number),
-        expect.any(Number),
-        expect.any(Object)
+      expect((mockDoc.text as jest.Mock).mock.calls).toEqual(
+        expect.arrayContaining([
+          expect.arrayContaining([expect.stringContaining('Jul'), expect.any(Number), expect.any(Number)])
+        ])
       );
     });
 
     it('should include recipient information', () => {
       generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
-      expect(mockDoc.text).toHaveBeenCalledWith(
-        expect.stringContaining('Test Organization'),
-        expect.any(Number),
-        expect.any(Number),
-        expect.any(Object)
+      expect((mockDoc.text as jest.Mock).mock.calls).toEqual(
+        expect.arrayContaining([
+          expect.arrayContaining([expect.stringContaining('Test Organization'), expect.any(Number), expect.any(Number)])
+        ])
       );
     });
 
     it('should include payment method', () => {
       generatePaymentReceiptPDF(mockPayment, mockSnapshot);
 
-      expect(mockDoc.text).toHaveBeenCalledWith(
-        expect.stringContaining('bank_transfer'),
-        expect.any(Number),
-        expect.any(Number),
-        expect.any(Object)
+      expect((mockDoc.text as jest.Mock).mock.calls).toEqual(
+        expect.arrayContaining([
+          expect.arrayContaining([expect.stringContaining('bank_transfer'), expect.any(Number), expect.any(Number)])
+        ])
       );
     });
 
@@ -424,7 +438,6 @@ describe('pdfGenerator utility', () => {
       });
 
       // Should have multiple sections with proper spacing
-      expect(mockDoc.text).toHaveBeenCalledTimes(expect.any(Number));
       expect((mockDoc.text as jest.Mock).mock.calls.length).toBeGreaterThan(5);
     });
   });
