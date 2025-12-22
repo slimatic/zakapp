@@ -108,20 +108,28 @@ describe('PWA Installation Tests', () => {
   describe('App Installation Status', () => {
     it('should detect if app is installed', () => {
       // Mock standalone mode
-      Object.defineProperty(window.navigator, 'standalone', {
-        value: true,
-        writable: true,
-      });
+      try {
+        Object.defineProperty(window.navigator, 'standalone', {
+          value: true,
+          writable: true,
+        });
+      } catch (err) {
+        // ignore non-configurable property
+      }
 
-      Object.defineProperty(window, 'matchMedia', {
-        value: jest.fn().mockImplementation((query) => ({
-          matches: query === '(display-mode: standalone)',
-          media: query,
-          addEventListener: jest.fn(),
-          removeEventListener: jest.fn(),
-        })),
-        writable: true,
-      });
+      try {
+        Object.defineProperty(window, 'matchMedia', {
+          value: jest.fn().mockImplementation((query) => ({
+            matches: query === '(display-mode: standalone)',
+            media: query,
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+          })),
+          writable: true,
+        });
+      } catch (err) {
+        // ignore non-configurable property
+      }
 
       const isInstalled = 
         (window.navigator as any).standalone === true ||
@@ -316,10 +324,23 @@ describe('PWA Installation Tests', () => {
 
     it('should reload app on update', () => {
       const reload = jest.fn();
-      Object.defineProperty(window.location, 'reload', {
-        value: reload,
-        writable: true,
-      });
+      try {
+        Object.defineProperty(window.location, 'reload', {
+          value: reload,
+          writable: true,
+        });
+      } catch (err) {
+        // Fallback: replace location object when property is non-configurable
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const originalLocation = window.location;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        delete (window as any).location;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        (window as any).location = { ...originalLocation, reload };
+      }
 
       const handleUpdate = () => {
         // In real implementation, would call skipWaiting on service worker

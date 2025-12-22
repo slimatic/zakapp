@@ -260,11 +260,12 @@ export function generatePaymentReceiptPDF(
   doc.setFont('helvetica', 'normal');
 
   const details = [
-    ['Receipt ID', payment.id.slice(0, 8)],
+    ['Receipt ID', payment.receiptReference || payment.id.slice(0, 8)],
     ['Payment Date', formatDualCalendar(payment.paymentDate)],
     ['Amount', formatCurrency(payment.amount)],
     ['Category', formatCategoryName(payment.recipientType)],
     ['Recipient', payment.recipientName || 'Anonymous'],
+    ['Payment Method', payment.paymentMethod || 'Unknown'],
     ['Year', `${snapshot.gregorianYear} (${snapshot.hijriYear} AH)`]
   ];
 
