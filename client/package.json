@@ -39,7 +39,7 @@
     "recharts": "^3.2.1",
     "typescript": "4.9.5",
     "web-vitals": "^2.1.4",
-    "zod": "^4.1.11"
+    "zod": "^3.22.4"
   },
   "scripts": {
     "dev": "vite",
@@ -106,7 +106,11 @@
       "^@types/(.*)$": "<rootDir>/src/types/$1",
       "^@data/(.*)$": "<rootDir>/src/data/$1",
       "^@zakapp/shared$": "<rootDir>/../shared/src/index.ts",
-      "^@zakapp/shared/(.*)$": "<rootDir>/../shared/src/$1"
-    }
+      "^@zakapp/shared/(.*)$": "<rootDir>/../shared/src/$1",
+      "^(.*)\\.js$": "$1"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!zod)"
+    ]
   }
 }
