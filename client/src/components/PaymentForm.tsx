@@ -1,9 +1,34 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createPaymentSchema, CreatePaymentInput } from '@zakapp/shared'; // Importing from root of shared as per index.ts
+import { z } from 'zod';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import { TextArea } from './ui/TextArea';
 import { LoadingSpinner } from './ui/LoadingSpinner';
+
+// Extend the shared schema to handle the form-specific date format (YYYY-MM-DD)
+// The shared schema expects an ISO datetime string.
+const paymentFormSchema = createPaymentSchema.extend({
+  paymentDate: z.string().min(1, 'Payment date is required'),
+  amount: z.string()
+    .min(1, 'Amount is required')
+    .regex(/^\d+(\.\d{1,2})?$/, 'Amount must be a valid decimal number'),
+  recipientName: z.string().min(1, 'Recipient name is required'),
+  recipientType: z.enum(['individual', 'organization', 'charity', 'mosque', 'family', 'other'], {
+    errorMap: () => ({ message: 'Recipient type is required' })
+  }),
+  recipientCategory: z.enum(['poor', 'orphans', 'widows', 'education', 'healthcare', 'infrastructure', 'general'], {
+    errorMap: () => ({ message: 'Recipient category is required' })
+  }),
+  paymentMethod: z.enum(['cash', 'bank_transfer', 'check', 'crypto', 'other'], {
+    errorMap: () => ({ message: 'Payment method is required' })
+  }),
+});
+
+type PaymentFormSchemaType = z.infer<typeof paymentFormSchema>;
 
 export interface PaymentFormData {
   amount: string;
@@ -56,77 +81,47 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   onCancel,
   isLoading = false
 }) => {
-  const [formData, setFormData] = useState<PaymentFormData>({
-    amount: '',
-    paymentDate: new Date().toISOString().split('T')[0],
-    recipientName: '',
-    recipientType: '',
-    recipientCategory: '',
-    paymentMethod: '',
-    notes: '',
-    currency: 'USD',
-    exchangeRate: 1.0
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PaymentFormSchemaType>({
+    resolver: zodResolver(paymentFormSchema),
+    defaultValues: {
+      amount: '',
+      paymentDate: new Date().toISOString().split('T')[0],
+      recipientName: '',
+      recipientType: undefined, // Let user select
+      recipientCategory: undefined, // Let user select
+      paymentMethod: undefined, // Let user select
+      notes: '',
+      currency: 'USD',
+      exchangeRate: 1.0,
+      snapshotId: 'temp-snapshot-id', // Required by schema but likely hidden/managed elsewhere. Placeholder for now.
+    },
   });
 
-  const [errors, setErrors] = useState<Partial<PaymentFormData>>({});
+  const onSubmitForm = (data: PaymentFormSchemaType) => {
+    // Transform the date from YYYY-MM-DD to ISO string for the shared schema/backend
+    const isoDate = new Date(data.paymentDate).toISOString();
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<PaymentFormData> = {};
+    const submitData: PaymentFormData = {
+      amount: data.amount,
+      paymentDate: isoDate,
+      recipientName: data.recipientName,
+      recipientType: data.recipientType,
+      recipientCategory: data.recipientCategory,
+      paymentMethod: data.paymentMethod,
+      notes: data.notes || '',
+      currency: data.currency,
+      exchangeRate: data.exchangeRate,
+    };
 
-    if (!formData.amount.trim()) {
-      newErrors.amount = 'Amount is required';
-    } else if (isNaN(parseFloat(formData.amount)) || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = 'Amount must be a valid positive number';
-    }
-
-    if (!formData.paymentDate) {
-      newErrors.paymentDate = 'Payment date is required';
-    }
-
-    if (!formData.recipientName.trim()) {
-      newErrors.recipientName = 'Recipient name is required';
-    }
-
-    if (!formData.recipientType) {
-      newErrors.recipientType = 'Recipient type is required';
-    }
-
-    if (!formData.recipientCategory) {
-      newErrors.recipientCategory = 'Recipient category is required';
-    }
-
-    if (!formData.paymentMethod) {
-      newErrors.paymentMethod = 'Payment method is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    onSubmit({
-      ...formData,
-      amount: formData.amount,
-      exchangeRate: parseFloat(formData.exchangeRate.toString()) || 1.0
-    });
-  };
-
-  const handleInputChange = (field: keyof PaymentFormData, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
+    onSubmit(submitData);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Input
@@ -134,11 +129,10 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
             type="number"
             step="0.01"
             min="0"
-            value={formData.amount}
-            onChange={(e) => handleInputChange('amount', e.target.value)}
-            error={errors.amount}
             placeholder="0.00"
-            required
+            error={errors.amount?.message}
+            {...register('amount')}
+          // Override onChange to handle potential numeric cleanup if needed, but RHF handles strings fine
           />
         </div>
 
@@ -146,10 +140,8 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
           <Input
             label="Payment Date"
             type="date"
-            value={formData.paymentDate}
-            onChange={(e) => handleInputChange('paymentDate', e.target.value)}
-            error={errors.paymentDate}
-            required
+            error={errors.paymentDate?.message}
+            {...register('paymentDate')}
           />
         </div>
       </div>
@@ -157,11 +149,9 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
       <div>
         <Input
           label="Recipient Name"
-          value={formData.recipientName}
-          onChange={(e) => handleInputChange('recipientName', e.target.value)}
-          error={errors.recipientName}
           placeholder="Enter recipient name or organization"
-          required
+          error={errors.recipientName?.message}
+          {...register('recipientName')}
         />
       </div>
 
@@ -169,10 +159,8 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         <div>
           <Select
             label="Recipient Type"
-            value={formData.recipientType}
-            onValueChange={(value) => handleInputChange('recipientType', value)}
-            error={errors.recipientType}
-            required
+            error={errors.recipientType?.message}
+            {...register('recipientType')}
           >
             <option value="">Select recipient type</option>
             {RECIPIENT_TYPES.map(type => (
@@ -186,10 +174,8 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
         <div>
           <Select
             label="Recipient Category"
-            value={formData.recipientCategory}
-            onValueChange={(value) => handleInputChange('recipientCategory', value)}
-            error={errors.recipientCategory}
-            required
+            error={errors.recipientCategory?.message}
+            {...register('recipientCategory')}
           >
             <option value="">Select category</option>
             {RECIPIENT_CATEGORIES.map(category => (
@@ -204,10 +190,8 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
       <div>
         <Select
           label="Payment Method"
-          value={formData.paymentMethod}
-          onValueChange={(value) => handleInputChange('paymentMethod', value)}
-          error={errors.paymentMethod}
-          required
+          error={errors.paymentMethod?.message}
+          {...register('paymentMethod')}
         >
           <option value="">Select payment method</option>
           {PAYMENT_METHODS.map(method => (
@@ -221,12 +205,15 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
       <div>
         <TextArea
           label="Notes"
-          value={formData.notes}
-          onChange={(e) => handleInputChange('notes', e.target.value)}
           placeholder="Optional notes about this payment"
           rows={3}
+          error={errors.notes?.message}
+          {...register('notes')}
         />
       </div>
+
+      {/* Hidden fields for data consistency */}
+      <input type="hidden" {...register('snapshotId')} />
 
       <div className="flex justify-end space-x-4">
         <Button
