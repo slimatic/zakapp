@@ -5,6 +5,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createPaymentSchema } from '@zakapp/shared';
+import { z } from 'zod';
 import { useCreatePayment, useUpdatePayment } from '../../hooks/usePayments';
 import { useDeletePayment, useDeleteSnapshotPayment } from '../../hooks/usePaymentRecords';
 import { useNisabYearRecords } from '../../hooks/useNisabYearRecords';
@@ -15,11 +19,26 @@ import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
 import { looksEncrypted } from '../../utils/encryption';
 
-// Helper function to parse currency input
-const parseCurrency = (value: string): number => {
-  const numericValue = value.replace(/[^0-9.-]/g, '');
-  return parseFloat(numericValue) || 0;
-};
+// Redefine schema locally to prevent Zod version mismatch issues between client and shared
+const paymentRecordFormSchema = z.object({
+  amount: z.string()
+    .min(1, 'Amount is required')
+    .regex(/^\d+(\.\d{1,2})?$/, 'Amount must be a valid decimal number'),
+  paymentDate: z.string().min(1, 'Payment date is required'),
+  recipientName: z.string().min(1, 'Recipient name is required').max(200),
+  snapshotId: z.string().min(1, 'Please select a Nisab Year Record'),
+  recipientCategory: z.enum(['poor', 'orphans', 'widows', 'education', 'healthcare', 'infrastructure', 'general'], {
+    errorMap: () => ({ message: 'Please select a valid recipient category' })
+  }),
+  recipientType: z.enum(['individual', 'organization', 'charity', 'mosque', 'family', 'other']).default('individual'),
+  paymentMethod: z.enum(['cash', 'bank_transfer', 'check', 'crypto', 'other']).default('cash'),
+  notes: z.string().max(1000).optional(),
+  receiptReference: z.string().max(200).optional(),
+  currency: z.string().length(3).default('USD'),
+  exchangeRate: z.number().min(0).default(1.0),
+});
+
+type PaymentRecordFormSchemaType = z.infer<typeof paymentRecordFormSchema>;
 
 interface PaymentRecordFormProps {
   /**
@@ -34,84 +53,124 @@ interface PaymentRecordFormProps {
 }
 
 // Islamic recipient categories (8 categories of Zakat recipients)
+// Note: These values must map to the schema enum values
 const ZAKAT_RECIPIENTS = [
-  { value: 'fakir', label: 'Al-Fuqara (The Poor)', description: 'Those who own less than the nisab threshold' },
-  { value: 'miskin', label: 'Al-Masakin (The Needy)', description: 'Those in desperate circumstances' },
-  { value: 'amil', label: 'Al-Amilin (Zakat Administrators)', description: 'Those who collect and distribute Zakat' },
-  { value: 'muallaf', label: 'Al-Muallafah (New Muslims)', description: 'Those whose hearts are to be reconciled' },
-  { value: 'riqab', label: 'Ar-Riqab (Freeing Slaves)', description: 'To free those in bondage' },
-  { value: 'gharimin', label: 'Al-Gharimin (Debt-ridden)', description: 'Those overwhelmed by debt' },
-  { value: 'fisabilillah', label: 'Fi Sabilillah (In the way of Allah)', description: 'For the cause of Allah' },
-  { value: 'ibnus_sabil', label: 'Ibn as-Sabil (Traveler)', description: 'Stranded travelers in need' }
-] as const;
+  { value: 'poor', label: 'Poor & Needy (Fuqara & Masakin)', description: 'Those in need (owning less than Nisab)' },
+  { value: 'orphans', label: 'Orphans', description: 'Children without support' },
+  { value: 'widows', label: 'Widows', description: 'Women who have lost their husbands' },
+  { value: 'education', label: 'Education (Fi Sabilillah)', description: 'Students of knowledge' },
+  { value: 'healthcare', label: 'Healthcare', description: 'Medical assistance for the needy' },
+  { value: 'infrastructure', label: 'Infrastructure', description: 'Mosques, schools, public benefit' },
+  { value: 'general', label: 'General / Other', description: 'General welfare' },
+];
 
-type ZakatRecipientCategory = typeof ZAKAT_RECIPIENTS[number]['value'];
+const PAYMENT_METHODS = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'bank_transfer', label: 'Bank Transfer' },
+  { value: 'check', label: 'Check' },
+  { value: 'online', label: 'Online Payment' },
+  { value: 'other', label: 'Other' },
+  { value: 'crypto', label: 'Crypto' } // Added as per schema
+];
 
-type PaymentMethod = 'cash' | 'bank_transfer' | 'check' | 'online' | 'other';
-
-interface PaymentFormState {
-  amount: string;
-  category: ZakatRecipientCategory;
-  recipient: string;
-  description: string;
-  paymentDate: string;
-  paymentMethod: PaymentMethod;
-  reference: string;
-  notes: string;
-}
-
-export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: PaymentRecordFormProps) => {
-  const {
-    nisabRecordId,
-    snapshotId: deprecatedSnapshotId,
-    payment,
-    onSuccess,
-    onCancel,
-  } = props;
+export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
+  nisabRecordId,
+  snapshotId: deprecatedSnapshotId,
+  payment,
+  onSuccess,
+  onCancel,
+}) => {
   const isEditing = !!payment;
   const paymentSnapshotId = payment?.snapshotId ?? '';
   const resolvedPropRecordId = nisabRecordId ?? deprecatedSnapshotId ?? paymentSnapshotId;
   const lockedRecordIdFromProps = nisabRecordId ?? deprecatedSnapshotId ?? null;
-  const [selectedRecordId, setSelectedRecordId] = useState<string>(resolvedPropRecordId || '');
+  const shouldLockRecordSelection = Boolean(lockedRecordIdFromProps);
 
-  // Fetch Nisab Year Records so user can select them when creating a payment
+  const [recipientDecryptionWarning, setRecipientDecryptionWarning] = useState<string | null>(null);
+
+  // Helper to map legacy/backend values to schema
+  const getInitialCategory = (val?: string) => {
+    if (!val) return 'poor';
+    if (val === 'fakir' || val === 'miskin') return 'poor';
+    if (['poor', 'orphans', 'widows', 'education', 'healthcare', 'infrastructure', 'general'].includes(val)) {
+      return val;
+    }
+    return 'poor'; // default fallback
+  };
+
+  // React Hook Form
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    control,
+    formState: { errors },
+  } = useForm<PaymentRecordFormSchemaType>({
+    resolver: zodResolver(paymentRecordFormSchema) as any,
+    defaultValues: {
+      amount: payment?.amount?.toString() || '',
+      paymentDate: payment?.paymentDate ?
+        (typeof payment.paymentDate === 'string' ? payment.paymentDate.slice(0, 10) : payment.paymentDate.toISOString().slice(0, 10)) :
+        new Date().toISOString().slice(0, 10),
+      recipientName: looksEncrypted(payment?.recipientName) ? '' : payment?.recipientName || '',
+      recipientCategory: getInitialCategory(payment?.recipientCategory) as any,
+      snapshotId: resolvedPropRecordId || '',
+      paymentMethod: (payment?.paymentMethod as any) || 'cash',
+      currency: payment?.currency || 'USD',
+      notes: payment?.notes || '',
+      receiptReference: payment?.receiptReference || '',
+      recipientType: (payment?.recipientType as any) || 'individual', // Added default
+    },
+  });
+
+  // Watch snapshotId to sync local state logic if needed (e.g. knowing which year is selected)
+  const selectedSnapshotId = watch('snapshotId');
+
+  // Fetch Nisab Year Records
   const {
     data: nisabRecordsData,
     isLoading: isLoadingNisabRecords,
     error: nisabRecordsError
-  } = useNisabYearRecords(
-    {
-      status: ['DRAFT', 'FINALIZED', 'UNLOCKED'],
-      limit: 100,
-    }
-  );
+  } = useNisabYearRecords({
+    status: ['DRAFT', 'FINALIZED', 'UNLOCKED'],
+    limit: 100,
+  });
   const nisabRecords = nisabRecordsData?.records ?? [];
+
   const lockedNisabRecord = useMemo(() => (
     lockedRecordIdFromProps
       ? nisabRecords.find((record: NisabYearRecord) => record.id === lockedRecordIdFromProps)
       : undefined
   ), [lockedRecordIdFromProps, nisabRecords]);
 
-  const shouldLockRecordSelection = Boolean(lockedRecordIdFromProps);
+  // Mutations
+  const createPaymentMutation = useCreatePayment();
+  const updatePaymentMutation = useUpdatePayment();
+  const deletePaymentMutation = useDeletePayment();
+  const deleteSnapshotMutation = useDeleteSnapshotPayment();
 
-  // Update selected record if prop changes
+  const isLoading = createPaymentMutation.isPending || updatePaymentMutation.isPending;
+  const submitError = createPaymentMutation.error || updatePaymentMutation.error;
+
+  // Effects
   useEffect(() => {
+    // If props dictate a record ID, enforce it
     if (resolvedPropRecordId) {
-      setSelectedRecordId(resolvedPropRecordId);
+      setValue('snapshotId', resolvedPropRecordId);
     }
 
-    // Warn the user if recipientName appears to be an undecryptable value
+    // Warn about encryption logic
     if (payment && looksEncrypted(payment.recipientName)) {
       setRecipientDecryptionWarning('Recipient name could not be decrypted. Please re-enter the recipient name before saving.');
     } else {
       setRecipientDecryptionWarning(null);
     }
-  }, [resolvedPropRecordId, payment]);
+  }, [resolvedPropRecordId, payment, setValue]);
 
-  // Auto-select the latest Nisab Year Record when none is provided
+  // Auto-select latest Nisab record if none selected
   useEffect(() => {
-    // Only auto-select if no record is locked from props AND no record is currently selected AND records are available
-    if (!lockedRecordIdFromProps && !selectedRecordId && nisabRecords.length > 0) {
+    if (!lockedRecordIdFromProps && !selectedSnapshotId && nisabRecords.length > 0) {
       const sortedRecords = [...nisabRecords].sort((a, b) => {
         const fallbackA = a.hawlCompletionDate || a.hawlStartDate || a.updatedAt || a.createdAt;
         const fallbackB = b.hawlCompletionDate || b.hawlStartDate || b.updatedAt || b.createdAt;
@@ -121,125 +180,68 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
       });
 
       if (sortedRecords.length > 0) {
-        setSelectedRecordId(sortedRecords[0].id);
+        setValue('snapshotId', sortedRecords[0].id);
       }
     }
-  }, [lockedRecordIdFromProps, selectedRecordId, nisabRecords]);
-
-  // Form state
-  const [formData, setFormData] = useState<PaymentFormState>({
-    amount: payment?.amount?.toString() || '',
-    category: payment?.recipientCategory || ('fakir' as ZakatRecipientCategory),
-    recipient: looksEncrypted(payment?.recipientName) ? '' : payment?.recipientName || '',
-    description: '',
-    paymentDate: payment?.paymentDate ?
-      (typeof payment.paymentDate === 'string' ? payment.paymentDate.slice(0, 10) : payment.paymentDate.toISOString().slice(0, 10)) :
-      new Date().toISOString().slice(0, 10),
-    paymentMethod: (payment?.paymentMethod as PaymentMethod) || 'cash',
-    reference: payment?.receiptReference || '',
-    notes: payment?.notes || ''
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [recipientDecryptionWarning, setRecipientDecryptionWarning] = useState<string | null>(null);
+  }, [lockedRecordIdFromProps, selectedSnapshotId, nisabRecords, setValue]);
 
 
-  // Mutations
-  const createPaymentMutation = useCreatePayment();
-  const updatePaymentMutation = useUpdatePayment();
-  const deletePaymentMutation = useDeletePayment();
-  const deleteSnapshotMutation = useDeleteSnapshotPayment();
+  const onSubmitForm = async (data: PaymentRecordFormSchemaType) => {
+    // Transform date to ISO
+    const isoDate = new Date(data.paymentDate).toISOString();
 
-  const handleInputChange = <K extends keyof PaymentFormState>(field: K, value: PaymentFormState[K]) => {
-    setFormData((prev: PaymentFormState) => ({ ...prev, [field]: value }));
-
-    if (errors[field as string]) {
-      setErrors((prev: Record<string, string>) => ({ ...prev, [field as string]: '' }));
-    }
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!selectedRecordId) {
-      newErrors.nisabRecordId = 'Please select a Nisab Year Record';
-    }
-
-    const amount = parseCurrency(formData.amount);
-    if (!formData.amount.trim()) {
-      newErrors.amount = 'Amount is required';
-    } else if (isNaN(amount) || amount <= 0) {
-      newErrors.amount = 'Amount must be a positive number';
-    }
-
-    if (!formData.recipient.trim()) {
-      newErrors.recipient = 'Recipient is required';
-    } else if (formData.recipient.length < 2) {
-      newErrors.recipient = 'Recipient must be at least 2 characters';
-    }
-
-    if (!formData.paymentDate) {
-      newErrors.paymentDate = 'Payment date is required';
-    } else {
-      const paymentDate = new Date(formData.paymentDate);
-      const now = new Date();
-      const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-      const oneYearFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
-
-      if (paymentDate < oneYearAgo) {
-        newErrors.paymentDate = 'Payment date cannot be more than 1 year ago';
-      } else if (paymentDate > oneYearFromNow) {
-        newErrors.paymentDate = 'Payment date cannot be more than 1 year in the future';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) return;
+    const paymentData = {
+      ...data,
+      amount: parseFloat(data.amount), // Parse string amount to number
+      paymentDate: isoDate,
+      // Ensure specific types
+      recipientType: 'individual' as const,
+      status: 'recorded' as const,
+    };
 
     try {
-      const paymentData = {
-        snapshotId: selectedRecordId,
-        amount: parseCurrency(formData.amount),
-        recipientName: formData.recipient.trim(),
-        recipientType: 'individual' as const,
-        recipientCategory: formData.category,
-        paymentDate: formData.paymentDate,
-        paymentMethod: formData.paymentMethod as 'cash' | 'bank_transfer' | 'check' | 'online' | 'other',
-        receiptReference: formData.reference.trim() || undefined,
-        notes: formData.notes.trim() || undefined,
-        currency: 'USD',
-        status: 'recorded' as const
-      };
-
       let result: PaymentRecord;
 
       if (isEditing && payment) {
         result = await updatePaymentMutation.mutateAsync({
           id: payment.id,
-          snapshotId: selectedRecordId,
-          data: paymentData
+          // snapshotId is properly typed in the schema but explicit casting might be needed if updatePaymentMutation expects stricter types
+          // The shared updatePaymentSchema expects partials, but my form provides full data.
+          snapshotId: data.snapshotId,
+          // We need to cast paymentData because UpdatePaymentInput expects numbers for amount, etc.
+          data: paymentData as any // Casting to satisfy the partial update requirement vs full object
         });
       } else {
-        result = await createPaymentMutation.mutateAsync(paymentData);
+        // Create expects specific structure.
+        result = await createPaymentMutation.mutateAsync(paymentData as any);
       }
-
+      toast.success(isEditing ? 'Payment updated' : 'Payment recorded');
       onSuccess?.(result);
     } catch (error) {
       toast.error('Error saving payment record');
     }
   };
 
-  const isLoading = createPaymentMutation.isPending || updatePaymentMutation.isPending;
-  const submitError = createPaymentMutation.error || updatePaymentMutation.error;
+  const handleDelete = async () => {
+    if (!payment) return;
+    if (!window.confirm('Delete this payment? This action cannot be undone.')) return;
+
+    try {
+      if (nisabRecordId || payment.snapshotId) {
+        await deleteSnapshotMutation.mutateAsync(payment.id);
+      } else {
+        const paymentId = (payment as any).paymentId || payment.id;
+        await deletePaymentMutation.mutateAsync(paymentId);
+      }
+      toast.success('Payment deleted');
+      onCancel?.();
+    } catch (e) {
+      toast.error('Failed to delete payment');
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+    <form onSubmit={handleSubmit(onSubmitForm as any)} className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
         <h3 className="text-base sm:text-lg font-semibold text-gray-900">
@@ -250,14 +252,11 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
         </p>
       </div>
 
-      {/* Nisab Year Record selection (if not locked via props) */}
+      {/* Nisab Year Record selection */}
       {!shouldLockRecordSelection ? (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="snapshotId" className="block text-sm font-medium text-gray-700 mb-2">
             Nisab Year Record *
-            <span className="ml-2 text-xs font-normal text-gray-500">
-              (Select the Hawl period for this payment)
-            </span>
           </label>
           {isLoadingNisabRecords ? (
             <div className="flex items-center text-sm text-gray-500">
@@ -267,18 +266,10 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
           ) : (
             <>
               <select
-                value={selectedRecordId}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                  const value = e.target.value;
-                  setSelectedRecordId(value);
-
-                  if (errors.nisabRecordId) {
-                    setErrors((prev: Record<string, string>) => ({ ...prev, nisabRecordId: '' }));
-                  }
-                }}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                  errors.nisabRecordId ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                }`}
+                id="snapshotId"
+                {...register('snapshotId')}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.snapshotId ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                 disabled={isLoadingNisabRecords}
               >
                 <option value="">Select a Nisab Year Record</option>
@@ -288,28 +279,10 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
                   </option>
                 ))}
               </select>
-              {isLoadingNisabRecords && (
-                <p className="mt-1 text-xs text-gray-500">Loading Nisab Year Records...</p>
-              )}
-              {!isLoadingNisabRecords && !errors.nisabRecordId && nisabRecords.length === 0 && (
-                <p className="mt-1 text-xs text-gray-500">
-                  No Nisab Year Records found. Create a Nisab Year Record before recording a payment.
-                </p>
-              )}
-              {!isLoadingNisabRecords && !errors.nisabRecordId && nisabRecords.length > 0 && (
-                <p className="mt-1 text-xs text-gray-500">
-                  Link this payment to a specific Nisab Year (Hawl period) for accurate tracking
-                </p>
-              )}
-              {nisabRecordsError && (
-                <p className="mt-1 text-xs text-red-600">
-                  Unable to load Nisab Year Records. Please try again.
-                </p>
+              {errors.snapshotId?.message && (
+                <p className="mt-1 text-sm text-red-600">{errors.snapshotId.message}</p>
               )}
             </>
-          )}
-          {errors.nisabRecordId && (
-            <p className="mt-1 text-sm text-red-600">{errors.nisabRecordId}</p>
           )}
         </div>
       ) : (
@@ -317,6 +290,8 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Nisab Year Record
           </label>
+          {/* Hidden input to ensure value is registered */}
+          <input type="hidden" {...register('snapshotId')} />
           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
             <div className="flex items-center justify-between">
               <span>
@@ -328,27 +303,22 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              This payment will be linked to the selected Nisab Year Record
-            </p>
           </div>
         </div>
       )}
 
-      {/* Amount */}
+      {/* Amount and Date */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Amount Paid *
-          </label>
           <Input
+            label="Amount Paid *"
             type="text"
             placeholder="0.00"
-            value={formData.amount}
-            onChange={(e) => handleInputChange('amount', e.target.value)}
-            error={errors.amount}
             className="text-right"
             autoSelectOnFocus={true}
+            error={errors.amount?.message}
+            {...register('amount')}
+          // On blur formatting could be added here if desired, but schema handles validation
           />
           <p className="text-xs text-gray-500 mt-1">
             Enter the amount in your local currency
@@ -356,26 +326,23 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Payment Date *
-          </label>
           <Input
+            label="Payment Date *"
             type="date"
-            value={formData.paymentDate}
-            onChange={(e) => handleInputChange('paymentDate', e.target.value)}
-            error={errors.paymentDate}
+            error={errors.paymentDate?.message}
+            {...register('paymentDate')}
           />
         </div>
       </div>
 
       {/* Recipient Category */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="recipientCategory" className="block text-sm font-medium text-gray-700 mb-2">
           Zakat Recipient Category *
         </label>
         <select
-          value={formData.category}
-          onChange={(e) => handleInputChange('category', e.target.value as ZakatRecipientCategory)}
+          id="recipientCategory"
+          {...register('recipientCategory')}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
         >
           {ZAKAT_RECIPIENTS.map((category) => (
@@ -385,22 +352,21 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
           ))}
         </select>
         <p className="mt-1 text-xs text-gray-500">
-          {ZAKAT_RECIPIENTS.find(c => c.value === formData.category)?.description}
+          {ZAKAT_RECIPIENTS.find(c => c.value === watch('recipientCategory'))?.description}
         </p>
+        {errors.recipientCategory?.message && (
+          <p className="mt-1 text-sm text-red-600">{errors.recipientCategory.message}</p>
+        )}
       </div>
 
       {/* Recipient Details */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Recipient Name/Organization *
-          </label>
           <Input
-            type="text"
+            label="Recipient Name/Organization *"
             placeholder="Enter recipient name or organization"
-            value={formData.recipient}
-            onChange={(e) => handleInputChange('recipient', e.target.value)}
-            error={errors.recipient}
+            error={errors.recipientName?.message}
+            {...register('recipientName')}
           />
           {recipientDecryptionWarning && (
             <p className="mt-1 text-xs text-yellow-700">{recipientDecryptionWarning}</p>
@@ -408,19 +374,17 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-2">
             Payment Method
           </label>
           <select
-            value={formData.paymentMethod}
-            onChange={(e) => handleInputChange('paymentMethod', e.target.value as PaymentMethod)}
+            id="paymentMethod"
+            {...register('paymentMethod')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            <option value="cash">Cash</option>
-            <option value="bank_transfer">Bank Transfer</option>
-            <option value="check">Check</option>
-            <option value="online">Online Payment</option>
-            <option value="other">Other</option>
+            {PAYMENT_METHODS.map(method => (
+              <option key={method.value} value={method.value}>{method.label}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -428,14 +392,11 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
       {/* Optional Fields */}
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Reference/Transaction ID
-          </label>
           <Input
-            type="text"
+            label="Reference/Transaction ID"
             placeholder="Transaction reference or receipt number"
-            value={formData.reference}
-            onChange={(e) => handleInputChange('reference', e.target.value)}
+            error={errors.receiptReference?.message}
+            {...register('receiptReference')}
           />
         </div>
       </div>
@@ -446,12 +407,14 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
           Additional Notes
         </label>
         <textarea
-          value={formData.notes}
-          onChange={(e) => handleInputChange('notes', e.target.value)}
+          {...register('notes')}
           rows={3}
           placeholder="Any additional notes or context about this payment"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
         />
+        {errors.notes?.message && (
+          <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>
+        )}
       </div>
 
       {/* Error Display */}
@@ -491,24 +454,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = (props: Payme
           <Button
             type="button"
             variant="danger"
-            onClick={async () => {
-              if (!window.confirm('Delete this payment? This action cannot be undone.')) return;
-              try {
-                // If the form is being used within a Nisab Year Record context OR the payment has a snapshot id,
-                // prefer the snapshot delete endpoint which expects `id` as identifier.
-                if (nisabRecordId || (payment as any).snapshotId) {
-                  await deleteSnapshotMutation.mutateAsync((payment as any).id);
-                } else {
-                  // For global zakat/tracking payments use the zakat API which expects `paymentId` as identifier
-                  const paymentId = (payment as any).paymentId || (payment as any).id;
-                  await deletePaymentMutation.mutateAsync(paymentId);
-                }
-                toast.success('Payment deleted');
-                onCancel?.();
-              } catch (e) {
-                toast.error('Failed to delete payment');
-              }
-            }}
+            onClick={handleDelete}
             disabled={isLoading || deletePaymentMutation.isPending || deleteSnapshotMutation.isPending}
             className="w-full sm:w-auto sm:min-w-[120px]"
           >

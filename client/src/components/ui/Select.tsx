@@ -7,7 +7,7 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   children: React.ReactNode;
 }
 
-export const Select: React.FC<SelectProps> = ({
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
   label,
   error,
   onValueChange,
@@ -15,7 +15,7 @@ export const Select: React.FC<SelectProps> = ({
   className = '',
   children,
   ...props
-}) => {
+}, ref) => {
   const baseClasses = 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
   const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : '';
   const classes = `${baseClasses} ${errorClasses} ${className}`;
@@ -33,7 +33,7 @@ export const Select: React.FC<SelectProps> = ({
           {props.required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
-      <select className={classes} onChange={handleChange} {...props}>
+      <select ref={ref} className={classes} onChange={handleChange} {...props}>
         {children}
       </select>
       {error && (
@@ -41,4 +41,6 @@ export const Select: React.FC<SelectProps> = ({
       )}
     </div>
   );
-};
+});
+
+Select.displayName = 'Select';
