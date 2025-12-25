@@ -156,7 +156,7 @@ export const Register: React.FC = () => {
               placeholder="First name"
               value={formData.firstName}
               onChange={handleChange}
-              dataTestId="first-name-input"
+              data-testid="first-name-input"
               error={formErrors.firstName}
               label="First Name"
             />
@@ -169,7 +169,7 @@ export const Register: React.FC = () => {
               placeholder="Last name"
               value={formData.lastName}
               onChange={handleChange}
-              dataTestId="last-name-input"
+              data-testid="last-name-input"
               error={formErrors.lastName}
               label="Last Name"
             />
@@ -183,7 +183,7 @@ export const Register: React.FC = () => {
               placeholder="Email address"
               value={formData.email}
               onChange={handleChange}
-              dataTestId="email-input"
+              data-testid="email-input"
               error={formErrors.email}
               label="Email Address"
             />
@@ -238,7 +238,7 @@ export const Register: React.FC = () => {
               placeholder="Confirm password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              dataTestId="confirm-password-input"
+              data-testid="confirm-password-input"
               error={formErrors.confirmPassword}
               label="Confirm Password"
             />
@@ -265,7 +265,7 @@ export const Register: React.FC = () => {
             type="submit"
             disabled={isLoading}
             isLoading={isLoading}
-            dataTestId="register-button"
+            data-testid="register-button"
             className="w-full"
           >
             Create account

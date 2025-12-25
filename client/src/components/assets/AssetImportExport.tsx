@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { useAssets, useCreateAsset } from '../../services/apiHooks';
-import { Asset, AssetCategoryType } from '@zakapp/shared';
+import { useAssetRepository } from '../../hooks/useAssetRepository';
+import { Asset, AssetType } from '../../types';
 import { Button, LoadingSpinner } from '../ui';
+import { isAssetZakatable } from '../../core/calculations/zakat';
 
 interface ImportResult {
   success: number;
@@ -18,10 +19,7 @@ export const AssetImportExport: React.FC = () => {
   const [exporting, setExporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
-  const { data: assetsData } = useAssets();
-  const createAssetMutation = useCreateAsset();
-
-  const assets = assetsData?.data?.assets || [];
+  const { assets, addAsset } = useAssetRepository();
 
   // Export assets to CSV
   const handleExport = () => {
@@ -49,12 +47,12 @@ export const AssetImportExport: React.FC = () => {
       // Convert assets to CSV rows
       const rows = assets.map((asset: Asset) => [
         `"${asset.name}"`,
-        asset.category,
-        asset.subCategory || '',
+        asset.type,
+        '', // subCategory removed
         asset.value.toString(),
         asset.currency,
         `"${asset.description || ''}"`,
-        asset.zakatEligible ? 'Yes' : 'No',
+        isAssetZakatable(asset, 'STANDARD') ? 'Yes' : 'No',
         new Date(asset.createdAt).toLocaleDateString(),
         new Date(asset.updatedAt).toLocaleDateString()
       ]);
@@ -65,7 +63,7 @@ export const AssetImportExport: React.FC = () => {
       // Create and download the file
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
-      
+
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
@@ -99,12 +97,12 @@ export const AssetImportExport: React.FC = () => {
         totalAssets: assets.length,
         assets: assets.map((asset: Asset) => ({
           name: asset.name,
-          category: asset.category,
-          subCategory: asset.subCategory,
+          type: asset.type,
+          // subCategory removed
           value: asset.value,
           currency: asset.currency,
           description: asset.description,
-          zakatEligible: asset.zakatEligible,
+          zakatEligible: isAssetZakatable(asset, 'STANDARD'),
           createdAt: asset.createdAt,
           updatedAt: asset.updatedAt
         }))
@@ -113,7 +111,7 @@ export const AssetImportExport: React.FC = () => {
       const jsonContent = JSON.stringify(exportData, null, 2);
       const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
       const link = document.createElement('a');
-      
+
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
@@ -135,20 +133,20 @@ export const AssetImportExport: React.FC = () => {
   const parseCSV = (content: string): any[] => {
     const lines = content.trim().split('\n');
     const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
-    
+
     return lines.slice(1).map((line, index) => {
       const values = line.split(',');
       const asset: any = {};
-      
+
       headers.forEach((header, i) => {
         const value = values[i]?.replace(/"/g, '').trim();
-        
+
         switch (header) {
           case 'name':
             asset.name = value;
             break;
           case 'category':
-            asset.category = value as AssetCategoryType;
+            asset.type = value as AssetType;
             break;
           case 'sub category':
           case 'subcategory':
@@ -207,12 +205,7 @@ export const AssetImportExport: React.FC = () => {
 
         for (const asset of assetsToImport) {
           try {
-            await new Promise((resolve, reject) => {
-              createAssetMutation.mutate(asset, {
-                onSuccess: resolve,
-                onError: reject
-              });
-            });
+            await addAsset(asset);
             successful++;
           } catch (error: any) {
             failed++;
@@ -264,7 +257,7 @@ export const AssetImportExport: React.FC = () => {
 
         <div className="flex flex-wrap gap-4">
           <Button
-            variant="primary"
+            variant="default"
             onClick={handleExport}
             disabled={exporting || assets.length === 0}
             isLoading={exporting}
@@ -321,12 +314,10 @@ export const AssetImportExport: React.FC = () => {
 
         {/* Import Results */}
         {importResult && (
-          <div className={`rounded-lg p-4 ${
-            importResult.failed === 0 ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
-          }`}>
-            <h3 className={`font-semibold ${
-              importResult.failed === 0 ? 'text-green-900' : 'text-yellow-900'
+          <div className={`rounded-lg p-4 ${importResult.failed === 0 ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
             }`}>
+            <h3 className={`font-semibold ${importResult.failed === 0 ? 'text-green-900' : 'text-yellow-900'
+              }`}>
               Import Results
             </h3>
             <div className="mt-2 text-sm">
@@ -356,13 +347,13 @@ export const AssetImportExport: React.FC = () => {
       {/* File Format Examples */}
       <div className="bg-gray-50 rounded-lg p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">File Format Examples</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* CSV Example */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">CSV Format</h3>
             <pre className="bg-white border border-gray-200 rounded-lg p-3 text-xs overflow-x-auto">
-{`Name,Category,Sub Category,Value,Currency,Description,Zakat Eligible
+              {`Name,Category,Sub Category,Value,Currency,Description,Zakat Eligible
 "Chase Savings",cash,savings,5000,USD,"Emergency fund",Yes
 "Gold Jewelry",gold,jewelry,3000,USD,"Wedding jewelry",Yes
 "Rental Property",property,residential_investment,150000,USD,"Investment property",No`}
@@ -373,7 +364,7 @@ export const AssetImportExport: React.FC = () => {
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">JSON Format</h3>
             <pre className="bg-white border border-gray-200 rounded-lg p-3 text-xs overflow-x-auto">
-{`{
+              {`{
   "assets": [
     {
       "name": "Chase Savings",

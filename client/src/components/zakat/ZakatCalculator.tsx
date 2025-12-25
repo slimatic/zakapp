@@ -1,83 +1,95 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Asset, AssetType, ZakatCalculation, NisabInfo, ZakatPayment } from '../../types';
+import { Asset, AssetType, ZakatCalculation, NisabInfo, ZakatPayment, ZakatMethodology } from '../../types';
 import { apiService } from '../../services/api';
 import { PaymentModal } from './PaymentModal';
 import { MethodologySelector } from './MethodologySelector';
+// Local-First Imports
+import { useAssetRepository } from '../../hooks/useAssetRepository';
+import { calculateZakat } from '../../core/calculations/zakat';
+import { calculateNisabThreshold, DEFAULT_NISAB_DATA } from '../../core/calculations/nisab';
+import { useDb } from '../../db';
+
+// Premium UI Imports
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/Card';
+import { Button } from '../ui/Button';
+import { Badge } from '../ui/Badge';
+import { Input } from '../ui/Input';
+import { ShieldCheck, ArrowRight, Wallet, TrendingUp, DollarSign, Calculator, Lock } from 'lucide-react';
 
 export const ZakatCalculator: React.FC = () => {
-  const [assets, setAssets] = useState<Asset[]>([]);
+  // Local DB Hooks
+  const { assets, isLoading: isLoadingAssets, error: assetsError } = useAssetRepository();
+
   const [nisabInfo, setNisabInfo] = useState<NisabInfo | null>(null);
   const [selectedMethodology, setSelectedMethodology] = useState<string>('standard');
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
-  const [calculation, setCalculation] = useState<ZakatCalculation | null>(null);
+  const [calculation, setCalculation] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(0); // 0: Intro, 1: Assets, 2: Review
 
   useEffect(() => {
-    loadInitialData();
+    loadNisabData();
   }, []);
 
-  const loadInitialData = async () => {
+  // Auto-select new assets when they load
+  useEffect(() => {
+    if (assets.length > 0) {
+      setSelectedAssets(assets.map(a => a.id));
+    }
+  }, [assets]);
+
+  const loadNisabData = async () => {
     try {
-      const [assetsResponse, nisabResponse] = await Promise.all([
-        apiService.getAssets(),
-        apiService.getNisab()
-      ]);
-
-      if (assetsResponse.success && assetsResponse.data) {
-        setAssets(assetsResponse.data.assets || []);
-        // Select all assets by default - use assetId since that's what the backend API returns
-        setSelectedAssets((assetsResponse.data.assets || []).map((asset: any) => asset.assetId || asset.id));
-      }
-
+      const nisabResponse = await apiService.getNisab();
       if (nisabResponse.success && nisabResponse.data) {
         setNisabInfo(nisabResponse.data);
+      } else {
+        setNisabInfo({ ...DEFAULT_NISAB_DATA, goldNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, silverNisab: DEFAULT_NISAB_DATA.silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams, effectiveNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, currency: 'USD', lastUpdated: new Date().toISOString() });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load initial data');
+      setNisabInfo({ ...DEFAULT_NISAB_DATA, goldNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, silverNisab: DEFAULT_NISAB_DATA.silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams, effectiveNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, currency: 'USD', lastUpdated: new Date().toISOString() });
     }
   };
 
   const handleCalculateZakat = async () => {
     setIsLoading(true);
-    setError(null);
-
     try {
-      // Prepare request payload to match new API contract
-      const calculationRequest = {
-        method: (selectedMethodology || 'standard').toLowerCase() as 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom',
-        calendarType: 'lunar' as 'lunar' | 'solar',
-        calculationDate: new Date().toISOString().split('T')[0],
-        includeAssets: selectedAssets, // Send array of asset IDs
-        includeLiabilities: [], // Optional but provide empty array
-        customNisab: undefined // Use default nisab
-      };
+      const methodology = (selectedMethodology.toUpperCase() as any) || 'STANDARD';
 
-      const response = await apiService.calculateZakat(calculationRequest);
-      
-      // Handle response based on actual structure returned from backend
-      if (response.success) {
-        // Backend returns calculation directly in response.calculation
-        const calculationData = (response as any).calculation || response.data;
-        if (calculationData) {
-          setCalculation(calculationData);
-          setSuccessMessage('Zakat calculation completed successfully!');
-        } else {
-          setError('No calculation data received');
-        }
-      } else {
-        // Handle error response
-        const errorMessage = typeof response.error === 'string' 
-          ? response.error 
-          : (response as any).error?.message || response.message || 'Calculation failed';
-        setError(errorMessage);
-      }
+      let nisabValue = calculateNisabThreshold({
+        goldPrice: nisabInfo?.goldPrice || DEFAULT_NISAB_DATA.goldPrice,
+        silverPrice: nisabInfo?.silverPrice || DEFAULT_NISAB_DATA.silverPrice,
+        goldNisabGrams: 87.48,
+        silverNisabGrams: 612.36
+      }, methodology);
+
+      const assetsToCalc = assets.filter(a => selectedAssets.includes(a.id));
+      const result = calculateZakat(assetsToCalc, [], nisabValue, methodology);
+
+      setCalculation({
+        id: 'local-calc',
+        methodology: { name: selectedMethodology },
+        totalAssets: result.totalAssets,
+        nisabThreshold: nisabValue,
+        isAboveNisab: result.isZakatObligatory,
+        zakatDue: result.zakatDue,
+        zakatRate: 0.025,
+        currency: 'USD',
+        calculatedAt: new Date().toISOString(),
+        assetBreakdown: Object.entries(result.breakdown.assets).map(([type, data]) => ({
+          type: type as AssetType,
+          totalValue: data.total,
+          zakatableAmount: data.zakatable,
+          count: 0
+        })),
+        reason: result.isZakatObligatory ? null : 'Net worth is below Nisab threshold.'
+      });
+
+      setCurrentStep(2); // Move to Review
     } catch (err) {
       toast.error('Calculation failed');
-      setError(err instanceof Error ? err.message : 'Calculation failed');
     } finally {
       setIsLoading(false);
     }
@@ -91,14 +103,6 @@ export const ZakatCalculator: React.FC = () => {
     }
   };
 
-  const handleSelectAll = () => {
-    setSelectedAssets(assets.map(asset => asset.id));
-  };
-
-  const handleSelectNone = () => {
-    setSelectedAssets([]);
-  };
-
   const formatCurrency = (amount: number, currency: string = 'USD'): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -106,316 +110,175 @@ export const ZakatCalculator: React.FC = () => {
     }).format(amount);
   };
 
-  const getAssetTypeLabel = (type: AssetType): string => {
-    const labels: Record<AssetType, string> = {
-      [AssetType.CASH]: 'Cash',
-      [AssetType.BANK_ACCOUNT]: 'Bank Account',
-      [AssetType.GOLD]: 'Gold',
-      [AssetType.SILVER]: 'Silver',
-      [AssetType.CRYPTOCURRENCY]: 'Cryptocurrency',
-      [AssetType.BUSINESS_ASSETS]: 'Business Assets',
-      [AssetType.INVESTMENT_ACCOUNT]: 'Investment Account',
-      [AssetType.REAL_ESTATE]: 'Real Estate',
-      [AssetType.DEBTS_OWED_TO_YOU]: 'Debts Owed to You',
-      [AssetType.OTHER]: 'Other'
-    };
-    return labels[type] || type;
-  };
+  const steps = [
+    { id: 0, title: "Methodology" },
+    { id: 1, title: "Assets" },
+    { id: 2, title: "Review" }
+  ];
 
-  const handlePaymentRecorded = (payment: ZakatPayment) => {
-    setSuccessMessage(`Payment of ${formatCurrency(payment.amount)} recorded successfully!`);
-    setTimeout(() => setSuccessMessage(null), 5000);
-  };
+  /* --- WIZARD STEPS --- */
 
-  const handleSaveCalculation = async () => {
-    if (!calculation) return;
-    
-    try {
-      const response = await apiService.createSnapshot({
-        year: new Date().getFullYear(),
-        notes: `Zakat calculation using ${calculation.methodology.name} methodology`
-      });
-      
-      if (response.success) {
-        setSuccessMessage('Calculation saved successfully!');
-        setTimeout(() => setSuccessMessage(null), 5000);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save calculation');
-    }
+  const renderIntroStep = () => (
+    <div className="space-y-6 animate-fade-in">
+      <Card>
+        <CardHeader>
+          <CardTitle>Calculation Methodology</CardTitle>
+          <CardDescription>Select the fiqh opinion you follow.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <MethodologySelector
+            selectedMethodology={selectedMethodology}
+            onMethodologyChange={setSelectedMethodology}
+            showEducationalContent={true}
+          />
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button onClick={() => setCurrentStep(1)} className="w-full sm:w-auto">
+            Next: Select Assets <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+
+  const renderAssetsStep = () => (
+    <div className="space-y-6 animate-slide-up">
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Asssets</CardTitle>
+          <CardDescription>Select which assets to include in the calculation.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {assets.length === 0 ? (
+            <div className="text-center py-12 bg-slate-50 rounded-lg border-dashed border-2 border-slate-200">
+              <Wallet className="mx-auto h-12 w-12 text-slate-300" />
+              <p className="mt-2 text-slate-500 text-sm">No assets found in your local vault.</p>
+              <Button variant="link" onClick={() => window.location.href = '/assets'}>Add Assets Now</Button>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {assets.map((asset) => (
+                <div key={asset.id}
+                  className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${selectedAssets.includes(asset.id) ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500' : 'border-slate-200 hover:border-slate-300'}`}
+                  onClick={() => handleAssetSelection(asset.id, !selectedAssets.includes(asset.id))}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`p-2 rounded-full ${selectedAssets.includes(asset.id) ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'}`}>
+                      <TrendingUp className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900">{asset.name}</h4>
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">{asset.type.replace('_', ' ')}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-slate-900">{formatCurrency(asset.value, asset.currency)}</p>
+                    {asset.type === 'RETIREMENT' && <Badge variant="secondary" className="mt-1">401k/IRA</Badge>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button variant="ghost" onClick={() => setCurrentStep(0)}>Back</Button>
+          <Button onClick={handleCalculateZakat} disabled={assets.length === 0 || isLoading}>
+            {isLoading ? 'Calculating...' : 'Calculate Zakat'}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+
+  const renderReviewStep = () => {
+    if (!calculation) return null;
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* Highlight Result */}
+        <Card className="border-primary-100 bg-gradient-to-br from-white to-primary-50/30 overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Calculator className="h-48 w-48 text-primary-900" />
+          </div>
+          <CardContent className="pt-8 pb-8 text-center relative z-10">
+            <p className="text-sm font-medium text-primary-600 uppercase tracking-wider mb-2">Zakat Obligation</p>
+            <h2 className="text-5xl font-bold text-slate-900 mb-2">{formatCurrency(calculation.zakatDue)}</h2>
+            <p className="text-slate-500 text-sm">
+              {calculation.isAboveNisab
+                ? `Nisab Threshold: ${formatCurrency(calculation.nisabThreshold)} (Exceeded)`
+                : `Below Nisab Threshold (${formatCurrency(calculation.nisabThreshold)})`}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Wealth Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <span className="text-slate-600">Total Assets</span>
+              <span className="font-semibold">{formatCurrency(calculation.totalAssets)}</span>
+            </div>
+            {calculation.assetBreakdown.map((item: any, i: number) => (
+              <div key={i} className="flex justify-between items-center py-2 text-sm">
+                <span className="text-slate-500 pl-4 border-l-2 border-slate-200">{item.type.replace(/_/g, ' ')}</span>
+                <span className="font-medium text-slate-700">{formatCurrency(item.zakatableAmount)} (Zakatable)</span>
+              </div>
+            ))}
+          </CardContent>
+          <CardFooter className="flex flex-col sm:flex-row gap-3">
+            <Button variant="outline" className="w-full" onClick={() => setCurrentStep(1)}>Edit Assets</Button>
+            {calculation.zakatDue > 0 && (
+              <Button className="w-full" onClick={() => setShowPaymentModal(true)}>Record Payment</Button>
+            )}
+          </CardFooter>
+        </Card>
+      </div>
+    );
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Zakat Calculator</h1>
-        <p className="mt-2 text-gray-600">
-          Calculate your Zakat obligation according to Islamic principles
-        </p>
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      {/* Header with Privacy Badge */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Zakat Calculator</h1>
+          <p className="text-slate-500 mt-1">Calculate your obligation locally & privately.</p>
+        </div>
+        <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
+          <ShieldCheck className="h-4 w-4 text-emerald-500" />
+          <span className="text-xs font-medium text-emerald-700">Local-First Architecture</span>
+          <Badge variant="privacy" className="ml-2">
+            <Lock className="h-3 w-3 mr-1" /> Encrypted
+          </Badge>
+        </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
-        </div>
-      )}
-
-      {/* Success Message */}
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-          {successMessage}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Configuration */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Nisab Information */}
-          {nisabInfo && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-green-800 mb-4">Current Nisab Thresholds</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-green-600">Gold Nisab</p>
-                  <p className="text-xl font-bold text-green-800">
-                    {formatCurrency(nisabInfo.goldNisab, nisabInfo.currency)}
-                  </p>
-                  <p className="text-xs text-green-600">~85g @ {formatCurrency(nisabInfo.goldPrice)}/g</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-green-600">Silver Nisab</p>
-                  <p className="text-xl font-bold text-green-800">
-                    {formatCurrency(nisabInfo.silverNisab, nisabInfo.currency)}
-                  </p>
-                  <p className="text-xs text-green-600">~595g @ {formatCurrency(nisabInfo.silverPrice)}/g</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-green-600">Effective Nisab</p>
-                  <p className="text-xl font-bold text-green-800">
-                    {formatCurrency(nisabInfo.effectiveNisab, nisabInfo.currency)}
-                  </p>
-                  <p className="text-xs text-green-600">Lower of the two</p>
-                </div>
-              </div>
-              <p className="text-xs text-green-600 text-center mt-3">
-                Last updated: {new Date(nisabInfo.lastUpdated).toLocaleString()}
-              </p>
+      {/* Steps Indicator */}
+      <div className="flex items-center justify-center space-x-4 mb-8">
+        {steps.map((step) => (
+          <div key={step.id} className="flex items-center">
+            <div className={`
+                       h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors
+                       ${currentStep === step.id ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' :
+                currentStep > step.id ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-400'}
+                   `}>
+              {currentStep > step.id ? <ShieldCheck className="h-4 w-4" /> : step.id + 1}
             </div>
-          )}
-
-          {/* Methodology Selection */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Calculation Methodology</h3>
-            <MethodologySelector 
-              selectedMethodology={selectedMethodology}
-              onMethodologyChange={setSelectedMethodology}
-              showEducationalContent={true}
-            />
+            <span className={`ml-2 text-sm font-medium ${currentStep === step.id ? 'text-slate-900' : 'text-slate-500'}`}>
+              {step.title}
+            </span>
+            {step.id !== steps.length - 1 && <div className="w-12 h-px bg-slate-200 mx-4" />}
           </div>
+        ))}
+      </div>
 
-          {/* Asset Selection */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">Select Assets for Calculation</h3>
-              <div className="space-x-2">
-                <button
-                  onClick={handleSelectAll}
-                  className="text-sm text-green-600 hover:text-green-700"
-                >
-                  Select All
-                </button>
-                <span className="text-gray-300">•</span>
-                <button
-                  onClick={handleSelectNone}
-                  className="text-sm text-green-600 hover:text-green-700"
-                >
-                  Select None
-                </button>
-              </div>
-            </div>
-
-            {assets.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No assets found. Please add assets first.</p>
-                <a href="/assets" className="text-green-600 hover:text-green-700 font-medium">
-                  Add Assets →
-                </a>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {assets.map((asset) => (
-                  <div key={asset.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-md hover:bg-gray-50">
-                    <div className="flex items-center">
-                      <input
-                        id={asset.id}
-                        type="checkbox"
-                        checked={selectedAssets.includes(asset.id)}
-                        onChange={(e) => handleAssetSelection(asset.id, e.target.checked)}
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                      />
-                      <div className="ml-3">
-                        <label htmlFor={asset.id} className="text-sm font-medium text-gray-900">
-                          {asset.name}
-                        </label>
-                        <p className="text-sm text-gray-500">{getAssetTypeLabel(asset.type)}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatCurrency(asset.value, asset.currency)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                <div className="mt-4 pt-3 border-t border-gray-200">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Selected Assets:</span>
-                    <span className="font-medium">{selectedAssets.length} of {assets.length}</span>
-                  </div>
-                  <div className="flex justify-between text-sm mt-1">
-                    <span className="text-gray-600">Total Value:</span>
-                    <span className="font-medium">
-                      {formatCurrency(
-                        assets
-                          .filter(asset => selectedAssets.includes(asset.id))
-                          .reduce((sum, asset) => sum + asset.value, 0)
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Calculate Button */}
-          <div className="flex justify-center">
-            <button
-              onClick={handleCalculateZakat}
-              disabled={isLoading || selectedAssets.length === 0}
-              className="px-8 py-3 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <div className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Calculating...
-                </div>
-              ) : (
-                'Calculate Zakat'
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Right Column - Results */}
-        <div className="space-y-6">
-          {calculation && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Calculation Results</h3>
-              
-              {/* Main Result */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                <div className="text-center">
-                  <p className="text-sm text-green-600">Zakat Due</p>
-                  <p className="text-3xl font-bold text-green-800">
-                    {formatCurrency((calculation as any).summary?.zakatAmount || (calculation as any).zakatOwed || calculation.zakatDue || 0, 'USD')}
-                  </p>
-                  <p className="text-sm text-green-600 mt-1">
-                    {(calculation as any).summary?.zakatRate ? `${((calculation as any).summary.zakatRate * 100).toFixed(1)}%` : `${calculation.zakatRate || 2.5}%`} of zakatable wealth
-                  </p>
-                </div>
-              </div>
-
-              {/* Details */}
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total Assets:</span>
-                  <span className="text-sm font-medium">
-                    {formatCurrency((calculation as any).summary?.totalAssets || (calculation as any).totalAssetValue || calculation.totalAssets || 0, 'USD')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Nisab Threshold:</span>
-                  <span className="text-sm font-medium">
-                    {formatCurrency((calculation as any).summary?.nisabThreshold || calculation.nisabThreshold || 0, 'USD')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Above Nisab:</span>
-                  <span className={`text-sm font-medium ${(calculation as any).summary?.isZakatObligatory || calculation.isAboveNisab ? 'text-green-600' : 'text-red-600'}`}>
-                    {(calculation as any).summary?.isZakatObligatory || calculation.isAboveNisab ? 'Yes' : 'No'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Methodology:</span>
-                  <span className="text-sm font-medium">{calculation.methodology?.name || 'Standard'}</span>
-                </div>
-              </div>
-
-              {/* Asset Breakdown */}
-              {calculation.assetBreakdown && calculation.assetBreakdown.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Asset Breakdown</h4>
-                  <div className="space-y-2">
-                    {calculation.assetBreakdown.map((breakdown, index) => (
-                      <div key={index} className="flex justify-between text-sm">
-                        <span className="text-gray-600">{getAssetTypeLabel(breakdown.type)}:</span>
-                        <span className="font-medium">
-                          {formatCurrency(breakdown.zakatableAmount, calculation.currency)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Reason for no Zakat */}
-              {!calculation.isAboveNisab && calculation.reason && (
-                <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <p className="text-sm text-yellow-800">{calculation.reason}</p>
-                </div>
-              )}
-
-              {/* Actions */}
-              {calculation.isAboveNisab && calculation.zakatDue > 0 && (
-                <div className="mt-6 space-y-3">
-                  <button 
-                    onClick={() => setShowPaymentModal(true)}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    Record Payment
-                  </button>
-                  <button 
-                    onClick={handleSaveCalculation}
-                    className="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    Save Calculation
-                  </button>
-                </div>
-              )}
-
-              <div className="mt-4 text-xs text-gray-500 text-center">
-                Calculated on {new Date(calculation.calculatedAt).toLocaleString()}
-              </div>
-            </div>
-          )}
-
-          {/* Islamic Guidelines */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h4 className="text-sm font-medium text-blue-900 mb-3">Islamic Guidelines</h4>
-            <div className="text-sm text-blue-800 space-y-2">
-              <p>• Zakat is due when wealth exceeds the nisab threshold</p>
-              <p>• Assets must be owned for one full lunar year (hawl)</p>
-              <p>• Rate is typically 2.5% of zakatable wealth</p>
-              <p>• Debts can be deducted from total wealth</p>
-              <p>• Consult a scholar for complex situations</p>
-            </div>
-          </div>
-        </div>
+      {/* Step Content */}
+      <div className="min-h-[400px]">
+        {currentStep === 0 && renderIntroStep()}
+        {currentStep === 1 && renderAssetsStep()}
+        {currentStep === 2 && renderReviewStep()}
       </div>
 
       {/* Payment Modal */}
@@ -423,9 +286,9 @@ export const ZakatCalculator: React.FC = () => {
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
-          zakatAmount={(calculation as any).summary?.zakatAmount || (calculation as any).zakatOwed || calculation.zakatDue || 0}
-          currency="USD" // Default to USD since backend doesn't return currency yet
-          onPaymentRecorded={handlePaymentRecorded}
+          zakatAmount={calculation.zakatDue || 0}
+          currency="USD"
+          onPaymentRecorded={() => toast.success("Payment Recorded!")}
         />
       )}
     </div>

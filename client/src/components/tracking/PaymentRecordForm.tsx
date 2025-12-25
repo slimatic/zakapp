@@ -110,6 +110,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
     resolver: zodResolver(paymentRecordFormSchema) as any,
     defaultValues: {
       amount: payment?.amount?.toString() || '',
+      currency: 'USD', // Added as per instruction
       paymentDate: payment?.paymentDate ?
         (typeof payment.paymentDate === 'string' ? payment.paymentDate.slice(0, 10) : payment.paymentDate.toISOString().slice(0, 10)) :
         new Date().toISOString().slice(0, 10),
@@ -117,7 +118,6 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       recipientCategory: getInitialCategory(payment?.recipientCategory) as any,
       snapshotId: resolvedPropRecordId || '',
       paymentMethod: (payment?.paymentMethod as any) || 'cash',
-      currency: payment?.currency || 'USD',
       notes: payment?.notes || '',
       receiptReference: payment?.receiptReference || '',
       recipientType: (payment?.recipientType as any) || 'individual', // Added default
@@ -453,7 +453,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
         {isEditing && payment && (
           <Button
             type="button"
-            variant="danger"
+            variant="destructive"
             onClick={handleDelete}
             disabled={isLoading || deletePaymentMutation.isPending || deleteSnapshotMutation.isPending}
             className="w-full sm:w-auto sm:min-w-[120px]"

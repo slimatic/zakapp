@@ -59,7 +59,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 ? 'A new version of the app is available. Please refresh the page.'
                 : 'An unexpected error occurred. Please try refreshing the page.'}
             </p>
-            <Button onClick={this.handleReload} variant="primary" className="w-full">
+            <Button onClick={this.handleReload} variant="default" className="w-full">
               Refresh Page
             </Button>
           </div>

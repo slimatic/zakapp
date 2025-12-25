@@ -208,7 +208,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
         
         {onFinalize && isDraft && (
           <Button
-            variant="primary"
+            variant="default"
             size="sm"
             onClick={onFinalize}
           >
@@ -228,7 +228,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
         
         {onDelete && isDraft && (
           <Button
-            variant="danger"
+            variant="destructive"
             size="sm"
             onClick={onDelete}
             className="ml-auto"

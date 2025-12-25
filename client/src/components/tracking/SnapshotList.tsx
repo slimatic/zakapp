@@ -205,7 +205,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
           
           {selectedSnapshots.length >= 2 && onCompareSelected && (
             <Button
-              variant="primary"
+              variant="default"
               size="sm"
               onClick={handleCompareSelected}
             >

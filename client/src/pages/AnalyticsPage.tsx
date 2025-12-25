@@ -8,12 +8,13 @@ import { useNavigate } from 'react-router-dom';
 import { AnalyticsChart } from '../components/tracking/AnalyticsChart';
 import { Button } from '../components/ui/Button';
 import { useAnalytics } from '../hooks/useAnalytics';
-import { useAssets } from '../services/apiHooks';
+import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useNisabYearRecords } from '../hooks/useNisabYearRecords';
 import { usePayments } from '../hooks/usePayments';
 import { formatCurrency } from '../utils/formatters';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
-import type { Asset } from '@zakapp/shared';
+import { Asset } from '@zakapp/shared';
+import { isAssetZakatable } from '../core/calculations/zakat';
 import type { NisabYearRecord } from '../types/nisabYearRecord';
 
 type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
@@ -24,19 +25,19 @@ export const AnalyticsPage: React.FC = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('all_time');
 
   // Fetch data for summary statistics (T027)
-  const { data: assetsData } = useAssets();
+  const { assets } = useAssetRepository();
   const { data: nisabRecordsData } = useNisabYearRecords({ limit: 100 });
   const { data: paymentsData } = usePayments(); // Fetch all payments
   const { data: wealthData } = useAnalytics('wealth_trend', selectedTimeframe);
-  
+
   // Extract Nisab Year Records from API response
   const nisabRecords = nisabRecordsData?.records || [];
-  
+
   // Calculate summary statistics
-  const totalWealth = assetsData?.data?.assets?.reduce((sum: number, asset: Asset) => sum + asset.value, 0) || 0;
-  const totalZakatableWealth = assetsData?.data?.assets?.reduce((sum: number, asset: any) => {
-    const isZakatable = typeof asset.zakatEligible !== 'undefined' ? Boolean(asset.zakatEligible) : true;
-    if (!isZakatable) return sum;
+  const totalWealth = assets.reduce<number>((sum, asset) => sum + (asset.value || 0), 0) || 0;
+  const totalZakatableWealth = assets.reduce((sum: number, asset: any) => {
+    const zakatable = isAssetZakatable(asset, 'STANDARD');
+    if (!zakatable) return sum;
     const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
     const zakVal = typeof asset.zakatableValue === 'number' ? asset.zakatableValue : (asset.value || 0) * modifier;
     return sum + (zakVal || 0);
@@ -48,12 +49,12 @@ export const AnalyticsPage: React.FC = () => {
       : (record.zakatAmount || 0);
     return sum + amount;
   }, 0) || 0;
-  
+
   // Calculate total Zakat paid from actual payment records
   const totalZakatPaid = paymentsData?.payments?.reduce((sum: number, payment: any) => {
     return sum + (payment.amount || 0);
   }, 0) || 0;
-  
+
   const outstandingBalance = totalZakatDue - totalZakatPaid;
   const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;
 
@@ -85,41 +86,37 @@ export const AnalyticsPage: React.FC = () => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setSelectedTimeframe('last_year')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  selectedTimeframe === 'last_year'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTimeframe === 'last_year'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 Last Year
               </button>
               <button
                 onClick={() => setSelectedTimeframe('last_3_years')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  selectedTimeframe === 'last_3_years'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTimeframe === 'last_3_years'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 Last 3 Years
               </button>
               <button
                 onClick={() => setSelectedTimeframe('last_5_years')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  selectedTimeframe === 'last_5_years'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTimeframe === 'last_5_years'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 Last 5 Years
               </button>
               <button
                 onClick={() => setSelectedTimeframe('all_time')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  selectedTimeframe === 'all_time'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTimeframe === 'all_time'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 All Time
               </button>
@@ -170,10 +167,9 @@ export const AnalyticsPage: React.FC = () => {
 
               <div className="border-l-4 border-purple-500 pl-4">
                 <p className="text-sm text-gray-600">Compliance Rate</p>
-                <p className={`text-2xl font-bold mt-1 ${
-                  complianceRate >= 100 ? 'text-green-600' : 
+                <p className={`text-2xl font-bold mt-1 ${complianceRate >= 100 ? 'text-green-600' :
                   complianceRate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                }`}>
+                  }`}>
                   {complianceRate.toFixed(0)}%
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Paid / Due ratio</p>
@@ -191,7 +187,7 @@ export const AnalyticsPage: React.FC = () => {
                 </p>
               </div>
             </div>
-              <AnalyticsChart metricType="wealth_trend" visualizationType="line_chart" height={400} />
+            <AnalyticsChart metricType="wealth_trend" visualizationType="line_chart" height={400} />
           </div>
 
           {/* Section 2: Zakat Obligations (Nisab Record-based) */}
@@ -204,7 +200,7 @@ export const AnalyticsPage: React.FC = () => {
                 </p>
               </div>
             </div>
-              <AnalyticsChart metricType="zakat_trend" visualizationType="bar_chart" height={400} />
+            <AnalyticsChart metricType="zakat_trend" visualizationType="bar_chart" height={400} />
           </div>
 
           {/* Section 3: Asset Distribution */}
@@ -217,7 +213,7 @@ export const AnalyticsPage: React.FC = () => {
                   Current wealth breakdown by asset type and category
                 </p>
               </div>
-                <AnalyticsChart metricType="asset_composition" visualizationType="pie_chart" height={350} />
+              <AnalyticsChart metricType="asset_composition" visualizationType="pie_chart" height={350} />
             </div>
 
             {/* Payment Distribution */}
@@ -228,7 +224,7 @@ export const AnalyticsPage: React.FC = () => {
                   Zakat payments breakdown by Islamic recipient category
                 </p>
               </div>
-                <AnalyticsChart metricType="payment_distribution" visualizationType="pie_chart" height={350} />
+              <AnalyticsChart metricType="payment_distribution" visualizationType="pie_chart" height={350} />
             </div>
           </div>
 

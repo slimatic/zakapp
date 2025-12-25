@@ -481,7 +481,7 @@ export const Profile: React.FC = () => {
                 <div className="flex justify-end">
                   <Button
                     type="submit"
-                    variant="primary"
+                    variant="default"
                     disabled={profileMutation.isPending}
                   >
                     {profileMutation.isPending && <LoadingSpinner size="sm" className="mr-2" />}
@@ -581,7 +581,7 @@ export const Profile: React.FC = () => {
                   <div className="flex justify-start">
                     <Button
                       type="submit"
-                      variant="primary"
+                      variant="default"
                       disabled={passwordMutation.isPending}
                     >
                       {passwordMutation.isPending && <LoadingSpinner size="sm" className="mr-2" />}
@@ -658,7 +658,7 @@ export const Profile: React.FC = () => {
                     <p className="text-gray-600 mb-4">
                       Download all your personal data including assets, calculations, and payment history in a secure format.
                     </p>
-                    <Button variant="primary" onClick={exportUserData}>
+                    <Button variant="default" onClick={exportUserData}>
                       Export Data
                     </Button>
                   </div>
@@ -826,7 +826,7 @@ export const Profile: React.FC = () => {
                     </div>
                     
                     <Button 
-                      variant="danger" 
+                      variant="destructive" 
                       onClick={handleDeleteAccount}
                       disabled={deleteAccountMutation.isPending}
                       aria-describedby="delete-warning"

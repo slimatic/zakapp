@@ -26,6 +26,8 @@ const paymentFormSchema = createPaymentSchema.extend({
   paymentMethod: z.enum(['cash', 'bank_transfer', 'check', 'crypto', 'other'], {
     errorMap: () => ({ message: 'Payment method is required' })
   }),
+  currency: z.string().default('USD'),
+  exchangeRate: z.number().default(1.0),
 });
 
 type PaymentFormSchemaType = z.infer<typeof paymentFormSchema>;
@@ -95,6 +97,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
       recipientCategory: undefined, // Let user select
       paymentMethod: undefined, // Let user select
       notes: '',
+      receiptReference: '',
       currency: 'USD',
       exchangeRate: 1.0,
       snapshotId: 'temp-snapshot-id', // Required by schema but likely hidden/managed elsewhere. Placeholder for now.

@@ -1,9 +1,13 @@
 import { PrismaClient, Asset, Liability } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
 import { redisCacheService } from './RedisCacheService';
+import { toHijri } from 'hijri-converter';
 
 const prisma = new PrismaClient();
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+if (!ENCRYPTION_KEY) {
+  throw new Error('CRITICAL SECURITY ERROR: ENCRYPTION_KEY environment variable is not set.');
+}
 
 export interface ZakatCalculationRequest {
   methodology?: 'STANDARD' | 'HANAFI' | 'SHAFI' | 'CUSTOM';
@@ -94,11 +98,11 @@ export class ZakatCalculationService {
     // Save calculation to database
     const encryptedBreakdown = await EncryptionService.encryptObject(breakdown, ENCRYPTION_KEY);
     const encryptedAssetsIncluded = await EncryptionService.encryptObject(
-      assets.map(a => ({ id: a.id, name: a.name, value: a.value })), 
+      assets.map(a => ({ id: a.id, name: a.name, value: a.value })),
       ENCRYPTION_KEY
     );
     const encryptedLiabilitiesIncluded = await EncryptionService.encryptObject(
-      liabilities.map(l => ({ id: l.id, name: l.name, amount: l.amount })), 
+      liabilities.map(l => ({ id: l.id, name: l.name, amount: l.amount })),
       ENCRYPTION_KEY
     );
 
@@ -346,7 +350,7 @@ export class ZakatCalculationService {
    */
   async calculateRemainingZakat(userId: string, year?: string) {
     const currentYear = year || this.getIslamicYear(new Date());
-    
+
     // Get latest calculation for the year
     const latestCalculation = await prisma.zakatCalculation.findFirst({
       where: { userId },
@@ -389,11 +393,34 @@ export class ZakatCalculationService {
    */
   private calculateTotalAssets(assets: Asset[], methodology: string): number {
     let total = 0;
-    
+
     for (const asset of assets) {
       // Apply methodology-specific rules
       if (this.isAssetZakatable(asset, methodology)) {
-        total += asset.value;
+        let assetValue = asset.value;
+
+        // 401k/Retirement: Net Withdrawable Balance Logic
+        if (asset.category === 'RETIREMENT' && asset.metadata) {
+          try {
+            // Attempt to parse metadata (assuming it might be unencrypted for new assets or we can peek)
+            // In the "Renovation" branch, we assume we might have adjusted how metadata is stored or 
+            // we are preparing for the client-side shift where this will be easier.
+            // For now, let's try to parse it.
+            const meta = JSON.parse(asset.metadata);
+            if (meta.retirementDetails) {
+              const { withdrawalPenalty, taxRate } = meta.retirementDetails;
+              // Formula: Value - (Value * Penalty) - (Value * Tax)
+              // = Value * (1 - Penalty - Tax)
+              const netFactor = 1 - (withdrawalPenalty || 0) - (taxRate || 0);
+              assetValue = assetValue * Math.max(0, netFactor);
+            }
+          } catch (e) {
+            // If metadata is encrypted string (not JSON), we fail silently and use full value (conservative)
+            console.warn(`Failed to parse metadata for asset ${asset.id}, using full value.`);
+          }
+        }
+
+        total += assetValue;
       }
     }
 
@@ -421,18 +448,18 @@ export class ZakatCalculationService {
    */
   private isAssetZakatable(asset: Asset, methodology: string): boolean {
     const category = asset.category?.toUpperCase();
-    
+
     switch (methodology) {
       case 'HANAFI':
         // Hanafi school includes more business assets
         return ['CASH', 'GOLD', 'SILVER', 'BUSINESS', 'CRYPTO'].includes(category);
-      
+
       case 'SHAFI':
         // Shafi'i school has different rules for certain assets
         return ['CASH', 'GOLD', 'SILVER', 'CRYPTO'].includes(category);
-      
+
       default: // STANDARD
-        return ['CASH', 'GOLD', 'SILVER', 'CRYPTO', 'BUSINESS'].includes(category);
+        return ['CASH', 'GOLD', 'SILVER', 'CRYPTO', 'BUSINESS', 'RETIREMENT'].includes(category);
     }
   }
 
@@ -441,16 +468,16 @@ export class ZakatCalculationService {
    */
   private isLiabilityDeductible(liability: Liability, methodology: string): boolean {
     const type = liability.type?.toUpperCase();
-    
+
     switch (methodology) {
       case 'HANAFI':
         // Hanafi allows deduction of most debts
         return ['LOAN', 'MORTGAGE', 'CREDIT_CARD', 'BUSINESS_DEBT'].includes(type);
-      
+
       case 'SHAFI':
         // Shafi'i is more restrictive about debt deduction
         return ['LOAN', 'BUSINESS_DEBT'].includes(type);
-      
+
       default: // STANDARD
         return ['LOAN', 'BUSINESS_DEBT'].includes(type);
     }
@@ -476,7 +503,7 @@ export class ZakatCalculationService {
       case 'HANAFI':
         // Hanafi uses silver nisab (more lenient)
         return silverNisab;
-      
+
       case 'SHAFI':
       default:
         // Shafi'i and Standard use gold nisab (stricter)
@@ -508,11 +535,11 @@ export class ZakatCalculationService {
       }
       acc[category].count++;
       acc[category].total += asset.value;
-      
+
       if (this.isAssetZakatable(asset, methodology)) {
         acc[category].zakatable += asset.value;
       }
-      
+
       return acc;
     }, {} as Record<string, Record<string, number>>);
 
@@ -523,11 +550,11 @@ export class ZakatCalculationService {
       }
       acc[type].count++;
       acc[type].total += liability.amount;
-      
+
       if (this.isLiabilityDeductible(liability, methodology)) {
         acc[type].deductible += liability.amount;
       }
-      
+
       return acc;
     }, {} as Record<string, Record<string, number>>);
 
@@ -551,10 +578,10 @@ export class ZakatCalculationService {
    * Private: Get Islamic year from date
    */
   private getIslamicYear(date: Date): string {
-    // Simplified Islamic year calculation
-    // In a real implementation, this should use proper Hijri calendar conversion
-    const gregorianYear = date.getFullYear();
-    const approximateIslamicYear = Math.floor((gregorianYear - 622) * 1.031) + 1;
-    return approximateIslamicYear.toString();
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const { hy } = toHijri(year, month, day);
+    return hy.toString();
   }
 }

@@ -3,9 +3,11 @@ export const getApiBaseUrl = (): string => {
   if (typeof window !== 'undefined' && window.APP_CONFIG?.API_BASE_URL) {
     return window.APP_CONFIG.API_BASE_URL;
   }
-  
+
   // Fallback to build-time environment variable
-  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+  // Force localhost for connection debugging
+  return 'http://localhost:3001/api';
+  // return process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
 };
 
 export const getFeedbackEnabled = (): boolean => {
@@ -13,7 +15,7 @@ export const getFeedbackEnabled = (): boolean => {
   if (typeof window !== 'undefined' && window.APP_CONFIG?.FEEDBACK_ENABLED) {
     return window.APP_CONFIG.FEEDBACK_ENABLED === 'true';
   }
-  
+
   // Fallback to build-time environment variable
   return process.env.REACT_APP_FEEDBACK_ENABLED === 'true';
 };
@@ -23,7 +25,7 @@ export const getFeedbackWebhookUrl = (): string => {
   if (typeof window !== 'undefined' && window.APP_CONFIG?.FEEDBACK_WEBHOOK_URL) {
     return window.APP_CONFIG.FEEDBACK_WEBHOOK_URL;
   }
-  
+
   // Fallback to build-time environment variable
   return process.env.REACT_APP_FEEDBACK_WEBHOOK_URL || '';
 };
