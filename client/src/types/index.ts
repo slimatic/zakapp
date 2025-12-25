@@ -1,10 +1,13 @@
 export interface Asset {
   id: string;
+  userId?: string;
   type: AssetType;
   name: string;
   value: number;
   currency: string;
   description?: string;
+  metadata?: string;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -17,6 +20,7 @@ export enum AssetType {
   CRYPTOCURRENCY = 'CRYPTOCURRENCY',
   BUSINESS_ASSETS = 'BUSINESS_ASSETS',
   INVESTMENT_ACCOUNT = 'INVESTMENT_ACCOUNT',
+  RETIREMENT = 'RETIREMENT',
   REAL_ESTATE = 'REAL_ESTATE',
   DEBTS_OWED_TO_YOU = 'DEBTS_OWED_TO_YOU',
   OTHER = 'OTHER'

@@ -248,7 +248,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
           </Button>
           
           {onEdit && (
-            <Button variant="primary" onClick={() => onEdit(payment)}>
+            <Button variant="default" onClick={() => onEdit(payment)}>
               Edit Payment
             </Button>
           )}

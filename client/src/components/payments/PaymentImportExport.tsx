@@ -286,7 +286,7 @@ export const PaymentImportExport: React.FC = () => {
         <p className="text-gray-600 mb-6">Download your payments in CSV or JSON format. Currently you have <strong>{payments.length}</strong> payments.</p>
 
         <div className="flex flex-wrap gap-4">
-          <Button variant="primary" onClick={handleExportCSV} disabled={exporting || payments.length === 0} isLoading={exporting}>📊 Export as CSV</Button>
+          <Button variant="default" onClick={handleExportCSV} disabled={exporting || payments.length === 0} isLoading={exporting}>📊 Export as CSV</Button>
           <Button variant="secondary" onClick={handleExportJSON} disabled={exporting || payments.length === 0} isLoading={exporting}>📋 Export as JSON</Button>
         </div>
 

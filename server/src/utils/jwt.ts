@@ -1,6 +1,10 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || '[REDACTED]';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('CRITICAL SECURITY ERROR: JWT_SECRET environment variable is not set.');
+}
+
 const JWT_EXPIRES_IN = '15m'; // 15 minutes for access token
 const REFRESH_EXPIRES_IN = '7d'; // 7 days for refresh token
 
@@ -23,13 +27,13 @@ export function generateRefreshToken(userId: string): string {
     JWT_SECRET,
     { expiresIn: REFRESH_EXPIRES_IN }
   );
-  
+
   // Track token for this user
   if (!userRefreshTokens.has(userId)) {
     userRefreshTokens.set(userId, new Set());
   }
   userRefreshTokens.get(userId)!.add(token);
-  
+
   return token;
 }
 
@@ -51,17 +55,17 @@ export function verifyRefreshToken(token: string): any {
   if (usedRefreshTokens.has(token)) {
     throw new Error('TOKEN_USED');
   }
-  
+
   if (invalidatedRefreshTokens.has(token)) {
     throw new Error('TOKEN_INVALIDATED');
   }
-  
+
   const decoded = verifyToken(token);
-  
+
   if (decoded.type !== 'refresh') {
     throw new Error('INVALID_TOKEN');
   }
-  
+
   return decoded;
 }
 

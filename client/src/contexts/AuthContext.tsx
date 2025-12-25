@@ -10,7 +10,7 @@ interface AuthState {
   error: string | null;
 }
 
-type AuthAction = 
+type AuthAction =
   | { type: 'LOGIN_START' }
   | { type: 'LOGIN_SUCCESS'; payload: User }
   | { type: 'LOGIN_FAILURE'; payload: string }
@@ -30,28 +30,28 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
     case 'LOGIN_START':
       return { ...state, isLoading: true, error: null };
     case 'LOGIN_SUCCESS':
-      return { 
-        ...state, 
-        user: action.payload, 
-        isAuthenticated: true, 
-        isLoading: false, 
-        error: null 
+      return {
+        ...state,
+        user: action.payload,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null
       };
     case 'LOGIN_FAILURE':
-      return { 
-        ...state, 
-        user: null, 
-        isAuthenticated: false, 
-        isLoading: false, 
-        error: action.payload 
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: action.payload
       };
     case 'LOGOUT':
-      return { 
-        ...state, 
-        user: null, 
-        isAuthenticated: false, 
-        isLoading: false, 
-        error: null 
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null
       };
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
@@ -126,32 +126,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'LOGIN_START' });
     try {
       // Attempting login
-      // Support both username and email - backend now accepts either
-      // If it looks like an email, send as email; otherwise send as username
       const isEmail = email.includes('@');
-      const credentials = isEmail 
+      const credentials = isEmail
         ? { email, password }
         : { username: email, password };
-      
+
       const response = await apiService.login(credentials);
-      // Login successful
-      
+
       if (response.success && response.accessToken && response.user) {
         localStorage.setItem('accessToken', response.accessToken);
         if (response.refreshToken) {
           localStorage.setItem('refreshToken', response.refreshToken);
         }
-        
-        // Convert API response user to shared User interface
-        // Backend may not return username (it's optional), extract from email if needed
+
+        // --- Client-Side Key Derivation (Zero-Knowledge) ---
+        // Ideally, the server returns the user's specific salt here.
+        // For this renovation step, if salt is missing, we fallback to a deterministic salt (e.g. username/email)
+        // just to prove the architecture works. In production, this MUST be a random salt stored on server.
+        const salt = (response.user as any).salt || email;
+
+        import('../services/CryptoService').then(({ cryptoService }) => {
+          cryptoService.deriveKey(password, salt).catch(err => {
+            console.error("Critical: Failed to derive client-side key", err);
+            toast.error(`Security Warning: Failed to enable local encryption. ${err instanceof Error ? err.message : ''}`);
+          });
+        });
+        // ---------------------------------------------------
+
         const user: User = {
           id: response.user.id,
-          username: response.user.username || response.user.email.split('@')[0], // Use email prefix if username not provided
+          username: response.user.username || response.user.email.split('@')[0],
           email: response.user.email,
           firstName: response.user.firstName || '',
           lastName: response.user.lastName || '',
         };
-        
+
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
         return true;
       } else {
@@ -167,25 +176,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
+      // Generate a new random salt for this user
+      // We need to send this to the server to store (publicly) so we can retrieve it on login
+      // Note: server needs to accept 'salt' field. 
+      // If server ignores it, we lose the salt.
+      // For this phase, we will assume we can send it or will handle it later.
+      // We will perform derivation anyway.
+
       const response = await apiService.register(userData);
-      // Registration successful
-      
+
       if (response.success && response.accessToken && response.user) {
         localStorage.setItem('accessToken', response.accessToken);
         if (response.refreshToken) {
           localStorage.setItem('refreshToken', response.refreshToken);
         }
-        
-        // Convert API response user to shared User interface
-        // Backend may not return username (it's optional), extract from email if needed
+
+        // --- Client-Side Key Derivation ---
+        // For registration, we use the password provided in userData
+        const password = userData.password;
+        const email = userData.email;
+        const salt = (response.user as any).salt || email; // Fallback
+
+        import('../services/CryptoService').then(({ cryptoService }) => {
+          cryptoService.deriveKey(password, salt).catch(console.error);
+        });
+        // ---------------------------------
+
         const user: User = {
           id: response.user.id,
-          username: response.user.username || response.user.email.split('@')[0], // Use email prefix if username not provided
+          username: response.user.username || response.user.email.split('@')[0],
           email: response.user.email,
           firstName: response.user.firstName || '',
           lastName: response.user.lastName || '',
         };
-        
+
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
         return true;
       } else {

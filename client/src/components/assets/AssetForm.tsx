@@ -50,7 +50,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
   // Recalculate modifier when flags change
   useEffect(() => {
     const newModifier = formData.isRestrictedAccount ? 0.0 :
-                       formData.isPassiveInvestment ? 0.3 : 1.0;
+      formData.isPassiveInvestment ? 0.3 : 1.0;
     setCalculationModifier(newModifier);
 
     // Clear passive flag if category changes to ineligible type
@@ -115,7 +115,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       // keep zakatEligible so edits to eligibility persist
       delete (assetData as any).description;
       delete (assetData as any).subCategory;
-      
+
       updateMutation.mutate({ assetId: asset.assetId, assetData }, {
         onSuccess: () => {
           onSuccess?.();
@@ -137,7 +137,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       // include zakatEligible for new assets as well
       delete (assetData as any).description;
       delete (assetData as any).subCategory;
-      
+
       createMutation.mutate(assetData, {
         onSuccess: () => {
           onSuccess?.();
@@ -154,7 +154,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
   const handleChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -344,7 +344,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               aria-required="true"
               aria-invalid={!!errors.value}
               aria-describedby={errors.value ? 'value-error' : undefined}
-              autoSelectOnFocus={true}
+
             />
             {errors.value && (
               <p id="value-error" className="mt-1 text-sm text-red-600" role="alert">
@@ -352,7 +352,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               </p>
             )}
           </div>
-          
+
           <div>
             <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-2">
               Currency *
@@ -361,9 +361,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               id="currency"
               value={formData.currency}
               onChange={(e) => handleChange('currency', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.currency ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.currency ? 'border-red-500' : 'border-gray-300'
+                }`}
               aria-required="true"
               aria-invalid={!!errors.currency}
               aria-describedby={errors.currency ? 'currency-error' : 'currency-help'}
@@ -572,7 +571,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           )}
           <Button
             type="submit"
-            variant="primary"
+            variant="default"
             isLoading={isSubmitting || mutation.isPending}
             disabled={isSubmitting || mutation.isPending}
           >

@@ -15,6 +15,10 @@ export interface CreateAssetDto {
   notes?: string;
   isPassiveInvestment?: boolean;
   isRestrictedAccount?: boolean;
+  retirementDetails?: {
+    withdrawalPenalty: number; // Percentage (0-1)
+    taxRate: number; // Percentage (0-1)
+  };
 }
 
 export type UpdateAssetDto = Partial<CreateAssetDto>;
@@ -38,4 +42,8 @@ export interface AssetFormState {
   notes?: string;
   isPassiveInvestment: boolean;
   isRestrictedAccount: boolean;
+  retirementDetails?: {
+    withdrawalPenalty: number;
+    taxRate: number;
+  };
 }

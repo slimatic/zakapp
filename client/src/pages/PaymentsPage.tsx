@@ -119,7 +119,7 @@ export const PaymentsPage: React.FC = () => {
                 No Nisab Year Records found. Please create a Nisab Year Record first to record payments.
               </p>
               <Button
-                variant="primary"
+                variant="default"
                 onClick={() => navigate('/dashboard')}
                 className="mt-3"
               >

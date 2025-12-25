@@ -2,40 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/**
- * Font Loading Optimization
- * - font-display: swap prevents invisible text during font load
- * - System fonts as fallback for instant rendering
- * - Reduces CLS (Cumulative Layout Shift)
- */
-
 @layer base {
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    /* Ensure text is visible during webfont load */
-    font-display: swap;
-  }
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
 
-  code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-      monospace;
-    font-display: swap;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 159 81% 40%; /* Emerald 600 */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 44 93% 53%; /* Gold 500 */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 159 81% 40%; /* Ring matches Primary */
+
+    --radius: 0.75rem;
   }
 }
 
-/**
- * Optional: If using custom fonts, define them with font-display: swap
- * Example:
- * @font-face {
- *   font-family: 'CustomFont';
- *   src: url('/fonts/custom-font.woff2') format('woff2');
- *   font-display: swap;
- *   font-weight: normal;
- *   font-style: normal;
- * }
- */
+@layer components {
+  /* Glassmorphism Classes */
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  /* Premium Buttons */
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 active:scale-95 transition-all duration-200 shadow-lg shadow-primary-500/20 font-medium tracking-wide;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-primary-700 border border-primary-100 hover:bg-primary-50 active:scale-95 transition-all duration-200 shadow-sm hover:border-primary-200;
+  }
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 font-sans antialiased selection:bg-primary-100 selection:text-primary-900;
+}
