@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import toast from 'react-hot-toast';
 import type { User } from '../types';
-import { getDb, resetDb } from '../db';
+import { getDb, resetDb, closeDb } from '../db';
 import { cryptoService } from '../services/CryptoService';
 
 interface AuthState {
@@ -129,8 +129,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Check if we have a local user ID (for offline support)
-      const db = await getDb();
-      let userDoc = await db.user_settings.findOne(LOCAL_USER_ID).exec();
+      // Open DB tentatively (might need password if not open, but we don't have key yet?)
+      // Actually we just want to know if it exists. getDb() without password might fail if it's encrypted?
+      // But we need to use CloseDb first to ensure we aren't using a stale connection.
+      await closeDb();
+      const db = await getDb(password); // Try opening with password immediately?
+      // Wait, we haven't derived the key yet! We can't use `password` as key directly if we use PBKDF2 in cryptoService.
+      // But RxDB adapter uses `password` passed to it. AND our `index.ts` does NOT derive key, it expects valid key.
+      // Wait. `cryptoService.deriveKey` sets the GLOBAL key for the app logic (encryption-crypto-js wrapper?).
+      // In `db/index.ts`, `wrappedKeyEncryptionCryptoJsStorage` is used.
+      // It usually grabs the key from the `password` field passed to `createRxDatabase`.
+      // BUT `cryptoService` manages the actual Cryptography logic for fields?
+      // Let's stick to the existing flow:
+
+      // We need the SALT locally to derive the key.
+      // But we can't read the SALT from the DB if the DB is encrypted and we don't have the key!
+      // Catch-22?
+      // No, `user_settings` schema usually has `salt` as potentially unencrypted or we use a global predictable key for the meta-doc?
+      // Or we rely on API to give us the salt (Scenario B).
+
+      // Let's assume we rely on API for salt OR the DB is accessible enough to read the user doc.
+      // If we used `resetDb` before, we wiped it. So we ALWAYS used API salt.
+      // NOW, we want to use Local Salt if available.
+
+      let userDoc = await db.user_settings.findOne(LOCAL_USER_ID).exec(); // This might fail if key is wrong?
 
       let salt: string;
 
@@ -160,13 +182,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           salt = remoteProfile.salt;
           console.log('Fresh Device Login: Retrieved salt from backend');
         } else {
-          // Legacy User or Error: No salt on backend.
-          // We cannot decrypt their data without the salt.
-          // If we generate a NEW salt, we create a valid local vault, but it won't decrypt OLD CouchDB data?
-          // Actually, if we use a new salt, we generate a DIFFERENT key.
-          // Any encrypted data in CouchDB synced down will be garbage (undecryptable).
-          // For now, we allow it but warn, or we throw?
-          // Let's THROW to prevent data corruption/loss of access to old data.
           throw new Error('Account sync unavailable: Security salt missing from server. Please export/import your key manually.');
         }
       }
@@ -176,8 +191,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await cryptoService.deriveKey(password, salt);
       console.log('AuthContext: Key derived successfully');
 
-      // 3. Initialize DB with Key (Reset first if this is a fresh login to ensure clean state)
-      await resetDb();
+      // 3. Initialize DB with Correct Key
+      // We opened it tentatively above. Now we ensure it's open with the derived key logic (if cryptoService affects it).
+      // Actually `getDb(password)` passes the password to RxDB.
+      // If `cryptoService.deriveKey` is what actually sets the encryption key for the plugin...
+      // We should close and re-open to be sure.
+      await closeDb();
       await getDb(password);
       const encryptedDb = await getDb();
 
@@ -209,13 +228,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const jwk = await cryptoService.exportSessionKey();
       sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
 
-      // 3. Initialize Database with Encryption Key (The key string is the password)
-      // Since we derived a fresh key, we should ensure the DB is open with it.
-      // However, for the very first login (registration) or fresh login, the DB might be cold.
-      // If we want to guarantee the DB uses THIS key, we reset:
-      await resetDb();
-
+      // 3. Ensure DB remains open
       // Use the password directly as the encryption key
+      await closeDb(); // Ensure clean slate
       await getDb(password);
 
       console.log('AuthContext: Dispatching LOGIN_SUCCESS');
@@ -260,6 +275,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // 3. Initialize Database with Encryption Key
       // We must reset if it was opened without password pending registration
+      // For registration, we WANT to wipe old data to be safe.
       await resetDb();
       await getDb(userData.password);
 
@@ -306,6 +322,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       cryptoService.clearSession();
       sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      await closeDb(); // Close connection but keep data!
     } finally {
       dispatch({ type: 'LOGOUT' });
     }

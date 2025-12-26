@@ -141,9 +141,19 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
     }
 };
 
+// Event Emitter for DB changes
+const dbListeners: ((db: ZakAppDatabase | null) => void)[] = [];
+
+const notifyListeners = (db: ZakAppDatabase | null) => {
+    dbListeners.forEach(listener => listener(db));
+};
+
 export const getDb = (password?: string): Promise<ZakAppDatabase> => {
     if (!dbPromise) {
-        dbPromise = _createDb(password).catch(err => {
+        dbPromise = _createDb(password).then(db => {
+            notifyListeners(db);
+            return db;
+        }).catch(err => {
             dbPromise = null; // Reset promise on failure so we can retry
             throw err;
         });
@@ -151,26 +161,62 @@ export const getDb = (password?: string): Promise<ZakAppDatabase> => {
     return dbPromise;
 };
 
-// For testing purposes
+// Destroys the DB instance (Close Connection) WITHOUT deleting data
+export const closeDb = async () => {
+    if (dbPromise) {
+        try {
+            const db = await dbPromise;
+            if (db) {
+                await db.destroy();
+                // console.log('Database instance destroyed (closed). Data preserved.');
+            }
+        } catch (e) {
+            console.error('Error closing DB:', e);
+        }
+        dbPromise = null;
+        notifyListeners(null);
+    }
+};
+
+// Removes the DB (Deletes ALL Data)
 export const resetDb = async () => {
     if (dbPromise) {
         try {
             const db = await dbPromise;
-            if (db) await db.remove();
+            if (db) {
+                await db.remove();
+                console.warn('Database removed (Data DELETED).');
+            }
         } catch (e) {
-            console.error('Error destroying DB:', e);
+            console.error('Error removing DB:', e);
         }
         dbPromise = null;
+        notifyListeners(null);
     }
 };
 
-// Hook for React components
-
+// Hook for React components - Reactively updates when DB instance changes
 export const useDb = () => {
     const [db, setDb] = useState<ZakAppDatabase | null>(null);
 
     useEffect(() => {
-        getDb().then(setDb);
+        // Initial fetch
+        if (dbPromise) {
+            dbPromise.then(setDb).catch(() => setDb(null));
+        }
+
+        // Subscribe to changes
+        const listener = (newDb: ZakAppDatabase | null) => {
+            setDb(newDb);
+        };
+        dbListeners.push(listener);
+
+        return () => {
+            const index = dbListeners.indexOf(listener);
+            if (index > -1) {
+                dbListeners.splice(index, 1);
+            }
+        };
     }, []);
 
     return db;
