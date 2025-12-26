@@ -8,6 +8,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PaymentCard } from './PaymentCard';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
+import { PrivacyProvider } from '../../contexts/PrivacyContext';
 
 // Mock formatters
 jest.mock('../../utils/formatters', () => ({
@@ -52,7 +53,11 @@ const mockNisabYear = {
 describe('Encrypted recipient masking', () => {
   it('shows masked placeholder when recipientName looks encrypted', () => {
     const encryptedPayment = { ...mockPayment, recipientName: 'uqs8fcxx88Cwt8dAIjNzMw==:Ar9S5pFFoFMMc81/Gvun3g==' } as any;
-    render(<PaymentCard payment={encryptedPayment} />);
+    render(
+      <PrivacyProvider>
+        <PaymentCard payment={encryptedPayment} />
+      </PrivacyProvider>
+    );
     expect(screen.getByText(/Encrypted recipient/i)).toBeInTheDocument();
   });
 });

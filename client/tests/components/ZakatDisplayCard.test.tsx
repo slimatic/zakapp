@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ZakatDisplayCard from '../../src/components/tracking/ZakatDisplayCard';
+import { PrivacyProvider } from '../../src/contexts/PrivacyContext';
 
 const sampleRecord = {
   id: 'r1',
@@ -13,7 +14,11 @@ const sampleRecord = {
 
 describe('ZakatDisplayCard', () => {
   it('shows total wealth and zakatable wealth and calculated zakat', () => {
-    render(<ZakatDisplayCard record={sampleRecord as any} />);
+    render(
+      <PrivacyProvider>
+        <ZakatDisplayCard record={sampleRecord as any} />
+      </PrivacyProvider>
+    );
 
     expect(screen.getByText(/Total Wealth:/)).toBeInTheDocument();
     expect(screen.getByText(/Zakatable Wealth:/)).toBeInTheDocument();
