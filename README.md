@@ -55,10 +55,28 @@ Visit `http://localhost:5173` to view the app.
 
 -   **Framework**: React 18, Vite
 -   **Language**: TypeScript
--   **Database**: RxDB (Local-First)
+-   **Database**: RxDB (Local-First) + CouchDB (Sync)
 -   **Styling**: Tailwind CSS, shadcn/ui
 -   **Icons**: Lucide React
 -   **Testing**: Vitest, Playwright
+
+## 🔄 Sync & Multi-Device Setup
+
+ZakApp supports private, end-to-end encrypted synchronization between devices using a self-hosted CouchDB instance.
+
+### Running the Sync Server
+
+1.  Ensure Docker is installed.
+2.  Run the stack:
+    ```bash
+    docker compose up -d
+    ```
+    This spins up a CouchDB instance on port `5984` and the App on `3000`.
+
+### Troubleshooting Sync
+
+-   **Infinite "Syncing..."**: Check that `CouchDB` is reachable at `http://localhost:5984/_utils`. If running on a different device on the LAN, ensure the firewall allows port 5984.
+-   **Mobile Access**: Mobile browsers require a **Secure Context** (HTTPS) for cryptography. accessing via `http://192.168.x.x` will fail. Use a tunnel (ngrok) or `chrome://flags` to bypass.
 
 ## 🤝 Contributing
 

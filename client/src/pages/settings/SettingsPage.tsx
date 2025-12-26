@@ -5,9 +5,10 @@ import { ProfileForm } from './components/ProfileForm';
 import { SecuritySettings } from './components/SecuritySettings';
 import { DataManagement } from './components/DataManagement';
 import { DangerZone } from './components/DangerZone';
+import { HelpSupport } from './components/HelpSupport';
 import { User, Lock, Database, AlertOctagon } from 'lucide-react';
 
-type SettingsTab = 'profile' | 'security' | 'data' | 'danger';
+type SettingsTab = 'profile' | 'security' | 'data' | 'help' | 'danger';
 
 export const SettingsPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
@@ -16,6 +17,7 @@ export const SettingsPage: React.FC = () => {
         { id: 'profile', name: 'Profile Information', icon: User },
         { id: 'security', name: 'Security', icon: Lock },
         { id: 'data', name: 'Data Management', icon: Database },
+        { id: 'help', name: 'Help & Support', icon: User }, // Or a HelpCircle icon if available, reusing User for now or importing HelpCircle
         { id: 'danger', name: 'Danger Zone', icon: AlertOctagon },
     ];
 
@@ -42,8 +44,8 @@ export const SettingsPage: React.FC = () => {
                                     key={item.id}
                                     onClick={() => setActiveTab(item.id as SettingsTab)}
                                     className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === item.id
-                                            ? 'bg-blue-50 text-blue-700'
-                                            : 'text-gray-900 hover:bg-gray-50 hover:text-gray-900'
+                                        ? 'bg-blue-50 text-blue-700'
+                                        : 'text-gray-900 hover:bg-gray-50 hover:text-gray-900'
                                         }`}
                                     aria-current={activeTab === item.id ? 'page' : undefined}
                                 >
@@ -65,6 +67,7 @@ export const SettingsPage: React.FC = () => {
                         {activeTab === 'profile' && <ProfileForm />}
                         {activeTab === 'security' && <SecuritySettings />}
                         {activeTab === 'data' && <DataManagement />}
+                        {activeTab === 'help' && <HelpSupport />}
                         {activeTab === 'danger' && <DangerZone />}
                     </div>
                 </div>
