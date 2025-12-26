@@ -1,5 +1,5 @@
 export const AssetSchema = {
-    version: 2,
+    version: 3,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -11,15 +11,16 @@ export const AssetSchema = {
             type: 'string'
         },
         name: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         type: {
             type: 'string',
             maxLength: 50
-            // enum: ['CASH', 'BANK_ACCOUNT', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS_ASSETS', 'INVESTMENT_ACCOUNT', 'RETIREMENT', 'REAL_ESTATE', 'DEBTS_OWED_TO_YOU', 'OTHER']
         },
         value: {
-            type: 'number'
+            type: 'number',
+            encrypted: true
         },
         currency: {
             type: 'string',
@@ -27,10 +28,12 @@ export const AssetSchema = {
             maxLength: 3
         },
         description: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         metadata: {
-            type: 'string' // Encrypted JSON
+            type: 'string', // Encrypted JSON
+            encrypted: true
         },
         isActive: {
             type: 'boolean',
@@ -50,7 +53,8 @@ export const AssetSchema = {
             maxLength: 30
         },
         notes: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         calculationModifier: {
             type: 'number',

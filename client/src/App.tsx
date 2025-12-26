@@ -21,6 +21,9 @@ import { getFeedbackEnabled } from './config';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { SkipLink } from './components/common/SkipLink';
 import { ToastProvider } from './components/ui/ToastProvider';
+import { useDb } from './db';
+import { syncService } from './services/SyncService';
+import { useEffect } from 'react';
 
 /**
  * T023 Performance Optimization: Route-Based Code Splitting
@@ -76,6 +79,14 @@ const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ de
 // const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
 
 function App() {
+  const db = useDb();
+
+  useEffect(() => {
+    if (db) {
+      syncService.startSync(db);
+    }
+  }, [db]);
+
   return (
     <ToastProvider>
       <QueryProvider>

@@ -23,6 +23,7 @@ export interface RegisterRequest {
   firstName?: string;
   lastName?: string;
   username?: string;
+  salt?: string;
 }
 
 export interface AuthResponse {
