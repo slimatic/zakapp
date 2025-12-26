@@ -13,6 +13,22 @@ if (typeof (global as any).TextDecoder === 'undefined') {
 	(global as any).TextDecoder = TextDecoder as any;
 }
 
+// Polyfill Web Crypto API
+import { webcrypto } from 'node:crypto';
+if (typeof window.crypto === 'undefined') {
+	Object.defineProperty(window, 'crypto', {
+		value: webcrypto,
+		writable: true
+	});
+}
+// Ensure subtle is available even if window.crypto existed but was incomplete
+if (window.crypto && !window.crypto.subtle) {
+	Object.defineProperty(window.crypto, 'subtle', {
+		value: (webcrypto as any).subtle,
+		writable: true
+	});
+}
+
 // Provide a simple matchMedia mock for components that use it
 if (typeof window.matchMedia === 'undefined') {
 	Object.defineProperty(window, 'matchMedia', {

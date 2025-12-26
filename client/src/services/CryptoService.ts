@@ -60,11 +60,41 @@ export class CryptoService {
             },
             keyMaterial,
             { name: "AES-GCM", length: 256 },
-            false, // Not extractable
+            true, // Extractable (Required for Session Persistence)
             ["encrypt", "decrypt"]
         );
 
         console.log("CryptoService: Master key derived successfully.");
+    }
+
+    /**
+     * Export the master key for session persistence
+     * (Warning: Stored in sessionStorage only)
+     */
+    async exportSessionKey(): Promise<JsonWebKey> {
+        if (!this.masterKey) throw new Error("No key to export");
+        return await window.crypto.subtle.exportKey("jwk", this.masterKey);
+    }
+
+    /**
+     * Restore the master key from session storage
+     */
+    async restoreSessionKey(jwk: JsonWebKey): Promise<void> {
+        this.masterKey = await window.crypto.subtle.importKey(
+            "jwk",
+            jwk,
+            { name: "AES-GCM", length: 256 },
+            true,
+            ["encrypt", "decrypt"]
+        );
+        console.log("CryptoService: Session restored successfully");
+    }
+
+    /**
+     * Clear in-memory keys (Logout)
+     */
+    clearSession(): void {
+        this.masterKey = null;
     }
 
     /**
@@ -96,20 +126,23 @@ export class CryptoService {
     /**
      * Decrypt data using AES-GCM
      */
+    /**
+     * Decrypt data using AES-GCM
+     */
     async decrypt(cipherText: string, ivBase64: string): Promise<any> {
         if (!this.masterKey) throw new Error("Key not derived");
 
-        const encryptedContent = this.base64ToArrayBuffer(cipherText);
-        const iv = this.base64ToArrayBuffer(ivBase64);
+        const encryptedContent = this.base64ToUint8Array(cipherText);
+        const iv = this.base64ToUint8Array(ivBase64);
 
         try {
             const decryptedContent = await window.crypto.subtle.decrypt(
                 {
                     name: "AES-GCM",
-                    iv: iv as BufferSource
+                    iv: iv
                 },
                 this.masterKey,
-                encryptedContent as BufferSource
+                encryptedContent
             );
 
             const dec = new TextDecoder();
@@ -151,14 +184,14 @@ export class CryptoService {
         return window.btoa(binary);
     }
 
-    private base64ToArrayBuffer(base64: string): ArrayBuffer {
+    private base64ToUint8Array(base64: string): Uint8Array {
         const binary_string = window.atob(base64);
         const len = binary_string.length;
         const bytes = new Uint8Array(len);
         for (let i = 0; i < len; i++) {
             bytes[i] = binary_string.charCodeAt(i);
         }
-        return bytes.buffer;
+        return bytes;
     }
 }
 
