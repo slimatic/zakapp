@@ -62,7 +62,7 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
     console.trace('Database creation triggered by:');
 
     let storage;
-    let dbName = 'zakapp_db_v6';
+    let dbName = 'zakapp_db_v7';
 
     if (process.env.NODE_ENV === 'test') {
         storage = getRxStorageMemory();
@@ -92,11 +92,15 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
     }
 
     try {
+        // Ensure strictly one instance for this name in this realm
+        // RxDB usually handles this with ignoreDuplicate: true, but we want to avoid COL23.
+        // We rely on closeDb() being called before creating a new one with a different password.
+
         const db = await createRxDatabase<ZakAppCollections>({
             name: dbName,
             storage: storage,
             password: password, // Pass encryption key
-            ignoreDuplicate: true
+            ignoreDuplicate: true // Recommended for React HMR
         });
 
         // Check if collections already exist (idempotency for ignoreDuplicate: true)
@@ -133,7 +137,6 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
             console.log('DatabaseService: Collections already exist. Skipping initialization.');
         }
 
-        console.log('DatabaseService: Collections added.');
         return db;
     } catch (err) {
         console.error('DatabaseService: Failed to create database', err);
@@ -149,15 +152,19 @@ const notifyListeners = (db: ZakAppDatabase | null) => {
 };
 
 export const getDb = (password?: string): Promise<ZakAppDatabase> => {
-    if (!dbPromise) {
-        dbPromise = _createDb(password).then(db => {
-            notifyListeners(db);
-            return db;
-        }).catch(err => {
-            dbPromise = null; // Reset promise on failure so we can retry
-            throw err;
-        });
+    // Return existing promise if still valid (Singleton)
+    if (dbPromise) {
+        return dbPromise;
     }
+
+    dbPromise = _createDb(password).then(db => {
+        notifyListeners(db);
+        return db;
+    }).catch(err => {
+        dbPromise = null; // Reset promise on failure so we can retry
+        throw err;
+    });
+
     return dbPromise;
 };
 
@@ -167,6 +174,8 @@ export const closeDb = async () => {
         try {
             const db = await dbPromise;
             if (db) {
+                // Remove all collections to free up the global limit? 
+                // RxDB db.destroy() should handle this.
                 await db.destroy();
                 // console.log('Database instance destroyed (closed). Data preserved.');
             }
