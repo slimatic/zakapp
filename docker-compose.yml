@@ -16,13 +16,28 @@ services:
     environment:
       - NODE_ENV=development
       - HOST=0.0.0.0
-      - REACT_APP_API_BASE_URL=http://localhost:3001/api
+      - REACT_APP_API_BASE_URL=http://${HOST_IP:-localhost}:3001/api
       - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
       - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
+      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL:-http://${HOST_IP:-localhost}:5984}
+      - REACT_APP_COUCHDB_USER=${COUCHDB_USER}
+      - REACT_APP_COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
     depends_on:
       backend:
         condition: service_healthy
-    command: npm start
+      couchdb:
+        condition: service_started
+    command: npm run dev
+
+  couchdb:
+    image: apache/couchdb:3
+    ports:
+      - "5984:5984"
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+    volumes:
+      - ./couchdb-data:/opt/couchdb/data
 
   backend:
     build:
@@ -51,6 +66,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 45s
+    depends_on:
+      - couchdb
 
 volumes:
   zakapp-db:

@@ -59,7 +59,11 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({ children }) => {
     let mounted = true;
     // Only attempt to load devtools when explicitly enabled via env var.
     // This prevents unexpected runtime errors (and the webpack overlay) during automated E2E runs.
-    if (process.env.REACT_APP_ENABLE_QUERY_DEVTOOLS === 'true') {
+    const enableDevtools =
+      (typeof process !== 'undefined' ? process.env?.REACT_APP_ENABLE_QUERY_DEVTOOLS : undefined) === 'true' ||
+      (import.meta.env && import.meta.env.VITE_ENABLE_QUERY_DEVTOOLS === 'true');
+
+    if (enableDevtools) {
       (async () => {
         try {
           const mod = await import('@tanstack/react-query-devtools');
