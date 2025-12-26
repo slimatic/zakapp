@@ -51,5 +51,16 @@ export function useAssetRepository() {
         }
     };
 
-    return { assets, isLoading, error, addAsset, removeAsset };
+    const updateAsset = async (id: string, updates: Partial<Asset>) => {
+        if (!db) throw new Error('Database not initialized');
+        const doc = await db.assets.findOne(id).exec();
+        if (doc) {
+            return doc.patch({
+                ...updates,
+                updatedAt: new Date().toISOString()
+            });
+        }
+    };
+
+    return { assets, isLoading, error, addAsset, removeAsset, updateAsset };
 }
