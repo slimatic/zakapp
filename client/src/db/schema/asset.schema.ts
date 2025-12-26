@@ -1,7 +1,5 @@
-import { RxJsonSchema } from 'rxdb';
-
-export const AssetSchema: RxJsonSchema<any> = {
-    version: 0,
+export const AssetSchema = {
+    version: 2,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -17,6 +15,7 @@ export const AssetSchema: RxJsonSchema<any> = {
         },
         type: {
             type: 'string',
+            maxLength: 50
             // enum: ['CASH', 'BANK_ACCOUNT', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS_ASSETS', 'INVESTMENT_ACCOUNT', 'RETIREMENT', 'REAL_ESTATE', 'DEBTS_OWED_TO_YOU', 'OTHER']
         },
         value: {
@@ -24,7 +23,8 @@ export const AssetSchema: RxJsonSchema<any> = {
         },
         currency: {
             type: 'string',
-            default: 'USD'
+            default: 'USD',
+            maxLength: 3
         },
         description: {
             type: 'string'
@@ -43,7 +43,28 @@ export const AssetSchema: RxJsonSchema<any> = {
         updatedAt: {
             type: 'string',
             format: 'date-time'
+        },
+        acquisitionDate: {
+            type: 'string',
+            format: 'date-time',
+            maxLength: 30
+        },
+        notes: {
+            type: 'string'
+        },
+        calculationModifier: {
+            type: 'number',
+            default: 1.0
+        },
+        isPassiveInvestment: {
+            type: 'boolean',
+            default: false
+        },
+        isRestrictedAccount: {
+            type: 'boolean',
+            default: false
         }
     },
-    required: ['id', 'name', 'type', 'value']
+    required: ['id', 'name', 'type', 'value', 'acquisitionDate', 'isActive'],
+    indexes: ['type', 'isActive', 'acquisitionDate']
 };

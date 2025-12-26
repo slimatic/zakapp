@@ -1,7 +1,5 @@
-import { RxJsonSchema } from 'rxdb';
-
-export const ZakatCalculationSchema: RxJsonSchema<any> = {
-    version: 0,
+export const ZakatCalculationSchema = {
+    version: 2,
     primaryKey: 'id',
     type: 'object',
     properties: {

@@ -1,7 +1,5 @@
-import { RxJsonSchema } from 'rxdb';
-
-export const LiabilitySchema: RxJsonSchema<any> = {
-    version: 0,
+export const LiabilitySchema = {
+    version: 2,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -16,14 +14,16 @@ export const LiabilitySchema: RxJsonSchema<any> = {
             type: 'string'
         },
         type: {
-            type: 'string'
+            type: 'string',
+            maxLength: 50
         },
         amount: {
             type: 'number'
         },
         currency: {
             type: 'string',
-            default: 'USD'
+            default: 'USD',
+            maxLength: 3
         },
         description: {
             type: 'string'
@@ -42,7 +42,19 @@ export const LiabilitySchema: RxJsonSchema<any> = {
         updatedAt: {
             type: 'string',
             format: 'date-time'
+        },
+        dueDate: {
+            type: 'string',
+            format: 'date-time',
+            maxLength: 30
+        },
+        creditor: {
+            type: 'string'
+        },
+        notes: {
+            type: 'string'
         }
     },
-    required: ['id', 'name', 'type', 'amount']
+    required: ['id', 'name', 'type', 'amount', 'isActive', 'dueDate'],
+    indexes: ['type', 'isActive', 'dueDate']
 };
