@@ -10,6 +10,9 @@ export const UserSettingsSchema = {
         profileName: {
             type: 'string' // e.g. "My Profile"
         },
+        email: {
+            type: 'string'
+        },
         preferredCalendar: {
             type: 'string',
             default: 'gregorian' // 'hijri' or 'gregorian'
