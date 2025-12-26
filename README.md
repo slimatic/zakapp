@@ -1,59 +1,74 @@
-# ZakApp (Project Ikhlas)
+# ZakApp (Ikhlas Project)
 
-![Status](https://img.shields.io/badge/Status-Beta-emerald)
-![License](https://img.shields.io/badge/License-MIT-blue)
-![Architecture](https://img.shields.io/badge/Architecture-Local%20First-gold)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Status](https://img.shields.io/badge/status-beta-orange.svg)
+![Compliance](https://img.shields.io/badge/compliance-shariah--compliant-green.svg)
 
-**ZakApp** is a privacy-first, open-source Zakat calculator designed to help Muslims calculate their obligation with accuracy and peace of mind.
+**The World's First Local-First, Privacy-Focused Islamic Finance Platform.**
 
-## 🔒 Local-First Architecture
+ZakApp Re-imagines the Zakat calculation experience by prioritizing user privacy, Fiqh precision, and modern design. Unlike other calculators that send your Net Worth to a cloud server, ZakApp performs all math inside your browser.
 
-Unlike traditional web apps, ZakApp is built on a **Zero-Knowledge** architecture. 
-- **Your Data**: Stored locally on your device (IndexedDB/RxDB).
-- **Your Keys**: Encryption keys are derived from your password on-device and never sent to the server.
-- **Offline Capable**: Works fully offline.
+## 🔒 Privacy First
 
-## 🛠 Tech Stack
+-   **Zero-Knowledge Architecture**: Your financial data never leaves your device.
+-   **Local Database**: Uses RxDB (IndexedDB/SQLite) for offline-first resilience.
+-   **Client-Side Logic**: Usage of `window.crypto` for any sensitivity.
 
-- **Frontend**: React, TypeScript, Vite
-- **Database**: [RxDB](https://rxdb.info/) (Client-side NoSQL)
-- **Styling**: Tailwind CSS + "Ikhlas" Design System (Glassmorphism)
-- **Security**: Web Crypto API (PBKDF2 / AES-GCM)
+## ✨ Features
+
+-   **Precision Hawl Tracking**: Tracks Nisab thresholds based on Lunar Hijri calendar.
+-   **Multi-Madhab Compliance**: Toggle between Hanafi, Shafi'i, Maliki, and Hanbali rulings.
+-   **Asset Portfolio Management**: Detailed tracking for Gold, Crypto, 401k, and Real Estate.
+-   **Offline Capabilities**: Works perfectly without an internet connection.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js > 18.0.0
-- npm
+
+-   Node.js v18+
+-   npm or yarn
 
 ### Installation
 
-1. Clone the repository
-   ```bash
-   git clone https://github.com/zakapp/project-ikhlas.git
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/zakapp/zakapp.git
 
-2. Install Dependencies
-   ```bash
-   cd project-ikhlas
-   npm install
-   ```
+# Install dependencies (Root)
+npm install
 
-3. Run Development Server
-   ```bash
-   npm start
-   ```
+# Install dependencies (Client)
+cd client
+npm install
+```
 
-## ☪️ Fiqh Methodology
+### Running Locally
 
-ZakApp supports multiple Zakat calculation methodologies (Standard, Hanafi, Shafi'i). 
-- **Gold/Silver Nisab**: Automatically fetches latest metal prices (or uses cached values).
-- **401k/Retirement**: Calculates "Net Withdrawable Balance" based on tax/penalty deductions.
+```bash
+# Start the Vite Development Server
+npm run dev
+```
+
+Visit `http://localhost:5173` to view the app.
+
+## 🛠 Tech Stack
+
+-   **Framework**: React 18, Vite
+-   **Language**: TypeScript
+-   **Database**: RxDB (Local-First)
+-   **Styling**: Tailwind CSS, shadcn/ui
+-   **Icons**: Lucide React
+-   **Testing**: Vitest, Playwright
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions from the community! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgements
+
+-   Open Source Islamic Finance Initiative
+-   RxDB for the incredible Local-First database engine.

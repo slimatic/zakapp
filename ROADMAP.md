@@ -5,29 +5,38 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 ## Phase 1: Security & Compliance (CRITICAL)
 *Goal: Plug security holes and ensuring Fiqh basics are correct.*
 
-- [ ] **Secret Purge**: Remove hardcoded `JWT_SECRET` and `ENCRYPTION_KEY` from codebase.
-- [ ] **History Scrub**: Use `git filter-repo` to remove secrets from commit history.
-- [ ] **Fiqh Fix**: Implement proper 401k "Net Withdrawable" logic.
-- [ ] **Fiqh Fix**: Replace approximate Hijri formula with precise calendar library.
+- [x] **Secret Purge**: Remove hardcoded `JWT_SECRET` and `ENCRYPTION_KEY` from codebase.
+- [x] **History Scrub**: Use `git filter-repo` to remove secrets from commit history.
+- [x] **Fiqh Fix**: Implement proper 401k "Net Withdrawable" logic.
+- [x] **Fiqh Fix**: Replace approximate Hijri formula with precise calendar library.
 
 ## Phase 2: Architecture Flip (The "Local-First" Migration)
 *Goal: Move the "Source of Truth" from Server to Client.*
 
-- [ ] **Client DB**: Initialize `RxDB` with `sqlite-wasm` adapter in the React app.
-- [ ] **Schema Migration**: Port Prisma schema (Asset, Liability) to RxDB schemas.
-- [ ] **Logic Port**: Refactor `ZakatCalculationService.ts` (Node.js) into pure TypeScript functions (`src/core/calculations/`).
-- [ ] **Auth Switch**: Replace JWT auth with Local-First encryption (User Password calculates Key, no server auth required).
+- [x] **Client DB**: Initialize `RxDB` with `sqlite-wasm` adapter in the React app.
+- [x] **Logic Port**: Refactor `ZakatCalculationService.ts` (Node.js) into pure TypeScript functions (`src/core/calculations/`).
+- [x] **Auth Switch**: Replace JWT auth with Local-First encryption (User Password calculates Key, no server auth required).
 
 ## Phase 3: UI/UX & Trust
 *Goal: Professionalize the visual language and accessibility.*
 
-- [ ] **Semantic Audit**: Replace `div` soup with `<article>`, `<section>`, `<form>`.
-- [ ] **Accessibility**: Ensure all inputs have associated labels and error states are announced (ARIA).
-- [ ] **Trust Redesign**: Implement "Project Ikhlas" visual identity (Typography, Spacing, Privacy Indicators).
+- [x] **Semantic Audit**: Replace `div` soup with `<article>`, `<section>`, `<form>`.
+- [x] **Accessibility Audit**: Ensure all forms have proper ARIA labels.
+- [x] **Dashboard Visualization**: Implement donut charts for Asset Breakdown.
+- [x] **Trust Signals**: Add "Encrypted locally" badges near sensitive inputs.
+- [x] **Trust Redesign**: Implement "Project Ikhlas" visual identity (Typography, Spacing).
 
 ## Phase 4: Open Source Polish
 *Goal: Prepare for public scrutiny.*
 
 - [ ] **License**: Add AGPL-3.0 headers to all files.
-- [ ] **Contributors**: Update `CONTRIBUTING.md` with local-first guidelines.
-- [ ] **Docs**: Create `architecture.md` explaining the privacy model.
+- [x] **Code Cleanup**: Remove dead files (e.g., `ZakatCalculationService.ts` server-side file).
+- [x] **Contributors**: Update `CONTRIBUTING.md` with local-first guidelines.
+- [x] **Docs**: Create `architecture.md` explaining the privacy model.
+
+## Phase 5: Cloud Connectivity (Future - Multi-Device Sync)
+*Goal: Enable seamless access across devices without compromising privacy.*
+
+- [ ] **Replication Plugin**: Enable RxDB Replication to a secure CouchDB/GraphQL endpoint.
+- [ ] **E2E Encryption Layer**: Ensure all replicated data is encrypted on-device before transmission (Host-Proof Hosting).
+- [ ] **Conflict Resolution**: Implement "Last-Write-Wins" or "CRDT" merging for multi-device edits.
