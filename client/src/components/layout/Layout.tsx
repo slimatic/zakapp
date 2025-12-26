@@ -5,6 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { SkipLink } from '../common/SkipLink';
 import { MobileNav } from './MobileNav';
 import { BottomNav } from './BottomNav';
+import { SyncIndicator } from '../SyncIndicator';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -129,8 +130,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       <Link
                         to={item.href}
                         className={`px-3 py-2 rounded-md text-sm font-medium ${isActive(item.href)
-                            ? 'bg-green-100 text-green-700'
-                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                          ? 'bg-green-100 text-green-700'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                           }`}
                         aria-current={isActive(item.href) ? 'page' : undefined}
                       >
@@ -141,12 +142,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </ul>
               </div>
             </div>
-            <div className="flex items-center">
+
+            <div className="flex items-center gap-4">
+              {/* Sync Status Indicator */}
+              <SyncIndicator />
+
               {/* Privacy Toggle - Global */}
               <button
                 type="button"
                 onClick={togglePrivacyMode}
-                className={`mr-3 p-2 rounded-md transition-colors ${privacyMode ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                className={`p-2 rounded-md transition-colors ${privacyMode ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'}`}
                 aria-label={privacyMode ? 'Show amounts' : 'Hide amounts'}
                 title={privacyMode ? 'Show amounts' : 'Hide amounts for privacy'}
               >
@@ -199,15 +204,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       aria-orientation="vertical"
                       aria-labelledby="user-menu-button"
                     >
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
-                        role="menuitem"
-                        onClick={() => setIsOpen(false)}
-                        tabIndex={0}
-                      >
-                        Profile
-                      </Link>
+                      {/* Profile link extracted to Settings */}
                       <Link
                         to="/settings"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
