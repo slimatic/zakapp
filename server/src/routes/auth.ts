@@ -172,6 +172,18 @@ router.post('/login',
 
       const refreshToken = jwtService.createRefreshToken(user.id);
 
+      // Decrypt profile data
+      let profileData = {};
+      if (user.profile) {
+        try {
+          profileData = await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY);
+        } catch (error) {
+          console.error('Failed to decrypt profile data during login', error);
+          // Fallback to empty profile, but we lose salt?
+          // If decryption fails, user can't login on new device anyway.
+        }
+      }
+
       // Respond with standard format
       res.status(200).json({
         success: true,
@@ -180,6 +192,7 @@ router.post('/login',
             id: user.id,
             email: user.email,
             username: user.username,
+            profile: profileData, // Includes salt
             preferences: {
               calendar: user.preferredCalendar,
               methodology: user.preferredMethodology
@@ -220,7 +233,7 @@ router.post('/register',
     // Normalize email to lowercase first
     req.body.email = req.body.email.toLowerCase();
 
-    const { email: normalizedEmail, username, password, firstName, lastName, phoneNumber, dateOfBirth } = req.body;
+    const { email: normalizedEmail, username, password, firstName, lastName, phoneNumber, dateOfBirth, salt } = req.body;
 
     try {
       // Check if user already exists in database by email
@@ -265,7 +278,8 @@ router.post('/register',
         firstName,
         lastName,
         phoneNumber,
-        dateOfBirth
+        dateOfBirth,
+        salt // Store salt for multi-device sync
       };
       const settingsData = {
         currency: 'USD',
