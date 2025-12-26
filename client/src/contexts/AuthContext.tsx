@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import toast from 'react-hot-toast';
 import type { User } from '../types';
-import { getDb } from '../db';
+import { getDb, resetDb } from '../db';
 import { cryptoService } from '../services/CryptoService';
 
 interface AuthState {
@@ -120,24 +120,82 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('AuthContext: Attempting login for', email);
     dispatch({ type: 'LOGIN_START' });
     try {
+      // 1. Authenticate with Backend API First
+      const { apiService: api } = await import('../services/api');
+      const apiResult = await api.login({ email, password });
+
+      if (!apiResult.success || !apiResult.user) {
+        throw new Error(apiResult.message || 'Login failed');
+      }
+
+      // Check if we have a local user ID (for offline support)
       const db = await getDb();
-      console.log('AuthContext: DB acquired');
+      let userDoc = await db.user_settings.findOne(LOCAL_USER_ID).exec();
 
-      const userDoc = await db.user_settings.findOne(LOCAL_USER_ID).exec();
+      let salt: string;
 
-      if (!userDoc) {
-        throw new Error('No local user found. Please register.');
+      // Scenario A: Local User Exists (Offline or Sync)
+      if (userDoc) {
+        const security = userDoc.get('securityProfile');
+        if (!security || !security.salt) {
+          // Fallback: Try to use backend salt if local is corrupted?
+          if (apiResult.user.profile?.salt) {
+            salt = apiResult.user.profile.salt;
+            console.log('Using backend salt for corrupted local profile');
+          } else {
+            throw new Error('User profile corrupted. No security data and no backend salt.');
+          }
+        } else {
+          salt = security.salt;
+        }
+      }
+      // Scenario B: Fresh Device (No local user)
+      else {
+        // We MUST rely on the backend providing the salt
+        // user.profile is typed as generic object-like in API response
+        // apiResult.user.profile.salt should exist if registered with new flow
+        const remoteProfile = apiResult.user.profile as any;
+
+        if (remoteProfile && remoteProfile.salt) {
+          salt = remoteProfile.salt;
+          console.log('Fresh Device Login: Retrieved salt from backend');
+        } else {
+          // Legacy User or Error: No salt on backend.
+          // We cannot decrypt their data without the salt.
+          // If we generate a NEW salt, we create a valid local vault, but it won't decrypt OLD CouchDB data?
+          // Actually, if we use a new salt, we generate a DIFFERENT key.
+          // Any encrypted data in CouchDB synced down will be garbage (undecryptable).
+          // For now, we allow it but warn, or we throw?
+          // Let's THROW to prevent data corruption/loss of access to old data.
+          throw new Error('Account sync unavailable: Security salt missing from server. Please export/import your key manually.');
+        }
       }
 
-      const security = userDoc.get('securityProfile');
-      if (!security || !security.salt) {
-        throw new Error('User profile corrupted. No security data.');
-      }
-
-      // 1. Derive Key
+      // 2. Derive Key
       console.log('AuthContext: Deriving key...');
-      await cryptoService.deriveKey(password, security.salt);
+      await cryptoService.deriveKey(password, salt);
       console.log('AuthContext: Key derived successfully');
+
+      // 3. Initialize DB with Key (Reset first if this is a fresh login to ensure clean state)
+      await resetDb();
+      await getDb(password);
+      const encryptedDb = await getDb();
+
+      // If Scenario B (Fresh Device), create the local user record now
+      if (!userDoc) {
+        await encryptedDb.user_settings.insert({
+          id: LOCAL_USER_ID,
+          profileName: apiResult.user.username || 'My Profile',
+          isSetupCompleted: true,
+          securityProfile: {
+            salt: salt,
+            verifier: 'TODO-HASH-OF-KEY'
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        userDoc = await encryptedDb.user_settings.findOne(LOCAL_USER_ID).exec();
+      }
 
       const user: User = {
         id: userDoc.get('id'),
@@ -150,6 +208,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 2. Persist Session (Key + User) -> SessionStorage
       const jwk = await cryptoService.exportSessionKey();
       sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
+
+      // 3. Initialize Database with Encryption Key (The key string is the password)
+      // Since we derived a fresh key, we should ensure the DB is open with it.
+      // However, for the very first login (registration) or fresh login, the DB might be cold.
+      // If we want to guarantee the DB uses THIS key, we reset:
+      await resetDb();
+
+      // Use the password directly as the encryption key
+      await getDb(password);
 
       console.log('AuthContext: Dispatching LOGIN_SUCCESS');
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
@@ -180,8 +247,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 2. Derive Key immediately
       await cryptoService.deriveKey(userData.password, salt);
 
-      // 3. Create User Profile
-      await db.user_settings.insert({
+      // Register with backend, passing the salt
+      const { apiService: api } = await import('../services/api');
+      const apiResult = await api.register({
+        ...userData,
+        salt: salt // Send salt to backend for multi-device sync
+      });
+
+      if (!apiResult.success) {
+        throw new Error(apiResult.message);
+      }
+
+      // 3. Initialize Database with Encryption Key
+      // We must reset if it was opened without password pending registration
+      await resetDb();
+      await getDb(userData.password);
+
+      // 4. Create User Profile
+      // Now that DB is open with password, we can insert.
+      const encryptedDb = await getDb(); // Gets the already opened instance
+
+      await encryptedDb.user_settings.insert({
         id: LOCAL_USER_ID,
         profileName: userData.username || 'My Profile',
         isSetupCompleted: true,

@@ -15,6 +15,7 @@ export interface CreateUserDto {
   password: string;
   timezone?: string;
   currency?: string;
+  salt?: string;
 }
 
 export interface LoginCredentials {
@@ -60,7 +61,8 @@ export class AuthService {
     const profileData = {
       firstName: userData.firstName,
       lastName: userData.lastName,
-      timezone: userData.timezone || 'UTC'
+      timezone: userData.timezone || 'UTC',
+      salt: userData.salt // Store the salt for multi-device sync
     };
     const settingsData = {
       currency: userData.currency || 'USD',

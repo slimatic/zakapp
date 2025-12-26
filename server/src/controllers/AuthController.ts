@@ -10,25 +10,25 @@ const authService = new AuthService();
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
-    const { email, password, username, firstName, lastName, timezone, currency } = req.body;
-    
+    const { email, password, username, firstName, lastName, timezone, currency, salt } = req.body;
+
     // Validation - collect all errors
-    const validationErrors: Array<{field: string, message: string}> = [];
-    
+    const validationErrors: Array<{ field: string, message: string }> = [];
+
     if (!email) {
-      validationErrors.push({field: 'email', message: 'Email is required'});
+      validationErrors.push({ field: 'email', message: 'Email is required' });
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      validationErrors.push({field: 'email', message: 'Invalid email format'});
+      validationErrors.push({ field: 'email', message: 'Invalid email format' });
     }
-    
+
     if (!password) {
-      validationErrors.push({field: 'password', message: 'Password is required'});
+      validationErrors.push({ field: 'password', message: 'Password is required' });
     } else if (password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
-      validationErrors.push({field: 'password', message: 'Password must be at least 8 characters with mixed case, numbers, and symbols'});
+      validationErrors.push({ field: 'password', message: 'Password must be at least 8 characters with mixed case, numbers, and symbols' });
     }
-    
+
     if (!username) {
-      validationErrors.push({field: 'username', message: 'Username is required'});
+      validationErrors.push({ field: 'username', message: 'Username is required' });
     }
 
     if (validationErrors.length > 0) {
@@ -50,9 +50,10 @@ export class AuthController {
         email,
         password,
         timezone,
-        currency
+        currency,
+        salt
       });
-      
+
       // Create user response without sensitive data
       const userResponse = {
         id: result.user.id,
@@ -86,16 +87,16 @@ export class AuthController {
     const { email, password } = req.body;
 
     // Validation - collect all errors
-    const validationErrors: Array<{field: string, message: string}> = [];
-    
+    const validationErrors: Array<{ field: string, message: string }> = [];
+
     if (!email) {
-      validationErrors.push({field: 'email', message: 'Email is required'});
+      validationErrors.push({ field: 'email', message: 'Email is required' });
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      validationErrors.push({field: 'email', message: 'Invalid email format'});
+      validationErrors.push({ field: 'email', message: 'Invalid email format' });
     }
-    
+
     if (!password) {
-      validationErrors.push({field: 'password', message: 'Password is required'});
+      validationErrors.push({ field: 'password', message: 'Password is required' });
     }
 
     if (validationErrors.length > 0) {
@@ -207,7 +208,7 @@ export class AuthController {
       // TODO: Implement invalidateUserSession
       // invalidateUserSession(req.userId);
       invalidateAllUserRefreshTokens(req.userId);
-      
+
       res.status(200).json({
         success: true,
         message: 'Logged out from all devices successfully'
@@ -219,7 +220,7 @@ export class AuthController {
         // invalidateToken(token);
       }
       invalidateAllUserRefreshTokens(req.userId);
-      
+
       res.status(200).json({
         success: true,
         message: 'Logged out successfully'
@@ -298,12 +299,12 @@ export class AuthController {
     const { email } = req.body;
 
     // Validation
-    const validationErrors: Array<{field: string, message: string}> = [];
-    
+    const validationErrors: Array<{ field: string, message: string }> = [];
+
     if (!email) {
-      validationErrors.push({field: 'email', message: 'Email is required'});
+      validationErrors.push({ field: 'email', message: 'Email is required' });
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      validationErrors.push({field: 'email', message: 'Invalid email format'});
+      validationErrors.push({ field: 'email', message: 'Invalid email format' });
     }
 
     if (validationErrors.length > 0) {
@@ -322,13 +323,13 @@ export class AuthController {
     const resetTokenId = crypto.randomUUID(); // Always use UUID format for security
     const expiresIn = 3600; // 1 hour in seconds
     const eventId = `pwd_reset_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
-    
+
     if (userId) {
       // Invalidate any existing reset tokens for this user
       invalidateUserResetTokens(userId);
-      
+
       const resetToken = await generateResetToken(userId, email);
-      
+
       // In real implementation: send email with resetToken
       // TODO: Implement email service to send reset token securely
     }
@@ -348,20 +349,20 @@ export class AuthController {
     const { token, password, confirmPassword } = req.body;
 
     // Validation
-    const validationErrors: Array<{field: string, message: string}> = [];
-    
+    const validationErrors: Array<{ field: string, message: string }> = [];
+
     if (!token) {
-      validationErrors.push({field: 'token', message: 'Reset token is required'});
+      validationErrors.push({ field: 'token', message: 'Reset token is required' });
     }
-    
+
     if (!password) {
-      validationErrors.push({field: 'password', message: 'Password is required'});
+      validationErrors.push({ field: 'password', message: 'Password is required' });
     } else if (password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
-      validationErrors.push({field: 'password', message: 'Password must be at least 8 characters with mixed case, numbers, and symbols'});
+      validationErrors.push({ field: 'password', message: 'Password must be at least 8 characters with mixed case, numbers, and symbols' });
     }
-    
+
     if (confirmPassword && password !== confirmPassword) {
-      validationErrors.push({field: 'confirmPassword', message: 'Passwords do not match'});
+      validationErrors.push({ field: 'confirmPassword', message: 'Passwords do not match' });
     }
 
     if (validationErrors.length > 0) {
@@ -375,7 +376,7 @@ export class AuthController {
         });
         return;
       }
-      
+
       res.status(400).json({
         success: false,
         error: 'VALIDATION_ERROR',
@@ -436,7 +437,7 @@ export class AuthController {
 
       // Use the reset token to prevent reuse
       useResetToken(token);
-      
+
       // Invalidate all user sessions for security
       // TODO: Implement invalidateUserSession
       // invalidateUserSession(tokenData.userId);
