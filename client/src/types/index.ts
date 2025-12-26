@@ -7,9 +7,16 @@ export interface Asset {
   currency: string;
   description?: string;
   metadata?: string;
-  isActive?: boolean;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  acquisitionDate?: string;
+  subCategory?: string;
+  zakatEligible?: boolean;
+  // New fields for Zakat Calculation
+  isPassiveInvestment?: boolean;
+  isRestrictedAccount?: boolean;
+  calculationModifier?: number;
 }
 
 export enum AssetType {

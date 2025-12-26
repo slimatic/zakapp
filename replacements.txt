@@ -1,0 +1,2 @@
+default-key-for-development-purposes-32==>[REDACTED]
+your-super-secret-jwt-key-change-in-production==>[REDACTED]

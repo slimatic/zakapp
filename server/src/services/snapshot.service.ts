@@ -1,5 +1,6 @@
 import { PrismaClient, Asset, Liability } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
+import { getEncryptionKey } from '../config/security';
 import {
   CalculationSnapshot,
   CalculationSnapshotDetail,
@@ -218,7 +219,7 @@ export class CalculationSnapshotService {
       methodologyChange: fromSnapshot.methodology !== toSnapshot.methodology,
       daysElapsed: Math.floor(
         (toDate.getTime() - fromDate.getTime()) /
-          (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24)
       )
     } as unknown as SnapshotComparison;
   }

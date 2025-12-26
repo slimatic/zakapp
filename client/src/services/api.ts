@@ -80,7 +80,7 @@ export interface CreateAssetRequest {
   isRestrictedAccount?: boolean;
 }
 
-export interface UpdateAssetRequest extends Partial<CreateAssetRequest> {}
+export interface UpdateAssetRequest extends Partial<CreateAssetRequest> { }
 
 export interface CreatePaymentRequest {
   amount: number;
@@ -116,9 +116,10 @@ class ApiService {
     if (!response.ok) {
       // Handle 401 Unauthorized - clear tokens and reload to trigger redirect to login
       if (response.status === 401) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        console.warn('API: 401 Unauthorized. Ignoring redirect for Local-First mode.');
+        // localStorage.removeItem('accessToken');
+        // localStorage.removeItem('refreshToken');
+        // window.location.href = '/login';
         throw new Error('Session expired. Please login again.');
       }
 
@@ -173,9 +174,9 @@ class ApiService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData)
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         // Extract detailed error message
         const errorMessage = result.error?.message || result.message || `Login failed: ${response.status}`;
@@ -185,7 +186,7 @@ class ApiService {
           message: errorMessage
         };
       }
-      
+
       // Backend returns: { success, data: { user, tokens: { accessToken, refreshToken } } }
       return {
         success: true,
@@ -209,9 +210,9 @@ class ApiService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         // Extract detailed error message
         const errorMessage = result.error?.message || result.message || result.details?.[0]?.msg || `Registration failed: ${response.status}`;
@@ -221,7 +222,7 @@ class ApiService {
           message: errorMessage
         };
       }
-      
+
       // Backend returns: { success, data: { tokens: { accessToken, refreshToken }, user } }
       return {
         success: true,
@@ -452,7 +453,7 @@ class ApiService {
     if (filters?.snapshotId) params.append('snapshotId', filters.snapshotId);
     if (filters?.limit) params.append('limit', filters.limit.toString());
     if (filters?.offset) params.append('offset', filters.offset.toString());
-    
+
     const queryString = params.toString();
     // GET payments across all snapshots (supports optional category filter on server)
     const response = await fetch(`${API_BASE_URL}/tracking/payments${queryString ? `?${queryString}` : ''}`, {
@@ -462,7 +463,7 @@ class ApiService {
   }
 
   // Update a payment that is stored against a snapshot (used by Nisab Year Records UI)
-  async updateSnapshotPayment(paymentId: string, updates: Partial<{amount: number; date: string; recipient?: string; notes?: string; snapshotId?: string}>): Promise<ApiResponse> {
+  async updateSnapshotPayment(paymentId: string, updates: Partial<{ amount: number; date: string; recipient?: string; notes?: string; snapshotId?: string }>): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/payments/${paymentId}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
@@ -570,16 +571,16 @@ class ApiService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         return {
           success: false,
           message: result.message || 'Password reset request failed'
         };
       }
-      
+
       return {
         success: true,
         data: result,
@@ -600,16 +601,16 @@ class ApiService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resetToken, newPassword })
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         return {
           success: false,
           message: result.message || 'Password reset confirmation failed'
         };
       }
-      
+
       return {
         success: true,
         data: result,
@@ -637,7 +638,7 @@ class ApiService {
     const params = new URLSearchParams();
     if (lastDate) params.append('lastDate', lastDate);
     if (calendarType) params.append('calendarType', calendarType);
-    
+
     const response = await fetch(`${API_BASE_URL}/calendar/next-zakat-date?${params}`, {
       method: 'GET',
       headers: this.getAuthHeaders()
@@ -682,7 +683,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async updatePayment(paymentId: string, updates: Partial<{amount: number; date: string; recipient?: string; notes?: string; snapshotId?: string}>): Promise<ApiResponse> {
+  async updatePayment(paymentId: string, updates: Partial<{ amount: number; date: string; recipient?: string; notes?: string; snapshotId?: string }>): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/payments/${paymentId}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),

@@ -1,0 +1,2548 @@
+
+> client@0.1.0 test
+> vitest --run --reporter=verbose
+
+
+ RUN  v3.2.4 /home/agentx/github-repos/zakapp/client
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+stdout | src/components/tracking/PaymentCard.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | tests/components/ZakatDisplayCard.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/components/tracking/AnalyticsChart.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/pages/AnalyticsPage.fixed.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/pages/PaymentsPage.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/tests/pwa/service-worker.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/tests/performance/bundle-size.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stderr | src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Vendor Bundle Size > should stay within vendor bundle budget
+Vendor bundle not found, may be bundled with main
+
+stdout | src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Total Bundle Size > should report bundle breakdown
+
+Bundle Size Breakdown:
+  Main JS:   1085.23 KB
+  Vendor JS: 0.00 KB
+  CSS:       95.26 KB
+  Total:     1180.49 KB
+
+ × src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Main Bundle Size > should stay within main bundle budget 21ms
+   → expected 1111276 to be less than or equal to 409600
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Main Bundle Size > should be gzipped in production 1ms
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Vendor Bundle Size > should stay within vendor bundle budget 1ms
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Vendor Bundle Size > should not include unnecessary dependencies 0ms
+ × src/tests/performance/bundle-size.test.ts > Bundle Size Performance > CSS Bundle Size > should stay within CSS bundle budget 2ms
+   → expected 97547 to be less than or equal to 81920
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > CSS Bundle Size > should have critical CSS inline 1ms
+ × src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Total Bundle Size > should stay within total initial load budget 13ms
+   → expected 1208823 to be less than or equal to 430080
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Total Bundle Size > should report bundle breakdown 14ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Registration > should register service worker in production 13ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Registration > should not register service worker in development 1ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Registration > should handle registration failure gracefully 1ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Registration > should check for service worker support 0ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Lifecycle > should handle installation event 10ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Lifecycle > should handle activation event 1ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Lifecycle > should skip waiting when updating 1ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Lifecycle > should claim clients after activation 8ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should cache static assets on install 2ms
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Lazy-Loaded Chunks > should split routes into separate chunks 58ms
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Lazy-Loaded Chunks > should keep individual chunks under max size 1ms
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Asset Optimization > should minify JavaScript files 85ms
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Asset Optimization > should include source maps in development only 1ms
+stdout | src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Performance Budget Monitoring > should fail if any budget is exceeded
+
+=== Performance Budget Results ===
+✗ main: 1085.23 KB / 400.00 KB (271.3%)
+✓ vendor: 0.00 KB / 250.00 KB (0.0%)
+✗ css: 95.26 KB / 80.00 KB (119.1%)
+✗ total: 1180.49 KB / 420.00 KB (281.1%)
+✓ chunks: 0 chunks all under 80 KB
+
+ × src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should use cache-first strategy for static assets 170ms
+   → Failed to parse URL from /static/js/main.js
+ × src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should use network-first strategy for API calls 3ms
+   → Failed to parse URL from /api/v1/assets
+ × src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should fall back to cache on network failure 13ms
+   → Failed to parse URL from /api/v1/assets
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Cache Management > should delete old caches on activation 14ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Cache Management > should update cache on new version 1ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Updates > should notify user of available update 36ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Service Worker Updates > should reload page after update 62ms
+ ✓ src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Tree Shaking > should remove unused code 39ms
+ × src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Performance Budget Monitoring > should fail if any budget is exceeded 69ms
+   → expected false to be true // Object.is equality
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Background Sync > should register sync event 1ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Push Notifications > should request notification permission 1ms
+ ✓ src/tests/pwa/service-worker.test.ts > Service Worker Tests > Push Notifications > should subscribe to push notifications 1ms
+ × src/pages/AnalyticsPage.fixed.test.tsx > AnalyticsPage (fixed) > renders page header while loading 20ms
+   → Cannot find module '../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.fixed.test.tsx
+ × src/pages/AnalyticsPage.fixed.test.tsx > AnalyticsPage (fixed) > renders all chart sections 11ms
+   → Cannot find module '../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.fixed.test.tsx
+ × tests/components/ZakatDisplayCard.test.tsx > ZakatDisplayCard > shows total wealth and zakatable wealth and calculated zakat 196ms
+   → usePrivacy must be used within a PrivacyProvider
+stderr | src/pages/PaymentsPage.test.tsx > PaymentsPage > Page Rendering > renders page header and description
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ src/pages/PaymentsPage.test.tsx > PaymentsPage > Page Rendering > renders page header and description 406ms
+ × src/components/tracking/PaymentCard.test.tsx > Encrypted recipient masking > shows masked placeholder when recipientName looks encrypted 190ms
+   → usePrivacy must be used within a PrivacyProvider
+ × src/pages/PaymentsPage.test.tsx > PaymentsPage > Page Rendering > renders payment list component 151ms
+   → Found multiple elements by: [data-testid="payment-list"]
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mdata-testid[39m=[32m"payment-list"[39m
+[36m>[39m
+  [36m<button[39m
+    [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+  [36m>[39m
+    [0mAdd Payment (Mock)[0m
+  [36m</button>[39m
+[36m</div>[39m
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mdata-testid[39m=[32m"payment-list"[39m
+[36m>[39m
+  [36m<button[39m
+    [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+  [36m>[39m
+    [0mAdd Payment (Mock)[0m
+  [36m</button>[39m
+[36m</div>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen bg-gray-50"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mb-8"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center justify-between"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-3xl font-bold text-gray-900"[39m
+              [36m>[39m
+                [0mZakat Payments[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-gray-600 mt-2"[39m
+              [36m>[39m
+                [0mRecord and track your Zakat distributions to recipients[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center space-x-3"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-11 px-6 py-2"[39m
+              [36m>[39m
+                [0m← Back to Dashboard[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-11 px-6 py-2"[39m
+              [36m>[39m
+                [0mImport / Export[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm text-yellow-800"[39m
+            [36m>[39m
+              [0mNo Nisab Year Records found. Please create a Nisab Year Record first to record payments.[0m
+            [36m</p>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary-600 text-white hover:bg-primary-700 shadow-md hover:shadow-lg transition-all active:scale-[0.98] h-11 px-6 py-2 mt-3"[39m
+            [36m>[39m
+              [0mGo to Dashboard[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mdata-testid[39m=[32m"payment-list"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+          [36m>[39m
+            [0mAdd Payment (Mock)[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-12 bg-green-50 border border-green-200 rounded-lg p-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-shrink-0"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"h-6 w-6 text-green-600"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mviewBox[39m=[32m"0 0 20 20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33mclip-rule[39m=[32m"evenodd"[39m
+                  [33md[39m=[32m"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"[39m
+                  [33mfill-rule[39m=[32m"evenodd"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"ml-3"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-sm font-medium text-green-800"[39m
+              [36m>[39m
+                [0mAbout Zakat Payments & Recipients[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-sm text-green-700 mt-2 space-y-2"[39m
+              [36m>[39m
+                [36m<p>[39m
+                  [0mIslamic law specifies [0m
+                  [36m<strong>[39m
+                    [0m8 categories[0m
+                  [36m</strong>[39m
+                  [0m of eligible Zakat recipients as mentioned in Quran 9:60:[0m
+                [36m</p>[39m
+                [36m<ol[39m
+                  [33mclass[39m=[32m"list-decimal list-inside space-y-1 mt-2 ml-2"[39m
+                [36m>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Fuqara (The Poor)[0m
+                    [36m</strong>[39m
+                    [0m - Those with little to no income or means[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Masakin (The Needy)[0m
+                    [36m</strong>[39m
+                    [0m - Those in need but not as destitute as the poor[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mZakat Administrators[0m
+                    [36m</strong>[39m
+                    [0m - Those who collect and distribute Zakat[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mNew Muslims[0m
+                    [36m</strong>[39m
+                    [0m - Recent converts who need support[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mSlaves/Captives[0m
+                    [36m</strong>[39m
+                    [0m - To free slaves (historically relevant)[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mDebtors[0m
+                    [36m</strong>[39m
+                    [0m - Those unable to pay off their debts[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mIn the Path of Allah[0m
+                    [36m</strong>[39m
+                    [0m - For Islamic causes and propagation[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mTravelers[0m
+                    [36m</strong>[39m
+                    [0m - Stranded travelers in need of assistance[0m
+                  [36m</li>[39m
+                [36m</ol>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-3"[39m
+                [36m>[39m
+                  [36m<strong>[39m
+                    [0mImportant:[0m
+                  [36m</strong>[39m
+                  [0m Zakat cannot be given to parents, grandparents, children, grandchildren, or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.[0m
+                [36m</p>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mdata-testid[39m=[32m"payment-list"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+          [36m>[39m
+            [0mAdd Payment (Mock)[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-12 bg-green-50 border border-green-200 rounded-lg p-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-shrink-0"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"h-6 w-6 text-green-600"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mviewBox[39m=[32m"0 0 20 20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33mclip-rule[39m=[32m"evenodd"[39m
+                  [33md[39m=[32m"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"[39m
+                  [33mfill-rule[39m=[32m"evenodd"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"ml-3"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-sm font-medium text-green-800"[39m
+              [36m>[39m
+                [0mAbout Zakat Payments & Recipients[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-sm text-green-700 mt-2 space-y-2"[39m
+              [36m>[39m
+                [36m<p>[39m
+                  [0mIslamic law specifies [0m
+                  [36m<strong>[39m
+                    [0m8 categories[0m
+                  [36m</strong>[39m
+                  [0m of eligible Zakat recipients as mentioned in Quran 9:60:[0m
+                [36m</p>[39m
+                [36m<ol[39m
+                  [33mclass[39m=[32m"list-decimal list-inside space-y-1 mt-2 ml-2"[39m
+                [36m>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Fuqara (The Poor)[0m
+                    [36m</strong>[39m
+                    [0m - Those with little to no income or means[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Masakin (The Needy)[0m
+                    [36m</strong>[39m
+                    [0m - Those in need but not as destitute as the poor[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mZakat Administrators[0m
+                    [36m</strong>[39m
+                    [0m - Those who collect and distribute Zakat[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mNew Muslims[0m
+                    [36m</strong>[39m
+                    [0m - Recent converts who need support[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mSlaves/Captives[0m
+                    [36m</strong>[39m
+                    [0m - To free slaves (historically relevant)[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mDebtors[0m
+                    [36m</strong>[39m
+                    [0m - Those unable to pay off their debts[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mIn the Path of Allah[0m
+                    [36m</strong>[39m
+                    [0m - For Islamic causes and propagation[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mTravelers[0m
+                    [36m</strong>[39m
+                    [0m - Stranded travelers in need of assistance[0m
+                  [36m</li>[39m
+                [36m</ol>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-3"[39m
+                [36m>[39m
+                  [36m<strong>[39m
+                    [0mImportant:[0m
+                  [36m</strong>[39m
+                  [0m Zakat cannot be given to parents, grandparents, children, grandchildren, or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.[0m
+                [36m</p>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ✓ src/pages/PaymentsPage.test.tsx > PaymentsPage > Nisab Year Filter > renders filter dropdown when records exist 407ms
+ ✓ src/pages/PaymentsPage.test.tsx > PaymentsPage > Nisab Year Filter > includes "All Payments" option in filter 575ms
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > Loading State > shows loading spinner when data is loading 45ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > With Valid Data > shows empty state when no data is returned from API 13ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > Empty State > renders empty state message when no data 1ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > Accessibility > has proper accessibility attributes 1ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Zakat Obligations (T044) > With Nisab Year Data > shows empty state when no Nisab Year Records exist 12ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Zakat Obligations (T044) > Empty State > shows Nisab Year specific empty state 1ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Zakat Obligations (T044) > Terminology > does not use "snapshot" in empty state messages 1ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ✓ src/pages/PaymentsPage.test.tsx > PaymentsPage > Empty State > shows warning when no Nisab Years exist 320ms
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Payment Distribution > Pie Chart Rendering > shows empty state when no payment data exists 41ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Payment Distribution > Pie Chart Rendering > renders multiple slices when multiple payment categories exist 2ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Payment Distribution > Empty State > shows payment-specific empty state 13ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Asset Composition (Pie) > renders multiple slices when multiple asset categories exist 2ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ × src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Error Handling > displays error message when fetch fails 12ms
+   → Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ✓ src/pages/PaymentsPage.test.tsx > PaymentsPage > Empty State > shows orphaned payments warning 310ms
+ × src/pages/PaymentsPage.test.tsx > PaymentsPage > Payment Form Interaction > opens form modal when Add Payment clicked 180ms
+   → Found multiple elements by: [data-testid="mock-add-payment-btn"]
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+[36m>[39m
+  [0mAdd Payment (Mock)[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+[36m>[39m
+  [0mAdd Payment (Mock)[0m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen bg-gray-50"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mb-8"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center justify-between"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-3xl font-bold text-gray-900"[39m
+              [36m>[39m
+                [0mZakat Payments[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-gray-600 mt-2"[39m
+              [36m>[39m
+                [0mRecord and track your Zakat distributions to recipients[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center space-x-3"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-11 px-6 py-2"[39m
+              [36m>[39m
+                [0m← Back to Dashboard[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-11 px-6 py-2"[39m
+              [36m>[39m
+                [0mImport / Export[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm text-yellow-800"[39m
+            [36m>[39m
+              [0mNo Nisab Year Records found. Please create a Nisab Year Record first to record payments.[0m
+            [36m</p>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary-600 text-white hover:bg-primary-700 shadow-md hover:shadow-lg transition-all active:scale-[0.98] h-11 px-6 py-2 mt-3"[39m
+            [36m>[39m
+              [0mGo to Dashboard[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mdata-testid[39m=[32m"payment-list"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+          [36m>[39m
+            [0mAdd Payment (Mock)[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-12 bg-green-50 border border-green-200 rounded-lg p-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-shrink-0"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"h-6 w-6 text-green-600"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mviewBox[39m=[32m"0 0 20 20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33mclip-rule[39m=[32m"evenodd"[39m
+                  [33md[39m=[32m"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"[39m
+                  [33mfill-rule[39m=[32m"evenodd"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"ml-3"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-sm font-medium text-green-800"[39m
+              [36m>[39m
+                [0mAbout Zakat Payments & Recipients[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-sm text-green-700 mt-2 space-y-2"[39m
+              [36m>[39m
+                [36m<p>[39m
+                  [0mIslamic law specifies [0m
+                  [36m<strong>[39m
+                    [0m8 categories[0m
+                  [36m</strong>[39m
+                  [0m of eligible Zakat recipients as mentioned in Quran 9:60:[0m
+                [36m</p>[39m
+                [36m<ol[39m
+                  [33mclass[39m=[32m"list-decimal list-inside space-y-1 mt-2 ml-2"[39m
+                [36m>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Fuqara (The Poor)[0m
+                    [36m</strong>[39m
+                    [0m - Those with little to no income or means[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Masakin (The Needy)[0m
+                    [36m</strong>[39m
+                    [0m - Those in need but not as destitute as the poor[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mZakat Administrators[0m
+                    [36m</strong>[39m
+                    [0m - Those who collect and distribute Zakat[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mNew Muslims[0m
+                    [36m</strong>[39m
+                    [0m - Recent converts who need support[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mSlaves/Captives[0m
+                    [36m</strong>[39m
+                    [0m - To free slaves (historically relevant)[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mDebtors[0m
+                    [36m</strong>[39m
+                    [0m - Those unable to pay off their debts[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mIn the Path of Allah[0m
+                    [36m</strong>[39m
+                    [0m - For Islamic causes and propagation[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mTravelers[0m
+                    [36m</strong>[39m
+                    [0m - Stranded travelers in need of assistance[0m
+                  [36m</li>[39m
+                [36m</ol>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-3"[39m
+                [36m>[39m
+                  [36m<strong>[39m
+                    [0mImportant:[0m
+                  [36m</strong>[39m
+                  [0m Zakat cannot be given to parents, grandparents, children, grandchildren, or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.[0m
+                [36m</p>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mdata-testid[39m=[32m"payment-list"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+          [36m>[39m
+            [0mAdd Payment (Mock)[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-12 bg-green-50 border border-green-200 rounded-lg p-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-shrink-0"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"h-6 w-6 text-green-600"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mviewBox[39m=[32m"0 0 20 20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33mclip-rule[39m=[32m"evenodd"[39m
+                  [33md[39m=[32m"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"[39m
+                  [33mfill-rule[39m=[32m"evenodd"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"ml-3"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-sm font-medium text-green-800"[39m
+              [36m>[39m
+                [0mAbout Zakat Payments & Recipients[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-sm text-green-700 mt-2 space-y-2"[39m
+              [36m>[39m
+                [36m<p>[39m
+                  [0mIslamic law specifies [0m
+                  [36m<strong>[39m
+                    [0m8 categories[0m
+                  [36m</strong>[39m
+                  [0m of eligible Zakat recipients as mentioned in Quran 9:60:[0m
+                [36m</p>[39m
+                [36m<ol[39m
+                  [33mclass[39m=[32m"list-decimal list-inside space-y-1 mt-2 ml-2"[39m
+                [36m>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Fuqara (The Poor)[0m
+                    [36m</strong>[39m
+                    [0m - Those with little to no income or means[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Masakin (The Needy)[0m
+                    [36m</strong>[39m
+                    [0m - Those in need but not as destitute as the poor[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mZakat Administrators[0m
+                    [36m</strong>[39m
+                    [0m - Those who collect and distribute Zakat[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mNew Muslims[0m
+                    [36m</strong>[39m
+                    [0m - Recent converts who need support[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mSlaves/Captives[0m
+                    [36m</strong>[39m
+                    [0m - To free slaves (historically relevant)[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mDebtors[0m
+                    [36m</strong>[39m
+                    [0m - Those unable to pay off their debts[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mIn the Path of Allah[0m
+                    [36m</strong>[39m
+                    [0m - For Islamic causes and propagation[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mTravelers[0m
+                    [36m</strong>[39m
+                    [0m - Stranded travelers in need of assistance[0m
+                  [36m</li>[39m
+                [36m</ol>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-3"[39m
+                [36m>[39m
+                  [36m<strong>[39m
+                    [0mImportant:[0m
+                  [36m</strong>[39m
+                  [0m Zakat cannot be given to parents, grandparents, children, grandchildren, or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.[0m
+                [36m</p>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+stdout | src/components/assets/AssetFormPage.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/pages/AnalyticsPage.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | tests/components/AuditTrailView.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | tests/components/FinalizationModal.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ × src/components/assets/AssetFormPage.test.tsx > AssetFormPage > renders asset form with navigation handlers 14ms
+   → Cannot find module './AssetFormPage'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/assets/AssetFormPage.test.tsx
+stdout | tests/components/HawlProgressIndicator.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | tests/components/NisabComparisonWidget.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | tests/components/UnlockReasonDialog.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/tests/accessibility/screen-reader.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/components/assets/__tests__/AssetForm.eligibility.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | tests/components/AssetSelectionTable.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/tests/accessibility/color-contrast.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Semantic HTML Structure > should use semantic landmarks 945ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Semantic HTML Structure > should have proper heading hierarchy 136ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > ARIA Labels and Descriptions > should label interactive elements 218ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > ARIA Labels and Descriptions > should describe complex interactions 79ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > ARIA Labels and Descriptions > should announce dynamic content changes 22ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Selection/Deselection Functionality > should render all assets in a table 687ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Form Accessibility > should associate labels with inputs 280ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Form Accessibility > should describe validation errors 213ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Form Accessibility > should indicate required fields 195ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Selection/Deselection Functionality > should pre-select all zakatable assets by default 596ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Image Accessibility > should provide alt text for informative images 93ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Selection/Deselection Functionality > should allow deselecting a zakatable asset 472ms
+stdout | src/components/tracking/PaymentRecordForm.refactor.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Selection/Deselection Functionality > should allow selecting a non-zakatable asset 240ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Text Contrast > should have sufficient contrast for normal text (4.5:1) 952ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Image Accessibility > should hide decorative images from screen readers 190ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Table Accessibility > should have proper table structure 578ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Loading States > should announce loading state 18ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Loading States > should announce completion 12ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Selection/Deselection Functionality > should respect initialSelection prop 132ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Total Calculations > should display correct totals for selected assets 93ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Text Contrast > should have sufficient contrast for large text (3:1) 335ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Button Contrast > should have sufficient contrast for primary buttons 378ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Total Calculations > should update totals in real-time when selection changes 449ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Dialog/Modal Accessibility > should have proper dialog markup 371ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Button Contrast > should have sufficient contrast for secondary buttons 105ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Total Calculations > should handle mixed zakatable/non-zakatable selection 375ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > List Accessibility > should use semantic list elements 454ms
+ ✓ src/tests/accessibility/screen-reader.test.tsx > Screen Reader Accessibility > Tooltip Accessibility > should describe with tooltip content 126ms
+stdout | src/tests/property/zakat-property.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Total Calculations > should account for per-asset calculationModifier when computing zakatable totals 360ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Button Contrast > should have sufficient contrast for danger buttons 303ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Total Calculations > should handle zero selection (all deselected) 221ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Link Contrast > should have sufficient contrast for links 376ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Link Contrast > should differentiate links without relying solely on color 131ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Table Columns > should display all required columns 154ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Table Columns > should format currency values correctly 283ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Form Element Contrast > should have sufficient contrast for input fields 199ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Table Columns > should format dates correctly 122ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Form Element Contrast > should have sufficient contrast for error states 286ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Form Element Contrast > should have sufficient contrast for success states 292ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Table Columns > should display zakatable status with visual indicators 231ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Accessibility (WCAG 2.1 AA) > should support keyboard navigation 302ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Alert and Notification Contrast > should have sufficient contrast for success alerts 139ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Alert and Notification Contrast > should have sufficient contrast for error alerts 265ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Accessibility (WCAG 2.1 AA) > should have proper ARIA labels for checkboxes 171ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Alert and Notification Contrast > should have sufficient contrast for info alerts 189ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Accessibility (WCAG 2.1 AA) > should have role="table" and proper table structure 219ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Accessibility (WCAG 2.1 AA) > should have screen reader announcements for totals 238ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Alert and Notification Contrast > should have sufficient contrast for warning alerts 252ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Accessibility (WCAG 2.1 AA) > should have sufficient color contrast for zakatable indicators 235ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Accessibility (WCAG 2.1 AA) > should provide clear focus indicators 192ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Edge Cases > should handle empty asset list 74ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Edge Cases > should handle assets with zero value 145ms
+ ✓ tests/components/AssetSelectionTable.test.tsx > AssetSelectionTable > Edge Cases > should handle very large asset values 114ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Badge and Tag Contrast > should have sufficient contrast for status badges 205ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Navigation Contrast > should have sufficient contrast for navigation items 725ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Navigation Contrast > should have sufficient contrast for active navigation state 253ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Disabled State Contrast > should maintain minimum contrast for disabled elements 122ms
+ ✓ src/tests/accessibility/color-contrast.test.tsx > Color Contrast Accessibility > Focus Indicator Contrast > should have sufficient contrast for focus states 250ms
+ ✓ src/components/tracking/PaymentRecordForm.refactor.test.tsx > PaymentRecordForm Refactor > renders correctly 721ms
+ ✓ src/tests/property/zakat-property.test.ts > Zakat Calculation Properties (Fuzzing) > should never return NaN or Infinity for valid inputs 3076ms
+ ✓ src/tests/property/zakat-property.test.ts > Zakat Calculation Properties (Fuzzing) > zakat amount should always be 2.5% of zakatable wealth 53ms
+ ✓ src/tests/property/zakat-property.test.ts > Zakat Calculation Properties (Fuzzing) > should be idempotent (same inputs = same outputs) 70ms
+ ✓ src/components/tracking/PaymentRecordForm.refactor.test.tsx > PaymentRecordForm Refactor > validates required fields 968ms
+stderr | src/components/assets/__tests__/AssetForm.eligibility.test.tsx > AssetForm eligibility and passive behavior > Update submission includes zakatEligible and cleared passive when eligibility removed
+An update to AssetForm inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/assets/__tests__/AssetForm.eligibility.test.tsx > AssetForm eligibility and passive behavior > Passive checkbox is disabled when zakatEligible is unchecked and cleared 1123ms
+ ✓ src/components/assets/__tests__/AssetForm.eligibility.test.tsx > AssetForm eligibility and passive behavior > Update submission includes zakatEligible and cleared passive when eligibility removed 490ms
+ ✓ src/components/tracking/PaymentRecordForm.refactor.test.tsx > PaymentRecordForm Refactor > submits valid data for creation 622ms
+ ✓ src/components/tracking/PaymentRecordForm.refactor.test.tsx > PaymentRecordForm Refactor > submits valid data for update 496ms
+ ✓ src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx > AnalyticsDashboard Accessibility > should have no accessibility violations 1076ms
+ ✓ src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx > AnalyticsDashboard Accessibility > should have proper heading hierarchy 173ms
+ ✓ src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx > AnalyticsDashboard Accessibility > should have descriptive chart labels and titles 65ms
+ ✓ src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx > AnalyticsDashboard Accessibility > should provide sufficient color contrast 112ms
+ ✓ src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx > AnalyticsDashboard Accessibility > should be keyboard navigable 180ms
+ ✓ src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx > AnalyticsDashboard Accessibility > should have descriptive text for data 84ms
+ ✓ src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx > AnalyticsDashboard Accessibility > should support high contrast mode 84ms
+ ✓ src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx > AnalyticsDashboard Accessibility > should have appropriate ARIA labels where needed 137ms
+ ✓ src/__tests__/accessibility/analytics-dashboard-accessibility.test.tsx > AnalyticsDashboard Accessibility > should be responsive and work on different screen sizes 84ms
+stdout | src/__tests__/accessibility/export-controls-accessibility.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/__tests__/components/layout/MobileNav.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/__tests__/accessibility/reminder-notification-accessibility.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stderr | src/__tests__/components/layout/MobileNav.test.tsx > MobileNav component > toggles the menu when hamburger button is clicked
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ src/__tests__/components/layout/MobileNav.test.tsx > MobileNav component > toggles the menu when hamburger button is clicked 619ms
+ ✓ src/__tests__/components/layout/MobileNav.test.tsx > MobileNav component > closes the menu when Escape key is pressed 141ms
+stdout | src/tests/accessibility/keyboard-navigation.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | tests/components/layout/MobileNav.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/pages/NisabYearRecordsPage.integration.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/__tests__/components/layout/MobileNav.test.tsx > MobileNav component > closes the menu when backdrop is clicked 136ms
+ ✓ src/__tests__/components/layout/MobileNav.test.tsx > MobileNav component > navigates to the selected route and closes menu 588ms
+ ✓ src/__tests__/components/layout/MobileNav.test.tsx > MobileNav component > resets body scroll locking when menu closes 291ms
+stderr | tests/components/layout/MobileNav.test.tsx > MobileNav component > toggles the menu when hamburger button is clicked
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ tests/components/layout/MobileNav.test.tsx > MobileNav component > toggles the menu when hamburger button is clicked 594ms
+ ✓ src/__tests__/accessibility/export-controls-accessibility.test.tsx > ExportControls Accessibility > should render without accessibility issues 277ms
+ ✓ tests/components/layout/MobileNav.test.tsx > MobileNav component > closes the menu when Escape key is pressed 121ms
+ ✓ src/__tests__/accessibility/export-controls-accessibility.test.tsx > ExportControls Accessibility > should have proper button labels and descriptions 275ms
+stdout | tests/components/layout/Navigation.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Navigation Component > should have no axe violations 509ms
+ ✓ tests/components/layout/MobileNav.test.tsx > MobileNav component > closes the menu when backdrop is clicked 178ms
+ ✓ src/__tests__/accessibility/export-controls-accessibility.test.tsx > ExportControls Accessibility > should have accessible format selection 163ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Navigation Component > should allow tab navigation through all links 348ms
+ ✓ tests/components/layout/MobileNav.test.tsx > MobileNav component > navigates to the selected route and closes menu 330ms
+ ✓ src/__tests__/accessibility/export-controls-accessibility.test.tsx > ExportControls Accessibility > should indicate loading state accessibly 239ms
+ ✓ tests/components/layout/MobileNav.test.tsx > MobileNav component > resets body scroll locking when menu closes 282ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Navigation Component > should allow shift+tab to navigate backwards 225ms
+ ✓ src/__tests__/accessibility/export-controls-accessibility.test.tsx > ExportControls Accessibility > should provide clear feedback for different states 317ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Form Component > should have no axe violations 279ms
+ ✓ src/__tests__/accessibility/export-controls-accessibility.test.tsx > ExportControls Accessibility > should support keyboard navigation 118ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Form Component > should tab through form fields in logical order 247ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Form Component > should submit form on Enter key 72ms
+stderr | src/__tests__/accessibility/export-controls-accessibility.test.tsx > ExportControls Accessibility > should maintain accessibility across different formats
+An update to ExportControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ExportControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/__tests__/accessibility/export-controls-accessibility.test.tsx > ExportControls Accessibility > should support screen readers with proper labeling 215ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Modal Component > should have no axe violations 259ms
+ ✓ src/__tests__/accessibility/export-controls-accessibility.test.tsx > ExportControls Accessibility > should maintain accessibility across different formats 382ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Modal Component > should trap focus within modal 144ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Modal Component > should close on Escape key 39ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Skip Link > should allow skipping to main content 83ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Dropdown Menu > should navigate with arrow keys 124ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Dropdown Menu > should select option with Enter or Space 79ms
+ ✓ src/tests/accessibility/keyboard-navigation.test.tsx > Keyboard Navigation Accessibility > Tab Panel Navigation > should navigate tabs with arrow keys 88ms
+stderr | tests/components/layout/Navigation.test.tsx > Navigation component > renders all navigation items
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ tests/components/layout/Navigation.test.tsx > Navigation component > renders all navigation items 699ms
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > renders without crashing
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ tests/components/layout/Navigation.test.tsx > Navigation component > marks the current route as active 153ms
+ ✓ tests/components/layout/Navigation.test.tsx > Navigation component > navigates to the selected route on click 162ms
+ ✓ tests/components/layout/Navigation.test.tsx > Navigation component > exposes an ARIA landmark for screen readers 56ms
+ ✓ src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > renders without crashing 284ms
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > opens payment modal without crashing
+An update to NisabYearRecordsPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should render without accessibility issues 979ms
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should have proper ARIA attributes for notifications 79ms
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should have accessible dismiss button 192ms
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should have accessible action button if provided 79ms
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should support keyboard navigation 38ms
+ ✓ src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > opens payment modal without crashing 1295ms
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should have proper heading hierarchy 119ms
+stderr | ApiService.handleResponse (/home/agentx/github-repos/zakapp/client/src/services/api.ts:119:17)
+API: 401 Unauthorized. Ignoring redirect for Local-First mode.
+
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should provide sufficient color contrast for different types 267ms
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should support screen readers with proper content 90ms
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should handle different priority levels accessibly 180ms
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should be responsive on different screen sizes 161ms
+ ✓ src/__tests__/accessibility/reminder-notification-accessibility.test.tsx > ReminderNotification Accessibility > should maintain accessibility when no active reminders 27ms
+stdout | src/components/tracking/PaymentRecordForm.delete.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/__tests__/components/layout/Navigation.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/__tests__/components/analytics-dashboard.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/__tests__/components/dashboard/DashboardWidgets.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/components/tracking/PaymentRecordForm.delete.test.tsx > PaymentRecordForm (delete) > shows delete button when editing and calls deletePayment when confirmed (no nisabRecordId) 352ms
+ ✓ src/components/tracking/PaymentRecordForm.delete.test.tsx > PaymentRecordForm (delete) > warns and clears recipient field when recipientName is encrypted 167ms
+ ✓ src/components/tracking/PaymentRecordForm.delete.test.tsx > PaymentRecordForm (delete) > calls deleteSnapshot when nisabRecordId prop is provided 234ms
+stderr | src/__tests__/components/layout/Navigation.test.tsx > Navigation component > renders all navigation items
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ src/__tests__/components/layout/Navigation.test.tsx > Navigation component > renders all navigation items 782ms
+ ✓ src/__tests__/components/layout/Navigation.test.tsx > Navigation component > marks the current route as active 110ms
+ ✓ src/__tests__/components/layout/Navigation.test.tsx > Navigation component > navigates to the selected route on click 204ms
+ ✓ src/__tests__/components/layout/Navigation.test.tsx > Navigation component > exposes an ARIA landmark for screen readers 58ms
+stdout | src/tests/pwa/offline.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stderr | src/__tests__/components/dashboard/DashboardWidgets.test.tsx > Dashboard widgets > QuickActionCard > navigates via link when href is provided
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ src/__tests__/components/dashboard/DashboardWidgets.test.tsx > Dashboard widgets > DashboardHeader > encourages users without assets to add their first asset 244ms
+ ✓ src/__tests__/components/dashboard/DashboardWidgets.test.tsx > Dashboard widgets > DashboardHeader > prompts users with assets but no record to create one 18ms
+ ✓ src/__tests__/components/dashboard/DashboardWidgets.test.tsx > Dashboard widgets > DashboardHeader > confirms tracking is active when an active record exists 12ms
+stdout | src/tests/pwa/installation.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/__tests__/components/dashboard/DashboardWidgets.test.tsx > Dashboard widgets > QuickActionCard > navigates via link when href is provided 427ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Detection > should detect when user goes offline 13ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Detection > should detect when user comes back online 2ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Detection > should listen for online/offline events 7ms
+stdout | src/components/tracking/PaymentRecordForm.render.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Page > should render offline page when offline 220ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Page > should explain offline capabilities 66ms
+ ✓ src/__tests__/components/dashboard/DashboardWidgets.test.tsx > Dashboard widgets > QuickActionCard > fires onClick when rendered as a button 201ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Page > should show sync notification 49ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Data Access > should access cached data when offline 19ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Data Access > should queue mutations when offline 7ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Data Access > should sync queued mutations when online 6ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > React Query Offline Support > should use cached queries when offline 23ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > React Query Offline Support > should pause mutations when offline 1ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > React Query Offline Support > should resume mutations when back online 5ms
+ ✓ src/__tests__/components/dashboard/DashboardWidgets.test.tsx > Dashboard widgets > ActiveRecordWidget > displays Hawl progress and wealth comparison 279ms
+ ✓ src/__tests__/components/dashboard/DashboardWidgets.test.tsx > Dashboard widgets > WealthSummaryCard > indicates whether wealth is above or below Nisab 73ms
+ ✓ src/__tests__/components/dashboard/DashboardWidgets.test.tsx > Dashboard widgets > OnboardingGuide > highlights the current step and shows progress 205ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Installation Prompt > should capture beforeinstallprompt event 15ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Indicator > should show offline indicator when offline 238ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Installation Prompt > should show install button when prompt is available 243ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Installation Prompt > should trigger installation on button click 3ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Installation Prompt > should hide install button after successful installation 1ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Installation Prompt > should handle user dismissing install prompt 2ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Indicator > should hide offline indicator when online 72ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Background Sync > should register background sync when offline 15ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Background Sync > should process sync queue when online 12ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Storage > should store data locally when offline 12ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Storage > should retrieve locally stored data 1ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Offline Storage > should clear offline data after successful sync 2ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Optimistic Updates > should apply optimistic updates immediately 1ms
+ ✓ src/tests/pwa/offline.test.tsx > Offline Functionality > Optimistic Updates > should rollback on sync failure 1ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > App Installation Status > should detect if app is installed 11ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > App Installation Status > should detect if app is not installed 31ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > App Installation Status > should listen for appinstalled event 23ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Manifest Validation > should have valid manifest.json 1ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Manifest Validation > should have required icon sizes 14ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Manifest Validation > should have proper theme colors 6ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Manifest Validation > should specify display mode 2ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Install Prompt Component > should render install prompt UI 40ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Install Prompt Component > should close prompt on dismiss 53ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Install Prompt Component > should remember user dismissed prompt 16ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Update Notification > should show update notification when new version available 201ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Update Notification > should reload app on update 42ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Add to Home Screen > should detect iOS Safari 1ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Add to Home Screen > should show iOS install instructions 83ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Installation Analytics > should track installation events 5ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Installation Analytics > should track install prompt shown 1ms
+ ✓ src/tests/pwa/installation.test.tsx > PWA Installation Tests > Installation Analytics > should track install prompt outcome 2ms
+ ✓ src/__tests__/components/analytics-dashboard.test.tsx > AnalyticsDashboard > renders analytics dashboard with key metrics 345ms
+ ✓ src/__tests__/components/analytics-dashboard.test.tsx > AnalyticsDashboard > displays monthly trends chart 1ms
+ ✓ src/__tests__/components/analytics-dashboard.test.tsx > AnalyticsDashboard > displays monthly trends chart 56ms
+ ✓ src/__tests__/components/analytics-dashboard.test.tsx > AnalyticsDashboard > shows yearly comparison 106ms
+ ✓ src/__tests__/components/analytics-dashboard.test.tsx > AnalyticsDashboard > displays category breakdown 201ms
+ ✓ src/__tests__/components/analytics-dashboard.test.tsx > AnalyticsDashboard > shows loading state 17ms
+ ✓ src/__tests__/components/analytics-dashboard.test.tsx > AnalyticsDashboard > handles empty data gracefully 0ms
+ ✓ src/__tests__/components/analytics-dashboard.test.tsx > AnalyticsDashboard > handles empty data gracefully 40ms
+ ✓ src/components/tracking/PaymentRecordForm.render.test.tsx > PaymentRecordForm mount > renders when creating new payment (no payment prop) 267ms
+stdout | src/__tests__/unit/pdfGenerator.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should create a new jsPDF document 78ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should include document title 12ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should include year information 8ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should include wealth summary section 23ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should include Zakat calculation section 29ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should include payments when includePayments is true 14ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should skip payments when includePayments is false 6ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should include asset breakdown when includeAssetBreakdown is true 9ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should skip asset breakdown when includeAssetBreakdown is false 9ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should include user notes if present 3ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should skip user notes if not present 4ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should handle empty payments array 4ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should set appropriate font sizes for headers 9ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should return jsPDF instance 20ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generateAnnualSummaryPDF > should add new page when content exceeds page height 43ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generatePaymentReceiptPDF > should create a payment receipt 8ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generatePaymentReceiptPDF > should include receipt title 4ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generatePaymentReceiptPDF > should include receipt reference number 10ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generatePaymentReceiptPDF > should include payment amount 3ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generatePaymentReceiptPDF > should include payment date 3ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generatePaymentReceiptPDF > should include recipient information 4ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generatePaymentReceiptPDF > should include payment method 31ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > generatePaymentReceiptPDF > should return jsPDF instance 2ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > PDF formatting utilities > should handle large numbers with proper formatting 16ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > PDF formatting utilities > should handle decimal values correctly 6ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > PDF formatting utilities > should handle empty snapshot gracefully 13ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > document structure > should use appropriate margins 3ms
+ ✓ src/__tests__/unit/pdfGenerator.test.ts > pdfGenerator utility > document structure > should maintain consistent spacing between sections 13ms
+stdout | src/App.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/__tests__/unit/calendarConverter.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/__tests__/EncryptionIssues.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stdout | src/__tests__/unit/chartFormatter.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > gregorianToHijri > should convert a Gregorian date to Hijri 12ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > gregorianToHijri > should handle ISO date strings 2ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > gregorianToHijri > should throw error for invalid dates 3ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > gregorianToHijri > should handle Date objects 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > hijriToGregorian > should convert a Hijri date to Gregorian 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > hijriToGregorian > should throw error for invalid Hijri year 2ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > hijriToGregorian > should throw error for invalid Hijri month 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > hijriToGregorian > should throw error for invalid Hijri day 5ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > hijriToGregorian > should handle edge case: day 30 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > hijriToGregorian > should handle all 12 Hijri months 2ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatHijriDate > should format with month name by default 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatHijriDate > should format without month name when requested 0ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatHijriDate > should handle all month names correctly 3ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatHijriDate > should handle single-digit days 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatHijriDate > should handle two-digit days 0ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatGregorianDate > should format with default pattern 3ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatGregorianDate > should accept custom format string 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatGregorianDate > should handle ISO string input 0ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatGregorianDate > should handle various formats 2ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatDualCalendar > should format with both calendars 2ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatDualCalendar > should use custom Gregorian format 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > formatDualCalendar > should separate calendars with proper formatting 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > getHijriYearStart > should return Muharram 1 for given year 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > getHijriYearStart > should handle different Hijri years 2ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > getHijriYearEnd > should return Dhu al-Hijjah 29 for given year 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > getHijriYearEnd > should handle different Hijri years 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > getHijriYearEnd > should be after year start 0ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > HIJRI_MONTHS constant > should have exactly 12 months 2ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > HIJRI_MONTHS constant > should include all expected month names 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > HIJRI_MONTHS constant > should have Ramadan as 9th month 0ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > HIJRI_MONTHS constant > should have Muharram as first month 0ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > HIJRI_MONTHS constant > should have Dhu al-Hijjah as last month 0ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > integration scenarios > should support round-trip conversion 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > integration scenarios > should calculate Zakat anniversary date 1ms
+ ✓ src/__tests__/unit/calendarConverter.test.ts > calendarConverter utility > integration scenarios > should format complete date display 1ms
+stdout | src/utils/__tests__/chartFormatters.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/utils/__tests__/chartFormatters.test.ts > chartFormatters > formats asset composition into multiple category rows 13ms
+ ✓ src/utils/__tests__/chartFormatters.test.ts > chartFormatters > formats payment distribution into multiple category rows 3ms
+ ✓ src/utils/__tests__/chartFormatters.test.ts > chartFormatters > formatPercentageForChart returns a readable percent string 1ms
+ ✓ src/__tests__/EncryptionIssues.test.tsx > Encryption Issues admin page > renders and lists issues 305ms
+ ✓ src/__tests__/EncryptionIssues.test.tsx > Encryption Issues admin page > can open actions modal and retry 31ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatWealthTrend > should format wealth trend data for time series chart 24ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatWealthTrend > should sort data by date ascending 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatWealthTrend > should format dates correctly 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatWealthTrend > should handle empty snapshots array 26ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatWealthTrend > should handle single snapshot 14ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatZakatTrend > should format Zakat trend data for time series chart 17ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatZakatTrend > should sort data by date ascending 1ms
+stdout | src/tests/performance/core-web-vitals.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatZakatTrend > should handle empty snapshots array 11ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentDistribution > should format payment distribution by category 15ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentDistribution > should group payments by category 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentDistribution > should assign colors from CATEGORY_COLORS 21ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentDistribution > should handle empty payments array 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentDistribution > should handle single payment 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentDistribution > should aggregate multiple payments to same category 3ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatYearlyComparison > should format yearly comparison for wealth metric 23ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatYearlyComparison > should format yearly comparison for zakat metric 9ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatYearlyComparison > should sort by year ascending 10ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatYearlyComparison > should handle empty snapshots array 0ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatYearlyComparison > should default to wealth metric if not specified 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatWealthVsZakat > should format wealth vs zakat comparison 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatWealthVsZakat > should include both wealth and zakat values 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatWealthVsZakat > should sort by date ascending 11ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatWealthVsZakat > should handle empty snapshots array 23ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatAssetComposition > should format asset composition for pie chart 2ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatAssetComposition > should include all asset types from breakdown 28ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatAssetComposition > should exclude zero-value assets 9ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatAssetComposition > should handle empty asset breakdown 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatAssetComposition > should assign unique colors to each asset type 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentCompletion > should format payment completion for bar chart 7ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentCompletion > should calculate paid and due amounts correctly 0ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentCompletion > should handle years with no payments 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentCompletion > should sort by year ascending 0ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentCompletion > should handle empty payments array 0ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatPaymentCompletion > should handle empty snapshots array 0ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatCategoryName > should format category names correctly 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatCategoryName > should handle unknown category 4ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatCategoryName > should handle case insensitivity 0ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatAssetTypeName > should format asset type names correctly 3ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatAssetTypeName > should handle unknown asset type 4ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > formatAssetTypeName > should handle case variations 0ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > CATEGORY_COLORS constant > should have colors for all 8 Islamic categories 2ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > CATEGORY_COLORS constant > should have valid hex color codes 7ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > CATEGORY_COLORS constant > should have unique colors for each category 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > edge cases and error handling > should handle snapshots with missing asset breakdown 2ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > edge cases and error handling > should handle negative values gracefully 0ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > edge cases and error handling > should handle zero values 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > edge cases and error handling > should handle very large numbers 0ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > integration scenarios > should format complete dashboard data 5ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > integration scenarios > should handle multi-year analysis 1ms
+ ✓ src/__tests__/unit/chartFormatter.test.ts > chartFormatter utility > integration scenarios > should support asset breakdown visualization 1ms
+stderr | src/App.test.tsx > App > renders ZakApp branding or Sign In page
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > First Contentful Paint (FCP) > should load FCP within target time
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > First Contentful Paint (FCP) > should have good FCP rating
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > Largest Contentful Paint (LCP) > should load LCP within target time
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > Largest Contentful Paint (LCP) > should have good LCP rating
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > First Input Delay (FID) > should respond to input within target time
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > First Input Delay (FID) > should have good FID rating
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > Cumulative Layout Shift (CLS) > should have minimal layout shift
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > Cumulative Layout Shift (CLS) > should have good CLS rating
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > Time to First Byte (TTFB) > should have fast server response time
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > Time to First Byte (TTFB) > should have good TTFB rating
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > All Core Web Vitals > should pass all Core Web Vitals thresholds
+ ↓ src/tests/performance/core-web-vitals.test.ts > Core Web Vitals Performance > Performance Reporting > should collect and format metrics for analytics
+ ✓ src/tests/performance/core-web-vitals.test.ts > Performance Budgets > JavaScript Bundle Size > should stay within bundle size budget 3ms
+ ✓ src/tests/performance/core-web-vitals.test.ts > Performance Budgets > Image Optimization > should lazy load images below the fold 51ms
+ ✓ src/tests/performance/core-web-vitals.test.ts > Performance Budgets > Image Optimization > should use modern image formats 1ms
+ ✓ src/tests/performance/core-web-vitals.test.ts > Performance Budgets > Caching Strategy > should cache static assets 47ms
+ ✓ src/tests/performance/core-web-vitals.test.ts > Performance Monitoring > Metric Collection > should send metrics to analytics endpoint 89ms
+ ✓ src/tests/performance/core-web-vitals.test.ts > Performance Monitoring > Error Tracking > should track performance issues 1ms
+ ✓ src/App.test.tsx > App > renders ZakApp branding or Sign In page 1033ms
+stdout | src/utils/__tests__/formatters.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/utils/__tests__/formatters.test.ts > formatters > formats decimal input correctly when isDecimal=true 5ms
+ ✓ src/utils/__tests__/formatters.test.ts > formatters > formats percentage input correctly when isDecimal=false 1ms
+stdout | src/core/calculations/zakat.test.ts
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ✓ src/core/calculations/zakat.test.ts > Zakat Calculation Logic > should calculate 2.5% zakat correctly on simple cash 4ms
+ ✓ src/core/calculations/zakat.test.ts > Zakat Calculation Logic > should return 0 zakat if net worth is below nisab 1ms
+ ✓ src/core/calculations/zakat.test.ts > Zakat Calculation Logic > should deduct liabilities from total assets 1ms
+stdout | src/components/assets/__tests__/AssetForm.passive.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ↓ src/components/assets/__tests__/AssetForm.passive.test.tsx > AssetForm - Passive Investment Feature (spec) > spec file - no runtime tests (TDD spec)
+stdout | src/components/assets/__tests__/AssetList.passive.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+ ↓ src/components/assets/__tests__/AssetList.passive.test.tsx > AssetList Passive badge (disabled) > placeholder - flaky test disabled
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/pages/AnalyticsPage.test.tsx [ src/pages/AnalyticsPage.test.tsx ]
+Error: Transform failed with 8 errors:
+/home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.test.tsx:65:6: ERROR: The symbol "render" has already been declared
+/home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.test.tsx:65:6: ERROR: The symbol "screen" has already been declared
+/home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.test.tsx:66:6: ERROR: The symbol "QueryClient" has already been declared
+/home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.test.tsx:66:6: ERROR: The symbol "QueryClientProvider" has already been declared
+/home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.test.tsx:67:6: ERROR: The symbol "BrowserRouter" has already been declared
+...
+  Plugin: vite:esbuild
+  File: /home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.test.tsx:65:6
+  
+  The symbol "render" has already been declared
+  63 |   */
+  64 |  
+  65 |  const { render, screen } = require('@testing-library/react');
+     |        ^
+  66 |  const { QueryClient, QueryClientProvider } = require('@tanstack/react-query');
+  67 |  const { BrowserRouter } = require('react-router-dom');
+  
+  The symbol "screen" has already been declared
+  63 |   */
+  64 |  
+  65 |  const { render, screen } = require('@testing-library/react');
+     |        ^
+  66 |  const { QueryClient, QueryClientProvider } = require('@tanstack/react-query');
+  67 |  const { BrowserRouter } = require('react-router-dom');
+  
+  The symbol "QueryClient" has already been declared
+  64 |  
+  65 |  const { render, screen } = require('@testing-library/react');
+  66 |  const { QueryClient, QueryClientProvider } = require('@tanstack/react-query');
+     |        ^
+  67 |  const { BrowserRouter } = require('react-router-dom');
+  68 |  require('@testing-library/jest-dom');
+  
+  The symbol "QueryClientProvider" has already been declared
+  64 |  
+  65 |  const { render, screen } = require('@testing-library/react');
+  66 |  const { QueryClient, QueryClientProvider } = require('@tanstack/react-query');
+     |        ^
+  67 |  const { BrowserRouter } = require('react-router-dom');
+  68 |  require('@testing-library/jest-dom');
+  
+  The symbol "BrowserRouter" has already been declared
+  65 |  const { render, screen } = require('@testing-library/react');
+  66 |  const { QueryClient, QueryClientProvider } = require('@tanstack/react-query');
+  67 |  const { BrowserRouter } = require('react-router-dom');
+     |        ^
+  68 |  require('@testing-library/jest-dom');
+  69 |  
+  
+  The symbol "createWrapper" has already been declared
+  73 |  // NOTE: the SUT mock will be applied per-test using `jest.doMock` inside `jest.isolateModules`
+  74 |  
+  75 |  const createWrapper = () => {
+     |        ^
+  76 |    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  77 |    return function Wrapper(props) { const _React = require('react'); return _React.createElement(QueryClientProvider, { client: queryClient }, _React.createElement(BrowserRouter, null, props.children)); };
+  
+  The symbol "setSnapshotsMock" has already been declared
+  78 |  };
+  79 |  
+  80 |  const setSnapshotsMock = (value) => {
+     |        ^
+  81 |    const m = jest.fn().mockReturnValue(value);
+  82 |    try { require('../hooks/useZakatSnapshots').useSnapshots = m; } catch (e) {}
+  
+  Unexpected "*"
+  224|    });
+  225|  });
+  226|  */
+     |  ^
+  227|  
+  228|  
+  
+ ❯ failureErrorWithLog node_modules/esbuild/lib/main.js:1472:15
+ ❯ node_modules/esbuild/lib/main.js:755:50
+ ❯ responseCallbacks.<computed> node_modules/esbuild/lib/main.js:622:9
+ ❯ handleIncomingPacket node_modules/esbuild/lib/main.js:677:12
+ ❯ Socket.readFromStdout node_modules/esbuild/lib/main.js:600:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/32]⎯
+
+ FAIL  tests/components/AuditTrailView.test.tsx [ tests/components/AuditTrailView.test.tsx ]
+Error: Failed to resolve import "../../../src/components/AuditTrailView" from "tests/components/AuditTrailView.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/agentx/github-repos/zakapp/client/tests/components/AuditTrailView.test.tsx:11:31
+  2  |  import { render, screen } from "@testing-library/react";
+  3  |  import userEvent from "@testing-library/user-event";
+  4  |  import { AuditTrailView } from "../../../src/components/AuditTrailView";
+     |                                  ^
+  5  |  describe("AuditTrailView Component", () => {
+  6  |    const mockAuditTrail = [
+ ❯ TransformPluginContext._formatError node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23
+ ❯ node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7
+ ❯ PluginContainer.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/32]⎯
+
+ FAIL  tests/components/FinalizationModal.test.tsx [ tests/components/FinalizationModal.test.tsx ]
+Error: Failed to resolve import "../../../src/components/FinalizationModal" from "tests/components/FinalizationModal.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/agentx/github-repos/zakapp/client/tests/components/FinalizationModal.test.tsx:11:34
+  2  |  import { render, screen, fireEvent } from "@testing-library/react";
+  3  |  import userEvent from "@testing-library/user-event";
+  4  |  import { FinalizationModal } from "../../../src/components/FinalizationModal";
+     |                                     ^
+  5  |  describe("FinalizationModal Component", () => {
+  6  |    const mockRecord = {
+ ❯ TransformPluginContext._formatError node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23
+ ❯ node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7
+ ❯ PluginContainer.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/32]⎯
+
+ FAIL  tests/components/HawlProgressIndicator.test.tsx [ tests/components/HawlProgressIndicator.test.tsx ]
+Error: Failed to resolve import "../../../src/components/HawlProgressIndicator" from "tests/components/HawlProgressIndicator.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/agentx/github-repos/zakapp/client/tests/components/HawlProgressIndicator.test.tsx:10:38
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { render, screen } from "@testing-library/react";
+  3  |  import { HawlProgressIndicator } from "../../../src/components/HawlProgressIndicator";
+     |                                         ^
+  4  |  describe("HawlProgressIndicator Component", () => {
+  5  |    const mockActiveHawl = {
+ ❯ TransformPluginContext._formatError node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23
+ ❯ node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7
+ ❯ PluginContainer.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/32]⎯
+
+ FAIL  tests/components/NisabComparisonWidget.test.tsx [ tests/components/NisabComparisonWidget.test.tsx ]
+Error: Failed to resolve import "../../../src/components/NisabComparisonWidget" from "tests/components/NisabComparisonWidget.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/agentx/github-repos/zakapp/client/tests/components/NisabComparisonWidget.test.tsx:10:38
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import { render, screen } from "@testing-library/react";
+  3  |  import { NisabComparisonWidget } from "../../../src/components/NisabComparisonWidget";
+     |                                         ^
+  4  |  describe("NisabComparisonWidget Component", () => {
+  5  |    const mockComparisonData = {
+ ❯ TransformPluginContext._formatError node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23
+ ❯ node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7
+ ❯ PluginContainer.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/32]⎯
+
+ FAIL  tests/components/UnlockReasonDialog.test.tsx [ tests/components/UnlockReasonDialog.test.tsx ]
+Error: Failed to resolve import "../../../src/components/UnlockReasonDialog" from "tests/components/UnlockReasonDialog.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/agentx/github-repos/zakapp/client/tests/components/UnlockReasonDialog.test.tsx:11:35
+  2  |  import { render, screen } from "@testing-library/react";
+  3  |  import userEvent from "@testing-library/user-event";
+  4  |  import { UnlockReasonDialog } from "../../../src/components/UnlockReasonDialog";
+     |                                      ^
+  5  |  describe("UnlockReasonDialog Component", () => {
+  6  |    const mockOnSubmit = jest.fn();
+ ❯ TransformPluginContext._formatError node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23
+ ❯ node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7
+ ❯ PluginContainer.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/32]⎯
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 26 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/pages/AnalyticsPage.fixed.test.tsx > AnalyticsPage (fixed) > renders page header while loading
+Error: Cannot find module '../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.fixed.test.tsx
+ ❯ src/pages/AnalyticsPage.fixed.test.tsx:49:30
+     47| 
+     48|   it('renders page header while loading', () => {
+     49|     const { useAnalytics } = require('../hooks/useAnalytics');
+       |                              ^
+     50|     const { useAssets } = require('../services/apiHooks');
+     51| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.fixed.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/32]⎯
+
+ FAIL  src/pages/AnalyticsPage.fixed.test.tsx > AnalyticsPage (fixed) > renders all chart sections
+Error: Cannot find module '../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.fixed.test.tsx
+ ❯ src/pages/AnalyticsPage.fixed.test.tsx:71:30
+     69| 
+     70|   it('renders all chart sections', () => {
+     71|     const { useAnalytics } = require('../hooks/useAnalytics');
+       |                              ^
+     72|     const { useAssets } = require('../services/apiHooks');
+     73| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/pages/AnalyticsPage.fixed.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/32]⎯
+
+ FAIL  src/pages/PaymentsPage.test.tsx > PaymentsPage > Page Rendering > renders payment list component
+TestingLibraryElementError: Found multiple elements by: [data-testid="payment-list"]
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mdata-testid[39m=[32m"payment-list"[39m
+[36m>[39m
+  [36m<button[39m
+    [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+  [36m>[39m
+    [0mAdd Payment (Mock)[0m
+  [36m</button>[39m
+[36m</div>[39m
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mdata-testid[39m=[32m"payment-list"[39m
+[36m>[39m
+  [36m<button[39m
+    [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+  [36m>[39m
+    [0mAdd Payment (Mock)[0m
+  [36m</button>[39m
+[36m</div>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen bg-gray-50"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mb-8"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center justify-between"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-3xl font-bold text-gray-900"[39m
+              [36m>[39m
+                [0mZakat Payments[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-gray-600 mt-2"[39m
+              [36m>[39m
+                [0mRecord and track your Zakat distributions to recipients[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center space-x-3"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-11 px-6 py-2"[39m
+              [36m>[39m
+                [0m← Back to Dashboard[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-11 px-6 py-2"[39m
+              [36m>[39m
+                [0mImport / Export[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm text-yellow-800"[39m
+            [36m>[39m
+              [0mNo Nisab Year Records found. Please create a Nisab Year Record first to record payments.[0m
+            [36m</p>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary-600 text-white hover:bg-primary-700 shadow-md hover:shadow-lg transition-all active:scale-[0.98] h-11 px-6 py-2 mt-3"[39m
+            [36m>[39m
+              [0mGo to Dashboard[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mdata-testid[39m=[32m"payment-list"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+          [36m>[39m
+            [0mAdd Payment (Mock)[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-12 bg-green-50 border border-green-200 rounded-lg p-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-shrink-0"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"h-6 w-6 text-green-600"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mviewBox[39m=[32m"0 0 20 20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33mclip-rule[39m=[32m"evenodd"[39m
+                  [33md[39m=[32m"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"[39m
+                  [33mfill-rule[39m=[32m"evenodd"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"ml-3"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-sm font-medium text-green-800"[39m
+              [36m>[39m
+                [0mAbout Zakat Payments & Recipients[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-sm text-green-700 mt-2 space-y-2"[39m
+              [36m>[39m
+                [36m<p>[39m
+                  [0mIslamic law specifies [0m
+                  [36m<strong>[39m
+                    [0m8 categories[0m
+                  [36m</strong>[39m
+                  [0m of eligible Zakat recipients as mentioned in Quran 9:60:[0m
+                [36m</p>[39m
+                [36m<ol[39m
+                  [33mclass[39m=[32m"list-decimal list-inside space-y-1 mt-2 ml-2"[39m
+                [36m>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Fuqara (The Poor)[0m
+                    [36m</strong>[39m
+                    [0m - Those with little to no income or means[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Masakin (The Needy)[0m
+                    [36m</strong>[39m
+                    [0m - Those in need but not as destitute as the poor[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mZakat Administrators[0m
+                    [36m</strong>[39m
+                    [0m - Those who collect and distribute Zakat[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mNew Muslims[0m
+                    [36m</strong>[39m
+                    [0m - Recent converts who need support[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mSlaves/Captives[0m
+                    [36m</strong>[39m
+                    [0m - To free slaves (historically relevant)[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mDebtors[0m
+                    [36m</strong>[39m
+                    [0m - Those unable to pay off their debts[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mIn the Path of Allah[0m
+                    [36m</strong>[39m
+                    [0m - For Islamic causes and propagation[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mTravelers[0m
+                    [36m</strong>[39m
+                    [0m - Stranded travelers in need of assistance[0m
+                  [36m</li>[39m
+                [36m</ol>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-3"[39m
+                [36m>[39m
+                  [36m<strong>[39m
+                    [0mImportant:[0m
+                  [36m</strong>[39m
+                  [0m Zakat cannot be given to parents, grandparents, children, grandchildren, or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.[0m
+                [36m</p>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mdata-testid[39m=[32m"payment-list"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+          [36m>[39m
+            [0mAdd Payment (Mock)[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-12 bg-green-50 border border-green-200 rounded-lg p-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-shrink-0"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"h-6 w-6 text-green-600"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mviewBox[39m=[32m"0 0 20 20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33mclip-rule[39m=[32m"evenodd"[39m
+                  [33md[39m=[32m"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"[39m
+                  [33mfill-rule[39m=[32m"evenodd"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"ml-3"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-sm font-medium text-green-800"[39m
+              [36m>[39m
+                [0mAbout Zakat Payments & Recipients[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-sm text-green-700 mt-2 space-y-2"[39m
+              [36m>[39m
+                [36m<p>[39m
+                  [0mIslamic law specifies [0m
+                  [36m<strong>[39m
+                    [0m8 categories[0m
+                  [36m</strong>[39m
+                  [0m of eligible Zakat recipients as mentioned in Quran 9:60:[0m
+                [36m</p>[39m
+                [36m<ol[39m
+                  [33mclass[39m=[32m"list-decimal list-inside space-y-1 mt-2 ml-2"[39m
+                [36m>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Fuqara (The Poor)[0m
+                    [36m</strong>[39m
+                    [0m - Those with little to no income or means[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Masakin (The Needy)[0m
+                    [36m</strong>[39m
+                    [0m - Those in need but not as destitute as the poor[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mZakat Administrators[0m
+                    [36m</strong>[39m
+                    [0m - Those who collect and distribute Zakat[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mNew Muslims[0m
+                    [36m</strong>[39m
+                    [0m - Recent converts who need support[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mSlaves/Captives[0m
+                    [36m</strong>[39m
+                    [0m - To free slaves (historically relevant)[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mDebtors[0m
+                    [36m</strong>[39m
+                    [0m - Those unable to pay off their debts[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mIn the Path of Allah[0m
+                    [36m</strong>[39m
+                    [0m - For Islamic causes and propagation[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mTravelers[0m
+                    [36m</strong>[39m
+                    [0m - Stranded travelers in need of assistance[0m
+                  [36m</li>[39m
+                [36m</ol>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-3"[39m
+                [36m>[39m
+                  [36m<strong>[39m
+                    [0mImportant:[0m
+                  [36m</strong>[39m
+                  [0m Zakat cannot be given to parents, grandparents, children, grandchildren, or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.[0m
+                [36m</p>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/pages/PaymentsPage.test.tsx:89:21
+     87|       render(<PaymentsPage />, { wrapper: createWrapper() });
+     88| 
+     89|       expect(screen.getByTestId('payment-list')).toBeInTheDocument();
+       |                     ^
+     90|     });
+     91|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/32]⎯
+
+ FAIL  src/pages/PaymentsPage.test.tsx > PaymentsPage > Payment Form Interaction > opens form modal when Add Payment clicked
+TestingLibraryElementError: Found multiple elements by: [data-testid="mock-add-payment-btn"]
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+[36m>[39m
+  [0mAdd Payment (Mock)[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+[36m>[39m
+  [0mAdd Payment (Mock)[0m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen bg-gray-50"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mb-8"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center justify-between"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-3xl font-bold text-gray-900"[39m
+              [36m>[39m
+                [0mZakat Payments[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-gray-600 mt-2"[39m
+              [36m>[39m
+                [0mRecord and track your Zakat distributions to recipients[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center space-x-3"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-11 px-6 py-2"[39m
+              [36m>[39m
+                [0m← Back to Dashboard[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-11 px-6 py-2"[39m
+              [36m>[39m
+                [0mImport / Export[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm text-yellow-800"[39m
+            [36m>[39m
+              [0mNo Nisab Year Records found. Please create a Nisab Year Record first to record payments.[0m
+            [36m</p>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary-600 text-white hover:bg-primary-700 shadow-md hover:shadow-lg transition-all active:scale-[0.98] h-11 px-6 py-2 mt-3"[39m
+            [36m>[39m
+              [0mGo to Dashboard[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mdata-testid[39m=[32m"payment-list"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+          [36m>[39m
+            [0mAdd Payment (Mock)[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-12 bg-green-50 border border-green-200 rounded-lg p-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-shrink-0"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"h-6 w-6 text-green-600"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mviewBox[39m=[32m"0 0 20 20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33mclip-rule[39m=[32m"evenodd"[39m
+                  [33md[39m=[32m"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"[39m
+                  [33mfill-rule[39m=[32m"evenodd"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"ml-3"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-sm font-medium text-green-800"[39m
+              [36m>[39m
+                [0mAbout Zakat Payments & Recipients[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-sm text-green-700 mt-2 space-y-2"[39m
+              [36m>[39m
+                [36m<p>[39m
+                  [0mIslamic law specifies [0m
+                  [36m<strong>[39m
+                    [0m8 categories[0m
+                  [36m</strong>[39m
+                  [0m of eligible Zakat recipients as mentioned in Quran 9:60:[0m
+                [36m</p>[39m
+                [36m<ol[39m
+                  [33mclass[39m=[32m"list-decimal list-inside space-y-1 mt-2 ml-2"[39m
+                [36m>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Fuqara (The Poor)[0m
+                    [36m</strong>[39m
+                    [0m - Those with little to no income or means[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Masakin (The Needy)[0m
+                    [36m</strong>[39m
+                    [0m - Those in need but not as destitute as the poor[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mZakat Administrators[0m
+                    [36m</strong>[39m
+                    [0m - Those who collect and distribute Zakat[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mNew Muslims[0m
+                    [36m</strong>[39m
+                    [0m - Recent converts who need support[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mSlaves/Captives[0m
+                    [36m</strong>[39m
+                    [0m - To free slaves (historically relevant)[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mDebtors[0m
+                    [36m</strong>[39m
+                    [0m - Those unable to pay off their debts[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mIn the Path of Allah[0m
+                    [36m</strong>[39m
+                    [0m - For Islamic causes and propagation[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mTravelers[0m
+                    [36m</strong>[39m
+                    [0m - Stranded travelers in need of assistance[0m
+                  [36m</li>[39m
+                [36m</ol>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-3"[39m
+                [36m>[39m
+                  [36m<strong>[39m
+                    [0mImportant:[0m
+                  [36m</strong>[39m
+                  [0m Zakat cannot be given to parents, grandparents, children, grandchildren, or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.[0m
+                [36m</p>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mdata-testid[39m=[32m"payment-list"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mdata-testid[39m=[32m"mock-add-payment-btn"[39m
+          [36m>[39m
+            [0mAdd Payment (Mock)[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mt-12 bg-green-50 border border-green-200 rounded-lg p-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-start"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-shrink-0"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"h-6 w-6 text-green-600"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mviewBox[39m=[32m"0 0 20 20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33mclip-rule[39m=[32m"evenodd"[39m
+                  [33md[39m=[32m"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"[39m
+                  [33mfill-rule[39m=[32m"evenodd"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"ml-3"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"text-sm font-medium text-green-800"[39m
+              [36m>[39m
+                [0mAbout Zakat Payments & Recipients[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"text-sm text-green-700 mt-2 space-y-2"[39m
+              [36m>[39m
+                [36m<p>[39m
+                  [0mIslamic law specifies [0m
+                  [36m<strong>[39m
+                    [0m8 categories[0m
+                  [36m</strong>[39m
+                  [0m of eligible Zakat recipients as mentioned in Quran 9:60:[0m
+                [36m</p>[39m
+                [36m<ol[39m
+                  [33mclass[39m=[32m"list-decimal list-inside space-y-1 mt-2 ml-2"[39m
+                [36m>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Fuqara (The Poor)[0m
+                    [36m</strong>[39m
+                    [0m - Those with little to no income or means[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mAl-Masakin (The Needy)[0m
+                    [36m</strong>[39m
+                    [0m - Those in need but not as destitute as the poor[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mZakat Administrators[0m
+                    [36m</strong>[39m
+                    [0m - Those who collect and distribute Zakat[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mNew Muslims[0m
+                    [36m</strong>[39m
+                    [0m - Recent converts who need support[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mSlaves/Captives[0m
+                    [36m</strong>[39m
+                    [0m - To free slaves (historically relevant)[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mDebtors[0m
+                    [36m</strong>[39m
+                    [0m - Those unable to pay off their debts[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mIn the Path of Allah[0m
+                    [36m</strong>[39m
+                    [0m - For Islamic causes and propagation[0m
+                  [36m</li>[39m
+                  [36m<li>[39m
+                    [36m<strong>[39m
+                      [0mTravelers[0m
+                    [36m</strong>[39m
+                    [0m - Stranded travelers in need of assistance[0m
+                  [36m</li>[39m
+                [36m</ol>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-3"[39m
+                [36m>[39m
+                  [36m<strong>[39m
+                    [0mImportant:[0m
+                  [36m</strong>[39m
+                  [0m Zakat cannot be given to parents, grandparents, children, grandchildren, or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.[0m
+                [36m</p>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/pages/PaymentsPage.test.tsx:155:30
+    153| 
+    154|       // Click the mock button in PaymentList
+    155|       fireEvent.click(screen.getByTestId('mock-add-payment-btn'));
+       |                              ^
+    156| 
+    157|       expect(await screen.findByText('Record New Payment')).toBeInTheD…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/32]⎯
+
+ FAIL  tests/components/ZakatDisplayCard.test.tsx > ZakatDisplayCard > shows total wealth and zakatable wealth and calculated zakat
+Error: usePrivacy must be used within a PrivacyProvider
+ ❯ usePrivacy src/contexts/PrivacyContext.tsx:65:11
+     63|   const context = useContext(PrivacyContext);
+     64|   if (!context) {
+     65|     throw new Error('usePrivacy must be used within a PrivacyProvider'…
+       |           ^
+     66|   }
+     67|   return context;
+ ❯ Module.useMaskedCurrency src/contexts/PrivacyContext.tsx:74:27
+ ❯ ZakatDisplayCard src/components/tracking/ZakatDisplayCard.tsx:49:26
+ ❯ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:23863:20
+ ❯ renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:5529:22
+ ❯ updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:8897:19
+ ❯ beginWork node_modules/react-dom/cjs/react-dom-client.development.js:10522:18
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:1522:13
+ ❯ performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:15140:22
+ ❯ workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:14956:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/32]⎯
+
+ FAIL  src/components/assets/AssetFormPage.test.tsx > AssetFormPage > renders asset form with navigation handlers
+Error: Cannot find module './AssetFormPage'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/assets/AssetFormPage.test.tsx
+ ❯ loadAssetFormPage src/components/assets/AssetFormPage.test.tsx:6:33
+      4| import { QueryClient, QueryClientProvider } from '@tanstack/react-quer…
+      5| // Avoid importing SUT at module scope so jest.mock('../ui') can be ap…
+      6| const loadAssetFormPage = () => require('./AssetFormPage').AssetFormPa…
+       |                                 ^
+      7| 
+      8| // Mock the API hooks
+ ❯ src/components/assets/AssetFormPage.test.tsx:38:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/assets/AssetFormPage.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > Loading State > shows loading spinner when data is loading
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:112:32
+    110|   describe('Loading State', () => {
+    111|     it('shows loading spinner when data is loading', () => {
+    112|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    113|       useAnalytics.mockReturnValue({ data: undefined, isLoading: true,…
+    114| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > With Valid Data > shows empty state when no data is returned from API
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:126:32
+    124|   describe('With Valid Data', () => {
+    125|     it('shows empty state when no data is returned from API', () => {
+    126|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    127|       useAnalytics.mockReturnValue({
+    128|         data: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > Empty State > renders empty state message when no data
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:146:32
+    144|   describe('Empty State', () => {
+    145|     it('renders empty state message when no data', () => {
+    146|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    147|       useAnalytics.mockReturnValue({
+    148|         data: { data: [] },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > Accessibility > has proper accessibility attributes
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:165:32
+    163|   describe('Accessibility', () => {
+    164|     it('has proper accessibility attributes', () => {
+    165|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    166|       useAnalytics.mockReturnValue({
+    167|         data: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Zakat Obligations (T044) > With Nisab Year Data > shows empty state when no Nisab Year Records exist
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:197:32
+    195|   describe('With Nisab Year Data', () => {
+    196|     it('shows empty state when no Nisab Year Records exist', () => {
+    197|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    198|       useAnalytics.mockReturnValue({
+    199|         data: { data: [] },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Zakat Obligations (T044) > Empty State > shows Nisab Year specific empty state
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:213:32
+    211|   });  describe('Empty State', () => {
+    212|     it('shows Nisab Year specific empty state', () => {
+    213|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    214|       useAnalytics.mockReturnValue({
+    215|         data: { data: [] },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Zakat Obligations (T044) > Terminology > does not use "snapshot" in empty state messages
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:232:32
+    230|   describe('Terminology', () => {
+    231|     it('does not use "snapshot" in empty state messages', () => {
+    232|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    233|       useAnalytics.mockReturnValue({
+    234|         data: { data: [] },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Payment Distribution > Pie Chart Rendering > shows empty state when no payment data exists
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:253:32
+    251|   describe('Pie Chart Rendering', () => {
+    252|     it('shows empty state when no payment data exists', () => {
+    253|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    254|       useAnalytics.mockReturnValue({
+    255|         data: { data: [] },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Payment Distribution > Pie Chart Rendering > renders multiple slices when multiple payment categories exist
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:269:32
+    267| 
+    268|     it('renders multiple slices when multiple payment categories exist…
+    269|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    270|       useAnalytics.mockReturnValue({
+    271|         data: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Payment Distribution > Empty State > shows payment-specific empty state
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:294:32
+    292|   describe('Empty State', () => {
+    293|     it('shows payment-specific empty state', () => {
+    294|       const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                                ^
+    295|       useAnalytics.mockReturnValue({
+    296|         data: { data: [] },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Asset Composition (Pie) > renders multiple slices when multiple asset categories exist
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:314:30
+    312| describe('AnalyticsChart - Asset Composition (Pie)', () => {
+    313|   it('renders multiple slices when multiple asset categories exist', (…
+    314|     const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                              ^
+    315|     useAnalytics.mockReturnValue({
+    316|       data: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/32]⎯
+
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Error Handling > displays error message when fetch fails
+Error: Cannot find module '../../hooks/useAnalytics'
+Require stack:
+- /home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx
+ ❯ src/components/tracking/AnalyticsChart.test.tsx:344:30
+    342| describe('AnalyticsChart - Error Handling', () => {
+    343|   it('displays error message when fetch fails', () => {
+    344|     const { useAnalytics } = require('../../hooks/useAnalytics');
+       |                              ^
+    345|     useAnalytics.mockReturnValue({
+    346|       data: undefined,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/agentx/github-repos/zakapp/client/src/components/tracking/AnalyticsChart.test.tsx' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/32]⎯
+
+ FAIL  src/components/tracking/PaymentCard.test.tsx > Encrypted recipient masking > shows masked placeholder when recipientName looks encrypted
+Error: usePrivacy must be used within a PrivacyProvider
+ ❯ usePrivacy src/contexts/PrivacyContext.tsx:65:11
+     63|   const context = useContext(PrivacyContext);
+     64|   if (!context) {
+     65|     throw new Error('usePrivacy must be used within a PrivacyProvider'…
+       |           ^
+     66|   }
+     67|   return context;
+ ❯ Module.useMaskedCurrency src/contexts/PrivacyContext.tsx:74:27
+ ❯ src/components/tracking/PaymentCard.tsx:57:26
+ ❯ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:23863:20
+ ❯ renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:5529:22
+ ❯ updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:8897:19
+ ❯ updateSimpleMemoComponent node_modules/react-dom/cjs/react-dom-client.development.js:8752:14
+ ❯ updateMemoComponent node_modules/react-dom/cjs/react-dom-client.development.js:8685:13
+ ❯ beginWork node_modules/react-dom/cjs/react-dom-client.development.js:10950:18
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:1522:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/32]⎯
+
+ FAIL  src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Main Bundle Size > should stay within main bundle budget
+AssertionError: expected 1111276 to be less than or equal to 409600
+ ❯ src/tests/performance/bundle-size.test.ts:63:25
+     61|       const totalSize = getTotalSize(mainFiles);
+     62|       
+     63|       expect(totalSize).toBeLessThanOrEqual(BUNDLE_BUDGETS.mainBundle);
+       |                         ^
+     64|       
+     65|       // Log bundle size for monitoring
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/32]⎯
+
+ FAIL  src/tests/performance/bundle-size.test.ts > Bundle Size Performance > CSS Bundle Size > should stay within CSS bundle budget
+AssertionError: expected 97547 to be less than or equal to 81920
+ ❯ src/tests/performance/bundle-size.test.ts:124:25
+    122|       const totalSize = getTotalSize(cssFiles);
+    123|       
+    124|       expect(totalSize).toBeLessThanOrEqual(BUNDLE_BUDGETS.cssBundle);
+       |                         ^
+    125|       
+    126|       console.log(`CSS bundle size: ${(totalSize / 1024).toFixed(2)} K…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/32]⎯
+
+ FAIL  src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Total Bundle Size > should stay within total initial load budget
+AssertionError: expected 1208823 to be less than or equal to 430080
+ ❯ src/tests/performance/bundle-size.test.ts:159:25
+    157|       const totalSize = getTotalSize([...mainFiles, ...vendorFiles, ..…
+    158|       
+    159|       expect(totalSize).toBeLessThanOrEqual(BUNDLE_BUDGETS.totalBundle…
+       |                         ^
+    160|       
+    161|       console.log(`Total initial load: ${(totalSize / 1024).toFixed(2)…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/32]⎯
+
+ FAIL  src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Performance Budget Monitoring > should fail if any budget is exceeded
+AssertionError: expected false to be true // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+ ❯ src/tests/performance/bundle-size.test.ts:323:35
+    321| 
+    322|       // All budgets must pass
+    323|       expect(results.main.passed).toBe(true);
+       |                                   ^
+    324|       expect(results.css.passed).toBe(true);
+    325|       expect(results.total.passed).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/32]⎯
+
+ FAIL  src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should use cache-first strategy for static assets
+TypeError: Failed to parse URL from /static/js/main.js
+ ❯ src/tests/pwa/service-worker.test.ts:180:23
+    178|       });
+    179| 
+    180|       const request = new Request('/static/js/main.js');
+       |                       ^
+    181|       const cachedResponse = await caches.match(request);
+    182| 
+
+Caused by: TypeError: Invalid URL: /static/js/main.js
+ ❯ new URLImpl node_modules/whatwg-url/lib/URL-impl.js:20:13
+ ❯ Object.exports.setup node_modules/whatwg-url/lib/URL.js:54:12
+ ❯ new URL node_modules/whatwg-url/lib/URL.js:115:22
+ ❯ src/tests/pwa/service-worker.test.ts:180:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/32]⎯
+
+ FAIL  src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should use network-first strategy for API calls
+TypeError: Failed to parse URL from /api/v1/assets
+ ❯ src/tests/pwa/service-worker.test.ts:194:23
+    192|       );
+    193| 
+    194|       const request = new Request('/api/v1/assets');
+       |                       ^
+    195|       const response = await fetch(request);
+    196|       const data = await response.json();
+
+Caused by: TypeError: Invalid URL: /api/v1/assets
+ ❯ new URLImpl node_modules/whatwg-url/lib/URL-impl.js:20:13
+ ❯ Object.exports.setup node_modules/whatwg-url/lib/URL.js:54:12
+ ❯ new URL node_modules/whatwg-url/lib/URL.js:115:22
+ ❯ src/tests/pwa/service-worker.test.ts:194:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/32]⎯
+
+ FAIL  src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should fall back to cache on network failure
+TypeError: Failed to parse URL from /api/v1/assets
+ ❯ src/tests/pwa/service-worker.test.ts:222:23
+    220|       });
+    221| 
+    222|       const request = new Request('/api/v1/assets');
+       |                       ^
+    223|       
+    224|       try {
+
+Caused by: TypeError: Invalid URL: /api/v1/assets
+ ❯ new URLImpl node_modules/whatwg-url/lib/URL-impl.js:20:13
+ ❯ Object.exports.setup node_modules/whatwg-url/lib/URL.js:54:12
+ ❯ new URL node_modules/whatwg-url/lib/URL.js:115:22
+ ❯ src/tests/pwa/service-worker.test.ts:222:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/32]⎯
+
+
+ Test Files  14 failed | 30 passed | 2 skipped (46)
+      Tests  26 failed | 352 passed | 14 skipped (392)
+   Start at  21:40:48
+   Duration  57.45s (transform 10.16s, setup 103.98s, collect 70.10s, tests 50.53s, environment 104.73s, prepare 19.19s)
+
