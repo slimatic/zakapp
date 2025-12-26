@@ -1,9 +1,8 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('CRITICAL SECURITY ERROR: JWT_SECRET environment variable is not set.');
-}
+import { getJwtSecret } from '../config/security';
+
+const JWT_SECRET = getJwtSecret();
 
 const JWT_EXPIRES_IN = '15m'; // 15 minutes for access token
 const REFRESH_EXPIRES_IN = '7d'; // 7 days for refresh token

@@ -19,7 +19,9 @@
 const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
 import { EncryptionService } from '../services/EncryptionService';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
+import { getEncryptionKey } from '../config/security';
+
+const ENCRYPTION_KEY = getEncryptionKey();
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -115,7 +117,7 @@ export class DatabaseManager {
    */
   private getDatabaseType(): 'sqlite' | 'postgresql' | 'mysql' | 'sqlserver' | 'mongodb' | 'cockroachdb' | 'unknown' {
     const url = this.config.url.toLowerCase();
-    
+
     if (url.includes('file:') || url.includes('sqlite:')) {
       return 'sqlite';
     } else if (url.includes('postgres://') || url.includes('postgresql://')) {
@@ -129,7 +131,7 @@ export class DatabaseManager {
     } else if (url.includes('cockroachdb://')) {
       return 'cockroachdb';
     }
-    
+
     return 'unknown';
   }
 
@@ -169,7 +171,7 @@ export class DatabaseManager {
   private validateEnvironment(): void {
     const required = ['DATABASE_URL'];
     const missing = required.filter(key => !process.env[key]);
-    
+
     if (missing.length > 0) {
       throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
@@ -238,15 +240,15 @@ export class DatabaseManager {
    */
   private async performHealthCheck(): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       // SECURITY: Simple connectivity test using $queryRaw with template literal (safe)
       // Never use $queryRawUnsafe as it creates SQL injection vulnerabilities
       await this.prisma.$queryRaw`SELECT 1`;
-      
+
       const duration = Date.now() - startTime;
       this.health.uptime = Date.now() - this.startTime;
-      
+
       if (duration > 5000) {
         this.updateHealthStatus('degraded', new Error('Slow query response'));
       } else {
@@ -290,7 +292,7 @@ export class DatabaseManager {
       await this.prisma.$connect();
       this.connectionCount++;
       console.log('Database connected successfully');
-      
+
       // Perform initial health check
       await this.performHealthCheck();
     } catch (error) {
@@ -335,7 +337,7 @@ export class DatabaseManager {
       if (dbType === 'sqlite') {
         const dbPath = this.config.url.replace('file:', '');
         const dbData = fs.readFileSync(dbPath);
-        
+
         // Encrypt the backup
         const encryptedData = await EncryptionService.encrypt(dbData.toString('base64'), ENCRYPTION_KEY);
         fs.writeFileSync(backupPath, JSON.stringify(encryptedData));
@@ -375,13 +377,13 @@ export class DatabaseManager {
       // For SQLite, replace the database file
       if (dbType === 'sqlite') {
         const dbPath = this.config.url.replace('file:', '');
-        
+
         // Disconnect first
         await this.disconnect();
-        
+
         // Replace database file
         fs.writeFileSync(dbPath, dbData);
-        
+
         // Reconnect
         await this.connect();
       } else {
@@ -414,7 +416,7 @@ export class DatabaseManager {
       } catch (error) {
         lastError = error as Error;
         attempt++;
-        
+
         if (attempt < maxRetries) {
           const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
           console.warn(`Transaction attempt ${attempt} failed, retrying in ${delay}ms...`);
@@ -451,7 +453,7 @@ export class DatabaseManager {
         try {
           const modelName = model.name.charAt(0).toLowerCase() + model.name.slice(1);
           const prismaModel = (this.prisma as any)[modelName];
-          
+
           if (prismaModel && typeof prismaModel.count === 'function') {
             const count = await prismaModel.count();
             stats.tables.push({

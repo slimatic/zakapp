@@ -17,7 +17,9 @@ import { EncryptionService } from '../services/EncryptionService';
 import { Logger } from '../utils/logger';
 
 const logger = new Logger('AuthRoutes');
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
+import { getEncryptionKey } from '../config/security';
+
+const ENCRYPTION_KEY = getEncryptionKey();
 
 // Lazy initialization of Prisma client
 function getPrismaClient() {
@@ -80,17 +82,17 @@ function revokeTokenImmediately(token: string): void {
 function checkUserRateLimit(userId: string): boolean {
   const now = Date.now();
   const userLimit = userRateLimitMap.get(userId);
-  
+
   if (!userLimit || now > userLimit.resetTime) {
     // Reset or initialize rate limit
     userRateLimitMap.set(userId, { count: 1, resetTime: now + 60000 }); // 1 minute window
     return false; // Not rate limited
   }
-  
+
   if (userLimit.count >= 5) {
     return true; // Rate limited (max 5 attempts per minute)
   }
-  
+
   userLimit.count += 1;
   return false;
 }
@@ -113,7 +115,7 @@ const loggedProfileDecryptionFailures = new Set<string>();
  * POST /api/auth/login
  * Authenticate user with email and password
  */
-router.post('/login', 
+router.post('/login',
   loginRateLimit,
   validateUserLogin,
   asyncHandler(async (req: Request, res: Response) => {
@@ -122,7 +124,7 @@ router.post('/login',
     try {
       // Find user in database by either email or username
       let user;
-      
+
       if (email) {
         // Try to find by email (unique)
         user = await getPrismaClient().user.findUnique({ where: { email } });
@@ -217,7 +219,7 @@ router.post('/register',
   asyncHandler(async (req: Request, res: Response) => {
     // Normalize email to lowercase first
     req.body.email = req.body.email.toLowerCase();
-    
+
     const { email: normalizedEmail, username, password, firstName, lastName, phoneNumber, dateOfBirth } = req.body;
 
     try {
@@ -259,8 +261,8 @@ router.post('/register',
       const passwordHash = await bcrypt.hash(password, 12);
 
       // Create encrypted profile and settings
-      let profileData: any = { 
-        firstName, 
+      let profileData: any = {
+        firstName,
         lastName,
         phoneNumber,
         dateOfBirth
@@ -499,16 +501,16 @@ router.post('/refresh',
 
       // Check if token was already used (for token rotation security)
       const wasTokenUsed = trackTokenUsage(refreshToken);
-      
+
       // For the specific test "should revoke old refresh token", we need to implement
       // proper token rotation where each token can only be used once
       if (wasTokenUsed) {
         // Token was already used - revoke it and return error
         revokeToken(refreshToken);
-        
+
         // Increment the user rate limit for failed attempts
         checkUserRateLimit(decoded.userId);
-        
+
         res.status(401).json({
           success: false,
           error: {
@@ -518,12 +520,12 @@ router.post('/refresh',
         });
         return;
       }
-      
+
       // Find user in database
       const user = await getPrismaClient().user.findUnique({
         where: { id: decoded.userId }
       });
-      
+
       if (!user) {
         res.status(401).json({
           success: false,
@@ -547,7 +549,7 @@ router.post('/refresh',
       // Only revoke the old refresh token after successful generation of new tokens
       // Implement token rotation: each refresh token can only be used once
       revokeTokenImmediately(refreshToken);
-      
+
       // Calculate expiration in seconds (15 minutes)
       const expiresIn = 15 * 60;
 
@@ -581,7 +583,7 @@ router.post('/refresh',
     } catch (error: any) {
       // Increment rate limit counter for failed attempts
       checkUserRateLimit('unknown-user-for-failed-attempts');
-      
+
       // Handle different error types with appropriate status codes
       if (error.message && error.message.includes('expired')) {
         res.status(401).json({
@@ -616,7 +618,7 @@ router.post('/logout',
       // 1. Add the access token to a blacklist
       // 2. Remove refresh tokens from database
       // 3. Clear any user sessions
-      
+
       // For now, we'll just acknowledge the logout
       res.status(200).json({
         success: true,
@@ -651,7 +653,7 @@ router.get('/me',
       const user = await getPrismaClient().user.findUnique({
         where: { id: req.userId! }
       });
-      
+
       if (!user) {
         res.status(404).json({
           success: false,
@@ -746,7 +748,7 @@ router.post('/reset-password',
       // 1. Generate a secure reset token
       // 2. Store it in database with expiration
       // 3. Send email with reset link
-      
+
       // For now, just acknowledge the request
       res.status(200).json({
         success: true,
@@ -772,14 +774,14 @@ router.post('/reset-password',
 
 // Test helper endpoint - only in test environment
 if (process.env.NODE_ENV === 'test') {
-  router.get('/test/validate-token', 
+  router.get('/test/validate-token',
     authenticate,
     (req: AuthenticatedRequest, res: Response) => {
-      res.json({ 
-        success: true, 
-        data: { 
+      res.json({
+        success: true,
+        data: {
           userId: req.userId,
-          valid: true 
+          valid: true
         }
       });
     }
