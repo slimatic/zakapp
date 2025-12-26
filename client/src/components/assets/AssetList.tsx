@@ -1,90 +1,217 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, LayoutGrid, List as ListIcon } from 'lucide-react';
+import { AssetCard } from './AssetCard';
+import { AssetBreakdownChart } from '../dashboard/AssetBreakdownChart';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
-import { Asset, AssetType } from '../../types';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
-import { Plus, Wallet, TrendingUp } from 'lucide-react';
+import { Asset, AssetBreakdown } from '../../types';
+import { Button, Card } from '../ui';
+import { usePrivacy } from '../../contexts/PrivacyContext';
 
 export const AssetList: React.FC = () => {
-  const { assets, isLoading, error } = useAssetRepository();
+  const navigate = useNavigate();
+  const { assets, removeAsset } = useAssetRepository();
+  const { privacyMode } = usePrivacy();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const formatCurrency = (amount: number, currency: string) => {
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+      await removeAsset(id);
+    }
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/assets/${id}/edit`);
+  };
+
+  // Calculate Breakdown Data for Chart
+  const breakdownData = useMemo(() => {
+    const breakdown: Record<string, { total: number; zakatable: number; count: number }> = {};
+
+    assets.forEach(asset => {
+      const current = breakdown[asset.type] || { total: 0, zakatable: 0, count: 0 };
+      const isEligible = asset.zakatEligible !== false;
+      const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
+
+      breakdown[asset.type] = {
+        total: current.total + asset.value,
+        zakatable: current.zakatable + (asset.value * modifier),
+        count: current.count + 1
+      };
+    });
+
+    return Object.entries(breakdown).map(([type, data]) => ({
+      type,
+      totalValue: data!.total,
+      zakatableAmount: data!.zakatable,
+      count: data!.count,
+      assets: [] // not needed for this chart view
+    })) as AssetBreakdown[];
+  }, [assets]);
+
+  const totalAssets = useMemo(() => {
+    return assets.reduce((sum, asset) => sum + asset.value, 0);
+  }, [assets]);
+
+  const formatCurrency = (value: number, currency = 'USD') => {
+    if (privacyMode) return '****';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
-    }).format(amount);
+      maximumFractionDigits: 0
+    }).format(value);
   };
-
-  const getAssetTypeLabel = (type: AssetType): string => {
-    return type.replace(/_/g, ' ');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-        <span>{`Error loading assets: ${error}`}</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-slate-900">Your Assets</h2>
-        <Button onClick={() => window.location.href = '/assets/new'}>
-          <Plus className="h-4 w-4 mr-2" /> Add Asset
-        </Button>
+        <h1 className="text-2xl font-bold text-slate-900">My Assets</h1>
+        <div className="flex items-center space-x-3">
+          <div className="bg-white border border-slate-200 rounded-lg p-1 flex shadow-sm">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+              aria-label="Grid View"
+              title="Grid View"
+            >
+              <LayoutGrid size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+              aria-label="List View"
+              title="List View"
+            >
+              <ListIcon size={18} />
+            </button>
+          </div>
+          <Button onClick={() => navigate('/assets/new')}>
+            <Plus className="h-4 w-4 mr-2" /> Add Asset
+          </Button>
+        </div>
       </div>
 
-      {assets.length === 0 ? (
-        <Card className="border-dashed border-2 border-slate-200 bg-slate-50/50">
-          <div className="flex flex-col items-center justify-center p-12 text-center">
-            <Wallet className="h-12 w-12 text-slate-300 mb-4" />
-            <h3 className="text-lg font-medium text-slate-900">No assets tracked yet</h3>
-            <p className="text-slate-500 max-w-sm mt-2 mb-6">
-              Start adding your assets to the local vault to calculate your Zakat obligation.
-            </p>
-            <Button onClick={() => window.location.href = '/assets/new'}>
-              Add Your First Asset
-            </Button>
+      {/* Visualization Section - Only show if assets exist */}
+      {assets.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+          <div className="lg:col-span-2 bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Portfolio Breakdown</h3>
+            <div className="h-64">
+              <AssetBreakdownChart data={breakdownData} totalAssets={totalAssets} />
+            </div>
           </div>
+
+          <div className="bg-slate-50 rounded-lg border border-slate-200 p-6 flex flex-col justify-center">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Summary</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                <span className="text-slate-600">Total Assets</span>
+                <span className="font-bold text-lg text-slate-900">
+                  {formatCurrency(totalAssets)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600">Asset Count</span>
+                <span className="font-medium text-slate-900">{assets.length} items</span>
+              </div>
+              <div className="pt-4 mt-2">
+                <div className="bg-green-100 text-green-800 text-xs px-3 py-2 rounded-md">
+                  {privacyMode
+                    ? "Privacy Mode Enabled: Values are hidden."
+                    : "All values are legally owned by you and calculated locally."
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assets List/Grid */}
+      {assets.length === 0 ? (
+        <Card className="p-12 text-center">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Plus className="h-8 w-8 text-slate-400" />
+          </div>
+          <h3 className="text-lg font-medium text-slate-900 mb-2">No assets yet</h3>
+          <p className="text-slate-500 mb-6">Add your first asset to start tracking your wealth.</p>
+          <Button onClick={() => navigate('/assets/new')}>
+            Add Your First Asset
+          </Button>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      ) : viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
           {assets.map((asset) => (
-            <Card key={asset.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-slate-500">
-                  {getAssetTypeLabel(asset.type)}
-                </CardTitle>
-                <div className={`p-2 rounded-full ${asset.type === 'RETIREMENT' ? 'bg-secondary-100 text-secondary-600' : 'bg-primary-100 text-primary-600'}`}>
-                  <TrendingUp className="h-4 w-4" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-slate-900">
-                  {formatCurrency(asset.value, asset.currency)}
-                </div>
-                <p className="text-xs text-slate-500 mt-1 line-clamp-1">
-                  {asset.name}
-                </p>
-                {asset.type === 'RETIREMENT' && (
-                  <Badge variant="secondary" className="mt-3">
-                    401k/IRA
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
+            <AssetCard
+              key={asset.id}
+              asset={asset}
+              onClick={() => navigate(`/assets/${asset.id}`)}
+              onEdit={() => handleEdit(asset.id)}
+              onDelete={() => handleDelete(asset.id, asset.name)}
+            />
           ))}
+        </div>
+      ) : (
+        <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-slate-200 animate-slide-up">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Asset Name</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Value</th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Zakatable</th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-slate-200">
+                {assets.map((asset) => {
+                  const isEligible = asset.zakatEligible !== false;
+                  const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
+                  const zakatableAmount = asset.value * modifier;
+
+                  return (
+                    <tr
+                      key={asset.id}
+                      onClick={() => navigate(`/assets/${asset.id}`)}
+                      className="hover:bg-slate-50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="text-sm font-medium text-slate-900">{asset.name}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 uppercase tracking-wide">
+                          {asset.type.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-slate-900">
+                        {formatCurrency(asset.value, asset.currency)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-600">
+                        {formatCurrency(zakatableAmount, asset.currency)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
+                          className="text-indigo-600 hover:text-indigo-900 mr-4 font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(asset.id, asset.name); }}
+                          className="text-red-600 hover:text-red-900 font-medium"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

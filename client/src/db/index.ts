@@ -137,7 +137,7 @@ export const resetDb = async () => {
     if (dbPromise) {
         try {
             const db = await dbPromise;
-            await db.destroy();
+            if (db) await (db as any).destroy();
         } catch (e) {
             console.error('Error destroying DB:', e);
         }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
-import { Asset, AssetType as AssetCategoryType } from '../../types';
+import type { Asset, AssetType } from '../../types';
 import { Button, Input } from '../ui';
+import { EncryptedBadge } from '../ui/EncryptedBadge';
 import {
   shouldShowPassiveCheckbox,
   shouldShowRestrictedCheckbox,
@@ -20,38 +21,19 @@ interface AssetFormProps {
 
 /**
  * AssetForm component for creating and editing assets with modifier support
- * Local-First / Offline capable
  */
-// Helper to map AssetType back to form category
-const getCategoryFromType = (type: AssetCategoryType): string => {
-  const map: Record<string, string> = {
-    [AssetCategoryType.CASH]: 'cash',
-    [AssetCategoryType.BANK_ACCOUNT]: 'cash',
-    [AssetCategoryType.GOLD]: 'gold',
-    [AssetCategoryType.SILVER]: 'silver',
-    [AssetCategoryType.CRYPTOCURRENCY]: 'crypto',
-    [AssetCategoryType.BUSINESS_ASSETS]: 'business',
-    [AssetCategoryType.INVESTMENT_ACCOUNT]: 'stocks',
-    [AssetCategoryType.RETIREMENT]: 'stocks', // Map both to stocks category which has retirement subcats
-    [AssetCategoryType.REAL_ESTATE]: 'property',
-    [AssetCategoryType.DEBTS_OWED_TO_YOU]: 'debts',
-    [AssetCategoryType.OTHER]: 'expenses'
-  };
-  return map[type] || 'cash';
-};
-
 export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
     name: asset?.name || '',
-    category: asset ? getCategoryFromType(asset.type) : 'cash',
-    subCategory: (asset as any)?.subCategory || '',
+    category: (asset?.type as unknown as string) || 'CASH',
+    subCategory: asset?.subCategory || '',
     value: asset?.value || 0,
     currency: asset?.currency || 'USD',
     acquisitionDate: asset?.acquisitionDate ? new Date(asset.acquisitionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    description: asset?.description || '', // Mapped to 'notes' in schema
-    zakatEligible: (asset as any)?.metadata ? JSON.parse((asset as any).metadata).legacyZakatEligible : (asset?.zakatEligible ?? true),
-    isPassiveInvestment: asset?.isPassiveInvestment || false,
-    isRestrictedAccount: asset?.isRestrictedAccount || false,
+    description: asset?.description || '',
+    zakatEligible: asset?.zakatEligible ?? true,
+    isPassiveInvestment: (asset as any)?.isPassiveInvestment || false,
+    isRestrictedAccount: (asset as any)?.isRestrictedAccount || false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -88,11 +70,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       newErrors.name = 'Asset name is required';
     }
 
-    if (formData.value < 0) { // Allowed 0, but usually implies debt if negative (handled separately?) - sticking to > 0 warning if strictly asset
-      // For now, allow 0, but check negative
-    }
-    if (formData.value === undefined || formData.value === null) {
-      newErrors.value = 'Value is required';
+    if (formData.value <= 0) {
+      newErrors.value = 'Asset value must be greater than 0';
     }
 
     if (!formData.currency.trim()) {
@@ -126,33 +105,33 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     setIsSubmitting(true);
 
     try {
-      const assetData = {
+      const commonData = {
         name: formData.name,
-        category: formData.category,
-        subCategory: formData.subCategory,
-        value: Number(formData.value),
+        type: (CATEGORY_SEND_MAP[formData.category] || 'OTHER') as AssetType, // Map category to type
+        subtype: formData.subCategory || undefined,
+        value: formData.value,
         currency: formData.currency,
         acquisitionDate: new Date(formData.acquisitionDate).toISOString(),
-        notes: formData.description,
-        zakatEligible: formData.zakatEligible,
+        description: formData.description, // Keep description field
+        zakatEligible: formData.zakatEligible, // Fix: Use correct field name expected by interface
         isPassiveInvestment: formData.isPassiveInvestment,
         isRestrictedAccount: formData.isRestrictedAccount,
-        calculationModifier: calculationModifier
+        calculationModifier: calculationModifier,
+        // Ensure other required fields have defaults
+        country: 'US', // Default
+        city: '',
       };
 
       if (isEditing && asset) {
-        await updateAsset(asset.id, assetData);
-        toast.success('Asset updated successfully');
+        await updateAsset(asset.id!, commonData);
+        onSuccess?.();
       } else {
-        await addAsset(assetData);
-        toast.success('Asset created successfully');
+        await addAsset(commonData);
+        onSuccess?.();
       }
-
-      onSuccess?.();
-
     } catch (error: any) {
-      console.error('Asset save failed:', error);
-      const msg = error.message || 'Failed to save asset. Please try again.';
+      console.error('Asset save error:', error);
+      const msg = error instanceof Error ? error.message : 'Failed to save asset';
       toast.error(msg);
       setErrors({ submit: msg });
     } finally {
@@ -179,6 +158,20 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     { value: 'debts', label: 'Debts Owed to You' },
     { value: 'expenses', label: 'Expenses' }
   ];
+
+
+  // Map UI category values to backend canonical categories
+  const CATEGORY_SEND_MAP: Record<string, string> = {
+    cash: 'CASH',
+    gold: 'GOLD',
+    silver: 'SILVER',
+    business: 'BUSINESS_ASSETS',
+    property: 'REAL_ESTATE',
+    stocks: 'INVESTMENT_ACCOUNT',
+    crypto: 'CRYPTOCURRENCY',
+    debts: 'DEBTS_OWED_TO_YOU',
+    expenses: 'OTHER'
+  };
 
   const subCategoryOptions: Record<string, Array<{ value: string; label: string }>> = {
     cash: [
@@ -324,8 +317,13 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         {/* Value and Currency */}
         <div className="grid grid-cols-2 gap-4">
           <div>
+            <div className="flex justify-between items-center mb-2">
+              <label htmlFor="value" className="block text-sm font-medium text-gray-700">
+                Value *
+              </label>
+              <EncryptedBadge />
+            </div>
             <Input
-              label="Value *"
               type="number"
               id="value"
               value={formData.value}
@@ -337,7 +335,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               aria-required="true"
               aria-invalid={!!errors.value}
               aria-describedby={errors.value ? 'value-error' : undefined}
-              isEncrypted={true}
             />
             {errors.value && (
               <p id="value-error" className="mt-1 text-sm text-red-600" role="alert">

@@ -1,50 +1,58 @@
-/**
- * AssetCard component for displaying asset information in list/grid views
- * Includes modifier badge and zakatable amount calculations
- */
-
 import React from 'react';
-import { Asset } from '@zakapp/shared';
-import { getModifierBadge, getModifierLabel, calculateZakat } from '../../utils/assetModifiers';
+import { Asset } from '../../types';
+import { getModifierBadge, getModifierLabel } from '../../utils/assetModifiers';
+import { usePrivacy } from '../../contexts/PrivacyContext';
 
 interface AssetCardProps {
-  asset: Asset & { zakatableAmount?: number; zakatOwed?: number; modifierApplied?: string };
+  asset: Asset;
   onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
 /**
- * AssetCard: Displays asset summary with modifier badge and zakat info
+ * AssetCard: Displays asset summary with privacy support
  */
 export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, onDelete }) => {
-  const modifier = (asset as any)?.calculationModifier || 1.0;
-  const modifierBadge = getModifierBadge(modifier);
-  const zakatableAmount = asset.zakatableAmount || (asset.value * modifier);
-  const zakatOwed = asset.zakatOwed || calculateZakat(asset.value, modifier);
+  const { privacyMode } = usePrivacy();
+  const isEligible = asset.zakatEligible !== false; // Default to true
+  const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
 
-  const getCategoryIcon = (category: string): string => {
+  const modifierBadge = isEligible ? getModifierBadge(modifier) : { icon: '🚫', text: 'Exempt', color: 'bg-gray-100 text-gray-600' };
+  const zakatableAmount = asset.value * modifier;
+  const zakatOwed = zakatableAmount * 0.025; // Estimate at 2.5%
+
+  const getCategoryIcon = (type: string): string => {
     const icons: Record<string, string> = {
       cash: '💰',
+      bank_account: '💰',
       gold: '🥇',
       silver: '🥈',
       stock: '📈',
+      investment_account: '📈',
       etf: '📊',
       'mutual fund': '📑',
       '401k': '🏦',
+      retirement: '🏦',
       'traditional ira': '🏦',
       'roth ira': '🏦',
       pension: '🏦',
       business: '🏢',
+      business_assets: '🏢',
       property: '🏠',
+      real_estate: '🏠',
       crypto: '₿',
+      cryptocurrency: '₿',
       debts: '📝',
-      expenses: '💳'
+      debts_owed_to_you: '📝',
+      expenses: '💳',
+      other: '📦'
     };
-    return icons[category?.toLowerCase()] || '📊';
+    return icons[type?.toLowerCase()] || '📊';
   };
 
   const formatCurrency = (value: number): string => {
+    if (privacyMode) return '****';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: asset.currency || 'USD',
@@ -64,14 +72,14 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-start gap-3 flex-1">
           <span className="text-2xl" aria-hidden="true">
-            {getCategoryIcon(asset.category)}
+            {getCategoryIcon(asset.type)}
           </span>
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900 text-sm md:text-base">
               {asset.name}
             </h3>
             <p className="text-xs text-gray-500 capitalize">
-              {asset.category}
+              {asset.type ? asset.type.replace(/_/g, ' ').toLowerCase() : 'Unknown'}
             </p>
           </div>
         </div>

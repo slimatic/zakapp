@@ -1,6 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { AssetBreakdown } from '../../types';
+import { usePrivacy } from '../../contexts/PrivacyContext';
 
 interface AssetBreakdownChartProps {
     data: AssetBreakdown[];
@@ -41,6 +42,8 @@ const renderAccessibleTable = (data: AssetBreakdown[]) => (
 );
 
 export const AssetBreakdownChart: React.FC<AssetBreakdownChartProps> = ({ data, totalAssets }) => {
+    const { privacyMode } = usePrivacy();
+
     // Filter out zero values for better chart visuals
     const chartData = data.filter(d => d.totalValue > 0).map(d => ({
         name: d.type.replace('_', ' '), // Format labels
@@ -77,7 +80,7 @@ export const AssetBreakdownChart: React.FC<AssetBreakdownChartProps> = ({ data, 
                         ))}
                     </Pie>
                     <Tooltip
-                        formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
+                        formatter={(value: number) => privacyMode ? '****' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
                         contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                     />
                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
@@ -88,7 +91,10 @@ export const AssetBreakdownChart: React.FC<AssetBreakdownChartProps> = ({ data, 
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[60%] text-center pointer-events-none">
                 <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total</p>
                 <p className="text-lg font-bold text-gray-900">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: "compact" }).format(totalAssets)}
+                    {privacyMode
+                        ? '****'
+                        : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: "compact" }).format(totalAssets)
+                    }
                 </p>
             </div>
         </div>

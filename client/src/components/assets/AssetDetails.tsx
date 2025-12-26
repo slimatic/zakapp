@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { Asset } from '../../types';
 import { Button, LoadingSpinner, ErrorMessage } from '../ui';
+import { EncryptedBadge } from '../ui/EncryptedBadge';
 import { isAssetZakatable } from '../../core/calculations/zakat';
 
 /**
@@ -189,7 +190,10 @@ export const AssetDetails: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Value */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Current Value</h3>
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">Current Value</h3>
+            <EncryptedBadge className="scale-90 origin-top-right" />
+          </div>
           <p className="text-3xl font-bold text-green-600">
             {formatCurrency(numericValue, safeAsset.currency)}
           </p>
