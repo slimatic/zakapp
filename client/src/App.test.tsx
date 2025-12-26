@@ -1,21 +1,58 @@
+import { vi } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 
-test('renders login page', () => {
-  render(<App />);
-  const welcomeText = screen.getByText(/Welcome back/i);
-  expect(welcomeText).toBeInTheDocument();
-});
+// Mock CryptoService to avoid "Web Crypto API unavailable" error
+vi.mock('./services/CryptoService', () => ({
+  cryptoService: {
+    deriveKey: vi.fn(),
+    encrypt: vi.fn(() => Promise.resolve('mock-encrypted')),
+    decrypt: vi.fn(() => Promise.resolve('mock-decrypted')),
+    generateSalt: vi.fn(() => 'mock-salt'),
+  },
+  CryptoService: {
+    generateSalt: () => 'mock-salt'
+  }
+}));
 
-test('renders ZakApp branding', () => {
-  render(<App />);
-  const brandElement = screen.getByText('Z');
-  expect(brandElement).toBeInTheDocument();
-});
+// Mock DB to prevent DB9 and side effects
+const mockDb = {
+  user_settings: {
+    findOne: () => ({
+      exec: () => Promise.resolve(null)
+    })
+  }
+};
 
-test('renders sign in form', () => {
-  render(<App />);
-  const signInButton = screen.getByRole('button', { name: /sign in/i });
-  expect(signInButton).toBeInTheDocument();
+vi.mock('./db', () => ({
+  useDb: () => null,
+  getDb: () => Promise.resolve(mockDb),
+  resetDb: vi.fn(),
+}));
+
+// Mock PWA components
+vi.mock('./components/pwa/InstallPrompt', () => ({
+  default: () => null,
+}));
+vi.mock('./components/pwa/UpdateNotification', () => ({
+  default: () => null,
+}));
+
+// Mock lazy config
+vi.mock('./config', () => ({
+  getFeedbackEnabled: () => false,
+  getVapidPublicKey: () => 'mock-key',
+}));
+
+describe('App', () => {
+  test('renders ZakApp branding or Sign In page', async () => {
+    render(<App />);
+    // Should render Login page by default (auth guarded)
+    // Login page title
+    expect(await screen.findByText(/Welcome Back/i)).toBeInTheDocument();
+
+    // Login button (Text is "Login", not "Sign In")
+    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+  });
 });

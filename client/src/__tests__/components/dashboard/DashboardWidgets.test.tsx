@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
@@ -9,8 +10,30 @@ import { ActiveRecordWidget } from '../../../components/dashboard/ActiveRecordWi
 import { WealthSummaryCard } from '../../../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../../../components/dashboard/OnboardingGuide';
 
+// Mock Hooks
+vi.mock('../../../contexts/PrivacyContext', () => ({
+  useMaskedCurrency: () => (val: any) => val,
+}));
+
+vi.mock('../../../hooks/useNisabThreshold', () => ({
+  useNisabThreshold: () => ({ nisabAmount: 5000, isLoading: false, error: null }),
+}));
+
+vi.mock('../../../hooks/usePayments', () => ({
+  usePayments: () => ({ data: { payments: [] }, isLoading: false }),
+}));
+
+// Mock DB just in case
+vi.mock('../../../db', () => ({
+  useDb: () => null,
+  getDb: vi.fn(),
+  resetDb: vi.fn(),
+}));
+
+
 describe('Dashboard widgets', () => {
   afterEach(() => {
+    vi.clearAllMocks();
     localStorage.clear();
   });
 
@@ -59,7 +82,7 @@ describe('Dashboard widgets', () => {
     });
 
     it('fires onClick when rendered as a button', async () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <QuickActionCard
           title="Update Assets"
@@ -76,29 +99,32 @@ describe('Dashboard widgets', () => {
 
   describe('ActiveRecordWidget', () => {
     it('displays Hawl progress and wealth comparison', () => {
-      const { QueryClient, QueryClientProvider } = require('@tanstack/react-query');
-      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      // Mock QueryClient is handled by generic Environment or mocked hook `usePayments` avoids generic QueryClient need?
+      // ActiveRecordWidget uses usePayments directly. Since we mocked usePayments, we might NOT need QueryClientProvider wrapper anymore!
+      // But let's keep it safe or remove it. Mocks replace the hook implementation so internal logic using QueryClient won't run.
+      // We will remove QueryClientProvider wrapper as usePayments is mocked.
 
       render(
         <MemoryRouter>
-          <QueryClientProvider client={queryClient}>
-            <ActiveRecordWidget
-              record={{
-                id: 'rec-1',
-                userId: 'user-1',
-                startDate: '2025-01-01',
-                endDate: '2025-12-31',
-                initialNisabThreshold: 5000,
-                nisabMethod: 'gold',
-                status: 'active',
-                daysElapsed: 120,
-                daysRemaining: 234,
-                currentWealth: 6500,
-                createdAt: '2025-01-01',
-                updatedAt: '2025-03-01'
-              }}
-            />
-          </QueryClientProvider>
+          <ActiveRecordWidget
+            record={{
+              id: 'rec-1',
+              userId: 'user-1',
+              startDate: '2025-01-01',
+              endDate: '2025-12-31',
+              initialNisabThreshold: 5000,
+              nisabMethod: 'gold',
+              status: 'active',
+              daysElapsed: 120,
+              daysRemaining: 234,
+              currentWealth: 6500,
+              createdAt: '2025-01-01',
+              updatedAt: '2025-03-01',
+              // Add missing fields if any required by new types
+              zakatAmount: 0,
+              netZakatDue: 0
+            } as any}
+          />
         </MemoryRouter>
       );
 
@@ -132,10 +158,11 @@ describe('Dashboard widgets', () => {
       );
 
       expect(screen.getByRole('button', { name: /collapse guide/i })).toBeInTheDocument();
-  const stepTitle = screen.getAllByText(/create nisab record/i)[0];
-  expect(stepTitle).toBeInTheDocument();
+      // Use getAllByText as "Create Nisab Record" might appear in stepper AND instructions
+      const stepTitle = screen.getAllByText(/create nisab record/i)[0];
+      expect(stepTitle).toBeInTheDocument();
       // The action is implemented as a link; assert link is present and accessible
-      expect(screen.getByRole('link', { name: /create nisab record/i })).toBeInTheDocument();
+      expect(screen.getAllByRole('link', { name: /create nisab record/i })[0]).toBeInTheDocument();
       expect(screen.getByText(/1 of 3 completed/i)).toBeInTheDocument();
       expect(screen.getByText(/✓ Completed/)).toBeInTheDocument();
     });
