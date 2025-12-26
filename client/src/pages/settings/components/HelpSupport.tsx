@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/Card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { ShieldCheck, Wifi, Smartphone, KeyRound } from 'lucide-react';
 
 export const HelpSupport = () => {
