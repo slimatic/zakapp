@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { calculateWealth } from '../core/calculations/wealthCalculator';
 import { gregorianToHijri } from '../utils/calendarConverter';
 import HawlProgressIndicator from '../components/HawlProgressIndicator';
 import NisabComparisonWidget from '../components/NisabComparisonWidget';
@@ -147,8 +148,25 @@ export const NisabYearRecordsPage: React.FC = () => {
 
   // Actions
   const handleRefreshAssets = async (recordId: string) => {
-    toast.success('Assets refreshed (Recalculated)');
-    // Implement actual recalc logic if needed using updateRecord
+    try {
+      // 1. Calculate Totals using shared logic (including all assets for Total, eligible for Zakatable)
+      const { totalWealth, zakatableWealth } = calculateWealth(allAssets);
+
+      const zakatAmount = zakatableWealth * 0.025;
+
+      // 3. Update Record
+      await updateRecord(recordId, {
+        totalWealth,
+        zakatableWealth,
+        zakatAmount,
+        // Optional: Update lastUpdated timestamp if schema supported it
+      });
+
+      toast.success('Assets refreshed and calculations updated');
+    } catch (error) {
+      console.error('Failed to refresh assets:', error);
+      toast.error('Failed to update calculations');
+    }
   };
 
   const handleFinalize = async (record: any) => {
@@ -296,7 +314,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                             <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-                              {record.hijriYear && record.hijriYear > 0 ? `${record.hijriYear} H` : startDateFormatted}
+                              {Number(record.hijriYear || 0) > 0 ? `${record.hijriYear} H` : startDateFormatted}
                             </h3>
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${badge.color === 'green' ? 'bg-green-100 text-green-800' :
                               badge.color === 'blue' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
