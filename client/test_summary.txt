@@ -1,0 +1,33 @@
+ FAIL  src/pages/AnalyticsPage.test.tsx [ src/pages/AnalyticsPage.test.tsx ]
+ FAIL  tests/components/AuditTrailView.test.tsx [ tests/components/AuditTrailView.test.tsx ]
+ FAIL  tests/components/FinalizationModal.test.tsx [ tests/components/FinalizationModal.test.tsx ]
+ FAIL  tests/components/HawlProgressIndicator.test.tsx [ tests/components/HawlProgressIndicator.test.tsx ]
+ FAIL  tests/components/NisabComparisonWidget.test.tsx [ tests/components/NisabComparisonWidget.test.tsx ]
+ FAIL  tests/components/UnlockReasonDialog.test.tsx [ tests/components/UnlockReasonDialog.test.tsx ]
+ FAIL  src/pages/AnalyticsPage.fixed.test.tsx > AnalyticsPage (fixed) > renders page header while loading
+ FAIL  src/pages/AnalyticsPage.fixed.test.tsx > AnalyticsPage (fixed) > renders all chart sections
+ FAIL  src/pages/PaymentsPage.test.tsx > PaymentsPage > Page Rendering > renders payment list component
+ FAIL  src/pages/PaymentsPage.test.tsx > PaymentsPage > Payment Form Interaction > opens form modal when Add Payment clicked
+ FAIL  tests/components/ZakatDisplayCard.test.tsx > ZakatDisplayCard > shows total wealth and zakatable wealth and calculated zakat
+ FAIL  src/components/assets/AssetFormPage.test.tsx > AssetFormPage > renders asset form with navigation handlers
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > Loading State > shows loading spinner when data is loading
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > With Valid Data > shows empty state when no data is returned from API
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > Empty State > renders empty state message when no data
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Wealth Trend (T043) > Accessibility > has proper accessibility attributes
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Zakat Obligations (T044) > With Nisab Year Data > shows empty state when no Nisab Year Records exist
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Zakat Obligations (T044) > Empty State > shows Nisab Year specific empty state
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Zakat Obligations (T044) > Terminology > does not use "snapshot" in empty state messages
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Payment Distribution > Pie Chart Rendering > shows empty state when no payment data exists
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Payment Distribution > Pie Chart Rendering > renders multiple slices when multiple payment categories exist
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Payment Distribution > Empty State > shows payment-specific empty state
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Asset Composition (Pie) > renders multiple slices when multiple asset categories exist
+ FAIL  src/components/tracking/AnalyticsChart.test.tsx > AnalyticsChart - Error Handling > displays error message when fetch fails
+ FAIL  src/components/tracking/PaymentCard.test.tsx > Encrypted recipient masking > shows masked placeholder when recipientName looks encrypted
+ FAIL  src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Main Bundle Size > should stay within main bundle budget
+ FAIL  src/tests/performance/bundle-size.test.ts > Bundle Size Performance > CSS Bundle Size > should stay within CSS bundle budget
+ FAIL  src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Total Bundle Size > should stay within total initial load budget
+ FAIL  src/tests/performance/bundle-size.test.ts > Bundle Size Performance > Performance Budget Monitoring > should fail if any budget is exceeded
+ FAIL  src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should use cache-first strategy for static assets
+ FAIL  src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should use network-first strategy for API calls
+ FAIL  src/tests/pwa/service-worker.test.ts > Service Worker Tests > Caching Strategies > should fall back to cache on network failure
+ Test Files  14 failed | 30 passed | 2 skipped (46)
