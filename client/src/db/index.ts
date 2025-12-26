@@ -1,47 +1,87 @@
 import { useState, useEffect } from 'react';
+// @ts-ignore
+// @ts-ignore
 import { createRxDatabase, RxDatabase, RxCollection, addRxPlugin } from 'rxdb';
-import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
+// @ts-ignore
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
+// @ts-ignore
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
+import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
 import { AssetSchema } from './schema/asset.schema';
 import { LiabilitySchema } from './schema/liability.schema';
 import { ZakatCalculationSchema } from './schema/zakatCalc.schema';
+import { NisabYearRecordSchema } from './schema/nisabYearRecord.schema';
+import { PaymentRecordSchema } from './schema/paymentRecord.schema';
+import { UserSettingsSchema } from './schema/userSettings.schema';
 
-// Enable dev mode in development
-if (process.env.NODE_ENV === 'development') {
-    addRxPlugin(RxDBDevModePlugin);
-}
+// @ts-ignore
+const { getRxStorageDexie } = require('rxdb/plugins/storage-dexie');
+// @ts-ignore
+const { getRxStorageMemory } = require('rxdb/plugins/storage-memory');
+
+console.log('RxDB Storage Adapter (Dexie):', getRxStorageDexie);
 
 addRxPlugin(RxDBUpdatePlugin);
 addRxPlugin(RxDBQueryBuilderPlugin);
+addRxPlugin(RxDBMigrationSchemaPlugin);
 
 export type ZakAppCollections = {
     assets: RxCollection;
     liabilities: RxCollection;
     zakat_calculations: RxCollection;
+    nisab_year_records: RxCollection;
+    payment_records: RxCollection;
+    user_settings: RxCollection;
 };
 
 export type ZakAppDatabase = RxDatabase<ZakAppCollections>;
 
 let dbPromise: Promise<ZakAppDatabase> | null = null;
 
+const migrationStrategiesV2 = {
+    1: (doc: any) => doc,
+    2: (doc: any) => doc
+};
+
+const migrationStrategiesV3 = {
+    1: (doc: any) => doc,
+    2: (doc: any) => doc,
+    3: (doc: any) => doc
+};
+
+if (process.env.NODE_ENV === 'development') {
+    addRxPlugin(RxDBDevModePlugin);
+}
+
 const _createDb = async (): Promise<ZakAppDatabase> => {
     console.log('DatabaseService: Creating database instance...');
+    console.trace('Database creation triggered by:');
 
-    let storage = getRxStorageDexie();
+    let storage;
+    let dbName = 'zakapp_db_v4';
 
-    // Wrap storage with validation in development to fix DVM1 error
-    if (process.env.NODE_ENV === 'development') {
-        storage = wrappedValidateAjvStorage({
-            storage
-        });
+    if (process.env.NODE_ENV === 'test') {
+        storage = getRxStorageMemory();
+        dbName = `zakapp_test_db_${Math.random().toString(36).substring(7)}`;
+        console.log(`DatabaseService: Using Memory Storage for Test (DB: ${dbName})`);
+    } else {
+        storage = getRxStorageDexie();
+        console.log('DatabaseService: Raw Storage Instance:', storage);
+
+        // Wrap storage with validation in development to fix DVM1 error
+        if (process.env.NODE_ENV === 'development') {
+            storage = wrappedValidateAjvStorage({
+                storage
+            });
+            console.log('DatabaseService: Wrapped Storage Instance:', storage);
+        }
     }
 
     try {
         const db = await createRxDatabase<ZakAppCollections>({
-            name: 'zakapp_local_db',
+            name: dbName,
             storage: storage,
             ignoreDuplicate: true
         });
@@ -49,13 +89,28 @@ const _createDb = async (): Promise<ZakAppDatabase> => {
         console.log('DatabaseService: Database created. Adding collections...');
         await db.addCollections({
             assets: {
-                schema: AssetSchema
+                schema: AssetSchema,
+                migrationStrategies: migrationStrategiesV2
             },
             liabilities: {
-                schema: LiabilitySchema
+                schema: LiabilitySchema,
+                migrationStrategies: migrationStrategiesV2
             },
             zakat_calculations: {
-                schema: ZakatCalculationSchema
+                schema: ZakatCalculationSchema,
+                migrationStrategies: migrationStrategiesV2
+            },
+            nisab_year_records: {
+                schema: NisabYearRecordSchema,
+                migrationStrategies: migrationStrategiesV3
+            },
+            payment_records: {
+                schema: PaymentRecordSchema,
+                migrationStrategies: migrationStrategiesV3
+            },
+            user_settings: {
+                schema: UserSettingsSchema,
+                migrationStrategies: migrationStrategiesV2
             }
         });
 
@@ -75,6 +130,19 @@ export const getDb = (): Promise<ZakAppDatabase> => {
         });
     }
     return dbPromise;
+};
+
+// For testing purposes
+export const resetDb = async () => {
+    if (dbPromise) {
+        try {
+            const db = await dbPromise;
+            await db.destroy();
+        } catch (e) {
+            console.error('Error destroying DB:', e);
+        }
+        dbPromise = null;
+    }
 };
 
 // Hook for React components
