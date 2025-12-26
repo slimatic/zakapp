@@ -116,11 +116,9 @@ class ApiService {
     if (!response.ok) {
       // Handle 401 Unauthorized - clear tokens and reload to trigger redirect to login
       if (response.status === 401) {
-        console.warn('API: 401 Unauthorized. Ignoring redirect for Local-First mode.');
-        // localStorage.removeItem('accessToken');
-        // localStorage.removeItem('refreshToken');
-        // window.location.href = '/login';
-        throw new Error('Session expired. Please login again.');
+        console.warn('API: 401 Unauthorized. Suppressing error for Local-First mode.');
+        // Return a safe failure object to prevent UI crashes/toasts
+        return { success: false, message: 'API Unauthorized (Local Mode)' } as unknown as T;
       }
 
       const body = await response.json().catch(() => ({}));

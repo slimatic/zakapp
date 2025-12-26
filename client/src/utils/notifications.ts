@@ -69,10 +69,10 @@ export async function subscribeToPushNotifications(
     }
 
     const registration = await navigator.serviceWorker.ready;
-    
+
     // Check if already subscribed
     let subscription = await registration.pushManager.getSubscription();
-    
+
     if (!subscription) {
       // Subscribe to push notifications
       const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
@@ -136,7 +136,7 @@ export async function showNotification(
     }
 
     const registration = await navigator.serviceWorker.ready;
-    
+
     await registration.showNotification(title, {
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
@@ -172,7 +172,7 @@ export async function showZakatReminder(message: string): Promise<void> {
     data: {
       url: '/zakat/calculator',
     },
-  });
+  } as any);
 }
 
 /**
@@ -196,7 +196,7 @@ export async function showAssetUpdateReminder(daysUntilZakat: number): Promise<v
     data: {
       url: '/assets',
     },
-  });
+  } as any);
 }
 
 /**
@@ -210,11 +210,11 @@ export function setupNotificationHandlers(): void {
   navigator.serviceWorker.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
       const { action, url } = event.data;
-      
+
       if (action === 'calculate' || action === 'update') {
         window.location.href = url;
       }
-      
+
       console.log('🔔 Notification clicked:', action);
     }
   });
@@ -244,16 +244,16 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 export function scheduleZakatReminder(daysBeforeDue: number): void {
   // This would typically be handled by the server sending push notifications
   // For now, we'll use a simple setTimeout for demo purposes
-  
+
   const millisecondsUntilReminder = daysBeforeDue * 24 * 60 * 60 * 1000;
-  
+
   if (millisecondsUntilReminder > 0 && millisecondsUntilReminder < 30 * 24 * 60 * 60 * 1000) {
     setTimeout(() => {
       showZakatReminder(
         `Your Zakat calculation is due in ${daysBeforeDue} days. Don't forget to update your assets!`
       );
     }, millisecondsUntilReminder);
-    
+
     console.log(`⏰ Zakat reminder scheduled for ${daysBeforeDue} days from now`);
   }
 }

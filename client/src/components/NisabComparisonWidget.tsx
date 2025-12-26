@@ -71,12 +71,12 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   // Pass nisabBasis from record to hook to get correct Nisab threshold
   const nisabBasis = (record.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
   const { nisabAmount } = useNisabThreshold(record.currency, nisabBasis);
-  
+
   // Only enable live tracking for DRAFT records, not FINALIZED or UNLOCKED
   const shouldEnableLiveTracking = record.status === 'DRAFT';
   const { liveHawlData, isUpdating } = useHawlStatus(
-    record.id, 
-    5000, 
+    record.id,
+    5000,
     shouldEnableLiveTracking
   );
 
@@ -91,10 +91,20 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
     // For FINALIZED/UNLOCKED records, use stored wealth (already decrypted by backend)
     // For DRAFT records, use live data if available
     // Prefer Zakatable wealth for the comparison display; fall back to totals if missing
+    // Safe wealth calculation with fallback chain
+    const liveZakatable = liveHawlData?.currentZakatableWealth;
+    const liveTotal = liveHawlData?.currentTotalWealth;
+    const recZakatable = Number(record.zakatableWealth);
+    const recTotal = Number(record.totalWealth);
+
+    // Determine base wealth values
+    const effectiveZakatable = liveZakatable ?? currentWealth ?? recZakatable ?? 0;
+    const effectiveTotal = liveTotal ?? recTotal ?? 0;
+
     const wealth = shouldEnableLiveTracking
-      ? ((liveHawlData?.currentZakatableWealth ?? liveHawlData?.currentTotalWealth ?? currentWealth ?? parseFloat(record.zakatableWealth)) || parseFloat(record.totalWealth) || 0)
-      : ((currentWealth ?? parseFloat(record.zakatableWealth)) || parseFloat(record.totalWealth) || 0);
-    
+      ? (effectiveZakatable || effectiveTotal)
+      : ((currentWealth ?? recZakatable) || recTotal || 0);
+
     // Use nisabAmount from hook (freshly fetched based on nisabBasis)
     // Note: nisabThresholdAtStart in record is encrypted, so we can't parse it directly
     const nisab = nisabAmount || 0;
@@ -188,9 +198,8 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
 
             {/* Current wealth bar */}
             <div
-              className={`absolute left-0 top-0 h-full transition-all duration-500 ${
-                isAbove ? 'bg-green-500' : 'bg-red-500'
-              }`}
+              className={`absolute left-0 top-0 h-full transition-all duration-500 ${isAbove ? 'bg-green-500' : 'bg-red-500'
+                }`}
               style={{ width: `${Math.min(percentage / 2, 100)}%` }}
             ></div>
 

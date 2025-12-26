@@ -87,7 +87,7 @@ export function useNisabRecordRepository() {
         const result = await db.nisab_year_records.bulkUpsert(refinedRecords);
         if (result.error && result.error.length > 0) {
             console.error('Record Import Errors:', result.error);
-            throw new Error(`${result.error.length} records failed validation: ${result.error[0].message}`);
+            throw new Error(`${result.error.length} records failed validation: ${(result.error[0] as any).message}`);
         }
         return result;
     };

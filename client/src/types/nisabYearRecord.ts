@@ -8,6 +8,10 @@ export interface LiveTrackingData {
   daysElapsed?: number | null;
   hawlProgress?: number | null; // 0-100
   canFinalize?: boolean;
+  currentTotalWealth?: number;
+  currentZakatableWealth?: number;
+  zakatDue?: number;
+  isAboveNisab?: boolean;
 }
 
 export interface NisabYearRecord {

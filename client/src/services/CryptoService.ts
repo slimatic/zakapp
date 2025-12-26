@@ -88,7 +88,7 @@ export class CryptoService {
 
         // Convert to Base64 for storage
         const cipherText = this.arrayBufferToBase64(encryptedContent);
-        const ivBase64 = this.arrayBufferToBase64(iv);
+        const ivBase64 = this.arrayBufferToBase64(iv.buffer);
 
         return { cipherText, iv: ivBase64 };
     }
