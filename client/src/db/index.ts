@@ -40,8 +40,7 @@ export type ZakAppCollections = {
 
 export type ZakAppDatabase = RxDatabase<ZakAppCollections>;
 
-let dbPromise: Promise<ZakAppDatabase> | null = null;
-
+// Migration Strategies
 const migrationStrategiesV2 = {
     1: (doc: any) => doc,
     2: (doc: any) => doc
@@ -57,80 +56,60 @@ if (process.env.NODE_ENV === 'development') {
     addRxPlugin(RxDBDevModePlugin);
 }
 
+// Global window augmentation for HMR safety
+declare global {
+    interface Window {
+        _zakapp_db_promise: Promise<ZakAppDatabase> | null;
+    }
+}
+
+// Ensure singleton across HMR
+if (!window._zakapp_db_promise) {
+    window._zakapp_db_promise = null;
+}
+
+// Internal Creator
 const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
     console.log('DatabaseService: Creating database instance...');
-    console.trace('Database creation triggered by:');
 
     let storage;
-    let dbName = 'zakapp_db_v7';
+    let dbName = 'zakapp_db_v8'; // BUMPED TO V8
 
     if (process.env.NODE_ENV === 'test') {
         storage = getRxStorageMemory();
         dbName = `zakapp_test_db_${Date.now()}_${Math.random().toString(36).substring(7)}`;
         console.log(`DatabaseService: Using Memory Storage for Test (DB: ${dbName})`);
 
-        // Apply Encryption Wrapper in Test too
-        storage = wrappedKeyEncryptionCryptoJsStorage({
-            storage
-        });
+        storage = wrappedKeyEncryptionCryptoJsStorage({ storage });
     } else {
         storage = getRxStorageDexie();
         console.log('DatabaseService: Raw Storage Instance:', storage);
 
-        // Wrap storage with validation in development to fix DVM1 error
         if (process.env.NODE_ENV === 'development') {
-            storage = wrappedValidateAjvStorage({
-                storage
-            });
+            storage = wrappedValidateAjvStorage({ storage });
             console.log('DatabaseService: Wrapped Storage Instance:', storage);
         }
 
-        // Apply Encryption Wrapper
-        storage = wrappedKeyEncryptionCryptoJsStorage({
-            storage
-        });
+        storage = wrappedKeyEncryptionCryptoJsStorage({ storage });
     }
 
     try {
-        // Ensure strictly one instance for this name in this realm
-        // RxDB usually handles this with ignoreDuplicate: true, but we want to avoid COL23.
-        // We rely on closeDb() being called before creating a new one with a different password.
-
         const db = await createRxDatabase<ZakAppCollections>({
             name: dbName,
             storage: storage,
-            password: password, // Pass encryption key
-            ignoreDuplicate: true // Recommended for React HMR
+            password: password,
+            ignoreDuplicate: true
         });
 
-        // Check if collections already exist (idempotency for ignoreDuplicate: true)
         if (!db.collections.assets) {
             console.log('DatabaseService: Database created. Adding collections...');
             await db.addCollections({
-                assets: {
-                    schema: AssetSchema,
-                    migrationStrategies: migrationStrategiesV3
-                },
-                liabilities: {
-                    schema: LiabilitySchema,
-                    migrationStrategies: migrationStrategiesV2
-                },
-                zakat_calculations: {
-                    schema: ZakatCalculationSchema,
-                    migrationStrategies: migrationStrategiesV2
-                },
-                nisab_year_records: {
-                    schema: NisabYearRecordSchema,
-                    migrationStrategies: migrationStrategiesV3
-                },
-                payment_records: {
-                    schema: PaymentRecordSchema,
-                    migrationStrategies: migrationStrategiesV3
-                },
-                user_settings: {
-                    schema: UserSettingsSchema,
-                    migrationStrategies: migrationStrategiesV2
-                }
+                assets: { schema: AssetSchema, migrationStrategies: migrationStrategiesV3 },
+                liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV2 },
+                zakat_calculations: { schema: ZakatCalculationSchema, migrationStrategies: migrationStrategiesV2 },
+                nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV3 },
+                payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV3 },
+                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV2 }
             });
             console.log('DatabaseService: Collections added.');
         } else {
@@ -151,55 +130,60 @@ const notifyListeners = (db: ZakAppDatabase | null) => {
     dbListeners.forEach(listener => listener(db));
 };
 
+// Public Accessor (Singleton)
 export const getDb = (password?: string): Promise<ZakAppDatabase> => {
-    // Return existing promise if still valid (Singleton)
-    if (dbPromise) {
-        return dbPromise;
+    // Return existing singleton if active
+    if (window._zakapp_db_promise) {
+        return window._zakapp_db_promise;
     }
 
-    dbPromise = _createDb(password).then(db => {
-        notifyListeners(db);
-        return db;
-    }).catch(err => {
-        dbPromise = null; // Reset promise on failure so we can retry
-        throw err;
-    });
+    // Otherwise create new
+    window._zakapp_db_promise = _createDb(password)
+        .then(db => {
+            notifyListeners(db);
+            return db;
+        })
+        .catch(err => {
+            console.error("FATAL: Failed to initialize DB", err);
+            window._zakapp_db_promise = null; // Reset on failure
+            throw err;
+        });
 
-    return dbPromise;
+    return window._zakapp_db_promise;
 };
 
 // Destroys the DB instance (Close Connection) WITHOUT deleting data
 export const closeDb = async () => {
-    if (dbPromise) {
+    if (window._zakapp_db_promise) {
         try {
-            const db = await dbPromise;
-            if (db) {
-                // Remove all collections to free up the global limit? 
-                // RxDB db.destroy() should handle this.
+            console.log("DatabaseService: Closing DB connection...");
+            const db = await window._zakapp_db_promise;
+            if (db && !db.destroyed) {
                 await db.destroy();
-                // console.log('Database instance destroyed (closed). Data preserved.');
+                console.log("DatabaseService: DB Instance Destroyed (Closed).");
             }
         } catch (e) {
             console.error('Error closing DB:', e);
         }
-        dbPromise = null;
+        window._zakapp_db_promise = null;
         notifyListeners(null);
     }
 };
 
 // Removes the DB (Deletes ALL Data)
 export const resetDb = async () => {
-    if (dbPromise) {
+    if (window._zakapp_db_promise) {
         try {
-            const db = await dbPromise;
-            if (db) {
+            console.warn("DatabaseService: DELETING DB (RESET)...");
+            const db = await window._zakapp_db_promise;
+            if (db && !db.destroyed) {
                 await db.remove();
-                console.warn('Database removed (Data DELETED).');
+                console.log("DatabaseService: DB Removed.");
             }
         } catch (e) {
             console.error('Error removing DB:', e);
         }
-        dbPromise = null;
+        window._zakapp_db_promise = null;
         notifyListeners(null);
     }
 };
@@ -209,18 +193,25 @@ export const useDb = () => {
     const [db, setDb] = useState<ZakAppDatabase | null>(null);
 
     useEffect(() => {
+        let isMounted = true;
+
         // Initial fetch
-        if (dbPromise) {
-            dbPromise.then(setDb).catch(() => setDb(null));
+        if (window._zakapp_db_promise) {
+            window._zakapp_db_promise.then(d => {
+                if (isMounted) setDb(d);
+            }).catch(() => {
+                if (isMounted) setDb(null);
+            });
         }
 
         // Subscribe to changes
         const listener = (newDb: ZakAppDatabase | null) => {
-            setDb(newDb);
+            if (isMounted) setDb(newDb);
         };
         dbListeners.push(listener);
 
         return () => {
+            isMounted = false;
             const index = dbListeners.indexOf(listener);
             if (index > -1) {
                 dbListeners.splice(index, 1);
