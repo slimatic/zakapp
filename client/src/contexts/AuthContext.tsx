@@ -202,6 +202,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await encryptedDb.user_settings.insert({
           id: LOCAL_USER_ID,
           profileName: apiResult.user.username || 'My Profile',
+          email: apiResult.user.email || 'local@device',
           isSetupCompleted: true,
           securityProfile: {
             salt: salt,
@@ -216,7 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user: User = {
         id: userDoc.get('id'),
         username: userDoc.get('profileName') || 'Local User',
-        email: 'local@device', // Placeholder
+        email: userDoc.get('email') || 'local@device', // Get actual email or fallback
         firstName: '',
         lastName: '',
       };
@@ -231,7 +232,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('AuthContext: Dispatching LOGIN_SUCCESS');
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       return true;
-
     } catch (error) {
       console.error('AuthContext: Login error', error);
       dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Login failed' });
@@ -281,6 +281,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await encryptedDb.user_settings.insert({
         id: LOCAL_USER_ID,
         profileName: userData.username || 'My Profile',
+        email: userData.email, // Persist email
         isSetupCompleted: true,
         securityProfile: {
           salt: salt,

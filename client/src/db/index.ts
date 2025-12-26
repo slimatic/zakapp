@@ -73,7 +73,7 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
     console.log('DatabaseService: Creating database instance...');
 
     let storage;
-    let dbName = 'zakapp_db_v9'; // BUMPED TO V9
+    let dbName = 'zakapp_db_v10'; // BUMPED TO V10 for Email Schema
 
     if (process.env.NODE_ENV === 'test') {
         storage = getRxStorageMemory();
