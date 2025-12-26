@@ -8,6 +8,19 @@
     <meta name="theme-color" content="#4f46e5" />
     <meta name="description"
         content="ZakApp - Privacy-first Islamic Zakat calculator with comprehensive asset management and yearly tracking" />
+    <script>
+        window.onerror = function (message, source, lineno, colno, error) {
+            console.error('GLOBAL ERROR:', message, source, lineno, colno, error);
+            document.body.innerHTML = '<div style="color:red; padding:20px;">' +
+                '<h1>Critical Error</h1>' +
+                '<pre>' + message + '\n' + (error ? error.stack : '') + '</pre>' +
+                '</div>';
+        };
+        window.onunhandledrejection = function (event) {
+            console.error('UNHANDLED REJECTION:', event.reason);
+        };
+        console.log('Index.html loaded');
+    </script>
 
     <!-- Preload critical assets for faster initial render -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
