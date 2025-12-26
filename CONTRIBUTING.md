@@ -1,40 +1,75 @@
-# Contributing to ZakApp
+# Contributing to ZakApp (Project Ikhlas)
 
-Thank you for your interest in contributing to ZakApp! We welcome contributions from the community to help make Zakat calculation easier and more accessible.
+Thank you for your interest in contributing to ZakApp! We are building the world's first **Privacy-First, Local-First Zakat Calculator**.
 
-## Getting Started
+Our mission is to help Muslims fulfill their religious obligation with accuracy, privacy, and peace of mind.
 
-1.  **Fork the repository** on GitHub.
-2.  **Clone your fork** locally.
-3.  **Install dependencies**:
+## ⚠️ The "Zero-Knowledge" Mandate
+
+**CRITICAL**: Every line of code you write must adhere to our Privacy-First architecture.
+- **No Private Data on Server**: We NEVER transmit unencrypted financial values (account balances, gold weights, crypto holdings) to the server.
+- **Local-First Logic**: All Zakat calculations must run **entirely in the browser** (Client-Side). The server is only for syncing end-to-end encrypted blobs.
+- **Web Crypto API**: Use `window.crypto.subtle` for all encryption operations. Never roll your own crypto.
+
+If a PR violates these rules, it will be rejected immediately.
+
+## 🛠 Tech Stack
+
+- **Frontend**: React, TypeScript, Next.js (App Router), Vite
+- **Database**: [RxDB](https://rxdb.info/) (Client-side NoSQL with SQLite WASM)
+- **State**: Zustand + TanStack Query
+- **Styling**: Tailwind CSS + "Ikhlas" Design System
+
+## 🚀 Getting Started
+
+1.  **Fork & Clone**:
     ```bash
-    npm run install:all
+    git clone https://github.com/your-username/project-ikhlas.git
+    cd project-ikhlas
     ```
-4.  **Run the development environment**:
+2.  **Install**:
     ```bash
-    docker-compose up
+    npm install
+    cd client && npm install
+    ```
+3.  **Run Dev Server**:
+    ```bash
+    npm start
     ```
 
-## Development Workflow
+## 📝 Development Guidelines
 
-We follow a strict **Spec-Driven Development** process as outlined in our [Constitution](.specify/memory/constitution.md).
+### 1. Code Style
+We strictly enforce the **Google TypeScript Style Guide**.
+- **Indent**: 2 spaces.
+- **Types**: Strict mode enabled. No `any`.
+- **Naming**: `camelCase` for variables/functions, `PascalCase` for components/classes.
 
-1.  **Find or Create an Issue**: Discuss the feature or bug fix first.
-2.  **Create a Specification**: For new features, a `spec.md` is required.
-3.  **Implement**: Write code that meets the spec and passes all tests.
-4.  **Test**: Ensure >90% test coverage for calculation logic.
-5.  **Submit a Pull Request**: Link to the issue and spec.
+### 2. Implementation Flow (The "Architect" Workflow)
+When building a new feature (e.g., "Silver Calculator"):
+1.  **Define Schema**: Create the RxDB schema in `client/src/db/schema`.
+2.  **Define Types**: TypeScript interfaces.
+3.  **Core Logic**: Write pure, testable functions in `src/core/calculations`. Use `decimal.js` for math.
+4.  **UI**: Build accessible components in `src/components`.
 
-## Code Style
+### 3. Fiqh Compliance (The "Faqih" Rules)
+Zakat is a religious duty with specific rules.
+- **References**: All calculation logic must cite a simplified Fiqh source (e.g., Simple Zakat Guide).
+- **Madhab Support**: Where opinions differ (e.g., Jewelry Zakat), implementing toggles for Hanafi/Shafi'i views is preferred.
+- **Precaution**: When in doubt, strictly apply the safer/precautionary view.
 
--   **TypeScript**: Strict mode enabled. No `any`.
--   **Formatting**: Prettier and ESLint are enforced.
--   **Commits**: Follow Conventional Commits (e.g., `feat: add new calculation method`).
+### 4. Accessibility & Design
+- **WCAG 2.2 AA**: All forms must be keyboard accessible and screen-reader friendly.
+- **Trust Indicators**: Display "Encrypted on Device" badges near sensitive inputs.
+- **Mobile First**: Design for small screens first.
 
-## Islamic Compliance
+## 🧪 Testing
 
-All changes affecting Zakat calculations must be validated against the [Simple Zakat Guide](https://simplezakatguide.com) methodologies.
+We require high test coverage, especially for calculation logic.
+```bash
+npm test
+```
 
-## License
+## ⚖️ License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions will be licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
