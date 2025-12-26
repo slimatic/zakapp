@@ -22,8 +22,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const navigation = [
-    { 
-      name: 'Dashboard', 
+    {
+      name: 'Dashboard',
       href: '/dashboard',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,8 +31,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </svg>
       )
     },
-    { 
-      name: 'Assets', 
+    {
+      name: 'Assets',
       href: '/assets',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,8 +40,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </svg>
       )
     },
-    { 
-      name: 'Nisab Records', 
+    {
+      name: 'Nisab Records',
       href: '/nisab-records',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,8 +49,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </svg>
       )
     },
-    { 
-      name: 'Payments', 
+    {
+      name: 'Payments',
       href: '/payments',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,8 +58,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </svg>
       )
     },
-    { 
-      name: 'Analytics', 
+    {
+      name: 'Analytics',
       href: '/analytics',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-gray-50 relative">
       {/* Skip Link for keyboard navigation - positioned absolutely at top */}
       <SkipLink />
-      
+
       {/* Navigation */}
       <nav className="bg-white shadow-lg" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -123,23 +123,22 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               </div>
               <div className="hidden md:block">
-                <div className="ml-10 flex items-baseline space-x-4" role="list">
+                <ul className="ml-10 flex items-baseline space-x-4">
                   {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive(item.href)
-                          ? 'bg-green-100 text-green-700'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                      }`}
-                      aria-current={isActive(item.href) ? 'page' : undefined}
-                      role="listitem"
-                    >
-                      {item.name}
-                    </Link>
+                    <li key={item.name}>
+                      <Link
+                        to={item.href}
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive(item.href)
+                            ? 'bg-green-100 text-green-700'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                          }`}
+                        aria-current={isActive(item.href) ? 'page' : undefined}
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             </div>
             <div className="flex items-center">
@@ -162,12 +161,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </svg>
                 )}
               </button>
-              
+
               {/* Mobile Navigation Hamburger (md:hidden) */}
               <div className="md:hidden mr-2">
                 <MobileNav items={navigation} />
               </div>
-              
+
               {/* User Dropdown Menu */}
               <div className="flex-shrink-0" ref={dropdownRef}>
                 <div className="relative">
@@ -183,9 +182,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <span className="text-gray-700 text-sm mr-2">
                       Welcome, {user?.firstName || user?.username || user?.email?.split('@')[0]}!
                     </span>
-                    <svg 
-                      className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-                      fill="currentColor" 
+                    <svg
+                      className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                      fill="currentColor"
                       viewBox="0 0 20 20"
                       aria-hidden="true"
                     >

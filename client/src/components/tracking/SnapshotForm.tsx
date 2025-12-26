@@ -28,7 +28,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
   submitButtonText = 'Save Snapshot'
 }) => {
   const isEditMode = !!snapshot;
-  
+
   // Form state
   const [formData, setFormData] = useState({
     calculationDate: snapshot?.calculationDate ? new Date(snapshot.calculationDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -56,12 +56,12 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
-      
+
       // Auto-calculate zakatable wealth when wealth or liabilities change
       if (field === 'totalWealth' || field === 'totalLiabilities') {
         updated.zakatableWealth = Math.max(0, updated.totalWealth - updated.totalLiabilities);
       }
-      
+
       return updated;
     });
   };
@@ -70,7 +70,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
   const handleDateChange = (calendar: 'gregorian' | 'hijri', field: string, value: number) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
-      
+
       try {
         if (calendar === 'gregorian' && calendarLock === 'gregorian') {
           // Update Hijri based on Gregorian
@@ -90,17 +90,17 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
         // Keep original values if conversion fails
         console.warn('Calendar conversion failed:', error);
       }
-      
+
       return updated;
     });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Calculate calculation date from form data
     const calculationDate = new Date(formData.gregorianYear, formData.gregorianMonth - 1, formData.gregorianDay);
-    
+
     const submitData = {
       ...formData,
       calculationDate: calculationDate.toISOString()
@@ -111,8 +111,8 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
 
   const handleCalculateZakat = () => {
     // Calculate Zakat at 2.5% of zakatable wealth (if above nisab)
-    const zakatAmount = formData.zakatableWealth >= formData.nisabThreshold 
-      ? formData.zakatableWealth * 0.025 
+    const zakatAmount = formData.zakatableWealth >= formData.nisabThreshold
+      ? formData.zakatableWealth * 0.025
       : 0;
     handleInputChange('zakatAmount', Math.round(zakatAmount * 100) / 100); // Round to 2 decimals
   };
@@ -138,13 +138,13 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
         {/* Dual Calendar Section */}
         <div className="bg-gray-50 p-6 rounded-lg">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Calculation Date</h3>
-          
+
           <div className="flex items-center gap-4 mb-4">
             <label className="text-sm font-medium text-gray-700">Lock Calendar:</label>
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant={calendarLock === 'gregorian' ? 'primary' : 'ghost'}
+                variant={calendarLock === 'gregorian' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setCalendarLock('gregorian')}
               >
@@ -152,7 +152,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               </Button>
               <Button
                 type="button"
-                variant={calendarLock === 'hijri' ? 'primary' : 'ghost'}
+                variant={calendarLock === 'hijri' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setCalendarLock('hijri')}
               >
@@ -239,7 +239,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
         {/* Financial Data Section */}
         <div className="bg-gray-50 p-6 rounded-lg">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Information</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="Total Wealth"
@@ -248,9 +248,9 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               value={formData.totalWealth}
               onChange={(e) => handleInputChange('totalWealth', parseFloat(e.target.value) || 0)}
               required
-              autoSelectOnFocus={true}
+
             />
-            
+
             <Input
               label="Total Liabilities"
               type="number"
@@ -258,9 +258,9 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               value={formData.totalLiabilities}
               onChange={(e) => handleInputChange('totalLiabilities', parseFloat(e.target.value) || 0)}
               required
-              autoSelectOnFocus={true}
+
             />
-            
+
             <Input
               label="Zakatable Wealth"
               type="number"
@@ -268,9 +268,9 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               value={formData.zakatableWealth}
               onChange={(e) => handleInputChange('zakatableWealth', parseFloat(e.target.value) || 0)}
               required
-              autoSelectOnFocus={true}
+
             />
-            
+
             <div className="space-y-2">
               <Input
                 label="Zakat Amount"
@@ -279,7 +279,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 value={formData.zakatAmount}
                 onChange={(e) => handleInputChange('zakatAmount', parseFloat(e.target.value) || 0)}
                 required
-                autoSelectOnFocus={true}
+
               />
               <Button
                 type="button"
@@ -291,7 +291,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 Calculate 2.5%
               </Button>
             </div>
-            
+
             <Input
               label="Nisab Threshold"
               type="number"
@@ -299,9 +299,9 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               value={formData.nisabThreshold}
               onChange={(e) => handleInputChange('nisabThreshold', parseFloat(e.target.value) || 0)}
               required
-              autoSelectOnFocus={true}
+
             />
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Nisab Type
@@ -321,7 +321,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
         {/* Methodology and Notes */}
         <div className="bg-gray-50 p-6 rounded-lg">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Calculation Details</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -338,7 +338,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 <option value="Custom">Custom</option>
               </select>
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -352,7 +352,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               </label>
             </div>
           </div>
-          
+
           <div className="mt-4">
             <label htmlFor="userNotes" className="block text-sm font-medium text-gray-700 mb-2">
               Notes (Optional)
@@ -380,7 +380,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               Cancel
             </Button>
           )}
-          
+
           <Button
             type="submit"
             disabled={isLoading}

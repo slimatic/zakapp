@@ -1,12 +1,12 @@
 /**
- * PaymentList Component - T062
- * Lists payment records with filtering and categorization
+ * PaymentList Component (Local-First Refactor)
+ * Lists payment records with filtering and categorization using RxDB
  */
 
 import React, { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
-import { usePayments } from '../../hooks/usePayments';
-import { useNisabYearRecords } from '../../hooks/useNisabYearRecords';
+import { usePaymentRepository } from '../../hooks/usePaymentRepository';
+import { useNisabRecordRepository } from '../../hooks/useNisabRecordRepository';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
@@ -16,7 +16,6 @@ import { PaymentDetailModal } from './PaymentDetailModal';
 import { formatCurrency } from '../../utils/formatters';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
-import type { NisabYearRecord } from '../../types/nisabYearRecord';
 
 interface PaymentListProps {
   nisabRecordId?: string;
@@ -59,7 +58,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   compact = false
 }) => {
   const maskedCurrency = useMaskedCurrency();
-  
+
   // Filters state
   const [filters, setFilters] = useState({
     category: 'all',
@@ -69,34 +68,34 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     endDate: ''
   });
 
-  // Sorting state (T021)
+  // Sorting state
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'created'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Pagination state (T022)
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
 
-  // Detail modal state (T023)
+  // Detail modal state
   const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(null);
 
-  // Fetch payments
+  // Fetch payments locally
   const resolvedRecordId = nisabRecordId ?? snapshotId;
+  const { payments: allPayments, isLoading, error } = usePaymentRepository();
 
-  const { data, isLoading, error, refetch } = usePayments({
-    snapshotId: resolvedRecordId,
-    category: filters.category === 'all' ? undefined : filters.category
-  });
+  // Filter by snapshotId if provided
+  const payments = useMemo(() => {
+    if (!resolvedRecordId) return allPayments;
+    return allPayments.filter(p => p.snapshotId === resolvedRecordId);
+  }, [allPayments, resolvedRecordId]);
 
-  // Fetch Nisab Year Records so we can show contextual details alongside payments
-  const { data: nisabRecordsData } = useNisabYearRecords({ limit: 100 });
+  // Fetch Nisab Year Records locally
+  const { records: nisabRecordsData } = useNisabRecordRepository();
 
-  const payments = data?.payments || [];
-
-  // Create a map of Nisab Year Records by ID for quick lookup when rendering payments
+  // Create a map of Nisab Year Records by ID
   const nisabRecordMap = useMemo(() => {
     const map = new Map();
-    nisabRecordsData?.records?.forEach((record: NisabYearRecord) => {
+    nisabRecordsData.forEach((record) => {
       map.set(record.id, record);
     });
     return map;
@@ -110,9 +109,16 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     return Number.isFinite(num) ? num : 0;
   };
 
-  // Sort and filter payments (T021)
+  // Sort and filter payments
   const sortedAndFilteredPayments = useMemo(() => {
     let filtered = [...payments];
+
+    // Filter by Category
+    if (filters.category !== 'all') {
+      // Some legacy logic used 'poor' instead of 'fakir', handle map mismatch if needed
+      // But for now assumes standard values.
+      filtered = filtered.filter(p => p.recipientCategory === filters.category);
+    }
 
     // Apply client-side filters
     if (filters.paymentMethod !== 'all') {
@@ -121,21 +127,21 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         p.recipientName.toLowerCase().includes(searchLower) ||
-        p.notes?.toLowerCase().includes(searchLower) ||
-        p.receiptReference?.toLowerCase().includes(searchLower)
+        (p.notes || '').toLowerCase().includes(searchLower) ||
+        (p.receiptReference || '').toLowerCase().includes(searchLower)
       );
     }
 
     if (filters.startDate) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         new Date(p.paymentDate) >= new Date(filters.startDate)
       );
     }
 
     if (filters.endDate) {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         new Date(p.paymentDate) <= new Date(filters.endDate)
       );
     }
@@ -162,7 +168,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     return filtered;
   }, [payments, filters, sortBy, sortOrder]);
 
-  // Paginate results (T022)
+  // Paginate results
   const totalPages = Math.ceil(sortedAndFilteredPayments.length / itemsPerPage);
   const paginatedPayments = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -181,10 +187,8 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
   const handleSortChange = (field: 'date' | 'amount' | 'created') => {
     if (sortBy === field) {
-      // Toggle sort order if same field
       setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
-      // Set new field with default descending order
       setSortBy(field);
       setSortOrder('desc');
     }
@@ -200,13 +204,13 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     });
   };
 
-  const hasActiveFilters = filters.category !== 'all' || 
-                          filters.paymentMethod !== 'all' || 
-                          filters.search || 
-                          filters.startDate || 
-                          filters.endDate;
+  const hasActiveFilters = filters.category !== 'all' ||
+    filters.paymentMethod !== 'all' ||
+    filters.search ||
+    filters.startDate ||
+    filters.endDate;
 
-  // Calculate totals using sorted/filtered payments (use safeAmount to avoid NaN)
+  // Calculate totals
   const totalAmount = sortedAndFilteredPayments.reduce((sum: number, payment: PaymentRecord) => sum + safeAmount(payment), 0);
   const categoryTotals = sortedAndFilteredPayments.reduce((acc: Record<string, number>, payment: PaymentRecord) => {
     const cat = payment.recipientCategory || 'unknown';
@@ -225,7 +229,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   if (error) {
     return (
       <div className="py-8">
-        <ErrorMessage error={error} onRetry={() => refetch()} />
+        <ErrorMessage error={error} onRetry={() => window.location.reload()} />
       </div>
     );
   }
@@ -255,69 +259,6 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                 return;
               }
 
-              // Export CSV of all filtered payments
-              try {
-                const headers = [
-                  'Payment Date',
-                  'Amount',
-                  'Currency',
-                  'Snapshot ID',
-                  'Calculation ID',
-                  'Recipient Name',
-                  'Recipient Type',
-                  'Recipient Category',
-                  'Payment Method',
-                  'Receipt Reference',
-                  'Notes',
-                  'Status'
-                ];
-
-                const rows = sortedAndFilteredPayments.map((p: any) => [
-                  p.paymentDate ? new Date(p.paymentDate).toISOString() : '',
-                  (p.amount || 0).toString(),
-                  p.currency || '',
-                  p.snapshotId || p.snapshot || '',
-                  p.calculationId || '',
-                  `"${p.recipientName || ''}"`,
-                  p.recipientType || '',
-                  p.recipientCategory || '',
-                  p.paymentMethod || '',
-                  p.receiptReference || p.receiptNumber || '',
-                  `"${p.notes || ''}"`,
-                  p.status || ''
-                ]);
-
-                const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                if (link.download !== undefined) {
-                  const url = URL.createObjectURL(blob);
-                  link.setAttribute('href', url);
-                  link.setAttribute('download', `zakapp-payments-${new Date().toISOString().split('T')[0]}.csv`);
-                  link.style.visibility = 'hidden';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(url);
-                }
-              } catch (err) {
-                toast.error('Failed to export payments.');
-              }
-            }}
-          >
-            Export CSV
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              if (sortedAndFilteredPayments.length === 0) {
-                toast.error('No payments to export');
-                return;
-              }
-
               try {
                 const exportData = {
                   version: '1.0',
@@ -328,13 +269,9 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                     paymentDate: p.paymentDate,
                     amount: p.amount,
                     currency: p.currency,
-                    snapshotId: p.snapshotId || p.snapshot || null,
-                    calculationId: p.calculationId || null,
+                    snapshotId: p.snapshotId,
                     recipientName: p.recipientName,
-                    recipientType: p.recipientType,
                     recipientCategory: p.recipientCategory,
-                    paymentMethod: p.paymentMethod,
-                    receiptReference: p.receiptReference || p.receiptNumber,
                     notes: p.notes,
                     status: p.status
                   }))
@@ -378,21 +315,21 @@ export const PaymentList: React.FC<PaymentListProps> = ({
               {maskedCurrency(formatCurrency(totalAmount))}
             </div>
           </div>
-          
+
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="text-sm font-medium text-blue-800">Payment Count</div>
             <div className="text-2xl font-bold text-blue-900">
               {payments.length}
             </div>
           </div>
-          
+
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
             <div className="text-sm font-medium text-purple-800">Categories Used</div>
             <div className="text-2xl font-bold text-purple-900">
               {Object.keys(categoryTotals).length}
             </div>
           </div>
-          
+
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="text-sm font-medium text-orange-800">Average Payment</div>
             <div className="text-2xl font-bold text-orange-900">
@@ -402,17 +339,16 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         </div>
       )}
 
-      {/* Sorting Controls (T021) */}
+      {/* Sorting Controls */}
       <div className="flex flex-wrap items-center gap-3 bg-white border border-gray-200 rounded-lg p-3">
         <span className="text-sm font-medium text-gray-700">Sort by:</span>
-        
+
         <button
           onClick={() => handleSortChange('date')}
-          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-            sortBy === 'date'
-              ? 'bg-green-100 text-green-800 font-medium'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${sortBy === 'date'
+            ? 'bg-green-100 text-green-800 font-medium'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
         >
           Payment Date
           {sortBy === 'date' && (
@@ -422,11 +358,10 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
         <button
           onClick={() => handleSortChange('amount')}
-          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-            sortBy === 'amount'
-              ? 'bg-green-100 text-green-800 font-medium'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${sortBy === 'amount'
+            ? 'bg-green-100 text-green-800 font-medium'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
         >
           Amount
           {sortBy === 'amount' && (
@@ -436,11 +371,10 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
         <button
           onClick={() => handleSortChange('created')}
-          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-            sortBy === 'created'
-              ? 'bg-green-100 text-green-800 font-medium'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${sortBy === 'created'
+            ? 'bg-green-100 text-green-800 font-medium'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
         >
           Created Date
           {sortBy === 'created' && (
@@ -548,8 +482,8 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No payments found</h3>
           <p className="text-gray-600 mb-4">
-            {hasActiveFilters 
-              ? 'No payments match your current filters.' 
+            {hasActiveFilters
+              ? 'No payments match your current filters.'
               : 'Start recording your Zakat payments to track your giving.'}
           </p>
           {onCreateNew && (
@@ -574,7 +508,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
             ))}
           </div>
 
-          {/* Payment Detail Modal (T023) */}
+          {/* Payment Detail Modal */}
           {selectedPayment && (
             <PaymentDetailModal
               payment={selectedPayment}
@@ -588,7 +522,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
             />
           )}
 
-          {/* Pagination Controls (T022) */}
+          {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200">
               <div className="text-sm text-gray-600">
@@ -616,7 +550,6 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    // Show pages around current page
                     let pageNum: number;
                     if (totalPages <= 5) {
                       pageNum = i + 1;
@@ -632,11 +565,10 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`px-3 py-1 text-sm rounded ${
-                          currentPage === pageNum
-                            ? 'bg-green-600 text-white font-medium'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className={`px-3 py-1 text-sm rounded ${currentPage === pageNum
+                          ? 'bg-green-600 text-white font-medium'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
                       >
                         {pageNum}
                       </button>

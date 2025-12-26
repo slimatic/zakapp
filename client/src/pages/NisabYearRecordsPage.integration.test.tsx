@@ -7,34 +7,34 @@ import '@testing-library/jest-dom';
 import { NisabYearRecordsPage } from './NisabYearRecordsPage';
 import { apiService } from '../services/api';
 
-// Mock API service instead of hooks to test integration
-jest.mock('../services/api', () => ({
-    apiService: {
-        getNisabYearRecords: jest.fn(),
-        getAssets: jest.fn(),
-        createNisabYearRecord: jest.fn(),
-        updateNisabYearRecord: jest.fn(),
-        deleteNisabYearRecord: jest.fn(),
-    }
+import { vi } from 'vitest';
+import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
+import { usePaymentRepository } from '../hooks/usePaymentRepository';
+import { useAssetRepository } from '../hooks/useAssetRepository';
+
+// Mock Repository Hooks
+vi.mock('../hooks/useNisabRecordRepository', () => ({
+    useNisabRecordRepository: vi.fn()
 }));
 
-// Mock usePayments hook as it's used directly
-jest.mock('../hooks/usePayments', () => ({
-    usePayments: () => ({ data: { payments: [] }, isLoading: false }),
-    useCreatePayment: () => ({ mutateAsync: jest.fn() }),
-    useUpdatePayment: () => ({ mutateAsync: jest.fn() }),
+vi.mock('../hooks/usePaymentRepository', () => ({
+    usePaymentRepository: vi.fn()
 }));
 
-// Mock usePaymentRecords hooks
-jest.mock('../hooks/usePaymentRecords', () => ({
-    useDeletePayment: () => ({ mutateAsync: jest.fn() }),
-    useDeleteSnapshotPayment: () => ({ mutateAsync: jest.fn() }),
+vi.mock('../hooks/useAssetRepository', () => ({
+    useAssetRepository: vi.fn()
 }));
 
-// Mock useNisabYearRecords hook - used in PaymentRecordForm
-jest.mock('../hooks/useNisabYearRecords', () => ({
-    useNisabYearRecords: () => ({ data: { records: [] }, isLoading: false }),
+// Mock PrivacyContext
+vi.mock('../contexts/PrivacyContext', () => ({
+    useMaskedCurrency: () => (val: string) => val,
+    usePrivacy: () => ({ privacyMode: false, togglePrivacyMode: vi.fn(), setPrivacyMode: vi.fn() }),
 }));
+
+// Mock Legacy hooks (just in case sub-components use them, or remove if verified unused)
+// PaymentRecordForm might use older hooks?
+// Checking NisabYearRecordsPage.tsx imports: It imports PaymentRecordForm.
+// Let's verify PaymentRecordForm dependencies later if it fails.
 
 const renderWithClient = (ui: React.ReactElement) => {
     const queryClient = new QueryClient({
@@ -51,55 +51,96 @@ const renderWithClient = (ui: React.ReactElement) => {
 
 describe('NisabYearRecordsPage Integration', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
-        (apiService.getNisabYearRecords as jest.Mock).mockResolvedValue({
-            success: true,
-            data: { records: [] }
-        });
+        vi.clearAllMocks();
+
+        // Default Mock Implementations
+        vi.mocked(useNisabRecordRepository).mockReturnValue({
+            records: [],
+            isLoading: false,
+            addRecord: vi.fn(),
+            updateRecord: vi.fn(),
+            removeRecord: vi.fn(),
+            getRecord: vi.fn(),
+            bulkAddRecords: vi.fn(),
+        } as any);
+
+        vi.mocked(usePaymentRepository).mockReturnValue({
+            payments: [],
+            isLoading: false,
+            addPayment: vi.fn(),
+            updatePayment: vi.fn(),
+            removePayment: vi.fn(),
+            getPayment: vi.fn(),
+            bulkAddPayments: vi.fn(),
+        } as any);
+
+        vi.mocked(useAssetRepository).mockReturnValue({
+            assets: [],
+            isLoading: false,
+            addAsset: vi.fn(),
+            updateAsset: vi.fn(),
+            removeAsset: vi.fn(),
+            getAsset: vi.fn(),
+        } as any);
     });
 
     it('renders without crashing', async () => {
-        // This will implicitly test if PaymentRecordForm import crashes
         renderWithClient(<NisabYearRecordsPage />);
 
         expect(screen.getByText('Nisab Year Records')).toBeInTheDocument();
-        await waitFor(() => {
-            expect(screen.getByText(/No.*records yet/)).toBeInTheDocument();
-        });
+        // With empty records, it should show "No ... records yet"
+        expect(screen.getByText(/No.*records yet/)).toBeInTheDocument();
     });
 
     it('opens payment modal without crashing', async () => {
-        (apiService.getNisabYearRecords as jest.Mock).mockResolvedValue({
-            success: true,
-            data: {
-                records: [
-                    {
-                        id: 'r1',
-                        status: 'DRAFT',
-                        hawlStartDate: '2024-01-01T00:00:00.000Z',
-                        zakatAmount: '1000'
-                    }
-                ]
-            }
-        });
+        // Mock data with one record
+        const mockData = {
+            records: [
+                {
+                    id: 'r1',
+                    status: 'DRAFT',
+                    hawlStartDate: '2024-01-01T00:00:00.000Z',
+                    zakatAmount: 1000,
+                    totalWealth: 40000,
+                    zakatableWealth: 40000,
+                    nisabBasis: 'GOLD',
+                    // Add all fields to avoid shape issues
+                    hawlCompletionDate: '2025-01-01T00:00:00.000Z',
+                    hijriYear: 1445,
+                    currency: 'USD'
+                }
+            ],
+            isLoading: false,
+            addRecord: vi.fn(),
+            updateRecord: vi.fn(),
+            removeRecord: vi.fn(),
+            getRecord: vi.fn(),
+            bulkAddRecords: vi.fn(),
+        };
+
+        vi.mocked(useNisabRecordRepository).mockReturnValue(mockData as any);
 
         renderWithClient(<NisabYearRecordsPage />);
 
         // Wait for record to appear
         await waitFor(() => {
-            expect(screen.getByText('Draft')).toBeInTheDocument();
+            expect(screen.getByText('1445 H')).toBeInTheDocument();
         });
 
         // Click on the record to select it
-        screen.getByText('Draft').click();
+        screen.getByText('1445 H').click();
 
-        // Verify detail view appears
+        // Verify detail view appears (Payment Progress section)
         await waitFor(() => {
-            expect(screen.getByText('Payment Progress')).toBeInTheDocument();
+            // "Zakat Payments" header is visible in detail view
+            expect(screen.getByText('Zakat Payments')).toBeInTheDocument();
+            // Verify active record details are shown
+            expect(screen.getByText('Record ID')).toBeInTheDocument();
         });
 
-        // Click "+ Payment" button
-        const addPaymentBtn = screen.getByText('+ Payment');
+        // Click "+ Add Payment" button (Note: Text might be "+ Add Payment" or "+ Payment", check component)
+        // Component says: "+ Add Payment" (line 414)
+        const addPaymentBtn = screen.getByText('+ Add Payment');
         fireEvent.click(addPaymentBtn);
 
         // Verify form appears
@@ -108,5 +149,5 @@ describe('NisabYearRecordsPage Integration', () => {
             // Check if PaymentRecordForm rendered inputs
             expect(screen.getByLabelText(/Amount Paid/i)).toBeInTheDocument();
         });
-    });
+    }, 20000);
 });

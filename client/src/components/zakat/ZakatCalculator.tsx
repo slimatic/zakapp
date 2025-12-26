@@ -58,15 +58,18 @@ export const ZakatCalculator: React.FC = () => {
     try {
       const methodology = (selectedMethodology.toUpperCase() as any) || 'STANDARD';
 
+      const goldPrice = nisabInfo?.goldPrice || DEFAULT_NISAB_DATA.goldPrice;
+      const silverPrice = nisabInfo?.silverPrice || DEFAULT_NISAB_DATA.silverPrice;
+
       let nisabValue = calculateNisabThreshold({
-        goldPrice: nisabInfo?.goldPrice || DEFAULT_NISAB_DATA.goldPrice,
-        silverPrice: nisabInfo?.silverPrice || DEFAULT_NISAB_DATA.silverPrice,
+        goldPrice,
+        silverPrice,
         goldNisabGrams: 87.48,
         silverNisabGrams: 612.36
       }, methodology);
 
       const assetsToCalc = assets.filter(a => selectedAssets.includes(a.id));
-      const result = calculateZakat(assetsToCalc, [], nisabValue, methodology);
+      const result = calculateZakat(assetsToCalc, [], { gold: goldPrice * 87.48, silver: silverPrice * 612.36 }, methodology);
 
       setCalculation({
         id: 'local-calc',

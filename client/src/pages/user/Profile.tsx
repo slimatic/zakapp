@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { apiService, API_BASE_URL } from '../../services/api';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
@@ -32,7 +32,7 @@ interface PrivacySettings {
 export const Profile: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
+
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'privacy' | 'danger'>('profile');
   const [profileData, setProfileData] = useState<ProfileFormData>({
     username: user?.username || '',
@@ -44,7 +44,7 @@ export const Profile: React.FC = () => {
       calendarType: (user as any)?.preferences?.calendarType || 'lunar'
     }
   });
-  
+
   const [passwordData, setPasswordData] = useState<PasswordChangeData>({
     currentPassword: '',
     newPassword: '',
@@ -52,7 +52,7 @@ export const Profile: React.FC = () => {
   });
 
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
-  
+
   // Privacy settings state (FR-020: Anonymous Usage Statistics toggle)
   const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
     anonymousUsageStats: false
@@ -80,14 +80,14 @@ export const Profile: React.FC = () => {
     mutationFn: async (data: ProfileFormData) => {
       // Update general profile
       const profileResult = await apiService.updateProfile(data);
-      
+
       // Update calendar preferences separately via new calendar API
       const calendarPrefs = {
         preferredCalendar: data.preferences.calendarType === 'lunar' ? 'hijri' as const : 'gregorian' as const,
         preferredMethodology: data.preferences.zakatMethod as 'standard' | 'hanafi' | 'shafi' | 'custom'
       };
       await apiService.updateCalendarPreferences(calendarPrefs);
-      
+
       return profileResult;
     },
     onSuccess: () => {
@@ -138,17 +138,17 @@ export const Profile: React.FC = () => {
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error('New passwords do not match');
       return;
     }
-    
+
     if (passwordData.newPassword.length < 8) {
       toast.error('Password must be at least 8 characters long');
       return;
     }
-    
+
     passwordMutation.mutate(passwordData);
   };
 
@@ -156,12 +156,12 @@ export const Profile: React.FC = () => {
     const confirmed = window.confirm(
       'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.'
     );
-    
+
     if (confirmed) {
       const doubleConfirmed = window.prompt(
         'Type "DELETE" to confirm account deletion:'
       );
-      
+
       if (doubleConfirmed === 'DELETE') {
         deleteAccountMutation.mutate();
       }
@@ -171,10 +171,10 @@ export const Profile: React.FC = () => {
   const exportUserData = async () => {
     try {
       setShowSuccessMessage('Preparing your data export...');
-      
+
       // Get auth token
       const token = localStorage.getItem('accessToken');
-      
+
       // Fetch the export file directly
       const response = await fetch(`${API_BASE_URL}/user/export-request`, {
         method: 'POST',
@@ -184,11 +184,11 @@ export const Profile: React.FC = () => {
         },
         body: JSON.stringify({ format: 'json' })
       });
-      
+
       if (response.ok) {
         // Get the response as blob
         const blob = await response.blob();
-        
+
         // Create download link
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -198,7 +198,7 @@ export const Profile: React.FC = () => {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
+
         setShowSuccessMessage('Data export downloaded successfully!');
       } else {
         setShowSuccessMessage('Export request submitted. Processing...');
@@ -241,9 +241,9 @@ export const Profile: React.FC = () => {
       </div>
 
       {/* Success Message - ARIA live region for screen reader announcements */}
-      <div 
-        role="status" 
-        aria-live="polite" 
+      <div
+        role="status"
+        aria-live="polite"
         aria-atomic="true"
         className={showSuccessMessage ? "bg-green-50 border border-green-200 rounded-lg p-4 mb-6" : "sr-only"}
       >
@@ -258,9 +258,9 @@ export const Profile: React.FC = () => {
       {/* Tabs - WCAG 2.1 AA compliant with keyboard navigation */}
       <div className="bg-white rounded-lg shadow">
         <div className="border-b border-gray-200">
-          <nav 
-            className="-mb-px flex space-x-8 px-6" 
-            role="tablist" 
+          <nav
+            className="-mb-px flex space-x-8 px-6"
+            role="tablist"
             aria-label="Profile settings tabs"
           >
             {[
@@ -300,11 +300,10 @@ export const Profile: React.FC = () => {
                     document.getElementById('tab-danger')?.focus();
                   }
                 }}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  activeTab === tab.id
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 <span className="mr-2" aria-hidden="true">{tab.icon}</span>
                 {tab.name}
@@ -316,7 +315,7 @@ export const Profile: React.FC = () => {
         <div className="p-6">
           {/* Profile Information Tab */}
           {activeTab === 'profile' && (
-            <div 
+            <div
               id="tabpanel-profile"
               role="tabpanel"
               aria-labelledby="tab-profile"
@@ -447,7 +446,7 @@ export const Profile: React.FC = () => {
                         <option value="solar">Gregorian (Solar Calendar - 365 days/year)</option>
                       </select>
                       <p className="mt-1 text-xs text-gray-500">
-                        💡 Zakat is due after one lunar year (Hijri) from your last payment. 
+                        💡 Zakat is due after one lunar year (Hijri) from your last payment.
                         Using the Hijri calendar is more Islamically accurate.
                       </p>
                     </div>
@@ -491,7 +490,7 @@ export const Profile: React.FC = () => {
               </form>
 
               {profileMutation.error && (
-                <ErrorMessage 
+                <ErrorMessage
                   error={profileMutation.error}
                   title="Failed to update profile"
                 />
@@ -501,7 +500,7 @@ export const Profile: React.FC = () => {
 
           {/* Security Tab */}
           {activeTab === 'security' && (
-            <div 
+            <div
               id="tabpanel-security"
               role="tabpanel"
               aria-labelledby="tab-security"
@@ -592,7 +591,7 @@ export const Profile: React.FC = () => {
               </form>
 
               {passwordMutation.error && (
-                <ErrorMessage 
+                <ErrorMessage
                   error={passwordMutation.error}
                   title="Failed to change password"
                 />
@@ -631,7 +630,7 @@ export const Profile: React.FC = () => {
 
           {/* Privacy & Data Tab */}
           {activeTab === 'privacy' && (
-            <div 
+            <div
               id="tabpanel-privacy"
               role="tabpanel"
               aria-labelledby="tab-privacy"
@@ -708,7 +707,7 @@ export const Profile: React.FC = () => {
               {/* Privacy Settings */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-900">Privacy Preferences</h3>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div>
@@ -736,9 +735,9 @@ export const Profile: React.FC = () => {
                       <p className="text-sm text-gray-600">Help improve ZakApp by sharing anonymous usage data</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
                         checked={privacySettings.anonymousUsageStats}
                         onChange={async (e) => {
                           const newValue = e.target.checked;
@@ -772,7 +771,7 @@ export const Profile: React.FC = () => {
                     <div>
                       <p className="font-medium text-yellow-800">Data Retention Policy</p>
                       <p className="text-sm text-yellow-700 mt-1">
-                        Your data is retained indefinitely for calculation accuracy and historical tracking. 
+                        Your data is retained indefinitely for calculation accuracy and historical tracking.
                         You can delete your account at any time to remove all data permanently.
                       </p>
                     </div>
@@ -784,7 +783,7 @@ export const Profile: React.FC = () => {
 
           {/* Danger Zone Tab */}
           {activeTab === 'danger' && (
-            <div 
+            <div
               id="tabpanel-danger"
               role="tabpanel"
               aria-labelledby="tab-danger"
@@ -812,7 +811,7 @@ export const Profile: React.FC = () => {
                       Permanently delete your account and all associated data. This action cannot be undone.
                       All your assets, calculations, payment history, and personal information will be permanently removed.
                     </p>
-                    
+
                     <div className="bg-white border border-red-200 rounded p-4 mb-4">
                       <p className="text-sm font-medium text-red-800 mb-2">
                         Before deleting your account, consider:
@@ -824,9 +823,9 @@ export const Profile: React.FC = () => {
                         <li>This action affects all your stored Islamic financial data</li>
                       </ul>
                     </div>
-                    
-                    <Button 
-                      variant="destructive" 
+
+                    <Button
+                      variant="destructive"
                       onClick={handleDeleteAccount}
                       disabled={deleteAccountMutation.isPending}
                       aria-describedby="delete-warning"
@@ -842,7 +841,7 @@ export const Profile: React.FC = () => {
               </div>
 
               {deleteAccountMutation.error && (
-                <ErrorMessage 
+                <ErrorMessage
                   error={deleteAccountMutation.error}
                   title="Failed to delete account"
                 />

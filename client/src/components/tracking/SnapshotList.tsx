@@ -63,8 +63,8 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
   };
 
   const handleSelectSnapshot = (snapshotId: string, selected: boolean) => {
-    setSelectedSnapshots(prev => 
-      selected 
+    setSelectedSnapshots(prev =>
+      selected
         ? [...prev, snapshotId]
         : prev.filter(id => id !== snapshotId)
     );
@@ -115,7 +115,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
             {pagination ? `${pagination.totalItems} records` : 'Your Zakat calculation history'}
           </p>
         </div>
-        
+
         {onCreateNew && (
           <Button onClick={onCreateNew}>
             Create New Record
@@ -191,7 +191,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
                 Select All ({selectedSnapshots.length} selected)
               </label>
             </div>
-            
+
             {selectedSnapshots.length > 0 && (
               <Button
                 variant="ghost"
@@ -202,7 +202,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
               </Button>
             )}
           </div>
-          
+
           {selectedSnapshots.length >= 2 && onCompareSelected && (
             <Button
               variant="default"
@@ -225,8 +225,8 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No records found</h3>
           <p className="text-gray-600 mb-4">
-            {filters.status !== 'all' || filters.year 
-              ? 'No Nisab Year Records match your current filters.' 
+            {filters.status !== 'all' || filters.year
+              ? 'No Nisab Year Records match your current filters.'
               : 'Create your first Nisab Year Record to start tracking your Zakat history.'}
           </p>
           {onCreateNew && (
@@ -261,7 +261,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
             {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of{' '}
             {pagination.totalItems} results
           </div>
-          
+
           <div className="flex gap-2">
             <Button
               variant="ghost"
@@ -271,7 +271,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
             >
               Previous
             </Button>
-            
+
             {/* Page numbers */}
             <div className="flex gap-1">
               {Array.from(
@@ -280,11 +280,11 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
                   const page = Math.max(1, pagination.currentPage - 2) + i;
                   const totalPages = Math.ceil(pagination.totalItems / pagination.pageSize);
                   if (page > totalPages) return null;
-                  
+
                   return (
                     <Button
                       key={page}
-                      variant={page === pagination.currentPage ? 'primary' : 'ghost'}
+                      variant={page === pagination.currentPage ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => handlePageChange(page)}
                     >
@@ -294,7 +294,7 @@ export const SnapshotList: React.FC<SnapshotListProps> = ({
                 }
               )}
             </div>
-            
+
             <Button
               variant="ghost"
               size="sm"

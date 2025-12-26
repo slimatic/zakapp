@@ -21,7 +21,7 @@ export interface AssetBreakdownData {
     name: string;
     category: string;
     value: number;
-    isZakatable: boolean;
+    zakatEligible: boolean;
     addedAt: string;
   }>;
   capturedAt: string;
@@ -154,7 +154,7 @@ export const AssetBreakdownView: React.FC<AssetBreakdownViewProps> = ({
                   {formatCurrency(asset.value)}
                 </td>
                 <td className="px-4 py-3 text-center">
-                  {asset.isZakatable ? (
+                  {asset.zakatEligible ? (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       <span className="sr-only">Zakatable: </span>Yes
                     </span>
@@ -199,11 +199,10 @@ export const AssetBreakdownView: React.FC<AssetBreakdownViewProps> = ({
       {/* Status indicator */}
       <div className="text-sm text-gray-600 flex items-center space-x-2">
         <span
-          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-            recordStatus === 'FINALIZED'
+          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${recordStatus === 'FINALIZED'
               ? 'bg-green-100 text-green-800'
               : 'bg-yellow-100 text-yellow-800'
-          }`}
+            }`}
         >
           {recordStatus}
         </span>

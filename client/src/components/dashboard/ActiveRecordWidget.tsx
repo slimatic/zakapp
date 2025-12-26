@@ -4,31 +4,7 @@ import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
 import { usePayments } from '../../hooks/usePayments';
 
-// Type matching the actual API response from the backend
-interface NisabYearRecord {
-  id: string;
-  userId: string;
-  // API field names (as returned by the backend)
-  hawlStartDate?: string;
-  hawlCompletionDate?: string;
-  nisabThresholdAtStart?: string | number; // Can be encrypted string or decrypted number
-  totalWealth?: string | number;
-  zakatableWealth?: string | number;
-  zakatAmount?: string | number;
-  nisabBasis?: 'GOLD' | 'SILVER';
-  status?: string;
-  methodologyUsed?: string;
-  // Legacy field names (for backward compatibility)
-  startDate?: string;
-  endDate?: string;
-  initialNisabThreshold?: number;
-  nisabMethod?: string;
-  daysElapsed?: number;
-  daysRemaining?: number;
-  currentWealth?: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { NisabYearRecord } from '../../types/nisabYearRecord';
 
 interface ActiveRecordWidgetProps {
   record: NisabYearRecord | null;
@@ -53,11 +29,11 @@ interface ActiveRecordWidgetProps {
  */
 export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }) => {
   const maskedCurrency = useMaskedCurrency();
-  
+
   // Get live Nisab threshold for consistency
   const nisabBasis = (record?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
   const { nisabAmount } = useNisabThreshold('USD', nisabBasis);
-  
+
   // Hooks must be called unconditionally. Prepare memoized values and queries
   // using safe accessors so they can be evaluated even if `record` is null.
   const zakatDue = useMemo(() => {
@@ -88,12 +64,12 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
   // Get start and end dates (support both API and legacy field names)
   const startDateStr = record.hawlStartDate || record.startDate;
   const endDateStr = record.hawlCompletionDate || record.endDate;
-  
+
   // Calculate days elapsed and remaining from dates
   const totalDays = 354; // Lunar year
   let daysElapsed = record.daysElapsed || 0;
   let daysRemaining = record.daysRemaining || totalDays;
-  
+
   if (startDateStr) {
     const startDate = new Date(startDateStr);
     const today = new Date();
@@ -101,19 +77,19 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
     daysElapsed = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
     daysRemaining = Math.max(0, totalDays - daysElapsed);
   }
-  
+
   const progressPercentage = Math.min((daysElapsed / totalDays) * 100, 100);
 
   // Get wealth values (support both API and legacy field names)
   // API returns totalWealth as string, need to parse it
-  const currentWealth = record.currentWealth || 
-    (typeof record.totalWealth === 'string' ? parseFloat(record.totalWealth) : record.totalWealth) || 
+  const currentWealth = record.currentWealth ||
+    (typeof record.totalWealth === 'string' ? parseFloat(record.totalWealth) : record.totalWealth) ||
     0;
-  
+
   // Nisab threshold might be encrypted (string) or a number
   // Use live value if available, otherwise fall back to record value or default
   let nisabThreshold = nisabAmount || record.initialNisabThreshold || 5000;
-  
+
   // If we don't have a live value yet, try to use the record's stored value
   if (!nisabAmount && record.nisabThresholdAtStart) {
     if (typeof record.nisabThresholdAtStart === 'number') {
@@ -127,11 +103,11 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
       // If it's encrypted (NaN), keep the default
     }
   }
-  
+
   // Prevent division by zero
   const wealthDifference = currentWealth - nisabThreshold;
-  const differencePercentage = nisabThreshold > 0 
-    ? (wealthDifference / nisabThreshold) * 100 
+  const differencePercentage = nisabThreshold > 0
+    ? (wealthDifference / nisabThreshold) * 100
     : 0;
 
 
@@ -213,7 +189,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
             {maskedCurrency(`$${currentWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
           </span>
         </div>
-        
+
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-600">Nisab Threshold</span>
           <span className="text-sm font-medium text-gray-700">
@@ -232,23 +208,23 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
         </div>
       </div>
 
-        {/* Zakat payment summary */}
-        <div className="mb-4 p-4 bg-gray-50 rounded-md border border-gray-200">
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <div className="text-xs text-gray-600">Zakat Due</div>
-              <div className="text-lg font-bold text-green-800">{maskedCurrency(`$${zakatDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-600">Payments Made</div>
-              <div className="text-lg font-bold text-gray-900">{maskedCurrency(`$${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-600">Payments Remaining</div>
-              <div className="text-lg font-bold text-red-700">{maskedCurrency(`$${zakatRemaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
-            </div>
+      {/* Zakat payment summary */}
+      <div className="mb-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+        <div className="grid grid-cols-3 gap-4 text-sm">
+          <div>
+            <div className="text-xs text-gray-600">Zakat Due</div>
+            <div className="text-lg font-bold text-green-800">{maskedCurrency(`$${zakatDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-600">Payments Made</div>
+            <div className="text-lg font-bold text-gray-900">{maskedCurrency(`$${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-600">Payments Remaining</div>
+            <div className="text-lg font-bold text-red-700">{maskedCurrency(`$${zakatRemaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
           </div>
         </div>
+      </div>
 
       {/* Action Link */}
       <Link

@@ -16,7 +16,7 @@ export interface Asset {
   name: string;
   category: string;
   value: number;
-  isZakatable: boolean;
+  zakatEligible?: boolean;
   calculationModifier?: number;
   zakatableValue?: number;
   addedAt: string;
@@ -35,11 +35,11 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
 }) => {
   // Initialize selection: use initialSelection or auto-select zakatable assets
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => {
-    if (initialSelection && initialSelection.length > 0) {
+    if (initialSelection) {
       return new Set(initialSelection);
     }
     // Auto-select all zakatable assets by default
-    return new Set(assets.filter(a => a.isZakatable).map(a => a.id));
+    return new Set(assets.filter(a => a.zakatEligible).map(a => a.id));
   });
 
   // Notify parent of selection changes
@@ -52,7 +52,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
     const selectedAssets = assets.filter(a => selectedIds.has(a.id));
     const totalWealth = selectedAssets.reduce((sum, a) => sum + a.value, 0);
     const zakatableWealth = selectedAssets
-      .filter(a => a.isZakatable)
+      .filter(a => a.zakatEligible)
       .reduce((sum, a) => sum + (typeof a.zakatableValue === 'number' ? a.zakatableValue : a.value), 0);
     const zakatAmount = zakatableWealth * 0.025; // 2.5%
 
@@ -166,7 +166,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                       checked={isSelected}
                       onChange={() => handleToggle(asset.id)}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                      className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                       aria-label={`Select ${asset.name}`}
                     />
                   </td>
@@ -183,7 +183,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                     {formatCurrency(typeof asset.zakatableValue === 'number' ? asset.zakatableValue : asset.value)}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {asset.isZakatable ? (
+                    {asset.zakatEligible ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         <span className="sr-only">Zakatable: </span>Yes
                       </span>
@@ -226,7 +226,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
         </table>
       </div>
 
-      <div className="text-sm text-gray-600" role="status" aria-live="polite">
+      <div className="text-sm text-gray-600" role="status" aria-live="polite" aria-label="Selection totals">
         {selectedIds.size} of {assets.length} assets selected
       </div>
     </div>
