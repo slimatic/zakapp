@@ -18,103 +18,90 @@ export const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!username || !password) {
-      return;
-    }
-
+    if (!username || !password) return;
     await login(username, password);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 px-4 sm:px-6 lg:px-8">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-200/20 blur-3xl animate-pulse-subtle" />
-        <div className="absolute top-[40%] right-[10%] w-[30%] h-[30%] rounded-full bg-secondary-200/20 blur-3xl animate-pulse-subtle" style={{ animationDelay: '1s' }} />
-      </div>
-
-      <Card className="w-full max-w-md relative z-10 animate-fade-in shadow-2xl border-white/40">
-        <CardHeader className="text-center space-y-2">
-          <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-500/30 mb-4 transform rotate-3 hover:rotate-6 transition-transform">
-            <span className="text-white text-3xl font-serif font-bold">Z</span>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-4">
+            <div className="bg-green-100 p-3 rounded-full">
+              <ShieldCheck className="h-8 w-8 text-green-600" />
+            </div>
           </div>
-          <CardTitle className="text-2xl font-serif text-slate-900">Welcome Back</CardTitle>
-          <CardDescription>
-            Sign in to your <span className="text-primary-600 font-medium">ZakApp</span> vault
+          <CardTitle className="text-2xl font-bold text-center text-gray-900">
+            Welcome Back
+          </CardTitle>
+          <CardDescription className="text-center text-gray-500">
+            Securely access your ZakApp local vault
           </CardDescription>
         </CardHeader>
-
         <CardContent>
-          <form className="space-y-5" onSubmit={handleSubmit} aria-label="Login form">
-            <div className="space-y-4">
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                required
-                placeholder="Enter your username or email"
-                label="Username or Email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                data-testid="email-input"
-                error={error && !username ? 'Required' : undefined}
-              />
-
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                placeholder="••••••••"
-                label="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                data-testid="password-input"
-                error={error && !password ? 'Required' : undefined}
-              />
-            </div>
-
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="rounded-lg bg-red-50 p-3 flex items-start space-x-3 text-sm text-red-800 animate-slide-up">
-                <ShieldCheck className="h-5 w-5 text-red-500 shrink-0" />
-                <span>{error || 'Login failed. Please check your credentials.'}</span>
+              <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+                {error}
               </div>
             )}
 
+            <div className="space-y-2">
+              <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Username
+              </label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={isLoading}
+                autoComplete="username"
+                aria-required="true"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                autoComplete="current-password"
+                aria-required="true"
+              />
+            </div>
+
             <Button
               type="submit"
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
               disabled={isLoading || !username || !password}
-              isLoading={isLoading}
-              className="w-full text-base py-6"
-              data-testid="login-button"
             >
-              Sign In
+              {isLoading ? 'Decrypting Vault...' : 'Login'}
             </Button>
           </form>
         </CardContent>
-
-        <CardFooter className="flex flex-col space-y-4 bg-slate-50/50 pt-6 rounded-b-xl">
-          <div className="text-sm text-center w-full space-y-3">
-            <Link
-              to="/forgot-password"
-              className="block font-medium text-primary-600 hover:text-primary-500 hover:underline transition-all"
-            >
+        <CardFooter className="flex flex-col space-y-4 text-center text-sm text-gray-500">
+          <div className="flex gap-1 justify-center">
+            <span>Don't have a vault?</span>
+            <Link to="/register" className="text-green-600 hover:text-green-700 hover:underline font-medium">
+              Create Local Profile
+            </Link>
+          </div>
+          <div className="text-xs">
+            <Link to="/forgot-password" className="text-gray-500 hover:text-gray-700 hover:underline">
               Forgot your password?
             </Link>
-
-            <div className="text-slate-500">
-              Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="font-bold text-slate-800 hover:text-primary-600 transition-colors"
-                data-testid="register-link"
-              >
-                Create one now
-              </Link>
-            </div>
+          </div>
+          <div className="text-xs text-gray-400 mt-4 flex items-center justify-center gap-1">
+            <ShieldCheck className="w-3 h-3" />
+            <span>End-to-End Encrypted on your device</span>
           </div>
         </CardFooter>
       </Card>

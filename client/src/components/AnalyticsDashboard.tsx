@@ -83,14 +83,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(
           <CardTitle>Monthly Trends</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
+          <ul className="space-y-2">
             {data.monthlyTrends.map(trend => (
-              <div key={`${trend.month}-${trend.year}`} className="flex justify-between">
+              <li key={`${trend.month}-${trend.year}`} className="flex justify-between">
                 <span>{trend.month}/{trend.year}</span>
                 <span>{trend.paymentCount} payments - {formatCurrency(trend.totalAmount)}</span>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </CardContent>
       </Card>
 
@@ -100,17 +100,17 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(
           <CardTitle>Year-over-Year Comparison</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <ul className="space-y-4">
             {data.yearlyComparison.map(comparison => (
-              <div key={comparison.year} className="flex justify-between items-center">
+              <li key={comparison.year} className="flex justify-between items-center">
                 <span className="font-medium">{comparison.year}</span>
                 <div className="text-right">
                   <div className="font-bold">{formatCurrency(comparison.totalAmount)}</div>
                   <div className="text-sm text-gray-500">{comparison.paymentCount} payments</div>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </CardContent>
       </Card>
 
@@ -120,17 +120,17 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(
           <CardTitle>Payment Categories</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <ul className="space-y-3">
             {data.categoryBreakdown.map(category => (
-              <div key={category.category} className="flex justify-between items-center">
+              <li key={category.category} className="flex justify-between items-center">
                 <span className="capitalize">{category.category}</span>
                 <div className="text-right">
                   <div className="font-bold">{formatCurrency(category.amount)}</div>
                   <div className="text-sm text-gray-500">{category.percentage}%</div>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </CardContent>
       </Card>
     </div>

@@ -1,25 +1,22 @@
 /**
- * PaymentRecordForm Component - T061
- * Form for creating/editing Zakat payment records with Islamic recipient categories
+ * PaymentRecordForm Component (Local-First Refactor)
+ * Form for creating/editing Zakat payment records with Islamic recipient categories using RxDB
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createPaymentSchema } from '@zakapp/shared';
 import { z } from 'zod';
-import { useCreatePayment, useUpdatePayment } from '../../hooks/usePayments';
-import { useDeletePayment, useDeleteSnapshotPayment } from '../../hooks/usePaymentRecords';
-import { useNisabYearRecords } from '../../hooks/useNisabYearRecords';
+import { usePaymentRepository } from '../../hooks/usePaymentRepository';
+import { useNisabRecordRepository } from '../../hooks/useNisabRecordRepository';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
-import type { NisabYearRecord } from '../../types/nisabYearRecord';
 import { looksEncrypted } from '../../utils/encryption';
 
-// Redefine schema locally to prevent Zod version mismatch issues between client and shared
+// Redefine schema locally
 const paymentRecordFormSchema = z.object({
   amount: z.string()
     .min(1, 'Amount is required')
@@ -27,7 +24,7 @@ const paymentRecordFormSchema = z.object({
   paymentDate: z.string().min(1, 'Payment date is required'),
   recipientName: z.string().min(1, 'Recipient name is required').max(200),
   snapshotId: z.string().min(1, 'Please select a Nisab Year Record'),
-  recipientCategory: z.enum(['poor', 'orphans', 'widows', 'education', 'healthcare', 'infrastructure', 'general'], {
+  recipientCategory: z.enum(['poor', 'orphans', 'widows', 'education', 'healthcare', 'infrastructure', 'general', 'fakir', 'miskin', 'amil', 'muallaf', 'riqab', 'gharimin', 'fisabilillah', 'ibnus_sabil', 'other'], {
     errorMap: () => ({ message: 'Please select a valid recipient category' })
   }),
   recipientType: z.enum(['individual', 'organization', 'charity', 'mosque', 'family', 'other']).default('individual'),
@@ -41,10 +38,6 @@ const paymentRecordFormSchema = z.object({
 type PaymentRecordFormSchemaType = z.infer<typeof paymentRecordFormSchema>;
 
 interface PaymentRecordFormProps {
-  /**
-   * Preferred prop for linking a payment to a Nisab Year Record.
-   * `snapshotId` is temporarily kept for backwards compatibility and will be removed.
-   */
   nisabRecordId?: string;
   snapshotId?: string;
   payment?: PaymentRecord; // For editing existing payments
@@ -52,8 +45,6 @@ interface PaymentRecordFormProps {
   onCancel?: () => void;
 }
 
-// Islamic recipient categories (8 categories of Zakat recipients)
-// Note: These values must map to the schema enum values
 const ZAKAT_RECIPIENTS = [
   { value: 'poor', label: 'Poor & Needy (Fuqara & Masakin)', description: 'Those in need (owning less than Nisab)' },
   { value: 'orphans', label: 'Orphans', description: 'Children without support' },
@@ -70,7 +61,7 @@ const PAYMENT_METHODS = [
   { value: 'check', label: 'Check' },
   { value: 'online', label: 'Online Payment' },
   { value: 'other', label: 'Other' },
-  { value: 'crypto', label: 'Crypto' } // Added as per schema
+  { value: 'crypto', label: 'Crypto' }
 ];
 
 export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
@@ -87,15 +78,12 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   const shouldLockRecordSelection = Boolean(lockedRecordIdFromProps);
 
   const [recipientDecryptionWarning, setRecipientDecryptionWarning] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Helper to map legacy/backend values to schema
   const getInitialCategory = (val?: string) => {
     if (!val) return 'poor';
-    if (val === 'fakir' || val === 'miskin') return 'poor';
-    if (['poor', 'orphans', 'widows', 'education', 'healthcare', 'infrastructure', 'general'].includes(val)) {
-      return val;
-    }
-    return 'poor'; // default fallback
+    return val;
   };
 
   // React Hook Form
@@ -104,15 +92,14 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
     handleSubmit,
     setValue,
     watch,
-    control,
     formState: { errors },
   } = useForm<PaymentRecordFormSchemaType>({
     resolver: zodResolver(paymentRecordFormSchema) as any,
     defaultValues: {
       amount: payment?.amount?.toString() || '',
-      currency: 'USD', // Added as per instruction
+      currency: 'USD',
       paymentDate: payment?.paymentDate ?
-        (typeof payment.paymentDate === 'string' ? payment.paymentDate.slice(0, 10) : payment.paymentDate.toISOString().slice(0, 10)) :
+        (typeof payment.paymentDate === 'string' ? payment.paymentDate.slice(0, 10) : new Date(payment.paymentDate).toISOString().slice(0, 10)) :
         new Date().toISOString().slice(0, 10),
       recipientName: looksEncrypted(payment?.recipientName) ? '' : payment?.recipientName || '',
       recipientCategory: getInitialCategory(payment?.recipientCategory) as any,
@@ -120,38 +107,22 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       paymentMethod: (payment?.paymentMethod as any) || 'cash',
       notes: payment?.notes || '',
       receiptReference: payment?.receiptReference || '',
-      recipientType: (payment?.recipientType as any) || 'individual', // Added default
+      recipientType: (payment?.recipientType as any) || 'individual',
     },
   });
 
-  // Watch snapshotId to sync local state logic if needed (e.g. knowing which year is selected)
+  // Watch snapshotId
   const selectedSnapshotId = watch('snapshotId');
 
-  // Fetch Nisab Year Records
-  const {
-    data: nisabRecordsData,
-    isLoading: isLoadingNisabRecords,
-    error: nisabRecordsError
-  } = useNisabYearRecords({
-    status: ['DRAFT', 'FINALIZED', 'UNLOCKED'],
-    limit: 100,
-  });
-  const nisabRecords = nisabRecordsData?.records ?? [];
+  // Repositories
+  const { records: nisabRecords, isLoading: isLoadingNisabRecords } = useNisabRecordRepository();
+  const { addPayment, updatePayment, removePayment } = usePaymentRepository();
 
   const lockedNisabRecord = useMemo(() => (
     lockedRecordIdFromProps
-      ? nisabRecords.find((record: NisabYearRecord) => record.id === lockedRecordIdFromProps)
+      ? nisabRecords.find(record => record.id === lockedRecordIdFromProps)
       : undefined
   ), [lockedRecordIdFromProps, nisabRecords]);
-
-  // Mutations
-  const createPaymentMutation = useCreatePayment();
-  const updatePaymentMutation = useUpdatePayment();
-  const deletePaymentMutation = useDeletePayment();
-  const deleteSnapshotMutation = useDeleteSnapshotPayment();
-
-  const isLoading = createPaymentMutation.isPending || updatePaymentMutation.isPending;
-  const submitError = createPaymentMutation.error || updatePaymentMutation.error;
 
   // Effects
   useEffect(() => {
@@ -187,38 +158,39 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
 
 
   const onSubmitForm = async (data: PaymentRecordFormSchemaType) => {
+    setIsSubmitting(true);
     // Transform date to ISO
     const isoDate = new Date(data.paymentDate).toISOString();
 
     const paymentData = {
       ...data,
-      amount: parseFloat(data.amount), // Parse string amount to number
+      amount: parseFloat(data.amount),
       paymentDate: isoDate,
-      // Ensure specific types
       recipientType: 'individual' as const,
       status: 'recorded' as const,
     };
 
     try {
-      let result: PaymentRecord;
-
       if (isEditing && payment) {
-        result = await updatePaymentMutation.mutateAsync({
-          id: payment.id,
-          // snapshotId is properly typed in the schema but explicit casting might be needed if updatePaymentMutation expects stricter types
-          // The shared updatePaymentSchema expects partials, but my form provides full data.
-          snapshotId: data.snapshotId,
-          // We need to cast paymentData because UpdatePaymentInput expects numbers for amount, etc.
-          data: paymentData as any // Casting to satisfy the partial update requirement vs full object
-        });
+        await updatePayment(payment.id, paymentData as any);
+        toast.success('Payment updated');
+        onSuccess?.({ ...payment, ...paymentData, amount: paymentData.amount }); // Optimistic result pass-back
       } else {
-        // Create expects specific structure.
-        result = await createPaymentMutation.mutateAsync(paymentData as any);
+        await addPayment(paymentData as any);
+        toast.success('Payment recorded');
+        onSuccess?.({
+          ...paymentData,
+          userId: 'local-user',
+          id: 'temp-id',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        } as any);
       }
-      toast.success(isEditing ? 'Payment updated' : 'Payment recorded');
-      onSuccess?.(result);
     } catch (error) {
+      console.error(error);
       toast.error('Error saving payment record');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -226,17 +198,16 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
     if (!payment) return;
     if (!window.confirm('Delete this payment? This action cannot be undone.')) return;
 
+    setIsSubmitting(true);
     try {
-      if (nisabRecordId || payment.snapshotId) {
-        await deleteSnapshotMutation.mutateAsync(payment.id);
-      } else {
-        const paymentId = (payment as any).paymentId || payment.id;
-        await deletePaymentMutation.mutateAsync(paymentId);
-      }
+      await removePayment(payment.id);
       toast.success('Payment deleted');
       onCancel?.();
     } catch (e) {
+      console.error(e);
       toast.error('Failed to delete payment');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -263,6 +234,14 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
               <LoadingSpinner size="sm" className="mr-2" />
               Loading Nisab Year Records...
             </div>
+          ) : nisabRecords.length === 0 ? (
+            <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200">
+              <p className="text-sm text-yellow-800 mb-2">No active Nisab Year Records found.</p>
+              <p className="text-xs text-yellow-700 mb-3">You must create a Nisab Year Record to link this payment to.</p>
+              <Button type="button" variant="outline" size="sm" onClick={() => window.open('/nisab-records', '_blank')}>
+                Create Nisab Record (Opens in new tab)
+              </Button>
+            </div>
           ) : (
             <>
               <select
@@ -273,9 +252,9 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
                 disabled={isLoadingNisabRecords}
               >
                 <option value="">Select a Nisab Year Record</option>
-                {nisabRecords.map((record: NisabYearRecord) => (
+                {nisabRecords.map((record) => (
                   <option key={record.id} value={record.id}>
-                    {record.gregorianYear || record.calculationYear || 'N/A'} ({record.hijriYear ?? 'Hijri N/A'} AH) - {record.status}
+                    {record.gregorianYear || new Date(record.createdAt || new Date().toISOString()).getFullYear() || 'N/A'} ({record.hijriYear ?? 'Hijri N/A'} AH) - {record.status}
                   </option>
                 ))}
               </select>
@@ -315,10 +294,8 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             type="text"
             placeholder="0.00"
             className="text-right"
-            autoSelectOnFocus={true}
             error={errors.amount?.message}
             {...register('amount')}
-          // On blur formatting could be added here if desired, but schema handles validation
           />
           <p className="text-xs text-gray-500 mt-1">
             Enter the amount in your local currency
@@ -343,7 +320,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
         <select
           id="recipientCategory"
           {...register('recipientCategory')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.recipientCategory ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'}`}
         >
           {ZAKAT_RECIPIENTS.map((category) => (
             <option key={category.value} value={category.value}>
@@ -351,7 +328,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             </option>
           ))}
         </select>
-        <p className="mt-1 text-xs text-gray-500">
+        <p id="recipientCategory-desc" className="mt-1 text-xs text-gray-500">
           {ZAKAT_RECIPIENTS.find(c => c.value === watch('recipientCategory'))?.description}
         </p>
         {errors.recipientCategory?.message && (
@@ -417,31 +394,14 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
         )}
       </div>
 
-      {/* Error Display */}
-      {submitError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-          <div className="flex items-start">
-            <svg className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-red-800">Failed to save payment</p>
-              <p className="text-sm text-red-600 mt-1">
-                {submitError instanceof Error ? submitError.message : String(submitError)}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Form Actions */}
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4 border-t">
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={isSubmitting}
           className="w-full sm:w-auto sm:min-w-[120px]"
         >
-          {isLoading ? (
+          {isSubmitting ? (
             <>
               <LoadingSpinner size="sm" className="mr-2" />
               {isEditing ? 'Updating...' : 'Saving...'}
@@ -455,10 +415,10 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             type="button"
             variant="destructive"
             onClick={handleDelete}
-            disabled={isLoading || deletePaymentMutation.isPending || deleteSnapshotMutation.isPending}
+            disabled={isSubmitting}
             className="w-full sm:w-auto sm:min-w-[120px]"
           >
-            {deletePaymentMutation.isPending || deleteSnapshotMutation.isPending ? 'Deleting...' : 'Delete Payment'}
+            {isSubmitting ? 'Deleting...' : 'Delete Payment'}
           </Button>
         )}
 
@@ -467,29 +427,12 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             type="button"
             variant="secondary"
             onClick={onCancel}
-            disabled={isLoading}
+            disabled={isSubmitting}
             className="w-full sm:w-auto sm:min-w-[120px]"
           >
             Cancel
           </Button>
         )}
-      </div>
-
-      {/* Islamic Information */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-        <div className="flex items-start gap-2">
-          <svg className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-          </svg>
-          <div className="flex-1">
-            <h4 className="text-xs sm:text-sm font-medium text-green-800">
-              Islamic Guidelines
-            </h4>
-            <p className="text-xs text-green-700 mt-0.5">
-              The Quran specifies eight categories of people eligible to receive Zakat (Quran 9:60).
-            </p>
-          </div>
-        </div>
       </div>
     </form>
   );

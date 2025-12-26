@@ -114,12 +114,20 @@ export type RecipientCategory =
   | 'riqab' // Those in bondage (slaves and captives)
   | 'gharimin' // Those in debt
   | 'fisabilillah' // In the cause of Allah
-  | 'ibnus_sabil'; // The wayfarer (stranded traveler)
+  | 'ibnus_sabil' // The wayfarer (stranded traveler)
+  | 'poor'
+  | 'orphans'
+  | 'widows'
+  | 'education'
+  | 'healthcare'
+  | 'infrastructure'
+  | 'general'
+  | 'other';
 
 /**
  * Payment method
  */
-export type PaymentMethod = 'cash' | 'bank_transfer' | 'check' | 'online' | 'other';
+export type PaymentMethod = 'cash' | 'bank_transfer' | 'check' | 'online' | 'other' | 'crypto';
 
 /**
  * Payment status

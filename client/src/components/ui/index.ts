@@ -8,5 +8,5 @@ export { ErrorMessage } from './ErrorMessage';
 export { LoadingSpinner } from './LoadingSpinner';
 export { CalendarSelector } from './CalendarSelector';
 export { Tooltip, InfoIcon } from './Tooltip';
-export { Card, CardHeader, CardTitle, CardContent } from './Card';
+export { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from './Card';
 export { Breadcrumbs } from './Breadcrumbs';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import { getApiBaseUrl } from '../config';
 
@@ -40,7 +40,7 @@ export const FeedbackWidget: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
   const widgetRef = useRef<HTMLDivElement>(null);
@@ -167,8 +167,8 @@ export const FeedbackWidget: React.FC = () => {
           flex items-center justify-center
           transition-all duration-300 ease-in-out
           hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2
-          ${isOpen 
-            ? 'bg-gray-700 hover:bg-gray-800 focus:ring-gray-600' 
+          ${isOpen
+            ? 'bg-gray-700 hover:bg-gray-800 focus:ring-gray-600'
             : 'bg-teal-600 hover:bg-teal-700 focus:ring-teal-500'}
         `}
         aria-label={isOpen ? 'Close feedback widget' : 'Open feedback widget'}

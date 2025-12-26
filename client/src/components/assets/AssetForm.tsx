@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useCreateAsset, useUpdateAsset } from '../../services/apiHooks';
-import type { Asset, AssetCategoryType } from '@zakapp/shared';
+import { useAssetRepository } from '../../hooks/useAssetRepository';
+import { Asset, AssetType as AssetCategoryType } from '../../types';
 import { Button, Input } from '../ui';
 import {
   shouldShowPassiveCheckbox,
@@ -20,19 +20,38 @@ interface AssetFormProps {
 
 /**
  * AssetForm component for creating and editing assets with modifier support
+ * Local-First / Offline capable
  */
+// Helper to map AssetType back to form category
+const getCategoryFromType = (type: AssetCategoryType): string => {
+  const map: Record<string, string> = {
+    [AssetCategoryType.CASH]: 'cash',
+    [AssetCategoryType.BANK_ACCOUNT]: 'cash',
+    [AssetCategoryType.GOLD]: 'gold',
+    [AssetCategoryType.SILVER]: 'silver',
+    [AssetCategoryType.CRYPTOCURRENCY]: 'crypto',
+    [AssetCategoryType.BUSINESS_ASSETS]: 'business',
+    [AssetCategoryType.INVESTMENT_ACCOUNT]: 'stocks',
+    [AssetCategoryType.RETIREMENT]: 'stocks', // Map both to stocks category which has retirement subcats
+    [AssetCategoryType.REAL_ESTATE]: 'property',
+    [AssetCategoryType.DEBTS_OWED_TO_YOU]: 'debts',
+    [AssetCategoryType.OTHER]: 'expenses'
+  };
+  return map[type] || 'cash';
+};
+
 export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
     name: asset?.name || '',
-    category: asset?.category || 'cash' as AssetCategoryType,
-    subCategory: asset?.subCategory || '',
+    category: asset ? getCategoryFromType(asset.type) : 'cash',
+    subCategory: (asset as any)?.subCategory || '',
     value: asset?.value || 0,
     currency: asset?.currency || 'USD',
     acquisitionDate: asset?.acquisitionDate ? new Date(asset.acquisitionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    description: asset?.description || '',
-    zakatEligible: asset?.zakatEligible ?? true,
-    isPassiveInvestment: (asset as any)?.isPassiveInvestment || false,
-    isRestrictedAccount: (asset as any)?.isRestrictedAccount || false,
+    description: asset?.description || '', // Mapped to 'notes' in schema
+    zakatEligible: (asset as any)?.metadata ? JSON.parse((asset as any).metadata).legacyZakatEligible : (asset?.zakatEligible ?? true),
+    isPassiveInvestment: asset?.isPassiveInvestment || false,
+    isRestrictedAccount: asset?.isRestrictedAccount || false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -41,11 +60,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     (asset as any)?.calculationModifier || 1.0
   );
 
-  const createMutation = useCreateAsset();
-  const updateMutation = useUpdateAsset();
+  const { addAsset, updateAsset } = useAssetRepository();
 
   const isEditing = !!asset;
-  const mutation = isEditing ? updateMutation : createMutation;
 
   // Recalculate modifier when flags change
   useEffect(() => {
@@ -71,8 +88,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       newErrors.name = 'Asset name is required';
     }
 
-    if (formData.value <= 0) {
-      newErrors.value = 'Asset value must be greater than 0';
+    if (formData.value < 0) { // Allowed 0, but usually implies debt if negative (handled separately?) - sticking to > 0 warning if strictly asset
+      // For now, allow 0, but check negative
+    }
+    if (formData.value === undefined || formData.value === null) {
+      newErrors.value = 'Value is required';
     }
 
     if (!formData.currency.trim()) {
@@ -94,10 +114,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isSubmitting || mutation.isPending) return;
+    if (isSubmitting) return;
 
     if (!validateForm()) {
       return;
@@ -105,50 +125,38 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
     setIsSubmitting(true);
 
-    if (isEditing && asset) {
+    try {
       const assetData = {
-        ...formData,
-        category: CATEGORY_SEND_MAP[formData.category as string] || String(formData.category).toUpperCase(),
-        acquisitionDate: new Date(formData.acquisitionDate),
+        name: formData.name,
+        category: formData.category,
+        subCategory: formData.subCategory,
+        value: Number(formData.value),
+        currency: formData.currency,
+        acquisitionDate: new Date(formData.acquisitionDate).toISOString(),
         notes: formData.description,
+        zakatEligible: formData.zakatEligible,
+        isPassiveInvestment: formData.isPassiveInvestment,
+        isRestrictedAccount: formData.isRestrictedAccount,
+        calculationModifier: calculationModifier
       };
-      // keep zakatEligible so edits to eligibility persist
-      delete (assetData as any).description;
-      delete (assetData as any).subCategory;
 
-      updateMutation.mutate({ assetId: asset.assetId, assetData }, {
-        onSuccess: () => {
-          onSuccess?.();
-        },
-        onError: (error: any) => {
-          const msg = error instanceof Error ? error.message : 'Failed to update asset. Please try again.';
-          toast.error(msg);
-          setErrors({ submit: msg });
-          setIsSubmitting(false);
-        }
-      });
-    } else {
-      const assetData = {
-        ...formData,
-        category: CATEGORY_SEND_MAP[formData.category as string] || String(formData.category).toUpperCase(),
-        acquisitionDate: new Date(formData.acquisitionDate),
-        notes: formData.description,
-      };
-      // include zakatEligible for new assets as well
-      delete (assetData as any).description;
-      delete (assetData as any).subCategory;
+      if (isEditing && asset) {
+        await updateAsset(asset.id, assetData);
+        toast.success('Asset updated successfully');
+      } else {
+        await addAsset(assetData);
+        toast.success('Asset created successfully');
+      }
 
-      createMutation.mutate(assetData, {
-        onSuccess: () => {
-          onSuccess?.();
-        },
-        onError: (error: any) => {
-          const msg = error instanceof Error ? error.message : 'Failed to create asset. Please try again.';
-          toast.error(msg);
-          setErrors({ submit: msg });
-          setIsSubmitting(false);
-        }
-      });
+      onSuccess?.();
+
+    } catch (error: any) {
+      console.error('Asset save failed:', error);
+      const msg = error.message || 'Failed to save asset. Please try again.';
+      toast.error(msg);
+      setErrors({ submit: msg });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -171,19 +179,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     { value: 'debts', label: 'Debts Owed to You' },
     { value: 'expenses', label: 'Expenses' }
   ];
-
-  // Map UI category values to backend canonical categories
-  const CATEGORY_SEND_MAP: Record<string, string> = {
-    cash: 'cash',
-    gold: 'gold',
-    silver: 'silver',
-    business: 'business',
-    property: 'property',
-    stocks: 'stocks',
-    crypto: 'crypto',
-    debts: 'debts',
-    expenses: 'expenses'
-  };
 
   const subCategoryOptions: Record<string, Array<{ value: string; label: string }>> = {
     cash: [
@@ -329,10 +324,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         {/* Value and Currency */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-2">
-              Value *
-            </label>
             <Input
+              label="Value *"
               type="number"
               id="value"
               value={formData.value}
@@ -344,7 +337,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               aria-required="true"
               aria-invalid={!!errors.value}
               aria-describedby={errors.value ? 'value-error' : undefined}
-
+              isEncrypted={true}
             />
             {errors.value && (
               <p id="value-error" className="mt-1 text-sm text-red-600" role="alert">
@@ -572,8 +565,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           <Button
             type="submit"
             variant="default"
-            isLoading={isSubmitting || mutation.isPending}
-            disabled={isSubmitting || mutation.isPending}
+            isLoading={isSubmitting}
+            disabled={isSubmitting}
           >
             {isEditing ? 'Update Asset' : 'Add Asset'}
           </Button>

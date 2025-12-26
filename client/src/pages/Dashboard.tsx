@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { apiService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+// import { apiService } from '../services/api';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
+import { useAssetRepository } from '../hooks/useAssetRepository';
+import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { QuickActionCard } from '../components/dashboard/QuickActionCard';
 import { ActiveRecordWidget } from '../components/dashboard/ActiveRecordWidget';
@@ -13,7 +15,7 @@ import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { useUserOnboarding } from '../hooks/useUserOnboarding';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
-import type { Asset } from '@zakapp/shared';
+import type { Asset } from '../types';
 
 /**
  * Educational Module Component
@@ -86,8 +88,8 @@ const EducationalModule: React.FC = () => {
           <div>
             <h3 className="font-semibold text-gray-900 mb-2">What is Zakat?</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              Zakat is one of the Five Pillars of Islam and is an obligatory act of charity. It requires Muslims 
-              who meet specific wealth criteria to donate 2.5% of their qualifying wealth annually to those in need. 
+              Zakat is one of the Five Pillars of Islam and is an obligatory act of charity. It requires Muslims
+              who meet specific wealth criteria to donate 2.5% of their qualifying wealth annually to those in need.
               Zakat purifies wealth and helps create a more equitable society.
             </p>
           </div>
@@ -95,8 +97,8 @@ const EducationalModule: React.FC = () => {
           <div>
             <h3 className="font-semibold text-gray-900 mb-2">What is Nisab?</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              Nisab is the minimum threshold of wealth a Muslim must possess for one lunar year (Hawl) before 
-              Zakat becomes obligatory. The Nisab can be calculated based on the value of gold (85 grams) or 
+              Nisab is the minimum threshold of wealth a Muslim must possess for one lunar year (Hawl) before
+              Zakat becomes obligatory. The Nisab can be calculated based on the value of gold (85 grams) or
               silver (595 grams). ZakApp helps you track your wealth and determine when you've reached the Nisab threshold.
             </p>
           </div>
@@ -104,8 +106,8 @@ const EducationalModule: React.FC = () => {
           <div>
             <h3 className="font-semibold text-gray-900 mb-2">The Hawl Period</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              The Hawl is the Islamic lunar year period (354 days) during which your wealth must remain above 
-              the Nisab threshold for Zakat to be due. ZakApp's Nisab Year Record feature helps you track this 
+              The Hawl is the Islamic lunar year period (354 days) during which your wealth must remain above
+              the Nisab threshold for Zakat to be due. ZakApp's Nisab Year Record feature helps you track this
               period automatically and alerts you when Zakat payment is due.
             </p>
           </div>
@@ -172,57 +174,10 @@ export const Dashboard: React.FC = () => {
   const { currentStep, markComplete, completedSteps } = useUserOnboarding();
   const maskedCurrency = useMaskedCurrency();
 
-  // Debug logging
-  // Track onboarding state for UI rendering
+  // Local Data Repositories (RxDB)
+  const { assets, isLoading: assetsLoading, error: assetsError } = useAssetRepository();
+  const { activeRecord, isLoading: recordsLoading, error: recordsError } = useNisabRecordRepository();
 
-  // Fetch user's assets
-  const {
-    data: assetsResponse,
-    isLoading: assetsLoading,
-    error: assetsError,
-  } = useQuery({
-    queryKey: ['assets'],
-    queryFn: async () => {
-      const response = await apiService.getAssets();
-      return response.data;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Fetch active Nisab Year Record (DRAFT = active/in-progress)
-  const {
-    data: recordsData,
-    isLoading: recordsLoading,
-    error: recordsError,
-  } = useQuery({
-    queryKey: ['nisab-year-records', 'active'],
-    queryFn: async () => {
-      const response = await apiService.getNisabYearRecords({ 
-        status: ['DRAFT']
-      });
-      return response.data;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  const assets = assetsResponse?.assets || [];
-  
-  // Handle double-wrapped API response structure and get latest record
-  const allRecords = Array.isArray(recordsData) 
-    ? recordsData 
-    : (recordsData?.records || []);
-  
-  // Sort by hawlStartDate descending (newest first) and take the first one
-  // Ensure allRecords items have the expected shape for typing
-  type RecordItem = { hawlStartDate?: string | null } & Record<string, any>;
-  const records = allRecords.length > 0 
-    ? [allRecords.sort((a: RecordItem, b: RecordItem) => {
-        const at = a?.hawlStartDate ? new Date(a.hawlStartDate).getTime() : 0;
-        const bt = b?.hawlStartDate ? new Date(b.hawlStartDate).getTime() : 0;
-        return bt - at;
-      })[0]]
-    : [];
-  const activeRecord = records[0] || null;
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeRecord !== null;
 
@@ -417,7 +372,7 @@ export const Dashboard: React.FC = () => {
                     }).format(totalWealth)} in tracked assets.
                   </h3>
                   <p className="text-gray-700 mb-4">
-                    Ready to start tracking your Zakat obligations? Create a Nisab Year Record 
+                    Ready to start tracking your Zakat obligations? Create a Nisab Year Record
                     to monitor your Hawl period and calculate when Zakat becomes due.
                   </p>
                   <Link
@@ -481,7 +436,7 @@ export const Dashboard: React.FC = () => {
             <div className="space-y-3">
               {assets.slice(0, 5).map((asset: Asset) => (
                 <div
-                  key={asset.assetId}
+                  key={asset.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -494,7 +449,7 @@ export const Dashboard: React.FC = () => {
                     <div>
                       <p className="font-medium text-gray-900">{asset.name}</p>
                       <p className="text-sm text-gray-600 capitalize">
-                        {asset.category} • {asset.subCategory?.replace('_', ' ')}
+                        {asset.type.replace('_', ' ')}
                       </p>
                     </div>
                   </div>
@@ -505,9 +460,7 @@ export const Dashboard: React.FC = () => {
                         currency: asset.currency || 'USD',
                       }).format(asset.value || 0))}
                     </p>
-                    {asset.zakatEligible && (
-                      <span className="text-xs text-green-600 font-medium">Zakatable</span>
-                    )}
+                    <span className="text-xs text-green-600 font-medium">Zakatable</span>
                   </div>
                 </div>
               ))}

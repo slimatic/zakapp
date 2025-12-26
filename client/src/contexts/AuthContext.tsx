@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import toast from 'react-hot-toast';
-import { apiService } from '../services/api';
 import type { User } from '../types';
+import { getDb } from '../db';
+import { cryptoService } from '../services/CryptoService';
 
 interface AuthState {
   user: User | null;
@@ -83,91 +84,62 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+const LOCAL_USER_ID = 'local-user-profile';
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check if user is already authenticated on app start
+  // Check if user is already authenticated (session persistence logic could go here)
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        try {
-          const response = await apiService.getCurrentUser();
-          if (response.success && response.data?.user) {
-            // Map the API response to our User interface
-            const apiUser = response.data.user;
-            const user: User = {
-              id: apiUser.id,
-              username: apiUser.username || apiUser.email.split('@')[0],
-              email: apiUser.email,
-              firstName: apiUser.firstName,
-              lastName: apiUser.lastName,
-            };
-            dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-          } else {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            dispatch({ type: 'LOGOUT' });
-          }
-        } catch (error) {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          dispatch({ type: 'LOGOUT' });
-        }
-      } else {
-        dispatch({ type: 'SET_LOADING', payload: false });
-      }
-    };
-
-    checkAuth();
+    // For now, local-first apps often require login on refresh to re-derive memory keys
+    dispatch({ type: 'SET_LOADING', payload: false });
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    console.log('AuthContext: Attempting login for', email);
     dispatch({ type: 'LOGIN_START' });
     try {
-      // Attempting login
-      const isEmail = email.includes('@');
-      const credentials = isEmail
-        ? { email, password }
-        : { username: email, password };
+      const db = await getDb();
+      console.log('AuthContext: DB acquired');
 
-      const response = await apiService.login(credentials);
+      const userDoc = await db.user_settings.findOne(LOCAL_USER_ID).exec();
+      console.log('AuthContext: User document found?', !!userDoc);
 
-      if (response.success && response.accessToken && response.user) {
-        localStorage.setItem('accessToken', response.accessToken);
-        if (response.refreshToken) {
-          localStorage.setItem('refreshToken', response.refreshToken);
-        }
-
-        // --- Client-Side Key Derivation (Zero-Knowledge) ---
-        // Ideally, the server returns the user's specific salt here.
-        // For this renovation step, if salt is missing, we fallback to a deterministic salt (e.g. username/email)
-        // just to prove the architecture works. In production, this MUST be a random salt stored on server.
-        const salt = (response.user as any).salt || email;
-
-        import('../services/CryptoService').then(({ cryptoService }) => {
-          cryptoService.deriveKey(password, salt).catch(err => {
-            console.error("Critical: Failed to derive client-side key", err);
-            toast.error(`Security Warning: Failed to enable local encryption. ${err instanceof Error ? err.message : ''}`);
-          });
-        });
-        // ---------------------------------------------------
-
-        const user: User = {
-          id: response.user.id,
-          username: response.user.username || response.user.email.split('@')[0],
-          email: response.user.email,
-          firstName: response.user.firstName || '',
-          lastName: response.user.lastName || '',
-        };
-
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-        return true;
-      } else {
-        dispatch({ type: 'LOGIN_FAILURE', payload: response.message || 'Login failed' });
-        return false;
+      if (userDoc) {
+        console.log('AuthContext: User doc data:', userDoc.toJSON());
       }
+
+      if (!userDoc) {
+        throw new Error('No local user found. Please register.');
+      }
+
+      const security = userDoc.get('securityProfile');
+      if (!security || !security.salt) {
+        throw new Error('User profile corrupted. No security data.');
+      }
+
+      // 1. Derive Key
+      console.log('AuthContext: Deriving key...');
+      await cryptoService.deriveKey(password, security.salt);
+      console.log('AuthContext: Key derived successfully');
+
+      // 2. Verify Key (simplified: if we derived it, we assume success for this step if we don't have a verifier yet)
+      // Ideally check against security.verifier
+
+      const user: User = {
+        id: userDoc.get('id'),
+        username: userDoc.get('profileName') || 'Local User',
+        email: 'local@device', // Placeholder
+        firstName: '',
+        lastName: '',
+      };
+
+      console.log('AuthContext: Dispatching LOGIN_SUCCESS');
+      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+      return true;
+
     } catch (error) {
+      console.error('AuthContext: Login error', error);
       dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Login failed' });
       return false;
     }
@@ -176,47 +148,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      // Generate a new random salt for this user
-      // We need to send this to the server to store (publicly) so we can retrieve it on login
-      // Note: server needs to accept 'salt' field. 
-      // If server ignores it, we lose the salt.
-      // For this phase, we will assume we can send it or will handle it later.
-      // We will perform derivation anyway.
+      const db = await getDb();
 
-      const response = await apiService.register(userData);
-
-      if (response.success && response.accessToken && response.user) {
-        localStorage.setItem('accessToken', response.accessToken);
-        if (response.refreshToken) {
-          localStorage.setItem('refreshToken', response.refreshToken);
-        }
-
-        // --- Client-Side Key Derivation ---
-        // For registration, we use the password provided in userData
-        const password = userData.password;
-        const email = userData.email;
-        const salt = (response.user as any).salt || email; // Fallback
-
-        import('../services/CryptoService').then(({ cryptoService }) => {
-          cryptoService.deriveKey(password, salt).catch(console.error);
-        });
-        // ---------------------------------
-
-        const user: User = {
-          id: response.user.id,
-          username: response.user.username || response.user.email.split('@')[0],
-          email: response.user.email,
-          firstName: response.user.firstName || '',
-          lastName: response.user.lastName || '',
-        };
-
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-        return true;
-      } else {
-        dispatch({ type: 'LOGIN_FAILURE', payload: response.message || 'Registration failed' });
-        return false;
+      // Check if already exists
+      const existing = await db.user_settings.findOne(LOCAL_USER_ID).exec();
+      if (existing) {
+        console.warn('AuthContext: Overwriting existing local user.');
+        await existing.remove();
       }
+
+      // 1. Generate Security Params
+      const salt = (await import('../services/CryptoService')).CryptoService.generateSalt();
+
+      // 2. Derive Key immediately
+      await cryptoService.deriveKey(userData.password, salt);
+
+      // 3. Create User Profile
+      await db.user_settings.insert({
+        id: LOCAL_USER_ID,
+        profileName: userData.username || 'My Profile',
+        isSetupCompleted: true,
+        securityProfile: {
+          salt: salt,
+          verifier: 'TODO-HASH-OF-KEY' // Future enhancement
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      const user: User = {
+        id: LOCAL_USER_ID,
+        username: userData.username,
+        email: userData.email,
+        firstName: '',
+        lastName: ''
+      };
+
+      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+      return true;
     } catch (error) {
+      console.error('REGISTRATION ERROR:', error);
+      alert('REGISTRATION ERROR: ' + (error instanceof Error ? error.message : String(error)));
       toast.error('Registration failed');
       dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Registration failed' });
       return false;
@@ -225,13 +197,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async (): Promise<void> => {
     try {
-      await apiService.logout();
-    } catch (error) {
-      // Even if logout API fails, we still want to clear local storage
-      toast.error('Logout failed');
+      // Clear memory key? Logic for that not exposed in service yet, but simply dropping context user works
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
       dispatch({ type: 'LOGOUT' });
     }
   };

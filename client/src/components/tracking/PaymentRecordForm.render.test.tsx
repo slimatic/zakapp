@@ -10,9 +10,28 @@ const renderWithClient = (ui: React.ReactElement) => {
   return render(React.createElement(QueryClientProvider, { client: qc }, ui));
 };
 
+import { vi } from 'vitest';
+
+// Mock the hooks
+vi.mock('../../hooks/usePaymentRepository', () => ({
+  usePaymentRepository: () => ({
+    payments: [],
+    addPayment: vi.fn(),
+    updatePayment: vi.fn(),
+    removePayment: vi.fn(),
+  }),
+}));
+
+vi.mock('../../hooks/useNisabRecordRepository', () => ({
+  useNisabRecordRepository: () => ({
+    records: [],
+    isLoading: false,
+  }),
+}));
+
 describe('PaymentRecordForm mount', () => {
   it('renders when creating new payment (no payment prop)', () => {
-    renderWithClient(<PaymentRecordForm onCancel={() => {}} />);
+    renderWithClient(<PaymentRecordForm onCancel={() => { }} />);
     expect(screen.getByText(/Record your Zakat payment/i)).toBeInTheDocument();
   });
 });

@@ -4,21 +4,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 import { PaymentRecordForm } from './PaymentRecordForm';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 
 // Mocks
-const mockCreatePayment = { mutateAsync: jest.fn(), isPending: false };
-const mockUpdatePayment = { mutateAsync: jest.fn(), isPending: false };
-const mockDeletePayment = { mutateAsync: jest.fn(), isPending: false };
-const mockDeleteSnapshotPayment = { mutateAsync: jest.fn(), isPending: false };
+const mockAddPayment = vi.fn();
+const mockUpdatePayment = vi.fn();
+const mockRemovePayment = vi.fn();
 
-jest.mock('../../hooks/usePayments', () => ({
-    useCreatePayment: () => mockCreatePayment,
-    useUpdatePayment: () => mockUpdatePayment,
-}));
-
-jest.mock('../../hooks/usePaymentRecords', () => ({
-    useDeletePayment: () => mockDeletePayment,
-    useDeleteSnapshotPayment: () => mockDeleteSnapshotPayment,
+vi.mock('../../hooks/usePaymentRepository', () => ({
+    usePaymentRepository: () => ({
+        payments: [],
+        isLoading: false,
+        addPayment: mockAddPayment,
+        updatePayment: mockUpdatePayment,
+        removePayment: mockRemovePayment,
+    }),
 }));
 
 const mockNisabRecords = [
@@ -26,12 +26,11 @@ const mockNisabRecords = [
     { id: 'nr-2', gregorianYear: 2023, hijriYear: 1444, status: 'FINALIZED' }
 ];
 
-jest.mock('../../hooks/useNisabYearRecords', () => ({
-    useNisabYearRecords: () => ({
-        data: { records: mockNisabRecords },
+vi.mock('../../hooks/useNisabRecordRepository', () => ({
+    useNisabRecordRepository: () => ({
+        records: mockNisabRecords,
         isLoading: false,
-        error: null
-    })
+    }),
 }));
 
 const renderWithClient = (ui: React.ReactElement) => {
@@ -51,7 +50,7 @@ const renderWithClient = (ui: React.ReactElement) => {
 
 describe('PaymentRecordForm Refactor', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     it('renders correctly', () => {
@@ -68,7 +67,6 @@ describe('PaymentRecordForm Refactor', () => {
         await userEvent.click(submitBtn);
 
         // Check for validation messages
-        // Note: Expecting messages to be standardised in the new schema
         await waitFor(() => {
             expect(screen.getByText(/Amount is required/i)).toBeInTheDocument();
             // Recipient name error
@@ -77,8 +75,7 @@ describe('PaymentRecordForm Refactor', () => {
     });
 
     it('submits valid data for creation', async () => {
-        // const user = userEvent.setup(); // Removed setup
-        mockCreatePayment.mutateAsync.mockResolvedValue({ id: 'new-p' });
+        mockAddPayment.mockResolvedValue({ id: 'new-p' });
 
         renderWithClient(<PaymentRecordForm onSuccess={() => { }} />);
 
@@ -95,7 +92,7 @@ describe('PaymentRecordForm Refactor', () => {
         await userEvent.click(submitBtn);
 
         await waitFor(() => {
-            expect(mockCreatePayment.mutateAsync).toHaveBeenCalledWith(expect.objectContaining({
+            expect(mockAddPayment).toHaveBeenCalledWith(expect.objectContaining({
                 amount: 500,
                 recipientName: 'Charity ABC',
                 snapshotId: 'nr-1'
@@ -104,7 +101,6 @@ describe('PaymentRecordForm Refactor', () => {
     });
 
     it('submits valid data for update', async () => {
-        // const user = userEvent.setup(); // Removed setup
         const existingPayment = {
             id: 'p-1',
             snapshotId: 'nr-1',
@@ -117,7 +113,7 @@ describe('PaymentRecordForm Refactor', () => {
             currency: 'USD'
         };
 
-        mockUpdatePayment.mutateAsync.mockResolvedValue({ ...existingPayment, amount: 200 });
+        mockUpdatePayment.mockResolvedValue({ ...existingPayment, amount: 200 });
 
         renderWithClient(
             <PaymentRecordForm
@@ -135,12 +131,12 @@ describe('PaymentRecordForm Refactor', () => {
         await userEvent.click(submitBtn);
 
         await waitFor(() => {
-            expect(mockUpdatePayment.mutateAsync).toHaveBeenCalledWith(expect.objectContaining({
-                id: 'p-1',
-                data: expect.objectContaining({
+            expect(mockUpdatePayment).toHaveBeenCalledWith(
+                'p-1',
+                expect.objectContaining({
                     amount: 200
                 })
-            }));
+            );
         });
     });
 });

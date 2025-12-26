@@ -91,7 +91,7 @@ export const Register: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear specific field error when user starts typing
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
@@ -100,7 +100,7 @@ export const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -114,26 +114,26 @@ export const Register: React.FC = () => {
       password: formData.password,
       confirmPassword: formData.confirmPassword
     });
-    
+
     // If registration failed, the error will be shown in the error banner
     // The backend validation errors are already handled by the error state
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-600">
             <span className="text-white text-2xl font-bold">Z</span>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          </h1>
+          <p className="mt-2 text-center text-sm text-gray-700">
             Join ZakApp to calculate and track your Zakat
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <Input
@@ -201,7 +201,7 @@ export const Register: React.FC = () => {
               error={formErrors.password}
               label="Password"
             />
-            
+
             {/* Password requirements with live validation */}
             {showPasswordHints && (
               <div className="text-xs space-y-1 mt-1 -mt-3 px-1 py-2 bg-blue-50 rounded-md border border-blue-200">
@@ -272,7 +272,7 @@ export const Register: React.FC = () => {
           </Button>
 
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-700">
               Already have an account?{' '}
               <Link
                 to="/login"
@@ -284,6 +284,6 @@ export const Register: React.FC = () => {
           </div>
         </form>
       </div>
-    </div>
+    </main>
   );
 };

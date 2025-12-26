@@ -25,7 +25,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
   showExportButtons = true
 }) => {
   const [isExporting, setIsExporting] = useState(false);
-  
+
   // Fetch payment records for this snapshot
   const { data: paymentsData } = usePayments({ snapshotId: snapshot.id });
   const payments = paymentsData?.payments || [];
@@ -93,16 +93,15 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
           </h3>
           <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
             <span>📅 {formatGregorianDate(snapshot.calculationDate)}</span>
-            <span>🌙 {formatHijriDate({ 
-              hy: snapshot.hijriYear, 
-              hm: snapshot.hijriMonth, 
-              hd: snapshot.hijriDay 
+            <span>🌙 {formatHijriDate({
+              hy: snapshot.hijriYear,
+              hm: snapshot.hijriMonth,
+              hd: snapshot.hijriDay
             })}</span>
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              snapshot.status === 'finalized' 
-                ? 'bg-green-100 text-green-800' 
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${snapshot.status === 'finalized'
+                ? 'bg-green-100 text-green-800'
                 : 'bg-yellow-100 text-yellow-800'
-            }`}>
+              }`}>
               {snapshot.status === 'finalized' ? '✅ Finalized' : '🔄 Draft'}
             </span>
           </div>
@@ -168,10 +167,9 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3">
-            <div 
-              className={`h-3 rounded-full transition-all duration-300 ${
-                paymentProgress >= 100 ? 'bg-green-500' : 'bg-blue-500'
-              }`}
+            <div
+              className={`h-3 rounded-full transition-all duration-300 ${paymentProgress >= 100 ? 'bg-green-500' : 'bg-blue-500'
+                }`}
               style={{ width: `${Math.min(paymentProgress, 100)}%` }}
             />
           </div>
@@ -257,7 +255,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
           <Button
             onClick={handleExportPDF}
             disabled={isExporting}
-            size={compact ? 'sm' : 'md'}
+            size={compact ? 'sm' : 'default'}
           >
             {isExporting ? (
               <>
@@ -277,7 +275,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
           <Button
             variant="secondary"
             onClick={handleShare}
-            size={compact ? 'sm' : 'md'}
+            size={compact ? 'sm' : 'default'}
           >
             <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
@@ -288,7 +286,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
           <Button
             variant="ghost"
             onClick={() => window.print()}
-            size={compact ? 'sm' : 'md'}
+            size={compact ? 'sm' : 'default'}
           >
             <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -312,8 +310,8 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
                 Islamic Compliance Note
               </h4>
               <p className="text-sm text-green-700 mt-1">
-                This calculation follows Islamic guidelines for Zakat obligation using the {snapshot.methodologyUsed} methodology. 
-                The nisab threshold is based on {snapshot.nisabType} prices. 
+                This calculation follows Islamic guidelines for Zakat obligation using the {snapshot.methodologyUsed} methodology.
+                The nisab threshold is based on {snapshot.nisabType} prices.
                 Please consult with a qualified Islamic scholar for specific rulings.
               </p>
             </div>
