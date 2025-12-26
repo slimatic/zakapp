@@ -86,13 +86,34 @@ interface AuthProviderProps {
 
 const LOCAL_USER_ID = 'local-user-profile';
 
+const SESSION_STORAGE_KEY = 'zakapp_session_v1';
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check if user is already authenticated (session persistence logic could go here)
+  // Restore session from sessionStorage on mount
   useEffect(() => {
-    // For now, local-first apps often require login on refresh to re-derive memory keys
-    dispatch({ type: 'SET_LOADING', payload: false });
+    const restoreSession = async () => {
+      try {
+        const storedSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
+        if (storedSession) {
+          console.log('AuthContext: Found stored session, attempting restore...');
+          const { user, jwk } = JSON.parse(storedSession);
+
+          if (user && jwk) {
+            await cryptoService.restoreSessionKey(jwk);
+            dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+          }
+        }
+      } catch (error) {
+        console.error('AuthContext: Session restore failed', error);
+        sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    };
+
+    restoreSession();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -103,11 +124,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('AuthContext: DB acquired');
 
       const userDoc = await db.user_settings.findOne(LOCAL_USER_ID).exec();
-      console.log('AuthContext: User document found?', !!userDoc);
-
-      if (userDoc) {
-        console.log('AuthContext: User doc data:', userDoc.toJSON());
-      }
 
       if (!userDoc) {
         throw new Error('No local user found. Please register.');
@@ -123,9 +139,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await cryptoService.deriveKey(password, security.salt);
       console.log('AuthContext: Key derived successfully');
 
-      // 2. Verify Key (simplified: if we derived it, we assume success for this step if we don't have a verifier yet)
-      // Ideally check against security.verifier
-
       const user: User = {
         id: userDoc.get('id'),
         username: userDoc.get('profileName') || 'Local User',
@@ -133,6 +146,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         firstName: '',
         lastName: '',
       };
+
+      // 2. Persist Session (Key + User) -> SessionStorage
+      const jwk = await cryptoService.exportSessionKey();
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
 
       console.log('AuthContext: Dispatching LOGIN_SUCCESS');
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
@@ -184,6 +201,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         lastName: ''
       };
 
+      // 4. Persist Session
+      const jwk = await cryptoService.exportSessionKey();
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
+
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       return true;
     } catch (error) {
@@ -197,7 +218,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async (): Promise<void> => {
     try {
-      // Clear memory key? Logic for that not exposed in service yet, but simply dropping context user works
+      cryptoService.clearSession();
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
     } finally {
       dispatch({ type: 'LOGOUT' });
     }
