@@ -85,6 +85,10 @@ function App() {
     if (db) {
       syncService.startSync(db);
     }
+    // Cleanup: Stop sync when DB changes or app unmounts
+    return () => {
+      syncService.stopSync();
+    };
   }, [db]);
 
   return (

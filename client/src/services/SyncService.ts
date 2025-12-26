@@ -142,6 +142,7 @@ export class SyncService {
         console.log('🛑 SyncService: Stopping replication...');
         await Promise.all(this.replicationStates.map(state => state.cancel()));
         this.replicationStates = [];
+        this.activeCollections.clear(); // Clear state
         this.db = null;
         this.syncStatus$.next({
             active: false,
