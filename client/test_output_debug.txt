@@ -1,0 +1,687 @@
+
+> client@0.1.0 test
+> vitest src/pages/NisabYearRecordsPage.integration.test.tsx
+
+
+ DEV  v3.2.4 /home/agentx/github-repos/zakapp/client
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+stdout | src/pages/NisabYearRecordsPage.integration.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > renders without crashing
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > opens payment modal without crashing
+An update to NisabYearRecordsPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > opens payment modal without crashing
+API: 401 Unauthorized. Ignoring redirect for Local-First mode.
+
+ ❯ src/pages/NisabYearRecordsPage.integration.test.tsx (2 tests | 1 failed) 1734ms
+   ✓ NisabYearRecordsPage Integration > renders without crashing 146ms
+   × NisabYearRecordsPage Integration > opens payment modal without crashing 1583ms
+     → Found a label with the text of: /Amount Paid/i, however no form control was found associated to that label. Make sure you're using the "for" attribute or "aria-labelledby" attribute correctly.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen bg-gray-50 pb-20 md:pb-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8"[39m
+        [33mid[39m=[32m"main-content"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mb-6 sm:mb-8"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-2xl sm:text-3xl font-bold text-gray-900"[39m
+              [36m>[39m
+                [0mNisab Year Records[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"mt-1 sm:mt-2 text-sm sm:text-base text-gray-600"[39m
+              [36m>[39m
+                [0mTrack Hawl periods, Nisab thresholds, and Zakat calculations[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex gap-2 sm:gap-3"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-9 rounded-md px-3 whitespace-nowrap"[39m
+              [36m>[39m
+                [0m← Back to Dashboard[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"[39m
+              [36m>[39m
+                [0m+ New Record[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lg:col-span-2 space-y-4 sm:space-y-6"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"lg:hidden flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"[39m
+            [36m>[39m
+              [0m← Back to list[0m
+            [36m</button>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex gap-2 border-b border-gray-200 overflow-x-auto pb-px hidden lg:flex"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-blue-600 text-blue-600"[39m
+              [36m>[39m
+                [0mAll[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+              [36m>[39m
+                [0mDraft[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+              [36m>[39m
+                [0mFinalized[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+              [36m>[39m
+                [0mUnlocked for Editing[0m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"space-y-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"border rounded-lg p-4 sm:p-5 cursor-pointer transition-all  border-blue-500 bg-blue-50 shadow-md"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"space-y-3"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"flex items-start justify-between gap-3"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex items-center gap-2 sm:gap-3 min-w-0"[39m
+                    [36m>[39m
+                      [36m<h3[39m
+                        [33mclass[39m=[32m"text-base sm:text-lg font-semibold text-gray-900 truncate"[39m
+                      [36m>[39m
+                        [0m1445 H[0m
+                      [36m</h3>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 bg-blue-100 text-blue-800"[39m
+                      [36m>[39m
+                        [0mDraft[0m
+                      [36m</span>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"grid grid-cols-2 gap-3 sm:gap-4"[39m
+                  [36m>[39m
+                    [36m<div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                      [36m>[39m
+                        [0mNisab Basis[0m
+                      [36m</div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-sm font-medium text-gray-900"[39m
+                      [36m>[39m
+                        [0m🟡 Gold[0m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                    [36m<div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                      [36m>[39m
+                        [0mTotal Wealth[0m
+                      [36m</div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-sm font-medium text-gray-900"[39m
+                      [36m>[39m
+                        [0m$40,000[0m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                    [36m<div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                      [36m>[39m
+                        [0mZakatable[0m
+                      [36m</div>[39m
+                      [36m<div[39m
+                        [33mcl...
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"min-h-screen bg-gray-50 pb-20 md:pb-6"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8"[39m
+          [33mid[39m=[32m"main-content"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mb-6 sm:mb-8"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"[39m
+            [36m>[39m
+              [36m<div>[39m
+                [36m<h1[39m
+                  [33mclass[39m=[32m"text-2xl sm:text-3xl font-bold text-gray-900"[39m
+                [36m>[39m
+                  [0mNisab Year Records[0m
+                [36m</h1>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-1 sm:mt-2 text-sm sm:text-base text-gray-600"[39m
+                [36m>[39m
+                  [0mTrack Hawl periods, Nisab thresholds, and Zakat calculations[0m
+                [36m</p>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex gap-2 sm:gap-3"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-9 rounded-md px-3 whitespace-nowrap"[39m
+                [36m>[39m
+                  [0m← Back to Dashboard[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"[39m
+                [36m>[39m
+                  [0m+ New Record[0m
+                [36m</button>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"lg:col-span-2 space-y-4 sm:space-y-6"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"lg:hidden flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"[39m
+              [36m>[39m
+                [0m← Back to list[0m
+              [36m</button>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex gap-2 border-b border-gray-200 overflow-x-auto pb-px hidden lg:flex"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-blue-600 text-blue-600"[39m
+                [36m>[39m
+                  [0mAll[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+                [36m>[39m
+                  [0mDraft[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+                [36m>[39m
+                  [0mFinalized[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+                [36m>[39m
+                  [0mUnlocked for Editing[0m
+                [36m</button>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"space-y-3"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"border rounded-lg p-4 sm:p-5 cursor-pointer transition-all  border-blue-500 bg-blue-50 shadow-md"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"space-y-3"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex items-start justify-between gap-3"[39m
+                    [36m>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center gap-2 sm:gap-3 min-w-0"[39m
+                      [36m>[39m
+                        [36m<h3[39m
+                          [33mclass[39m=[32m"text-base sm:text-lg font-semibold text-gray-900 truncate"[39m
+                        [36m>[39m
+                          [0m1445 H[0m
+                        [36m</h3>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 bg-blue-100 text-blue-800"[39m
+                        [36m>[39m
+                          [0mDraft[0m
+                        [36m</span>[39m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"grid grid-cols-2 gap-3 sm:gap-4"[39m
+                    [36m>[39m
+                      [36m<div>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                        [36m>[39m
+                          [0mNisab Basis[0m
+                        [36m</div>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"text-sm font-medium text-gray-900"[39m
+                        [36m>[39m
+                          [0m🟡 Gold[0m
+                        [36m</div>[39m
+                      [36m</div>[39m
+                      [36m<div>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                        [36m>[39m
+                          [0mTotal Wealth[0m
+                        [36m</div>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"text-sm font-medium text-gray-900"[39m
+                        [36m>[39m
+                          [0m$40,000[0m
+                        [36m</div>[39m
+                      [36m</div>[39m
+                      [36m<div>...
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > opens payment modal without crashing
+TestingLibraryElementError: Found a label with the text of: /Amount Paid/i, however no form control was found associated to that label. Make sure you're using the "for" attribute or "aria-labelledby" attribute correctly.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"min-h-screen bg-gray-50 pb-20 md:pb-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8"[39m
+        [33mid[39m=[32m"main-content"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mb-6 sm:mb-8"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-2xl sm:text-3xl font-bold text-gray-900"[39m
+              [36m>[39m
+                [0mNisab Year Records[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"mt-1 sm:mt-2 text-sm sm:text-base text-gray-600"[39m
+              [36m>[39m
+                [0mTrack Hawl periods, Nisab thresholds, and Zakat calculations[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex gap-2 sm:gap-3"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-9 rounded-md px-3 whitespace-nowrap"[39m
+              [36m>[39m
+                [0m← Back to Dashboard[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"[39m
+              [36m>[39m
+                [0m+ New Record[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lg:col-span-2 space-y-4 sm:space-y-6"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"lg:hidden flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"[39m
+            [36m>[39m
+              [0m← Back to list[0m
+            [36m</button>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex gap-2 border-b border-gray-200 overflow-x-auto pb-px hidden lg:flex"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-blue-600 text-blue-600"[39m
+              [36m>[39m
+                [0mAll[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+              [36m>[39m
+                [0mDraft[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+              [36m>[39m
+                [0mFinalized[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+              [36m>[39m
+                [0mUnlocked for Editing[0m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"space-y-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"border rounded-lg p-4 sm:p-5 cursor-pointer transition-all  border-blue-500 bg-blue-50 shadow-md"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"space-y-3"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"flex items-start justify-between gap-3"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex items-center gap-2 sm:gap-3 min-w-0"[39m
+                    [36m>[39m
+                      [36m<h3[39m
+                        [33mclass[39m=[32m"text-base sm:text-lg font-semibold text-gray-900 truncate"[39m
+                      [36m>[39m
+                        [0m1445 H[0m
+                      [36m</h3>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 bg-blue-100 text-blue-800"[39m
+                      [36m>[39m
+                        [0mDraft[0m
+                      [36m</span>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"grid grid-cols-2 gap-3 sm:gap-4"[39m
+                  [36m>[39m
+                    [36m<div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                      [36m>[39m
+                        [0mNisab Basis[0m
+                      [36m</div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-sm font-medium text-gray-900"[39m
+                      [36m>[39m
+                        [0m🟡 Gold[0m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                    [36m<div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                      [36m>[39m
+                        [0mTotal Wealth[0m
+                      [36m</div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-sm font-medium text-gray-900"[39m
+                      [36m>[39m
+                        [0m$40,000[0m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                    [36m<div>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                      [36m>[39m
+                        [0mZakatable[0m
+                      [36m</div>[39m
+                      [36m<div[39m
+                        [33mcl...
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"min-h-screen bg-gray-50 pb-20 md:pb-6"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8"[39m
+          [33mid[39m=[32m"main-content"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mb-6 sm:mb-8"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"[39m
+            [36m>[39m
+              [36m<div>[39m
+                [36m<h1[39m
+                  [33mclass[39m=[32m"text-2xl sm:text-3xl font-bold text-gray-900"[39m
+                [36m>[39m
+                  [0mNisab Year Records[0m
+                [36m</h1>[39m
+                [36m<p[39m
+                  [33mclass[39m=[32m"mt-1 sm:mt-2 text-sm sm:text-base text-gray-600"[39m
+                [36m>[39m
+                  [0mTrack Hawl periods, Nisab thresholds, and Zakat calculations[0m
+                [36m</p>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex gap-2 sm:gap-3"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm h-9 rounded-md px-3 whitespace-nowrap"[39m
+                [36m>[39m
+                  [0m← Back to Dashboard[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"[39m
+                [36m>[39m
+                  [0m+ New Record[0m
+                [36m</button>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"lg:col-span-2 space-y-4 sm:space-y-6"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"lg:hidden flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"[39m
+              [36m>[39m
+                [0m← Back to list[0m
+              [36m</button>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex gap-2 border-b border-gray-200 overflow-x-auto pb-px hidden lg:flex"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-blue-600 text-blue-600"[39m
+                [36m>[39m
+                  [0mAll[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+                [36m>[39m
+                  [0mDraft[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+                [36m>[39m
+                  [0mFinalized[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33mclass[39m=[32m"px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base border-transparent text-gray-600 hover:text-gray-900"[39m
+                [36m>[39m
+                  [0mUnlocked for Editing[0m
+                [36m</button>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"space-y-3"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"border rounded-lg p-4 sm:p-5 cursor-pointer transition-all  border-blue-500 bg-blue-50 shadow-md"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"space-y-3"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex items-start justify-between gap-3"[39m
+                    [36m>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"flex items-center gap-2 sm:gap-3 min-w-0"[39m
+                      [36m>[39m
+                        [36m<h3[39m
+                          [33mclass[39m=[32m"text-base sm:text-lg font-semibold text-gray-900 truncate"[39m
+                        [36m>[39m
+                          [0m1445 H[0m
+                        [36m</h3>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 bg-blue-100 text-blue-800"[39m
+                        [36m>[39m
+                          [0mDraft[0m
+                        [36m</span>[39m
+                      [36m</div>[39m
+                    [36m</div>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"grid grid-cols-2 gap-3 sm:gap-4"[39m
+                    [36m>[39m
+                      [36m<div>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                        [36m>[39m
+                          [0mNisab Basis[0m
+                        [36m</div>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"text-sm font-medium text-gray-900"[39m
+                        [36m>[39m
+                          [0m🟡 Gold[0m
+                        [36m</div>[39m
+                      [36m</div>[39m
+                      [36m<div>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"text-xs text-gray-600 mb-1"[39m
+                        [36m>[39m
+                          [0mTotal Wealth[0m
+                        [36m</div>[39m
+                        [36m<div[39m
+                          [33mclass[39m=[32m"text-sm font-medium text-gray-900"[39m
+                        [36m>[39m
+                          [0m$40,000[0m
+                        [36m</div>[39m
+                      [36m</div>[39m
+                      [36m<div>...
+ ❯ Proxy.waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ src/pages/NisabYearRecordsPage.integration.test.tsx:147:15
+    145| 
+    146|         // Verify form appears
+    147|         await waitFor(() => {
+       |               ^
+    148|             expect(screen.getByText('Record Zakat Payment')).toBeInThe…
+    149|             // Check if PaymentRecordForm rendered inputs
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  20:50:29
+   Duration  8.47s (transform 962ms, setup 1.83s, collect 1.98s, tests 1.73s, environment 1.25s, prepare 230ms)
+
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/components/ui/Input.tsx x1 
+        Filename pattern: src/pages/NisabYearRecordsPage.integration.test.tsx
+
+stdout | src/pages/NisabYearRecordsPage.integration.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > renders without crashing
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > opens payment modal without crashing
+An update to NisabYearRecordsPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx
+API: 401 Unauthorized. Ignoring redirect for Local-First mode.
+
+ ✓ src/pages/NisabYearRecordsPage.integration.test.tsx (2 tests) 1123ms
+   ✓ NisabYearRecordsPage Integration > opens payment modal without crashing  927ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  20:51:27
+   Duration  9.42s
+
+ PASS  Waiting for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/db/index.ts x2 
+        Filename pattern: src/pages/NisabYearRecordsPage.integration.test.tsx
+
+stdout | src/pages/NisabYearRecordsPage.integration.test.tsx
+RxDB Storage Adapter (Dexie): [36m[Function: getRxStorageDexie][39m
+
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > renders without crashing
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx > NisabYearRecordsPage Integration > opens payment modal without crashing
+An update to NisabYearRecordsPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/pages/NisabYearRecordsPage.integration.test.tsx
+API: 401 Unauthorized. Ignoring redirect for Local-First mode.
+
+ ✓ src/pages/NisabYearRecordsPage.integration.test.tsx (2 tests) 6097ms
+   ✓ NisabYearRecordsPage Integration > renders without crashing  1142ms
+   ✓ NisabYearRecordsPage Integration > opens payment modal without crashing  4891ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  21:14:57
+   Duration  20.63s
+
+ PASS  Waiting for file changes...
+       press h to show help, press q to quit

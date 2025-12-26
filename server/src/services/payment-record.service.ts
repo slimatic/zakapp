@@ -2,7 +2,9 @@ import { EncryptionService } from './EncryptionService';
 import { sign } from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
+import { getEncryptionKey } from '../config/security';
+
+const ENCRYPTION_KEY = getEncryptionKey();
 const JWT_SECRET = process.env.JWT_SECRET || 'default-jwt-secret-for-development';
 
 export interface CreatePaymentDto {

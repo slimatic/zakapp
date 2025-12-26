@@ -13,10 +13,12 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 159 81% 40%; /* Emerald 600 */
+    --primary: 159 81% 40%;
+    /* Emerald 600 */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 44 93% 53%; /* Gold 500 */
+    --secondary: 44 93% 53%;
+    /* Gold 500 */
     --secondary-foreground: 210 40% 98%;
 
     --muted: 210 40% 96.1%;
@@ -30,32 +32,50 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 159 81% 40%; /* Ring matches Primary */
+    --ring: 159 81% 40%;
+    /* Ring matches Primary */
 
     --radius: 0.75rem;
   }
 }
 
 @layer components {
+
   /* Glassmorphism Classes */
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl ring-1 ring-black/5;
   }
-  
+
   .glass-card {
-    @apply bg-white/80 backdrop-blur-sm border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300;
+    @apply bg-white/90 backdrop-blur-sm border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl;
   }
 
   /* Premium Buttons */
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 active:scale-95 transition-all duration-200 shadow-lg shadow-primary-500/20 font-medium tracking-wide;
+    @apply bg-primary-600 text-white hover:bg-primary-700 active:scale-95 transition-all duration-200 shadow-lg shadow-primary-500/20 font-medium tracking-wide rounded-lg px-4 py-2;
   }
-  
+
   .btn-secondary {
-    @apply bg-white text-primary-700 border border-primary-100 hover:bg-primary-50 active:scale-95 transition-all duration-200 shadow-sm hover:border-primary-200;
+    @apply bg-white text-primary-700 border border-primary-100 hover:bg-primary-50 active:scale-95 transition-all duration-200 shadow-sm hover:border-primary-200 rounded-lg px-4 py-2;
   }
 }
 
 body {
   @apply bg-slate-50 text-slate-900 font-sans antialiased selection:bg-primary-100 selection:text-primary-900;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Outfit', system-ui, sans-serif;
+  @apply tracking-tight font-semibold text-slate-900;
+}
+
+/* Trust Signals */
+.secure-input-indicator {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 text-green-600 opacity-50 transition-opacity hover:opacity-100;
 }
