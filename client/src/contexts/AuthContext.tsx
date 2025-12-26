@@ -192,12 +192,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('AuthContext: Key derived successfully');
 
       // 3. Initialize DB with Correct Key
-      // We opened it tentatively above. Now we ensure it's open with the derived key logic (if cryptoService affects it).
-      // Actually `getDb(password)` passes the password to RxDB.
-      // If `cryptoService.deriveKey` is what actually sets the encryption key for the plugin...
-      // We should close and re-open to be sure.
-      await closeDb();
-      await getDb(password);
+      // We already opened the DB with the password at step 1.
+      // We do NOT need to close and re-open it, as the encryption key (password) hasn't changed.
+      // We just ensure we have the instance.
       const encryptedDb = await getDb();
 
       // If Scenario B (Fresh Device), create the local user record now
@@ -229,9 +226,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
 
       // 3. Ensure DB remains open
-      // Use the password directly as the encryption key
-      await closeDb(); // Ensure clean slate
-      await getDb(password);
+      // It is already open. No action needed.
 
       console.log('AuthContext: Dispatching LOGIN_SUCCESS');
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
