@@ -1,6 +1,8 @@
 import { EncryptionService } from './EncryptionService';
 import { prisma } from '../utils/prisma';
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
+import { getEncryptionKey } from '../config/security';
+
+const ENCRYPTION_KEY = getEncryptionKey();
 
 export interface SaveCalculationRequest {
   methodology: string;
@@ -105,11 +107,11 @@ export class CalculationHistoryService {
 
     // Build where clause
     const where: any = { userId };
-    
+
     if (methodology) {
       where.methodology = methodology;
     }
-    
+
     if (startDate || endDate) {
       where.calculationDate = {};
       if (startDate) where.calculationDate.gte = startDate;
@@ -195,7 +197,7 @@ export class CalculationHistoryService {
     // Calculate date range based on period
     const endDate = new Date();
     let startDate = new Date();
-    
+
     switch (period) {
       case '1month':
         startDate.setMonth(startDate.getMonth() - 1);

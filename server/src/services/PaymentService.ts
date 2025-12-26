@@ -1,7 +1,9 @@
 import { EncryptionService } from './EncryptionService';
 import { prisma } from '../utils/prisma';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
+import { getEncryptionKey } from '../config/security';
+
+const ENCRYPTION_KEY = getEncryptionKey();
 
 export interface CreatePaymentRequest {
   calculationId: string;
@@ -168,21 +170,21 @@ export class PaymentService {
     } = options;
 
     const where: any = { userId };
-    
+
     if (year) {
       where.islamicYear = year;
     }
-    
+
     if (status) {
       where.status = status;
     }
-    
+
     if (paymentMethod) {
       where.paymentMethod = paymentMethod;
     }
 
-    const orderBy = sortBy === 'date' ? 
-      { paymentDate: sortOrder } : 
+    const orderBy = sortBy === 'date' ?
+      { paymentDate: sortOrder } :
       { amount: sortOrder };
 
     const payments = await prisma.zakatPayment.findMany({
@@ -247,7 +249,7 @@ export class PaymentService {
     if (updates.recipients) {
       // Validate recipients
       this.validateRecipientCategories(updates.recipients);
-      
+
       // Encrypt sensitive recipient data
       const encryptedRecipients = await EncryptionService.encryptObject(updates.recipients, ENCRYPTION_KEY);
 
@@ -389,7 +391,7 @@ export class PaymentService {
     });
 
     const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-    const totalObligatory = payments.reduce((sum, p) => 
+    const totalObligatory = payments.reduce((sum, p) =>
       sum + (p.calculation?.zakatAmount || 0), 0
     );
 
@@ -412,7 +414,7 @@ export class PaymentService {
 
     // Calculate percentages
     Object.keys(distributionByCategory).forEach(category => {
-      distributionByCategory[category].percentage = 
+      distributionByCategory[category].percentage =
         (distributionByCategory[category].amount / totalPaid) * 100;
     });
 
@@ -455,8 +457,8 @@ export class PaymentService {
           });
         } else {
           const existing = recipientMap.get(key);
-          existing.averageAmount = 
-            (existing.averageAmount * existing.paymentCount + recipient.amount) / 
+          existing.averageAmount =
+            (existing.averageAmount * existing.paymentCount + recipient.amount) /
             (existing.paymentCount + 1);
           existing.paymentCount += 1;
           if (payment.paymentDate > existing.lastPaymentDate) {
@@ -516,7 +518,7 @@ export class PaymentService {
     // Decrypt recipient contact info
     const recipients = await Promise.all(JSON.parse(payment.recipients || '[]').map(async (recipient: any) => ({
       ...recipient,
-      contactInfo: recipient.contactInfo ? 
+      contactInfo: recipient.contactInfo ?
         await EncryptionService.decryptObject(recipient.contactInfo, ENCRYPTION_KEY) : null
     })));
 
@@ -598,7 +600,7 @@ export class PaymentService {
       if (!validCategories.includes(recipient.category)) {
         throw new Error(`Invalid recipient category: ${recipient.category}`);
       }
-      
+
       if (recipient.amount <= 0) {
         throw new Error('Recipient amount must be positive');
       }

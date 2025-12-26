@@ -3,7 +3,9 @@ import { determineModifier } from '../utils/assetModifiers';
 import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
 import { prisma } from '../utils/prisma';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
+import { getEncryptionKey } from '../config/security';
+
+const ENCRYPTION_KEY = getEncryptionKey();
 
 export interface CreateAssetDto {
   category: string;
@@ -352,7 +354,7 @@ export class AssetService {
           existingMetadata = {};
         }
       }
-      
+
       // Merge new metadata with existing
       const mergedMetadata = { ...existingMetadata, ...updateData.metadata };
       updatePayload.metadata = await EncryptionService.encryptObject(mergedMetadata, ENCRYPTION_KEY);
@@ -450,7 +452,7 @@ export class AssetService {
       try {
         const assetData = assetsData[i];
         if (!assetData) continue;
-        
+
         const asset = await this.createAsset(userId, assetData);
         results.push({ success: true, asset, index: i });
       } catch (error: any) {
@@ -458,7 +460,7 @@ export class AssetService {
           success: false,
           error: error.message,
           index: i,
-          asset: assetsData[i ]
+          asset: assetsData[i]
         });
       }
     }
@@ -648,7 +650,7 @@ export class AssetService {
    */
   private async decryptAsset(asset: any) {
     const decrypted = { ...asset };
-    
+
     if (asset.metadata) {
       try {
         decrypted.metadata = await EncryptionService.decryptObject(asset.metadata, ENCRYPTION_KEY);
