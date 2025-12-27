@@ -1,20 +1,14 @@
 
-import React from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { apiService } from '../../../services/api';
-import { Button } from '../../../components/ui/Button';
+import { forceResetDatabase } from '../../../db'; // Import this at the top
 
 export const DangerZone: React.FC = () => {
-    // Account deletion mutation
+    // ... existing deleteAccountMutation ...
     const deleteAccountMutation = useMutation({
         mutationFn: async () => {
-            // Note: We should prompt for password, but for now using a placeholder
-            // as the double-confirmation flow already provides security
             return apiService.deleteAccount('confirmed');
         },
         onSuccess: (response) => {
             if (response.success) {
-                // Clear auth tokens and redirect
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
                 window.location.href = '/';
@@ -23,6 +17,7 @@ export const DangerZone: React.FC = () => {
     });
 
     const handleDeleteAccount = () => {
+        // ... existing logic ...
         const confirmed = window.confirm(
             'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.'
         );
@@ -38,6 +33,25 @@ export const DangerZone: React.FC = () => {
         }
     };
 
+    const handleClearLocalDatabase = async () => {
+        const confirmed = window.confirm(
+            'This will delete the LOCAL database on this device only. It is useful for fixing sync issues. You will be logged out. Are you sure?'
+        );
+        if (confirmed) {
+            try {
+                await forceResetDatabase();
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('zakapp_session');
+                // Clean up any other local storage items if needed
+                window.location.reload();
+            } catch (error) {
+                console.error('Failed to reset database:', error);
+                alert('Failed to reset database. Please check console.');
+            }
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -47,6 +61,23 @@ export const DangerZone: React.FC = () => {
                 <p className="text-gray-600 mb-6">
                     Irreversible and destructive actions for your account
                 </p>
+            </div>
+
+            {/* Clear Local DB Section */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-yellow-800 mb-2">
+                    Clear Local Database
+                </h3>
+                <p className="text-yellow-700 mb-4">
+                    Reset your local data cache. This allows you to re-sync fresh data from the server. Safe to use if your data is already synced.
+                </p>
+                <Button
+                    variant="outline"
+                    className="border-yellow-600 text-yellow-800 hover:bg-yellow-100"
+                    onClick={handleClearLocalDatabase}
+                >
+                    Clear Local Data & Re-sync
+                </Button>
             </div>
 
             <div className="bg-red-50 border border-red-200 rounded-lg p-6">

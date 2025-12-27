@@ -799,6 +799,32 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // Admin Methods
+  async getAdminUsers(page: number = 1, limit: number = 50): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/admin/users?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async createAdminUser(userData: any): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(userData)
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteAdminUser(userId: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
   async finalizeNisabYearRecord(recordId: string, data?: {
     finalizationNotes?: string;
   }): Promise<ApiResponse> {

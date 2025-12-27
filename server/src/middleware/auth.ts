@@ -25,5 +25,13 @@ export const authMiddleware = (
   authMiddlewareInstance.authenticate(req, res, next);
 };
 
+export const requireAdmin = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  authMiddlewareInstance.requireAdmin(req, res, next);
+};
+
 // Export AuthenticatedRequest for type usage in route files
 export { AuthenticatedRequest };

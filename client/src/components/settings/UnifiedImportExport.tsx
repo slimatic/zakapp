@@ -6,12 +6,14 @@ import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { useNisabRecordRepository } from '../../hooks/useNisabRecordRepository';
 import { MigrationService } from '../../services/migrationService';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const UnifiedImportExport: React.FC = () => {
     const [importing, setImporting] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [stats, setStats] = useState<{ assets: number; payments: number; nisabRecords: number; errors: string[] } | null>(null);
 
+    const { user } = useAuth();
     const { assets, addAsset } = useAssetRepository();
     const { payments, bulkAddPayments } = usePaymentRepository();
     const { records: nisabRecords, addRecord, bulkAddRecords } = useNisabRecordRepository();
@@ -64,9 +66,13 @@ export const UnifiedImportExport: React.FC = () => {
                 let assetCount = 0;
                 let paymentCount = 0;
 
+                // Use the real authenticated user ID, or fallback to 'local-user' if offline/unauth
+                // Note: useAuth provides 'user' which might be null if not logged in.
+                const targetUserId = user?.id || 'local-user';
+
                 // 1. Migrate Assets
                 if (rawData.assets && Array.isArray(rawData.assets)) {
-                    const cleanAssets = MigrationService.adaptAssets(rawData.assets);
+                    const cleanAssets = MigrationService.adaptAssets(rawData.assets, targetUserId);
                     const results = await Promise.allSettled(cleanAssets.map(a => addAsset(a)));
 
                     results.forEach(res => {
@@ -81,7 +87,7 @@ export const UnifiedImportExport: React.FC = () => {
                     const activeRecord = nisabRecords.find(r => r.status === 'DRAFT'); // Use DRAFT as active
                     const defaultSnapshotId = activeRecord?.id;
 
-                    const cleanPayments = MigrationService.adaptPayments(rawData.payments, 'local-user', defaultSnapshotId);
+                    const cleanPayments = MigrationService.adaptPayments(rawData.payments, targetUserId, defaultSnapshotId);
 
                     try {
                         await bulkAddPayments(cleanPayments);
@@ -95,7 +101,7 @@ export const UnifiedImportExport: React.FC = () => {
                 let nisabCount = 0;
                 if (rawData.nisabRecords && Array.isArray(rawData.nisabRecords)) {
                     try {
-                        const cleanRecords = MigrationService.adaptNisabRecords(rawData.nisabRecords);
+                        const cleanRecords = MigrationService.adaptNisabRecords(rawData.nisabRecords, targetUserId);
                         await bulkAddRecords(cleanRecords);
                         nisabCount += cleanRecords.length;
                     } catch (err: any) {

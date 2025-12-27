@@ -91,6 +91,16 @@ export class CryptoService {
     }
 
     /**
+     * Export the raw key as a string for use as DB Password
+     */
+    async exportKeyString(): Promise<string> {
+        if (!this.masterKey) throw new Error("No key derived");
+        const jwk = await window.crypto.subtle.exportKey("jwk", this.masterKey);
+        // 'k' is the key component for octet sequence keys (AES)
+        return jwk.k || '';
+    }
+
+    /**
      * Clear in-memory keys (Logout)
      */
     clearSession(): void {

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import toast from 'react-hot-toast';
 import type { User } from '../types';
-import { getDb, resetDb, closeDb } from '../db';
+import { getDb, resetDb, closeDb, forceResetDatabase } from '../db';
 import { cryptoService } from '../services/CryptoService';
 
 interface AuthState {
@@ -102,11 +102,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           if (user && jwk) {
             await cryptoService.restoreSessionKey(jwk);
-            dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+
+            // Initialize DB with the restored key so components can access data
+            const keyString = await cryptoService.exportKeyString();
+            console.log('AuthContext: Session restored. Key generated (len=' + keyString.length + ')');
+
+            try {
+              await getDb(keyString);
+              console.log('AuthContext: DB opened successfully with restored key');
+              dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+            } catch (dbError: any) {
+              console.error('AuthContext: DB Open Failed during restore', dbError);
+
+              // Handle Password Mismatch (DB1) - Nuclear Option
+              if (dbError?.code === 'DB1' || (dbError?.message && dbError.message.includes('different password'))) {
+                console.warn('AuthContext: Pasword mismatch detected (DB1). Nuking local DB to recover...');
+                toast.loading('Resetting local database due to security update...', { duration: 3000 });
+
+                // Force delete the old DB
+                await forceResetDatabase();
+
+                // Re-initialize with correct key
+                await getDb(keyString);
+                console.log('AuthContext: DB Re-initialized after nuke.');
+
+                dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+              } else {
+                throw new Error('Database Open Failed: ' + (dbError instanceof Error ? dbError.message : String(dbError)));
+              }
+            }
           }
         }
       } catch (error) {
         console.error('AuthContext: Session restore failed', error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        toast.error('Session Restore Failed: ' + errorMsg);
         sessionStorage.removeItem(SESSION_STORAGE_KEY);
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
@@ -152,7 +182,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If we used `resetDb` before, we wiped it. So we ALWAYS used API salt.
       // NOW, we want to use Local Salt if available.
 
-      let userDoc = await db.user_settings.findOne(LOCAL_USER_ID).exec(); // This might fail if key is wrong?
+      // Use the REAL user ID from the backend to lookup local settings
+      const backendUserId = apiResult.user.id;
+      let userDoc = await db.user_settings.findOne(backendUserId).exec();
 
       let salt: string;
 
@@ -174,15 +206,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Scenario B: Fresh Device (No local user)
       else {
         // We MUST rely on the backend providing the salt
-        // user.profile is typed as generic object-like in API response
-        // apiResult.user.profile.salt should exist if registered with new flow
         const remoteProfile = apiResult.user.profile as any;
 
         if (remoteProfile && remoteProfile.salt) {
           salt = remoteProfile.salt;
           console.log('Fresh Device Login: Retrieved salt from backend');
         } else {
-          throw new Error('Account sync unavailable: Security salt missing from server. Please export/import your key manually.');
+          // Check if we can fallback to the DEFAULT/STATIC local user profile for data migration?
+          // For now, assume fresh sync.
+          if (apiResult.user.profile?.salt) {
+            salt = apiResult.user.profile.salt;
+          } else {
+            throw new Error('Account sync unavailable: Security salt missing from server.');
+          }
         }
       }
 
@@ -191,16 +227,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await cryptoService.deriveKey(password, salt);
       console.log('AuthContext: Key derived successfully');
 
-      // 3. Initialize DB with Correct Key
-      // We already opened the DB with the password at step 1.
-      // We do NOT need to close and re-open it, as the encryption key (password) hasn't changed.
-      // We just ensure we have the instance.
-      const encryptedDb = await getDb();
+      // 3. Initialize DB with Correct Key (Key String, not Password)
+      const keyString = await cryptoService.exportKeyString();
+      let encryptedDb;
+
+      try {
+        encryptedDb = await getDb(keyString);
+      } catch (dbError: any) {
+        console.error('AuthContext: DB Open Failed during login', dbError);
+
+        // Handle Password Mismatch (DB1) - Nuclear Option
+        if (dbError?.code === 'DB1' || (dbError?.message && dbError.message.includes('different password'))) {
+          console.warn('AuthContext: Password mismatch detected (DB1) during Login. Nuking local DB to recover...');
+          toast.loading('Resetting local database due to security update...', { duration: 3000 });
+
+          // Force delete the old DB
+          await forceResetDatabase();
+
+          // Re-initialize with correct key
+          encryptedDb = await getDb(keyString);
+          console.log('AuthContext: DB Re-initialized after nuke (Login).');
+        } else {
+          throw dbError;
+        }
+      }
 
       // If Scenario B (Fresh Device), create the local user record now
       if (!userDoc) {
+        // We need to re-fetch the collection if we nuked the DB, as previous 'db' instance might be stale/closed?
+        // simple `encryptedDb` reference should be good.
         await encryptedDb.user_settings.insert({
-          id: LOCAL_USER_ID,
+          id: backendUserId, // Use Real Backend ID
           profileName: apiResult.user.username || 'My Profile',
           email: apiResult.user.email || 'local@device',
           isSetupCompleted: true,
@@ -211,13 +268,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
-        userDoc = await encryptedDb.user_settings.findOne(LOCAL_USER_ID).exec();
+        userDoc = await encryptedDb.user_settings.findOne(backendUserId).exec();
       }
 
       const user: User = {
         id: userDoc.get('id'),
         username: userDoc.get('profileName') || 'Local User',
-        email: userDoc.get('email') || 'local@device', // Get actual email or fallback
+        email: userDoc.get('email') || 'local@device',
         firstName: '',
         lastName: '',
       };
@@ -225,9 +282,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 2. Persist Session (Key + User) -> SessionStorage
       const jwk = await cryptoService.exportSessionKey();
       sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
-
-      // 3. Ensure DB remains open
-      // It is already open. No action needed.
 
       console.log('AuthContext: Dispatching LOGIN_SUCCESS');
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
@@ -242,15 +296,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      const db = await getDb();
-
-      // Check if already exists
-      const existing = await db.user_settings.findOne(LOCAL_USER_ID).exec();
-      if (existing) {
-        console.warn('AuthContext: Overwriting existing local user.');
-        await existing.remove();
-      }
-
       // 1. Generate Security Params
       const salt = (await import('../services/CryptoService')).CryptoService.generateSalt();
 
@@ -268,31 +313,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(apiResult.message);
       }
 
-      // 3. Initialize Database with Encryption Key
-      // We must reset if it was opened without password pending registration
-      // For registration, we WANT to wipe old data to be safe.
-      await resetDb();
-      await getDb(userData.password);
+      if (!apiResult.user || !apiResult.user.id) {
+        throw new Error('Registration successful but user ID missing from response');
+      }
+
+      const newUserId = apiResult.user.id;
+
+      // 3. Initialize Database with Encryption Key (Derived Key String)
+      const keyString = await cryptoService.exportKeyString();
+
+      // Ensure we start with a clean slate (nuke any existing DB leftovers)
+      // resetDb() only works if DB is open, so we use forceResetDatabase()
+      await forceResetDatabase();
+
+      await getDb(keyString);
 
       // 4. Create User Profile
-      // Now that DB is open with password, we can insert.
-      const encryptedDb = await getDb(); // Gets the already opened instance
+      const encryptedDb = await getDb();
 
       await encryptedDb.user_settings.insert({
-        id: LOCAL_USER_ID,
+        id: newUserId, // Use Real Backend ID
         profileName: userData.username || 'My Profile',
-        email: userData.email, // Persist email
+        email: userData.email,
         isSetupCompleted: true,
         securityProfile: {
           salt: salt,
-          verifier: 'TODO-HASH-OF-KEY' // Future enhancement
+          verifier: 'TODO-HASH-OF-KEY'
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
 
       const user: User = {
-        id: LOCAL_USER_ID,
+        id: newUserId,
         username: userData.username,
         email: userData.email,
         firstName: '',

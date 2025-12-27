@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 // @ts-ignore
 // @ts-ignore
-import { createRxDatabase, RxDatabase, RxCollection, addRxPlugin } from 'rxdb';
+import { createRxDatabase, RxDatabase, RxCollection, addRxPlugin, removeRxDatabase } from 'rxdb';
 // @ts-ignore
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 // @ts-ignore
@@ -185,6 +185,27 @@ export const resetDb = async () => {
         }
         window._zakapp_db_promise = null;
         notifyListeners(null);
+    }
+};
+
+// Force Delete DB by Name (Used when we can't open it)
+export const forceResetDatabase = async () => {
+    console.warn("DatabaseService: FORCING DB DELETION (forceResetDatabase)...");
+    try {
+        // Need to replicate logic of storage selection
+        let storage;
+        if (process.env.NODE_ENV === 'test') {
+            storage = getRxStorageMemory();
+        } else {
+            storage = getRxStorageDexie();
+        }
+
+        await removeRxDatabase('zakapp_db_v10', storage);
+        console.log("DatabaseService: DB Forced Removed via removeRxDatabase.");
+        window._zakapp_db_promise = null;
+        notifyListeners(null);
+    } catch (err) {
+        console.error("DatabaseService: Failed to force remove DB", err);
     }
 };
 
