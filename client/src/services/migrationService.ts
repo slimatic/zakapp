@@ -150,4 +150,77 @@ export class MigrationService {
             };
         });
     }
+
+    /**
+     * Adapts raw JSON into valid Liability list.
+     */
+    static adaptLiabilities(rawLiabilities: any[], userId: string = 'local-user'): any[] {
+        return rawLiabilities.map(raw => {
+            return {
+                id: raw.id || crypto.randomUUID(),
+                userId: userId,
+                name: raw.name || 'Untitled Liability',
+                type: raw.type || 'debt',
+                amount: Number(raw.amount) || 0,
+                currency: raw.currency || 'USD',
+                description: raw.description || '',
+                metadata: raw.metadata || '',
+                isActive: raw.isActive ?? true,
+                dueDate: raw.dueDate || new Date().toISOString(),
+                creditor: raw.creditor || '',
+                notes: raw.notes || '',
+                createdAt: raw.createdAt || new Date().toISOString(),
+                updatedAt: raw.updatedAt || new Date().toISOString()
+            };
+        });
+    }
+
+    /**
+     * Adapts raw JSON into valid ZakatCalculation records.
+     */
+    static adaptCalculations(rawCalcs: any[], userId: string = 'local-user'): any[] {
+        return rawCalcs.map(raw => {
+            return {
+                id: raw.id || crypto.randomUUID(),
+                userId: userId,
+                calculationDate: raw.calculationDate || new Date().toISOString(),
+                methodology: raw.methodology || 'standard',
+                calendarType: raw.calendarType || 'gregorian',
+                totalAssets: Number(raw.totalAssets) || 0,
+                totalLiabilities: Number(raw.totalLiabilities) || 0,
+                netWorth: Number(raw.netWorth) || 0,
+                nisabThreshold: Number(raw.nisabThreshold) || 0,
+                nisabSource: raw.nisabSource || 'manual',
+                isZakatObligatory: raw.isZakatObligatory ?? false,
+                zakatAmount: Number(raw.zakatAmount) || 0,
+                zakatRate: Number(raw.zakatRate) || 0.025,
+                breakdown: raw.breakdown || '{}',
+                assetsIncluded: raw.assetsIncluded || '[]',
+                liabilitiesIncluded: raw.liabilitiesIncluded || '[]',
+                createdAt: raw.createdAt || new Date().toISOString()
+            };
+        });
+    }
+
+    /**
+     * Adapts raw JSON into valid UserSettings.
+     */
+    static adaptUserSettings(settings: any, userId: string = 'local-user'): any {
+        if (!settings) return null;
+        return {
+            id: userId,
+            profileName: settings.profileName || '',
+            email: settings.email || '',
+            preferredCalendar: settings.preferredCalendar || 'gregorian',
+            preferredMethodology: settings.preferredMethodology || 'standard',
+            baseCurrency: settings.baseCurrency || 'USD',
+            language: settings.language || 'en',
+            theme: settings.theme || 'system',
+            lastLoginAt: settings.lastLoginAt,
+            isSetupCompleted: settings.isSetupCompleted ?? true,
+            securityProfile: settings.securityProfile,
+            createdAt: settings.createdAt || new Date().toISOString(),
+            updatedAt: settings.updatedAt || new Date().toISOString()
+        };
+    }
 }
