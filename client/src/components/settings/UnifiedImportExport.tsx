@@ -5,33 +5,53 @@ import { Upload, Download, FileJson, AlertTriangle, CheckCircle, Database } from
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { useNisabRecordRepository } from '../../hooks/useNisabRecordRepository';
+import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
+import { useZakatCalculationRepository } from '../../hooks/useZakatCalculationRepository';
+import { useUserSettingsRepository } from '../../hooks/useUserSettingsRepository';
 import { MigrationService } from '../../services/migrationService';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const UnifiedImportExport: React.FC = () => {
     const [importing, setImporting] = useState(false);
     const [exporting, setExporting] = useState(false);
-    const [stats, setStats] = useState<{ assets: number; payments: number; nisabRecords: number; errors: string[] } | null>(null);
+    const [stats, setStats] = useState<{
+        assets: number;
+        payments: number;
+        nisabRecords: number;
+        liabilities: number;
+        calculations: number;
+        settings: boolean;
+        errors: string[]
+    } | null>(null);
 
     const { user } = useAuth();
     const { assets, addAsset } = useAssetRepository();
     const { payments, bulkAddPayments } = usePaymentRepository();
     const { records: nisabRecords, addRecord, bulkAddRecords } = useNisabRecordRepository();
+    const { liabilities, bulkAddLiabilities } = useLiabilityRepository();
+    const { calculations, bulkAddCalculations } = useZakatCalculationRepository();
+    const { settings, updateSettings } = useUserSettingsRepository();
 
     const handleExport = () => {
         setExporting(true);
         try {
             const data = {
-                version: "2.0", // Bump version for new unified format
+                version: "2.5", // Bump version for comprehensive unified format
                 exportDate: new Date().toISOString(),
                 stats: {
                     assets: assets.length,
                     payments: payments.length,
-                    nisabRecords: nisabRecords.length
+                    nisabRecords: nisabRecords.length,
+                    liabilities: liabilities.length,
+                    calculations: calculations.length,
+                    hasSettings: !!settings
                 },
                 assets,
                 payments,
-                nisabRecords
+                nisabRecords,
+                liabilities,
+                calculations,
+                settings
             };
 
             const jsonContent = JSON.stringify(data, null, 2);
@@ -109,10 +129,54 @@ export const UnifiedImportExport: React.FC = () => {
                     }
                 }
 
-                setStats({ assets: assetCount, payments: paymentCount, nisabRecords: nisabCount, errors });
+                // 4. Migrate Liabilities
+                let liabilityCount = 0;
+                if (rawData.liabilities && Array.isArray(rawData.liabilities)) {
+                    try {
+                        const cleanLiabilities = MigrationService.adaptLiabilities(rawData.liabilities, targetUserId);
+                        await bulkAddLiabilities(cleanLiabilities);
+                        liabilityCount += cleanLiabilities.length;
+                    } catch (err: any) {
+                        errors.push(`Liability Batch Error: ${err.message}`);
+                    }
+                }
+
+                // 5. Migrate Calculations
+                let calcCount = 0;
+                if (rawData.calculations && Array.isArray(rawData.calculations)) {
+                    try {
+                        const cleanCalcs = MigrationService.adaptCalculations(rawData.calculations, targetUserId);
+                        await bulkAddCalculations(cleanCalcs);
+                        calcCount += cleanCalcs.length;
+                    } catch (err: any) {
+                        errors.push(`Calculation Batch Error: ${err.message}`);
+                    }
+                }
+
+                // 6. Migrate Settings
+                let settingsRestored = false;
+                if (rawData.settings) {
+                    try {
+                        const cleanSettings = MigrationService.adaptUserSettings(rawData.settings, targetUserId);
+                        await updateSettings(cleanSettings);
+                        settingsRestored = true;
+                    } catch (err: any) {
+                        errors.push(`Settings Restore Error: ${err.message}`);
+                    }
+                }
+
+                setStats({
+                    assets: assetCount,
+                    payments: paymentCount,
+                    nisabRecords: nisabCount,
+                    liabilities: liabilityCount,
+                    calculations: calcCount,
+                    settings: settingsRestored,
+                    errors
+                });
 
                 if (errors.length === 0) {
-                    toast.success(`Successfully imported ${assetCount} assets, ${paymentCount} payments, and ${nisabCount} records.`);
+                    toast.success(`Successfully restored all data collections.`);
                 } else {
                     toast.error(`Import completed with ${errors.length} errors.`);
                 }
@@ -120,7 +184,7 @@ export const UnifiedImportExport: React.FC = () => {
             } catch (err: any) {
                 console.error('Import parse error', err);
                 toast.error('Failed to parse backup file');
-                setStats({ assets: 0, payments: 0, nisabRecords: 0, errors: [err.message] });
+                setStats({ assets: 0, payments: 0, nisabRecords: 0, liabilities: 0, calculations: 0, settings: false, errors: [err.message] });
             } finally {
                 setImporting(false);
                 e.target.value = ''; // Reset input
@@ -149,7 +213,7 @@ export const UnifiedImportExport: React.FC = () => {
                             <div className="text-center">
                                 <h3 className="font-medium text-gray-900">Backup Vault</h3>
                                 <p className="text-xs text-gray-500 mb-3">
-                                    Exports Assets, Payments, and History ({assets.length + payments.length} records)
+                                    Exports Assets, Liabilities, Payments, Calculations, and Settings ({assets.length + liabilities.length + payments.length + calculations.length} records)
                                 </p>
                                 <Button onClick={handleExport} disabled={exporting} variant="outline" className="w-full">
                                     {exporting ? <LoadingSpinner size="sm" /> : 'Download JSON Backup'}
@@ -189,7 +253,8 @@ export const UnifiedImportExport: React.FC = () => {
                                         Import Report
                                     </h4>
                                     <p className="text-sm text-gray-700 mt-1">
-                                        Imported <strong>{stats.assets}</strong> assets, <strong>{stats.payments}</strong> payments, and <strong>{stats.nisabRecords}</strong> Nisab records.
+                                        Imported <strong>{stats.assets}</strong> assets, <strong>{stats.liabilities}</strong> liabilities, <strong>{stats.payments}</strong> payments, <strong>{stats.calculations}</strong> calculations, and <strong>{stats.nisabRecords}</strong> records.
+                                        {stats.settings && " User settings were also restored."}
                                     </p>
                                     {stats.errors.length > 0 && (
                                         <div className="mt-2 text-xs text-red-600 max-h-32 overflow-y-auto">
