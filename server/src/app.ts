@@ -9,6 +9,7 @@ import 'dotenv/config';
 
 // Import route modules
 import authRoutes from './routes/auth';
+import syncRoutes from './routes/sync';
 import assetRoutes from './routes/assets';
 import calculationsRoutes from './routes/calculations';
 import zakatRoutes from './routes/zakat';
@@ -35,7 +36,7 @@ const app = express();
 app.use(helmet());
 
 // CORS Configuration - supports localhost, IP addresses, and custom domains
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
+const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : ['http://localhost:3000', 'http://localhost:5173'];
 
@@ -116,6 +117,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/sync', syncRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/calculations', calculationsRoutes);
 app.use('/api/zakat', zakatRoutes);
@@ -153,7 +155,7 @@ if (require.main === module) {
     console.log(`🚀 ZakApp Server running on port ${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
     console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
-    
+
     // Initialize database connection
     // const dbManager = DatabaseManager.getInstance();
 
@@ -165,14 +167,14 @@ if (require.main === module) {
   // Graceful shutdown handler
   // const gracefulShutdown = (signal: string) => {
   //   console.log(`\n${signal} received. Starting graceful shutdown...`);
-    
+
   //   // Stop accepting new requests
   //   server.close(() => {
   //     console.log('✅ HTTP server closed');
-      
+
   //     // Stop all background jobs
-  //     // stopAllJobs();
-      
+  //     // stopAll jobs();
+
   //     console.log('✅ Graceful shutdown complete');
   //     process.exit(0);
   //   });

@@ -25,7 +25,9 @@ const TOKEN_EXPIRY_SECONDS = 3600; // 1 hour
  * Response: { token: string, expiresAt: string }
  */
 router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    console.log('Sync token endpoint called');
     try {
+        console.log('Checking secret...');
         if (!COUCHDB_JWT_SECRET) {
             console.error('COUCHDB_JWT_SECRET not configured');
             return res.status(500).json({
@@ -33,19 +35,24 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
                 message: 'Server missing COUCHDB_JWT_SECRET environment variable'
             });
         }
+        console.log('Secret configured.');
 
         // Get user from auth middleware
         const user = req.user;
         if (!user || !user.id) {
+            console.error('User not authenticated in controller');
             return res.status(401).json({ error: 'User not authenticated' });
         }
+        console.log(`User authenticated: ${user.id}`);
 
         const userId = user.id;
 
         // Sanitize userId for CouchDB database naming (lowercase, alphanumeric + underscore)
         const safeUserId = userId.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        console.log(`Safe userId: ${safeUserId}`);
 
         // Generate JWT with CouchDB-specific claims
+        console.log('Signing token...');
         const token = jwt.sign(
             {
                 sub: userId,                           // Standard JWT subject claim
@@ -54,9 +61,11 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
             COUCHDB_JWT_SECRET,
             {
                 algorithm: 'HS256',
-                expiresIn: TOKEN_EXPIRY_SECONDS
+                expiresIn: TOKEN_EXPIRY_SECONDS,
+                keyid: 'zakapp_v1'
             }
         );
+        console.log('Token signed.');
 
         const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_SECONDS * 1000).toISOString();
 

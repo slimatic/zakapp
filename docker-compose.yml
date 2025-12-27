@@ -29,7 +29,7 @@ services:
     command: npm run dev
 
   couchdb:
-    image: apache/couchdb:3
+    image: apache/couchdb:3.5.1
     ports:
       - "5984:5984"
     environment:
@@ -37,6 +37,8 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
     volumes:
       - ./couchdb-data:/opt/couchdb/data
+      - ./docker/couchdb/jwt.ini:/opt/couchdb/etc/local.d/jwt.ini
+      - ./docker/couchdb/cors.ini:/opt/couchdb/etc/local.d/cors.ini
 
   backend:
     build:
