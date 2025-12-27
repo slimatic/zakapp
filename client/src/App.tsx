@@ -20,10 +20,8 @@ import { FeedbackWidget } from './components/FeedbackWidget';
 import { getFeedbackEnabled } from './config';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { SkipLink } from './components/common/SkipLink';
+import { useSyncManager } from './hooks/useSyncManager';
 import { ToastProvider } from './components/ui/ToastProvider';
-import { useDb } from './db';
-import { syncService } from './services/SyncService';
-import { useEffect } from 'react';
 
 /**
  * T023 Performance Optimization: Route-Based Code Splitting
@@ -73,28 +71,28 @@ const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').t
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const PaymentImportExport = lazy(() => import('./components/payments/PaymentImportExport').then(m => ({ default: m.PaymentImportExport })));
 const EncryptionIssues = lazy(() => import('./pages/admin/EncryptionIssues').then(m => ({ default: m.EncryptionIssues })));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+import { AdminProvider } from './contexts/AdminContext';
 const AdminRoute = React.lazy(() => import('./components/auth/AdminRoute').then(m => ({ default: m.AdminRoute })) as any);
 
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 // const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
 
+/**
+ * SyncManager Component - must be inside AuthProvider to access user context.
+ * Handles per-user sync lifecycle.
+ */
+function SyncManager() {
+  useSyncManager();
+  return null; // This component only manages side effects
+}
+
 function App() {
-  const db = useDb();
-
-  useEffect(() => {
-    if (db) {
-      syncService.startSync(db);
-    }
-    // Cleanup: Stop sync when DB changes or app unmounts
-    return () => {
-      syncService.stopSync();
-    };
-  }, [db]);
-
   return (
     <ToastProvider>
       <QueryProvider>
         <AuthProvider>
+          <SyncManager />
           <PrivacyProvider>
             <Router>
               <ErrorBoundary>
@@ -324,6 +322,20 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
+
+                    <Route path="/admin/users" element={
+                      <ProtectedRoute>
+                        <AdminRoute>
+                          <AdminProvider>
+                            <Layout>
+                              <Suspense fallback={<PageLoadingFallback />}>
+                                <AdminDashboard />
+                              </Suspense>
+                            </Layout>
+                          </AdminProvider>
+                        </AdminRoute>
+                      </ProtectedRoute>
+                    } />
 
                     <Route path="/admin/encryption" element={
                       <ProtectedRoute>

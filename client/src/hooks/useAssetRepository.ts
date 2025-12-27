@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDb } from '../db';
+import { useAuth } from '../contexts/AuthContext';
 import { Asset } from '../types';
 import { map } from 'rxjs/operators';
 
@@ -12,6 +13,7 @@ const ALLOWED_SCHEMA_FIELDS = [
 
 export function useAssetRepository() {
     const db = useDb();
+    const { user } = useAuth();
     const [assets, setAssets] = useState<Asset[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -94,6 +96,14 @@ export function useAssetRepository() {
 
     const addAsset = async (asset: Partial<Asset>) => {
         if (!db) throw new Error('Database not initialized');
+        // Ensure user is authenticated to get the ID
+        // Note: We check user.id to ensure we don't save with undefined ID
+        if (!user || !user.id) {
+            console.warn('[useAssetRepository] User not authenticated, cannot attach userId');
+            // We could throw, OR we could allow it (fallback to current schema behavior which is undefined?)
+            // But sticking to the fix plan:
+            throw new Error('User not authenticated');
+        }
 
         const safePayload = sanitizeAssetPayload(asset);
 
@@ -101,6 +111,7 @@ export function useAssetRepository() {
         const newAsset = {
             ...safePayload,
             id: safePayload.id || crypto.randomUUID(),
+            userId: user.id, // Inject Real User ID
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             isActive: safePayload.isActive ?? true,

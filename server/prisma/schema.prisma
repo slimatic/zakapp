@@ -18,6 +18,7 @@ model User {
   profile        String?  // Encrypted JSON blob (name, location, methodology preference)
   settings       String?  // Encrypted JSON blob (currency, language, calendar type, reminders)
   isActive       Boolean  @default(true)
+  userType       String   @default("USER") // USER, ADMIN_USER
   createdAt      DateTime @default(now())
   lastLoginAt    DateTime?
   updatedAt      DateTime @updatedAt

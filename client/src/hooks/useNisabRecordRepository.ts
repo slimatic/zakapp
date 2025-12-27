@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDb } from '../db';
+import { useAuth } from '../contexts/AuthContext';
 import { map } from 'rxjs/operators';
 import { NisabYearRecord } from '../types/nisabYearRecord';
 
@@ -9,6 +10,7 @@ import { NisabYearRecord } from '../types/nisabYearRecord';
  */
 export function useNisabRecordRepository() {
     const db = useDb();
+    const { user } = useAuth();
     const [records, setRecords] = useState<NisabYearRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -46,11 +48,12 @@ export function useNisabRecordRepository() {
 
     const addRecord = async (record: Partial<NisabYearRecord>) => {
         if (!db) throw new Error('Database not initialized');
+        if (!user || !user.id) throw new Error('User not authenticated');
 
         const newRecord = {
             ...record,
             id: record.id || crypto.randomUUID(),
-            userId: record.userId || 'local-user',
+            userId: user.id, // Inject authenticated user ID
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };

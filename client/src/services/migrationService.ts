@@ -54,7 +54,7 @@ export class MigrationService {
             const type = this.mapCategoryToType(raw.category || raw.type);
 
             return {
-                id: crypto.randomUUID(), // Always generate new ID to avoid collisions unless preserving specific logic
+                id: raw.id || crypto.randomUUID(), // Preserve ID to prevent duplication on re-import
                 userId: userId,
                 name: raw.name || 'Untitled Asset',
                 type: type,
@@ -81,7 +81,7 @@ export class MigrationService {
     static adaptPayments(rawPayments: any[], userId: string = 'local-user', defaultSnapshotId?: string): PaymentRecord[] {
         return rawPayments.map(raw => {
             const cleanRecord: any = {
-                id: raw.id || crypto.randomUUID(),
+                id: raw.id || crypto.randomUUID(), // Preserve ID
                 userId: userId,
                 snapshotId: raw.snapshotId || raw.snapshot || defaultSnapshotId || 'legacy-import',
                 amount: Number(raw.amount) || 0,
@@ -134,7 +134,7 @@ export class MigrationService {
     static adaptNisabRecords(rawRecords: any[], userId: string = 'local-user'): any[] {
         return rawRecords.map(raw => {
             return {
-                id: raw.id || crypto.randomUUID(),
+                id: raw.id || crypto.randomUUID(), // Preserve ID
                 userId: userId,
                 hawlStartDate: raw.hawlStartDate || raw.startDate || new Date().toISOString(),
                 hawlCompletionDate: raw.hawlCompletionDate || raw.endDate,

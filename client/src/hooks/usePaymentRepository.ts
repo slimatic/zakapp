@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDb } from '../db';
+import { useAuth } from '../contexts/AuthContext';
 import { map } from 'rxjs/operators';
 // Payment Record matches the shared type but lives locally in RxDB
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
@@ -10,6 +11,7 @@ import { PaymentRecord } from '@zakapp/shared/types/tracking';
  */
 export function usePaymentRepository() {
     const db = useDb();
+    const { user } = useAuth();
     const [payments, setPayments] = useState<PaymentRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -42,6 +44,7 @@ export function usePaymentRepository() {
 
     const addPayment = async (payment: Partial<PaymentRecord>) => {
         if (!db) throw new Error('Database not initialized');
+        if (!user || !user.id) throw new Error('User not authenticated');
 
         const newPayment = {
             ...payment,
@@ -52,7 +55,7 @@ export function usePaymentRepository() {
             status: payment.status || 'recorded',
             currency: payment.currency || 'USD',
             exchangeRate: payment.exchangeRate || 1.0,
-            userId: payment.userId || 'local-user' // temporary default until auth context is wired
+            userId: user.id // Inject authenticated user ID
         };
 
         return db.payment_records.insert(newPayment);

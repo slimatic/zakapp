@@ -23,8 +23,11 @@ const DBS_TO_CREATE = [
     '_global_changes',
     'zakapp_users',
     'zakapp_assets',
-    'zakapp_nisab_records',
-    'zakapp_payments'
+    'zakapp_nisab_year_records',
+    'zakapp_payment_records',
+    'zakapp_liabilities',
+    'zakapp_zakat_calculations',
+    'zakapp_user_settings'
 ];
 
 async function initCouchDB() {

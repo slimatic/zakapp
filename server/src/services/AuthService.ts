@@ -36,6 +36,13 @@ export class AuthService {
   private readonly REFRESH_TOKEN_EXPIRY = '7d';
 
   /**
+   * Helper to hash password
+   */
+  async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, 12);
+  }
+
+  /**
    * Register a new user with encrypted sensitive data
    */
   async register(userData: CreateUserDto): Promise<{ user: any; tokens: AuthTokens }> {
@@ -127,9 +134,14 @@ export class AuthService {
    * Authenticate user and return tokens
    */
   async login(credentials: LoginCredentials): Promise<{ user: any; tokens: AuthTokens }> {
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email: credentials.email }
+    // Find user by email or username
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: credentials.email },
+          { username: credentials.email }
+        ]
+      }
     });
 
     if (!user || !user.isActive) {

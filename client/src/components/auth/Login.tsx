@@ -43,6 +43,34 @@ export const Login: React.FC = () => {
             {error && (
               <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
                 {error}
+                {(error.includes('DB1') || error.includes('password') || error.includes('salt')) && (
+                  <div className="mt-2">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="w-full text-xs"
+                      onClick={async () => {
+                        if (window.confirm('This will delete the LOCAL database (sync mismatch). Are you sure?')) {
+                          try {
+                            const { forceResetDatabase } = await import('../../db');
+                            await forceResetDatabase();
+                            // Also clear auth tokens
+                            localStorage.removeItem('accessToken');
+                            localStorage.removeItem('refreshToken');
+                            localStorage.removeItem('zakapp_session');
+                            window.location.reload();
+                          } catch (e) {
+                            console.error(e);
+                            alert('Failed to reset DB');
+                          }
+                        }
+                      }}
+                    >
+                      Reset Local Data & Retry
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
