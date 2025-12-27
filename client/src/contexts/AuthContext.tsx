@@ -112,7 +112,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               await closeDb();
               await getDb(keyString);
               console.log('AuthContext: DB opened successfully with restored key');
-              dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+
+              // Verification Step: Check if the session is still valid with the backend
+              // This handles cases where the server restarted and invalidated existing tokens.
+              try {
+                const { apiService: api } = await import('../services/api');
+                const verifyResult = await api.getCurrentUser();
+
+                if (verifyResult.success) {
+                  console.log('AuthContext: Session verified with backend');
+                  dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+                } else if (verifyResult.message === 'API Unauthorized (Local Mode)') {
+                  // This is the suppressed 401 from api.ts
+                  console.warn('AuthContext: Session invalid (401). Clearing stored session.');
+                  sessionStorage.removeItem(SESSION_STORAGE_KEY);
+                  localStorage.removeItem('accessToken');
+                  localStorage.removeItem('refreshToken');
+                  dispatch({ type: 'SET_LOADING', payload: false });
+                  return; // Don't login
+                } else {
+                  console.warn('AuthContext: Could not verify session with backend (offline?), continuing in local mode');
+                  dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+                }
+              } catch (verifyError) {
+                console.warn('AuthContext: verification call failed, assuming offline mode', verifyError);
+                dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+              }
             } catch (dbError: any) {
               console.error('AuthContext: DB Open Failed during restore', dbError);
 
@@ -168,91 +193,56 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('refreshToken', apiResult.refreshToken);
       }
 
-      // Check if we have a local user ID (for offline support)
-      // Open DB tentatively (might need password if not open, but we don't have key yet?)
-      // Actually we just want to know if it exists. getDb() without password might fail if it's encrypted?
-      // But we need to use CloseDb first to ensure we aren't using a stale connection.
-      await closeDb();
-      const db = await getDb(password); // Try opening with password immediately?
-      // Wait, we haven't derived the key yet! We can't use `password` as key directly if we use PBKDF2 in cryptoService.
-      // But RxDB adapter uses `password` passed to it. AND our `index.ts` does NOT derive key, it expects valid key.
-      // Wait. `cryptoService.deriveKey` sets the GLOBAL key for the app logic (encryption-crypto-js wrapper?).
-      // In `db/index.ts`, `wrappedKeyEncryptionCryptoJsStorage` is used.
-      // It usually grabs the key from the `password` field passed to `createRxDatabase`.
-      // BUT `cryptoService` manages the actual Cryptography logic for fields?
-      // Let's stick to the existing flow:
-
-      // We need the SALT locally to derive the key.
-      // But we can't read the SALT from the DB if the DB is encrypted and we don't have the key!
-      // Catch-22?
-      // No, `user_settings` schema usually has `salt` as potentially unencrypted or we use a global predictable key for the meta-doc?
-      // Or we rely on API to give us the salt (Scenario B).
-
-      // Let's assume we rely on API for salt OR the DB is accessible enough to read the user doc.
-      // If we used `resetDb` before, we wiped it. So we ALWAYS used API salt.
-      // NOW, we want to use Local Salt if available.
-
       // Use the REAL user ID from the backend to lookup local settings
       const backendUserId = apiResult.user.id;
-      let userDoc = await db.user_settings.findOne(backendUserId).exec();
+      let userDoc = null;
 
+      // 2. Determine Salt (Prefer API salt to avoid Catch-22 opening locked DB)
       let salt: string;
+      const remoteUser = apiResult.user as any;
 
-      // Scenario A: Local User Exists (Offline or Sync)
-      if (userDoc) {
-        const security = userDoc.get('securityProfile');
-        if (!security || !security.salt) {
-          // Fallback: Try to use backend salt if local is corrupted?
-          if (apiResult.user.profile?.salt) {
-            salt = apiResult.user.profile.salt;
-            console.log('Using backend salt for corrupted local profile');
+      if (remoteUser.salt) {
+        salt = remoteUser.salt;
+        console.log('AuthContext: Retrieved salt from API user object');
+      } else if (remoteUser.profile?.salt) {
+        salt = remoteUser.profile.salt;
+        console.log('AuthContext: Retrieved salt from API profile object');
+      } else {
+        // Fallback: only if API salt is missing, try to open DB tentatively to get local salt
+        // WARNING: This will likely trigger DB1 if DB is already encrypted with derived key
+        try {
+          await closeDb();
+          const db = await getDb(password);
+          userDoc = await db.user_settings.findOne(backendUserId).exec();
+          if (userDoc && userDoc.get('securityProfile')?.salt) {
+            salt = userDoc.get('securityProfile').salt;
+            console.log('AuthContext: Retrieved salt from local DB');
           } else {
-            throw new Error('User profile corrupted. No security data and no backend salt.');
+            throw new Error('Salt missing from both API and local DB');
           }
-        } else {
-          salt = security.salt;
-        }
-      }
-      // Scenario B: Fresh Device (No local user)
-      else {
-        // We MUST rely on the backend providing the salt
-        const remoteProfile = apiResult.user.profile as any;
-
-        if (remoteProfile && remoteProfile.salt) {
-          salt = remoteProfile.salt;
-          console.log('Fresh Device Login: Retrieved salt from backend');
-        } else {
-          // Check if we can fallback to the DEFAULT/STATIC local user profile for data migration?
-          // For now, assume fresh sync.
-          if (apiResult.user.profile?.salt) {
-            salt = apiResult.user.profile.salt;
-          } else {
-            throw new Error('Account sync unavailable: Security salt missing from server.');
-          }
+        } catch (e) {
+          console.error('AuthContext: Failed to obtain salt locally', e);
+          throw new Error('Encryption salt missing. Database cannot be opened.');
         }
       }
 
-      // 2. Derive Key
+      // 3. Derive Key
       console.log('AuthContext: Deriving key...');
       await cryptoService.deriveKey(password, salt);
       console.log('AuthContext: Key derived successfully');
 
-      // 3. Initialize DB with Correct Key (Key String, not Password)
+      // 4. Initialize DB with Derived Key
       const keyString = await cryptoService.exportKeyString();
       let encryptedDb;
 
       try {
-        // Close any existing DB instance first (critical for multi-user/new user scenarios)
         await closeDb();
         encryptedDb = await getDb(keyString);
       } catch (dbError: any) {
         console.error('AuthContext: DB Open Failed during login', dbError);
 
-        // Handle Password Mismatch (DB1) - Nuclear Option
+        // Handle Password Mismatch (DB1) - Only if we are SURE it's not a key derivation issue
         if (dbError?.code === 'DB1' || (dbError?.message && dbError.message.includes('different password'))) {
-          console.warn('AuthContext: Password mismatch detected (DB1) during Login. Nuking local DB to recover...');
-          toast.loading('Resetting local database due to security update...', { duration: 3000 });
-
           // Force delete the old DB
           await forceResetDatabase();
 
@@ -264,11 +254,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      // If Scenario B (Fresh Device), create the local user record now
+      // If Scenario B (Fresh Device or salt retrieved from API), create local user record if it doesn't exist
+      userDoc = await encryptedDb.user_settings.findOne(backendUserId).exec();
+
       if (!userDoc) {
-        // We need to re-fetch the collection if we nuked the DB, as previous 'db' instance might be stale/closed?
-        // simple `encryptedDb` reference should be good.
-        await encryptedDb.user_settings.insert({
+        console.log('AuthContext: Creating local user record for', backendUserId);
+        userDoc = await encryptedDb.user_settings.insert({
           id: backendUserId, // Use Real Backend ID
           profileName: apiResult.user.username || 'My Profile',
           email: apiResult.user.email || 'local@device',
@@ -280,7 +271,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
-        userDoc = await encryptedDb.user_settings.findOne(backendUserId).exec();
       }
 
       const user: User = {
