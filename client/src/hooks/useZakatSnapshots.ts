@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiService } from '../services/api';
+import { useDb } from '../db';
+import { useAuth } from '../contexts/AuthContext';
 import type { NisabYearRecord } from '../types/nisabYearRecord';
 
 /**
@@ -31,6 +32,8 @@ export interface SnapshotListResult {
  * React Query hooks for Zakat snapshot management.
  * Provides comprehensive hooks for CRUD operations on calculation snapshots
  * with filtering, comparison, and optimistic updates.
+ *
+ * REFACTORED: Now uses local RxDB (nisab_year_records) for Offline-First mode.
  */
 
 /**
@@ -46,61 +49,65 @@ export const useSnapshots = (
     enabled?: boolean;
   }
 ) => {
+  const db = useDb();
+  const { user } = useAuth();
+
   return useQuery({
     queryKey: ['zakat-snapshots', filters],
-    enabled: options?.enabled ?? true,
+    enabled: !!db && (options?.enabled ?? true),
     queryFn: async (): Promise<SnapshotListResult> => {
-      const normalizedFilters = filters ? { ...filters } : undefined;
-      const requestFilters = normalizedFilters
-        ? {
-            year: normalizedFilters.year,
-            page: normalizedFilters.page,
-            limit: normalizedFilters.limit,
-            status: typeof normalizedFilters.status === 'string'
-              ? [normalizedFilters.status]
-              : normalizedFilters.status,
-          }
-        : undefined;
+      if (!db) throw new Error('Database not initialized');
 
-      const response = await apiService.getSnapshots(requestFilters);
-      const payload = (response?.data ?? {}) as Record<string, unknown>;
-      const snapshotsFromPayload = (payload.snapshots as NisabYearRecord[] | undefined)
-        ?? (payload.records as NisabYearRecord[] | undefined)
-        ?? [];
-      const snapshots = Array.isArray(snapshotsFromPayload) ? snapshotsFromPayload : [];
+      const query: any = {};
+      if (user && user.id) {
+        query.userId = user.id;
+      }
 
-      const limitFromResponse = typeof payload.limit === 'number' ? (payload.limit as number) : undefined;
-      const limitFromFilters = normalizedFilters?.limit;
-      const derivedLimit = snapshots.length > 0 ? snapshots.length : undefined;
-      const limit = limitFromResponse ?? limitFromFilters ?? derivedLimit ?? 0;
+      if (filters?.year) {
+        // Handle year filtering (gregorianYear or parsing date)
+        query.gregorianYear = filters.year;
+      }
 
-      const offsetFromResponse = typeof payload.offset === 'number' ? (payload.offset as number) : undefined;
-      const page = normalizedFilters?.page ?? 1;
-      const offset = offsetFromResponse ?? (limit ? (page - 1) * limit : 0);
+      if (filters?.status) {
+        if (Array.isArray(filters.status)) {
+          query.status = { $in: filters.status };
+        } else {
+          query.status = filters.status;
+        }
+      }
 
-      const total = typeof payload.total === 'number' ? (payload.total as number) : snapshots.length;
-      const hasMore = typeof payload.hasMore === 'boolean'
-        ? (payload.hasMore as boolean)
-        : offset + limit < total;
+      const limit = filters?.limit || 20;
+      const page = filters?.page || 1;
+      const offset = (page - 1) * limit;
+
+      const results = await db.nisab_year_records.find({
+        selector: query,
+        sort: [{ hawlStartDate: 'desc' }],
+        limit: limit,
+        skip: offset
+      }).exec();
+
+      const totalResults = await db.nisab_year_records.find({
+        selector: query
+      }).exec();
+
+      const snapshots = results.map(doc => doc.toJSON());
 
       return {
         snapshots,
-        total,
+        total: totalResults.length,
         limit,
         offset,
-        hasMore,
+        hasMore: offset + limit < totalResults.length,
         pagination: {
-          totalItems: total,
+          totalItems: totalResults.length,
           pageSize: limit,
           currentPage: page,
-          hasMore,
-        },
-        raw: payload,
+          hasMore: offset + limit < totalResults.length,
+        }
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 5000, // Reduced staleTime for local DB
   });
 };
 
@@ -112,43 +119,51 @@ export const useSnapshots = (
  * @returns Query result with single snapshot data
  */
 export const useSnapshot = (snapshotId: string) => {
+  const db = useDb();
+
   return useQuery({
     queryKey: ['zakat-snapshots', snapshotId],
-    queryFn: () => apiService.getSnapshot(snapshotId),
-    enabled: !!snapshotId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    enabled: !!db && !!snapshotId,
+    queryFn: async () => {
+      if (!db) throw new Error('Database not initialized');
+      const doc = await db.nisab_year_records.findOne(snapshotId).exec();
+      if (!doc) throw new Error('Snapshot not found');
+      return { success: true, data: doc.toJSON() };
+    },
+    staleTime: 5 * 60 * 1000,
   });
 };
 
 /**
  * Hook for creating new snapshots from current asset state.
- * Includes optimistic updates and invalidates related queries.
- *
- * @returns Mutation result for snapshot creation
+ * REFACTORED: Now uses RxDB.
  */
 export const useCreateSnapshot = () => {
   const queryClient = useQueryClient();
+  const db = useDb();
+  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: (snapshotData?: {
-      name?: string;
-      description?: string;
-      tags?: string[];
-    }) => apiService.createSnapshot(snapshotData || {}),
-    onSuccess: (newSnapshot) => {
-      // Invalidate snapshots queries to refetch
-      queryClient.invalidateQueries({ queryKey: ['zakat-snapshots'] });
+    mutationFn: async (snapshotData: any = {}) => {
+      if (!db) throw new Error('Database not initialized');
+      if (!user || !user.id) throw new Error('User not authenticated');
 
-      // Invalidate asset queries since snapshot creation might affect asset state
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      const newRecord = {
+        ...snapshotData,
+        id: crypto.randomUUID(),
+        userId: user.id,
+        status: 'DRAFT',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-      // Show success notification
-      // toast.success('Snapshot created successfully');
+      const doc = await db.nisab_year_records.insert(newRecord);
+      return doc.toJSON();
     },
-    retry: 2,
-    retryDelay: 1000,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['zakat-snapshots'] });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
   });
 };
 
@@ -160,55 +175,39 @@ export const useCreateSnapshot = () => {
  */
 export const useDeleteSnapshot = () => {
   const queryClient = useQueryClient();
+  const db = useDb();
 
   return useMutation({
-    mutationFn: (snapshotId: string) => apiService.deleteSnapshot(snapshotId),
+    mutationFn: async (snapshotId: string) => {
+      if (!db) throw new Error('Database not initialized');
+      const doc = await db.nisab_year_records.findOne(snapshotId).exec();
+      if (doc) {
+        await doc.remove();
+      }
+      return { success: true };
+    },
     onMutate: async (snapshotId) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['zakat-snapshots'] });
-      await queryClient.cancelQueries({ queryKey: ['zakat-snapshots', snapshotId] });
-
-      // Snapshot previous values
       const previousSnapshots = queryClient.getQueryData(['zakat-snapshots']);
-      const previousSnapshot = queryClient.getQueryData(['zakat-snapshots', snapshotId]);
 
-      // Optimistically remove from the snapshots list
       queryClient.setQueryData(['zakat-snapshots'], (old: any) => {
-        if (!old?.data?.snapshots) return old;
+        if (!old?.snapshots) return old;
         return {
           ...old,
-          data: {
-            ...old.data,
-            snapshots: old.data.snapshots.filter((snapshot: any) =>
-              snapshot.id !== snapshotId
-            )
-          }
+          snapshots: old.snapshots.filter((s: any) => s.id !== snapshotId)
         };
       });
 
-      // Remove the individual snapshot record
-      queryClient.removeQueries({ queryKey: ['zakat-snapshots', snapshotId] });
-
-      return { previousSnapshots, previousSnapshot };
+      return { previousSnapshots };
     },
     onError: (err, snapshotId, context) => {
-      // Rollback on error
       if (context?.previousSnapshots) {
         queryClient.setQueryData(['zakat-snapshots'], context.previousSnapshots);
       }
-      if (context?.previousSnapshot) {
-        queryClient.setQueryData(['zakat-snapshots', snapshotId], context.previousSnapshot);
-      }
     },
     onSuccess: () => {
-      // Invalidate queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['zakat-snapshots'] });
-
-      // Show success notification
-      // toast.success('Snapshot deleted successfully');
     },
-    retry: 2,
-    retryDelay: 1000,
   });
 };
 
@@ -221,13 +220,14 @@ export const useDeleteSnapshot = () => {
  * @returns Query result with comparison data
  */
 export const useCompareSnapshots = (fromId: string, toId: string) => {
+  // TODO: Implement local comparison logic if needed, or keep partial API for heavy computational comparisons
+  // For now, redirecting to a safe empty state or mock
   return useQuery({
     queryKey: ['zakat-snapshots', 'compare', fromId, toId],
-    queryFn: () => apiService.compareSnapshots(fromId, toId),
+    queryFn: async () => {
+      return { success: true, data: { differences: [] } };
+    },
     enabled: !!(fromId && toId),
-    staleTime: 10 * 60 * 1000, // 10 minutes - comparisons are expensive
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 
@@ -250,13 +250,7 @@ export const useSnapshotsByYear = (year: number) => {
  * @returns Query result with recent snapshots
  */
 export const useRecentSnapshots = (limit: number = 5) => {
-  return useQuery({
-    queryKey: ['zakat-snapshots', 'recent', limit],
-    queryFn: () => apiService.getSnapshots({ limit, page: 1 }),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  });
+  return useSnapshots({ limit, page: 1 });
 };
 
 /**
@@ -267,11 +261,35 @@ export const useRecentSnapshots = (limit: number = 5) => {
  * @returns Query result with snapshot statistics
  */
 export const useSnapshotStats = (year?: number) => {
+  const db = useDb();
+  const { user } = useAuth();
+
   return useQuery({
     queryKey: ['zakat-snapshots', 'stats', year],
-    queryFn: () => apiService.getSnapshotStats(year),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    enabled: !!db,
+    queryFn: async () => {
+      if (!db) throw new Error('Database not initialized');
+
+      const query: any = {};
+      if (user && user.id) {
+        query.userId = user.id;
+      }
+      if (year) {
+        query.gregorianYear = year;
+      }
+
+      const docs = await db.nisab_year_records.find({ selector: query }).exec();
+      const records = docs.map(d => d.toJSON());
+
+      return {
+        success: true,
+        data: {
+          totalRecords: records.length,
+          totalZakat: records.reduce((sum, r) => sum + (parseFloat(String(r.zakatAmount || 0))), 0),
+          completedRecords: records.filter(r => r.status === 'FINALIZED').length,
+        }
+      };
+    },
+    staleTime: 5 * 60 * 1000,
   });
 };
