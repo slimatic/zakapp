@@ -9,11 +9,18 @@
 
 import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
+// Environment Variables
 const COUCHDB_JWT_SECRET = process.env.COUCHDB_JWT_SECRET;
+const COUCHDB_URL = process.env.COUCHDB_URL || 'http://couchdb:5984';
+const COUCHDB_USER = process.env.COUCHDB_USER || 'admin';
+const COUCHDB_PASSWORD = process.env.COUCHDB_PASSWORD || 'password';
+
+// Token expiry: 1 hour
 const TOKEN_EXPIRY_SECONDS = 3600; // 1 hour
 
 /**
@@ -50,6 +57,56 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
         // Sanitize userId for CouchDB database naming (lowercase, alphanumeric + underscore)
         const safeUserId = userId.toLowerCase().replace(/[^a-z0-9]/g, '_');
         console.log(`Safe userId: ${safeUserId}`);
+
+        // Ensure user's databases exist
+        const dbNames = [
+            `zakapp_${safeUserId}_assets`,
+            `zakapp_${safeUserId}_nisab_year_records`,
+            `zakapp_${safeUserId}_payment_records`
+        ];
+
+        const authHeader = 'Basic ' + Buffer.from(`${COUCHDB_USER}:${COUCHDB_PASSWORD}`).toString('base64');
+
+        for (const dbName of dbNames) {
+            try {
+                const checkUrl = `${COUCHDB_URL}/${dbName}`;
+
+                // Check if database exists
+                try {
+                    await axios.head(checkUrl, {
+                        headers: { 'Authorization': authHeader }
+                    });
+                    console.log(`✅ Database exists: ${dbName}`);
+                } catch (checkErr: any) {
+                    if (checkErr.response?.status === 404) {
+                        // Database doesn't exist, create it
+                        console.log(`Creating database: ${dbName}`);
+
+                        await axios.put(checkUrl, {}, {
+                            headers: { 'Authorization': authHeader }
+                        });
+                        console.log(`✅ Created database: ${dbName}`);
+
+                        // Set security to allow any authenticated user
+                        await axios.put(`${checkUrl}/_security`, {
+                            admins: { names: [], roles: [] },
+                            members: { names: [], roles: [] }
+                        }, {
+                            headers: {
+                                'Authorization': authHeader,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        console.log(`✅ Set security for: ${dbName}`);
+                    } else {
+                        throw checkErr;
+                    }
+                }
+            } catch (err) {
+                console.error(`Error ensuring database ${dbName}:`, err);
+                // Don't fail the token request if database creation fails
+            }
+        }
 
         // Generate JWT with CouchDB-specific claims
         console.log('Signing token...');
