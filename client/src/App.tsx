@@ -71,9 +71,6 @@ const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').t
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const PaymentImportExport = lazy(() => import('./components/payments/PaymentImportExport').then(m => ({ default: m.PaymentImportExport })));
 const EncryptionIssues = lazy(() => import('./pages/admin/EncryptionIssues').then(m => ({ default: m.EncryptionIssues })));
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
-import { AdminProvider } from './contexts/AdminContext';
-const AdminRoute = React.lazy(() => import('./components/auth/AdminRoute').then(m => ({ default: m.AdminRoute })) as any);
 
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 // const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
@@ -323,19 +320,7 @@ function App() {
                       }
                     />
 
-                    <Route path="/admin/users" element={
-                      <ProtectedRoute>
-                        <AdminRoute>
-                          <AdminProvider>
-                            <Layout>
-                              <Suspense fallback={<PageLoadingFallback />}>
-                                <AdminDashboard />
-                              </Suspense>
-                            </Layout>
-                          </AdminProvider>
-                        </AdminRoute>
-                      </ProtectedRoute>
-                    } />
+
 
                     <Route path="/admin/encryption" element={
                       <ProtectedRoute>
