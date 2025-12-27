@@ -20,8 +20,7 @@ services:
       - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
       - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
       - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL:-http://${HOST_IP:-localhost}:5984}
-      - REACT_APP_COUCHDB_USER=${COUCHDB_USER}
-      - REACT_APP_COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      # NOTE: COUCHDB_USER and COUCHDB_PASSWORD removed - using JWT auth via /api/sync/token
     depends_on:
       backend:
         condition: service_healthy
@@ -60,6 +59,9 @@ services:
       - DATABASE_URL=file:./prisma/data/dev.db
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000},http://127.0.0.1:${FRONTEND_PORT:-3000},http://${HOST_IP:-localhost}:${FRONTEND_PORT:-3000}}
       - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
+      - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET}
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
     healthcheck:
       test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:3001/api/auth/register || exit 0"]
       interval: 10s
