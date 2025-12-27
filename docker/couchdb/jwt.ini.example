@@ -1,0 +1,19 @@
+[jwt_auth]
+; hmac_secret is base64 encoded - SET THIS TO YOUR COUCHDB_JWT_SECRET
+hmac_secret = YOUR_BASE64_ENCODED_SECRET_HERE
+required_claims = 
+username_claim = sub
+roles_claim = _couchdb.roles
+
+[jwt_keys]
+; Key ID must match the keyid in your JWT tokens
+zakapp_v1 = YOUR_BASE64_ENCODED_SECRET_HERE
+
+[admins]
+; Admin user - SET YOUR PASSWORD HASH HERE
+; Generate with: docker exec couchdb couchdb-admin-password-hash yourpassword
+admin = YOUR_PASSWORD_HASH_HERE
+
+[chttpd_auth]
+; Random secret for cookie auth - generate a random string
+secret = YOUR_RANDOM_SECRET_HERE

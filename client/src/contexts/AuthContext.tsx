@@ -158,6 +158,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(apiResult.message || 'Login failed');
       }
 
+      // Store access token for sync service
+      if (apiResult.accessToken) {
+        localStorage.setItem('accessToken', apiResult.accessToken);
+      }
+      if (apiResult.refreshToken) {
+        localStorage.setItem('refreshToken', apiResult.refreshToken);
+      }
+
       // Check if we have a local user ID (for offline support)
       // Open DB tentatively (might need password if not open, but we don't have key yet?)
       // Actually we just want to know if it exists. getDb() without password might fail if it's encrypted?
@@ -283,6 +291,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const jwk = await cryptoService.exportSessionKey();
       sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
 
+      // Note: accessToken already stored in localStorage above
+
       console.log('AuthContext: Dispatching LOGIN_SUCCESS');
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       return true;
@@ -311,6 +321,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (!apiResult.success) {
         throw new Error(apiResult.message);
+      }
+
+      // Store access token for sync service
+      if (apiResult.accessToken) {
+        localStorage.setItem('accessToken', apiResult.accessToken);
+      }
+      if (apiResult.refreshToken) {
+        localStorage.setItem('refreshToken', apiResult.refreshToken);
       }
 
       if (!apiResult.user || !apiResult.user.id) {
@@ -371,6 +389,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       cryptoService.clearSession();
       sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       await closeDb(); // Close connection but keep data!
     } finally {
       dispatch({ type: 'LOGOUT' });
