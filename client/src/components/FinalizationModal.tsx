@@ -13,6 +13,7 @@
 import React, { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
+import { toNumber, toDecimal, calculateZakat } from '../utils/precision';
 
 export interface FinalizationModalProps {
   /**
@@ -110,11 +111,12 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Parse numeric values safely from string fields
-  const totalWealth = parseFloat(record.totalWealth || '0') || 0;
-  const zakatableWealth = parseFloat(record.zakatableWealth || '0') || 0;
-  const zakatAmount = parseFloat(record.zakatAmount || record.finalZakatAmount || '0') || (zakatableWealth * 0.025);
-  const nisabThreshold = parseFloat(record.nisabThresholdAtStart || '0') || 0;
+  // Parse numeric values safely using precision utilities
+  const totalWealth = toNumber(record.totalWealth);
+  const zakatableWealth = toNumber(record.zakatableWealth);
+  const zakatAmount = toNumber(record.zakatAmount || record.finalZakatAmount) ||
+    toNumber(calculateZakat(zakatableWealth));
+  const nisabThreshold = toNumber(record.nisabThresholdAtStart);
   const hawlComplete = record.liveHawlData?.canFinalize ?? false;
 
   // Format currency
