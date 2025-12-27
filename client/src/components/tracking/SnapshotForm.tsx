@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { formatDualCalendar, gregorianToHijri, hijriToGregorian } from '../../utils/calendarConverter';
+import { toNumber, toDecimal, calculateZakat, calculateZakatableWealth } from '../../utils/precision';
 
 interface SnapshotFormProps {
   snapshot?: YearlySnapshot; // For editing existing snapshot
@@ -58,8 +59,11 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
       const updated = { ...prev, [field]: value };
 
       // Auto-calculate zakatable wealth when wealth or liabilities change
+      // Using Decimal precision for accurate financial calculations
       if (field === 'totalWealth' || field === 'totalLiabilities') {
-        updated.zakatableWealth = Math.max(0, updated.totalWealth - updated.totalLiabilities);
+        updated.zakatableWealth = toNumber(
+          calculateZakatableWealth(updated.totalWealth, updated.totalLiabilities)
+        );
       }
 
       return updated;
@@ -111,10 +115,13 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
 
   const handleCalculateZakat = () => {
     // Calculate Zakat at 2.5% of zakatable wealth (if above nisab)
-    const zakatAmount = formData.zakatableWealth >= formData.nisabThreshold
-      ? formData.zakatableWealth * 0.025
+    // Using Decimal.js for precision - critical for Islamic finance
+    const meetsNisab = toDecimal(formData.zakatableWealth).gte(toDecimal(formData.nisabThreshold));
+    const zakatAmount = meetsNisab
+      ? toNumber(calculateZakat(formData.zakatableWealth))
       : 0;
-    handleInputChange('zakatAmount', Math.round(zakatAmount * 100) / 100); // Round to 2 decimals
+    // Round to 2 decimal places for currency display
+    handleInputChange('zakatAmount', Math.round(zakatAmount * 100) / 100);
   };
 
   return (
@@ -246,7 +253,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               type="number"
               step="0.01"
               value={formData.totalWealth}
-              onChange={(e) => handleInputChange('totalWealth', parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleInputChange('totalWealth', toNumber(e.target.value))}
               required
 
             />
@@ -256,7 +263,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               type="number"
               step="0.01"
               value={formData.totalLiabilities}
-              onChange={(e) => handleInputChange('totalLiabilities', parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleInputChange('totalLiabilities', toNumber(e.target.value))}
               required
 
             />
@@ -266,7 +273,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               type="number"
               step="0.01"
               value={formData.zakatableWealth}
-              onChange={(e) => handleInputChange('zakatableWealth', parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleInputChange('zakatableWealth', toNumber(e.target.value))}
               required
 
             />
@@ -277,7 +284,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 type="number"
                 step="0.01"
                 value={formData.zakatAmount}
-                onChange={(e) => handleInputChange('zakatAmount', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleInputChange('zakatAmount', toNumber(e.target.value))}
                 required
 
               />
@@ -297,7 +304,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               type="number"
               step="0.01"
               value={formData.nisabThreshold}
-              onChange={(e) => handleInputChange('nisabThreshold', parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleInputChange('nisabThreshold', toNumber(e.target.value))}
               required
 
             />

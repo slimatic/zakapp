@@ -17,6 +17,7 @@
 import React from 'react';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { NisabYearRecord, NisabYearRecordWithLiveTracking } from '../../types/nisabYearRecord';
+import { toNumber, toDecimal, Decimal } from '../../utils/precision';
 
 interface ZakatDisplayCardProps {
   record: NisabYearRecord | NisabYearRecordWithLiveTracking;
@@ -28,10 +29,10 @@ interface ZakatDisplayCardProps {
 /**
  * Format currency value for display
  */
-const formatCurrency = (value: number | string, currency: string = 'USD'): string => {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+const formatCurrency = (value: number | string | Decimal, currency: string = 'USD'): string => {
+  const numValue = toNumber(value);
   if (isNaN(numValue)) return `${currency} 0.00`;
-  
+
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currency,
@@ -47,13 +48,16 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
   isLoadingAssets = false,
 }) => {
   const maskedCurrency = useMaskedCurrency();
-  
-  // Parse numeric values from stored strings
-  const zakatAmount = record.zakatAmount ? parseFloat(record.zakatAmount.toString()) : 0;
-  const zakatableWealth = record.zakatableWealth ? parseFloat(record.zakatableWealth.toString()) : 0;
 
-  // Calculate Zakat rate for display (should always be 2.5%)
-  const zakatRate = zakatableWealth > 0 ? (zakatAmount / zakatableWealth) * 100 : 0;
+  // Parse numeric values using precision utilities
+  const zakatAmount = toNumber(record.zakatAmount);
+  const zakatableWealth = toNumber(record.zakatableWealth);
+  const totalWealth = toNumber(record.totalWealth);
+
+  // Calculate Zakat rate for display using Decimal precision
+  const zakatRate = zakatableWealth > 0
+    ? toDecimal(zakatAmount).dividedBy(toDecimal(zakatableWealth)).times(100).toNumber()
+    : 0;
 
   // Determine if record is finalized
   const isFinalized = record.status === 'FINALIZED';
@@ -87,13 +91,13 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
         <div className="text-3xl font-bold text-green-700 mb-2">
           {maskedCurrency(formatCurrency(zakatAmount, 'USD'))}
         </div>
-        
+
         {/* Calculation breakdown */}
         <div className="text-xs text-gray-600 space-y-1">
-          {record.totalWealth && parseFloat(record.totalWealth.toString()) !== 0 && (
+          {totalWealth !== 0 && (
             <div className="flex justify-between">
               <span>Total Wealth:</span>
-              <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(parseFloat(record.totalWealth.toString()), 'USD'))}</span>
+              <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(totalWealth, 'USD'))}</span>
             </div>
           )}
           <div className="flex justify-between">
@@ -105,7 +109,7 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
             <span className="font-medium text-gray-900">{zakatRate.toFixed(1)}%</span>
           </div>
           <div className="text-xs text-gray-500 italic mt-2">
-            {zakatableWealth > 0 
+            {zakatableWealth > 0
               ? `${maskedCurrency(formatCurrency(zakatableWealth, 'USD'))} × 2.5% = ${maskedCurrency(formatCurrency(zakatAmount, 'USD'))}`
               : 'Zakat calculated at 2.5% of zakatable wealth'}
           </div>
