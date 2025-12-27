@@ -87,17 +87,17 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
                         });
                         console.log(`✅ Created database: ${dbName}`);
 
-                        // Set security to allow any authenticated user
+                        // Set security to ONLY allow this user's JWT role
                         await axios.put(`${checkUrl}/_security`, {
                             admins: { names: [], roles: [] },
-                            members: { names: [], roles: [] }
+                            members: { names: [], roles: [`user_${safeUserId}`] }  // ✅ ENFORCE JWT ROLE
                         }, {
                             headers: {
                                 'Authorization': authHeader,
                                 'Content-Type': 'application/json'
                             }
                         });
-                        console.log(`✅ Set security for: ${dbName}`);
+                        console.log(`✅ Set security for: ${dbName} (role: user_${safeUserId})`);
                     } else {
                         throw checkErr;
                     }
