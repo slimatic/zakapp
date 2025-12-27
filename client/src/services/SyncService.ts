@@ -1,13 +1,15 @@
 /**
- * SyncService - Per-User CouchDB Replication
+ * SyncService - Per-User CouchDB Replication with JWT Authentication
  * 
  * Architecture: Each user syncs to their OWN set of CouchDB databases:
  *   - zakapp_<userId>_assets
- *   - zakapp_<userId>_liabilities
- *   - etc.
+ *   - zakapp_<userId>_nisab_year_records
+ *   - zakapp_<userId>_payment_records
  * 
- * This follows the Obsidian LiveSync model where each user has isolated storage.
- * Documents are encrypted client-side before sync - CouchDB only sees ciphertext.
+ * Security: Uses JWT tokens issued by backend, NOT exposed credentials.
+ * Tokens are fetched from /api/sync/token and auto-refresh before expiry.
+ * 
+ * @architect Zero-Knowledge: Documents are encrypted client-side before sync
  */
 
 import { RxDatabase } from 'rxdb';
@@ -16,59 +18,31 @@ import { ZakAppCollections } from '../db';
 import { RxReplicationState } from 'rxdb/plugins/replication';
 import { BehaviorSubject } from 'rxjs';
 import toast from 'react-hot-toast';
-
-const getAppConfig = () => {
-    if (typeof window !== 'undefined' && (window as any).APP_CONFIG) {
-        return (window as any).APP_CONFIG;
-    }
-    return {};
-};
-
-const config = getAppConfig();
-
-/**
- * CouchDB URL Resolution Strategy:
- * 
- * 1. APP_CONFIG.COUCHDB_URL (preferred) - For production with Cloudflare Tunnel
- *    Set this in config.js: COUCHDB_URL: 'https://couch.yoursite.com'
- * 
- * 2. Hostname-based detection (fallback) - For local/LAN development
- *    Uses window.location.hostname + port 5984
- */
-const getCouchDbUrl = (): string => {
-    if (typeof window === 'undefined') return 'http://localhost:5984';
-
-    // Priority 1: Explicit config (for Cloudflare Tunnel / production)
-    if (config.COUCHDB_URL) {
-        console.log(`🔧 CouchDB URL: ${config.COUCHDB_URL} (from APP_CONFIG)`);
-        return config.COUCHDB_URL;
-    }
-
-    // Priority 2: Derive from hostname (for local/LAN development)
-    const hostname = window.location.hostname;
-    const couchPort = 5984;
-    const url = `http://${hostname}:${couchPort}`;
-
-    console.log(`🔧 CouchDB URL: ${url} (derived from window.location)`);
-    return url;
-};
-
-const COUCH_URL = getCouchDbUrl();
-const COUCH_USER = config.COUCHDB_USER || 'admin';
-const COUCH_PASSWORD = config.COUCHDB_PASSWORD || 'password';
+import { getCouchDbUrl, getApiBaseUrl } from '../config';
 
 // Collections to sync - only core user data that needs multi-device sync
-// Derived data (liabilities, calculations) stays local, user_settings is personal preference
 const SYNC_COLLECTIONS: (keyof ZakAppCollections)[] = [
     'assets',
     'nisab_year_records',
     'payment_records'
 ];
 
+// Token refresh buffer (refresh 5 min before expiry)
+const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
+
+interface SyncToken {
+    token: string;
+    expiresAt: Date;
+}
+
 export class SyncService {
     private replicationStates: RxReplicationState<any, any>[] = [];
     private db: RxDatabase<ZakAppCollections> | null = null;
     private userId: string | null = null;
+
+    // JWT Token Management
+    private syncToken: SyncToken | null = null;
+    private tokenRefreshPromise: Promise<string> | null = null;
 
     // Activity Tracking
     private initialSyncPending = new Set<string>();
@@ -82,15 +56,78 @@ export class SyncService {
         errors: any[];
         lastSync: Date | null;
         userId: string | null;
+        authMethod: 'jwt' | 'basic' | 'none';
     }>({
         active: false,
         pending: [],
         errors: [],
         lastSync: null,
-        userId: null
+        userId: null,
+        authMethod: 'none'
     });
 
     constructor() { }
+
+    /**
+     * Get a valid JWT token, refreshing if needed.
+     * Uses singleton pattern to prevent multiple simultaneous refreshes.
+     */
+    private async getToken(): Promise<string> {
+        // Return cached token if still valid (with buffer time)
+        if (this.syncToken && new Date() < new Date(this.syncToken.expiresAt.getTime() - TOKEN_REFRESH_BUFFER_MS)) {
+            return this.syncToken.token;
+        }
+
+        // If a refresh is already in progress, wait for it
+        if (this.tokenRefreshPromise) {
+            return this.tokenRefreshPromise;
+        }
+
+        // Start token refresh
+        this.tokenRefreshPromise = this.refreshToken();
+
+        try {
+            const token = await this.tokenRefreshPromise;
+            return token;
+        } finally {
+            this.tokenRefreshPromise = null;
+        }
+    }
+
+    /**
+     * Fetch a new JWT token from the backend.
+     */
+    private async refreshToken(): Promise<string> {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            throw new Error('No access token - user not authenticated');
+        }
+
+        const apiUrl = getApiBaseUrl();
+        console.log('🔑 Fetching CouchDB sync token...');
+
+        const response = await fetch(`${apiUrl}/sync/token`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(error.message || error.error || `Token request failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        this.syncToken = {
+            token: data.token,
+            expiresAt: new Date(data.expiresAt)
+        };
+
+        console.log(`🔑 Sync token received (expires: ${data.expiresAt})`);
+        return data.token;
+    }
 
     private updateSyncStatus() {
         const isInitialSync = this.initialSyncPending.size > 0;
@@ -131,19 +168,24 @@ export class SyncService {
 
     /**
      * Ensures the user-specific CouchDB database exists.
-     * Uses PUT which creates if not exists (with admin credentials).
+     * Uses PUT which creates if not exists.
      */
-    private async ensureUserDatabase(dbName: string, authHeader: string): Promise<boolean> {
+    private async ensureUserDatabase(dbName: string): Promise<boolean> {
         try {
-            const response = await fetch(`${COUCH_URL}/${dbName}`, {
+            const token = await this.getToken();
+            const couchUrl = getCouchDbUrl();
+
+            const response = await fetch(`${couchUrl}/${dbName}`, {
                 method: 'PUT',
-                headers: { 'Authorization': authHeader }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
+
             if (response.ok || response.status === 412) {
-                // 412 = Precondition Failed = DB already exists. Both are fine.
+                // 412 = DB already exists - that's fine
                 console.log(`📦 Database '${dbName}' ready`);
                 return true;
             }
+
             console.error(`❌ Failed to create DB '${dbName}': ${response.status}`);
             return false;
         } catch (err) {
@@ -155,7 +197,7 @@ export class SyncService {
     /**
      * Start replication for the given user.
      * @param db The RxDB database instance.
-     * @param userId The authenticated user's ID (Prisma cuid).
+     * @param userId The authenticated user's ID.
      */
     async startSync(db: RxDatabase<ZakAppCollections>, userId: string) {
         if (this.db === db && this.userId === userId) {
@@ -171,12 +213,27 @@ export class SyncService {
         this.db = db;
         this.userId = userId;
 
-        // Sanitize userId for CouchDB db name (lowercase, no special chars)
+        // Sanitize userId for CouchDB db name
         const safeUserId = userId.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const couchUrl = getCouchDbUrl();
 
-        console.log(`🔄 SyncService: Starting per-user sync for ${safeUserId} to ${COUCH_URL}`);
+        console.log(`🔄 SyncService: Starting JWT-authenticated sync for ${safeUserId} to ${couchUrl}`);
 
-        const authHeader = 'Basic ' + btoa(`${COUCH_USER}:${COUCH_PASSWORD}`);
+        // Update status to show JWT auth
+        this.syncStatus$.next({
+            ...this.syncStatus$.getValue(),
+            authMethod: 'jwt',
+            userId: safeUserId
+        });
+
+        // Pre-fetch token to validate auth works
+        try {
+            await this.getToken();
+        } catch (err: any) {
+            console.error('❌ Failed to get sync token:', err.message);
+            toast.error('Sync authentication failed. Please re-login.', { id: 'sync-auth-failed' });
+            return;
+        }
 
         for (const collectionName of SYNC_COLLECTIONS) {
             const collection = db[collectionName];
@@ -185,12 +242,11 @@ export class SyncService {
                 continue;
             }
 
-            // Per-user database naming: zakapp_<userId>_<collection>
             const remoteDbName = `zakapp_${safeUserId}_${collectionName}`;
 
             try {
                 // Ensure the user's database exists
-                await this.ensureUserDatabase(remoteDbName, authHeader);
+                await this.ensureUserDatabase(remoteDbName);
 
                 this.initialSyncPending.add(collectionName);
                 this.updateSyncStatus();
@@ -198,15 +254,22 @@ export class SyncService {
                 const replicationState = await replicateCouchDB({
                     replicationIdentifier: `zakapp-${safeUserId}-${collectionName}`,
                     collection,
-                    url: `${COUCH_URL}/${remoteDbName}/`,
+                    url: `${couchUrl}/${remoteDbName}/`,
                     live: true,
                     retryTime: 10000,
                     pull: { modifier: (doc) => doc },
                     push: { modifier: (doc) => doc },
-                    fetch: (url, opts) => fetch(url, {
-                        ...opts,
-                        headers: { ...opts?.headers, 'Authorization': authHeader }
-                    })
+                    fetch: async (url, opts) => {
+                        // Get fresh token for each request (auto-refresh)
+                        const token = await this.getToken();
+                        return fetch(url, {
+                            ...opts,
+                            headers: {
+                                ...opts?.headers,
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                    }
                 });
 
                 // Monitor errors
@@ -217,9 +280,11 @@ export class SyncService {
                     const statusCode = errAny?.parameters?.errors?.[0]?.status || (err as any).status;
 
                     if (statusCode === 401 || innerMsg.includes('401')) {
-                        toast.error(`Sync Auth Failed. Check CouchDB credentials.`, { id: `sync-auth-${collectionName}` });
+                        // Token expired - clear and retry on next request
+                        this.syncToken = null;
+                        toast.error(`Sync auth expired. Refreshing...`, { id: `sync-auth-${collectionName}` });
                     } else if (innerMsg.includes('Failed to fetch') || innerMsg.includes('Connection refused')) {
-                        console.warn(`Network Error (${collectionName}): ${COUCH_URL}`);
+                        console.warn(`Network Error (${collectionName}): ${couchUrl}`);
                     } else {
                         toast.error(`Sync Error (${collectionName}): ${innerMsg}`, { id: `sync-err-${collectionName}` });
                     }
@@ -266,6 +331,7 @@ export class SyncService {
         this.replicationStates = [];
         this.activeCollections.clear();
         this.initialSyncPending.clear();
+        this.syncToken = null;
         this.db = null;
         this.userId = null;
         this.syncStatus$.next({
@@ -273,7 +339,8 @@ export class SyncService {
             pending: [],
             errors: [],
             lastSync: new Date(),
-            userId: null
+            userId: null,
+            authMethod: 'none'
         });
     }
 }
