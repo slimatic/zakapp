@@ -108,6 +108,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('AuthContext: Session restored. Key generated (len=' + keyString.length + ')');
 
             try {
+              // Close any existing DB instance first (important for multi-user scenarios)
+              await closeDb();
               await getDb(keyString);
               console.log('AuthContext: DB opened successfully with restored key');
               dispatch({ type: 'LOGIN_SUCCESS', payload: user });
@@ -240,6 +242,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       let encryptedDb;
 
       try {
+        // Close any existing DB instance first (critical for multi-user/new user scenarios)
+        await closeDb();
         encryptedDb = await getDb(keyString);
       } catch (dbError: any) {
         console.error('AuthContext: DB Open Failed during login', dbError);
