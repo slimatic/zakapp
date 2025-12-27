@@ -19,6 +19,7 @@ import { RxReplicationState } from 'rxdb/plugins/replication';
 import { BehaviorSubject } from 'rxjs';
 import toast from 'react-hot-toast';
 import { getCouchDbUrl, getApiBaseUrl } from '../config';
+import { cryptoService } from './CryptoService';
 
 // Collections to sync - only core user data that needs multi-device sync
 const SYNC_COLLECTIONS: (keyof ZakAppCollections)[] = [
@@ -257,8 +258,61 @@ export class SyncService {
                     url: `${couchUrl}/${remoteDbName}/`,
                     live: true,
                     retryTime: 10000,
-                    pull: { modifier: (doc) => doc },
-                    push: { modifier: (doc) => doc },
+                    // DECRYPTION: Pull from CouchDB → Decrypt → Local DB
+                    pull: {
+                        modifier: async (doc: any) => {
+                            // Skip system documents
+                            if (doc._id.startsWith('_design/')) return doc;
+
+                            // If document has encrypted field, decrypt it
+                            if (doc.encrypted && doc.iv && doc.tag) {
+                                try {
+                                    const decrypted = await cryptoService.decryptObject({
+                                        ciphertext: doc.encrypted,
+                                        iv: doc.iv,
+                                        tag: doc.tag
+                                    });
+
+                                    // Merge decrypted data with metadata
+                                    return {
+                                        _id: doc._id,
+                                        _rev: doc._rev,
+                                        ...decrypted
+                                    };
+                                } catch (err) {
+                                    console.error(`Decryption failed for ${collectionName}:`, err);
+                                    throw err;
+                                }
+                            }
+
+                            // Document is not encrypted (legacy data or migration)
+                            return doc;
+                        }
+                    },
+                    // ENCRYPTION: Local DB → Encrypt → Push to CouchDB
+                    push: {
+                        modifier: async (doc: any) => {
+                            // Skip system documents
+                            if (doc._id.startsWith('_design/')) return doc;
+
+                            // Extract metadata fields (NOT encrypted)
+                            const { _id, _rev, _deleted, _attachments, ...sensitiveData } = doc;
+
+                            // Encrypt all sensitive fields
+                            const { ciphertext, iv, tag } = await cryptoService.encryptObject(sensitiveData);
+
+                            // Return encrypted document structure
+                            return {
+                                _id,
+                                _rev,
+                                ..._deleted ? { _deleted } : {},
+                                ..._attachments ? { _attachments } : {},
+                                encrypted: ciphertext,
+                                iv,
+                                tag
+                            };
+                        }
+                    },
                     fetch: async (url, opts) => {
                         // Get fresh token for each request (auto-refresh)
                         const token = await this.getToken();
