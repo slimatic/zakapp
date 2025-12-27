@@ -169,6 +169,73 @@ export class CryptoService {
     }
 
     /**
+     * Encrypt object for CouchDB sync (field-level E2EE)
+     * Returns separate ciphertext, IV, and auth tag for storage
+     */
+    async encryptObject(obj: any): Promise<{ ciphertext: string; iv: string; tag: string }> {
+        if (!this.masterKey) throw new Error("Key not derived. User must login first.");
+
+        const plaintext = JSON.stringify(obj);
+        const iv = window.crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV for AES-GCM
+
+        const encrypted = await window.crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv },
+            this.masterKey,
+            new TextEncoder().encode(plaintext)
+        );
+
+        // AES-GCM produces ciphertext + auth tag (last 16 bytes)
+        // Split them for explicit storage
+        const encryptedArray = new Uint8Array(encrypted);
+        const ciphertextBytes = encryptedArray.slice(0, -16);
+        const tagBytes = encryptedArray.slice(-16);
+
+        return {
+            ciphertext: this.arrayBufferToBase64(ciphertextBytes.buffer),
+            iv: this.arrayBufferToBase64(iv.buffer),
+            tag: this.arrayBufferToBase64(tagBytes.buffer)
+        };
+    }
+
+    /**
+     * Decrypt object from CouchDB sync (field-level E2EE)
+     * Reconstructs ciphertext + tag before decryption
+     */
+    async decryptObject(data: { ciphertext: string; iv: string; tag: string }): Promise<any> {
+        if (!this.masterKey) throw new Error("Key not derived");
+
+        const ciphertextBytes = this.base64ToUint8Array(data.ciphertext);
+        const ivBytes = this.base64ToUint8Array(data.iv);
+        const tagBytes = this.base64ToUint8Array(data.tag);
+
+        // Combine ciphertext + tag for AES-GCM decryption
+        const combined = new Uint8Array(ciphertextBytes.length + tagBytes.length);
+        combined.set(ciphertextBytes);
+        combined.set(tagBytes, ciphertextBytes.length);
+
+        try {
+            const decrypted = await window.crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv: ivBytes },
+                this.masterKey,
+                combined
+            );
+
+            const plaintext = new TextDecoder().decode(decrypted);
+            return JSON.parse(plaintext);
+        } catch (e) {
+            throw new Error('Decryption failed: Invalid key, corrupted data, or tampered ciphertext');
+        }
+    }
+
+    /**
+     * Get the current master key (for sync encryption)
+     */
+    async getKey(): Promise<CryptoKey> {
+        if (!this.masterKey) throw new Error("Key not derived. User must login first.");
+        return this.masterKey;
+    }
+
+    /**
      * Generate a random salt for new users
      */
     static generateSalt(): string {
