@@ -1,200 +1,58 @@
 /**
- * usePayments Hook - T054
- * Fetches payment records with filtering support and mutations
+ * @deprecated This hook is deprecated. Use usePaymentRepository instead.
+ * This file is kept for backward compatibility but will be removed in future versions.
+ * 
+ * Migration Guide:
+ * - Replace `usePayments()` with `usePaymentRepository()` 
+ * - The new hook returns `{ payments, isLoading, error, addPayment, removePayment, updatePayment, bulkAddPayments }`
+ * - All data is now sourced from local RxDB for privacy and offline-first functionality
  */
 
-import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
-import type { PaymentRecord } from '@zakapp/shared/types/tracking';
-import { getApiBaseUrl } from '../config';
+import { usePaymentRepository } from './usePaymentRepository';
 
-const API_BASE_URL = getApiBaseUrl();
+/**
+ * @deprecated Use usePaymentRepository instead
+ */
+export function usePayments(options: { snapshotId?: string; category?: string; enabled?: boolean } = {}) {
+  console.warn('[DEPRECATED] usePayments is deprecated. Please use usePaymentRepository instead.');
 
-interface UsePaymentsOptions {
-  snapshotId?: string;
-  category?: string;
-  enabled?: boolean;
-}
+  const { payments, isLoading, error } = usePaymentRepository();
 
-interface PaymentsResponse {
-  payments: PaymentRecord[];
+  // Filter by snapshotId if provided
+  const filteredPayments = options.snapshotId
+    ? payments.filter(p => p.snapshotId === options.snapshotId)
+    : payments;
+
+  return {
+    data: { payments: filteredPayments },
+    isLoading,
+    error,
+    refetch: () => Promise.resolve()
+  };
 }
 
 /**
- * Fetches payment records for a specific snapshot or all payments
- * @param options - Query options including snapshotId and category filters
- * @returns React Query result with payments data
+ * @deprecated Use usePaymentRepository().addPayment instead
  */
-export function usePayments(
-  options: UsePaymentsOptions = {}
-): UseQueryResult<PaymentsResponse, Error> {
-  const { snapshotId, category, enabled = true } = options;
+export function useCreatePayment() {
+  console.warn('[DEPRECATED] useCreatePayment is deprecated. Please use usePaymentRepository().addPayment instead.');
+  const { addPayment } = usePaymentRepository();
 
-  return useQuery({
-    queryKey: ['payments', { snapshotId, category }],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      // If no snapshotId, fetch all payments; otherwise fetch for specific snapshot
-      let url = snapshotId 
-        ? `${API_BASE_URL}/tracking/snapshots/${snapshotId}/payments`
-        : `${API_BASE_URL}/tracking/payments`;
-      
-      if (category) {
-        const params = new URLSearchParams({ category });
-        url += `?${params.toString()}`;
-      }
-
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Failed to fetch payments' }));
-        throw new Error(error.error?.message || error.message || 'Failed to fetch payments');
-      }
-
-      const result = await response.json();
-      return result.data;
-    },
-    enabled: enabled,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000 // 10 minutes
-  });
-}
-
-interface CreatePaymentData {
-  snapshotId: string;
-  amount: number;
-  paymentDate: string;
-  recipientName: string;
-  recipientType: 'individual' | 'charity' | 'organization' | 'institution';
-  recipientCategory: 'fakir' | 'miskin' | 'amil' | 'muallaf' | 'riqab' | 'gharimin' | 'fisabilillah' | 'ibnus_sabil';
-  paymentMethod: string;
-  receiptReference?: string;
-  notes?: string;
-  status?: string;
-  currency?: string;
-  exchangeRate?: number;
-  calculationId?: string;
-}
-
-interface UpdatePaymentData {
-  amount?: number;
-  paymentDate?: string;
-  recipientName?: string;
-  recipientType?: 'individual' | 'charity' | 'organization' | 'institution';
-  recipientCategory?: string;
-  paymentMethod?: string;
-  receiptReference?: string;
-  notes?: string;
+  return {
+    mutateAsync: addPayment,
+    mutate: addPayment
+  };
 }
 
 /**
- * Creates a new payment record
+ * @deprecated Use usePaymentRepository().updatePayment instead
  */
-export function useCreatePayment(): UseMutationResult<PaymentRecord, Error, CreatePaymentData> {
-  const queryClient = useQueryClient();
+export function useUpdatePayment() {
+  console.warn('[DEPRECATED] useUpdatePayment is deprecated. Please use usePaymentRepository().updatePayment instead.');
+  const { updatePayment } = usePaymentRepository();
 
-  return useMutation({
-    mutationFn: async (data: CreatePaymentData) => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch(
-        `${API_BASE_URL}/tracking/snapshots/${data.snapshotId}/payments`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Failed to create payment' }));
-        throw new Error(error.error?.message || error.message || 'Failed to create payment');
-      }
-
-      const result = await response.json();
-      return result.data;
-    },
-    onSuccess: (_, variables) => {
-      // Invalidate all payment queries to refetch
-      queryClient.invalidateQueries({ 
-        queryKey: ['payments'] 
-      });
-      // Also invalidate snapshots to update payment totals
-      queryClient.invalidateQueries({ 
-        queryKey: ['snapshots'] 
-      });
-      // Invalidate nisab year records to update payment counts
-      queryClient.invalidateQueries({ 
-        queryKey: ['nisab-year-records'] 
-      });
-    }
-  });
-}
-
-/**
- * Updates an existing payment record
- */
-export function useUpdatePayment(): UseMutationResult<
-  PaymentRecord, 
-  Error, 
-  { id: string; snapshotId: string; data: UpdatePaymentData }
-> {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, snapshotId, data }) => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch(
-        `${API_BASE_URL}/tracking/snapshots/${snapshotId}/payments/${id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Failed to update payment' }));
-        throw new Error(error.error?.message || error.message || 'Failed to update payment');
-      }
-
-      const result = await response.json();
-      return result.data;
-    },
-    onSuccess: (_, variables) => {
-      // Invalidate all payment queries to refetch
-      queryClient.invalidateQueries({ 
-        queryKey: ['payments'] 
-      });
-      // Also invalidate snapshots to update payment totals
-      queryClient.invalidateQueries({ 
-        queryKey: ['snapshots'] 
-      });
-      // Invalidate nisab year records to update payment counts
-      queryClient.invalidateQueries({ 
-        queryKey: ['nisab-year-records'] 
-      });
-    }
-  });
+  return {
+    mutateAsync: ({ id, data }: any) => updatePayment(id, data),
+    mutate: ({ id, data }: any) => updatePayment(id, data)
+  };
 }
