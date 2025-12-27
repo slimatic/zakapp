@@ -60,38 +60,35 @@ if (process.env.NODE_ENV === 'development') {
 declare global {
     interface Window {
         _zakapp_db_promise: Promise<ZakAppDatabase> | null;
+        _zakapp_db_password?: string;
+        _zakapp_storage?: any;
     }
 }
 
-// Ensure singleton across HMR
-if (!window._zakapp_db_promise) {
-    window._zakapp_db_promise = null;
-}
+// Internal Storage Creator (Singleton)
+const getStorage = () => {
+    if (window._zakapp_storage) return window._zakapp_storage;
+
+    let storage;
+    if (process.env.NODE_ENV === 'test') {
+        storage = getRxStorageMemory();
+        storage = wrappedKeyEncryptionCryptoJsStorage({ storage });
+    } else {
+        storage = getRxStorageDexie();
+        if (process.env.NODE_ENV === 'development') {
+            storage = wrappedValidateAjvStorage({ storage });
+        }
+        storage = wrappedKeyEncryptionCryptoJsStorage({ storage });
+    }
+    window._zakapp_storage = storage;
+    return storage;
+};
 
 // Internal Creator
 const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
     console.log('DatabaseService: Creating database instance...');
-
-    let storage;
-    let dbName = 'zakapp_db_v10'; // BUMPED TO V10 for Email Schema
-
-    if (process.env.NODE_ENV === 'test') {
-        storage = getRxStorageMemory();
-        dbName = `zakapp_test_db_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-        console.log(`DatabaseService: Using Memory Storage for Test (DB: ${dbName})`);
-
-        storage = wrappedKeyEncryptionCryptoJsStorage({ storage });
-    } else {
-        storage = getRxStorageDexie();
-        console.log('DatabaseService: Raw Storage Instance:', storage);
-
-        if (process.env.NODE_ENV === 'development') {
-            storage = wrappedValidateAjvStorage({ storage });
-            console.log('DatabaseService: Wrapped Storage Instance:', storage);
-        }
-
-        storage = wrappedKeyEncryptionCryptoJsStorage({ storage });
-    }
+    const storage = getStorage();
+    const dbName = 'zakapp_db_v10';
 
     try {
         const db = await createRxDatabase<ZakAppCollections>({
@@ -101,6 +98,7 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
             ignoreDuplicate: true
         });
 
+        // Always check if collections are already there
         if (!db.collections.assets) {
             console.log('DatabaseService: Database created. Adding collections...');
             await db.addCollections({
@@ -113,7 +111,7 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
             });
             console.log('DatabaseService: Collections added.');
         } else {
-            console.log('DatabaseService: Collections already exist. Skipping initialization.');
+            console.log('DatabaseService: Collections already exist in this instance.');
         }
 
         return db;
@@ -131,13 +129,21 @@ const notifyListeners = (db: ZakAppDatabase | null) => {
 };
 
 // Public Accessor (Singleton)
-export const getDb = (password?: string): Promise<ZakAppDatabase> => {
-    // Return existing singleton if active
+export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
+    // If we have an existing promise, check if it was created with the SAME password
     if (window._zakapp_db_promise) {
-        return window._zakapp_db_promise;
+        if (window._zakapp_db_password === password) {
+            console.log('DatabaseService: Returning existing DB singleton');
+            return window._zakapp_db_promise;
+        } else {
+            // Password changed! We MUST close the old one before returning a new one
+            console.warn('DatabaseService: Password changed, closing old instance...');
+            await closeDb();
+        }
     }
 
     // Otherwise create new
+    window._zakapp_db_password = password;
     window._zakapp_db_promise = _createDb(password)
         .then(db => {
             notifyListeners(db);
@@ -146,6 +152,7 @@ export const getDb = (password?: string): Promise<ZakAppDatabase> => {
         .catch(err => {
             console.error("FATAL: Failed to initialize DB", err);
             window._zakapp_db_promise = null; // Reset on failure
+            window._zakapp_db_password = undefined;
             throw err;
         });
 
@@ -166,6 +173,7 @@ export const closeDb = async () => {
             console.error('Error closing DB:', e);
         }
         window._zakapp_db_promise = null;
+        window._zakapp_db_password = undefined;
         notifyListeners(null);
     }
 };
@@ -184,6 +192,7 @@ export const resetDb = async () => {
             console.error('Error removing DB:', e);
         }
         window._zakapp_db_promise = null;
+        window._zakapp_db_password = undefined;
         notifyListeners(null);
     }
 };
@@ -203,6 +212,7 @@ export const forceResetDatabase = async () => {
         await removeRxDatabase('zakapp_db_v10', storage);
         console.log("DatabaseService: DB Forced Removed via removeRxDatabase.");
         window._zakapp_db_promise = null;
+        window._zakapp_db_password = undefined;
         notifyListeners(null);
     } catch (err) {
         console.error("DatabaseService: Failed to force remove DB", err);

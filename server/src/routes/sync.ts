@@ -10,6 +10,7 @@
 import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
+import crypto from 'crypto';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
@@ -22,6 +23,17 @@ const COUCHDB_PASSWORD = process.env.COUCHDB_PASSWORD || 'password';
 
 // Token expiry: 1 hour
 const TOKEN_EXPIRY_SECONDS = 3600; // 1 hour
+
+/**
+ * Generates a deterministic CouchDB password for a user
+ */
+const generateCouchDBPassword = (userId: string): string => {
+    if (!COUCHDB_JWT_SECRET) throw new Error('COUCHDB_JWT_SECRET missing');
+    return crypto
+        .createHmac('sha256', COUCHDB_JWT_SECRET)
+        .update(userId)
+        .digest('hex');
+};
 
 /**
  * POST /api/sync/token
@@ -53,19 +65,46 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
         console.log(`User authenticated: ${user.id}`);
 
         const userId = user.id;
-
-        // Sanitize userId for CouchDB database naming (lowercase, alphanumeric + underscore)
         const safeUserId = userId.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        console.log(`Safe userId: ${safeUserId}`);
+        const couchUsername = `user_${safeUserId}`;
+        const couchPassword = generateCouchDBPassword(userId);
 
-        // Ensure user's databases exist
+        console.log(`Ensuring CouchDB user: ${couchUsername}`);
+
+        const authHeader = 'Basic ' + Buffer.from(`${COUCHDB_USER}:${COUCHDB_PASSWORD}`).toString('base64');
+
+        // 1. Ensure CouchDB User exists in _users
+        try {
+            const userDocUrl = `${COUCHDB_URL}/_users/org.couchdb.user:${couchUsername}`;
+            try {
+                // Check if user exists
+                await axios.get(userDocUrl, { headers: { 'Authorization': authHeader } });
+                console.log(`✅ CouchDB user already exists: ${couchUsername}`);
+            } catch (userErr: any) {
+                if (userErr.response?.status === 404) {
+                    console.log(`Creating CouchDB user: ${couchUsername}`);
+                    await axios.put(userDocUrl, {
+                        name: couchUsername,
+                        password: couchPassword,
+                        roles: [couchUsername], // Role matches username
+                        type: 'user'
+                    }, { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } });
+                    console.log(`✅ Created CouchDB user: ${couchUsername}`);
+                } else {
+                    throw userErr;
+                }
+            }
+        } catch (err: any) {
+            console.error('Failed to ensure CouchDB user:', err.response?.data || err.message);
+            // Non-critical: If user creation fails, the sync attempt later will catch it
+        }
+
+        // 2. Ensure user's databases exist
         const dbNames = [
             `zakapp_${safeUserId}_assets`,
             `zakapp_${safeUserId}_nisab_year_records`,
             `zakapp_${safeUserId}_payment_records`
         ];
-
-        const authHeader = 'Basic ' + Buffer.from(`${COUCHDB_USER}:${COUCHDB_PASSWORD}`).toString('base64');
 
         for (const dbName of dbNames) {
             try {
@@ -87,56 +126,42 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
                         });
                         console.log(`✅ Created database: ${dbName}`);
 
-                        // Set security to ONLY allow this user's JWT role
+                        // Set security to allow BOTH the username and the role
                         await axios.put(`${checkUrl}/_security`, {
                             admins: { names: [], roles: [] },
-                            members: { names: [], roles: [`user_${safeUserId}`] }  // ✅ ENFORCE JWT ROLE
+                            members: {
+                                names: [couchUsername],
+                                roles: [couchUsername]
+                            }
                         }, {
                             headers: {
                                 'Authorization': authHeader,
                                 'Content-Type': 'application/json'
                             }
                         });
-                        console.log(`✅ Set security for: ${dbName} (role: user_${safeUserId})`);
+                        console.log(`✅ Set security for: ${dbName} (user: ${couchUsername})`);
                     } else {
                         throw checkErr;
                     }
                 }
             } catch (err) {
                 console.error(`Error ensuring database ${dbName}:`, err);
-                // Don't fail the token request if database creation fails
             }
         }
 
-        // Generate JWT with CouchDB-specific claims
-        console.log('Signing token...');
-        const token = jwt.sign(
-            {
-                sub: userId,                           // Standard JWT subject claim
-                '_couchdb.roles': [`user_${safeUserId}`], // CouchDB role for per-user DB access
-            },
-            COUCHDB_JWT_SECRET,
-            {
-                algorithm: 'HS256',
-                expiresIn: TOKEN_EXPIRY_SECONDS,
-                keyid: 'zakapp_v1'
-            }
-        );
-        console.log('Token signed.');
-
         const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_SECONDS * 1000).toISOString();
 
-        console.log(`🔑 Issued CouchDB JWT for user ${safeUserId} (expires: ${expiresAt})`);
+        console.log(`🔑 Issued CouchDB credentials for user ${safeUserId}`);
 
         res.json({
-            token,
+            // Basic Auth credentials instead of JWT
+            credentials: {
+                username: couchUsername,
+                password: couchPassword
+            },
             expiresAt,
             userId: safeUserId,
-            databases: [
-                `zakapp_${safeUserId}_assets`,
-                `zakapp_${safeUserId}_nisab_year_records`,
-                `zakapp_${safeUserId}_payment_records`
-            ]
+            databases: dbNames
         });
 
     } catch (error: any) {

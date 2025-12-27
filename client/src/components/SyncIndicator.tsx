@@ -30,16 +30,17 @@ export const SyncIndicator: React.FC = () => {
         const url = config?.COUCHDB_URL || 'http://localhost:5984';
         try {
             const start = Date.now();
-            const res = await fetch(url + '/_all_dbs');
+            // Ping the CouchDB root instead of /_all_dbs
+            const res = await fetch(url + '/');
             const ms = Date.now() - start;
             if (res.ok) {
-                const dbs = await res.json();
-                alert(`✅ CONNECTION SUCCESS\nTime: ${ms}ms\nURL: ${url}\nDBs Found: ${dbs.length}\n\nPending: ${status.pending?.join(', ') || 'None'}`);
+                const info = await res.json();
+                alert(`✅ CONNECTION SUCCESS\nTime: ${ms}ms\nURL: ${url}\nCouchDB Version: ${info.version}\n\nSync Status: ${status.active ? 'Active' : 'Idle'}\nPending: ${status.pending?.length || 0}`);
             } else {
-                alert(`⚠️ CONNECTION ERROR\nStatus: ${res.status}\nURL: ${url}`);
+                alert(`⚠️ CONNECTION ERROR\nStatus: ${res.status}\nURL: ${url}\n(Note: Some endpoints are restricted to admins)`);
             }
         } catch (err: any) {
-            alert(`❌ CONNECTION FAILED\nURL: ${url}\nError: ${err.message}\n\nEnsure CouchDB is running and accessible.`);
+            alert(`❌ CONNECTION FAILED\nURL: ${url}\nError: ${err.message}\n\nEnsure CouchDB is running and accessible or check CORS settings.`);
         }
     };
 

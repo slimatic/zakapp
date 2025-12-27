@@ -12,12 +12,15 @@ export class JWTService {
   private readonly refreshTokenExpiry: string;
 
   constructor() {
-    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || this.generateSecret();
-    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecret();
+    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || this.generateSecret();
+    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || process.env.REFRESH_SECRET || this.generateSecret();
     this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '15m';
     this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '7d';
 
-    if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
+    const hasAccessSecret = !!(process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET);
+    const hasRefreshSecret = !!(process.env.JWT_REFRESH_SECRET || process.env.REFRESH_SECRET);
+
+    if (!hasAccessSecret || !hasRefreshSecret) {
       console.warn('JWT secrets not found in environment variables. Using generated secrets (not recommended for production).');
     }
   }
@@ -214,7 +217,7 @@ export class JWTService {
   } {
     try {
       const decoded = this.verifyRefreshToken(refreshToken);
-      
+
       const newAccessToken = this.createAccessToken({
         userId: decoded.userId,
         email: userInfo.email,

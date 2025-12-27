@@ -31,8 +31,9 @@ const SYNC_COLLECTIONS: (keyof ZakAppCollections)[] = [
 // Token refresh buffer (refresh 5 min before expiry)
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
-interface SyncToken {
-    token: string;
+interface SyncCredentials {
+    username: string;
+    password: string;
     expiresAt: Date;
 }
 
@@ -41,9 +42,9 @@ export class SyncService {
     private db: RxDatabase<ZakAppCollections> | null = null;
     private userId: string | null = null;
 
-    // JWT Token Management
-    private syncToken: SyncToken | null = null;
-    private tokenRefreshPromise: Promise<string> | null = null;
+    // CouchDB Credential Management
+    private syncCredentials: SyncCredentials | null = null;
+    private credsRefreshPromise: Promise<SyncCredentials> | null = null;
 
     // Activity Tracking
     private initialSyncPending = new Set<string>();
@@ -70,42 +71,41 @@ export class SyncService {
     constructor() { }
 
     /**
-     * Get a valid JWT token, refreshing if needed.
-     * Uses singleton pattern to prevent multiple simultaneous refreshes.
+     * Get valid CouchDB credentials, refreshing if needed.
      */
-    private async getToken(): Promise<string> {
-        // Return cached token if still valid (with buffer time)
-        if (this.syncToken && new Date() < new Date(this.syncToken.expiresAt.getTime() - TOKEN_REFRESH_BUFFER_MS)) {
-            return this.syncToken.token;
+    private async getCredentials(): Promise<SyncCredentials> {
+        // Return cached credentials if still valid (with buffer time)
+        if (this.syncCredentials && new Date() < new Date(this.syncCredentials.expiresAt.getTime() - TOKEN_REFRESH_BUFFER_MS)) {
+            return this.syncCredentials;
         }
 
         // If a refresh is already in progress, wait for it
-        if (this.tokenRefreshPromise) {
-            return this.tokenRefreshPromise;
+        if (this.credsRefreshPromise) {
+            return this.credsRefreshPromise;
         }
 
-        // Start token refresh
-        this.tokenRefreshPromise = this.refreshToken();
+        // Start credential refresh
+        this.credsRefreshPromise = this.refreshCredentials();
 
         try {
-            const token = await this.tokenRefreshPromise;
-            return token;
+            const creds = await this.credsRefreshPromise;
+            return creds;
         } finally {
-            this.tokenRefreshPromise = null;
+            this.credsRefreshPromise = null;
         }
     }
 
     /**
-     * Fetch a new JWT token from the backend.
+     * Fetch new CouchDB credentials from the backend.
      */
-    private async refreshToken(): Promise<string> {
+    private async refreshCredentials(): Promise<SyncCredentials> {
         const accessToken = localStorage.getItem('accessToken');
         if (!accessToken) {
             throw new Error('No access token - user not authenticated');
         }
 
         const apiUrl = getApiBaseUrl();
-        console.log('🔑 Fetching CouchDB sync token...');
+        console.log('🔑 Fetching CouchDB sync credentials...');
 
         const response = await fetch(`${apiUrl}/sync/token`, {
             method: 'POST',
@@ -116,18 +116,23 @@ export class SyncService {
         });
 
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-            throw new Error(error.message || error.error || `Token request failed: ${response.status}`);
+            const body = await response.json().catch(() => ({ error: 'Unknown error' }));
+            // Support both shapes: { message: '...', ... } and { error: { message: '...' } }
+            const errMsg = body?.error?.message || body?.message || body?.error || `Credential request failed: ${response.status}`;
+            throw new Error(errMsg);
         }
 
         const data = await response.json();
-        this.syncToken = {
-            token: data.token,
+        const credentials = {
+            username: data.credentials.username,
+            password: data.credentials.password,
             expiresAt: new Date(data.expiresAt)
         };
 
-        console.log(`🔑 Sync token received (expires: ${data.expiresAt})`);
-        return data.token;
+        this.syncCredentials = credentials;
+
+        console.log(`🔑 Sync credentials received (expires: ${data.expiresAt})`);
+        return credentials;
     }
 
     private updateSyncStatus() {
@@ -173,24 +178,36 @@ export class SyncService {
      */
     private async ensureUserDatabase(dbName: string): Promise<boolean> {
         try {
-            const token = await this.getToken();
+            const creds = await this.getCredentials();
+            const authHeader = 'Basic ' + btoa(`${creds.username}:${creds.password}`);
             const couchUrl = getCouchDbUrl();
 
+            // Use GET to check if database exists and is accessible.
+            // Client should NOT attempt to create (PUT) the database as it's handled by the backend.
             const response = await fetch(`${couchUrl}/${dbName}`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
+                method: 'GET',
+                headers: { 'Authorization': authHeader }
             });
 
-            if (response.ok || response.status === 412) {
-                // 412 = DB already exists - that's fine
-                console.log(`📦 Database '${dbName}' ready`);
+            if (response.ok) {
+                console.log(`📦 Database '${dbName}' is available`);
                 return true;
             }
 
-            console.error(`❌ Failed to create DB '${dbName}': ${response.status}`);
+            if (response.status === 401 || response.status === 403) {
+                console.warn(`⚠️ Access to '${dbName}' denied. This may be temporary during provisioning.`);
+                return false;
+            }
+
+            if (response.status === 404) {
+                console.warn(`📦 Database '${dbName}' not found. Backend provisioning may be in progress.`);
+                return false;
+            }
+
+            console.error(`❌ Unexpected status for DB '${dbName}': ${response.status}`);
             return false;
         } catch (err) {
-            console.error(`❌ Error creating DB '${dbName}':`, err);
+            console.error(`❌ Error checking DB '${dbName}':`, err);
             return false;
         }
     }
@@ -218,20 +235,20 @@ export class SyncService {
         const safeUserId = userId.toLowerCase().replace(/[^a-z0-9]/g, '_');
         const couchUrl = getCouchDbUrl();
 
-        console.log(`🔄 SyncService: Starting JWT-authenticated sync for ${safeUserId} to ${couchUrl}`);
+        console.log(`🔄 SyncService: Starting Basic Auth sync for ${safeUserId} to ${couchUrl}`);
 
-        // Update status to show JWT auth
+        // Update status to show Basic auth
         this.syncStatus$.next({
             ...this.syncStatus$.getValue(),
-            authMethod: 'jwt',
+            authMethod: 'basic',
             userId: safeUserId
         });
 
-        // Pre-fetch token to validate auth works
+        // Pre-fetch credentials to validate auth works
         try {
-            await this.getToken();
+            await this.getCredentials();
         } catch (err: any) {
-            console.error('❌ Failed to get sync token:', err.message);
+            console.error('❌ Failed to get sync credentials:', err.message);
             toast.error('Sync authentication failed. Please re-login.', { id: 'sync-auth-failed' });
             return;
         }
@@ -261,8 +278,8 @@ export class SyncService {
                     // DECRYPTION: Pull from CouchDB → Decrypt → Local DB
                     pull: {
                         modifier: async (doc: any) => {
-                            // Skip system documents
-                            if (doc._id.startsWith('_design/')) return doc;
+                            // Skip system documents or invalid docs
+                            if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
 
                             // If document has encrypted field, decrypt it
                             if (doc.encrypted && doc.iv && doc.tag) {
@@ -292,8 +309,8 @@ export class SyncService {
                     // ENCRYPTION: Local DB → Encrypt → Push to CouchDB
                     push: {
                         modifier: async (doc: any) => {
-                            // Skip system documents
-                            if (doc._id.startsWith('_design/')) return doc;
+                            // Skip system documents or invalid docs
+                            if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
 
                             // Extract metadata fields (NOT encrypted)
                             const { _id, _rev, _deleted, _attachments, ...sensitiveData } = doc;
@@ -314,13 +331,14 @@ export class SyncService {
                         }
                     },
                     fetch: async (url, opts) => {
-                        // Get fresh token for each request (auto-refresh)
-                        const token = await this.getToken();
+                        // Get fresh credentials for each request (auto-refresh)
+                        const creds = await this.getCredentials();
+                        const authHeader = 'Basic ' + btoa(`${creds.username}:${creds.password}`);
                         return fetch(url, {
                             ...opts,
                             headers: {
                                 ...opts?.headers,
-                                'Authorization': `Bearer ${token}`
+                                'Authorization': authHeader
                             }
                         });
                     }
@@ -334,8 +352,8 @@ export class SyncService {
                     const statusCode = errAny?.parameters?.errors?.[0]?.status || (err as any).status;
 
                     if (statusCode === 401 || innerMsg.includes('401')) {
-                        // Token expired - clear and retry on next request
-                        this.syncToken = null;
+                        // Auth expired - clear and retry on next request
+                        this.syncCredentials = null;
                         toast.error(`Sync auth expired. Refreshing...`, { id: `sync-auth-${collectionName}` });
                     } else if (innerMsg.includes('Failed to fetch') || innerMsg.includes('Connection refused')) {
                         console.warn(`Network Error (${collectionName}): ${couchUrl}`);
@@ -385,7 +403,7 @@ export class SyncService {
         this.replicationStates = [];
         this.activeCollections.clear();
         this.initialSyncPending.clear();
-        this.syncToken = null;
+        this.syncCredentials = null;
         this.db = null;
         this.userId = null;
         this.syncStatus$.next({

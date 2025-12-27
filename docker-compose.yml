@@ -37,7 +37,6 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
     volumes:
       - ./couchdb-data:/opt/couchdb/data
-      - ./docker/couchdb/jwt.ini:/opt/couchdb/etc/local.d/jwt.ini
       - ./docker/couchdb/cors.ini:/opt/couchdb/etc/local.d/cors.ini
 
   backend:
