@@ -27,20 +27,30 @@ const getAppConfig = () => {
 const config = getAppConfig();
 
 /**
- * Smart CouchDB URL detection for multi-device sync.
- * Uses the same hostname the user accessed the app with.
- * This ensures if Device B can reach the frontend, it can reach CouchDB.
+ * CouchDB URL Resolution Strategy:
+ * 
+ * 1. APP_CONFIG.COUCHDB_URL (preferred) - For production with Cloudflare Tunnel
+ *    Set this in config.js: COUCHDB_URL: 'https://couch.yoursite.com'
+ * 
+ * 2. Hostname-based detection (fallback) - For local/LAN development
+ *    Uses window.location.hostname + port 5984
  */
 const getCouchDbUrl = (): string => {
     if (typeof window === 'undefined') return 'http://localhost:5984';
 
-    // Use the hostname the browser accessed (e.g., 192.168.86.28 or localhost)
-    // This ensures cross-device compatibility without hardcoding
+    // Priority 1: Explicit config (for Cloudflare Tunnel / production)
+    if (config.COUCHDB_URL) {
+        console.log(`🔧 CouchDB URL: ${config.COUCHDB_URL} (from APP_CONFIG)`);
+        return config.COUCHDB_URL;
+    }
+
+    // Priority 2: Derive from hostname (for local/LAN development)
     const hostname = window.location.hostname;
     const couchPort = 5984;
+    const url = `http://${hostname}:${couchPort}`;
 
-    console.log(`🔧 CouchDB URL: http://${hostname}:${couchPort} (derived from window.location)`);
-    return `http://${hostname}:${couchPort}`;
+    console.log(`🔧 CouchDB URL: ${url} (derived from window.location)`);
+    return url;
 };
 
 const COUCH_URL = getCouchDbUrl();
