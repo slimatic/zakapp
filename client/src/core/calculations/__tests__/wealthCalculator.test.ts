@@ -1,7 +1,6 @@
-
 import { describe, it, expect } from 'vitest';
 import { calculateWealth } from '../wealthCalculator';
-import { Asset, AssetType } from '../../../types';
+import { Asset, AssetType, Liability } from '../../../types';
 
 describe('wealthCalculator', () => {
     it('should calculate pure zakatable assets correctly (Johntest Baseline)', () => {
@@ -117,5 +116,135 @@ describe('wealthCalculator', () => {
 
         const result = calculateWealth(assets);
         expect(result.zakatableWealth).toBe(5000);
+    });
+
+    describe('liability deduction', () => {
+        const baseAssets: Asset[] = [
+            {
+                id: '1',
+                name: 'Cash',
+                type: AssetType.CASH,
+                value: 10000,
+                currency: 'USD',
+                isActive: true,
+                createdAt: '',
+                updatedAt: '',
+                zakatEligible: true,
+                calculationModifier: 1.0
+            }
+        ];
+
+        // Reference date: Jan 1, 2024
+        const refDate = new Date('2024-01-01T00:00:00Z');
+
+        it('should deduct immediate debts (due within 354 days)', () => {
+            const liabilities: Liability[] = [
+                {
+                    id: 'L1',
+                    userId: 'u1',
+                    name: 'Credit Card',
+                    type: 'short_term',
+                    amount: 2000,
+                    currency: 'USD',
+                    isActive: true,
+                    createdAt: '',
+                    updatedAt: '',
+                    dueDate: '2024-03-01T00:00:00Z' // Within 354 days
+                }
+            ];
+
+            const result = calculateWealth(baseAssets, liabilities, refDate);
+
+            // 10000 - 2000 = 8000
+            expect(result.zakatableWealth).toBe(10000); // Raw zakatable wealth (assets only)
+            expect(result.deductibleLiabilities).toBe(2000);
+            expect(result.netZakatableWealth).toBe(8000);
+        });
+
+        it('should NOT deduct long-term debts (due > 354 days)', () => {
+            const liabilities: Liability[] = [
+                {
+                    id: 'L2',
+                    userId: 'u1',
+                    name: 'Mortgage Future',
+                    type: 'long_term',
+                    amount: 50000,
+                    currency: 'USD',
+                    isActive: true,
+                    createdAt: '',
+                    updatedAt: '',
+                    dueDate: '2025-06-01T00:00:00Z' // Approx 1.5 years from Jan 1, 2024
+                }
+            ];
+
+            const result = calculateWealth(baseAssets, liabilities, refDate);
+
+            expect(result.deductibleLiabilities).toBe(0);
+            expect(result.netZakatableWealth).toBe(10000);
+        });
+
+        it('should calculate mixed liabilities correctly', () => {
+            // 10k assets
+            // 1k immediate debt (deduct)
+            // 5k long term debt (ignore)
+            // Net = 9k
+
+            const liabilities: Liability[] = [
+                {
+                    id: 'L1',
+                    userId: 'u1',
+                    name: 'Rent',
+                    type: 'short_term',
+                    amount: 1000,
+                    currency: 'USD',
+                    isActive: true,
+                    createdAt: '',
+                    updatedAt: '',
+                    dueDate: '2024-02-01T00:00:00Z'
+                },
+                {
+                    id: 'L2',
+                    userId: 'u1',
+                    name: 'Student Loan Future',
+                    type: 'long_term',
+                    amount: 5000,
+                    currency: 'USD',
+                    isActive: true,
+                    createdAt: '',
+                    updatedAt: '',
+                    dueDate: '2030-01-01T00:00:00Z'
+                }
+            ];
+
+            const result = calculateWealth(baseAssets, liabilities, refDate);
+            expect(result.deductibleLiabilities).toBe(1000);
+            expect(result.netZakatableWealth).toBe(9000);
+        });
+
+        it('should handle past due liabilities (overdue) as immediate', () => {
+            // Debt due yesterday is still owed
+            const liabilities: Liability[] = [
+                {
+                    id: 'Loverdue',
+                    userId: 'u1',
+                    name: 'Overdue Bill',
+                    type: 'short_term',
+                    amount: 500,
+                    currency: 'USD',
+                    isActive: true,
+                    createdAt: '',
+                    updatedAt: '',
+                    dueDate: '2023-12-01T00:00:00Z' // Before Ref Date
+                }
+            ];
+
+            // Should verify logic. Our logic implementation (snapshot earlier):
+            // const isDueWithinYear = dueDate <= oneLunarYearFromNow; 
+            // Past dates are < oneLunarYearFromNow, so they should be included.
+
+            const result = calculateWealth(baseAssets, liabilities, refDate);
+            expect(result.deductibleLiabilities).toBe(500);
+            expect(result.netZakatableWealth).toBe(9500);
+        });
     });
 });

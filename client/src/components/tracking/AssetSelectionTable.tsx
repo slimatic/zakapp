@@ -10,17 +10,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-
-export interface Asset {
-  id: string;
-  name: string;
-  category: string;
-  value: number;
-  zakatEligible?: boolean;
-  calculationModifier?: number;
-  zakatableValue?: number;
-  addedAt: string;
-}
+import { Asset } from '../../types';
 
 export interface AssetSelectionTableProps {
   assets: Asset[];
@@ -53,7 +43,11 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
     const totalWealth = selectedAssets.reduce((sum, a) => sum + a.value, 0);
     const zakatableWealth = selectedAssets
       .filter(a => a.zakatEligible)
-      .reduce((sum, a) => sum + (typeof a.zakatableValue === 'number' ? a.zakatableValue : a.value), 0);
+      .reduce((sum, a) => {
+        // Check if zakatableValue exists (custom property not in strict interface but might be attached at runtime)
+        const val = (a as any).zakatableValue;
+        return sum + (typeof val === 'number' ? val : a.value);
+      }, 0);
     const zakatAmount = zakatableWealth * 0.025; // 2.5%
 
     return { totalWealth, zakatableWealth, zakatAmount };
@@ -133,7 +127,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                 Name
               </th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                Category
+                Type
               </th>
               <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Value
@@ -142,7 +136,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                 Zakatable
               </th>
               <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                Zakatable
+                Status
               </th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Added
@@ -152,6 +146,10 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {assets.map((asset) => {
               const isSelected = selectedIds.has(asset.id);
+              // Safe access for optional zakatableValue
+              const zakatableVal = (asset as any).zakatableValue;
+              const displayZakatable = typeof zakatableVal === 'number' ? zakatableVal : asset.value;
+
               return (
                 <tr
                   key={asset.id}
@@ -174,13 +172,13 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                     {asset.name}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600 capitalize">
-                    {asset.category}
+                    {asset.type.replace(/_/g, ' ').toLowerCase()}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
                     {formatCurrency(asset.value)}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
-                    {formatCurrency(typeof asset.zakatableValue === 'number' ? asset.zakatableValue : asset.value)}
+                    {formatCurrency(displayZakatable)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     {asset.zakatEligible ? (
@@ -194,7 +192,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">
-                    {formatDate(asset.addedAt)}
+                    {formatDate(asset.createdAt || asset.updatedAt || new Date().toISOString())}
                   </td>
                 </tr>
               );
@@ -232,5 +230,4 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
     </div>
   );
 };
-
 export default AssetSelectionTable;
