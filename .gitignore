@@ -78,6 +78,11 @@ coverage/
 
 # Docker
 .dockerignore
+
+# CouchDB Data Files (NEVER COMMIT DATABASE FILES)
+couchdb-data/
+*.couch
+
 # Build artifacts
 dist/
 *.d.ts
