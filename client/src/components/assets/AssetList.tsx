@@ -2,9 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, LayoutGrid, List as ListIcon } from 'lucide-react';
 import { AssetCard } from './AssetCard';
-import { AssetBreakdownChart } from '../dashboard/AssetBreakdownChart';
+import { AssetsBreakdownChart } from '../dashboard/AssetsBreakdownChart';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
-import { Asset, AssetBreakdown } from '../../types';
+import { Asset } from '../../types';
 import { Button, Card } from '../ui';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 
@@ -23,31 +23,6 @@ export const AssetList: React.FC = () => {
   const handleEdit = (id: string) => {
     navigate(`/assets/${id}/edit`);
   };
-
-  // Calculate Breakdown Data for Chart
-  const breakdownData = useMemo(() => {
-    const breakdown: Record<string, { total: number; zakatable: number; count: number }> = {};
-
-    assets.forEach(asset => {
-      const current = breakdown[asset.type] || { total: 0, zakatable: 0, count: 0 };
-      const isEligible = asset.zakatEligible !== false;
-      const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
-
-      breakdown[asset.type] = {
-        total: current.total + asset.value,
-        zakatable: current.zakatable + (asset.value * modifier),
-        count: current.count + 1
-      };
-    });
-
-    return Object.entries(breakdown).map(([type, data]) => ({
-      type,
-      totalValue: data!.total,
-      zakatableAmount: data!.zakatable,
-      count: data!.count,
-      assets: [] // not needed for this chart view
-    })) as AssetBreakdown[];
-  }, [assets]);
 
   const totalAssets = useMemo(() => {
     return assets.reduce((sum, asset) => sum + asset.value, 0);
@@ -95,9 +70,8 @@ export const AssetList: React.FC = () => {
       {assets.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
           <div className="lg:col-span-2 bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Portfolio Breakdown</h3>
-            <div className="h-64">
-              <AssetBreakdownChart data={breakdownData} totalAssets={totalAssets} />
+            <div className="h-full">
+              <AssetsBreakdownChart assets={assets} />
             </div>
           </div>
 
