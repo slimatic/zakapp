@@ -1,10 +1,10 @@
 # Multi-stage production Dockerfile
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
 # Install build dependencies for native modules (better-sqlite3)
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
@@ -13,10 +13,11 @@ COPY server/package*.json ./server/
 COPY client/package*.json ./client/
 
 # Install dependencies for all packages
-RUN npm ci
-RUN cd shared && npm ci
-RUN cd server && npm ci
-RUN cd client && npm ci
+# Use npm install to allow arch-specific optional deps
+RUN npm install
+RUN cd shared && npm install
+RUN cd server && npm install
+RUN cd client && npm install
 
 # Copy source code
 COPY shared/ ./shared/
@@ -53,12 +54,13 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
 
 # Production stage - Backend (Node.js)
-FROM node:20-alpine AS backend-production
+FROM node:20-slim AS backend-production
 
 WORKDIR /app
 
-# Install runtime dependencies for better-sqlite3
-RUN apk add --no-cache libstdc++
+# Install runtime dependencies for better-sqlite3 (Debian equivalent)
+# libstdc++ is usually included, but openssl might be needed for Prisma
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Copy built server from builder
 COPY --from=builder /app/server /app/server
