@@ -40,9 +40,13 @@ services:
       # CouchDB internal port configuration
       - COUCHDB_BIND_ADDRESS=0.0.0.0
       - COUCHDB_PORT=${COUCHDB_INTERNAL_PORT:-5984}
+      # Dynamic CORS configuration
+      - COUCHDB_ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000}}
     volumes:
       - ./couchdb-data:/opt/couchdb/data
-      - ./docker/couchdb/cors.ini:/opt/couchdb/etc/local.d/cors.ini
+      - ./docker/couchdb/entrypoint-wrapper.sh:/usr/local/bin/entrypoint-wrapper.sh
+    entrypoint: ["/usr/local/bin/entrypoint-wrapper.sh"]
+    command: ["couchdb"]
 
   backend:
     build:
