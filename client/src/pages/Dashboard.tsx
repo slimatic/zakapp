@@ -12,6 +12,7 @@ import { ActiveRecordWidget } from '../components/dashboard/ActiveRecordWidget';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
+import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
 import { useUserOnboarding } from '../hooks/useUserOnboarding';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
@@ -394,12 +395,19 @@ export const Dashboard: React.FC = () => {
             <ActiveRecordWidget record={activeRecord} />
           )}
 
-          {/* Wealth Summary */}
-          <WealthSummaryCard
-            totalWealth={totalWealth}
-            nisabThreshold={nisabThreshold}
-            currency={(user as any)?.preferences?.currency || 'USD'}
-          />
+          {/* Wealth and Breakdown Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <WealthSummaryCard
+              totalWealth={totalWealth}
+              nisabThreshold={nisabThreshold}
+              currency={(user as any)?.preferences?.currency || 'USD'}
+            />
+
+            <AssetsBreakdownChart
+              assets={assets}
+              currency={(user as any)?.preferences?.currency || 'USD'}
+            />
+          </div>
 
           {/* T024: Quick Action Cards */}
           <div>
