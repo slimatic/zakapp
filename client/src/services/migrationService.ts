@@ -160,7 +160,7 @@ export class MigrationService {
                 id: raw.id || crypto.randomUUID(),
                 userId: userId,
                 name: raw.name || 'Untitled Liability',
-                type: raw.type || 'debt',
+                type: raw.type || 'short_term',
                 amount: Number(raw.amount) || 0,
                 currency: raw.currency || 'USD',
                 description: raw.description || '',
