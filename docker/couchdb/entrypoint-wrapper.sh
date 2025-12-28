@@ -9,10 +9,15 @@ ORIGINS="${COUCHDB_ALLOWED_ORIGINS:-${ALLOWED_ORIGINS:-$DEFAULT_ORIGINS}}"
 
 echo "Setting up CouchDB CORS for origins: $ORIGINS"
 
-# Generate cors.ini
+# Run certificate generation
+if [ -f "/usr/local/bin/generate-cert.sh" ]; then
+    /usr/local/bin/generate-cert.sh
+fi
+
+# Generate config
 # We use direct echo/cat because envsubst is not available in the base image
 mkdir -p /opt/couchdb/etc/local.d
-cat > /opt/couchdb/etc/local.d/cors.ini <<EOF
+cat > /opt/couchdb/etc/local.d/zakapp.ini <<EOF
 [httpd]
 enable_cors = true
 bind_address = 0.0.0.0
@@ -23,6 +28,15 @@ credentials = true
 methods = GET, PUT, POST, HEAD, DELETE, OPTIONS
 headers = accept, authorization, content-type, origin, referer, x-requested-with
 max_age = 3600
+
+[ssl]
+enable = true
+cert_file = /opt/couchdb/etc/certs/couchdb.pem
+key_file = /opt/couchdb/etc/certs/privkey.pem
+port = 6984
+
+[daemons]
+httpsd = {chttpd, start_link, [https]}
 EOF
 
 # Execute the original entrypoint
