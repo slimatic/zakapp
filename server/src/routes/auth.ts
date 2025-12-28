@@ -214,7 +214,8 @@ router.post('/login',
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Login failed due to server error'
+          message: 'Login failed due to server error',
+          details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined
         }
       });
     }
