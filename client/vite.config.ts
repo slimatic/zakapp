@@ -96,6 +96,13 @@ export default defineConfig(({ mode }) => {
       host: true, // Listen on all local IPs (0.0.0.0)
       port: parseInt(env.VITE_PORT || env.PORT || '3000'),
       allowedHosts: allowedHosts,
+      proxy: {
+        '/api': {
+          target: 'http://backend:3001',
+          changeOrigin: true,
+          secure: false,
+        },
+      },
       watch: {
         usePolling: true, // Recommended for Docker on some systems
       },
