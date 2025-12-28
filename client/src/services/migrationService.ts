@@ -54,7 +54,7 @@ export class MigrationService {
             const type = this.mapCategoryToType(raw.category || raw.type);
 
             return {
-                id: raw.id || crypto.randomUUID(), // Preserve ID to prevent duplication on re-import
+                id: raw.id || raw.assetId || crypto.randomUUID(), // Preserve ID to prevent duplication on re-import
                 userId: userId,
                 name: raw.name || 'Untitled Asset',
                 type: type,
