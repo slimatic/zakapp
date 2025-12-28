@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter, Button, LoadingSpinner } from '../ui';
-import { Upload, Download, FileJson, AlertTriangle, CheckCircle, Database } from 'lucide-react';
+import { Upload, Download, FileJson, AlertTriangle, CheckCircle, Database, Trash2 } from 'lucide-react';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { useNisabRecordRepository } from '../../hooks/useNisabRecordRepository';
@@ -10,10 +10,15 @@ import { useZakatCalculationRepository } from '../../hooks/useZakatCalculationRe
 import { useUserSettingsRepository } from '../../hooks/useUserSettingsRepository';
 import { MigrationService } from '../../services/migrationService';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDataCleanup } from '../../hooks/useDataCleanup';
+import { Modal } from '../ui/Modal';
 
 export const UnifiedImportExport: React.FC = () => {
     const [importing, setImporting] = useState(false);
     const [exporting, setExporting] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const { clearAllData, isClearing } = useDataCleanup();
+
     const [stats, setStats] = useState<{
         assets: number;
         payments: number;
@@ -36,7 +41,7 @@ export const UnifiedImportExport: React.FC = () => {
         setExporting(true);
         try {
             const data = {
-                version: "2.5", // Bump version for comprehensive unified format
+                version: "2.5",
                 exportDate: new Date().toISOString(),
                 stats: {
                     assets: assets.length,
@@ -83,18 +88,13 @@ export const UnifiedImportExport: React.FC = () => {
             try {
                 const parsed = JSON.parse(event.target?.result as string);
 
-                // Handle legacy export nested structure ({ data: { assets: ... } })
-                // vs New backup structure ({ assets: ... })
                 const rawData = parsed.data && !Array.isArray(parsed.data) ? parsed.data : parsed;
-                // Also copy settings if they exist at root of legacy (unlikely) or merge
                 if (parsed.settings && !rawData.settings) rawData.settings = parsed.settings;
 
                 const errors: string[] = [];
                 let assetCount = 0;
                 let paymentCount = 0;
 
-                // Use the real authenticated user ID, or fallback to 'local-user' if offline/unauth
-                // Note: useAuth provides 'user' which might be null if not logged in.
                 const targetUserId = user?.id || 'local-user';
 
                 // 1. Migrate Assets
@@ -110,8 +110,7 @@ export const UnifiedImportExport: React.FC = () => {
 
                 // 2. Migrate Payments
                 if (rawData.payments && Array.isArray(rawData.payments)) {
-                    // Try to find a sensible default snapshot ID (e.g., current active record)
-                    const activeRecord = nisabRecords.find(r => r.status === 'DRAFT'); // Use DRAFT as active
+                    const activeRecord = nisabRecords.find(r => r.status === 'DRAFT');
                     const defaultSnapshotId = activeRecord?.id;
 
                     const cleanPayments = MigrationService.adaptPayments(rawData.payments, targetUserId, defaultSnapshotId);
@@ -194,10 +193,15 @@ export const UnifiedImportExport: React.FC = () => {
                 setStats({ assets: 0, payments: 0, nisabRecords: 0, liabilities: 0, calculations: 0, settings: false, errors: [err.message] });
             } finally {
                 setImporting(false);
-                e.target.value = ''; // Reset input
+                e.target.value = '';
             }
         };
         reader.readAsText(file);
+    };
+
+    const handleClearData = async () => {
+        await clearAllData();
+        setIsDeleteModalOpen(false);
     };
 
     return (
@@ -209,10 +213,10 @@ export const UnifiedImportExport: React.FC = () => {
                         <CardTitle>Data Management (Unified)</CardTitle>
                     </div>
                     <CardDescription>
-                        Backup your entire vault or import data from older ZakApp versions.
-                        The "Smart Import" feature will automatically fix legacy data structures.
+                        Backup your entire vault, import data, or clear local storage.
                     </CardDescription>
                 </CardHeader>
+
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center gap-3">
@@ -275,8 +279,70 @@ export const UnifiedImportExport: React.FC = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* Danger Zone */}
+                    <div className="border-t border-gray-200 pt-6">
+                        <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-red-100 rounded-full">
+                                    <Trash2 className="w-5 h-5 text-red-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-medium text-red-900">Clear Financial Data</h3>
+                                    <p className="text-xs text-red-700 mt-0.5">
+                                        Permanently delete all assets, liabilities, and records from this device. Account stays active.
+                                    </p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setIsDeleteModalOpen(true)}
+                            >
+                                Clear Data
+                            </Button>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
+
+            {/* Confirmation Modal */}
+            <Modal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                title="Clear All Data?"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <div className="bg-red-50 p-4 rounded-lg flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                        <p className="text-sm text-red-800">
+                            This action is <strong>irreversible</strong>. All your tracking data (Assets, Liabilities, Payments, History) will be wiped from the database.
+                        </p>
+                    </div>
+
+                    <p className="text-sm text-gray-600">
+                        Please confirm you have downloaded a backup before proceeding.
+                    </p>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsDeleteModalOpen(false)}
+                            disabled={isClearing}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleClearData}
+                            isLoading={isClearing}
+                        >
+                            Yes, Clear Everything
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };
