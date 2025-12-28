@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.frontend
     ports:
-      - '${FRONTEND_PORT:-3000}:3000'
+      - '${FRONTEND_PORT:-3000}:${FRONTEND_INTERNAL_PORT:-3000}'
     volumes:
       - ./client:/app/client
       - ./shared/src:/app/shared/src
@@ -16,10 +16,12 @@ services:
     environment:
       - NODE_ENV=development
       - HOST=0.0.0.0
-      - REACT_APP_API_BASE_URL=http://${HOST_IP:-localhost}:3001/api
+      - PORT=${FRONTEND_INTERNAL_PORT:-3000}
+      - VITE_PORT=${FRONTEND_INTERNAL_PORT:-3000}
+      - REACT_APP_API_BASE_URL=http://${HOST_IP:-localhost}:${BACKEND_PORT:-3001}/api
       - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
       - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
-      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL:-http://${HOST_IP:-localhost}:5984}
+      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL:-http://${HOST_IP:-localhost}:${COUCHDB_PORT:-5984}}
       # NOTE: COUCHDB_USER and COUCHDB_PASSWORD removed - using JWT auth via /api/sync/token
     depends_on:
       backend:
@@ -31,10 +33,13 @@ services:
   couchdb:
     image: apache/couchdb:3.5.1
     ports:
-      - "5984:5984"
+      - "${COUCHDB_PORT:-5984}:${COUCHDB_INTERNAL_PORT:-5984}"
     environment:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      # CouchDB internal port configuration
+      - COUCHDB_BIND_ADDRESS=0.0.0.0
+      - COUCHDB_PORT=${COUCHDB_INTERNAL_PORT:-5984}
     volumes:
       - ./couchdb-data:/opt/couchdb/data
       - ./docker/couchdb/cors.ini:/opt/couchdb/etc/local.d/cors.ini
@@ -44,7 +49,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.backend
     ports:
-      - '${BACKEND_PORT:-3001}:3001'
+      - '${BACKEND_PORT:-3001}:${BACKEND_INTERNAL_PORT:-3001}'
     volumes:
       - ./server:/app/server
       - ./shared/src:/app/shared/src
@@ -56,15 +61,16 @@ services:
       - .env.docker
     environment:
       - NODE_ENV=development
-      - PORT=3001
+      - PORT=${BACKEND_INTERNAL_PORT:-3001}
       - DATABASE_URL=file:./prisma/data/dev.db
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000},http://127.0.0.1:${FRONTEND_PORT:-3000},http://${HOST_IP:-localhost}:${FRONTEND_PORT:-3000}}
       - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
       - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET}
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      - COUCHDB_URL=${COUCHDB_URL:-http://couchdb:${COUCHDB_INTERNAL_PORT:-5984}}
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:3001/api/auth/register || exit 0"]
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:${BACKEND_INTERNAL_PORT:-3001}/api/auth/register || exit 0"]
       interval: 10s
       timeout: 5s
       retries: 5
