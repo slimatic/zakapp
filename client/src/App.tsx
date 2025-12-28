@@ -70,6 +70,7 @@ const GettingStarted = lazy(() => import('./components/help/GettingStarted').the
 const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').then(m => ({ default: m.NisabYearRecordsPage })));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const PaymentImportExport = lazy(() => import('./components/payments/PaymentImportExport').then(m => ({ default: m.PaymentImportExport })));
+const LiabilitiesPage = lazy(() => import('./pages/LiabilitiesPage').then(m => ({ default: m.LiabilitiesPage })));
 
 
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
@@ -274,6 +275,20 @@ function App() {
                           <Layout>
                             <Suspense fallback={<HistorySkeleton />}>
                               <PaymentsPage />
+                            </Suspense>
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Liabilities Page */}
+                    <Route
+                      path="/liabilities"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <Suspense fallback={<AssetListSkeleton />}>
+                              <LiabilitiesPage />
                             </Suspense>
                           </Layout>
                         </ProtectedRoute>

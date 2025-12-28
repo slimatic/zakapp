@@ -3,22 +3,7 @@ import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
 import { map } from 'rxjs/operators';
 
-export interface Liability {
-    id: string;
-    userId: string;
-    name: string;
-    type: string;
-    amount: number;
-    currency: string;
-    description?: string;
-    metadata?: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    dueDate: string;
-    creditor?: string;
-    notes?: string;
-}
+import { Liability } from '../types';
 
 export function useLiabilityRepository() {
     const db = useDb();
