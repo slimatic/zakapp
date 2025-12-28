@@ -1,5 +1,5 @@
 # Frontend Dockerfile for development
-FROM node:20-alpine
+FROM node:20-slim
 
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
@@ -12,7 +12,7 @@ COPY .npmrc ./
 COPY shared/package*.json ./shared/
 
 # Install shared dependencies 
-RUN cd shared && npm ci
+RUN cd shared && npm install
 
 # Copy shared source and build
 COPY shared/ ./shared/
@@ -22,7 +22,7 @@ RUN cd shared && npm run build
 COPY client/package*.json ./client/
 
 # Install client dependencies (this will link to ../shared)
-RUN cd client && npm ci
+RUN cd client && npm install
 
 # Copy client source code
 COPY client/ ./client/
