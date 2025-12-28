@@ -34,6 +34,7 @@ services:
     image: apache/couchdb:3.5.1
     ports:
       - "${COUCHDB_PORT:-5984}:${COUCHDB_INTERNAL_PORT:-5984}"
+      - "${COUCHDB_HTTPS_PORT:-6984}:6984"
     environment:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
@@ -45,6 +46,7 @@ services:
     volumes:
       - ./couchdb-data:/opt/couchdb/data
       - ./docker/couchdb/entrypoint-wrapper.sh:/usr/local/bin/entrypoint-wrapper.sh
+      - ./docker/couchdb/generate-cert.sh:/usr/local/bin/generate-cert.sh
     entrypoint: ["/usr/local/bin/entrypoint-wrapper.sh"]
     command: ["couchdb"]
 
