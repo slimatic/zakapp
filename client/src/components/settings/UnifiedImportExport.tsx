@@ -81,7 +81,14 @@ export const UnifiedImportExport: React.FC = () => {
         const reader = new FileReader();
         reader.onload = async (event) => {
             try {
-                const rawData = JSON.parse(event.target?.result as string);
+                const parsed = JSON.parse(event.target?.result as string);
+
+                // Handle legacy export nested structure ({ data: { assets: ... } })
+                // vs New backup structure ({ assets: ... })
+                const rawData = parsed.data && !Array.isArray(parsed.data) ? parsed.data : parsed;
+                // Also copy settings if they exist at root of legacy (unlikely) or merge
+                if (parsed.settings && !rawData.settings) rawData.settings = parsed.settings;
+
                 const errors: string[] = [];
                 let assetCount = 0;
                 let paymentCount = 0;
