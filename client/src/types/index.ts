@@ -33,6 +33,23 @@ export enum AssetType {
   OTHER = 'OTHER'
 }
 
+export interface Liability {
+  id: string;
+  userId: string;
+  name: string;
+  type: string; // 'short_term' | 'long_term' | 'business_payable'
+  amount: number;
+  currency: string;
+  description?: string;
+  metadata?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  dueDate: string;
+  creditor?: string;
+  notes?: string;
+}
+
 export interface User {
   id: string;
   email: string;
