@@ -272,9 +272,9 @@ router.post('/register',
       }
 
       // Hash password
+      // Create encrypted profile and settings
       const passwordHash = await bcrypt.hash(password, 12);
 
-      // Create encrypted profile and settings
       let profileData: any = {
         firstName,
         lastName,
@@ -282,6 +282,7 @@ router.post('/register',
         dateOfBirth,
         salt // Store salt for multi-device sync
       };
+
       const settingsData = {
         currency: 'USD',
         notifications: true,
@@ -386,7 +387,8 @@ router.post('/register',
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Registration failed due to server error'
+          message: 'Registration failed due to server error',
+          details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined
         }
       });
     }

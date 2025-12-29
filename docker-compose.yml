@@ -14,17 +14,17 @@ services:
       - ./docker/frontend-entrypoint.sh:/docker-entrypoint.sh
     entrypoint: ["/docker-entrypoint.sh"]
     env_file:
-      - .env.docker
+      - .env
     environment:
       - NODE_ENV=development
       - HOST=0.0.0.0
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - PORT=${FRONTEND_INTERNAL_PORT:-3000}
       - VITE_PORT=${FRONTEND_INTERNAL_PORT:-3000}
-      - REACT_APP_API_BASE_URL=http://${HOST_IP:-localhost}:${BACKEND_PORT:-3001}/api
+      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
       - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
       - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
-      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL:-http://${HOST_IP:-localhost}:${COUCHDB_PORT:-5984}}
+      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL}
       # NOTE: COUCHDB_USER and COUCHDB_PASSWORD removed - using JWT auth via /api/sync/token
     depends_on:
       backend:
@@ -67,17 +67,17 @@ services:
       - /app/shared/dist
       - zakapp-db:/app/server/prisma/data
     env_file:
-      - .env.docker
+      - .env
     environment:
       - NODE_ENV=development
       - PORT=${BACKEND_INTERNAL_PORT:-3001}
       - DATABASE_URL=file:./prisma/data/dev.db
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000},http://127.0.0.1:${FRONTEND_PORT:-3000},http://${HOST_IP:-localhost}:${FRONTEND_PORT:-3000}}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
       - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET}
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
-      - COUCHDB_URL=${COUCHDB_URL:-http://couchdb:${COUCHDB_INTERNAL_PORT:-5984}}
+      - COUCHDB_URL=${COUCHDB_URL}
     healthcheck:
       test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:${BACKEND_INTERNAL_PORT:-3001}/api/auth/register || exit 0"]
       interval: 10s
