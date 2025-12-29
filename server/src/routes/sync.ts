@@ -76,6 +76,7 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
         // 1. Ensure CouchDB User exists in _users
         try {
             const userDocUrl = `${COUCHDB_URL}/_users/org.couchdb.user:${couchUsername}`;
+            console.log('DEBUG: UPSERT Target URL:', userDocUrl);
             let rev = undefined;
 
             try {
