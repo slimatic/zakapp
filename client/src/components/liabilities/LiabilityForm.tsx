@@ -124,7 +124,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                         <select
                             value={formData.type}
                             onChange={e => handleChange('type', e.target.value)}
-                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-green-500 focus:ring-green-500"
+                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                         >
                             <option value="short_term">Short Term (Immediate)</option>
                             <option value="long_term">Long Term (Deferred)</option>
@@ -162,7 +162,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                         <select
                             value={formData.currency}
                             onChange={e => handleChange('currency', e.target.value)}
-                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-green-500 focus:ring-green-500"
+                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                         >
                             <option value="USD">USD</option>
                             <option value="EUR">EUR</option>
@@ -186,7 +186,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
 
                     {/* Ductibility Preview */}
                     {formData.dueDate && !isNaN(new Date(formData.dueDate).getTime()) && (
-                        <div className={`mt-2 text-xs p-2 rounded ${isDeductiblePreview() ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                        <div className={`mt-2 text-xs p-2 rounded ${isDeductiblePreview() ? 'bg-primary-50 text-primary-700' : 'bg-gray-100 text-gray-600'}`}>
                             {isDeductiblePreview()
                                 ? '✅ Eligible for Zakat Deduction (Due within ~1 lunar year)'
                                 : 'ℹ️ Not automatically deductible (Due later than 1 lunar year)'}
@@ -201,7 +201,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                         value={formData.notes}
                         onChange={e => handleChange('notes', e.target.value)}
                         rows={3}
-                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-green-500 focus:ring-green-500"
+                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                     />
                 </div>
 

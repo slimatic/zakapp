@@ -29,7 +29,7 @@ export const LiabilitiesPage: React.FC = () => {
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
             </div>
         );
     }
@@ -41,15 +41,15 @@ export const LiabilitiesPage: React.FC = () => {
         <div className="space-y-6">
             <div className="md:flex md:items-center md:justify-between">
                 <div className="flex-1 min-w-0">
-                    <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                    <h1 className="text-3xl font-heading font-bold text-gray-900 leading-tight">
                         Liabilities
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-500">
+                    </h1>
+                    <p className="mt-1 text-gray-500 max-w-2xl">
                         Track your short-term and long-term debts. Deductible liabilities will be automatically calculated for Zakat.
                     </p>
                 </div>
                 <div className="mt-4 flex md:mt-0 md:ml-4">
-                    <Button onClick={handleAdd}>
+                    <Button onClick={handleAdd} className="shadow-md">
                         Add Liability
                     </Button>
                 </div>
@@ -57,13 +57,11 @@ export const LiabilitiesPage: React.FC = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <dt className="text-sm font-medium text-gray-500 truncate">Total Liabilities</dt>
-                        <dd className="mt-1 text-3xl font-semibold text-gray-900">
-                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalLiabilities)}
-                        </dd>
-                    </div>
+                <div className="bg-white/80 backdrop-blur-sm shadow-sm rounded-xl border border-primary-100/50 p-6 transition-all hover:shadow-md">
+                    <dt className="text-sm font-medium text-gray-500 truncate mb-1">Total Liabilities</dt>
+                    <dd className="text-4xl font-heading font-bold text-primary-700">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalLiabilities)}
+                    </dd>
                 </div>
                 {/* We can add more stats here later like "Deductible Amount" */}
             </div>

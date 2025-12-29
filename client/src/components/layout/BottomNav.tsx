@@ -4,29 +4,16 @@ import { NavigationItemType } from './Navigation';
 
 interface BottomNavProps {
   items: NavigationItemType[];
+  onMoreClick?: () => void;
 }
 
-/**
- * BottomNav component for mobile bottom navigation bar
- * 
- * Features:
- * - Fixed bottom position (sticky bottom nav bar)
- * - Only visible on mobile (<768px): `block md:hidden`
- * - 4 icon buttons matching main navigation items
- * - Active state with colored icon and label
- * - Safe area insets for iOS notch (env(safe-area-inset-bottom))
- * - 48x48px minimum touch targets
- * - Keyboard accessible with proper ARIA
- * 
- * @param items - Array of navigation items (max 4-5 recommended)
- */
-export const BottomNav: React.FC<BottomNavProps> = ({ items }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
   const location = useLocation();
 
-  /**
-   * Determines if a navigation item is currently active
-   */
-  const isActive = (href: string): boolean => {
+  const isActive = (item: NavigationItemType): boolean => {
+    const href = item.href;
+    if (item.name === 'More') return false;
+
     if (location.pathname === href) {
       return true;
     }
@@ -49,38 +36,55 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items }) => {
     >
       <div className="flex justify-around items-center h-16 px-2">
         {items.map((item) => {
-          const active = isActive(item.href);
-          
+          const active = isActive(item);
+          const isMore = item.name === 'More';
+
+          const content = (
+            <>
+              {item.icon && (
+                <span className={`w-6 h-6 flex items-center justify-center transition-transform ${active ? 'scale-110' : ''}`} aria-hidden="true">
+                  {item.icon}
+                </span>
+              )}
+              <span className={`text-[10px] font-medium mt-1 truncate max-w-[56px] ${active ? 'font-bold' : ''}`}>
+                {item.name}
+              </span>
+            </>
+          );
+
+          if (isMore) {
+            return (
+              <button
+                key="more-button"
+                onClick={onMoreClick}
+                className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition-all active:scale-95"
+                aria-label="Open more menu"
+              >
+                {content}
+              </button>
+            );
+          }
+
           return (
             <NavLink
               key={item.href}
               to={item.href}
-              className={({ isActive }) => `
+              className={({ isActive: navActive }) => `
                 flex flex-col items-center justify-center
-                min-w-[64px] h-12
-                px-2 py-1
+                min-w-[60px] h-12
+                px-1 py-1
                 rounded-lg
-                transition-colors duration-150
-                ${isActive || active
-                  ? 'text-green-600 bg-green-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                transition-all duration-200
+                ${navActive || active
+                  ? 'text-primary-600 bg-primary-50/50'
+                  : 'text-gray-500 hover:text-gray-900'
                 }
-                focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2
+                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
               `.trim()}
               aria-label={item.name}
               aria-current={active ? 'page' : undefined}
             >
-              {/* Icon */}
-              {item.icon && (
-                <span className="w-6 h-6 flex items-center justify-center" aria-hidden="true">
-                  {item.icon}
-                </span>
-              )}
-              
-              {/* Label (small text below icon) */}
-              <span className="text-xs font-medium mt-1 truncate max-w-[60px]">
-                {item.name}
-              </span>
+              {content}
             </NavLink>
           );
         })}
