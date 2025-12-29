@@ -11,6 +11,8 @@ import { ErrorMessage } from '../../../components/ui/ErrorMessage';
 interface ProfileFormData {
     username: string;
     email: string;
+    firstName: string;
+    lastName: string;
     preferences: {
         currency: string;
         language: string;
@@ -27,6 +29,8 @@ export const ProfileForm: React.FC = () => {
     const [profileData, setProfileData] = useState<ProfileFormData>({
         username: user?.username || '',
         email: user?.email || '',
+        firstName: (user as any)?.firstName || '',
+        lastName: (user as any)?.lastName || '',
         preferences: {
             currency: (user as any)?.preferences?.currency || 'USD',
             language: (user as any)?.preferences?.language || 'en',
@@ -104,6 +108,39 @@ export const ProfileForm: React.FC = () => {
 
             <form onSubmit={handleProfileSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                            First Name
+                        </label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            value={profileData.firstName}
+                            onChange={(e) => setProfileData({
+                                ...profileData,
+                                firstName: e.target.value
+                            })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                            Last Name
+                        </label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            value={profileData.lastName}
+                            onChange={(e) => setProfileData({
+                                ...profileData,
+                                lastName: e.target.value
+                            })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            required
+                        />
+                    </div>
                     <div>
                         <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
                             Username

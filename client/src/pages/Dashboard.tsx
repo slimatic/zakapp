@@ -403,10 +403,12 @@ export const Dashboard: React.FC = () => {
               currency={(user as any)?.preferences?.currency || 'USD'}
             />
 
-            <AssetsBreakdownChart
-              assets={assets}
-              currency={(user as any)?.preferences?.currency || 'USD'}
-            />
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+              <AssetsBreakdownChart
+                assets={assets}
+                currency={(user as any)?.preferences?.currency || 'USD'}
+              />
+            </div>
           </div>
 
           {/* T024: Quick Action Cards */}

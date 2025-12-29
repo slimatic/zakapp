@@ -1,5 +1,5 @@
 export const UserSettingsSchema = {
-    version: 2,
+    version: 3,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -9,6 +9,12 @@ export const UserSettingsSchema = {
         },
         profileName: {
             type: 'string' // e.g. "My Profile"
+        },
+        firstName: {
+            type: 'string'
+        },
+        lastName: {
+            type: 'string'
         },
         email: {
             type: 'string'
