@@ -34,9 +34,9 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [x] **Contributors**: Update `CONTRIBUTING.md` with local-first guidelines.
 - [x] **Docs**: Create `architecture.md` explaining the privacy model.
 
-## Phase 5: Cloud Connectivity (Future - Multi-Device Sync)
+## Phase 5: Cloud Connectivity (Multi-Device Sync)
 *Goal: Enable seamless access across devices without compromising privacy.*
 
-- [ ] **Replication Plugin**: Enable RxDB Replication to a secure CouchDB/GraphQL endpoint.
-- [ ] **E2E Encryption Layer**: Ensure all replicated data is encrypted on-device before transmission (Host-Proof Hosting).
-- [ ] **Conflict Resolution**: Implement "Last-Write-Wins" or "CRDT" merging for multi-device edits.
+- [x] **Replication Plugin**: Enable RxDB Replication to a secure CouchDB/GraphQL endpoint.
+- [x] **E2E Encryption Layer**: Ensure all replicated data is encrypted on-device (Host-Proof Hosting).
+- [x] **Conflict Resolution**: "Last-Write-Wins" merging handled by RxDB; passwords auto-heal.

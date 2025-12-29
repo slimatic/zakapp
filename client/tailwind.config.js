@@ -7,31 +7,32 @@ module.exports = {
     extend: {
       colors: {
         // "Ikhlas" Premium Palette
+        // "Ikhlas" Premium V2 Palette (Teal & Bronze)
         primary: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#10b981', // Base Emerald
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
-          950: '#022c22',
+          50: '#f0fdfa',
+          100: '#ccfbf1',
+          200: '#99f6e4',
+          300: '#5eead4',
+          400: '#2dd4bf',
+          500: '#14b8a6', // Vibrant Turquoise (Action)
+          600: '#0d9488',
+          700: '#0f766e', // Midnight Teal (Brand)
+          800: '#115e59',
+          900: '#134e4a',
+          950: '#042f2e',
         },
         secondary: {
-          50: '#fefce8',
-          100: '#fef9c3',
-          200: '#fef08a',
-          300: '#fde047',
-          400: '#facc15',
-          500: '#eab308', // Base Gold
-          600: '#ca8a04',
-          700: '#a16207',
-          800: '#854d0e',
-          900: '#713f12',
-          950: '#422006',
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309', // Antique Bronze
+          800: '#92400e',
+          900: '#78350f',
+          950: '#451a03',
         },
         surface: {
           50: '#f8fafc',
