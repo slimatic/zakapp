@@ -20,7 +20,22 @@ export default defineConfig(({ mode }) => {
   // Merge unique hosts
   const allowedHosts = Array.from(new Set([...defaultHosts, ...envAllowedHosts]));
 
+  // Get git commit hash (if available)
+  let commitHash = 'unknown';
+  try {
+    const { execSync } = require('child_process');
+    commitHash = execSync('git rev-parse --short HEAD').toString().trim();
+  } catch (e) {
+    console.warn('Could not get git commit hash');
+  }
+
+  const pkg = require('./package.json');
+
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+      __COMMIT_HASH__: JSON.stringify(commitHash),
+    },
     plugins: [
       react(),
       VitePWA({

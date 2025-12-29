@@ -1,4 +1,21 @@
 /**
+ * Copyright (c) 2024 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
  * NisabYearRecordsPage (Local-First Refactor)
  * 
  * List view with create, finalize, unlock, and audit trail functionality
@@ -265,6 +282,18 @@ export const NisabYearRecordsPage: React.FC = () => {
                 className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 + New Record
+              </button>
+              <button
+                onClick={() => {
+                  import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
+                    new ReportGenerator().generateMethodologyReport();
+                  });
+                }}
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                title="Download Zakat Calculation Methodology"
+              >
+                <span>📜</span>
+                <span className="hidden sm:inline">Methodology</span>
               </button>
             </div>
           </div>
