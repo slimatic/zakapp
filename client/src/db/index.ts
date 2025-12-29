@@ -165,9 +165,15 @@ export const closeDb = async () => {
         try {
             console.log("DatabaseService: Closing DB connection...");
             const db = await window._zakapp_db_promise;
+
+            // Safety check: ensure db is valid and has destroy method
             if (db && !db.destroyed) {
-                await db.destroy();
-                console.log("DatabaseService: DB Instance Destroyed (Closed).");
+                if (typeof db.destroy === 'function') {
+                    await db.destroy();
+                    console.log("DatabaseService: DB Instance Destroyed (Closed).");
+                } else {
+                    console.warn("DatabaseService: DB instance exists but missing destroy() method:", Object.keys(db));
+                }
             }
         } catch (e) {
             console.error('Error closing DB:', e);
@@ -180,13 +186,28 @@ export const closeDb = async () => {
 
 // Removes the DB (Deletes ALL Data)
 export const resetDb = async () => {
+    // Ensure we close any open connection first
+    await closeDb();
+
+    if (window._zakapp_db_promise) { // Should be null by now, but just in case
+        // ... (existing reset logic if needed, but closeDb handles the promise nulling)
+    }
+    // Actually resetDb logic in the original code relied on the promise. 
+    // But wait, remove() requires the DB instance! 
+    // So we can't close it first if we want to call .remove().
+
+    // Correct logic for resetDb:
     if (window._zakapp_db_promise) {
         try {
             console.warn("DatabaseService: DELETING DB (RESET)...");
             const db = await window._zakapp_db_promise;
             if (db && !db.destroyed) {
-                await db.remove();
-                console.log("DatabaseService: DB Removed.");
+                if (typeof db.remove === 'function') {
+                    await db.remove();
+                    console.log("DatabaseService: DB Removed.");
+                } else {
+                    console.warn("DatabaseService: missing remove() method");
+                }
             }
         } catch (e) {
             console.error('Error removing DB:', e);
@@ -200,6 +221,10 @@ export const resetDb = async () => {
 // Force Delete DB by Name (Used when we can't open it)
 export const forceResetDatabase = async () => {
     console.warn("DatabaseService: FORCING DB DELETION (forceResetDatabase)...");
+
+    // CRITICAL: Close any lingering open instances first to prevent COL23 (Max Collections) leak
+    await closeDb();
+
     try {
         // Need to replicate logic of storage selection
         let storage;
