@@ -5,11 +5,13 @@ import { LiabilityList } from '../components/liabilities/LiabilityList';
 import { Button } from '../components/ui';
 import { Modal } from '../components/ui/Modal';
 import { Liability } from '../types';
+import { useMaskedCurrency } from '../contexts/PrivacyContext';
 
 export const LiabilitiesPage: React.FC = () => {
     const { liabilities, isLoading } = useLiabilityRepository();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLiability, setEditingLiability] = useState<Liability | undefined>(undefined);
+    const maskedCurrency = useMaskedCurrency();
 
     const handleAdd = () => {
         setEditingLiability(undefined);
@@ -60,7 +62,7 @@ export const LiabilitiesPage: React.FC = () => {
                 <div className="bg-white/80 backdrop-blur-sm shadow-sm rounded-xl border border-primary-100/50 p-6 transition-all hover:shadow-md">
                     <dt className="text-sm font-medium text-gray-500 truncate mb-1">Total Liabilities</dt>
                     <dd className="text-4xl font-heading font-bold text-primary-700">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalLiabilities)}
+                        {maskedCurrency(new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalLiabilities))}
                     </dd>
                 </div>
                 {/* We can add more stats here later like "Deductible Amount" */}
