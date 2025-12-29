@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { Logo } from '../common/Logo';
 
 /**
  * PWA Installation Prompt Component
@@ -137,8 +138,8 @@ export const InstallPrompt: React.FC = () => {
 
       {/* Content */}
       <div className="flex items-start gap-4 mb-5">
-        <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl flex items-center justify-center shadow-inner border border-primary-200/50">
-          <ArrowDownTrayIcon className="w-7 h-7 text-primary-700" />
+        <div className="flex-shrink-0">
+          <Logo className="w-14 h-14" />
         </div>
 
         <div className="flex-1 pt-0.5">

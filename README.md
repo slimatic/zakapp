@@ -1,7 +1,7 @@
 # ZakApp (Ikhlas Project)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-beta-orange.svg)
+![Status](https://img.shields.io/badge/status-stable-green.svg)
 ![Compliance](https://img.shields.io/badge/compliance-shariah--compliant-green.svg)
 
 **The World's First Local-First, Privacy-Focused Islamic Finance Platform.**
@@ -19,7 +19,8 @@ ZakApp Re-imagines the Zakat calculation experience by prioritizing user privacy
 -   **Precision Hawl Tracking**: Tracks Nisab thresholds based on Lunar Hijri calendar.
 -   **Multi-Madhab Compliance**: Toggle between Hanafi, Shafi'i, Maliki, and Hanbali rulings.
 -   **Asset Portfolio Management**: Detailed tracking for Gold, Crypto, 401k, and Real Estate.
--   **Offline Capabilities**: Works perfectly without an internet connection.
+-   **Offline-First & PWA**: Installable as a native app with full offline capabilities (pwa-install).
+-   **Responsive Design**: optimized for all device sizes with mobile-first UX.
 
 ## 🚀 Getting Started
 
@@ -49,15 +50,15 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173` to view the app.
+Visit `http://localhost:3000` to view the app.
 
 ## 🛠 Tech Stack
 
 -   **Framework**: React 18, Vite
 -   **Language**: TypeScript
 -   **Database**: RxDB (Local-First) + CouchDB (Sync)
--   **Styling**: Tailwind CSS, shadcn/ui
--   **Icons**: Lucide React
+-   **Styling**: Tailwind CSS, shadcn/ui (Islamic Fintech Aesthetic)
+-   **Icons**: Lucide React, Custom SVG Brand Assets
 -   **Testing**: Vitest, Playwright
 
 ## 🔄 Sync & Multi-Device Setup

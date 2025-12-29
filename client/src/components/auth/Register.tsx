@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Logo } from '../common/Logo';
 
 export const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -123,8 +124,8 @@ export const Register: React.FC = () => {
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/40">
         <div>
-          <div className="mx-auto h-14 w-14 flex items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-primary-800 shadow-lg text-white">
-            <span className="text-3xl font-heading font-bold">Z</span>
+          <div className="mx-auto flex justify-center">
+            <Logo className="h-16 w-16" />
           </div>
           <h1 className="mt-6 text-center text-4xl font-heading font-extrabold text-gray-900 tracking-tight">
             Create your account
