@@ -6,6 +6,7 @@ import { SkipLink } from '../common/SkipLink';
 import { MobileNav } from './MobileNav';
 import { BottomNav } from './BottomNav';
 import { SyncIndicator } from '../SyncIndicator';
+import { Logo } from '../common/Logo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -168,11 +169,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
-                <Link to="/dashboard" className="flex items-center" aria-label="ZakApp Home">
-                  <div className="h-8 w-8 bg-green-600 rounded-full flex items-center justify-center" aria-hidden="true">
-                    <span className="text-white font-bold">Z</span>
-                  </div>
-                  <span className="ml-2 text-xl font-bold text-gray-900">ZakApp</span>
+                <Link to="/dashboard" className="flex items-center gap-2" aria-label="ZakApp Home">
+                  <Logo className="h-8 w-8" />
+                  <span className="text-xl font-bold text-gray-900">ZakApp</span>
                 </Link>
               </div>
               <div className="hidden md:block">

@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/Card';
 import { ShieldCheck } from 'lucide-react';
+import { Logo } from '../common/Logo';
 
 export const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -27,8 +28,8 @@ export const Login: React.FC = () => {
       <Card className="w-full max-w-md shadow-2xl border-white/20">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-6">
-            <div className="bg-primary-50 p-4 rounded-full ring-1 ring-primary-100 shadow-sm animate-fade-in">
-              <ShieldCheck className="h-10 w-10 text-primary-700" />
+            <div className="animate-fade-in">
+              <Logo className="h-16 w-16" />
             </div>
           </div>
           <CardTitle className="text-3xl font-heading font-bold text-center text-gray-900">
