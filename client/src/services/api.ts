@@ -3,10 +3,11 @@ import { getApiBaseUrl } from '../config';
 export const API_BASE_URL = getApiBaseUrl();
 
 // Log API configuration in development mode
-if (process.env.NODE_ENV === 'development') {
+// Log API configuration in development mode
+if (import.meta.env.DEV) {
   console.log('🔧 API Configuration:', {
     baseUrl: API_BASE_URL,
-    source: window.APP_CONFIG?.API_BASE_URL ? 'runtime-config' : (process.env.REACT_APP_API_BASE_URL ? 'environment' : 'default'),
+    source: window.APP_CONFIG?.API_BASE_URL ? 'runtime-config' : (import.meta.env.VITE_API_BASE_URL ? 'environment' : 'default'),
   });
 }
 
