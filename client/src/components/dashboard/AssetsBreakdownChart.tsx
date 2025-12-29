@@ -97,39 +97,45 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
                 <p className="text-sm text-gray-500">Distribution of your zakatable assets</p>
             </div>
 
-            <div className="flex-grow min-h-[300px] w-full relative">
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                        <Pie
-                            data={chartData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={2}
-                            dataKey="value"
-                        >
-                            {chartData.map((entry, index) => (
-                                <Cell
-                                    key={`cell-${index}`}
-                                    fill={COLORS[index % COLORS.length]}
-                                    stroke="none"
-                                />
-                            ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                        <Legend
-                            layout="vertical"
-                            verticalAlign="middle"
-                            align="right"
-                            formatter={(value, entry: any) => {
-                                const item = chartData.find(d => d.name === value);
-                                const percent = item ? ((item.value / totalValue) * 100).toFixed(0) : 0;
-                                return <span className="text-sm text-gray-600 ml-2">{value} ({percent}%)</span>;
-                            }}
-                        />
-                    </PieChart>
-                </ResponsiveContainer>
+            <div className="flex-grow w-full relative">
+                {/* Responsive height: smaller on mobile, larger on desktop */}
+                <div className="h-[280px] sm:h-[320px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={chartData}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius="40%"
+                                outerRadius="70%"
+                                paddingAngle={2}
+                                dataKey="value"
+                            >
+                                {chartData.map((entry, index) => (
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill={COLORS[index % COLORS.length]}
+                                        stroke="none"
+                                    />
+                                ))}
+                            </Pie>
+                            <Tooltip content={<CustomTooltip />} />
+                            <Legend
+                                layout="horizontal"
+                                verticalAlign="bottom"
+                                align="center"
+                                wrapperStyle={{
+                                    paddingTop: '0.75rem'
+                                }}
+                                formatter={(value, entry: any) => {
+                                    const item = chartData.find(d => d.name === value);
+                                    const percent = item ? ((item.value / totalValue) * 100).toFixed(0) : 0;
+                                    return <span className="text-xs sm:text-sm text-gray-600">{value} ({percent}%)</span>;
+                                }}
+                            />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
 
                 {/* Screen Reader Table Summary (Hidden visually but accessible) */}
                 <div className="sr-only">

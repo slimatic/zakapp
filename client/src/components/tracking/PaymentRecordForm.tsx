@@ -295,6 +295,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             placeholder="0.00"
             className="text-right"
             error={errors.amount?.message}
+            onFocus={(e) => e.target.select()}
             {...register('amount')}
           />
           <p className="text-xs text-gray-500 mt-1">

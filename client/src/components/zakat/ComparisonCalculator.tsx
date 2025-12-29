@@ -58,7 +58,7 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
   // Calculate Zakat for all methodologies
   useEffect(() => {
     const zakatRate = 0.025; // 2.5%
-    
+
     const methodologies: MethodologyResult[] = [
       {
         methodology: 'standard',
@@ -183,6 +183,7 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
                 type="number"
                 value={assets[key as keyof AssetInputs] || ''}
                 onChange={(e) => handleAssetChange(key as keyof AssetInputs, e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="0.00"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 min="0"
@@ -223,13 +224,12 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
             return (
               <div
                 key={result.methodology}
-                className={`bg-white rounded-lg border-2 p-6 transition-all ${
-                  isHighest && totalWealth > 0
+                className={`bg-white rounded-lg border-2 p-6 transition-all ${isHighest && totalWealth > 0
                     ? 'border-red-500 shadow-lg'
                     : isLowest && totalWealth > 0
-                    ? 'border-green-500 shadow-lg'
-                    : 'border-gray-200'
-                }`}
+                      ? 'border-green-500 shadow-lg'
+                      : 'border-gray-200'
+                  }`}
               >
                 {/* Badge for highest/lowest */}
                 {isHighest && totalWealth > 0 && (
@@ -272,16 +272,14 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
                 </div>
 
                 {/* Nisab Status */}
-                <div className={`mb-4 p-3 rounded-lg ${
-                  meetsNisab ? 'bg-green-50' : 'bg-gray-50'
-                }`}>
+                <div className={`mb-4 p-3 rounded-lg ${meetsNisab ? 'bg-green-50' : 'bg-gray-50'
+                  }`}>
                   <div className="flex items-center space-x-2">
                     <span className="text-lg">
                       {meetsNisab ? '✅' : '○'}
                     </span>
-                    <span className={`text-sm font-medium ${
-                      meetsNisab ? 'text-green-700' : 'text-gray-600'
-                    }`}>
+                    <span className={`text-sm font-medium ${meetsNisab ? 'text-green-700' : 'text-gray-600'
+                      }`}>
                       {meetsNisab ? 'Meets Nisab' : 'Below Nisab'}
                     </span>
                   </div>
@@ -290,9 +288,8 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
                 {/* Zakat Amount */}
                 <div className="border-t border-gray-200 pt-4">
                   <p className="text-sm text-gray-600 mb-1">Zakat Due:</p>
-                  <p className={`text-2xl font-bold ${
-                    meetsNisab ? 'text-green-700' : 'text-gray-400'
-                  }`}>
+                  <p className={`text-2xl font-bold ${meetsNisab ? 'text-green-700' : 'text-gray-400'
+                    }`}>
                     {formatCurrency(result.totalZakat)}
                   </p>
                   {meetsNisab && (
@@ -324,21 +321,21 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
                 <li className="flex items-start">
                   <span className="mr-2">•</span>
                   <span>
-                    <strong>Nisab Threshold:</strong> Hanafi methodology uses a lower silver-based nisab ({formatCurrency(3000)}), 
+                    <strong>Nisab Threshold:</strong> Hanafi methodology uses a lower silver-based nisab ({formatCurrency(3000)}),
                     while Standard and Shafi'i use gold-based nisab ({formatCurrency(5500)}). Lower nisab means more people qualify to pay Zakat.
                   </span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2">•</span>
                   <span>
-                    <strong>Charitable Wisdom:</strong> The Hanafi school chose the lower threshold to maximize benefit 
+                    <strong>Charitable Wisdom:</strong> The Hanafi school chose the lower threshold to maximize benefit
                     to those in need, reflecting the principle that "the poor have a right in the wealth of the rich."
                   </span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2">•</span>
                   <span>
-                    <strong>All Are Valid:</strong> Each methodology is based on authentic Islamic scholarship. 
+                    <strong>All Are Valid:</strong> Each methodology is based on authentic Islamic scholarship.
                     Choose based on your madhab, region, or scholar's guidance.
                   </span>
                 </li>
@@ -382,8 +379,8 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
       {/* Educational Note */}
       <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
         <p className="text-sm text-gray-700 italic">
-          <strong>📚 Note:</strong> This comparison tool is for educational purposes. 
-          All methodologies are based on authentic Islamic scholarship. Your choice should 
+          <strong>📚 Note:</strong> This comparison tool is for educational purposes.
+          All methodologies are based on authentic Islamic scholarship. Your choice should
           be guided by your madhab, regional scholarly consensus, or consultation with a qualified scholar.
         </p>
       </div>
