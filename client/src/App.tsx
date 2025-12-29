@@ -59,8 +59,7 @@ const AssetDetails = lazy(() => import('./components/assets').then(m => ({ defau
 // const History = lazy(() => import('./components/history/History').then(m => ({ default: m.History })));
 
 // Auth pages - lazy loaded as they're separate flows
-const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
-const ResetPassword = lazy(() => import('./pages/auth/ResetPassword').then(m => ({ default: m.ResetPassword })));
+
 
 // Help and documentation
 const GettingStarted = lazy(() => import('./components/help/GettingStarted').then(m => ({ default: m.GettingStarted })));
@@ -100,22 +99,7 @@ function App() {
                     {/* Auth routes - eagerly loaded */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-                    <Route
-                      path="/forgot-password"
-                      element={
-                        <Suspense fallback={<PageLoadingFallback />}>
-                          <ForgotPassword />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="/reset-password"
-                      element={
-                        <Suspense fallback={<PageLoadingFallback />}>
-                          <ResetPassword />
-                        </Suspense>
-                      }
-                    />
+
 
                     {/* Dashboard - lazy loaded with custom skeleton */}
                     <Route
