@@ -29,24 +29,24 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 ## Phase 3.5: Analytics Restoration (The "Insight" Engine)
 *Goal: Restore and enhance historical visualizations using Local-First data.*
 
-- [ ] **Wealth Trend**: Implement `Recharts` Area Chart for Net Worth over time (using Snapshot history).
-- [ ] **Zakat Obligations**: Implement Bar Chart comparing Due vs. Paid per Nisab Year.
-- [ ] **Payment Distribution**: Implement Donut Chart for `RecipientCategory` breakdown.
-- [ ] **Asset Composition**:  Integrate existing `AssetsBreakdownChart` (Donut) into Analytics Dashboard.
-- [ ] **Mobile Responsiveness**: Optimize chart legends and tooltips for small screens.
+- [x] **Wealth Trend**: Implement `Recharts` Area Chart for Net Worth over time (using Snapshot history).
+- [x] **Zakat Obligations**: Implement Bar Chart comparing Due vs. Paid per Nisab Year.
+- [x] **Payment Distribution**: Implement Donut Chart for `RecipientCategory` breakdown.
+- [x] **Asset Composition**:  Integrate existing `AssetsBreakdownChart` (Donut) into Analytics Dashboard.
+- [x] **Mobile Responsiveness**: Optimize chart legends and tooltips for small screens.
 
 ## Phase 3.6: Reporting & Documentation (The "Proof" Engine)
 *Goal: Generate privacy-first, printable reports for spiritual and financial auditing.*
 
-- [ ] **PDF Engine**: Integrate client-side PDF generation (e.g., `react-pdf`) ensures data never leaves device.
-- [ ] **Hawl Statement**: Generate official "Zakat Year Record" showing Assets, Liabilities, and Net Math.
-- [ ] **Payment Summary**: Exportable list of payments for tax/charity verification.
-- [ ] **Methodology Report**: "Why this amount?" report citing specific Fiqh rules applied (e.g., "Silver Standard used", "401k Net Rule").
+- [x] **PDF Engine**: Integrate client-side PDF generation (e.g., `react-pdf`) ensures data never leaves device.
+- [x] **Hawl Statement**: Generate official "Zakat Year Record" showing Assets, Liabilities, and Net Math.
+- [x] **Payment Summary**: Exportable list of payments for tax/charity verification.
+- [x] **Methodology Report**: "Why this amount?" report citing specific Fiqh rules applied (e.g., "Silver Standard used", "401k Net Rule").
 
 ## Phase 4: Open Source Polish
 *Goal: Prepare for public scrutiny.*
 
-- [ ] **License**: Add AGPL-3.0 headers to all files.
+- [x] **License**: Add AGPL-3.0 headers to all files.
 - [x] **Code Cleanup**: Remove dead files (e.g., `ZakatCalculationService.ts` server-side file).
 - [x] **Contributors**: Update `CONTRIBUTING.md` with local-first guidelines.
 - [x] **Docs**: Create `architecture.md` explaining the privacy model.

@@ -1,3 +1,20 @@
+/**
+ * Copyright (c) 2024 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -97,7 +114,7 @@ export class ReportGenerator {
             body: summaryData,
             theme: 'plain',
             styles: { fontSize: 10, cellPadding: 2 },
-            columnStyles: { 0: { fontStyle: 'bold', width: 40 } },
+            columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } },
             margin: { left: this.MARGIN }
         });
 
@@ -169,5 +186,91 @@ export class ReportGenerator {
         this.addFooter();
         const filename = year ? `ZakApp_Payments_${year}.pdf` : 'ZakApp_Payments_All.pdf';
         doc.save(filename);
+    }
+    public generateMethodologyReport() {
+        const doc = this.doc;
+        this.addHeader('Zakat Methodology Report', 'Fiqh Rules & Calculation Logic');
+
+        const yPos = 40;
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+
+        const sections = [
+            {
+                title: '1. Nisab Threshold (The Minimum Standard)',
+                content: [
+                    'The Nisab is the minimum amount of wealth a Muslim must possess for a full lunar year (Hawl) before Zakat becomes obligatory.',
+                    'Standard Used: Silver Standard (612.36 grams of silver).',
+                    'Reasoning: The Silver Standard is safer for the poor (beneficiaries) as it has a lower threshold, making more people liable to pay Zakat, thus increasing community support. This aligns with the "Precautionary View" (Ahwat) in Islamic jurisprudence.'
+                ]
+            },
+            {
+                title: '2. Asset Declarations',
+                content: [
+                    'Cash & Bank Balances: Zakatable at 100% of value.',
+                    'Gold & Silver: Zakatable at 100% of market weight value.',
+                    'Jewelry (Personal Use):',
+                    '   - Hanafi View: All gold/silver jewelry is Zakatable.',
+                    '   - Shafi\'i/Maliki View: Jewelry for personal use is exempt.',
+                    '   * ZakApp currently applies the user\'s selected Madhab setting (Default: Hanafi - Safer/Standard).'
+                ]
+            },
+            {
+                title: '3. Retirement Accounts (401k/IRA)',
+                content: [
+                    'Method: "Net Withdrawable Amount" (Majority Opinion).',
+                    'Logic: Zakat is due only on the amount accessible to you today.',
+                    'Formula: (Market Value - Penalties - Taxes) * 2.5%.',
+                    'Note: ZakApp deducts a standard 30% for taxes/penalties if exact figures are not provided.'
+                ]
+            },
+            {
+                title: '4. Liabilities & Debts',
+                content: [
+                    'Immediate Debts: Deductible (Due within 12 lunar months).',
+                    'Long-Term Debts (Mortgages): Only the current year\'s payments are deductible.',
+                    'Reasoning: Deducting the entire principal of a 30-year loan would consistently zero out wealth, negating the purpose of Zakat.'
+                ]
+            },
+            {
+                title: '5. Zakat Rate',
+                content: [
+                    'Rate: 2.5% (1/40th) of total Zakatable Net Wealth.',
+                    'Calculation: (Total Assets - Deductible Liabilities) * 0.025.'
+                ]
+            }
+        ];
+
+        let cursorY = yPos;
+        const pageHeight = doc.internal.pageSize.height;
+
+        sections.forEach(section => {
+            // Check for page break
+            if (cursorY > pageHeight - 60) {
+                doc.addPage();
+                cursorY = 20;
+            }
+
+            // Title
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(this.BRAND_COLOR);
+            doc.text(section.title, this.MARGIN, cursorY);
+            cursorY += 7;
+
+            // Content
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(50);
+
+            section.content.forEach(line => {
+                const splitText = doc.splitTextToSize(line, 180);
+                doc.text(splitText, this.MARGIN + 5, cursorY);
+                cursorY += (doc.getTextDimensions(splitText).h + 2);
+            });
+
+            cursorY += 8; // Spacing between sections
+        });
+
+        this.addFooter();
+        doc.save('ZakApp_Methodology_Report.pdf');
     }
 }
