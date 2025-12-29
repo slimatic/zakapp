@@ -125,11 +125,7 @@ export const Login: React.FC = () => {
               Create Local Profile
             </Link>
           </div>
-          <div className="text-xs">
-            <Link to="/forgot-password" className="text-gray-500 hover:text-gray-700 hover:underline transition-colors">
-              Forgot your password?
-            </Link>
-          </div>
+
           <div className="text-xs text-primary-600/60 mt-4 flex items-center justify-center gap-1 font-medium bg-primary-50 px-3 py-1 rounded-full w-fit mx-auto">
             <ShieldCheck className="w-3 h-3" />
             <span>End-to-End Encrypted on your device</span>
