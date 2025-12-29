@@ -39,8 +39,8 @@ export const AssetList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">My Assets</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-3xl font-bold text-slate-900">My Assets</h1>
         <div className="flex items-center space-x-3">
           <div className="bg-white border border-slate-200 rounded-lg p-1 flex shadow-sm">
             <button
@@ -126,65 +126,112 @@ export const AssetList: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-slate-200 animate-slide-up">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Asset Name</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Value</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Zakatable</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
-                {assets.map((asset) => {
-                  const isEligible = asset.zakatEligible !== false;
-                  const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
-                  const zakatableAmount = asset.value * modifier;
+        <div className="animate-slide-up">
+          {/* Mobile List View: Stacked Cards */}
+          <div className="md:hidden space-y-3">
+            {assets.map((asset) => {
+              const isEligible = asset.zakatEligible !== false;
+              const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
+              const zakatableAmount = asset.value * modifier;
 
-                  return (
-                    <tr
-                      key={asset.id}
-                      onClick={() => navigate(`/assets/${asset.id}`)}
-                      className="hover:bg-slate-50 cursor-pointer transition-colors"
+              return (
+                <div
+                  key={asset.id}
+                  onClick={() => navigate(`/assets/${asset.id}`)}
+                  className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm active:bg-slate-50 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{asset.name}</h3>
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 uppercase tracking-wide">
+                        {asset.type.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-slate-900">{formatCurrency(asset.value, asset.currency)}</div>
+                      <div className="text-xs text-slate-500">Zakatable: {formatCurrency(zakatableAmount, asset.currency)}</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3 mt-3 pt-3 border-t border-slate-100">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
+                      className="text-sm font-medium text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="text-sm font-medium text-slate-900">{asset.name}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 uppercase tracking-wide">
-                          {asset.type.replace(/_/g, ' ')}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-slate-900">
-                        {formatCurrency(asset.value, asset.currency)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-600">
-                        {formatCurrency(zakatableAmount, asset.currency)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4 font-medium"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDelete(asset.id, asset.name); }}
-                          className="text-red-600 hover:text-red-900 font-medium"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      Edit
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(asset.id, asset.name); }}
+                      className="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-1.5 bg-red-50 rounded"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop List View: Table */}
+          <div className="hidden md:block bg-white shadow-sm rounded-lg overflow-hidden border border-slate-200">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Asset Name</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Value</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Zakatable</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-200">
+                  {assets.map((asset) => {
+                    const isEligible = asset.zakatEligible !== false;
+                    const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
+                    const zakatableAmount = asset.value * modifier;
+
+                    return (
+                      <tr
+                        key={asset.id}
+                        onClick={() => navigate(`/assets/${asset.id}`)}
+                        className="hover:bg-slate-50 cursor-pointer transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="text-sm font-medium text-slate-900">{asset.name}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 uppercase tracking-wide">
+                            {asset.type.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-slate-900">
+                          {formatCurrency(asset.value, asset.currency)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-600">
+                          {formatCurrency(zakatableAmount, asset.currency)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
+                            className="text-indigo-600 hover:text-indigo-900 mr-4 font-medium"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(asset.id, asset.name); }}
+                            className="text-red-600 hover:text-red-900 font-medium"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

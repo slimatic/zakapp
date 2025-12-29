@@ -60,27 +60,25 @@ export const AnalyticsPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
               <p className="text-gray-600 mt-2">
                 Comprehensive insights into your Zakat history and trends
               </p>
             </div>
-            <Button variant="secondary" onClick={() => navigate('/dashboard')}>
-              ← Back to Dashboard
-            </Button>
+
           </div>
         </div>
 
         {/* Timeframe Selector */}
         <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-700">Time Period:</label>
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Time Period:</label>
+            <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 hide-scrollbar scroll-smooth">
               <button
                 onClick={() => setSelectedTimeframe('last_year')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTimeframe === 'last_year'
+                className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${selectedTimeframe === 'last_year'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
@@ -89,7 +87,7 @@ export const AnalyticsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setSelectedTimeframe('last_3_years')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTimeframe === 'last_3_years'
+                className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${selectedTimeframe === 'last_3_years'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
@@ -98,7 +96,7 @@ export const AnalyticsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setSelectedTimeframe('last_5_years')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTimeframe === 'last_5_years'
+                className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${selectedTimeframe === 'last_5_years'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
@@ -107,7 +105,7 @@ export const AnalyticsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setSelectedTimeframe('all_time')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTimeframe === 'all_time'
+                className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${selectedTimeframe === 'all_time'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
