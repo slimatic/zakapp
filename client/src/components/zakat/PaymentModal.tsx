@@ -55,7 +55,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
-    
+
     // Amount validation
     const amount = parseFloat(formData.amount);
     if (isNaN(amount) || amount <= 0) {
@@ -82,7 +82,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate form before submission
     if (!validateForm()) {
       setError('Please correct the errors below');
@@ -100,7 +100,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       };
 
       const response = await apiService.recordPayment(paymentData);
-      
+
       if (response.success && response.data) {
         onPaymentRecorded(response.data);
         onClose();
@@ -119,7 +119,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear validation error for this field when user starts typing
     if (validationErrors[name as keyof ValidationErrors]) {
       setValidationErrors(prev => ({ ...prev, [name]: undefined }));
@@ -156,7 +156,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         ]
       }
     };
-    
+
     return content[methodology as keyof typeof content] || content.standard;
   };
 
@@ -214,7 +214,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               </svg>
               {showEducationalContent ? 'Hide' : 'Show'} Payment Guidelines
             </button>
-            
+
             {showEducationalContent && (
               <div className="mt-3 p-4 bg-green-50 border border-green-200 rounded-md">
                 <h4 className="text-sm font-medium text-green-800 mb-2">
@@ -252,9 +252,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   step="0.01"
                   value={formData.amount}
                   onChange={handleChange}
-                  className={`block w-full pl-12 pr-12 border rounded-md focus:ring-green-500 focus:border-green-500 sm:text-sm ${
-                    validationErrors.amount ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  onFocus={(e) => e.target.select()}
+                  className={`block w-full pl-12 pr-12 border rounded-md focus:ring-green-500 focus:border-green-500 sm:text-sm ${validationErrors.amount ? 'border-red-300' : 'border-gray-300'
+                    }`}
                   placeholder="0.00"
                   aria-describedby="amount-error"
                 />
@@ -281,9 +281,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 required
                 value={formData.date}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm ${
-                  validationErrors.date ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`mt-1 block w-full border rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm ${validationErrors.date ? 'border-red-300' : 'border-gray-300'
+                  }`}
                 aria-describedby="date-error"
               />
               {validationErrors.date && (
@@ -319,9 +318,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 id="method"
                 value={formData.method}
                 onChange={handleChange}
-                className={`mt-1 block w-full border rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm ${
-                  validationErrors.method ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`mt-1 block w-full border rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm ${validationErrors.method ? 'border-red-300' : 'border-gray-300'
+                  }`}
                 aria-describedby="method-error"
               >
                 <option value="">Select payment method</option>
@@ -388,7 +386,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           {/* Islamic Reminder */}
           <div className="mt-6 p-3 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-800">
-              <strong>Reminder:</strong> Zakat should be paid as soon as possible after it becomes due. 
+              <strong>Reminder:</strong> Zakat should be paid as soon as possible after it becomes due.
               May Allah accept your charity and increase your blessings.
             </p>
           </div>

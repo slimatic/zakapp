@@ -153,6 +153,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                             step="0.01"
                             value={formData.amount}
                             onChange={e => handleChange('amount', parseFloat(e.target.value) || 0)}
+                            onFocus={(e) => e.target.select()}
                             className={errors.amount ? 'border-red-500' : ''}
                         />
                         {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}

@@ -254,6 +254,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               step="0.01"
               value={formData.totalWealth}
               onChange={(e) => handleInputChange('totalWealth', toNumber(e.target.value))}
+              onFocus={(e) => e.target.select()}
               required
 
             />
@@ -264,6 +265,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               step="0.01"
               value={formData.totalLiabilities}
               onChange={(e) => handleInputChange('totalLiabilities', toNumber(e.target.value))}
+              onFocus={(e) => e.target.select()}
               required
 
             />
@@ -274,6 +276,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               step="0.01"
               value={formData.zakatableWealth}
               onChange={(e) => handleInputChange('zakatableWealth', toNumber(e.target.value))}
+              onFocus={(e) => e.target.select()}
               required
 
             />
@@ -285,6 +288,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 step="0.01"
                 value={formData.zakatAmount}
                 onChange={(e) => handleInputChange('zakatAmount', toNumber(e.target.value))}
+                onFocus={(e) => e.target.select()}
                 required
 
               />
@@ -305,6 +309,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               step="0.01"
               value={formData.nisabThreshold}
               onChange={(e) => handleInputChange('nisabThreshold', toNumber(e.target.value))}
+              onFocus={(e) => e.target.select()}
               required
 
             />
