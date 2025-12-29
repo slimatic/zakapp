@@ -215,18 +215,22 @@ export class SyncService {
         }
     }
 
+    private pollingInterval: any = null;
+    private localChangeSubs: any[] = [];
+    private isSyncingOneShot = new Map<string, boolean>();
+
     /**
-     * Start replication for the given user.
-     * @param db The RxDB database instance.
-     * @param userId The authenticated user's ID.
+     * Start "Smart Sync" for the given user.
+     * Strategy:
+     * 1. Sequential Sync (Loop) to avoid browser connection saturation (Max 6).
+     * 2. Poll every 30s for server changes.
+     * 3. Listen to local changes -> Trigger immediate push.
      */
     async startSync(db: RxDatabase<ZakAppCollections>, userId: string) {
         if (this.db === db && this.userId === userId) {
-            console.log('🔄 SyncService: Already syncing for this user/db');
             return;
         }
 
-        // Stop any existing sync first
         if (this.db) {
             await this.stopSync();
         }
@@ -234,209 +238,133 @@ export class SyncService {
         this.db = db;
         this.userId = userId;
 
-        // Sanitize userId for CouchDB db name
         const safeUserId = userId.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        const couchUrl = getCouchDbUrl();
 
-        console.log(`🔄 SyncService: Starting Basic Auth sync for ${safeUserId} to ${couchUrl}`);
-
-        // Update status to show Basic auth
         this.syncStatus$.next({
             ...this.syncStatus$.getValue(),
             authMethod: 'basic',
-            userId: safeUserId
+            userId: safeUserId,
+            active: true
         });
 
-        // Pre-fetch credentials to validate auth works
-        try {
-            await this.getCredentials();
-        } catch (err: any) {
-            console.error('❌ Failed to get sync credentials:', err.message);
-            toast.error('Sync authentication failed. Please re-login.', { id: 'sync-auth-failed' });
-            return;
-        }
-
-        for (const collectionName of SYNC_COLLECTIONS) {
-            const collection = db[collectionName];
-            if (!collection) {
-                console.warn(`⚠️ SyncService: Collection ${collectionName} not found`);
-                continue;
+        // 1. Setup Local Change Listeners (Immediate Push)
+        SYNC_COLLECTIONS.forEach(colName => {
+            const col = db[colName];
+            if (col) {
+                const sub = col.$.subscribe(changeEvent => {
+                    // Only trigger on LOCAL changes to avoid loops
+                    if (!changeEvent.isLocal) return;
+                    console.log(`📝 Local change in ${colName} -> Triggering sync`);
+                    this.syncCollection(colName, safeUserId);
+                });
+                this.localChangeSubs.push(sub);
             }
+        });
 
-            const remoteDbName = `zakapp_${safeUserId}_${collectionName}`;
+        // 2. Initial Full Sync (Sequential)
+        this.syncAllSequentially(safeUserId);
 
-            try {
-                // Ensure the user's database exists
-                await this.ensureUserDatabase(remoteDbName);
+        // 3. Setup Polling (Every 30s)
+        this.pollingInterval = setInterval(() => {
+            console.log('⏰ Polling for server changes...');
+            this.syncAllSequentially(safeUserId);
+        }, 30000);
+    }
 
-                this.initialSyncPending.add(collectionName);
-                this.updateSyncStatus();
-
-                const replicationState = await replicateCouchDB({
-                    replicationIdentifier: `zakapp-${safeUserId}-${collectionName}`,
-                    collection,
-                    url: `${couchUrl}/${remoteDbName}/`,
-                    live: true,
-                    retryTime: 10000,
-                    // DECRYPTION: Pull from CouchDB → Decrypt → Local DB
-                    pull: {
-                        modifier: async (doc: any) => {
-                            // Skip system documents or invalid docs
-                            if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
-
-                            // If document has encrypted field, decrypt it
-                            if (doc.encrypted && doc.iv && doc.tag) {
-                                try {
-                                    const decrypted = await cryptoService.decryptObject({
-                                        ciphertext: doc.encrypted,
-                                        iv: doc.iv,
-                                        tag: doc.tag
-                                    });
-
-                                    // Merge decrypted data with metadata
-                                    return {
-                                        _id: doc._id,
-                                        _rev: doc._rev,
-                                        ...decrypted
-                                    };
-                                } catch (err) {
-                                    console.error(`Decryption failed for ${collectionName}:`, err);
-                                    throw err;
-                                }
-                            }
-
-                            // Document is not encrypted (legacy data or migration)
-                            return doc;
-                        }
-                    },
-                    // ENCRYPTION: Local DB → Encrypt → Push to CouchDB
-                    push: {
-                        modifier: async (doc: any) => {
-                            // Skip system documents or invalid docs
-                            if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
-
-                            // Extract metadata fields (NOT encrypted)
-                            const { _id, _rev, _deleted, _attachments, ...sensitiveData } = doc;
-
-                            // Encrypt all sensitive fields
-                            const { ciphertext, iv, tag } = await cryptoService.encryptObject(sensitiveData);
-
-                            // Return encrypted document structure
-                            return {
-                                _id,
-                                _rev,
-                                ..._deleted ? { _deleted } : {},
-                                ..._attachments ? { _attachments } : {},
-                                encrypted: ciphertext,
-                                iv,
-                                tag
-                            };
-                        }
-                    },
-                    fetch: async (url, opts) => {
-                        try {
-                            const creds = await this.getCredentials();
-                            const authHeader = 'Basic ' + btoa(`${creds.username}:${creds.password}`);
-
-                            const response = await fetch(url, {
-                                ...opts,
-                                headers: {
-                                    ...opts?.headers,
-                                    'Authorization': authHeader
-                                }
-                            });
-
-                            if (!response.ok && response.status !== 404) {
-                                console.warn(`⚠️ Sync fetch failed [${collectionName}]: ${response.status} ${url}`);
-                            }
-
-                            return response;
-                        } catch (err: any) {
-                            console.error(`❌ Sync fetch network error [${collectionName}]:`, err.message);
-                            throw err;
-                        }
-                    }
-                });
-
-                // Monitor errors
-                replicationState.error$.subscribe(err => {
-                    console.error(`❌ Sync Error (${collectionName}):`, err);
-                    const errAny = err as any;
-                    const innerMsg = errAny?.parameters?.errors?.[0]?.message || err.message || JSON.stringify(err);
-                    const statusCode = errAny?.parameters?.errors?.[0]?.status || (err as any).status;
-
-                    if (statusCode === 401 || innerMsg.includes('401')) {
-                        // Auth expired - clear and retry on next request
-                        this.syncCredentials = null;
-                        toast.error(`Sync auth expired. Refreshing...`, { id: `sync-auth-${collectionName}` });
-                    } else if (innerMsg.includes('Failed to fetch') || innerMsg.includes('Connection refused')) {
-                        console.warn(`Network Error (${collectionName}): ${couchUrl}`);
-                    } else {
-                        toast.error(`Sync Error (${collectionName}): ${innerMsg}`, { id: `sync-err-${collectionName}` });
-                    }
-
-                    const current = this.syncStatus$.getValue();
-                    this.syncStatus$.next({
-                        ...current,
-                        errors: [...current.errors, { collection: collectionName, error: innerMsg }]
-                    });
-                });
-
-                // Monitor throughput
-                replicationState.received$.subscribe(() => this.triggerActivity(collectionName));
-                replicationState.sent$.subscribe(() => this.triggerActivity(collectionName));
-
-                // Monitor initial sync completion with a timeout
-                const initialSyncTimeout = setTimeout(() => {
-                    if (this.initialSyncPending.has(collectionName)) {
-                        console.warn(`⏳ Initial sync timed out: ${collectionName} (proceeding)`);
-                        this.initialSyncPending.delete(collectionName);
-                        this.updateSyncStatus();
-                    }
-                }, 15000); // 15s timeout for the "Syncing..." indicator
-
-                replicationState.awaitInitialReplication()
-                    .then(() => {
-                        clearTimeout(initialSyncTimeout);
-                        console.log(`✅ Initial sync complete: ${collectionName}`);
-                        this.initialSyncPending.delete(collectionName);
-                        this.updateSyncStatus();
-                    })
-                    .catch(err => {
-                        clearTimeout(initialSyncTimeout);
-                        console.error(`❌ Initial sync failed: ${collectionName}`, err);
-                        this.initialSyncPending.delete(collectionName);
-                        this.updateSyncStatus();
-                    });
-
-                // Monitor active/idle state
-                replicationState.active$.subscribe(isActive => {
-                    if (isActive) {
-                        this.activeCollections.add(collectionName);
-                    } else {
-                        this.activeCollections.delete(collectionName);
-                    }
-                    this.updateSyncStatus();
-                });
-
-                this.replicationStates.push(replicationState);
-                console.log(`✅ Replication started: ${remoteDbName}`);
-
-            } catch (err) {
-                console.error(`❌ Failed to start sync for ${collectionName}:`, err);
-                this.initialSyncPending.delete(collectionName);
-            }
+    private async syncAllSequentially(safeUserId: string) {
+        for (const colName of SYNC_COLLECTIONS) {
+            await this.syncCollection(colName, safeUserId);
         }
+    }
 
+    private async syncCollection(collectionName: string, safeUserId: string) {
+        // Prevent concurrent runs for same collection
+        if (this.isSyncingOneShot.get(collectionName)) return;
+        this.isSyncingOneShot.set(collectionName, true);
+
+        // Notify UI
+        this.activeCollections.add(collectionName);
         this.updateSyncStatus();
+
+        try {
+            const remoteDbName = `zakapp_${safeUserId}_${collectionName}`;
+            const couchUrl = getCouchDbUrl();
+
+            // Ensure the user's database exists
+            await this.ensureUserDatabase(remoteDbName);
+
+            const collection = this.db![collectionName as keyof ZakAppCollections];
+            if (!collection) return;
+
+            // One-Shot Replication
+            const replicationState = await replicateCouchDB({
+                replicationIdentifier: `zakapp-${safeUserId}-${collectionName}`,
+                collection,
+                url: `${couchUrl}/${remoteDbName}/`,
+                live: false, // ONE-SHOT
+                retryTime: 5000,
+                pull: {
+                    modifier: async (doc: any) => {
+                        // Skip system documents or invalid docs
+                        if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
+
+                        if (doc.encrypted && doc.iv && doc.tag) {
+                            try {
+                                const decrypted = await cryptoService.decryptObject({
+                                    ciphertext: doc.encrypted,
+                                    iv: doc.iv,
+                                    tag: doc.tag
+                                });
+                                return { _id: doc._id, _rev: doc._rev, ...decrypted };
+                            } catch (err) {
+                                console.error(`Decryption failed for ${collectionName}:`, err);
+                                throw err; // allow retry
+                            }
+                        }
+                        return doc;
+                    }
+                },
+                push: {
+                    modifier: async (doc: any) => {
+                        if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
+                        const { _id, _rev, _deleted, _attachments, ...sensitiveData } = doc;
+                        const { ciphertext, iv, tag } = await cryptoService.encryptObject(sensitiveData);
+                        return {
+                            _id, _rev,
+                            ..._deleted ? { _deleted } : {},
+                            ..._attachments ? { _attachments } : {},
+                            encrypted: ciphertext, iv, tag
+                        };
+                    }
+                },
+                fetch: async (url, opts) => {
+                    const creds = await this.getCredentials();
+                    const authHeader = 'Basic ' + btoa(`${creds.username}:${creds.password}`);
+                    return fetch(url, { ...opts, headers: { ...opts?.headers, 'Authorization': authHeader } });
+                }
+            });
+
+            // Wait for completion
+            await replicationState.awaitInitialReplication();
+
+        } catch (err: any) {
+            console.warn(`⚠️ Sync Warning (${collectionName}):`, err.message || err);
+        } finally {
+            this.isSyncingOneShot.set(collectionName, false);
+            this.activeCollections.delete(collectionName);
+            this.updateSyncStatus();
+        }
     }
 
     async stopSync() {
         console.log(`🛑 SyncService: Stopping sync for ${this.userId}`);
-        await Promise.all(this.replicationStates.map(state => state.cancel()));
-        this.replicationStates = [];
+
+        // Clear Intervals/Listeners
+        if (this.pollingInterval) clearInterval(this.pollingInterval);
+        this.localChangeSubs.forEach(sub => sub.unsubscribe());
+        this.localChangeSubs = [];
+
         this.activeCollections.clear();
-        this.initialSyncPending.clear();
         this.syncCredentials = null;
         this.db = null;
         this.userId = null;

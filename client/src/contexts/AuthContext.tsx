@@ -277,8 +277,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         id: userDoc.get('id'),
         username: userDoc.get('profileName') || 'Local User',
         email: userDoc.get('email') || 'local@device',
-        firstName: '',
-        lastName: '',
+        firstName: userDoc.get('firstName') || '',
+        lastName: userDoc.get('lastName') || '',
       };
 
       // 2. Persist Session (Key + User) -> SessionStorage
@@ -343,9 +343,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 4. Create User Profile
       const encryptedDb = await getDb();
 
-      await encryptedDb.user_settings.insert({
+      userDoc = await encryptedDb.user_settings.insert({
         id: newUserId, // Use Real Backend ID
         profileName: userData.username || 'My Profile',
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
         email: userData.email,
         isSetupCompleted: true,
         securityProfile: {
@@ -360,8 +362,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         id: newUserId,
         username: userData.username,
         email: userData.email,
-        firstName: '',
-        lastName: ''
+        firstName: userData.firstName,
+        lastName: userData.lastName
       };
 
       // 4. Persist Session
