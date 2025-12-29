@@ -76,24 +76,33 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
         // 1. Ensure CouchDB User exists in _users
         try {
             const userDocUrl = `${COUCHDB_URL}/_users/org.couchdb.user:${couchUsername}`;
+            let rev = undefined;
+
             try {
-                // Check if user exists
-                await axios.get(userDocUrl, { headers: { 'Authorization': authHeader } });
-                console.log(`✅ CouchDB user already exists: ${couchUsername}`);
+                // Check if user exists and get revision
+                const existingUser = await axios.get(userDocUrl, { headers: { 'Authorization': authHeader } });
+                rev = existingUser.data._rev;
+                console.log(`✅ CouchDB user exists: ${couchUsername} (rev: ${rev})`);
             } catch (userErr: any) {
-                if (userErr.response?.status === 404) {
-                    console.log(`Creating CouchDB user: ${couchUsername}`);
-                    await axios.put(userDocUrl, {
-                        name: couchUsername,
-                        password: couchPassword,
-                        roles: [couchUsername], // Role matches username
-                        type: 'user'
-                    }, { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } });
-                    console.log(`✅ Created CouchDB user: ${couchUsername}`);
-                } else {
+                if (userErr.response?.status !== 404) {
                     throw userErr;
                 }
+                console.log(`Creating new CouchDB user: ${couchUsername}`);
             }
+
+            // Create or Update user with current password
+            // This ensures password rotation applies if the secret changed
+            await axios.put(userDocUrl, {
+                _id: `org.couchdb.user:${couchUsername}`,
+                name: couchUsername,
+                password: couchPassword,
+                roles: [couchUsername],
+                type: 'user',
+                ...(rev ? { _rev: rev } : {})
+            }, { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } });
+
+            console.log(`✅ Ensure CouchDB user: ${couchUsername} (Synced Credentials)`);
+
         } catch (err: any) {
             console.error('Failed to ensure CouchDB user:', err.response?.data || err.message);
             // Non-critical: If user creation fails, the sync attempt later will catch it

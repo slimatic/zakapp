@@ -387,8 +387,7 @@ router.post('/register',
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Registration failed due to server error',
-          details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined
+          message: 'Registration failed due to server error'
         }
       });
     }
