@@ -120,16 +120,16 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/40">
         <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-600">
-            <span className="text-white text-2xl font-bold">Z</span>
+          <div className="mx-auto h-14 w-14 flex items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-primary-800 shadow-lg text-white">
+            <span className="text-3xl font-heading font-bold">Z</span>
           </div>
-          <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h1 className="mt-6 text-center text-4xl font-heading font-extrabold text-gray-900 tracking-tight">
             Create your account
           </h1>
-          <p className="mt-2 text-center text-sm text-gray-700">
+          <p className="mt-2 text-center text-lg text-gray-600">
             Join ZakApp to calculate and track your Zakat
           </p>
         </div>
@@ -146,33 +146,38 @@ export const Register: React.FC = () => {
               onChange={handleChange}
               error={formErrors.username}
               label="Username"
+              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
             />
 
-            <Input
-              id="firstName"
-              name="firstName"
-              type="text"
-              required
-              placeholder="First name"
-              value={formData.firstName}
-              onChange={handleChange}
-              data-testid="first-name-input"
-              error={formErrors.firstName}
-              label="First Name"
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                id="firstName"
+                name="firstName"
+                type="text"
+                required
+                placeholder="First name"
+                value={formData.firstName}
+                onChange={handleChange}
+                data-testid="first-name-input"
+                error={formErrors.firstName}
+                label="First Name"
+                className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
+              />
 
-            <Input
-              id="lastName"
-              name="lastName"
-              type="text"
-              required
-              placeholder="Last name"
-              value={formData.lastName}
-              onChange={handleChange}
-              data-testid="last-name-input"
-              error={formErrors.lastName}
-              label="Last Name"
-            />
+              <Input
+                id="lastName"
+                name="lastName"
+                type="text"
+                required
+                placeholder="Last name"
+                value={formData.lastName}
+                onChange={handleChange}
+                data-testid="last-name-input"
+                error={formErrors.lastName}
+                label="Last Name"
+                className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
+              />
+            </div>
 
             <Input
               id="email"
@@ -186,6 +191,7 @@ export const Register: React.FC = () => {
               data-testid="email-input"
               error={formErrors.email}
               label="Email Address"
+              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
             />
 
             <Input
@@ -200,29 +206,30 @@ export const Register: React.FC = () => {
               onFocus={() => setShowPasswordHints(true)}
               error={formErrors.password}
               label="Password"
+              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
             />
 
             {/* Password requirements with live validation */}
             {showPasswordHints && (
-              <div className="text-xs space-y-1 mt-1 -mt-3 px-1 py-2 bg-blue-50 rounded-md border border-blue-200">
-                <p className="font-semibold text-blue-900 mb-1">Password must include:</p>
-                <div className={`flex items-center gap-1 ${passwordStrength.length ? 'text-green-600' : 'text-gray-600'}`}>
+              <div className="text-xs space-y-1 mt-1 -mt-3 px-3 py-3 bg-blue-50/80 backdrop-blur-sm rounded-lg border border-blue-100 shadow-sm animate-fade-in">
+                <p className="font-semibold text-blue-900 mb-2">Password must include:</p>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.length ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
                   <span>{passwordStrength.length ? '✓' : '○'}</span>
                   <span>At least 8 characters</span>
                 </div>
-                <div className={`flex items-center gap-1 ${passwordStrength.uppercase ? 'text-green-600' : 'text-gray-600'}`}>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.uppercase ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
                   <span>{passwordStrength.uppercase ? '✓' : '○'}</span>
                   <span>One uppercase letter (A-Z)</span>
                 </div>
-                <div className={`flex items-center gap-1 ${passwordStrength.lowercase ? 'text-green-600' : 'text-gray-600'}`}>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.lowercase ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
                   <span>{passwordStrength.lowercase ? '✓' : '○'}</span>
                   <span>One lowercase letter (a-z)</span>
                 </div>
-                <div className={`flex items-center gap-1 ${passwordStrength.number ? 'text-green-600' : 'text-gray-600'}`}>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.number ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
                   <span>{passwordStrength.number ? '✓' : '○'}</span>
                   <span>One number (0-9)</span>
                 </div>
-                <div className={`flex items-center gap-1 ${passwordStrength.special ? 'text-green-600' : 'text-gray-600'}`}>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.special ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
                   <span>{passwordStrength.special ? '✓' : '○'}</span>
                   <span>One special character (!@#$%^&*)</span>
                 </div>
@@ -241,11 +248,12 @@ export const Register: React.FC = () => {
               data-testid="confirm-password-input"
               error={formErrors.confirmPassword}
               label="Confirm Password"
+              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
             />
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
+            <div className="rounded-md bg-red-50 p-4 border border-red-100">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -266,7 +274,7 @@ export const Register: React.FC = () => {
             disabled={isLoading}
             isLoading={isLoading}
             data-testid="register-button"
-            className="w-full"
+            className="w-full bg-primary-700 hover:bg-primary-800 text-white shadow-lg shadow-primary-700/20 transition-all hover:scale-[1.02]"
           >
             Create account
           </Button>
@@ -276,7 +284,7 @@ export const Register: React.FC = () => {
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="font-medium text-green-600 hover:text-green-500"
+                className="font-medium text-primary-700 hover:text-primary-800 hover:underline transition-colors"
               >
                 Sign in instead
               </Link>
