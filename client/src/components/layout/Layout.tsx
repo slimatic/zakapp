@@ -118,7 +118,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigation[0], // Dashboard
     navigation[1], // Assets
     navigation[2], // Liabilities
-    navigation[4], // Payments
+    navigation[3], // Nisab
   ];
 
   const isActive = (href: string) => {

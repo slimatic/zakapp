@@ -116,7 +116,78 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
         </button>
       </div>
 
-      <div className="overflow-x-auto border border-gray-200 rounded-lg">
+      {/* Mobile View: Stacked List */}
+      <div className="md:hidden space-y-3">
+        {assets.map((asset) => {
+          const isSelected = selectedIds.has(asset.id);
+          // Safe access for optional zakatableValue
+          const zakatableVal = (asset as any).zakatableValue;
+          const displayZakatable = typeof zakatableVal === 'number' ? zakatableVal : asset.value;
+
+          return (
+            <div
+              key={asset.id}
+              onClick={() => handleToggle(asset.id)}
+              className={`p-4 rounded-lg border transition-colors cursor-pointer ${isSelected ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-200' : 'bg-white border-gray-200'}`}
+              role="button"
+              aria-pressed={isSelected}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 pt-1">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => handleToggle(asset.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    aria-label={`Select ${asset.name}`}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="font-semibold text-gray-900 truncate pr-2">{asset.name}</h4>
+                    <span className="font-bold text-gray-900 whitespace-nowrap">{formatCurrency(asset.value)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500 capitalize">{asset.type.replace(/_/g, ' ').toLowerCase()}</span>
+                    <span className="text-gray-600">Zakatable: {formatCurrency(displayZakatable)}</span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    {asset.zakatEligible ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                        Zakatable
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                        Exempt
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {/* Mobile Totals Footer */}
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 space-y-2">
+          <h4 className="font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-2">Selected Totals</h4>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Total Wealth</span>
+            <span className="font-medium text-gray-900">{formatCurrency(totals.totalWealth)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Zakatable Wealth</span>
+            <span className="font-medium text-gray-900">{formatCurrency(totals.zakatableWealth)}</span>
+          </div>
+          <div className="flex justify-between font-bold pt-2 border-t border-gray-200">
+            <span className="text-gray-900">Zakat Due (2.5%)</span>
+            <span className="text-blue-600">{formatCurrency(totals.zakatAmount)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop View: Table */}
+      <div className="hidden md:block overflow-x-auto border border-gray-200 rounded-lg">
         <table className="min-w-full divide-y divide-gray-200" role="table">
           <thead className="bg-gray-50">
             <tr>

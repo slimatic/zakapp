@@ -50,16 +50,16 @@ export const PaymentsPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Zakat Payments</h1>
               <p className="text-gray-600 mt-2">
                 Record and track your Zakat distributions to recipients
               </p>
             </div>
-            <div className="flex items-center space-x-3">
-              <Button variant="secondary" onClick={() => navigate('/dashboard')}>← Back to Dashboard</Button>
-              <Button variant="secondary" onClick={() => navigate('/settings')}>Import / Export</Button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+
+              <Button variant="secondary" onClick={() => navigate('/settings')} className="justify-center">Import / Export</Button>
             </div>
           </div>
 
@@ -69,7 +69,7 @@ export const PaymentsPage: React.FC = () => {
               <label htmlFor="nisab-record-select" className="block text-sm font-medium text-gray-700 mb-2">
                 Filter by Nisab Year Record
               </label>
-              <div className="flex gap-4 items-end">
+              <div className="w-full">
                 <select
                   id="nisab-record-select"
                   value={nisabRecordId || 'all'}
@@ -78,7 +78,7 @@ export const PaymentsPage: React.FC = () => {
                     setNisabRecordId(value === 'all' ? undefined : value);
                     setSearchParams(value === 'all' ? {} : { snapshot: value });
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
                 >
                   <option value="all">All Payments ({allPayments.length})</option>
                   {nisabRecords.map((record) => {
@@ -217,40 +217,7 @@ export const PaymentsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Help Section */}
-        <div className="mt-12 bg-green-50 border border-green-200 rounded-lg p-6">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg className="h-6 w-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">
-                About Zakat Payments & Recipients
-              </h3>
-              <div className="text-sm text-green-700 mt-2 space-y-2">
-                <p>
-                  Islamic law specifies <strong>8 categories</strong> of eligible Zakat recipients as mentioned in Quran 9:60:
-                </p>
-                <ol className="list-decimal list-inside space-y-1 mt-2 ml-2">
-                  <li><strong>Al-Fuqara (The Poor)</strong> - Those with little to no income or means</li>
-                  <li><strong>Al-Masakin (The Needy)</strong> - Those in need but not as destitute as the poor</li>
-                  <li><strong>Zakat Administrators</strong> - Those who collect and distribute Zakat</li>
-                  <li><strong>New Muslims</strong> - Recent converts who need support</li>
-                  <li><strong>Slaves/Captives</strong> - To free slaves (historically relevant)</li>
-                  <li><strong>Debtors</strong> - Those unable to pay off their debts</li>
-                  <li><strong>In the Path of Allah</strong> - For Islamic causes and propagation</li>
-                  <li><strong>Travelers</strong> - Stranded travelers in need of assistance</li>
-                </ol>
-                <p className="mt-3">
-                  <strong>Important:</strong> Zakat cannot be given to parents, grandparents, children, grandchildren,
-                  or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+
       </div >
     </div >
   );

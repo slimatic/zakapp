@@ -524,12 +524,12 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200">
-              <div className="text-sm text-gray-600">
+            <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between pt-6 border-t border-gray-200">
+              <div className="text-sm text-gray-600 text-center sm:text-left">
                 Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, sortedAndFilteredPayments.length)} of {sortedAndFilteredPayments.length} payments
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap justify-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -548,7 +548,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                   ← Previous
                 </Button>
 
-                <div className="flex items-center gap-1">
+                <div className="hidden sm:flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum: number;
                     if (totalPages <= 5) {
@@ -575,6 +575,11 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                     );
                   })}
                 </div>
+
+                {/* Mobile Page indicator */}
+                <span className="sm:hidden text-sm font-medium text-gray-700 flex items-center px-2">
+                  {currentPage} / {totalPages}
+                </span>
 
                 <Button
                   variant="ghost"

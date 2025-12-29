@@ -39,8 +39,8 @@ export const LiabilitiesPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <div className="md:flex md:items-center md:justify-between">
-                <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
                     <h1 className="text-3xl font-heading font-bold text-gray-900 leading-tight">
                         Liabilities
                     </h1>
@@ -48,7 +48,7 @@ export const LiabilitiesPage: React.FC = () => {
                         Track your short-term and long-term debts. Deductible liabilities will be automatically calculated for Zakat.
                     </p>
                 </div>
-                <div className="mt-4 flex md:mt-0 md:ml-4">
+                <div className="flex-shrink-0">
                     <Button onClick={handleAdd} className="shadow-md">
                         Add Liability
                     </Button>

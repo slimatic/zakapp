@@ -259,14 +259,7 @@ export const NisabYearRecordsPage: React.FC = () => {
               </p>
             </div>
             <div className="flex gap-2 sm:gap-3">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigate('/dashboard')}
-                className="whitespace-nowrap"
-              >
-                ← Back to Dashboard
-              </Button>
+
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
