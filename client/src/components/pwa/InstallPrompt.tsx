@@ -35,10 +35,10 @@ export const InstallPrompt: React.FC = () => {
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevent the default mini-infobar from appearing on mobile
       e.preventDefault();
-      
+
       // Save the event for later use
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
+
       // Show the custom install prompt after a short delay
       setTimeout(() => {
         // Check if user hasn't dismissed it before (using localStorage)
@@ -57,7 +57,7 @@ export const InstallPrompt: React.FC = () => {
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
-      
+
       // Track installation analytics
       if (window.gtag) {
         window.gtag('event', 'pwa_install', {
@@ -105,7 +105,7 @@ export const InstallPrompt: React.FC = () => {
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    
+
     // Remember dismissal for 7 days
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 7);
@@ -125,60 +125,66 @@ export const InstallPrompt: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-white rounded-lg shadow-2xl border border-gray-200 p-4 z-50 animate-slide-up">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-primary-100 p-5 z-50 animate-slide-up ring-1 ring-black/5">
       {/* Close button */}
       <button
         onClick={handleDismiss}
-        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
         aria-label="Dismiss install prompt"
       >
         <XMarkIcon className="w-5 h-5" />
       </button>
 
       {/* Content */}
-      <div className="flex items-start gap-3 mb-4">
-        <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-          <ArrowDownTrayIcon className="w-6 h-6 text-indigo-600" />
+      <div className="flex items-start gap-4 mb-5">
+        <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl flex items-center justify-center shadow-inner border border-primary-200/50">
+          <ArrowDownTrayIcon className="w-7 h-7 text-primary-700" />
         </div>
-        
-        <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 mb-1">
+
+        <div className="flex-1 pt-0.5">
+          <h3 className="font-heading font-bold text-gray-900 mb-1 text-lg">
             Install ZakApp
           </h3>
-          <p className="text-sm text-gray-600">
-            Get quick access to your Zakat calculator and enjoy offline functionality
+          <p className="text-sm text-gray-600 leading-relaxed">
+            Get quick access to your local vault and unlock full <span className="font-medium text-primary-700">offline functionality</span>.
           </p>
         </div>
       </div>
 
       {/* Features */}
-      <ul className="space-y-1.5 mb-4 text-sm text-gray-600">
-        <li className="flex items-center gap-2">
-          <span className="text-green-500">✓</span>
+      <ul className="space-y-2 mb-6 text-sm text-gray-600">
+        <li className="flex items-center gap-2.5">
+          <div className="bg-green-100/50 p-0.5 rounded-full">
+            <span className="text-green-600 text-xs font-bold px-0.5">✓</span>
+          </div>
           <span>Work offline with cached data</span>
         </li>
-        <li className="flex items-center gap-2">
-          <span className="text-green-500">✓</span>
-          <span>Faster loading times</span>
+        <li className="flex items-center gap-2.5">
+          <div className="bg-green-100/50 p-0.5 rounded-full">
+            <span className="text-green-600 text-xs font-bold px-0.5">✓</span>
+          </div>
+          <span>Instant loading (no wait times)</span>
         </li>
-        <li className="flex items-center gap-2">
-          <span className="text-green-500">✓</span>
-          <span>Home screen access</span>
+        <li className="flex items-center gap-2.5">
+          <div className="bg-green-100/50 p-0.5 rounded-full">
+            <span className="text-green-600 text-xs font-bold px-0.5">✓</span>
+          </div>
+          <span>Secure home screen access</span>
         </li>
       </ul>
 
       {/* Actions */}
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <button
           onClick={handleInstallClick}
-          className="flex-1 px-4 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+          className="flex-1 px-4 py-2.5 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all shadow-md shadow-primary-700/20 hover:scale-[1.02]"
         >
           Install App
         </button>
-        
+
         <button
           onClick={handleDismiss}
-          className="px-4 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+          className="px-4 py-2.5 border border-gray-200 text-gray-600 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-colors"
         >
           Not Now
         </button>
