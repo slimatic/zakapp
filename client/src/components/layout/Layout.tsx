@@ -18,6 +18,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Helper function to get user initials for avatar
+  const getUserInitials = (user: any): string => {
+    if (!user) return '?';
+
+    const name = user.firstName || user.username || user.email?.split('@')[0] || 'User';
+
+    // Get first two initials (e.g., "John Test" → "JT", "johntest" → "JT")
+    const words = name.split(' ');
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    // Single word: take first two characters
+    return name.substring(0, 2).toUpperCase();
+  };
+
   const handleLogout = async () => {
     await logout();
   };
@@ -251,17 +266,33 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <button
                     onClick={() => setIsOpen(!isOpen)}
                     onKeyDown={handleKeyDown}
-                    className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600"
+                    className="flex items-center gap-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 p-1 hover:bg-gray-50 transition-colors"
                     id="user-menu-button"
                     aria-expanded={isOpen}
                     aria-haspopup="true"
                     aria-label={`User menu for ${user?.firstName || user?.username || user?.email}`}
                   >
-                    <span className="text-gray-700 text-sm mr-2">
-                      Welcome, {user?.firstName || user?.username || user?.email?.split('@')[0]}!
+                    {/* User Avatar with Initials */}
+                    <div
+                      className="h-8 w-8 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white font-semibold text-sm shadow-sm"
+                      aria-hidden="true"
+                    >
+                      {getUserInitials(user)}
+                    </div>
+
+                    {/* User Name - Hidden on Mobile, Visible on Desktop */}
+                    <span className="hidden md:inline text-gray-700 text-sm font-medium">
+                      {user?.firstName || user?.username || user?.email?.split('@')[0]}
                     </span>
+
+                    {/* Screen Reader Only - Always announce full name */}
+                    <span className="sr-only">
+                      {user?.firstName || user?.username || user?.email?.split('@')[0]}
+                    </span>
+
+                    {/* Dropdown Chevron */}
                     <svg
-                      className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                      className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                       aria-hidden="true"
