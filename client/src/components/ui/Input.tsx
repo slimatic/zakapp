@@ -38,6 +38,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           ref={ref}
           data-testid={dataTestId}
+          onWheel={(e) => {
+            if (type === 'number') {
+              e.currentTarget.blur();
+            }
+          }}
           {...props}
         />
         {error && (

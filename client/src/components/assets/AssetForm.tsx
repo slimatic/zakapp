@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { Decimal } from 'decimal.js';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import type { Asset, AssetType } from '../../types';
 import { Button, Input } from '../ui';
@@ -27,7 +28,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     name: asset?.name || '',
     category: (asset?.type as unknown as string) || 'CASH',
     subCategory: asset?.subCategory || '',
-    value: asset?.value || 0,
+    value: asset?.value ? new Decimal(asset.value).toFixed(2) : '', // Store as string for input stability
     currency: asset?.currency || 'USD',
     acquisitionDate: asset?.acquisitionDate ? new Date(asset.acquisitionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     description: asset?.description || '',
@@ -70,7 +71,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       newErrors.name = 'Asset name is required';
     }
 
-    if (formData.value <= 0) {
+    // Validate value allows strings but checks number validity
+    if (!formData.value || isNaN(parseFloat(formData.value.toString())) || parseFloat(formData.value.toString()) <= 0) {
       newErrors.value = 'Asset value must be greater than 0';
     }
 
@@ -105,11 +107,14 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     setIsSubmitting(true);
 
     try {
+      // Use Decimal for precise financial handling
+      const numericValue = new Decimal(formData.value || 0).toDecimalPlaces(2).toNumber();
+
       const commonData = {
         name: formData.name,
         type: (CATEGORY_SEND_MAP[formData.category] || 'OTHER') as AssetType, // Map category to type
         subtype: formData.subCategory || undefined,
-        value: formData.value,
+        value: numericValue,
         currency: formData.currency,
         acquisitionDate: new Date(formData.acquisitionDate).toISOString(),
         description: formData.description, // Keep description field
@@ -133,7 +138,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       console.error('Asset save error:', error);
       const msg = error instanceof Error ? error.message : 'Failed to save asset';
       toast.error(msg);
-      setErrors({ submit: msg });
+      setErrors((prev) => ({ ...prev, submit: msg }));
     } finally {
       setIsSubmitting(false);
     }
@@ -327,7 +332,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               type="number"
               id="value"
               value={formData.value}
-              onChange={(e) => handleChange('value', parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleChange('value', e.target.value)} // Keep as string for validity
               onFocus={(e) => e.target.select()}
               className={errors.value ? 'border-red-500' : ''}
               min="0"
