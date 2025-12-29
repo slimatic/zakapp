@@ -39,7 +39,7 @@ const EducationalModule: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-2 border-teal-200 p-6">
+    <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-2 border-teal-200 p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-teal-100 rounded-lg">
@@ -305,7 +305,7 @@ export const Dashboard: React.FC = () => {
   const quickActions = getQuickActions();
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6" id="main-content">
+    <div className="container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6" id="main-content">
       {/* Dashboard Header */}
       <DashboardHeader
         userName={user?.username}
@@ -323,7 +323,7 @@ export const Dashboard: React.FC = () => {
           />
 
           {/* Quick Actions for New Users */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {quickActions.map((action, index) => (
               <QuickActionCard
                 key={index}
@@ -354,7 +354,7 @@ export const Dashboard: React.FC = () => {
 
           {/* Onboarding Prompt: First asset added, encourage Nisab record creation */}
           {!hasActiveRecord && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 p-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 p-4 sm:p-6">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -396,7 +396,7 @@ export const Dashboard: React.FC = () => {
           )}
 
           {/* Wealth and Breakdown Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <WealthSummaryCard
               totalWealth={totalWealth}
               nisabThreshold={nisabThreshold}

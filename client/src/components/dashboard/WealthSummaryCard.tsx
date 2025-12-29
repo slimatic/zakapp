@@ -36,11 +36,11 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
   const maskedCurrency = useMaskedCurrency();
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border border-gray-200">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900">Wealth Summary</h2>
-        
+
         {/* Status Icon */}
         <div className={`p-2 rounded-full ${isAboveNisab ? 'bg-green-100' : 'bg-red-100'}`}>
           {isAboveNisab ? (
@@ -82,14 +82,14 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
       {/* Total Wealth - Large Display */}
       <div className="mb-4">
         <p className="text-sm text-gray-600 mb-1">Total Wealth</p>
-        <p className="text-3xl md:text-4xl font-bold text-gray-900">
+        <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
           {maskedCurrency(`$${totalWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
         </p>
         <p className="text-xs text-gray-500 mt-1">{currency}</p>
       </div>
 
       {/* Nisab Threshold Comparison */}
-      <div className={`p-4 rounded-md ${isAboveNisab ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+      <div className={`p-3 sm:p-4 rounded-md ${isAboveNisab ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
         <div className="flex items-start justify-between mb-2">
           <div>
             <p className={`text-sm font-medium ${isAboveNisab ? 'text-green-700' : 'text-red-700'}`}>
@@ -99,7 +99,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
               Nisab: {maskedCurrency(`$${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
             </p>
           </div>
-          
+
           <div className="text-right">
             <p className={`text-lg font-bold ${isAboveNisab ? 'text-green-700' : 'text-red-700'}`}>
               {maskedCurrency(`${isAboveNisab ? '+' : '-'}$${difference.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
