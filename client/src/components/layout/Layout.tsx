@@ -51,7 +51,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       )
     },
     {
-      name: 'Nisab Records',
+      name: 'Nisab',
       href: '/nisab-records',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,6 +79,32 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     },
   ];
 
+  const desktopGroups = [
+    { name: 'Dashboard', href: '/dashboard' },
+    {
+      name: 'Wealth',
+      items: [
+        { name: 'Assets', href: '/assets' },
+        { name: 'Liabilities', href: '/liabilities' },
+      ]
+    },
+    {
+      name: 'Records',
+      items: [
+        { name: 'Nisab Records', href: '/nisab-records' },
+        { name: 'Payments', href: '/payments' },
+      ]
+    },
+    { name: 'Analytics', href: '/analytics' },
+  ];
+
+  const bottomNavItems = [
+    navigation[0], // Dashboard
+    navigation[1], // Assets
+    navigation[2], // Liabilities
+    navigation[4], // Payments
+  ];
+
   const isActive = (href: string) => {
     // For nisab-records route, also highlight when on nisab-year-records
     if (href === '/nisab-records') {
@@ -86,6 +112,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
     return location.pathname === href;
   };
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -133,19 +161,51 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               </div>
               <div className="hidden md:block">
-                <ul className="ml-10 flex items-baseline space-x-4">
-                  {navigation.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        to={item.href}
-                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive(item.href)
-                          ? 'bg-green-100 text-green-700'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                          }`}
-                        aria-current={isActive(item.href) ? 'page' : undefined}
-                      >
-                        {item.name}
-                      </Link>
+                <ul className="ml-10 flex items-center space-x-1 lg:space-x-4">
+                  {desktopGroups.map((group) => (
+                    <li key={group.name} className="relative group">
+                      {group.items ? (
+                        <div className="relative">
+                          <button
+                            className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${group.items.some(item => isActive(item.href))
+                              ? 'bg-primary-50 text-primary-700'
+                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                              }`}
+                          >
+                            {group.name}
+                            <svg className="ml-1 h-4 w-4 text-gray-400 group-hover:text-gray-500 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+
+                          {/* Dropdown Menu */}
+                          <div className="absolute left-0 mt-0 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            {group.items.map((item) => (
+                              <Link
+                                key={item.href}
+                                to={item.href}
+                                className={`block px-4 py-2 text-sm ${isActive(item.href)
+                                  ? 'bg-primary-50 text-primary-700'
+                                  : 'text-gray-700 hover:bg-gray-100'
+                                  }`}
+                              >
+                                {item.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <Link
+                          to={group.href || '#'}
+                          className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(group.href || '')
+                            ? 'bg-primary-50 text-primary-700'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                            }`}
+                          aria-current={isActive(group.href || '') ? 'page' : undefined}
+                        >
+                          {group.name}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -178,7 +238,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
               {/* Mobile Navigation Hamburger (md:hidden) */}
               <div className="md:hidden mr-2">
-                <MobileNav items={navigation} />
+                <MobileNav
+                  items={navigation}
+                  isOpen={isMobileMenuOpen}
+                  onOpenChange={setIsMobileMenuOpen}
+                />
               </div>
 
               {/* User Dropdown Menu */}
@@ -251,7 +315,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </main>
 
       {/* Bottom Navigation (Mobile Only) */}
-      <BottomNav items={navigation} />
+      <BottomNav
+        items={[
+          ...bottomNavItems,
+          {
+            name: 'More',
+            href: '#',
+            icon: (
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )
+          }
+        ]}
+        onMoreClick={() => setIsMobileMenuOpen(true)}
+      />
     </div>
   );
 };

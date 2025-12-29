@@ -5,23 +5,22 @@ import { NavigationItemType } from './Navigation';
 
 interface MobileNavProps {
   items: NavigationItemType[];
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-/**
- * MobileNav component for mobile responsive navigation
- * 
- * Features:
- * - Hamburger menu icon that toggles slide-in menu
- * - Slide-in menu from left with smooth animation
- * - Semi-transparent backdrop overlay
- * - Closes on backdrop click or Escape key
- * - Keyboard accessible with proper ARIA attributes
- * - Auto-closes when route changes
- * 
- * @param items - Array of navigation items
- */
-export const MobileNav: React.FC<MobileNavProps> = ({ items }) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledIsOpen, onOpenChange }) => {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+
+  const setIsOpen = (open: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(open);
+    } else {
+      setInternalIsOpen(open);
+    }
+  };
+
   const location = useLocation();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -132,7 +131,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items }) => {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity"
             onClick={closeMenu}
             aria-hidden="true"
             data-testid="mobile-nav-backdrop"
@@ -142,7 +141,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items }) => {
           <div
             ref={menuRef}
             id="mobile-menu"
-            className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out"
+            className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-[60] transform transition-transform duration-300 ease-in-out"
             role="dialog"
             aria-modal="true"
             aria-label="Mobile navigation"
