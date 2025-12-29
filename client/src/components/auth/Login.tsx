@@ -24,24 +24,24 @@ export const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-2xl border-white/20">
         <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-4">
-            <div className="bg-green-100 p-3 rounded-full">
-              <ShieldCheck className="h-8 w-8 text-green-600" />
+          <div className="flex justify-center mb-6">
+            <div className="bg-primary-50 p-4 rounded-full ring-1 ring-primary-100 shadow-sm animate-fade-in">
+              <ShieldCheck className="h-10 w-10 text-primary-700" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center text-gray-900">
+          <CardTitle className="text-3xl font-heading font-bold text-center text-gray-900">
             Welcome Back
           </CardTitle>
-          <CardDescription className="text-center text-gray-500">
+          <CardDescription className="text-center text-gray-500 text-lg">
             Securely access your ZakApp local vault
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+              <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
                 {error}
                 {(error.includes('DB1') || error.includes('password') || error.includes('salt')) && (
                   <div className="mt-2">
@@ -75,7 +75,7 @@ export const Login: React.FC = () => {
             )}
 
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label htmlFor="username" className="text-sm font-medium leading-none text-gray-700">
                 Username
               </label>
               <Input
@@ -87,11 +87,12 @@ export const Login: React.FC = () => {
                 disabled={isLoading}
                 autoComplete="username"
                 aria-required="true"
+                className="focus:ring-primary-500 border-gray-300"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label htmlFor="password" className="text-sm font-medium leading-none text-gray-700">
                 Password
               </label>
               <Input
@@ -103,12 +104,13 @@ export const Login: React.FC = () => {
                 disabled={isLoading}
                 autoComplete="current-password"
                 aria-required="true"
+                className="focus:ring-primary-500 border-gray-300"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              className="w-full bg-primary-700 hover:bg-primary-800 text-white shadow-lg shadow-primary-700/20 transition-all hover:scale-[1.02]"
               disabled={isLoading || !username || !password}
             >
               {isLoading ? 'Decrypting Vault...' : 'Login'}
@@ -118,16 +120,16 @@ export const Login: React.FC = () => {
         <CardFooter className="flex flex-col space-y-4 text-center text-sm text-gray-500">
           <div className="flex gap-1 justify-center">
             <span>Don't have a vault?</span>
-            <Link to="/register" className="text-green-600 hover:text-green-700 hover:underline font-medium">
+            <Link to="/register" className="text-primary-700 hover:text-primary-800 hover:underline font-bold">
               Create Local Profile
             </Link>
           </div>
           <div className="text-xs">
-            <Link to="/forgot-password" className="text-gray-500 hover:text-gray-700 hover:underline">
+            <Link to="/forgot-password" className="text-gray-500 hover:text-gray-700 hover:underline transition-colors">
               Forgot your password?
             </Link>
           </div>
-          <div className="text-xs text-gray-400 mt-4 flex items-center justify-center gap-1">
+          <div className="text-xs text-primary-600/60 mt-4 flex items-center justify-center gap-1 font-medium bg-primary-50 px-3 py-1 rounded-full w-fit mx-auto">
             <ShieldCheck className="w-3 h-3" />
             <span>End-to-End Encrypted on your device</span>
           </div>
