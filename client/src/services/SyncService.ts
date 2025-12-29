@@ -24,8 +24,11 @@ import { cryptoService } from './CryptoService';
 // Collections to sync - only core user data that needs multi-device sync
 const SYNC_COLLECTIONS: (keyof ZakAppCollections)[] = [
     'assets',
+    'liabilities',
+    'zakat_calculations',
     'nisab_year_records',
-    'payment_records'
+    'payment_records',
+    'user_settings'
 ];
 
 // Token refresh buffer (refresh 5 min before expiry)
@@ -331,16 +334,27 @@ export class SyncService {
                         }
                     },
                     fetch: async (url, opts) => {
-                        // Get fresh credentials for each request (auto-refresh)
-                        const creds = await this.getCredentials();
-                        const authHeader = 'Basic ' + btoa(`${creds.username}:${creds.password}`);
-                        return fetch(url, {
-                            ...opts,
-                            headers: {
-                                ...opts?.headers,
-                                'Authorization': authHeader
+                        try {
+                            const creds = await this.getCredentials();
+                            const authHeader = 'Basic ' + btoa(`${creds.username}:${creds.password}`);
+
+                            const response = await fetch(url, {
+                                ...opts,
+                                headers: {
+                                    ...opts?.headers,
+                                    'Authorization': authHeader
+                                }
+                            });
+
+                            if (!response.ok && response.status !== 404) {
+                                console.warn(`⚠️ Sync fetch failed [${collectionName}]: ${response.status} ${url}`);
                             }
-                        });
+
+                            return response;
+                        } catch (err: any) {
+                            console.error(`❌ Sync fetch network error [${collectionName}]:`, err.message);
+                            throw err;
+                        }
                     }
                 });
 
@@ -372,18 +386,38 @@ export class SyncService {
                 replicationState.received$.subscribe(() => this.triggerActivity(collectionName));
                 replicationState.sent$.subscribe(() => this.triggerActivity(collectionName));
 
-                // Monitor initial sync completion
+                // Monitor initial sync completion with a timeout
+                const initialSyncTimeout = setTimeout(() => {
+                    if (this.initialSyncPending.has(collectionName)) {
+                        console.warn(`⏳ Initial sync timed out: ${collectionName} (proceeding)`);
+                        this.initialSyncPending.delete(collectionName);
+                        this.updateSyncStatus();
+                    }
+                }, 15000); // 15s timeout for the "Syncing..." indicator
+
                 replicationState.awaitInitialReplication()
                     .then(() => {
+                        clearTimeout(initialSyncTimeout);
                         console.log(`✅ Initial sync complete: ${collectionName}`);
                         this.initialSyncPending.delete(collectionName);
                         this.updateSyncStatus();
                     })
                     .catch(err => {
+                        clearTimeout(initialSyncTimeout);
                         console.error(`❌ Initial sync failed: ${collectionName}`, err);
                         this.initialSyncPending.delete(collectionName);
                         this.updateSyncStatus();
                     });
+
+                // Monitor active/idle state
+                replicationState.active$.subscribe(isActive => {
+                    if (isActive) {
+                        this.activeCollections.add(collectionName);
+                    } else {
+                        this.activeCollections.delete(collectionName);
+                    }
+                    this.updateSyncStatus();
+                });
 
                 this.replicationStates.push(replicationState);
                 console.log(`✅ Replication started: ${remoteDbName}`);
