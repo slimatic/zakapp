@@ -74,6 +74,45 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Summary Statistics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
+            <p className="text-sm font-medium text-gray-500">Total Wealth</p>
+            <p className="text-2xl font-bold text-gray-900 mt-2">
+              {maskedCurrency(formatCurrency(totalWealth))}
+            </p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
+            <p className="text-sm font-medium text-gray-500">Zakatable Wealth</p>
+            <p className="text-2xl font-bold text-gray-900 mt-2">
+              {maskedCurrency(formatCurrency(totalZakatableWealth))}
+            </p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
+            <p className="text-sm font-medium text-gray-500">Total Zakat Due</p>
+            <p className="text-2xl font-bold text-gray-900 mt-2">
+              {maskedCurrency(formatCurrency(totalZakatDue))}
+            </p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
+            <p className="text-sm font-medium text-gray-500">Compliance Rate</p>
+            <div className="mt-2 flex flex-col gap-2">
+              <div className="flex justify-between items-baseline">
+                <p className="text-2xl font-bold text-gray-900">{complianceRate.toFixed(1)}%</p>
+                <span className="text-xs text-gray-500">
+                  {maskedCurrency(formatCurrency(totalZakatPaid))} Paid
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className={`h-2.5 rounded-full ${complianceRate >= 100 ? 'bg-green-600' : 'bg-blue-600'}`}
+                  style={{ width: `${Math.min(complianceRate, 100)}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Timeframe Selector */}
         <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -128,10 +167,7 @@ export const AnalyticsPage: React.FC = () => {
 
           {/* Asset Composition */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Asset Composition</h3>
-            <div className="h-[280px]">
-              <AssetsBreakdownChart assets={assets} />
-            </div>
+            <AssetsBreakdownChart assets={assets} />
           </div>
 
           {/* Payment Distribution */}
