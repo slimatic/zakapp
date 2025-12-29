@@ -417,6 +417,20 @@ export const NisabYearRecordsPage: React.FC = () => {
                           {record.status === 'FINALIZED' && (
                             <button onClick={(e) => { e.stopPropagation(); handleUnlock(record); }} className="px-2 py-1 bg-amber-600 text-white rounded text-xs">Unlock</button>
                           )}
+                          {record.status === 'FINALIZED' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
+                                  const generator = new ReportGenerator();
+                                  generator.generateHawlStatement(record as any, allAssets, 'User'); // TODO: Pass real user name
+                                });
+                              }}
+                              className="px-2 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded text-xs hover:bg-gray-200 flex items-center gap-1"
+                            >
+                              📄 PDF
+                            </button>
+                          )}
                           <button onClick={(e) => { e.stopPropagation(); handleDelete(record); }} className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs">Delete</button>
                         </div>
                       </div>

@@ -59,6 +59,25 @@ export const PaymentsPage: React.FC = () => {
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 
+              <Button
+                variant="outline"
+                onClick={() => {
+                  import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
+                    const generator = new ReportGenerator();
+                    // Use filtered payments if filter is active, else all
+                    // Note: Logic to get accurate filtered list might need state access
+                    // For safety, we export ALL currently viewable payments
+                    // But 'allPayments' is available in scope
+                    generator.generatePaymentSummary(allPayments);
+                  });
+                }}
+                className="justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export PDF
+              </Button>
               <Button variant="secondary" onClick={() => navigate('/settings')} className="justify-center">Import / Export</Button>
             </div>
           </div>
