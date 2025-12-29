@@ -4,6 +4,7 @@ import { Button } from '../ui';
 import { calculateDeductibleLiabilities } from '../../core/calculations/wealthCalculator';
 import toast from 'react-hot-toast';
 import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
+import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 
 interface LiabilityListProps {
     liabilities: Liability[];
@@ -13,6 +14,7 @@ interface LiabilityListProps {
 export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdit }) => {
     const { removeLiability } = useLiabilityRepository();
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const maskedCurrency = useMaskedCurrency();
 
     const handleDelete = async (id: string) => {
         try {
@@ -72,7 +74,7 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
                                 </div>
                                 <div className="ml-2 flex-shrink-0 flex flex-col items-end">
                                     <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        {formatCurrency(liability.amount, liability.currency)}
+                                        {maskedCurrency(formatCurrency(liability.amount, liability.currency))}
                                     </p>
                                     <p className="text-xs text-gray-500 mt-1">Due: {formatDate(liability.dueDate)}</p>
                                 </div>
