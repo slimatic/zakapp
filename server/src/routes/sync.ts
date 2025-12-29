@@ -111,8 +111,11 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
         // 2. Ensure user's databases exist
         const dbNames = [
             `zakapp_${safeUserId}_assets`,
+            `zakapp_${safeUserId}_liabilities`,
+            `zakapp_${safeUserId}_zakat_calculations`,
             `zakapp_${safeUserId}_nisab_year_records`,
-            `zakapp_${safeUserId}_payment_records`
+            `zakapp_${safeUserId}_payment_records`,
+            `zakapp_${safeUserId}_user_settings`
         ];
 
         for (const dbName of dbNames) {
