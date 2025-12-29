@@ -105,7 +105,7 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
 
         } catch (err: any) {
             console.error('Failed to ensure CouchDB user:', err.response?.data || err.message);
-            // Non-critical: If user creation fails, the sync attempt later will catch it
+            throw new Error(`Failed to ensure CouchDB user: ${err.message}`);
         }
 
         // 2. Ensure user's databases exist
