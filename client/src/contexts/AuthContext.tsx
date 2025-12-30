@@ -360,7 +360,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 4. Create User Profile
       const encryptedDb = await getDb();
 
-      userDoc = await encryptedDb.user_settings.insert({
+      const userDoc = (await encryptedDb.user_settings.insert({
         id: newUserId, // Use Real Backend ID
         profileName: userData.username || 'My Profile',
         firstName: userData.firstName || '',
@@ -373,7 +373,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      });
+      })) as any;
 
       const user: User = {
         id: newUserId,

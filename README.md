@@ -1,10 +1,16 @@
-# ZakApp (Ikhlas Project)
+<div align="center">
+  <a href="https://github.com/slimatic/zakapp">
+    <img src="client/public/logo.svg" alt="ZakApp Logo" width="120" height="auto" />
+  </a>
+  <h1>ZakApp</h1>
+  <p>
+    <b>The World's First Local-First, Privacy-Focused Islamic Finance Platform.</b>
+  </p>
+</div>
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-stable-green.svg)
 ![Compliance](https://img.shields.io/badge/compliance-shariah--compliant-green.svg)
-
-**The World's First Local-First, Privacy-Focused Islamic Finance Platform.**
 
 ZakApp Re-imagines the Zakat calculation experience by prioritizing user privacy, Fiqh precision, and modern design. Unlike other calculators that send your Net Worth to a cloud server, ZakApp performs all math inside your browser.
 

@@ -16,7 +16,10 @@
  */
 
 
-import { forceResetDatabase } from '../../../db'; // Import this at the top
+import { forceResetDatabase, useDb } from '../../../db'; // Import this at the top
+import { useMutation } from '@tanstack/react-query';
+import { apiService } from '../../../services/api';
+import { Button } from '../../../components/ui/Button';
 
 export const DangerZone: React.FC = () => {
     // ... existing deleteAccountMutation ...

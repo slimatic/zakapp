@@ -248,25 +248,20 @@ export const PaymentImportExport: React.FC = () => {
               throw new Error('Missing required snapshot ID for payment');
             }
 
-            await new Promise((resolve, reject) => {
-              createPaymentMutation.mutate({
-                snapshotId: p.snapshotId,
-                amount: p.amount,
-                paymentDate: p.paymentDate,
-                recipientName: p.recipientName,
-                recipientType: p.recipientType || 'individual',
-                recipientCategory: p.recipientCategory || 'fakir',
-                paymentMethod: p.paymentMethod || 'cash',
-                receiptReference: p.receiptReference,
-                notes: p.notes,
-                status: p.status || 'recorded',
-                currency: p.currency || 'USD',
-                calculationId: p.calculationId
-              }, {
-                onSuccess: resolve,
-                onError: reject
-              });
-            });
+            await createPaymentMutation.mutateAsync({
+              snapshotId: p.snapshotId,
+              amount: p.amount,
+              paymentDate: new Date(p.paymentDate),
+              recipientName: p.recipientName,
+              recipientType: p.recipientType || 'individual',
+              recipientCategory: p.recipientCategory || 'fakir',
+              paymentMethod: p.paymentMethod || 'cash',
+              receiptReference: p.receiptReference,
+              notes: p.notes,
+              status: p.status || 'recorded',
+              currency: p.currency || 'USD',
+              calculationId: p.calculationId
+            } as any);
 
             successful++;
           } catch (error: any) {
@@ -340,7 +335,7 @@ export const PaymentImportExport: React.FC = () => {
               <div className="mt-4">
                 <h4 className="font-medium text-red-900 mb-2">Errors:</h4>
                 <ul className="text-sm text-red-700 space-y-1">
-                  {importResult.errors.slice(0,5).map((error, index) => (<li key={index} className="break-all">• {error}</li>))}
+                  {importResult.errors.slice(0, 5).map((error, index) => (<li key={index} className="break-all">• {error}</li>))}
                   {importResult.errors.length > 5 && (<li className="text-red-600">...and {importResult.errors.length - 5} more errors</li>)}
                 </ul>
               </div>

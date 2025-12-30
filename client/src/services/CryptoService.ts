@@ -137,7 +137,7 @@ export class CryptoService {
         const encryptedContent = await window.crypto.subtle.encrypt(
             {
                 name: "AES-GCM",
-                iv: iv
+                iv: iv as any
             },
             this.masterKey,
             enc.encode(plainText)
@@ -166,10 +166,10 @@ export class CryptoService {
             const decryptedContent = await window.crypto.subtle.decrypt(
                 {
                     name: "AES-GCM",
-                    iv: iv
+                    iv: iv as any
                 },
                 this.masterKey,
-                encryptedContent
+                encryptedContent as any
             );
 
             const dec = new TextDecoder();
@@ -232,7 +232,7 @@ export class CryptoService {
 
         try {
             const decrypted = await window.crypto.subtle.decrypt(
-                { name: 'AES-GCM', iv: ivBytes },
+                { name: 'AES-GCM', iv: ivBytes as any },
                 this.masterKey,
                 combined
             );

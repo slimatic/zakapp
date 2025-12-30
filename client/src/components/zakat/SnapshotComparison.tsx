@@ -202,20 +202,20 @@ const SnapshotComparison: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                 <div className="text-sm text-gray-500">Total Assets Change</div>
-                <div className={`text-2xl font-bold ${getGrowthColor(comparison.data.assetGrowth || 0)}`}>
-                  {formatPercentage(comparison.data.assetGrowth || 0)}
+                <div className={`text-2xl font-bold ${getGrowthColor((comparison.data as any)?.data?.assetGrowth || 0)}`}>
+                  {formatPercentage((comparison.data as any)?.data?.assetGrowth || 0)}
                 </div>
               </div>
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                 <div className="text-sm text-gray-500">Zakat Amount Change</div>
-                <div className={`text-2xl font-bold ${getGrowthColor(comparison.data.zakatGrowth || 0)}`}>
-                  {formatPercentage(comparison.data.zakatGrowth || 0)}
+                <div className={`text-2xl font-bold ${getGrowthColor((comparison.data as any)?.data?.zakatGrowth || 0)}`}>
+                  {formatPercentage((comparison.data as any)?.data?.zakatGrowth || 0)}
                 </div>
               </div>
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                 <div className="text-sm text-gray-500">Net Worth Change</div>
-                <div className={`text-2xl font-bold ${getGrowthColor(comparison.data.netWorthGrowth || 0)}`}>
-                  {formatPercentage(comparison.data.netWorthGrowth || 0)}
+                <div className={`text-2xl font-bold ${getGrowthColor((comparison.data as any)?.data?.netWorthGrowth || 0)}`}>
+                  {formatPercentage((comparison.data as any)?.data?.netWorthGrowth || 0)}
                 </div>
               </div>
             </div>
@@ -252,16 +252,16 @@ const SnapshotComparison: React.FC = () => {
                         Total Assets
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(comparison.data.fromSnapshot?.totalAssets || 0)}
+                        {formatCurrency((comparison.data as any)?.data?.fromSnapshot?.totalAssets || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(comparison.data.toSnapshot?.totalAssets || 0)}
+                        {formatCurrency((comparison.data as any)?.data?.toSnapshot?.totalAssets || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency((comparison.data.toSnapshot?.totalAssets || 0) - (comparison.data.fromSnapshot?.totalAssets || 0))}
+                        {formatCurrency(((comparison.data as any)?.data?.toSnapshot?.totalAssets || 0) - ((comparison.data as any)?.data?.fromSnapshot?.totalAssets || 0))}
                       </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getGrowthColor(comparison.data.assetGrowth || 0)}`}>
-                        {formatPercentage(comparison.data.assetGrowth || 0)}
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getGrowthColor((comparison.data as any)?.data?.assetGrowth || 0)}`}>
+                        {formatPercentage((comparison.data as any)?.data?.assetGrowth || 0)}
                       </td>
                     </tr>
                     <tr>
@@ -269,16 +269,16 @@ const SnapshotComparison: React.FC = () => {
                         Zakat Due
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(comparison.data.fromSnapshot?.zakatDue || 0)}
+                        {formatCurrency((comparison.data as any)?.data?.fromSnapshot?.zakatDue || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(comparison.data.toSnapshot?.zakatDue || 0)}
+                        {formatCurrency((comparison.data as any)?.data?.toSnapshot?.zakatDue || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency((comparison.data.toSnapshot?.zakatDue || 0) - (comparison.data.fromSnapshot?.zakatDue || 0))}
+                        {formatCurrency(((comparison.data as any)?.data?.toSnapshot?.zakatDue || 0) - ((comparison.data as any)?.data?.fromSnapshot?.zakatDue || 0))}
                       </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getGrowthColor(comparison.data.zakatGrowth || 0)}`}>
-                        {formatPercentage(comparison.data.zakatGrowth || 0)}
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getGrowthColor((comparison.data as any)?.data?.zakatGrowth || 0)}`}>
+                        {formatPercentage((comparison.data as any)?.data?.zakatGrowth || 0)}
                       </td>
                     </tr>
                     <tr>
@@ -286,13 +286,13 @@ const SnapshotComparison: React.FC = () => {
                         Nisab Threshold
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(comparison.data.fromSnapshot?.nisabThreshold || 0)}
+                        {formatCurrency((comparison.data as any)?.data?.fromSnapshot?.nisabThreshold || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(comparison.data.toSnapshot?.nisabThreshold || 0)}
+                        {formatCurrency((comparison.data as any)?.data?.toSnapshot?.nisabThreshold || 0)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency((comparison.data.toSnapshot?.nisabThreshold || 0) - (comparison.data.fromSnapshot?.nisabThreshold || 0))}
+                        {formatCurrency(((comparison.data as any)?.data?.toSnapshot?.nisabThreshold || 0) - ((comparison.data as any)?.data?.fromSnapshot?.nisabThreshold || 0))}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         N/A
@@ -304,11 +304,11 @@ const SnapshotComparison: React.FC = () => {
             </div>
 
             {/* Asset Category Breakdown */}
-            {comparison.data.categoryBreakdown && (
+            {(comparison.data as any)?.data?.categoryBreakdown && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Asset Category Changes</h2>
                 <div className="space-y-3">
-                  {Object.entries(comparison.data.categoryBreakdown).map(([category, data]: [string, any]) => (
+                  {Object.entries((comparison.data as any)?.data?.categoryBreakdown).map(([category, data]: [string, any]) => (
                     <div key={category} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex-1">
                         <span className="font-medium text-gray-900 capitalize">{category}</span>
@@ -337,15 +337,15 @@ const SnapshotComparison: React.FC = () => {
                 <div>
                   <span className="font-medium text-gray-700">From Nisab Year:</span>
                   <div className="text-gray-600 mt-1">
-                    Date: {new Date(comparison.data.fromSnapshot?.calculationDate).toLocaleDateString()}<br/>
-                    Methodology: {comparison.data.fromSnapshot?.methodology}
+                    Date: {new Date((comparison.data as any)?.data?.fromSnapshot?.calculationDate).toLocaleDateString()}<br />
+                    Methodology: {(comparison.data as any)?.data?.fromSnapshot?.methodology}
                   </div>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">To Nisab Year:</span>
                   <div className="text-gray-600 mt-1">
-                    Date: {new Date(comparison.data.toSnapshot?.calculationDate).toLocaleDateString()}<br/>
-                    Methodology: {comparison.data.toSnapshot?.methodology}
+                    Date: {new Date((comparison.data as any)?.data?.toSnapshot?.calculationDate).toLocaleDateString()}<br />
+                    Methodology: {(comparison.data as any)?.data?.toSnapshot?.methodology}
                   </div>
                 </div>
               </div>
@@ -368,7 +368,7 @@ const SnapshotComparison: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <div className="text-center">
             <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Select Nisab Years to compare</h3>
             <p className="text-gray-500">

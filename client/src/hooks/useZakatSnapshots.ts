@@ -242,7 +242,17 @@ export const useCompareSnapshots = (fromId: string, toId: string) => {
   return useQuery({
     queryKey: ['zakat-snapshots', 'compare', fromId, toId],
     queryFn: async () => {
-      return { success: true, data: { differences: [] } };
+      return {
+        success: true,
+        data: {
+          differences: [],
+          assetGrowth: 0,
+          zakatChange: 0,
+          liabilitiesChange: 0,
+          netWorthChange: 0,
+          breakdown: { from: [], to: [] }
+        }
+      };
     },
     enabled: !!(fromId && toId),
   });
