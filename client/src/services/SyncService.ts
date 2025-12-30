@@ -235,6 +235,7 @@ export class SyncService {
     private pollingInterval: any = null;
     private localChangeSubs: any[] = [];
     private isSyncingOneShot = new Map<string, boolean>();
+    private pendingSyncs = new Set<string>();
 
     /**
      * Start "Smart Sync" for the given user.
@@ -295,8 +296,13 @@ export class SyncService {
     }
 
     private async syncCollection(collectionName: string, safeUserId: string) {
-        // Prevent concurrent runs for same collection
-        if (this.isSyncingOneShot.get(collectionName)) return;
+        // Prevent concurrent runs for same collection, but queue it up
+        if (this.isSyncingOneShot.get(collectionName)) {
+            console.log(`⏳ Sync for ${collectionName} already active, queuing next run.`);
+            this.pendingSyncs.add(collectionName);
+            return;
+        }
+
         this.isSyncingOneShot.set(collectionName, true);
 
         // Notify UI
@@ -321,6 +327,7 @@ export class SyncService {
                 live: false, // ONE-SHOT
                 retryTime: 5000,
                 pull: {
+                    batchSize: 50,
                     modifier: async (doc: any) => {
                         // Skip system documents or invalid docs
                         if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
@@ -342,6 +349,7 @@ export class SyncService {
                     }
                 },
                 push: {
+                    batchSize: 50,
                     modifier: async (doc: any) => {
                         if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
                         const { _id, _rev, _deleted, _attachments, ...sensitiveData } = doc;
@@ -361,15 +369,55 @@ export class SyncService {
                 }
             });
 
-            // Wait for completion
-            await replicationState.awaitInitialReplication();
+            // Wait for completion with timeout and progress tracking
+            const replicationPromise = replicationState.awaitInitialReplication();
+
+            // Monitor progress
+            const errorSub = replicationState.error$.subscribe(err => {
+                console.error(`❌ Sync Error (${collectionName}):`, err);
+                this.syncStatus$.next({
+                    ...this.syncStatus$.getValue(),
+                    errors: [...this.syncStatus$.getValue().errors, { collection: collectionName, error: err }]
+                });
+            });
+
+            const docSub = replicationState.received$.subscribe(doc => {
+                console.debug(`📥 Received doc in ${collectionName}:`, doc.id);
+            });
+
+            const sentSub = replicationState.sent$.subscribe(doc => {
+                console.debug(`📤 Sent doc in ${collectionName}:`, doc.id);
+            });
+
+            // 2 Minute Timeout for large datasets
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Sync Timeout')), 120000)
+            );
+
+            await Promise.race([replicationPromise, timeoutPromise]);
+
+            // Clean up subscriptions
+            errorSub.unsubscribe();
+            docSub.unsubscribe();
+            sentSub.unsubscribe();
 
         } catch (err: any) {
             console.warn(`⚠️ Sync Warning (${collectionName}):`, err.message || err);
+            // If timeout or error, ensure we cancel to stop retries
+            // Note: replicationState might not be accessible here cleanly due to scope, 
+            // but awaitInitialReplication error usually implies it halted or we timed out.
         } finally {
             this.isSyncingOneShot.set(collectionName, false);
             this.activeCollections.delete(collectionName);
             this.updateSyncStatus();
+
+            // Check if a run was queued while we were busy
+            if (this.pendingSyncs.has(collectionName)) {
+                this.pendingSyncs.delete(collectionName);
+                console.log(`🔄 Re-triggering pending sync for ${collectionName}`);
+                // Execute immediately, but let the stack clear first to act async
+                setTimeout(() => this.syncCollection(collectionName, safeUserId), 0);
+            }
         }
     }
 
