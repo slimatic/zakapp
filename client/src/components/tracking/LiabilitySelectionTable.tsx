@@ -114,8 +114,73 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                 </div>
             </div>
 
-            {/* Table Content */}
-            <div className="overflow-x-auto max-h-[300px]">
+            {/* Mobile View: Stacked Cards */}
+            <div className="md:hidden max-h-[300px] overflow-y-auto p-2 space-y-2 bg-gray-50">
+                {filteredLiabilities.length > 0 ? (
+                    filteredLiabilities.map((liability) => {
+                        const isSelected = selectedLiabilityIds.includes(liability.id);
+                        return (
+                            <div
+                                key={liability.id}
+                                onClick={() => toggleSelection(liability.id)}
+                                className={clsx(
+                                    "p-3 rounded-lg border shadow-sm cursor-pointer transition-colors bg-white",
+                                    isSelected ? "border-blue-300 ring-1 ring-blue-300 bg-blue-50" : "border-gray-200"
+                                )}
+                            >
+                                <div className="flex items-start gap-3">
+                                    <input
+                                        type="checkbox"
+                                        className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        checked={isSelected}
+                                        onChange={() => toggleSelection(liability.id)}
+                                        onClick={e => e.stopPropagation()}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <div className="font-medium text-sm text-gray-900 truncate">{liability.name}</div>
+                                                <div className="text-xs text-gray-500">{liability.type}</div>
+                                            </div>
+                                            <div className="text-sm font-semibold text-gray-900">
+                                                {maskedCurrency(new Intl.NumberFormat('en-US', { style: 'currency', currency: liability.currency }).format(liability.amount))}
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-2 flex justify-between items-end">
+                                            <div>
+                                                <div className={clsx("text-xs font-medium", liability.isDeductible ? "text-gray-700" : "text-amber-600")}>
+                                                    Due: {format(liability.dueDateObj, 'MMM d, yyyy')}
+                                                </div>
+                                                <div className="text-[10px] text-gray-500">
+                                                    {liability.daysUntilDue <= 0 ? 'Due/Overdue' : `${liability.daysUntilDue} days left`}
+                                                </div>
+                                            </div>
+
+                                            {liability.isDeductible ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-800">
+                                                    Deductible
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800">
+                                                    Long-term
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className="p-4 text-center text-gray-500 text-sm">
+                        No liabilities found.
+                    </div>
+                )}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="hidden md:block overflow-x-auto max-h-[300px]">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50 sticky top-0">
                         <tr>
