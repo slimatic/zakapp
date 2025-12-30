@@ -87,6 +87,7 @@ const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').t
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const PaymentImportExport = lazy(() => import('./components/payments/PaymentImportExport').then(m => ({ default: m.PaymentImportExport })));
 const LiabilitiesPage = lazy(() => import('./pages/LiabilitiesPage').then(m => ({ default: m.LiabilitiesPage })));
+const SeederPage = lazy(() => import('./pages/SeederPage').then(m => ({ default: m.SeederPage })));
 
 
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
@@ -336,7 +337,19 @@ function App() {
                       }
                     />
 
-
+                    {/* Stress Test Seeder - Dev Only */}
+                    <Route
+                      path="/seeder"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <SeederPage />
+                            </Suspense>
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
 
 
 
