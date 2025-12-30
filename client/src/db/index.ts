@@ -184,9 +184,9 @@ export const closeDb = async () => {
             const db = await window._zakapp_db_promise;
 
             // Safety check: ensure db is valid and has destroy method
-            if (db && !db.destroyed) {
-                if (typeof db.destroy === 'function') {
-                    await db.destroy();
+            if (db && !(db as any).destroyed) {
+                if (typeof (db as any).destroy === 'function') {
+                    await (db as any).destroy();
                     console.log("DatabaseService: DB Instance Destroyed (Closed).");
                 } else {
                     console.warn("DatabaseService: DB instance exists but missing destroy() method:", Object.keys(db));
@@ -218,9 +218,9 @@ export const resetDb = async () => {
         try {
             console.warn("DatabaseService: DELETING DB (RESET)...");
             const db = await window._zakapp_db_promise;
-            if (db && !db.destroyed) {
-                if (typeof db.remove === 'function') {
-                    await db.remove();
+            if (db && !(db as any).destroyed) {
+                if (typeof (db as any).remove === 'function') {
+                    await (db as any).remove();
                     console.log("DatabaseService: DB Removed.");
                 } else {
                     console.warn("DatabaseService: missing remove() method");

@@ -22,18 +22,44 @@
     "downlevelIteration": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@components/*": ["src/components/*"],
-      "@pages/*": ["src/pages/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@contexts/*": ["src/contexts/*"],
-      "@services/*": ["src/services/*"],
-      "@utils/*": ["src/utils/*"],
-      "@types/*": ["src/types/*"],
-      "@data/*": ["src/data/*"],
-      "@zakapp/shared": ["../shared/src/index.ts"],
-      "@zakapp/shared/*": ["../shared/src/*"]
-    }
+      "@/*": [
+        "src/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@pages/*": [
+        "src/pages/*"
+      ],
+      "@hooks/*": [
+        "src/hooks/*"
+      ],
+      "@contexts/*": [
+        "src/contexts/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@types/*": [
+        "src/types/*"
+      ],
+      "@data/*": [
+        "src/data/*"
+      ],
+      "@zakapp/shared": [
+        "../shared/src/index.ts"
+      ],
+      "@zakapp/shared/*": [
+        "../shared/src/*"
+      ]
+    },
+    "types": [
+      "vite/client",
+      "node"
+    ]
   },
   "include": [
     "src"
