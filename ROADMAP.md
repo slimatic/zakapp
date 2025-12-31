@@ -57,3 +57,14 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [x] **Replication Plugin**: Enable RxDB Replication to a secure CouchDB/GraphQL endpoint.
 - [x] **E2E Encryption Layer**: Ensure all replicated data is encrypted on-device (Host-Proof Hosting).
 - [x] **Conflict Resolution**: "Last-Write-Wins" merging handled by RxDB; passwords auto-heal.
+
+## Phase 6: V1.0 Launch Readiness (The "Onboarding" Engine)
+*Goal: Remove friction for non-expert users and ensure rock-solid privacy.*
+
+- [ ] **Critical Hotfix**: Resolve Profile Update 404 error (User Details Persistence).
+- [ ] **Sync Optimization**: Implement "Smart Delta Sync" (avoid 7k record re-fetch) and audit E2E encryption.
+- [ ] **Knowledge Hub**: "Zakat Encyclopedia" (Static & Offline-ready) accessible via Settings/Sidebar.
+- [ ] **Onboarding Wizard**: Interactive first-run tutorial covering Assets, Liabilities, Nisab Records, and Payments.
+- [ ] **Terminology Trust**: Add rich tooltips for 'Hawl', 'Nisab' with Arabic script and simple definitions.
+- [ ] **Smart Navigation**: Implement "Next Best Action" CTAs to prevent dead-ends after asset entry.
+- [ ] **Date Localization**: Dual display (Gregorian/Hijri) with +/- 1 day moon adjustment settings.

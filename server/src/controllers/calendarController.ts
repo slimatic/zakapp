@@ -167,7 +167,7 @@ export const calculateZakatYear = async (req: AuthenticatedRequest, res: Respons
     return res.status(500).json({
       success: false,
       error: 'INTERNAL_ERROR',
-        message: 'Failed to calculate Zakat year'
+      message: 'Failed to calculate Zakat year'
     });
   }
 };
@@ -231,18 +231,21 @@ export const updateCalendarPreference = async (req: AuthenticatedRequest, res: R
       });
     }
 
-    const { calendarType } = req.body;
+    const { calendarType, preferredCalendar } = req.body;
+    const typeToUpdate = calendarType || preferredCalendar;
 
     // Validation
-    if (!calendarType) {
+    if (!typeToUpdate) {
       return res.status(400).json({
         success: false,
         error: 'MISSING_CALENDAR_TYPE',
-        message: 'calendarType is required'
+        message: 'calendarType or preferredCalendar is required'
       });
     }
 
-    if (!['GREGORIAN', 'HIJRI'].includes(calendarType)) {
+    const normalizedType = typeToUpdate.toUpperCase();
+
+    if (!['GREGORIAN', 'HIJRI'].includes(normalizedType)) {
       return res.status(400).json({
         success: false,
         error: 'INVALID_CALENDAR_TYPE',
@@ -253,12 +256,12 @@ export const updateCalendarPreference = async (req: AuthenticatedRequest, res: R
     // Update user preference
     await prisma.user.update({
       where: { id: userId },
-      data: { preferredCalendar: calendarType.toLowerCase() }
+      data: { preferredCalendar: normalizedType.toLowerCase() }
     });
 
     return res.status(200).json({
       success: true,
-      calendarType,
+      calendarType: normalizedType,
       message: 'Calendar preference updated successfully'
     });
   } catch (error) {

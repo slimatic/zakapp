@@ -97,4 +97,5 @@ dist/
 
 # Local backups and build artifacts
 backups/
-client/build_root_backup*/
+# Agent artifacts
+.agent/

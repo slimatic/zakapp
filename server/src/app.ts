@@ -35,6 +35,7 @@ import analyticsRoutes from './routes/analytics';
 import snapshotsRoutes from './routes/snapshots';
 import paymentsRoutes from './routes/payments';
 import userRoutes from './routes/user';
+import calendarRoutes from './routes/calendar';
 import nisabYearRecordsRoutes from './routes/nisab-year-records';
 import feedbackRoutes from './routes/feedback';
 import adminEncryptionRoutes from './routes/admin/encryption';
@@ -143,6 +144,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/snapshots', snapshotsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/calendar', calendarRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/admin/encryption', adminEncryptionRoutes);
 // Mount development-only diagnostics
