@@ -38,6 +38,8 @@ router.post('/zakat-year', authenticate, calculateZakatYear);
 
 // User calendar preference routes
 router.get('/preference', authenticate, getCalendarPreference);
+router.get('/preferences', authenticate, getCalendarPreference); // Alias
 router.put('/preference', authenticate, updateCalendarPreference);
+router.patch('/preferences', authenticate, updateCalendarPreference); // Client uses PATCH /preferences
 
 export default router;
