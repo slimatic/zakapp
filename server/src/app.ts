@@ -144,6 +144,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/snapshots', snapshotsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/users', userRoutes); // Alias for consistency (hotfix for 404s)
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/admin/encryption', adminEncryptionRoutes);
