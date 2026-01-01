@@ -15,16 +15,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-// import { apiService } from '../services/api';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
+import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
-import { QuickActionCard } from '../components/dashboard/QuickActionCard';
 import { ActiveRecordWidget } from '../components/dashboard/ActiveRecordWidget';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
@@ -34,6 +32,7 @@ import { useUserOnboarding } from '../hooks/useUserOnboarding';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '../types';
+import { useBestAction } from '../hooks/useBestAction';
 
 /**
  * Educational Module Component
@@ -133,6 +132,15 @@ const EducationalModule: React.FC = () => {
           <div className="pt-4 border-t border-teal-200">
             <h3 className="font-semibold text-gray-900 mb-3">Learn More</h3>
             <div className="space-y-2">
+              <Link
+                to="/learn"
+                className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
+              >
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                </svg>
+                Visit Learning Center
+              </Link>
               <a
                 href="https://youtube.com/playlist?list=PLXguldgkbZPffh6p4efOetXkTeJATAbcS&si=CoJ4JB5dLrJDgNS7"
                 target="_blank"
@@ -149,15 +157,6 @@ const EducationalModule: React.FC = () => {
                 </svg>
                 Watch: Simple Zakat Guide (Video Series)
               </a>
-              <Link
-                to="/learn"
-                className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
-              >
-                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-                </svg>
-                Visit Learning Center
-              </Link>
             </div>
           </div>
         </div>
@@ -176,41 +175,66 @@ const EducationalModule: React.FC = () => {
  * Dashboard Component - Refactored as Central Hub
  * 
  * Features:
- * - Progressive disclosure based on user state
- * - Empty state with onboarding guidance
- * - Active record status display
- * - Quick action cards
- * - Educational module
- * - Wealth summary
+ * - Smart Journey Card (OnboardingGuide + NextBestAction)
+ * - Wealth Summary
+ * - Active Record Widget
+ * - Educational Module
  */
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { currentStep, markComplete, completedSteps } = useUserOnboarding();
+  // We keep completedSteps from useUserOnboarding or derive them dynamically?
+  // Let's rely on local derivation for "Smart" steps to be consistent.
   const maskedCurrency = useMaskedCurrency();
 
   // Local Data Repositories (RxDB)
   const { assets, isLoading: assetsLoading, error: assetsError } = useAssetRepository();
   const { activeRecord, isLoading: recordsLoading, error: recordsError } = useNisabRecordRepository();
+  const { payments, isLoading: paymentsLoading } = usePaymentRepository();
 
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeRecord !== null;
-
-  // T026: Redirect new users to Onboarding Wizard
-  // If no assets and no local preferences, assume new user.
-  useEffect(() => {
-    if (!assetsLoading && !hasAssets && user?.id) {
-      const localPrefs = localStorage.getItem(`zakapp_local_prefs_${user.id}`);
-      if (!localPrefs) {
-        navigate('/onboarding');
-      }
-    }
-  }, [assetsLoading, hasAssets, navigate, user?.id]);
+  const hasPayments = payments.length > 0;
 
   // Calculate total wealth
   const totalWealth = assets.reduce((sum: number, asset: Asset) => {
     return sum + (asset.value || 0);
   }, 0);
+
+  // Determine completed steps based on state
+  const completedSteps = useMemo(() => {
+    const steps: number[] = [];
+    if (hasAssets) steps.push(1);
+    // Logic: If user has significant assets, they should have a record.
+    if (hasActiveRecord) steps.push(2);
+    // Step 3 (Payments) is completed if a payment is recorded
+    if (hasPayments) steps.push(3);
+    return steps;
+  }, [hasAssets, hasActiveRecord, hasPayments]);
+
+  const isOnboardingComplete = completedSteps.includes(3);
+
+  // Use the new Smart Action hook
+  // Pass isOnboardingComplete to prevent premature "Maintenance" suggestions
+  const bestAction = useBestAction(
+    user,
+    assets,
+    activeRecord,
+    hasAssets,
+    hasActiveRecord,
+    totalWealth,
+    isOnboardingComplete
+  );
+
+  // Determine current onboarding step based on state
+  const currentStep = useMemo(() => {
+    if (!hasAssets) return 1;
+    if (!hasActiveRecord && totalWealth > 0) return 2;
+    // If Onboarding is "Complete", we default to 3 (Tracking Payments) 
+    // OR return to 1 if we want the "Keep Up Good Work" cycle. 
+    // Since OnboardingGuide handles `bestAction` overrides, setting 3 here is safe default.
+    return 3;
+  }, [hasAssets, hasActiveRecord, totalWealth]);
 
   // Get Nisab threshold (use live value for consistency with other pages)
   const nisabBasis = (activeRecord?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
@@ -218,7 +242,7 @@ export const Dashboard: React.FC = () => {
   const nisabThreshold = nisabAmount || 5000; // Default fallback
 
   // Loading state
-  if (assetsLoading || recordsLoading) {
+  if (assetsLoading || recordsLoading || paymentsLoading) {
     return (
       <div className="container mx-auto px-4 py-6 space-y-6">
         <div className="mb-6">
@@ -246,152 +270,6 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  // Quick Action Cards Configuration
-  const getQuickActions = () => {
-    // 1. Zakat Due Alert
-    const isZakatDue = activeRecord?.hawlCompletionDate &&
-      new Date(activeRecord.hawlCompletionDate) <= new Date();
-
-    if (isZakatDue) {
-      return [
-        {
-          title: 'Calculate & Pay Zakat',
-          description: `Your Hawl period ended on ${new Date(activeRecord.hawlCompletionDate!).toLocaleDateString()}. Finalize your record and pay Zakat.`,
-          icon: (
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          ),
-          href: `/nisab-records/${activeRecord.id}`, // Link to specific record
-          variant: 'alert' as const,
-        },
-        // Still allow adding assets as secondary
-        {
-          title: 'Update Assets',
-          description: 'Ensure asset values are accurate before finalizing',
-          icon: (
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          ),
-          href: '/assets',
-        },
-      ];
-    }
-
-    // 2. New User / No Assets
-    if (!hasAssets) {
-      return [
-        {
-          title: 'Add Your First Asset',
-          description: 'Start tracking your wealth by adding your first asset',
-          icon: (
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-          ),
-          href: '/assets/new',
-          variant: 'primary' as const,
-        },
-      ];
-    }
-
-    // 3. Has assets but no record: Create Nisab Record
-    if (!hasActiveRecord) {
-      return [
-        {
-          title: 'Create Nisab Record',
-          description: 'Start tracking your Hawl period to monitor Zakat obligations',
-          icon: (
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          ),
-          href: '/nisab-records',
-          variant: 'primary' as const,
-        },
-        {
-          title: 'Add More Assets',
-          description: 'Continue building your wealth portfolio',
-          icon: (
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-          ),
-          href: '/assets/new',
-        },
-      ];
-    }
-
-    // 4. Stale Assets Check (> 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const hasStaleAssets = assets.some(asset => new Date(asset.updatedAt) < thirtyDaysAgo);
-
-    if (hasStaleAssets) {
-      return [
-        {
-          title: 'Review Asset Values',
-          description: 'Some assets haven\'t been updated in over 30 days. Keep your calculations accurate.',
-          icon: (
-            <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          ),
-          href: '/assets',
-          variant: 'warning' as const,
-        },
-        {
-          title: 'View All Records',
-          description: 'Manage your Nisab Year Records and history',
-          icon: (
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          ),
-          href: '/nisab-records',
-        },
-      ];
-    }
-
-    // 5. Default/Passive State
-    return [
-      {
-        title: 'View All Records',
-        description: 'Manage your Nisab Year Records and history',
-        icon: (
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-        ),
-        href: '/nisab-records',
-      },
-      {
-        title: 'Update Assets',
-        description: 'Keep your asset values current and accurate',
-        icon: (
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        ),
-        href: '/assets',
-      },
-      {
-        title: 'Add Asset',
-        description: 'Add new assets to your portfolio',
-        icon: (
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-        ),
-        href: '/assets/new',
-      },
-    ];
-  };
-
-  const quickActions = getQuickActions();
-
   return (
     <div className="container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6" id="main-content">
       {/* Dashboard Header */}
@@ -401,82 +279,18 @@ export const Dashboard: React.FC = () => {
         hasActiveRecord={hasActiveRecord}
       />
 
-      {/* T022: Empty State - No Assets */}
-      {!hasAssets && (
-        <div className="space-y-6">
-          {/* Onboarding Guide */}
-          <OnboardingGuide
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-          />
+      {/* Primary: Smart Journey Card */}
+      {/* This replaces both "OnboardingGuide" and "NextActionCard" with a single unified component */}
+      <OnboardingGuide
+        currentStep={currentStep as 1 | 2 | 3}
+        completedSteps={completedSteps}
+        bestAction={bestAction || undefined}
+        isOnboardingComplete={isOnboardingComplete}
+      />
 
-          {/* Quick Actions for New Users */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {quickActions.map((action, index) => (
-              <QuickActionCard
-                key={index}
-                title={action.title}
-                description={action.description}
-                icon={action.icon}
-                href={action.href}
-                variant={action.variant}
-              />
-            ))}
-          </div>
-
-          {/* Educational Module */}
-          <EducationalModule />
-        </div>
-      )}
-
-      {/* T022 & T023: Has Assets State */}
+      {/* Main Content Area */}
       {hasAssets && (
         <div className="space-y-6">
-          {/* Show onboarding guide unless all steps are completed */}
-          {!completedSteps.includes(3) && (
-            <OnboardingGuide
-              currentStep={currentStep}
-              completedSteps={completedSteps}
-            />
-          )}
-
-          {/* Onboarding Prompt: First asset added, encourage Nisab record creation */}
-          {!hasActiveRecord && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 p-4 sm:p-6">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0">
-                  <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Great start! You have {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: (user as any)?.preferences?.currency || 'USD',
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    }).format(totalWealth)} in tracked assets.
-                  </h3>
-                  <p className="text-gray-700 mb-4">
-                    Ready to start tracking your Zakat obligations? Create a Nisab Year Record
-                    to monitor your Hawl period and calculate when Zakat becomes due.
-                  </p>
-                  <Link
-                    to="/nisab-records?create=true"
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Create Nisab Record
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* T023: Active Record Widget */}
           {hasActiveRecord && activeRecord && (
@@ -498,26 +312,6 @@ export const Dashboard: React.FC = () => {
               />
             </div>
           </div>
-
-          {/* T024: Quick Action Cards */}
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {quickActions.map((action, index) => (
-                <QuickActionCard
-                  key={index}
-                  title={action.title}
-                  description={action.description}
-                  icon={action.icon}
-                  href={action.href}
-                  variant={action.variant}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* T025: Educational Module */}
-          <EducationalModule />
 
           {/* Recent Assets Summary */}
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -565,18 +359,18 @@ export const Dashboard: React.FC = () => {
                 </div>
               ))}
 
-              {assets.length > 5 && (
-                <Link
-                  to="/assets"
-                  className="block text-center py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  +{assets.length - 5} more assets
-                </Link>
+              {assets.length === 0 && (
+                <div className="text-center py-6 text-gray-500">
+                  No assets added yet.
+                </div>
               )}
             </div>
           </div>
         </div>
       )}
+
+      {/* Educational Module (Always visible at bottom) */}
+      <EducationalModule />
     </div>
   );
 };

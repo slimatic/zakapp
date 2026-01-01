@@ -16,11 +16,20 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface OnboardingGuideProps {
   currentStep: 1 | 2 | 3;
   completedSteps: number[];
+  bestAction?: {
+    stepNumber: 1 | 2 | 3;
+    title: string;
+    description: string;
+    label: string;
+    href: string;
+    variant: 'urgent' | 'primary' | 'success' | 'warning' | 'neutral';
+  };
+  isOnboardingComplete?: boolean;
 }
 
 interface Step {
@@ -29,33 +38,25 @@ interface Step {
   description: string;
   action: string;
   href: string;
+  variant?: string;
 }
 
 /**
- * OnboardingGuide component - 3-step guided onboarding for new users
+ * OnboardingGuide component - Smart Journey Card
  * 
- * Features:
- * - Visual step indicators (numbered circles)
- * - Current step highlighted, completed steps checkmarked
- * - Collapsible with localStorage persistence
- * - Progressive disclosure approach
- * - Clear call-to-action for each step
- * 
- * Steps:
- * 1. Add Assets - Add your first asset to start tracking
- * 2. Create Record - Create a Nisab Year Record to begin Hawl
- * 3. Track Zakat - Monitor your progress and calculate Zakat
- * 
- * @param currentStep - Current step number (1, 2, or 3)
- * @param completedSteps - Array of completed step numbers
+ * Merges standard onboarding steps with dynamic "Next Best Action" intelligence.
+ * The active priority action will highlight the corresponding step to guide the user.
  */
 export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
   currentStep,
   completedSteps,
+  bestAction,
+  isOnboardingComplete = false
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const steps: Step[] = [
+  // Base definition of steps
+  const baseSteps: Step[] = [
     {
       number: 1,
       title: 'Add Assets',
@@ -78,6 +79,22 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
       href: '/payments',
     },
   ];
+
+  // Merge Base Steps with Intelligent Action Context
+  const steps = baseSteps.map(step => {
+    // If this step matches the Best Action, override its content/visuals
+    if (bestAction && bestAction.stepNumber === step.number) {
+      return {
+        ...step,
+        title: bestAction.title,
+        description: bestAction.description,
+        action: bestAction.label,
+        href: bestAction.href,
+        variant: bestAction.variant
+      };
+    }
+    return step;
+  });
 
   /**
    * Load collapsed state from localStorage on mount
@@ -109,8 +126,105 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
    * Determine if a step is current
    */
   const isStepCurrent = (stepNumber: number): boolean => {
+    // If we have a specific best action targeting this step, treat it as current even if technically completed
+    // This allows maintenance tasks (like "Update Assets") to reactivate Step 1
+    if (bestAction && bestAction.stepNumber === stepNumber) return true;
+
     return stepNumber === currentStep && !isStepCompleted(stepNumber);
   };
+
+  // Helper for dynamic styles
+  const getStepStyles = (completed: boolean, current: boolean, variant?: string) => {
+    if (current && variant === 'urgent') return 'bg-red-50 border-red-200 shadow-md ring-1 ring-red-200';
+    if (current && variant === 'warning') return 'bg-amber-50 border-amber-200 shadow-sm';
+
+    if (completed && !current) return 'bg-green-50 border-green-200';
+    if (current) return 'bg-white border-blue-300 shadow-sm';
+
+    return 'bg-gray-50 border-gray-200';
+  };
+
+  const getBadgeStyles = (completed: boolean, current: boolean, variant?: string) => {
+    if (current && variant === 'urgent') return 'bg-red-600 text-white animate-pulse';
+    if (current && variant === 'warning') return 'bg-amber-500 text-white';
+
+    if (completed && !current) return 'bg-green-600 text-white';
+    if (current) return 'bg-blue-600 text-white';
+
+    return 'bg-gray-300 text-gray-600';
+  };
+
+  const getTitleStyles = (completed: boolean, current: boolean, variant?: string) => {
+    if (current && variant === 'urgent') return 'text-red-700 font-bold';
+    if (current && variant === 'warning') return 'text-amber-800 font-bold';
+
+    if (completed && !current) return 'text-green-700';
+    if (current) return 'text-blue-700';
+
+    return 'text-gray-600';
+  };
+
+  const getButtonStyles = (variant?: string) => {
+    const base = "inline-flex items-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 rounded min-h-[44px] py-2 px-4 transition-colors ";
+
+    if (variant === 'urgent') return base + "bg-red-600 text-white hover:bg-red-700 focus:ring-red-600 shadow-sm";
+    if (variant === 'warning') return base + "bg-amber-100 text-amber-800 hover:bg-amber-200 focus:ring-amber-500";
+
+    return base + "text-blue-600 hover:text-blue-700 hover:underline focus:ring-blue-600 px-3"; // Standard link style
+  };
+
+  // RENDER: Maintenance Mode (Single Card) - replaces the 3-step guide on completion
+  if (isOnboardingComplete && bestAction) {
+    const isWarning = bestAction.variant === 'warning';
+    const isUrgent = bestAction.variant === 'urgent';
+    // Base colors for maintenance mode
+    const bgClass = isUrgent ? 'bg-red-50 border-red-200' :
+      isWarning ? 'bg-amber-50 border-amber-200' :
+        'bg-blue-50 border-blue-200';
+    const textClass = isUrgent ? 'text-red-900' :
+      isWarning ? 'text-amber-900' :
+        'text-blue-900';
+    const btnClass = isUrgent ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' :
+      isWarning ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500' :
+        'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500';
+
+    return (
+      <div className={`rounded-xl border shadow-sm p-4 sm:p-5 transition-all duration-300 ${bgClass}`}>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex gap-4 items-start">
+            <div className={`p-2 rounded-lg shrink-0 ${isUrgent ? 'bg-red-100 text-red-600' : isWarning ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+              {/* Dynamic Icon based on variant */}
+              {isUrgent ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              ) : isWarning ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              )}
+            </div>
+            <div>
+              <h3 className={`text-lg font-semibold ${textClass} mb-1`}>
+                {bestAction.title}
+              </h3>
+              <p className={`text-sm ${textClass} opacity-90`}>
+                {bestAction.description}
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to={bestAction.href}
+            className={`inline-flex items-center justify-center px-4 py-2 font-medium text-white rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${btnClass} whitespace-nowrap w-full sm:w-auto`}
+          >
+            {bestAction.label}
+            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 shadow-sm">
@@ -133,7 +247,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
               />
             </svg>
           </div>
-          <h2 className="text-lg font-bold text-gray-900">Getting Started Guide</h2>
+          <h2 className="text-lg font-bold text-gray-900">Your Zakat Journey</h2>
         </div>
 
         {/* Toggle Button */}
@@ -164,36 +278,12 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
       {!isCollapsed && (
         <div className="space-y-4">
           <p className="text-sm text-gray-700 mb-4">
-            Follow these three simple steps to start tracking your Zakat obligations:
+            Follow these steps to track your Zakat obligations. We'll highlight what needs attention.
           </p>
-
-          {/* Quick Helper Links - Visible until onboarding is fully complete */}
-          {completedSteps.length < 3 && (
-            <div className="flex flex-wrap gap-4 mb-4">
-              <Link
-                to="/onboarding"
-                className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Restart Setup Wizard
-              </Link>
-              <Link
-                to="/learn"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                Read Learning Guide
-              </Link>
-            </div>
-          )}
 
           {/* Steps */}
           <div className="space-y-3">
-            {steps.map((step, index) => {
+            {steps.map((step) => {
               const completed = isStepCompleted(step.number);
               const current = isStepCurrent(step.number);
 
@@ -201,22 +291,18 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                 <div
                   key={step.number}
                   className={`
-                    flex items-start gap-4 p-4 rounded-lg border-2 transition-all
-                    ${completed ? 'bg-green-50 border-green-200' : ''}
-                    ${current ? 'bg-white border-blue-300 shadow-sm' : ''}
-                    ${!completed && !current ? 'bg-gray-50 border-gray-200' : ''}
+                    flex items-start gap-4 p-4 rounded-lg border-2 transition-all duration-300
+                    ${getStepStyles(completed, current, step.variant)}
                   `}
                 >
                   {/* Step Number / Checkmark */}
                   <div
                     className={`
-                      flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
-                      ${completed ? 'bg-green-600 text-white' : ''}
-                      ${current ? 'bg-blue-600 text-white' : ''}
-                      ${!completed && !current ? 'bg-gray-300 text-gray-600' : ''}
+                      flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors
+                      ${getBadgeStyles(completed, current, step.variant)}
                     `}
                   >
-                    {completed ? (
+                    {!current && completed ? (
                       <svg
                         className="w-5 h-5"
                         xmlns="http://www.w3.org/2000/svg"
@@ -241,14 +327,12 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                     <h3
                       className={`
                         font-semibold mb-1
-                        ${completed ? 'text-green-700' : ''}
-                        ${current ? 'text-blue-700' : ''}
-                        ${!completed && !current ? 'text-gray-600' : ''}
+                        ${getTitleStyles(completed, current, step.variant)}
                       `}
                     >
                       {step.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-gray-600 mb-3">
                       {step.description}
                     </p>
 
@@ -256,14 +340,18 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                     {current && (
                       <Link
                         to={step.href}
-                        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded min-h-[44px] py-2 px-3"
+                        className={getButtonStyles(step.variant)}
                       >
-                        {step.action} →
+                        {/* Icon for Urgent/Warning */}
+                        {step.variant === 'urgent' && <span className="mr-2">⚠️</span>}
+                        {step.action}
+                        {/* Standard arrow if not button-like */}
+                        {!(step.variant?.match(/urgent|warning/)) && " →"}
                       </Link>
                     )}
 
                     {/* Completed State with Add More option */}
-                    {completed && (
+                    {!current && completed && (
                       <div className="flex items-center gap-3">
                         <span className="text-xs font-medium text-green-600">
                           ✓ Completed
