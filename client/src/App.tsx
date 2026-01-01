@@ -23,7 +23,6 @@ import { QueryProvider } from './services/queryClient';
 import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
 import { OnboardingWizard } from './pages/onboarding/OnboardingWizard';
-import { KnowledgeCenter } from './pages/knowledge/KnowledgeCenter';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
 import {
@@ -82,6 +81,7 @@ const AssetDetails = lazy(() => import('./components/assets').then(m => ({ defau
 
 // Help and documentation
 const GettingStarted = lazy(() => import('./components/help/GettingStarted').then(m => ({ default: m.GettingStarted })));
+const KnowledgeHub = lazy(() => import('./pages/knowledge/KnowledgeHub').then(m => ({ default: m.KnowledgeHub })));
 
 // Tracking & Analytics pages - lazy loaded for optimal performance
 // const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
@@ -234,6 +234,22 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
+
+                    {/* Knowledge Hub / Ilm Hub */}
+                    <Route
+                      path="/learn"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <KnowledgeHub />
+                            </Suspense>
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
+
+
 
                     {/* User routes - lazy loaded with profile skeleton */}
                     <Route

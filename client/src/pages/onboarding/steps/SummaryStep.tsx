@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { TermHelp } from '../../../components/ui/TermHelp';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useOnboarding, AssetData } from '../context/OnboardingContext';
@@ -358,7 +359,7 @@ export const SummaryStep: React.FC = () => {
                     </h4>
                     <div className="space-y-3 leading-relaxed opacity-90">
                         <p>
-                            Your <strong>Hawl Period</strong> (354 days) has begun. If your wealth remains above the Nisab threshold
+                            Your <strong><TermHelp term="Hawl" arabic="الحول" definition="The lunar year period (354 days) that wealth must be held continuously before Zakat becomes due.">Hawl Period</TermHelp></strong> (354 days) has begun. If your wealth remains above the <strong><TermHelp term="Nisab" arabic="النصاب" definition="The minimum amount of wealth a Muslim must own for a full lunar year to be eligible to pay Zakat.">Nisab threshold</TermHelp></strong>
                             until <strong>{createdRecord?.hawlCompletionDate ? new Date(createdRecord.hawlCompletionDate).toLocaleDateString() : 'the end date'}</strong>,
                             Zakat will be due.
                         </p>
@@ -367,13 +368,33 @@ export const SummaryStep: React.FC = () => {
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-4 bg-gray-50 border-b border-gray-100">
-                        <p className="text-gray-600 font-medium text-center text-sm">Your New Nisab Record</p>
+                        <p className="text-gray-600 font-medium text-center text-sm">Your New <TermHelp term="Nisab Record" arabic="سجل النصاب" definition="A digital record tracking your Zakatable assets over a specific lunar year.">Nisab Record</TermHelp></p>
                     </div>
                     {createdRecord && (
                         <div className="p-4">
                             <ActiveRecordWidget record={createdRecord} />
                         </div>
                     )}
+                </div>
+
+                <div
+                    onClick={() => navigate('/learn')}
+                    className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-emerald-100 transition-colors group"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white p-2 rounded-lg text-emerald-600 shadow-sm group-hover:scale-110 transition-transform">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-emerald-900 text-sm">Have Questions?</h4>
+                            <p className="text-emerald-700 text-xs">Visit the Ilm Hub for guides & FAQs</p>
+                        </div>
+                    </div>
+                    <svg className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                 </div>
 
                 <div className="pt-4 space-y-3">
