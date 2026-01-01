@@ -337,40 +337,60 @@ export const SummaryStep: React.FC = () => {
 
     if (postOnboardingStep === 'nisab') {
         return (
-            <div className="space-y-6">
-                <div className="text-center">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Your Nisab Year has Started</h3>
-                    <p className="text-gray-500 mb-6">
-                        We've created a record to track your wealth over the lunar year (Hawl).
-                    </p>
+            <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="text-center space-y-2">
+                    <h2 className="text-3xl font-bold text-emerald-800" lang="ar" dir="rtl" aria-label="As-salamu alaykum">
+                        السلام عليكم
+                    </h2>
+                    <p className="text-sm text-emerald-600/80 uppercase tracking-widest font-medium">Peace be upon you</p>
+
+                    <div className="pt-4">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Your Nisab Year has Started</h3>
+                        <p className="text-gray-500 max-w-sm mx-auto">
+                            We've created a record to track your wealth over the lunar year (Hawl).
+                        </p>
+                    </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-                    <h4 className="font-semibold mb-2">What happens next?</h4>
-                    <p className="mb-2">
-                        Your <strong>Hawl Period</strong> (354 days) has begun. If your wealth remains above the Nisab threshold
-                        until <strong>{createdRecord?.hawlCompletionDate ? new Date(createdRecord.hawlCompletionDate).toLocaleDateString() : 'the end date'}</strong>,
-                        Zakat will be due.
-                    </p>
-                    <p>
-                        You can update your assets and liabilities anytime from the Dashboard.
-                    </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 text-sm text-blue-900 shadow-sm">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <span className="text-xl">🌙</span> What happens next?
+                    </h4>
+                    <div className="space-y-3 leading-relaxed opacity-90">
+                        <p>
+                            Your <strong>Hawl Period</strong> (354 days) has begun. If your wealth remains above the Nisab threshold
+                            until <strong>{createdRecord?.hawlCompletionDate ? new Date(createdRecord.hawlCompletionDate).toLocaleDateString() : 'the end date'}</strong>,
+                            Zakat will be due.
+                        </p>
+                    </div>
                 </div>
 
-                <div className="text-center pt-2">
-                    <p className="text-gray-600 font-medium">Let's look at your Nisab record:</p>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-4 bg-gray-50 border-b border-gray-100">
+                        <p className="text-gray-600 font-medium text-center text-sm">Your New Nisab Record</p>
+                    </div>
+                    {createdRecord && (
+                        <div className="p-4">
+                            <ActiveRecordWidget record={createdRecord} />
+                        </div>
+                    )}
                 </div>
 
-                {createdRecord && (
-                    <ActiveRecordWidget record={createdRecord} />
-                )}
+                <div className="pt-4 space-y-3">
+                    <button
+                        onClick={completeOnboarding}
+                        className="w-full bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-semibold shadow-lg shadow-gray-200 py-4 transition-all active:scale-[0.98]"
+                    >
+                        Go to Dashboard
+                    </button>
 
-                <button
-                    onClick={completeOnboarding}
-                    className="w-full bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium shadow-lg py-3 transition-colors"
-                >
-                    Go to Dashboard
-                </button>
+                    <button
+                        onClick={completeOnboarding}
+                        className="w-full text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl font-medium py-3 transition-colors text-sm"
+                    >
+                        I have more assets to add
+                    </button>
+                </div>
             </div>
         );
     }
