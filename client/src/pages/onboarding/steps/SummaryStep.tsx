@@ -269,18 +269,35 @@ export const SummaryStep: React.FC = () => {
     // --- Post-Onboarding Views ---
 
     if (postOnboardingStep === 'wealth') {
-        const assetsForChart: Asset[] = assetList.map((a, index) => ({
-            id: `temp-${index}`,
-            name: `Asset ${index}`,
-            type: ((a as any).type || 'other') as any,
-            value: a.value || 0,
-            currency: 'USD',
-            isZakatable: true,
-            isActive: true,
-            userId: user?.id || 'temp',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        }));
+        const assetsForChart: Asset[] = (Object.entries(data.assets) as [string, AssetData][])
+            .filter(([_, assetData]) => assetData.enabled)
+            .map(([key, assetData], index) => {
+                const typeMap: Record<string, string> = {
+                    cash: 'CASH',
+                    gold: 'GOLD',
+                    silver: 'SILVER',
+                    stocks: 'INVESTMENT_ACCOUNT',
+                    stock: 'INVESTMENT_ACCOUNT',
+                    crypto: 'CRYPTOCURRENCY',
+                    realEstate: 'REAL_ESTATE',
+                    retirement: 'RETIREMENT',
+                    business: 'BUSINESS_ASSETS',
+                    receivables: 'DEBTS_OWED_TO_YOU'
+                };
+
+                return {
+                    id: `temp-${index}`,
+                    name: `Asset ${index}`,
+                    type: (typeMap[key] || 'OTHER') as any,
+                    value: assetData.value || 0,
+                    currency: 'USD',
+                    isZakatable: true,
+                    isActive: true,
+                    userId: user?.id || 'temp',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+            });
 
         return (
             <div className="space-y-6">
