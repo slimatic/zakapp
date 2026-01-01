@@ -39,7 +39,7 @@ interface ProfileFormData {
 }
 
 export const ProfileForm: React.FC = () => {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const queryClient = useQueryClient();
     const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
 
@@ -55,6 +55,24 @@ export const ProfileForm: React.FC = () => {
             calendarType: (user as any)?.preferences?.calendarType || 'lunar'
         }
     });
+
+    // EFFECT: Sync local form state when the global user context updates (e.g. after refreshUser)
+    React.useEffect(() => {
+        if (user) {
+            setProfileData({
+                username: user.username || '',
+                email: user.email || '',
+                firstName: (user as any).firstName || '',
+                lastName: (user as any).lastName || '',
+                preferences: {
+                    currency: (user as any).settings?.currency || (user as any).preferences?.currency || 'USD',
+                    language: (user as any).settings?.language || (user as any).preferences?.language || 'en',
+                    zakatMethod: (user as any).settings?.preferredMethodology || (user as any).preferences?.zakatMethod || 'standard',
+                    calendarType: (user as any).settings?.preferredCalendar === 'hijri' ? 'lunar' : (user as any).preferences?.calendarType || 'lunar'
+                }
+            });
+        }
+    }, [user]);
 
     const currencies = [
         { code: 'USD', name: 'US Dollar' },
@@ -91,7 +109,8 @@ export const ProfileForm: React.FC = () => {
 
             return profileResult;
         },
-        onSuccess: () => {
+        onSuccess: async () => {
+            await refreshUser(); // Reload user data from backend to get updated flat fields
             queryClient.invalidateQueries({ queryKey: ['user', 'current'] });
             setShowSuccessMessage('Profile updated successfully!');
             setTimeout(() => setShowSuccessMessage(null), 5000);
