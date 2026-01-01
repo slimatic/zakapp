@@ -56,6 +56,8 @@ export const ProfileForm: React.FC = () => {
         }
     });
 
+    const [hijriAdjustment, setHijriAdjustment] = useState<number>((user as any)?.settings?.hijriAdjustment || 0);
+
     // EFFECT: Sync local form state when the global user context updates (e.g. after refreshUser)
     React.useEffect(() => {
         if (user) {
@@ -71,6 +73,7 @@ export const ProfileForm: React.FC = () => {
                     calendarType: (user as any).settings?.preferredCalendar === 'hijri' ? 'lunar' : (user as any).preferences?.calendarType || 'lunar'
                 }
             });
+            setHijriAdjustment((user as any).settings?.hijriAdjustment || 0);
         }
     }, [user]);
 
@@ -96,14 +99,15 @@ export const ProfileForm: React.FC = () => {
 
     // Update profile mutation
     const profileMutation = useMutation({
-        mutationFn: async (data: ProfileFormData) => {
+        mutationFn: async (data: ProfileFormData & { hijriAdjustment: number }) => {
             // Update general profile
             const profileResult = await apiService.updateProfile(data);
 
             // Update calendar preferences separately via new calendar API
             const calendarPrefs = {
                 preferredCalendar: data.preferences.calendarType === 'lunar' ? 'hijri' as const : 'gregorian' as const,
-                preferredMethodology: data.preferences.zakatMethod as 'standard' | 'hanafi' | 'shafi' | 'custom'
+                preferredMethodology: data.preferences.zakatMethod as 'standard' | 'hanafi' | 'shafi' | 'custom',
+                hijriAdjustment: data.hijriAdjustment
             };
             await apiService.updateCalendarPreferences(calendarPrefs);
 
@@ -119,7 +123,7 @@ export const ProfileForm: React.FC = () => {
 
     const handleProfileSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        profileMutation.mutate(profileData);
+        profileMutation.mutate({ ...profileData, hijriAdjustment });
     };
 
     return (
@@ -292,6 +296,30 @@ export const ProfileForm: React.FC = () => {
                             <p className="mt-1 text-xs text-gray-500">
                                 💡 Zakat is due after one lunar year (Hijri) from your last payment.
                                 Using the Hijri calendar is more Islamically accurate.
+                            </p>
+                        </div>
+
+                        {/* Hijri Adjustment Slider */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Hijri Date Adjustment (Moon Sighting)
+                            </label>
+                            <div className="flex items-center gap-4">
+                                <input
+                                    type="range"
+                                    min="-2"
+                                    max="2"
+                                    step="1"
+                                    value={hijriAdjustment}
+                                    onChange={(e) => setHijriAdjustment(parseInt(e.target.value))}
+                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                />
+                                <span className="text-sm font-medium text-gray-900 w-16 text-right">
+                                    {hijriAdjustment > 0 ? `+${hijriAdjustment}` : hijriAdjustment} Days
+                                </span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Adjust the Hijri calendar by +/- days to align with local moon sighting.
                             </p>
                         </div>
 

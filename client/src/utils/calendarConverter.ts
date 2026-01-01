@@ -57,9 +57,10 @@ export const HIJRI_MONTHS = [
 /**
  * Converts Gregorian date to Hijri date
  * @param date - Gregorian Date object or ISO string
+ * @param adjustment - Number of days to adjust (-2 to +2 usually)
  * @returns Hijri date object with year, month (1-12), and day (1-30)
  */
-export function gregorianToHijri(date: Date | string): HijriDate {
+export function gregorianToHijri(date: Date | string, adjustment: number = 0): HijriDate {
   let gregorianDate: Date;
 
   if (typeof date === 'string') {
@@ -85,27 +86,50 @@ export function gregorianToHijri(date: Date | string): HijriDate {
   const month = gregorianDate.getMonth() + 1; // JavaScript months are 0-indexed
   const day = gregorianDate.getDate();
 
-  return toHijri(year, month, day);
+  const standardHijri = toHijri(year, month, day);
+
+  if (adjustment === 0) {
+    return standardHijri;
+  }
+
+  return addDaysToHijriDate(standardHijri, adjustment);
 }
 
 /**
  * Converts Hijri date to Gregorian date
- * @param hijriYear - Hijri year (e.g., 1446)
+ * @param hijriYear - Hijri year
  * @param hijriMonth - Hijri month (1-12)
  * @param hijriDay - Hijri day (1-30)
+ * @param adjustment - Number of days to adjust (-2 to +2 usually)
  * @returns Gregorian Date object
  */
 export function hijriToGregorian(
   hijriYear: number,
   hijriMonth: number,
-  hijriDay: number
+  hijriDay: number,
+  adjustment: number = 0
 ): Date {
   if (hijriYear < 1 || hijriMonth < 1 || hijriMonth > 12 || hijriDay < 1 || hijriDay > 30) {
     throw new Error('Invalid Hijri date values');
   }
 
   const gregorian = toGregorian(hijriYear, hijriMonth, hijriDay);
-  return new Date(gregorian.gy, gregorian.gm - 1, gregorian.gd);
+  const date = new Date(gregorian.gy, gregorian.gm - 1, gregorian.gd);
+
+  if (adjustment === 0) {
+    return date;
+  }
+
+  // If the Hijri date was observed with an adjustment, it means the Gregorian date
+  // corresponding to this observed Hijri date should be shifted by the same adjustment.
+  // Wait, no.
+  // If Today (G) maps to H_standard.
+  // And we say Today maps to H_standard + 1 (adjustment +1).
+  // Then given H_input (which is H_standard + 1), we want to find G.
+  // toGregorian(H_input) -> G_standard (approx G + 1).
+  // We want G. So G = G_standard - 1.
+  // So we subtract the adjustment.
+  return addDaysGregorian(date, -adjustment);
 }
 
 /**
@@ -116,12 +140,12 @@ export function hijriToGregorian(
  */
 export function formatHijriDate(hijriDate: HijriDate, includeMonth: boolean = true): string {
   const { hd, hm, hy } = hijriDate;
-  
+
   if (includeMonth) {
     const monthName = HIJRI_MONTHS[hm - 1];
     return `${hd} ${monthName} ${hy} AH`;
   }
-  
+
   return `${hd}/${hm}/${hy} AH`;
 }
 
@@ -133,7 +157,7 @@ export function formatHijriDate(hijriDate: HijriDate, includeMonth: boolean = tr
  */
 export function formatGregorianDate(date: Date | string, formatString: string = 'MMMM d, yyyy'): string {
   const gregorianDate = typeof date === 'string' ? new Date(date) : date;
-  
+
   if (!isValid(gregorianDate)) {
     throw new Error('Invalid Gregorian date provided');
   }
@@ -144,11 +168,12 @@ export function formatGregorianDate(date: Date | string, formatString: string = 
 /**
  * Formats date with both Gregorian and Hijri representations
  * @param date - Gregorian Date object or ISO string
+ * @param adjustment - Number of days to adjust Hijri date
  * @returns Dual calendar format like "October 4, 2025 (20 Rabi' al-awwal 1447 AH)"
  */
-export function formatDualCalendar(date: Date | string): string {
+export function formatDualCalendar(date: Date | string, adjustment: number = 0): string {
   const gregorianDate = typeof date === 'string' ? new Date(date) : date;
-  
+
   if (!isValid(gregorianDate)) {
     throw new Error('Invalid Gregorian date provided');
   }
@@ -156,7 +181,7 @@ export function formatDualCalendar(date: Date | string): string {
   // Provide both ISO and human-friendly Gregorian formats to satisfy callers/tests
   const iso = formatGregorianDate(gregorianDate, 'yyyy-MM-dd');
   const human = formatGregorianDate(gregorianDate);
-  const hijriDate = gregorianToHijri(gregorianDate);
+  const hijriDate = gregorianToHijri(gregorianDate, adjustment);
   const hijriFormatted = formatHijriDate(hijriDate);
 
   return `${human} (${hijriFormatted}) [${iso}]`;
@@ -219,11 +244,11 @@ export function getHijriYearEnd(hijriYear: number): Date {
  * @returns Number of days between the dates
  */
 export function daysBetweenHijriDates(
-  start: { year: number; month: number; day: number },
-  end: { year: number; month: number; day: number }
+  start: HijriDate,
+  end: HijriDate
 ): number {
-  const startGregorian = hijriToGregorian(start.year, start.month, start.day);
-  const endGregorian = hijriToGregorian(end.year, end.month, end.day);
+  const startGregorian = hijriToGregorian(start.hy, start.hm, start.hd);
+  const endGregorian = hijriToGregorian(end.hy, end.hm, end.hd);
 
   const diffTime = endGregorian.getTime() - startGregorian.getTime();
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -236,12 +261,16 @@ export function daysBetweenHijriDates(
  * @returns New Hijri date
  */
 export function addDaysToHijriDate(
-  hijriDate: { year: number; month: number; day: number },
+  hijriDate: HijriDate,
   days: number
 ): HijriDate {
-  const gregorian = hijriToGregorian(hijriDate.year, hijriDate.month, hijriDate.day);
+  const gregorian = hijriToGregorian(hijriDate.hy, hijriDate.hm, hijriDate.hd);
   const newGregorian = addDaysGregorian(gregorian, days);
-  return gregorianToHijri(newGregorian);
+  return gregorianToHijri(newGregorian); // Note: This creates a circular dependency if gregorianToHijri calls addDaysToHijriDate
+  // Wait, if gregorianToHijri calls addDays, and addDays calls gregorianToHijri...
+  // We need to avoid infinite recursion.
+  // gregorianToHijri(d, adj) -> addDaysToHijriDate(h, adj) -> hijriToGregorian -> addDaysGregorian -> gregorianToHijri(d2, 0)
+  // As long as the second call uses adjustment=0 (default), it's fine.
 }
 
 /**
