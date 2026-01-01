@@ -389,7 +389,7 @@ export const SummaryStep: React.FC = () => {
                         </div>
                         <div>
                             <h4 className="font-semibold text-emerald-900 text-sm">Have Questions?</h4>
-                            <p className="text-emerald-700 text-xs">Visit the Ilm Hub for guides & FAQs</p>
+                            <p className="text-emerald-700 text-xs">Visit the Knowledge Hub for guides & FAQs</p>
                         </div>
                     </div>
                     <svg className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
