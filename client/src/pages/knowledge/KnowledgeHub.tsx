@@ -67,7 +67,7 @@ export const KnowledgeHub: React.FC = () => {
         <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header */}
             <div className="text-center space-y-4 mb-12">
-                <h1 className="text-4xl font-bold text-emerald-900 tracking-tight">Ilm Hub</h1>
+                <h1 className="text-4xl font-bold text-emerald-900 tracking-tight">Knowledge Hub</h1>
                 <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
                     A curated collection of relevant resources to help you understand Zakat. Explore FAQs, watch video guides, or read selected articles.
                 </p>

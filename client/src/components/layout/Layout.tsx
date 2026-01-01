@@ -111,7 +111,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       )
     },
     {
-      name: 'Ilm Hub',
+      name: 'Knowledge',
       href: '/learn',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,14 +138,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       ]
     },
     { name: 'Analytics', href: '/analytics' },
-    { name: 'Ilm Hub', href: '/learn' },
-  ];
-
-  const bottomNavItems = [
-    navigation[0], // Dashboard
-    navigation[1], // Assets
-    navigation[3], // Nisab
-    navigation[6], // Ilm Hub (index 6 after adding analytics index 5 and ilm hub index 6... wait previous analytics was 5, ilm is 6)
   ];
 
   /* 
@@ -156,14 +148,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
    * 3: Nisab
    * 4: Payments
    * 5: Analytics
-   * 6: Ilm Hub
+   * 6: Knowledge (Hidden from main menus, accessible via top header)
    */
   // Re-define bottomNavItems to be safe with indices
   const bottomNavReordered = [
     navigation[0], // Dashboard
     navigation[1], // Assets
     navigation[3], // Nisab
-    navigation[6], // Ilm Hub
   ];
 
   const isActive = (href: string) => {
@@ -274,6 +265,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="flex items-center gap-4">
               {/* Sync Status Indicator */}
               <SyncIndicator />
+
+              <Link
+                to="/learn"
+                className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+                aria-label="Knowledge Hub"
+                title="Knowledge Hub"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </Link>
 
               {/* Privacy Toggle - Global */}
               <button
