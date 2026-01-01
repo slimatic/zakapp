@@ -297,18 +297,7 @@ export const NisabYearRecordsPage: React.FC = () => {
               >
                 + New Record
               </button>
-              <button
-                onClick={() => {
-                  import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
-                    new ReportGenerator().generateMethodologyReport();
-                  });
-                }}
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
-                title="Download Zakat Calculation Methodology"
-              >
-                <span>📜</span>
-                <span className="hidden sm:inline">Methodology</span>
-              </button>
+
             </div>
           </div>
         </div>

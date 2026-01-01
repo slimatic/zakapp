@@ -21,9 +21,9 @@ import { apiService, UpdateProfileRequest, CreateAssetRequest, UpdateAssetReques
 // Authentication hooks
 export const useLogin = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => 
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
       apiService.login({ email, password }),
     onSuccess: () => {
       // Invalidate and refetch user data
@@ -47,7 +47,7 @@ export const useRegister = () => {
 
 export const useLogout = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: () => apiService.logout(),
     onSuccess: () => {
@@ -68,7 +68,7 @@ export const useCurrentUser = () => {
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (profileData: UpdateProfileRequest) => apiService.updateProfile(profileData),
     onSuccess: () => {
@@ -96,7 +96,7 @@ export const useAsset = (assetId: string) => {
 
 export const useCreateAsset = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (assetData: CreateAssetRequest) => apiService.createAsset(assetData),
     onSuccess: () => {
@@ -109,9 +109,9 @@ export const useCreateAsset = () => {
 
 export const useUpdateAsset = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ assetId, assetData }: { assetId: string; assetData: UpdateAssetRequest }) => 
+    mutationFn: ({ assetId, assetData }: { assetId: string; assetData: UpdateAssetRequest }) =>
       apiService.updateAsset(assetId, assetData),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
@@ -124,7 +124,7 @@ export const useUpdateAsset = () => {
 
 export const useDeleteAsset = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (assetId: string) => apiService.deleteAsset(assetId),
     onSuccess: () => {
@@ -210,7 +210,7 @@ export const useCompareMethodologies = () => {
 export const useCalendarPreference = () => {
   return useQuery({
     queryKey: ['user', 'calendar-preference'],
-    queryFn: () => apiService.getCalendarPreference(),
+    queryFn: () => apiService.getCalendarPreferences(),
     staleTime: 60 * 60 * 1000, // 1 hour
   });
 };
@@ -219,8 +219,10 @@ export const useUpdateCalendarPreference = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (calendarType: 'GREGORIAN' | 'HIJRI') => 
-      apiService.updateCalendarPreference(calendarType),
+    mutationFn: (calendarType: 'GREGORIAN' | 'HIJRI') =>
+      apiService.updateCalendarPreferences({
+        preferredCalendar: calendarType === 'GREGORIAN' ? 'gregorian' : 'hijri'
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', 'calendar-preference'] });
     },
@@ -238,7 +240,7 @@ export const useZakatPayments = () => {
 
 export const useRecordPayment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (paymentData: any) => apiService.recordPayment(paymentData),
     onSuccess: () => {
@@ -257,7 +259,7 @@ export const useRequestPasswordReset = () => {
 
 export const useConfirmPasswordReset = () => {
   return useMutation({
-    mutationFn: ({ resetToken, newPassword }: { resetToken: string; newPassword: string }) => 
+    mutationFn: ({ resetToken, newPassword }: { resetToken: string; newPassword: string }) =>
       apiService.confirmPasswordReset(resetToken, newPassword),
   });
 };
@@ -265,7 +267,7 @@ export const useConfirmPasswordReset = () => {
 // Save calculation hook
 export const useSaveCalculation = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (calculationData: any) => apiService.saveCalculation(calculationData),
     onSuccess: () => {
