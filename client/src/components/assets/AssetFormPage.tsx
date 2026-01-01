@@ -18,6 +18,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AssetForm } from './AssetForm';
+import { useAssetRepository } from '../../hooks/useAssetRepository';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * AssetFormPage - A wrapper component for the AssetForm that handles navigation
@@ -25,10 +27,27 @@ import { AssetForm } from './AssetForm';
  */
 export const AssetFormPage: React.FC = () => {
   const navigate = useNavigate();
+  const { assets } = useAssetRepository();
+  const { user } = useAuth();
+
+  // Track if this is potentially the first asset being added
+  // We use a ref to capture the state on mount/initial load to avoid race conditions after add
+  const isFirstAssetRef = React.useRef<boolean | null>(null);
+
+  React.useEffect(() => {
+    if (isFirstAssetRef.current === null && assets !== undefined) {
+      isFirstAssetRef.current = assets.length === 0;
+    }
+  }, [assets]);
 
   const handleSuccess = () => {
-    // Navigate back to assets list after successful creation
-    navigate('/assets');
+    // If this was the first asset, redirect to Dashboard to show the "Action Cards" guidance
+    // Otherwise, standard behavior is to view the assets list
+    if (isFirstAssetRef.current === true) {
+      navigate('/dashboard');
+    } else {
+      navigate('/assets');
+    }
   };
 
   const handleCancel = () => {
@@ -37,9 +56,9 @@ export const AssetFormPage: React.FC = () => {
   };
 
   return (
-    <AssetForm 
-      onSuccess={handleSuccess} 
-      onCancel={handleCancel} 
+    <AssetForm
+      onSuccess={handleSuccess}
+      onCancel={handleCancel}
     />
   );
 };

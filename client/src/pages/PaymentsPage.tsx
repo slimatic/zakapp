@@ -203,7 +203,13 @@ export const PaymentsPage: React.FC = () => {
                 <PaymentRecordForm
                   payment={editingPayment || undefined}
                   nisabRecordId={nisabRecordId}
-                  onSuccess={handleFormClose}
+                  onSuccess={() => {
+                    handleFormClose();
+                    // If this was the first payment, redirect to Dashboard for progress update
+                    if (allPayments.length === 0) {
+                      navigate('/dashboard');
+                    }
+                  }}
                   onCancel={handleFormClose}
                 />
               </div>

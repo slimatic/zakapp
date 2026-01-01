@@ -149,19 +149,15 @@ const EducationalModule: React.FC = () => {
                 </svg>
                 Watch: Simple Zakat Guide (Video Series)
               </a>
-              <a
-                href="/help"
+              <Link
+                to="/learn"
                 className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
               >
                 <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                 </svg>
-                Read: Detailed Zakat & Nisab Guide
-              </a>
+                Visit Learning Center
+              </Link>
             </div>
           </div>
         </div>
@@ -252,8 +248,39 @@ export const Dashboard: React.FC = () => {
 
   // Quick Action Cards Configuration
   const getQuickActions = () => {
+    // 1. Zakat Due Alert
+    const isZakatDue = activeRecord?.hawlCompletionDate &&
+      new Date(activeRecord.hawlCompletionDate) <= new Date();
+
+    if (isZakatDue) {
+      return [
+        {
+          title: 'Calculate & Pay Zakat',
+          description: `Your Hawl period ended on ${new Date(activeRecord.hawlCompletionDate!).toLocaleDateString()}. Finalize your record and pay Zakat.`,
+          icon: (
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ),
+          href: `/nisab-records/${activeRecord.id}`, // Link to specific record
+          variant: 'alert' as const,
+        },
+        // Still allow adding assets as secondary
+        {
+          title: 'Update Assets',
+          description: 'Ensure asset values are accurate before finalizing',
+          icon: (
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          ),
+          href: '/assets',
+        },
+      ];
+    }
+
+    // 2. New User / No Assets
     if (!hasAssets) {
-      // New user: Add first asset
       return [
         {
           title: 'Add Your First Asset',
@@ -269,8 +296,8 @@ export const Dashboard: React.FC = () => {
       ];
     }
 
+    // 3. Has assets but no record: Create Nisab Record
     if (!hasActiveRecord) {
-      // Has assets but no record: Create Nisab Record
       return [
         {
           title: 'Create Nisab Record',
@@ -296,7 +323,39 @@ export const Dashboard: React.FC = () => {
       ];
     }
 
-    // Has active record: Show management actions
+    // 4. Stale Assets Check (> 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const hasStaleAssets = assets.some(asset => new Date(asset.updatedAt) < thirtyDaysAgo);
+
+    if (hasStaleAssets) {
+      return [
+        {
+          title: 'Review Asset Values',
+          description: 'Some assets haven\'t been updated in over 30 days. Keep your calculations accurate.',
+          icon: (
+            <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          ),
+          href: '/assets',
+          variant: 'warning' as const,
+        },
+        {
+          title: 'View All Records',
+          description: 'Manage your Nisab Year Records and history',
+          icon: (
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          ),
+          href: '/nisab-records',
+        },
+      ];
+    }
+
+    // 5. Default/Passive State
     return [
       {
         title: 'View All Records',

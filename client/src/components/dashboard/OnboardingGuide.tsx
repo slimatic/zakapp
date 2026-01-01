@@ -167,8 +167,8 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
             Follow these three simple steps to start tracking your Zakat obligations:
           </p>
 
-          {/* Quick Helper Links for 0/3 Progress */}
-          {completedSteps.length === 0 && (
+          {/* Quick Helper Links - Visible until onboarding is fully complete */}
+          {completedSteps.length < 3 && (
             <div className="flex flex-wrap gap-4 mb-4">
               <Link
                 to="/onboarding"
@@ -269,12 +269,21 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                           ✓ Completed
                         </span>
                         {step.number === 1 && (
-                          <Link
-                            to={step.href}
-                            className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
-                          >
-                            Add more assets
-                          </Link>
+                          <>
+                            <Link
+                              to={step.href}
+                              className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                            >
+                              Add more assets
+                            </Link>
+                            <span className="text-gray-300">|</span>
+                            <Link
+                              to="/liabilities"
+                              className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                            >
+                              Add liabilities
+                            </Link>
+                          </>
                         )}
                         {step.number === 2 && (
                           <Link

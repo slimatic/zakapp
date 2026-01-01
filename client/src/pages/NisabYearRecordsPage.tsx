@@ -195,6 +195,12 @@ export const NisabYearRecordsPage: React.FC = () => {
 
       toast.success('Nisab Year Record created');
       setShowCreateModal(false);
+
+      // If this was the first record, redirect to Dashboard to show the "Action Cards" guidance
+      if (allRecords.length === 0) {
+        navigate('/dashboard');
+      }
+
       setSelectedAssetIds([]);
       setSelectedLiabilityIds([]);
       setNisabBasis('GOLD');
@@ -666,7 +672,13 @@ export const NisabYearRecordsPage: React.FC = () => {
         {activeRecord && (
           <PaymentRecordForm
             nisabRecordId={activeRecord.id}
-            onSuccess={() => setShowPaymentModal(false)}
+            onSuccess={() => {
+              setShowPaymentModal(false);
+              // If this was the first payment, redirect to Dashboard to show updated progress
+              if (allPayments.length === 0) {
+                navigate('/dashboard');
+              }
+            }}
             onCancel={() => setShowPaymentModal(false)}
           />
         )}
