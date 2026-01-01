@@ -382,21 +382,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getCalendarPreference(): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/user/calendar-preference`, {
-      headers: this.getAuthHeaders()
-    });
-    return this.handleResponse(response);
-  }
 
-  async updateCalendarPreference(calendarType: 'GREGORIAN' | 'HIJRI'): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/user/calendar-preference`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({ calendarType })
-    });
-    return this.handleResponse(response);
-  }
 
   async getNisab(): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/nisab`, {
