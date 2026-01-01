@@ -73,6 +73,11 @@ export interface User {
   firstName: string;
   lastName: string;
   username: string;
+  settings?: {
+    preferredCalendar?: 'gregorian' | 'hijri';
+    hijriAdjustment?: number;
+    currency?: string;
+  };
 }
 
 export interface ZakatCalculation {

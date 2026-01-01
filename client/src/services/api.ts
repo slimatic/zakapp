@@ -61,7 +61,8 @@ export interface AuthResponse {
     };
     settings?: {
       currency?: string;
-      preferredCalendar?: string;
+      preferredCalendar?: 'gregorian' | 'hijri';
+      hijriAdjustment?: number;
     };
   };
   message?: string;
@@ -84,6 +85,7 @@ export interface UpdateProfileRequest {
     language?: string;
     zakatMethod?: string;
     calendarType?: string;
+    hijriAdjustment?: number;
   };
 }
 
