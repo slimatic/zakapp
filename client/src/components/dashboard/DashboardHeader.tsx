@@ -16,6 +16,8 @@
  */
 
 import React from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { formatGregorianDate, gregorianToHijri, formatHijriDate } from '../../utils/calendarConverter';
 
 interface DashboardHeaderProps {
   userName?: string;
@@ -54,7 +56,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     if (!hasAssets) {
       return 'Welcome to ZakApp';
     }
-    
+
     // Returning users (have assets) get personalized greeting
     return userName ? `Welcome back, ${userName}` : 'Welcome back';
   };
@@ -66,30 +68,46 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     if (!hasAssets) {
       return 'Your Islamic Zakat Calculator';
     }
-    
+
     if (!hasActiveRecord) {
       return 'Create a Nisab Year Record to start tracking your Hawl period';
     }
-    
+
     return 'Your Zakat tracking is active. Monitor your progress below.';
   };
 
+  const { user } = useAuth();
+  const hijriAdjustment = (user as any)?.settings?.hijriAdjustment || 0;
+
+  // Get current date components
+  const today = new Date();
+  const gregorian = formatGregorianDate(today);
+  const hijri = formatHijriDate(gregorianToHijri(today, hijriAdjustment));
+
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-        {getGreeting()}
-      </h1>
-      <p className="text-base md:text-lg text-gray-600">
-        {getSubtitle()}
-      </p>
-      
-      {/* App description for brand new users */}
-      {!hasAssets && (
-        <p className="mt-3 text-sm text-gray-500 max-w-2xl">
-          Track your wealth, monitor your Hawl period, and calculate your Zakat 
-          obligations with confidence. Start by adding your first asset below.
+    <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          {getGreeting()}
+        </h1>
+        <p className="text-base md:text-lg text-gray-600">
+          {getSubtitle()}
         </p>
-      )}
+
+        {/* App description for brand new users */}
+        {!hasAssets && (
+          <p className="mt-3 text-sm text-gray-500 max-w-2xl">
+            Track your wealth, monitor your Hawl period, and calculate your Zakat
+            obligations with confidence. Start by adding your first asset below.
+          </p>
+        )}
+      </div>
+
+      {/* Date Display Widget */}
+      <div className="hidden md:block text-right bg-white/50 p-3 rounded-lg border border-gray-100 backdrop-blur-sm">
+        <p className="text-sm font-semibold text-gray-900">{gregorian}</p>
+        <p className="text-sm text-teal-700 font-medium font-serif mt-0.5">{hijri}</p>
+      </div>
     </div>
   );
 };

@@ -26,6 +26,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { formatDualCalendar, gregorianToHijri, hijriToGregorian } from '../../utils/calendarConverter';
+import { DualCalendarDatePicker } from '../common/DualCalendarDatePicker';
 import { toNumber, toDecimal, calculateZakat, calculateZakatableWealth } from '../../utils/precision';
 
 interface SnapshotFormProps {
@@ -68,8 +69,8 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
     isPrimary: snapshot?.isPrimary || false
   });
 
-  // Calendar sync state
-  const [calendarLock, setCalendarLock] = useState<'gregorian' | 'hijri'>('gregorian');
+  // Calendar sync state - Handled by DualCalendarDatePicker now
+  // const [calendarLock, setCalendarLock] = useState<'gregorian' | 'hijri'>('gregorian');
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => {
@@ -81,35 +82,6 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
         updated.zakatableWealth = toNumber(
           calculateZakatableWealth(updated.totalWealth, updated.totalLiabilities)
         );
-      }
-
-      return updated;
-    });
-  };
-
-  // Sync calendars when date changes
-  const handleDateChange = (calendar: 'gregorian' | 'hijri', field: string, value: number) => {
-    setFormData(prev => {
-      const updated = { ...prev, [field]: value };
-
-      try {
-        if (calendar === 'gregorian' && calendarLock === 'gregorian') {
-          // Update Hijri based on Gregorian
-          const gregorianDate = new Date(updated.gregorianYear, updated.gregorianMonth - 1, updated.gregorianDay);
-          const hijriDate = gregorianToHijri(gregorianDate);
-          updated.hijriYear = hijriDate.hy;
-          updated.hijriMonth = hijriDate.hm;
-          updated.hijriDay = hijriDate.hd;
-        } else if (calendar === 'hijri' && calendarLock === 'hijri') {
-          // Update Gregorian based on Hijri
-          const gregorianDate = hijriToGregorian(updated.hijriYear, updated.hijriMonth, updated.hijriDay);
-          updated.gregorianYear = gregorianDate.getFullYear();
-          updated.gregorianMonth = gregorianDate.getMonth() + 1;
-          updated.gregorianDay = gregorianDate.getDate();
-        }
-      } catch (error) {
-        // Keep original values if conversion fails
-        console.warn('Calendar conversion failed:', error);
       }
 
       return updated;
@@ -161,103 +133,23 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Dual Calendar Section */}
         <div className="bg-gray-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Calculation Date</h3>
-
-          <div className="flex items-center gap-4 mb-4">
-            <label className="text-sm font-medium text-gray-700">Lock Calendar:</label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant={calendarLock === 'gregorian' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setCalendarLock('gregorian')}
-              >
-                Gregorian
-              </Button>
-              <Button
-                type="button"
-                variant={calendarLock === 'hijri' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setCalendarLock('hijri')}
-              >
-                Hijri
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Gregorian Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Gregorian Date
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <Input
-                  type="number"
-                  placeholder="Year"
-                  value={formData.gregorianYear}
-                  onChange={(e) => handleDateChange('gregorian', 'gregorianYear', parseInt(e.target.value) || new Date().getFullYear())}
-                  min={1900}
-                  max={2200}
-                />
-                <Input
-                  type="number"
-                  placeholder="Month"
-                  value={formData.gregorianMonth}
-                  onChange={(e) => handleDateChange('gregorian', 'gregorianMonth', parseInt(e.target.value) || 1)}
-                  min={1}
-                  max={12}
-                />
-                <Input
-                  type="number"
-                  placeholder="Day"
-                  value={formData.gregorianDay}
-                  onChange={(e) => handleDateChange('gregorian', 'gregorianDay', parseInt(e.target.value) || 1)}
-                  min={1}
-                  max={31}
-                />
-              </div>
-            </div>
-
-            {/* Hijri Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hijri Date
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <Input
-                  type="number"
-                  placeholder="Year"
-                  value={formData.hijriYear}
-                  onChange={(e) => handleDateChange('hijri', 'hijriYear', parseInt(e.target.value) || 1445)}
-                  min={1}
-                  max={2000}
-                />
-                <Input
-                  type="number"
-                  placeholder="Month"
-                  value={formData.hijriMonth}
-                  onChange={(e) => handleDateChange('hijri', 'hijriMonth', parseInt(e.target.value) || 1)}
-                  min={1}
-                  max={12}
-                />
-                <Input
-                  type="number"
-                  placeholder="Day"
-                  value={formData.hijriDay}
-                  onChange={(e) => handleDateChange('hijri', 'hijriDay', parseInt(e.target.value) || 1)}
-                  min={1}
-                  max={30}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
-            <p className="text-sm text-blue-800">
-              <strong>Display:</strong> {formatDualCalendar(new Date(formData.gregorianYear, formData.gregorianMonth - 1, formData.gregorianDay))}
-            </p>
-          </div>
+          <DualCalendarDatePicker
+            label="Calculation Date"
+            value={new Date(formData.gregorianYear, formData.gregorianMonth - 1, formData.gregorianDay)}
+            onChange={(date) => {
+              const hijri = gregorianToHijri(date);
+              setFormData(prev => ({
+                ...prev,
+                calculationDate: date.toISOString().split('T')[0],
+                gregorianYear: date.getFullYear(),
+                gregorianMonth: date.getMonth() + 1,
+                gregorianDay: date.getDate(),
+                hijriYear: hijri.hy,
+                hijriMonth: hijri.hm,
+                hijriDay: hijri.hd
+              }));
+            }}
+          />
         </div>
 
         {/* Financial Data Section */}
