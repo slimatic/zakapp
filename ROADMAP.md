@@ -61,10 +61,9 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 ## Phase 6: V1.0 Launch Readiness (The "Onboarding" Engine)
 *Goal: Remove friction for non-expert users and ensure rock-solid privacy.*
 
-- [ ] **Critical Hotfix**: Resolve Profile Update 404 error (User Details Persistence).
-- [ ] **Sync Optimization**: Implement "Smart Delta Sync" (avoid 7k record re-fetch) and audit E2E encryption.
 - [x] **Knowledge Hub**: "Zakat Encyclopedia" (Static & Offline-ready) accessible via Settings/Sidebar.
-- [ ] **Onboarding Wizard**: Interactive first-run tutorial covering Assets, Liabilities, Nisab Records, and Payments.
+- [x] **Onboarding Wizard**: Interactive first-run tutorial covering Assets, Liabilities, Nisab Records, and Payments.
 - [x] **Terminology Trust**: Add rich tooltips for 'Hawl', 'Nisab' with Arabic script and simple definitions.
-- [ ] **Smart Navigation**: Implement "Next Best Action" CTAs to prevent dead-ends after asset entry.
+- [ ] **Dashboard Action Cards**: Replace "Smart Navigation" with simple "Next Best Action" cards (e.g., "Add Assets" if empty).
 - [ ] **Date Localization**: Dual display (Gregorian/Hijri) with +/- 1 day moon adjustment settings.
+- [ ] **Critical Hotfix**: Resolve Profile Update 404 error (User Details Persistence).
