@@ -58,9 +58,9 @@ export function getModifierBadge(modifier: number | undefined): { text: string; 
   switch (modifier) {
     case 0.0:
       return {
-        text: 'Deferred - Restricted',
+        text: 'Exempt / Deferred',
         color: 'bg-gray-100 text-gray-800',
-        icon: '⏸',
+        icon: '🛡️',
       };
     case 0.3:
       return {
@@ -128,6 +128,28 @@ export function getRestrictedAccountGuidance(): string {
 export function isPassiveCheckboxDisabled(isRestrictedAccount: boolean): boolean {
   // Passive cannot be enabled when restricted
   return isRestrictedAccount;
+}
+
+export const PROPERTY_EXEMPT_TYPES = ['personal_residence', 'rental_property'];
+
+/**
+ * Get guidance for specific property types
+ * @param subCategory The property sub-category
+ * @returns Guidance string or null
+ */
+export function getPropertyGuidance(subCategory: string): string | null {
+  switch (subCategory) {
+    case 'personal_residence':
+      return 'Your primary residence is entirely exempt from Zakat.';
+    case 'rental_property':
+      return 'The **property value** is exempt (0% zakatable). Zakat is only due on the **Net Rental Income** you have saved. \n\n👉 **Action**: Add any accumulated income to your "Cash" assets. \n📉 **Losses**: If you have a net loss, no Zakat is due on the income.';
+    case 'property_for_resale':
+      return 'Properties purchased with the specific intention to resell for profit are "Trade Assets". Zakat is due on the full current market value.';
+    case 'vacant_land':
+      return 'Vacant land is exempt unless you have formed a firm intention to sell it, at which point it becomes a Trade Asset.';
+    default:
+      return null;
+  }
 }
 
 /**

@@ -106,22 +106,35 @@ export const SummaryStep: React.FC = () => {
                             stocks: 'INVESTMENT_ACCOUNT', // 'stocks' isn't an enum value in AssetType, map to INVESTMENT_ACCOUNT? Or STOCKS if added?
                             stock: 'INVESTMENT_ACCOUNT',
                             crypto: 'CRYPTOCURRENCY',
-                            realEstate: 'REAL_ESTATE',
+                            realEstateResale: 'REAL_ESTATE',
+                            realEstateRental: 'REAL_ESTATE',
                             retirement: 'RETIREMENT',
                             business: 'BUSINESS_ASSETS',
                             receivables: 'DEBTS_OWED_TO_YOU'
                         };
 
                         const assetValue = assetData.value || 0;
-                        createdZakatableAssets += assetValue; // Sum up for Nisab Record
+                        const isExempt = key === 'realEstateRental';
+
+                        // Only add to zakatable sum if NOT exempt
+                        if (!isExempt) {
+                            createdZakatableAssets += assetValue;
+                        }
+
+                        // Determine subtype for specific handling
+                        let subtype: string | undefined;
+                        if (key === 'realEstateResale') subtype = 'property_for_resale';
+                        if (key === 'realEstateRental') subtype = 'rental_property';
 
                         return addAsset({
-                            name: `Initial ${key.charAt(0).toUpperCase() + key.slice(1)}`,
+                            name: `Initial ${key.replace(/([A-Z])/g, ' $1').trim()}`, // CamelCase to Title Case
                             type: (typeMap[key] || 'OTHER') as AssetType,
+                            subCategory: subtype,
                             value: assetValue,
                             currency: 'USD',
                             acquisitionDate: now.toISOString(),
-                            zakatEligible: true // Default to true for onboarding assets per requirements
+                            zakatEligible: !isExempt,
+                            calculationModifier: isExempt ? 0 : 1.0
                         });
                     });
 
@@ -280,7 +293,8 @@ export const SummaryStep: React.FC = () => {
                     stocks: 'INVESTMENT_ACCOUNT',
                     stock: 'INVESTMENT_ACCOUNT',
                     crypto: 'CRYPTOCURRENCY',
-                    realEstate: 'REAL_ESTATE',
+                    realEstateResale: 'REAL_ESTATE',
+                    realEstateRental: 'REAL_ESTATE',
                     retirement: 'RETIREMENT',
                     business: 'BUSINESS_ASSETS',
                     receivables: 'DEBTS_OWED_TO_YOU'

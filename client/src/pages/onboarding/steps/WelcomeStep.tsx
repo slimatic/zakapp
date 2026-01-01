@@ -1,18 +1,30 @@
 import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
+import { Logo } from '../../../components/common/Logo';
 
 export const WelcomeStep: React.FC = () => {
     const { nextStep } = useOnboarding();
 
     return (
         <div className="text-center">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 mb-6">
-                <span className="text-3xl">🛡️</span>
+            <div className="flex justify-center mb-8">
+                <div className="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center shadow-sm">
+                    <Logo className="w-12 h-12 text-emerald-600" />
+                </div>
             </div>
 
-            <h3 className="text-xl font-medium text-gray-900 mb-4">
+            <div className="space-y-2 mb-6">
+                <p className="text-emerald-800 font-arabic text-xl" lang="ar" dir="rtl">السلام عليكم</p>
+                <p className="text-gray-600">As-salamu alaykum</p>
+            </div>
+
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Welcome to ZakApp
+            </h1>
+
+            <h2 className="text-lg text-gray-600 font-medium mb-8">
                 Your Wealth, Your Privacy
-            </h3>
+            </h2>
 
             <div className="prose prose-sm mx-auto text-gray-500 mb-8">
                 <p className="mb-4">

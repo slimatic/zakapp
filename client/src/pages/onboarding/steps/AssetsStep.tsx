@@ -25,7 +25,8 @@ export const AssetsStep: React.FC = () => {
         { key: 'silver', icon: '🥈', label: 'Silver', desc: 'Silverware, Bars, Coins' },
         { key: 'stocks', icon: '📈', label: 'Stocks & Investments', desc: 'Shares, ETFs, Mutual Funds, 401k' },
         { key: 'crypto', icon: '₿', label: 'Cryptocurrencies', desc: 'Bitcoin, Ethereum, etc.' },
-        { key: 'realEstate', icon: '🏠', label: 'Real Estate', desc: 'Investment properties (not your home)' },
+        { key: 'realEstateResale', icon: '🏗️', label: 'Property for Resale', desc: 'Land/Buildings bought to sell for profit (Trade Assets)' },
+        { key: 'realEstateRental', icon: '🏠', label: 'Rental Property & Home', desc: 'Your home or rental properties (Value is exempt, rent is income)' },
     ];
 
     return (

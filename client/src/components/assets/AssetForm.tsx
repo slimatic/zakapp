@@ -27,6 +27,7 @@ import {
   shouldShowRestrictedCheckbox,
   getPassiveInvestmentGuidance,
   getRestrictedAccountGuidance,
+  getPropertyGuidance,
   getModifierBadge
 } from '../../utils/assetModifiers';
 import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '../../constants/sharedFallback';
@@ -66,8 +67,18 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
   // Recalculate modifier when flags change
   useEffect(() => {
-    const newModifier = formData.isRestrictedAccount ? 0.0 :
-      formData.isPassiveInvestment ? 0.3 : 1.0;
+    const propertyExempt = ['personal_residence', 'rental_property', 'vacant_land'];
+
+    let newModifier = 1.0;
+
+    if (formData.isRestrictedAccount) {
+      newModifier = 0.0;
+    } else if (formData.isPassiveInvestment) {
+      newModifier = 0.3;
+    } else if (formData.category === 'property' && propertyExempt.includes(formData.subCategory)) {
+      newModifier = 0.0;
+    }
+
     setCalculationModifier(newModifier);
 
     // Clear passive flag if category changes to ineligible type
@@ -79,7 +90,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     if (!RESTRICTED_ACCOUNT_TYPES.includes(formData.category as any)) {
       setFormData(prev => ({ ...prev, isRestrictedAccount: false }));
     }
-  }, [formData.category, formData.isRestrictedAccount, formData.isPassiveInvestment]);
+  }, [formData.category, formData.subCategory, formData.isRestrictedAccount, formData.isPassiveInvestment]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -224,11 +235,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       { value: 'work_in_progress', label: 'Work in Progress' }
     ],
     property: [
-      { value: 'residential_investment', label: 'Residential Investment' },
-      { value: 'commercial', label: 'Commercial' },
-      { value: 'land', label: 'Land' },
-      { value: 'agricultural', label: 'Agricultural' },
-      { value: 'industrial', label: 'Industrial' }
+      { value: 'rental_property', label: 'Rental Property (Income Generating)' },
+      { value: 'property_for_resale', label: 'Property for Resale (Trade Asset)' },
+      { value: 'personal_residence', label: 'Personal Residence' },
+      { value: 'vacant_land', label: 'Vacant Land' },
+      { value: 'commercial', label: 'Commercial Building' }
     ],
     stocks: [
       { value: 'individual_stocks', label: 'Individual Stocks' },
@@ -549,6 +560,21 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Property Guidance Section */}
+        {formData.category === 'property' && getPropertyGuidance(formData.subCategory) && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-md p-4">
+            <div className="flex gap-2">
+              <span className="text-xl">💡</span>
+              <div>
+                <p className="text-sm text-emerald-900 font-medium">Fiqh Guidance</p>
+                <p className="text-sm text-emerald-800 mt-1">
+                  {getPropertyGuidance(formData.subCategory)}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
