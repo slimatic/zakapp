@@ -28,6 +28,7 @@
     "date-fns": "^4.1.0",
     "decimal.js": "^10.6.0",
     "dexie": "^4.2.1",
+    "framer-motion": "^12.23.26",
     "hijri-converter": "^1.1.1",
     "js-sha256": "^0.10.1",
     "jspdf": "^3.0.3",

@@ -90,7 +90,7 @@ export class AssetController {
 
     // Get user's assets - ensure clean isolation per user
     const userAssetList = getUserAssets(userId);
-    
+
     // Create a deep copy to avoid mutation issues
     let assets = userAssetList.map(asset => ({ ...asset }));
 
@@ -107,7 +107,7 @@ export class AssetController {
       assets.sort((a: any, b: any) => {
         const aVal = a[sortBy as string];
         const bVal = b[sortBy as string];
-        
+
         if (sortOrder === 'desc') {
           return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
         } else {
@@ -173,10 +173,10 @@ export class AssetController {
       if (!name) missingFields.push('name');
       if (value === undefined) missingFields.push('value');
       if (!currency) missingFields.push('currency');
-      
+
       throw new AppError(
-        'Missing required fields', 
-        400, 
+        'Missing required fields',
+        400,
         ErrorCode.VALIDATION_ERROR,
         'Please provide all required fields',
         missingFields.map(field => ({ field, message: `${field} is required` }))
@@ -189,9 +189,9 @@ export class AssetController {
       throw new AppError('Invalid asset type', 400, ErrorCode.VALIDATION_ERROR);
     }
 
-    // Validate value is non-negative
-    if (value < 0) {
-      throw new AppError('Asset value cannot be negative', 400, ErrorCode.VALIDATION_ERROR);
+    // Validate value
+    if (typeof value !== 'number') {
+      throw new AppError('Asset value must be a number', 400, ErrorCode.VALIDATION_ERROR);
     }
 
     // Validate currency
@@ -260,9 +260,9 @@ export class AssetController {
     // Calculate Zakat info
     const zakatableAmount = value * calculationModifier;
     const zakatOwed = calculationModifier > 0 ? zakatableAmount * 0.025 : 0;
-    const modifierApplied = 
+    const modifierApplied =
       calculationModifier === 0.0 ? 'restricted' :
-      calculationModifier === 0.3 ? 'passive' : 'full';
+        calculationModifier === 0.3 ? 'passive' : 'full';
 
     const newAsset = {
       id: `${userId}-asset-${Date.now()}`,
@@ -315,7 +315,7 @@ export class AssetController {
     // Process each asset
     for (let i = 0; i < assets.length; i++) {
       const assetData = assets[i];
-      
+
       try {
         // Validate each asset using the same logic as create
         const { type, name, value, currency, description, ...otherFields } = assetData;
@@ -402,8 +402,8 @@ export class AssetController {
     } else {
       // All failed
       throw new AppError(
-        'Failed to create any assets', 
-        400, 
+        'Failed to create any assets',
+        400,
         ErrorCode.VALIDATION_ERROR,
         'All assets failed validation',
         errors
@@ -423,7 +423,7 @@ export class AssetController {
 
     // Get user's assets
     const userAssetList = getUserAssets(userId);
-    
+
     // Check if asset exists in any user's assets (to differentiate between non-existent and access denied)
     let assetExistsForOtherUser = false;
     for (const otherUserId in userAssets) {
@@ -438,7 +438,7 @@ export class AssetController {
 
     // Find the specific asset for current user
     const asset = userAssetList.find(asset => asset.id === id);
-    
+
     if (!asset) {
       if (assetExistsForOtherUser) {
         throw new AppError('Access denied to this asset', 403, ErrorCode.ACCESS_DENIED);
@@ -457,7 +457,7 @@ export class AssetController {
 
     // Generate audit ID for security tracking
     const auditId = `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const response: ApiResponse = {
       success: true,
       asset: assetWithExtras
@@ -495,10 +495,10 @@ export class AssetController {
 
     // Get user's assets
     const userAssetList = getUserAssets(userId);
-    
+
     // Find the asset to update
     const assetIndex = userAssetList.findIndex(asset => asset.id === id);
-    
+
     if (assetIndex === -1) {
       throw new AppError('Asset not found', 404, ErrorCode.ASSET_NOT_FOUND);
     }
@@ -554,10 +554,10 @@ export class AssetController {
 
     // Get user's assets
     const userAssetList = getUserAssets(userId);
-    
+
     // Find asset index
     const assetIndex = userAssetList.findIndex(asset => asset.id === id);
-    
+
     if (assetIndex === -1) {
       throw new AppError('Asset not found', 404, ErrorCode.ASSET_NOT_FOUND);
     }
@@ -606,7 +606,7 @@ export class AssetController {
       case 'CSV': {
         // Generate CSV format
         const headers = 'type,name,value,currency,description,isZakatable,createdAt';
-        const csvRows = assets.map(asset => 
+        const csvRows = assets.map(asset =>
           `${asset.type},${asset.name},${asset.value},${asset.currency},${asset.description || ''},${asset.isZakatable},${asset.createdAt}`
         );
         const csvData = [headers, ...csvRows].join('\n');
@@ -664,7 +664,7 @@ export class AssetController {
         // Parse CSV data
         const lines = data.split('\n');
         const headers = lines[0].split(',');
-        
+
         for (let i = 1; i < lines.length; i++) {
           if (lines[i].trim()) {
             const values = lines[i].split(',');
@@ -698,7 +698,7 @@ export class AssetController {
     // Process each asset
     for (let i = 0; i < assetsToImport.length; i++) {
       const assetData = assetsToImport[i];
-      
+
       try {
         // Validate each asset using the same logic as create
         const { type, name, value, currency, description, ...otherFields } = assetData;
@@ -749,10 +749,10 @@ export class AssetController {
         importedCount++;
 
       } catch (error) {
-        results.push({ 
-          success: false, 
+        results.push({
+          success: false,
           error: error instanceof AppError ? error.message : 'Unknown error',
-          asset: assetData 
+          asset: assetData
         });
         errors.push({
           index: i,
@@ -788,8 +788,8 @@ export class AssetController {
     } else {
       // All failed
       throw new AppError(
-        'All assets failed to import', 
-        400, 
+        'All assets failed to import',
+        400,
         ErrorCode.IMPORT_FAILED,
         'Import operation failed for all assets',
         errors

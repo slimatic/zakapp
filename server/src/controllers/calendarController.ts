@@ -231,38 +231,56 @@ export const updateCalendarPreference = async (req: AuthenticatedRequest, res: R
       });
     }
 
-    const { calendarType, preferredCalendar } = req.body;
-    const typeToUpdate = calendarType || preferredCalendar;
+    const { calendarType, preferredCalendar, preferredMethodology } = req.body;
 
-    // Validation
-    if (!typeToUpdate) {
-      return res.status(400).json({
-        success: false,
-        error: 'MISSING_CALENDAR_TYPE',
-        message: 'calendarType or preferredCalendar is required'
-      });
+    // Log for debugging
+    console.log('Update Calendar/Methodology Request:', {
+      userId,
+      body: req.body
+    });
+
+    const typeToUpdate = calendarType || preferredCalendar;
+    const updateData: any = {};
+
+    if (typeToUpdate) {
+      const normalizedType = typeToUpdate.toUpperCase();
+      if (['GREGORIAN', 'HIJRI'].includes(normalizedType)) {
+        updateData.preferredCalendar = normalizedType.toLowerCase();
+      } else {
+        // If invalid type provided but we have methodology, maybe we just ignore this? 
+        // Or return error? Sticking to error for now if explicit invalid value given.
+        return res.status(400).json({
+          success: false,
+          error: 'INVALID_CALENDAR_TYPE',
+          message: 'calendarType must be GREGORIAN or HIJRI'
+        });
+      }
     }
 
-    const normalizedType = typeToUpdate.toUpperCase();
+    if (preferredMethodology) {
+      // Allow common methodologies. Schema allows string, but we should probably normalize/validate slightly
+      // Schema default is 'standard'.
+      updateData.preferredMethodology = preferredMethodology.toLowerCase();
+    }
 
-    if (!['GREGORIAN', 'HIJRI'].includes(normalizedType)) {
+    if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'INVALID_CALENDAR_TYPE',
-        message: 'calendarType must be GREGORIAN or HIJRI'
+        error: 'MISSING_UPDATE_FIELDS',
+        message: 'At least one of calendarType, preferredCalendar, or preferredMethodology is required'
       });
     }
 
     // Update user preference
     await prisma.user.update({
       where: { id: userId },
-      data: { preferredCalendar: normalizedType.toLowerCase() }
+      data: updateData
     });
 
     return res.status(200).json({
       success: true,
-      calendarType: normalizedType,
-      message: 'Calendar preference updated successfully'
+      message: 'Preferences updated successfully',
+      data: updateData
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -271,7 +289,7 @@ export const updateCalendarPreference = async (req: AuthenticatedRequest, res: R
     return res.status(500).json({
       success: false,
       error: 'INTERNAL_ERROR',
-      message: 'Failed to update calendar preference'
+      message: 'Failed to update preferences'
     });
   }
 };
