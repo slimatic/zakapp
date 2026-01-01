@@ -53,7 +53,7 @@ A:
 **Q: What about Real Estate?**
 A:
 - Personal Home: Exempt (no Zakat).
-- Rental Property: Zakat is due on the net rental income (after expenses), not the property value. Add the saved income to your cash assets.
+- Rental Property: The property value is exempt (0%). Zakat is due on the **Net Rental Income** (Rent - Expenses/Mortgage Interest) that you have saved. If the property operates at a net loss, no Zakat is due on the income.
 - Property for Sale (Flipping): Treat as business inventory. Calculation: Current Market Value × 2.5%.
 - Land Held for Value (No plans): If you bought land just to park money but have no immediate plan to sell or develop, it is considered an illiquid asset. Calculation: Pay 2.5% on the sales price only when you eventually sell it (one time).
 

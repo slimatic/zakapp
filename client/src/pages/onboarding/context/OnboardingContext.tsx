@@ -57,7 +57,8 @@ const INITIAL_DATA: OnboardingData = {
         retirement: { category: 'retirement', enabled: false },
         business: { category: 'business_assets', enabled: false },
         receivables: { category: 'receivables', enabled: false },
-        realEstate: { category: 'property', enabled: false },
+        realEstateRental: { category: 'property', enabled: false },
+        realEstateResale: { category: 'property', enabled: false },
     },
     liabilities: {
         personal_loans: { category: 'debt_personal', enabled: false },

@@ -60,6 +60,11 @@ export const FAQS_DATA: FAQItem[] = [
     },
     {
         category: "Assets & Calculation",
+        question: "How is Rental Property treated?",
+        answer: "The property value itself is exempt (0%). Zakat is only due on the accumlated Net Rental Income (Rent minus Expenses) that remains in your possession. If there is a net loss, no Zakat is due on the income."
+    },
+    {
+        category: "Assets & Calculation",
         question: "How is Cryptocurrency treated?",
         answer: "Crypto is treated as currency or merchandise. Zakat is 2.5% of the total market value."
     },
