@@ -26,7 +26,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { calculateWealth } from '../core/calculations/wealthCalculator';
-import { gregorianToHijri } from '../utils/calendarConverter';
+import { gregorianToHijri, formatHijriDate } from '../utils/calendarConverter';
 import HawlProgressIndicator from '../components/HawlProgressIndicator';
 import NisabComparisonWidget from '../components/NisabComparisonWidget';
 import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
@@ -42,6 +42,7 @@ import { AssetSelectionTable } from '../components/tracking/AssetSelectionTable'
 import { LiabilitySelectionTable } from '../components/tracking/LiabilitySelectionTable';
 import { Modal } from '../components/ui/Modal';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
+import { DualCalendarDatePicker } from '../components/common/DualCalendarDatePicker';
 
 // AssetSelectionList replaced by imported AssetSelectionTable
 
@@ -70,6 +71,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>('GOLD');
   const [editingStartDateRecordId, setEditingStartDateRecordId] = useState<string | null>(null);
   const [newStartDate, setNewStartDate] = useState<string>('');
+  const [creationDate, setCreationDate] = useState<Date>(new Date());
 
   // Filter records locally
   const records = React.useMemo(() => {
@@ -176,8 +178,8 @@ export const NisabYearRecordsPage: React.FC = () => {
       const zakatAmount = (netZakatableWealth >= threshold) ? (netZakatableWealth * 0.025) : 0;
 
       // Dates
-      const startDate = new Date();
-      const completionDate = new Date(Date.now() + 354 * 24 * 60 * 60 * 1000); // +1 Lunar Year approx
+      const startDate = creationDate;
+      const completionDate = new Date(startDate.getTime() + 354 * 24 * 60 * 60 * 1000); // +1 Lunar Year approx
       const startHijri = gregorianToHijri(startDate);
 
       await addRecord({
@@ -420,10 +422,16 @@ export const NisabYearRecordsPage: React.FC = () => {
                           )}
                         </div>
 
-                        <div className="flex gap-3 sm:gap-4 text-xs text-gray-600 flex-wrap">
-                          <div>Started: <span className="text-gray-900 font-medium">{startDateFormatted}</span></div>
+                        <div className="flex flex-col gap-1 text-xs text-gray-600">
+                          <div>
+                            Started: <span className="text-gray-900 font-medium">{startDateFormatted}</span>
+                            <span className="text-gray-500 ml-1">({formatHijriDate(gregorianToHijri(startDate))})</span>
+                          </div>
                           {record.hawlCompletionDate && (
-                            <div>Ends: <span className="text-gray-900 font-medium">{new Date(record.hawlCompletionDate).toLocaleDateString()}</span></div>
+                            <div>
+                              Ends: <span className="text-gray-900 font-medium">{new Date(record.hawlCompletionDate).toLocaleDateString()}</span>
+                              <span className="text-gray-500 ml-1">({formatHijriDate(gregorianToHijri(new Date(record.hawlCompletionDate)))})</span>
+                            </div>
                           )}
                         </div>
 
@@ -438,10 +446,17 @@ export const NisabYearRecordsPage: React.FC = () => {
                           )}
 
                           {editingStartDateRecordId === record.id && (
-                            <div className="absolute bg-white border p-2 shadow-lg z-10" onClick={e => e.stopPropagation()}>
-                              <input type="date" value={newStartDate} onChange={e => setNewStartDate(e.target.value)} className="border p-1" />
-                              <button onClick={() => handleEditDate(record.id)} className="bg-green-600 text-white px-2 py-1 ml-2">Save</button>
-                              <button onClick={() => setEditingStartDateRecordId(null)} className="text-red-600 px-2 py-1 ml-1">Cancel</button>
+                            <div className="absolute bg-white border p-4 shadow-xl z-20 rounded-lg w-72" onClick={e => e.stopPropagation()}>
+                              <DualCalendarDatePicker
+                                label="New Start Date"
+                                value={newStartDate}
+                                onChange={(d) => setNewStartDate(d.toISOString().split('T')[0])}
+                                className="mb-3"
+                              />
+                              <div className="flex justify-end gap-2">
+                                <button onClick={() => setEditingStartDateRecordId(null)} className="text-gray-600 px-3 py-1 text-sm hover:bg-gray-100 rounded">Cancel</button>
+                                <button onClick={() => handleEditDate(record.id)} className="bg-green-600 text-white px-3 py-1 text-sm rounded hover:bg-green-700">Save</button>
+                              </div>
                             </div>
                           )}
 
@@ -605,6 +620,15 @@ export const NisabYearRecordsPage: React.FC = () => {
                   <span className="block text-xs text-green-700 uppercase font-medium">Net Zakatable</span>
                   <span className="block text-xl font-bold text-green-700">{formatCurrency(previewCalculation.netZakatableWealth)}</span>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <DualCalendarDatePicker
+                  label="Hawl Start Date"
+                  value={creationDate}
+                  onChange={setCreationDate}
+                  className="border-blue-100 bg-blue-50/50"
+                />
               </div>
 
               {/* Nisab Selection */}
