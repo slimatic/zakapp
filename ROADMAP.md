@@ -63,8 +63,8 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 
 - [ ] **Critical Hotfix**: Resolve Profile Update 404 error (User Details Persistence).
 - [ ] **Sync Optimization**: Implement "Smart Delta Sync" (avoid 7k record re-fetch) and audit E2E encryption.
-- [ ] **Knowledge Hub**: "Zakat Encyclopedia" (Static & Offline-ready) accessible via Settings/Sidebar.
+- [x] **Knowledge Hub**: "Zakat Encyclopedia" (Static & Offline-ready) accessible via Settings/Sidebar.
 - [ ] **Onboarding Wizard**: Interactive first-run tutorial covering Assets, Liabilities, Nisab Records, and Payments.
-- [ ] **Terminology Trust**: Add rich tooltips for 'Hawl', 'Nisab' with Arabic script and simple definitions.
+- [x] **Terminology Trust**: Add rich tooltips for 'Hawl', 'Nisab' with Arabic script and simple definitions.
 - [ ] **Smart Navigation**: Implement "Next Best Action" CTAs to prevent dead-ends after asset entry.
 - [ ] **Date Localization**: Dual display (Gregorian/Hijri) with +/- 1 day moon adjustment settings.
