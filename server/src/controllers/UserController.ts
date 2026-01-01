@@ -25,9 +25,9 @@ const userService = new UserService();
 export class UserController {
   getProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.userId!;
-    
+
     const profile = await userService.getProfile(userId);
-    
+
     const response: ApiResponse = {
       success: true,
       data: {
@@ -140,11 +140,13 @@ export class UserController {
 
   deleteAccount = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { password } = req.body;
-    // Reason for deletion would be logged: const { reason } = req.body;
+    const userId = req.userId!;
 
     if (!password) {
       throw new AppError('Password confirmation is required for account deletion', 400, ErrorCode.VALIDATION_ERROR);
     }
+
+    await userService.deleteAccount(userId, password);
 
     const response: ApiResponse = {
       success: true,
@@ -161,29 +163,29 @@ export class UserController {
     try {
       // Get user profile
       const profile = await userService.getProfile(userId);
-      
+
       // Get user's assets
       const { PrismaClient } = require('@prisma/client');
       const prisma = new PrismaClient();
-      
+
       const assets = await prisma.asset.findMany({
         where: { userId }
       });
-      
+
       const calculations = await prisma.zakatCalculation.findMany({
         where: { userId },
         take: 50,
         orderBy: { createdAt: 'desc' }
       });
-      
+
       const payments = await prisma.zakatPayment.findMany({
         where: { userId },
         take: 50,
         orderBy: { paymentDate: 'desc' }
       });
-      
+
       await prisma.$disconnect();
-      
+
       // Build export data
       const exportData = {
         exportDate: new Date().toISOString(),
@@ -217,12 +219,12 @@ export class UserController {
           recipient: p.recipient
         }))
       };
-      
+
       // Set headers for file download
       const filename = `zakapp-export-${Date.now()}.json`;
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      
+
       res.status(200).send(JSON.stringify(exportData, null, 2));
     } catch (error) {
       // Fallback to simple response if export fails

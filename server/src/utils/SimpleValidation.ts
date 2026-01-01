@@ -32,7 +32,7 @@ export interface ValidationResult {
  * Basic input validation for API endpoints
  */
 export class SimpleValidation {
-  
+
   /**
    * Validates asset data and returns validation result
    */
@@ -61,8 +61,8 @@ export class SimpleValidation {
     }
 
     if (!isPartial || data.value !== undefined) {
-      if (data.value === undefined || typeof data.value !== 'number' || data.value < 0) {
-        errors.push('Value is required and must be a non-negative number');
+      if (data.value === undefined || typeof data.value !== 'number') {
+        errors.push('Value is required and must be a number');
       } else {
         validatedData.value = data.value;
       }
@@ -136,39 +136,39 @@ export class SimpleValidation {
       data: validatedData
     };
   }
-  
+
   /**
    * Validate asset creation request
    */
   static validateAssetCreation(req: Request, res: Response, next: NextFunction) {
     const { type, value, currency, description } = req.body;
     const errors: string[] = [];
-    
+
     // Validate required fields
     if (!type) errors.push('Asset type is required');
     if (value === undefined || value === null) errors.push('Asset value is required');
     if (!currency) errors.push('Currency is required');
-    
+
     // Validate asset type using shared constant
     if (type && !VALID_ASSET_CATEGORY_VALUES.includes(type)) {
       errors.push(`Invalid asset type. Must be one of: ${VALID_ASSET_CATEGORY_VALUES.join(', ')}`);
     }
-    
+
     // Validate value
-    if (value !== undefined && (typeof value !== 'number' || value < 0)) {
-      errors.push('Asset value must be a non-negative number');
+    if (value !== undefined && (typeof value !== 'number')) {
+      errors.push('Asset value must be a number');
     }
-    
+
     // Validate currency
     if (currency && !/^[A-Z]{3}$/.test(currency)) {
       errors.push('Currency must be a valid 3-letter ISO code');
     }
-    
+
     // Validate description length
     if (description && typeof description === 'string' && description.length > 500) {
       errors.push('Description must be less than 500 characters');
     }
-    
+
     if (errors.length > 0) {
       return res.status(400).json({
         success: false,
@@ -183,17 +183,17 @@ export class SimpleValidation {
         }
       });
     }
-    
+
     next();
   }
-  
+
   /**
    * Validate Zakat calculation request
    */
   static validateZakatCalculation(req: Request, res: Response, next: NextFunction) {
     const { methodology, assets, nisabSource } = req.body;
     const errors: string[] = [];
-    
+
     // Validate methodology
     const validMethodologies = ['standard', 'hanafi', 'shafii', 'maliki', 'hanbali'];
     if (!methodology) {
@@ -201,7 +201,7 @@ export class SimpleValidation {
     } else if (!validMethodologies.includes(methodology)) {
       errors.push('Invalid methodology. Must be one of: ' + validMethodologies.join(', '));
     }
-    
+
     // Validate assets array
     if (!Array.isArray(assets)) {
       errors.push('Assets must be an array');
@@ -217,12 +217,12 @@ export class SimpleValidation {
         }
       });
     }
-    
+
     // Validate nisab source
     if (nisabSource && !['gold', 'silver'].includes(nisabSource)) {
       errors.push('Nisab source must be either "gold" or "silver"');
     }
-    
+
     if (errors.length > 0) {
       return res.status(400).json({
         success: false,
@@ -237,7 +237,7 @@ export class SimpleValidation {
         }
       });
     }
-    
+
     next();
   }
 }

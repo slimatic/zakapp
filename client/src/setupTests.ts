@@ -17,6 +17,10 @@
 
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import { MotionGlobalConfig } from 'framer-motion';
+
+// Disable animations for tests
+MotionGlobalConfig.skipAnimations = true;
 
 // Polyfills for test environment
 // Provide TextEncoder/TextDecoder for libraries like jspdf
@@ -132,6 +136,13 @@ const jestShim = {
 
 import { resetDb } from './db';
 import { afterEach } from 'vitest';
+
+// Mock ResizeObserver
+global.ResizeObserver = class ResizeObserver {
+	observe() { }
+	unobserve() { }
+	disconnect() { }
+};
 
 // Reset Database after each test to ensure isolation
 afterEach(async () => {

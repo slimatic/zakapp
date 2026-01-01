@@ -22,6 +22,8 @@ import { PrivacyProvider } from './contexts/PrivacyContext';
 import { QueryProvider } from './services/queryClient';
 import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
+import { OnboardingWizard } from './pages/onboarding/OnboardingWizard';
+import { KnowledgeCenter } from './pages/knowledge/KnowledgeCenter';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
 import {
@@ -118,6 +120,16 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
+
+                    {/* Onboarding */}
+                    <Route
+                      path="/onboarding"
+                      element={
+                        <ProtectedRoute>
+                          <OnboardingWizard />
+                        </ProtectedRoute>
+                      }
+                    />
 
                     {/* Dashboard - lazy loaded with custom skeleton */}
                     <Route

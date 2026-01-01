@@ -41,6 +41,7 @@ import { Button } from '../components/ui/Button';
 import { AssetSelectionTable } from '../components/tracking/AssetSelectionTable';
 import { LiabilitySelectionTable } from '../components/tracking/LiabilitySelectionTable';
 import { Modal } from '../components/ui/Modal';
+import { useNisabThreshold } from '../hooks/useNisabThreshold';
 
 // AssetSelectionList replaced by imported AssetSelectionTable
 
@@ -100,6 +101,9 @@ export const NisabYearRecordsPage: React.FC = () => {
       setSearchParams(newParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  // Nisab Threshold
+  const { nisabAmount } = useNisabThreshold('USD', nisabBasis);
 
   // Default asset selection logic (select all zakatable)
   useEffect(() => {
@@ -166,7 +170,10 @@ export const NisabYearRecordsPage: React.FC = () => {
 
       // Use the updated calculateWealth function
       const { totalWealth, zakatableWealth, netZakatableWealth } = calculateWealth(selectedAssets, selectedLiabilities);
-      const zakatAmount = netZakatableWealth * 0.025;
+
+      // Calculate Zakat Amount based on Threshold
+      const threshold = nisabAmount || 0;
+      const zakatAmount = (netZakatableWealth >= threshold) ? (netZakatableWealth * 0.025) : 0;
 
       // Dates
       const startDate = new Date();
@@ -181,6 +188,7 @@ export const NisabYearRecordsPage: React.FC = () => {
         totalWealth: totalWealth,
         zakatableWealth: netZakatableWealth, // Use NET wealth after liabilities
         zakatAmount: zakatAmount,
+        nisabThresholdAtStart: threshold.toString(), // Save the threshold snapshot as string per schema
         currency: 'USD',
         status: 'DRAFT'
       });
@@ -378,7 +386,9 @@ export const NisabYearRecordsPage: React.FC = () => {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                             <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-                              {Number(record.hijriYear || 0) > 0 ? `${record.hijriYear} H` : startDateFormatted}
+                              {Number(record.hijriYear || 0) > 0
+                                ? `${record.hijriYear} H  •  ${startDateFormatted.split(',')[1].trim()}`
+                                : startDateFormatted}
                             </h3>
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${badge.color === 'green' ? 'bg-green-100 text-green-800' :
                               badge.color === 'blue' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'

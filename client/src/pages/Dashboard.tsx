@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 // import { apiService } from '../services/api';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
@@ -189,6 +189,7 @@ const EducationalModule: React.FC = () => {
  */
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { currentStep, markComplete, completedSteps } = useUserOnboarding();
   const maskedCurrency = useMaskedCurrency();
 
@@ -198,6 +199,17 @@ export const Dashboard: React.FC = () => {
 
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeRecord !== null;
+
+  // T026: Redirect new users to Onboarding Wizard
+  // If no assets and no local preferences, assume new user.
+  useEffect(() => {
+    if (!assetsLoading && !hasAssets && user?.id) {
+      const localPrefs = localStorage.getItem(`zakapp_local_prefs_${user.id}`);
+      if (!localPrefs) {
+        navigate('/onboarding');
+      }
+    }
+  }, [assetsLoading, hasAssets, navigate, user?.id]);
 
   // Calculate total wealth
   const totalWealth = assets.reduce((sum: number, asset: Asset) => {
@@ -485,6 +497,8 @@ export const Dashboard: React.FC = () => {
                       {maskedCurrency(new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: asset.currency || 'USD',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
                       }).format(asset.value || 0))}
                     </p>
                     <span className="text-xs text-green-600 font-medium">Zakatable</span>

@@ -159,11 +159,16 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
 
   const statusColors = getStatusColor();
 
+  // Create dynamic title
+  const recordYear = record.hijriYear ? `${record.hijriYear} H` : '';
+  const gregorianYear = new Date(startDateStr || Date.now()).getFullYear();
+  const displayTitle = recordYear ? `Active Hawl: ${recordYear} (${gregorianYear})` : `Active Hawl (${gregorianYear})`;
+
   return (
     <div className={`rounded-lg border-2 ${statusColors.border} ${statusColors.bg} p-6 shadow-md`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Active Hawl Period</h2>
+        <h2 className="text-xl font-bold text-gray-900">{displayTitle}</h2>
         <span className={`text-sm font-medium ${statusColors.text}`}>
           {statusColors.status}
         </span>
