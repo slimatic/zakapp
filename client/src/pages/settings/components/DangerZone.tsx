@@ -16,19 +16,24 @@
  */
 
 
-import { forceResetDatabase, useDb } from '../../../db'; // Import this at the top
+import { forceResetDatabase, useDb } from '../../../db';
 import { useMutation } from '@tanstack/react-query';
 import { apiService } from '../../../services/api';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import { Input } from '../../../components/ui/Input';
+import { useDataCleanup } from '../../../hooks/useDataCleanup';
+import { Trash2, AlertTriangle } from 'lucide-react';
 import React from 'react';
 
 export const DangerZone: React.FC = () => {
     // ... existing deleteAccountMutation ...
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+    const [isAccountDeleteModalOpen, setIsAccountDeleteModalOpen] = React.useState(false);
+    const [isClearDataModalOpen, setIsClearDataModalOpen] = React.useState(false);
     const [password, setPassword] = React.useState('');
     const [deleteError, setDeleteError] = React.useState<string | null>(null);
+
+    const { clearAllData, isClearing } = useDataCleanup();
 
     const deleteAccountMutation = useMutation({
         mutationFn: async (password: string) => {
@@ -54,19 +59,20 @@ export const DangerZone: React.FC = () => {
         }
     });
 
-    const handleDeleteClick = () => {
-        setIsDeleteModalOpen(true);
+    const handleDeleteAccountClick = () => {
+        setIsAccountDeleteModalOpen(true);
         setPassword('');
         setDeleteError(null);
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDeleteAccount = () => {
         if (!password) {
             setDeleteError('Password is required');
             return;
         }
         deleteAccountMutation.mutate(password);
     };
+
     const handleClearLocalDatabase = async () => {
         const confirmed = window.confirm(
             'This will delete the LOCAL database on this device only. It is useful for fixing sync issues. You will be logged out. Are you sure?'
@@ -77,13 +83,17 @@ export const DangerZone: React.FC = () => {
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
                 localStorage.removeItem('zakapp_session');
-                // Clean up any other local storage items if needed
                 window.location.reload();
             } catch (error) {
                 console.error('Failed to reset database:', error);
                 alert('Failed to reset database. Please check console.');
             }
         }
+    };
+
+    const handleConfirmClearData = async () => {
+        await clearAllData();
+        setIsClearDataModalOpen(false);
     };
 
     return (
@@ -97,23 +107,45 @@ export const DangerZone: React.FC = () => {
                 </p>
             </div>
 
-            {/* Clear Local DB Section */}
+            {/* Clear Local DB Section (Sync Reset) */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
                 <h3 className="text-lg font-medium text-yellow-800 mb-2">
-                    Clear Local Database
+                    Reset Local Sync
                 </h3>
                 <p className="text-yellow-700 mb-4">
-                    Reset your local data cache. This allows you to re-sync fresh data from the server. Safe to use if your data is already synced.
+                    Reset your local data cache and logout. This allows you to re-sync fresh data from the server. Safe to use if your data is already synced.
                 </p>
                 <Button
                     variant="outline"
                     className="border-yellow-600 text-yellow-800 hover:bg-yellow-100"
                     onClick={handleClearLocalDatabase}
                 >
-                    Clear Local Data & Re-sync
+                    Reset & Re-sync
                 </Button>
             </div>
 
+            {/* Clear Financial Data Section */}
+            <div className="flex items-center justify-between p-6 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-red-100 rounded-full shrink-0">
+                        <Trash2 className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-medium text-red-900">Clear Financial Data</h3>
+                        <p className="text-sm text-red-700 mt-1">
+                            Permanently delete all assets, liabilities, and records from this device. Account stays active.
+                        </p>
+                    </div>
+                </div>
+                <Button
+                    variant="destructive"
+                    onClick={() => setIsClearDataModalOpen(true)}
+                >
+                    Clear Data
+                </Button>
+            </div>
+
+            {/* Delete Account Section */}
             <div className="bg-red-50 border border-red-200 rounded-lg p-6">
                 <h3 className="text-lg font-medium text-red-800 mb-2">
                     Delete Account
@@ -123,15 +155,54 @@ export const DangerZone: React.FC = () => {
                 </p>
                 <Button
                     variant="destructive"
-                    onClick={handleDeleteClick}
+                    onClick={handleDeleteAccountClick}
                 >
                     Delete Account
                 </Button>
             </div>
 
+            {/* Clear Financial Data Modal */}
             <Modal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
+                isOpen={isClearDataModalOpen}
+                onClose={() => setIsClearDataModalOpen(false)}
+                title="Clear All Financial Data?"
+            >
+                <div className="space-y-4">
+                    <div className="bg-red-50 p-4 rounded-lg flex items-start gap-3 border border-red-100">
+                        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                        <div className="text-sm text-red-800">
+                            <p className="font-semibold">This action is irreversible.</p>
+                            <p className="mt-1">All your tracked Assets, Liabilities, Payments, and History will be wiped from this device's database.</p>
+                        </div>
+                    </div>
+
+                    <p className="text-sm text-gray-600">
+                        Your account settings and profile will be preserved. Are you sure you want to continue?
+                    </p>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsClearDataModalOpen(false)}
+                            disabled={isClearing}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleConfirmClearData}
+                            isLoading={isClearing}
+                        >
+                            Yes, Clear Everything
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Delete Account Modal */}
+            <Modal
+                isOpen={isAccountDeleteModalOpen}
+                onClose={() => setIsAccountDeleteModalOpen(false)}
                 title="Delete Account"
             >
                 <div className="space-y-4">
@@ -163,14 +234,14 @@ export const DangerZone: React.FC = () => {
                     <div className="flex justify-end gap-3 pt-4">
                         <Button
                             variant="outline"
-                            onClick={() => setIsDeleteModalOpen(false)}
+                            onClick={() => setIsAccountDeleteModalOpen(false)}
                             disabled={deleteAccountMutation.isPending}
                         >
                             Cancel
                         </Button>
                         <Button
                             variant="destructive"
-                            onClick={handleConfirmDelete}
+                            onClick={handleConfirmDeleteAccount}
                             isLoading={deleteAccountMutation.isPending}
                             disabled={!password}
                         >
