@@ -209,6 +209,8 @@ router.post('/login',
             id: user.id,
             email: user.email,
             username: user.username,
+            firstName: (profileData as any).firstName || '',
+            lastName: (profileData as any).lastName || '',
             profile: profileData, // Includes salt
             preferences: {
               calendar: user.preferredCalendar,

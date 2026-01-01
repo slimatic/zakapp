@@ -17,10 +17,10 @@
 
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
+import { getEncryptionKey } from '../config/security';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
 
 export interface UpdateProfileDto {
   firstName?: string;
@@ -88,13 +88,17 @@ export class UserService {
     }
 
     // Decrypt profile data
-    const profile = user.profile ? await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY) : {};
-    const settings = user.settings ? await EncryptionService.decryptObject(user.settings, ENCRYPTION_KEY) : {};
+    const profile = user.profile ? await EncryptionService.decryptObject<{ [key: string]: unknown }>(user.profile, getEncryptionKey()) : {};
+    const settings = user.settings ? await EncryptionService.decryptObject(user.settings, getEncryptionKey()) : {};
 
     // Remove sensitive data
     const { passwordHash, ...userWithoutPassword } = user;
+
+    // Flatten profile data into root and explicitly return profile/settings as well
+    // This ensures user.firstName works (from flattened profile) AND user.profile works (legacy)
     return {
       ...userWithoutPassword,
+      ...profile, // Flatten decrypted profile fields (firstName, lastName, etc.) to root
       profile,
       settings
     };
@@ -113,27 +117,49 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    // Decrypt current profile
-    const currentProfile = user.profile ? await EncryptionService.decryptObject<{ [key: string]: unknown }>(user.profile, ENCRYPTION_KEY) : {};
+    // Extract fields that belong to the root User model
+    const { email, username, ...profileFields } = updateData as any;
 
-    // Merge update data with current profile
-    const updatedProfile = { ...currentProfile, ...updateData };
+    try {
+      // Decrypt current profile
+      const currentProfile = user.profile ? await EncryptionService.decryptObject<{ [key: string]: unknown }>(user.profile, getEncryptionKey()) : {};
 
-    // Encrypt updated profile
-    const encryptedProfile = await EncryptionService.encryptObject(updatedProfile, ENCRYPTION_KEY);
+      // Merge update data with current profile
+      // We keep email/username in profile blob too for redundancy/completeness if desired, 
+      // or we can remove them. The frontend sends them in updateData.
+      // Let's keep the full updateData in the encrypted blob for now to matching existing behavior.
+      const updatedProfile = { ...currentProfile, ...updateData };
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { profile: encryptedProfile }
-    });
+      // Encrypt updated profile
+      const encryptedProfile = await EncryptionService.encryptObject(updatedProfile, getEncryptionKey());
 
-    // Return with decrypted data
-    const { passwordHash, ...userWithoutPassword } = updatedUser;
-    return {
-      ...userWithoutPassword,
-      profile: updatedProfile,
-      settings: user.settings ? await EncryptionService.decryptObject(user.settings, ENCRYPTION_KEY) : {}
-    };
+      // Prepare root update data (only if provided)
+      const rootUpdateData: any = { profile: encryptedProfile };
+      if (email) rootUpdateData.email = email;
+      if (username) rootUpdateData.username = username;
+
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: rootUpdateData
+      });
+
+      // Return with decrypted data
+      const { passwordHash, ...userWithoutPassword } = updatedUser;
+
+      return {
+        ...userWithoutPassword,
+        ...updatedProfile, // Flatten
+        profile: updatedProfile,
+        settings: user.settings ? await EncryptionService.decryptObject(user.settings, getEncryptionKey()) : {}
+      };
+    } catch (error: any) {
+      // Handle unique constraint violations for email/username
+      if (error.code === 'P2002') {
+        const field = error.meta?.target?.[0] || 'Field';
+        throw new Error(`${field} already exists`);
+      }
+      throw error;
+    }
   }
 
   /**
@@ -149,7 +175,7 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    return user.settings ? await EncryptionService.decryptObject<{ [key: string]: unknown }>(user.settings, ENCRYPTION_KEY) : {};
+    return user.settings ? await EncryptionService.decryptObject<{ [key: string]: unknown }>(user.settings, getEncryptionKey()) : {};
   }
 
   /**
@@ -166,13 +192,13 @@ export class UserService {
     }
 
     // Decrypt current settings
-    const currentSettings = user.settings ? await EncryptionService.decryptObject<{ [key: string]: unknown }>(user.settings, ENCRYPTION_KEY) : {};
+    const currentSettings = user.settings ? await EncryptionService.decryptObject<{ [key: string]: unknown }>(user.settings, getEncryptionKey()) : {};
 
     // Merge update data with current settings
     const updatedSettings = { ...currentSettings, ...settingsData };
 
     // Encrypt updated settings
-    const encryptedSettings = await EncryptionService.encryptObject(updatedSettings, ENCRYPTION_KEY);
+    const encryptedSettings = await EncryptionService.encryptObject(updatedSettings, getEncryptionKey());
 
     await prisma.user.update({
       where: { id: userId },
@@ -336,8 +362,8 @@ export class UserService {
         isActive: false,
         // Clear sensitive data
         email: `deleted_${Date.now()}@example.com`,
-        profile: await EncryptionService.encryptObject({ deleted: true }, ENCRYPTION_KEY),
-        settings: await EncryptionService.encryptObject({ deleted: true }, ENCRYPTION_KEY)
+        profile: await EncryptionService.encryptObject({ deleted: true }, getEncryptionKey()),
+        settings: await EncryptionService.encryptObject({ deleted: true }, getEncryptionKey())
       }
     });
 

@@ -84,6 +84,7 @@ interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   register: (userData: any) => Promise<boolean>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -290,12 +291,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       }
 
+      // Ensure we use the latest data from the server for the session state
+      // This includes flattened profile fields like firstName/lastName
       const user: User = {
-        id: userDoc.get('id'),
-        username: userDoc.get('profileName') || 'Local User',
-        email: userDoc.get('email') || 'local@device',
-        firstName: userDoc.get('firstName') || '',
-        lastName: userDoc.get('lastName') || '',
+        ...apiResult.user,
+        username: apiResult.user.username || userDoc.get('profileName') || 'Local User', // Ensure string
+        // Fallback to local data if missing (though API should provide it now)
+        firstName: (apiResult.user as any).firstName || userDoc.get('firstName') || '',
+        lastName: (apiResult.user as any).lastName || userDoc.get('lastName') || '',
       };
 
       // 2. Persist Session (Key + User) -> SessionStorage
@@ -410,6 +413,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshUser = async (): Promise<void> => {
+    try {
+      const { apiService: api } = await import('../services/api');
+      const verifyResult = await api.getCurrentUser();
+
+      if (verifyResult.success && verifyResult.data?.user) {
+        console.log('AuthContext: User data refreshed from backend');
+        const user = verifyResult.data.user;
+
+        // Update session storage to persist across reloads
+        const currentSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
+        if (currentSession) {
+          const { jwk } = JSON.parse(currentSession);
+          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
+        }
+
+        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+      } else {
+        console.warn('AuthContext: refreshUser failed - user data missing in response', verifyResult);
+      }
+    } catch (error) {
+      console.error('AuthContext: Failed to refresh user data', error);
+    }
+  };
+
   const clearError = () => {
     dispatch({ type: 'CLEAR_ERROR' });
   };
@@ -419,6 +447,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    refreshUser,
     clearError,
   };
 
