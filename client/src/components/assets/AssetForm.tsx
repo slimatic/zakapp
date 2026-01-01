@@ -42,10 +42,30 @@ interface AssetFormProps {
  * AssetForm component for creating and editing assets with modifier support
  */
 export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel }) => {
+  // Helpers for category mapping
+  const getInitialCategory = (assetType?: string): string => {
+    if (!assetType) return 'cash';
+
+    // Map backend UPPERCASE types to frontend lowercase values
+    const map: Record<string, string> = {
+      'CASH': 'cash',
+      'GOLD': 'gold',
+      'SILVER': 'silver',
+      'BUSINESS_ASSETS': 'business',
+      'REAL_ESTATE': 'property',
+      'INVESTMENT_ACCOUNT': 'stocks',
+      'CRYPTOCURRENCY': 'crypto',
+      'DEBTS_OWED_TO_YOU': 'debts',
+      'OTHER': 'expenses'
+    };
+
+    return map[assetType] || 'cash';
+  };
+
   const [formData, setFormData] = useState({
     name: asset?.name || '',
-    category: (asset?.type as unknown as string) || 'CASH',
-    subCategory: asset?.subCategory || '',
+    category: getInitialCategory(asset?.type as unknown as string),
+    subCategory: asset?.subCategory || (asset as any)?.subtype || '',
     value: asset?.value ? new Decimal(asset.value).toFixed(2) : '', // Store as string for input stability
     currency: asset?.currency || 'USD',
     acquisitionDate: asset?.acquisitionDate ? new Date(asset.acquisitionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -138,10 +158,35 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       // Use Decimal for precise financial handling
       const numericValue = new Decimal(formData.value || 0).toDecimalPlaces(2).toNumber();
 
+      const categoryOptions = [
+        { value: 'cash', label: 'Cash & Savings' },
+        { value: 'gold', label: 'Gold' },
+        { value: 'silver', label: 'Silver' },
+        { value: 'business', label: 'Business Assets' },
+        { value: 'property', label: 'Property' },
+        { value: 'stocks', label: 'Stocks & Investments' },
+        { value: 'crypto', label: 'Cryptocurrency' },
+        { value: 'debts', label: 'Debts Owed to You' },
+        { value: 'expenses', label: 'Expenses' }
+      ];
+
+      // Map UI category values to backend canonical categories
+      const CATEGORY_SEND_MAP: Record<string, string> = {
+        cash: 'CASH',
+        gold: 'GOLD',
+        silver: 'SILVER',
+        business: 'BUSINESS_ASSETS',
+        property: 'REAL_ESTATE',
+        stocks: 'INVESTMENT_ACCOUNT',
+        crypto: 'CRYPTOCURRENCY',
+        debts: 'DEBTS_OWED_TO_YOU',
+        expenses: 'OTHER'
+      };
+
       const commonData = {
         name: formData.name,
         type: (CATEGORY_SEND_MAP[formData.category] || 'OTHER') as AssetType, // Map category to type
-        subtype: formData.subCategory || undefined,
+        subCategory: formData.subCategory || undefined,
         value: numericValue,
         currency: formData.currency,
         acquisitionDate: new Date(formData.acquisitionDate).toISOString(),

@@ -24,7 +24,7 @@ interface QuickActionCardProps {
   icon: React.ReactNode;
   href?: string;
   onClick?: () => void;
-  variant?: 'default' | 'primary';
+  variant?: 'default' | 'primary' | 'alert' | 'warning';
 }
 
 /**
@@ -37,13 +37,15 @@ interface QuickActionCardProps {
  * - Responsive sizing
  * - Minimum 88px height for comfortable touch targets
  * - Primary variant for call-to-action emphasis
+ * - Alert variant for critical actions (Zakat Due)
+ * - Warning variant for important notices (Stale Assets)
  * 
  * @param title - Action title (e.g., "Add Asset")
  * @param description - Brief description of the action
  * @param icon - Icon to display (React element)
  * @param href - Optional route to navigate to
  * @param onClick - Optional click handler (for buttons)
- * @param variant - Visual style variant ('default' or 'primary')
+ * @param variant - Visual style variant
  */
 export const QuickActionCard: React.FC<QuickActionCardProps> = ({
   title,
@@ -60,9 +62,20 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({
     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600
   `;
 
-  const variantClasses = variant === 'primary'
-    ? 'bg-green-50 border-2 border-green-200 hover:border-green-300'
-    : 'bg-white border border-gray-200 hover:border-gray-300';
+  const getVariantClasses = () => {
+    switch (variant) {
+      case 'primary':
+        return 'bg-green-50 border-2 border-green-200 hover:border-green-300';
+      case 'alert':
+        return 'bg-red-50 border-2 border-red-200 hover:border-red-300';
+      case 'warning':
+        return 'bg-amber-50 border-2 border-amber-200 hover:border-amber-300';
+      default:
+        return 'bg-white border border-gray-200 hover:border-gray-300';
+    }
+  };
+
+  const variantClasses = getVariantClasses();
 
   const content = (
     <>

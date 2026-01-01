@@ -66,4 +66,4 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [x] **Terminology Trust**: Add rich tooltips for 'Hawl', 'Nisab' with Arabic script and simple definitions.
 - [ ] **Dashboard Action Cards**: Replace "Smart Navigation" with simple "Next Best Action" cards (e.g., "Add Assets" if empty).
 - [ ] **Date Localization**: Dual display (Gregorian/Hijri) with +/- 1 day moon adjustment settings.
-- [ ] **Critical Hotfix**: Resolve Profile Update 404 error (User Details Persistence).
+- [ ] **Critical Hotfix**: Resolve Profile Update issue where updating the user information like Name username and email address does not persist (User Details Persistence). Improve this.

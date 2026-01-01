@@ -37,10 +37,29 @@ export const SummaryStep: React.FC = () => {
     const assetList = Object.values(data.assets).filter((a: any) => a.enabled) as AssetData[];
     const liabilityList = Object.values(data.liabilities || {}).filter((a: any) => a.enabled) as AssetData[];
 
-    // Calculate totals for preview
-    const totalAssets = assetList.reduce((sum, a) => sum + (a.value || 0), 0);
-    const totalLiabilities = liabilityList.reduce((sum, a) => sum + (a.value || 0), 0);
-    const netWealth = totalAssets - totalLiabilities;
+    const { addAsset, assets: existingAssets } = useAssetRepository();
+    const { addRecord } = useNisabRecordRepository();
+    const { addPayment } = usePaymentRepository();
+    const { addLiability, liabilities: existingLiabilities } = useLiabilityRepository();
+
+    // Calculate totals including EXISTING database items + NEW items
+    const existingZakatableAssets = existingAssets
+        .filter(a => a.zakatEligible)
+        .reduce((sum, a) => sum + (a.value * (a.calculationModifier ?? 1)), 0);
+
+    const existingLiabilitiesTotal = existingLiabilities
+        .reduce((sum, l) => sum + l.amount, 0);
+
+    // Calculate NEW items totals (Session Preview)
+    const newAssetsValue = assetList.reduce((sum, a) => sum + (a.value || 0), 0);
+    const newLiabilitiesValue = liabilityList.reduce((sum, a) => sum + (a.value || 0), 0);
+
+    // Grand Totals for UI Preview
+    // Note: This is an approximation for the "Review" screen. 
+    // The precise Zakatable amount is calculated in handleFinish.
+    const totalAssetsPreview = existingAssets.reduce((sum, a) => sum + a.value, 0) + newAssetsValue;
+    const totalLiabilitiesPreview = existingLiabilitiesTotal + newLiabilitiesValue;
+    const netWealthPreview = totalAssetsPreview - totalLiabilitiesPreview;
 
     // Status Icon Helper
     const StatusIcon = ({ taskStatus }: { taskStatus: string }) => {
@@ -49,11 +68,6 @@ export const SummaryStep: React.FC = () => {
         if (taskStatus === 'loading') return <span className="animate-spin">⏳</span>;
         return <span className="text-gray-300">•</span>;
     };
-
-    const { addAsset } = useAssetRepository();
-    const { addRecord } = useNisabRecordRepository();
-    const { addPayment } = usePaymentRepository();
-    const { addLiability } = useLiabilityRepository();
 
     // Get Nisab threshold for summary view
     const nisabBasis = (data.nisab.standard.toUpperCase()) as 'GOLD' | 'SILVER';
@@ -66,8 +80,6 @@ export const SummaryStep: React.FC = () => {
 
         try {
             // 1. Sync Calendar & Madhab to Backend
-            // We still try to sync preferences to backend, but usually preferences should also be local
-            // For now, we keep API call as "best effort" or assume preferences are handled by Dashboard/LocalStorage
             try {
                 setTasks(prev => ({ ...prev, preferences: 'loading' }));
                 if (data.methodology.calendar && data.methodology.madhab) {
@@ -83,7 +95,6 @@ export const SummaryStep: React.FC = () => {
                 setTasks(p => ({ ...p, preferences: 'success' }));
             } catch (err) {
                 console.error('Failed to save preferences:', err);
-                // Allow proceeding even if preferences sync fails
                 setTasks(p => ({ ...p, preferences: 'error' }));
             }
 
@@ -94,16 +105,18 @@ export const SummaryStep: React.FC = () => {
 
             // 2. Create Assets (Local)
             let createdZakatableAssets = 0;
+            const createdAssetsList: Asset[] = [];
+
             try {
                 setTasks(prev => ({ ...prev, assets: 'loading' }));
                 const assetPromises = (Object.entries(data.assets) as [string, AssetData][])
                     .filter(([_, assetData]) => assetData.enabled)
-                    .map(([key, assetData]) => {
+                    .map(async ([key, assetData]) => {
                         const typeMap: Record<string, string> = {
                             cash: 'CASH',
                             gold: 'GOLD',
                             silver: 'SILVER',
-                            stocks: 'INVESTMENT_ACCOUNT', // 'stocks' isn't an enum value in AssetType, map to INVESTMENT_ACCOUNT? Or STOCKS if added?
+                            stocks: 'INVESTMENT_ACCOUNT',
                             stock: 'INVESTMENT_ACCOUNT',
                             crypto: 'CRYPTOCURRENCY',
                             realEstateResale: 'REAL_ESTATE',
@@ -115,27 +128,42 @@ export const SummaryStep: React.FC = () => {
 
                         const assetValue = assetData.value || 0;
                         const isExempt = key === 'realEstateRental';
+                        const mod = isExempt ? 0 : 1.0;
 
-                        // Only add to zakatable sum if NOT exempt
+                        // Calculate zakatable portion for the record
                         if (!isExempt) {
-                            createdZakatableAssets += assetValue;
+                            createdZakatableAssets += assetValue * mod;
                         }
 
-                        // Determine subtype for specific handling
+                        // Determine subtype
                         let subtype: string | undefined;
                         if (key === 'realEstateResale') subtype = 'property_for_resale';
                         if (key === 'realEstateRental') subtype = 'rental_property';
 
-                        return addAsset({
-                            name: `Initial ${key.replace(/([A-Z])/g, ' $1').trim()}`, // CamelCase to Title Case
+                        const newAsset = {
+                            name: `Initial ${key.replace(/([A-Z])/g, ' $1').trim()}`,
                             type: (typeMap[key] || 'OTHER') as AssetType,
                             subCategory: subtype,
                             value: assetValue,
                             currency: 'USD',
                             acquisitionDate: now.toISOString(),
                             zakatEligible: !isExempt,
-                            calculationModifier: isExempt ? 0 : 1.0
-                        });
+                            calculationModifier: mod
+                        };
+
+                        // Store for chart later
+                        // We push a mock version to createdAssetsList for immediate display, 
+                        // though addAsset returns the doc usually.
+                        createdAssetsList.push({
+                            ...newAsset,
+                            id: `temp-new-${key}`,
+                            userId: user?.id || 'temp',
+                            createdAt: now.toISOString(),
+                            updatedAt: now.toISOString(),
+                            isActive: true,
+                        } as Asset);
+
+                        return addAsset(newAsset);
                     });
 
                 if (assetPromises.length > 0) {
@@ -166,9 +194,6 @@ export const SummaryStep: React.FC = () => {
                         };
 
                         const liabilityName = key.split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-
-                        // Set due date to align with Hawl completion (or slightly before)
-                        // to ensure it falls within the lunar year window for deduction eligibility
                         const dueDate = new Date(completionDate);
                         dueDate.setDate(dueDate.getDate() - 1);
 
@@ -181,7 +206,7 @@ export const SummaryStep: React.FC = () => {
                             amount: liabilityAmount,
                             currency: 'USD',
                             dueDate: dueDate.toISOString(),
-                            notes: 'Created during onboarding (Short-term / Due within lunar year)'
+                            notes: 'Created during onboarding'
                         });
                     });
 
@@ -192,17 +217,17 @@ export const SummaryStep: React.FC = () => {
             } catch (err) {
                 console.error('Failed to create liabilities:', err);
                 setTasks(p => ({ ...p, liabilities: 'error' }));
-                setError(err instanceof Error ? `Liability creation failed: ${err.message}` : 'Failed to create liabilities');
                 setIsSubmitting(false);
                 return;
             }
 
             let hawlRecordId: string | undefined;
 
-            // 4. Initialize Hawl (Nisab Year) - Local creation with Hijri calculation
-            // Calculate true Net Wealth and Zakat for the record
-            const calculatedNetWealth = createdZakatableAssets - createdDeductibleLiabilities;
-            const calculatedZakatAmount = (calculatedNetWealth >= nisabThreshold) ? (calculatedNetWealth * 0.025) : 0;
+            // 4. Initialize Hawl (Nisab Year) - Combine EXISTING + NEW
+            const grandTotalZakatableAssets = existingZakatableAssets + createdZakatableAssets;
+            const grandTotalLiabilities = existingLiabilitiesTotal + createdDeductibleLiabilities;
+            const grandTotalNetWealth = Math.max(0, grandTotalZakatableAssets - grandTotalLiabilities); // No negative wealth
+            const calculatedZakatAmount = (grandTotalNetWealth >= nisabThreshold) ? (grandTotalNetWealth * 0.025) : 0;
 
             try {
                 setTasks(prev => ({ ...prev, hawl: 'loading' }));
@@ -212,28 +237,27 @@ export const SummaryStep: React.FC = () => {
                     hawlStartDateHijri: hijriDateToString(hijriStart),
                     hawlCompletionDate: completionDate.toISOString(),
                     hawlCompletionDateHijri: hijriDateToString(hijriEnd),
-                    hijriYear: hijriStart.hy, // Save Hijri Year
+                    hijriYear: hijriStart.hy,
                     nisabBasis: data.nisab.standard.toUpperCase() as 'GOLD' | 'SILVER',
-                    totalWealth: calculatedNetWealth, // Total Net Wealth
-                    zakatableWealth: calculatedNetWealth, // Since all onboarding assets are zakatable
-                    zakatAmount: calculatedZakatAmount, // 2.5% if above threshold
+                    totalWealth: grandTotalNetWealth,
+                    zakatableWealth: grandTotalNetWealth,
+                    zakatAmount: calculatedZakatAmount,
                     status: 'DRAFT',
-                    nisabThresholdAtStart: nisabThreshold.toString() // Snapshot threshold as string per schema
+                    nisabThresholdAtStart: nisabThreshold.toString()
                 });
 
                 if (hawlDoc) {
                     hawlRecordId = hawlDoc.id;
-                    setCreatedRecord({ ...hawlDoc.toJSON(), id: hawlDoc.id }); // Store for widget
+                    setCreatedRecord({ ...hawlDoc.toJSON(), id: hawlDoc.id });
                 }
 
                 setTasks(prev => ({ ...prev, hawl: 'success' }));
             } catch (err) {
                 console.error('Failed to init Nisab record:', err);
                 setTasks(p => ({ ...p, hawl: 'error' }));
-                // Don't stop onboarding if just hawl fails? Maybe better to ensure it works.
             }
 
-            // 5. Record Payments (Local)
+            // 5. Record Payments
             if (data.payments?.madePayments && data.payments.amount && hawlRecordId) {
                 try {
                     setTasks(p => ({ ...p, payments: 'loading' }));
@@ -241,7 +265,7 @@ export const SummaryStep: React.FC = () => {
                         amount: Number(data.payments.amount),
                         currency: 'USD',
                         paymentDate: new Date().toISOString(),
-                        snapshotId: hawlRecordId, // Use snapshotId to link to Nisab Record
+                        snapshotId: hawlRecordId,
                         notes: 'Initial payment recorded during onboarding'
                     });
                     setTasks(p => ({ ...p, payments: 'success' }));
@@ -249,8 +273,6 @@ export const SummaryStep: React.FC = () => {
                     console.error('Failed to record payment:', err);
                     setTasks(p => ({ ...p, payments: 'error' }));
                 }
-            } else if (data.payments?.madePayments) {
-                setTasks(p => ({ ...p, payments: 'error' }));
             } else {
                 setTasks(p => ({ ...p, payments: 'success' }));
             }
@@ -263,7 +285,6 @@ export const SummaryStep: React.FC = () => {
                 }));
             }
 
-            // Transition to Summary View
             setIsSubmitting(false);
             setPostOnboardingStep('wealth');
 
@@ -274,16 +295,15 @@ export const SummaryStep: React.FC = () => {
         }
     };
 
-    // Helper to finish onboarding completely
     const completeOnboarding = () => {
         navigate('/dashboard', { replace: true });
         window.location.reload();
     };
 
-    // --- Post-Onboarding Views ---
-
     if (postOnboardingStep === 'wealth') {
-        const assetsForChart: Asset[] = (Object.entries(data.assets) as [string, AssetData][])
+        // Merge Existing Assets + Newly Created Assets (simulated) 
+        // to show the COMPLETE portfolio in the chart
+        const newAssetsForChart: Asset[] = (Object.entries(data.assets) as [string, AssetData][])
             .filter(([_, assetData]) => assetData.enabled)
             .map(([key, assetData], index) => {
                 const typeMap: Record<string, string> = {
@@ -299,9 +319,8 @@ export const SummaryStep: React.FC = () => {
                     business: 'BUSINESS_ASSETS',
                     receivables: 'DEBTS_OWED_TO_YOU'
                 };
-
                 return {
-                    id: `temp-${index}`,
+                    id: `temp-new-${index}`,
                     name: `Asset ${index}`,
                     type: (typeMap[key] || 'OTHER') as any,
                     value: assetData.value || 0,
@@ -314,6 +333,11 @@ export const SummaryStep: React.FC = () => {
                 };
             });
 
+        const combinedAssetsForChart = [...existingAssets, ...newAssetsForChart];
+
+        // Calculate wealth including existing DB items
+        const finalTotalWealth = existingZakatableAssets + newAssetsValue - (existingLiabilitiesTotal + newLiabilitiesValue);
+
         return (
             <div className="space-y-6">
                 <div className="text-center">
@@ -324,20 +348,20 @@ export const SummaryStep: React.FC = () => {
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Assets Successfully Added!</h3>
                     <p className="text-gray-500">
-                        Here is a breakdown of your wealth portfolio based on what you've entered.
+                        Here is a breakdown of your complete wealth portfolio.
                     </p>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <WealthSummaryCard
-                        totalWealth={totalAssets - totalLiabilities} // Net wealth
+                        totalWealth={finalTotalWealth}
                         nisabThreshold={nisabThreshold}
                         currency="USD"
                     />
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <AssetsBreakdownChart assets={assetsForChart} currency="USD" />
+                    <AssetsBreakdownChart assets={combinedAssetsForChart} currency="USD" />
                 </div>
 
                 <button
@@ -454,6 +478,7 @@ export const SummaryStep: React.FC = () => {
                         <span className="font-medium text-gray-900">Assets Setup</span>
                         <span className="text-xs text-gray-500">
                             {assetList.length} items to create
+                            {existingAssets.length > 0 && ` + ${existingAssets.length} existing`}
                         </span>
                     </div>
                     <StatusIcon taskStatus={tasks.assets} />
@@ -463,10 +488,17 @@ export const SummaryStep: React.FC = () => {
                         <span className="font-medium text-gray-900">Liabilities Setup</span>
                         <span className="text-xs text-gray-500">
                             {liabilityList.length} items to create
+                            {existingLiabilities.length > 0 && ` + ${existingLiabilities.length} existing`}
                         </span>
                     </div>
                     <StatusIcon taskStatus={tasks.liabilities} />
                 </div>
+
+                {existingZakatableAssets > 0 && (
+                    <div className="bg-blue-50 p-2 rounded text-xs text-blue-800">
+                        <span className="font-semibold">Note:</span> Your existing portfolio (${existingZakatableAssets.toLocaleString()}) will be included in your new Nisab record.
+                    </div>
+                )}
 
                 <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                     <div className="flex flex-col">
