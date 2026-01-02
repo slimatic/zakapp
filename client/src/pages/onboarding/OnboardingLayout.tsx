@@ -35,7 +35,11 @@ export const OnboardingLayout: React.FC = () => {
                 }));
 
                 // Update User Context to prevent Redirect Loop
-                await updateLocalProfile({ isSetupCompleted: true });
+                try {
+                    await updateLocalProfile({ isSetupCompleted: true });
+                } catch (error) {
+                    console.error("OnboardingLayout: Failed to update profile, relying on local prefs fallback", error);
+                }
             }
             navigate('/dashboard');
         }
