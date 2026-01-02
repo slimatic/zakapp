@@ -80,6 +80,7 @@ export interface UpdateProfileRequest {
   lastName?: string;
   username?: string;
   email?: string;
+  salt?: string;
   preferences?: {
     currency?: string;
     language?: string;

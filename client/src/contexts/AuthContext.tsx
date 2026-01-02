@@ -226,21 +226,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         salt = remoteUser.profile.salt;
         console.log('AuthContext: Retrieved salt from API profile object');
       } else {
-        // Fallback: only if API salt is missing, try to open DB tentatively to get local salt
-        // WARNING: This will likely trigger DB1 if DB is already encrypted with derived key
-        try {
-          await closeDb();
-          const db = await getDb(password);
-          userDoc = await db.user_settings.findOne(backendUserId).exec();
-          if (userDoc && userDoc.get('securityProfile')?.salt) {
-            salt = userDoc.get('securityProfile').salt;
-            console.log('AuthContext: Retrieved salt from local DB');
-          } else {
-            throw new Error('Salt missing from both API and local DB');
-          }
-        } catch (e) {
-          console.error('AuthContext: Failed to obtain salt locally', e);
-          throw new Error('Encryption salt missing. Database cannot be opened.');
+        // SALT HEALING STRATEGY
+        // If API lacks salt, we check localStorage or generate a new one.
+        const localSaltKey = `zakapp_salt_${backendUserId}`;
+        const storedSalt = localStorage.getItem(localSaltKey);
+
+        if (storedSalt) {
+          salt = storedSalt;
+          console.log('AuthContext: Recovered salt from localStorage (Healing)');
+        } else {
+          console.warn('AuthContext: Salt missing from Server. Generating new salt to restore access.');
+          const { CryptoService } = await import('../services/CryptoService');
+          salt = CryptoService.generateSalt();
+          localStorage.setItem(localSaltKey, salt);
+
+          // Attempt to push the new salt to the server so other devices can work
+          // We run this without awaiting to ensure login proceeds even if server api is strict
+          api.updateProfile({ salt }).catch(err => {
+            console.warn('AuthContext: Could not sync new salt to server. Multi-device sync may fail.', err);
+          });
         }
       }
 
