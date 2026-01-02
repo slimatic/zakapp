@@ -16,7 +16,7 @@
  */
 
 export const PaymentRecordSchema = {
-    version: 3,
+    version: 4,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -36,7 +36,8 @@ export const PaymentRecordSchema = {
             type: 'string'
         },
         amount: {
-            type: 'number'
+            anyOf: [{ type: 'number' }, { type: 'string' }],
+            encrypted: true
         },
         paymentDate: {
             type: 'string',
@@ -44,7 +45,8 @@ export const PaymentRecordSchema = {
             maxLength: 30
         },
         recipientName: {
-            type: 'string' // Encrypted? Local storage might allow plain if whole DB is encrypted
+            type: 'string', // Encrypted? Local storage might allow plain if whole DB is encrypted
+            encrypted: true
         },
         recipientType: {
             type: 'string'
@@ -53,10 +55,12 @@ export const PaymentRecordSchema = {
             type: 'string'
         },
         notes: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         receiptReference: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         paymentMethod: {
             type: 'string'

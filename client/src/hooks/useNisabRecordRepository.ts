@@ -18,7 +18,7 @@
 import { useState, useEffect } from 'react';
 import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { NisabYearRecord } from '../types/nisabYearRecord';
 import { cryptoService } from '../services/CryptoService';
 
@@ -43,41 +43,44 @@ export function useNisabRecordRepository() {
             sort: [{ hawlStartDate: 'desc' }]
         }).$
             .pipe(
-                map((docs: any[]) => docs.map((doc: any) => {
-                    const data = { ...doc.toJSON() };
+                switchMap(async (docs: any[]) => {
+                    return Promise.all(docs.map(async (doc: any) => {
+                        const data = { ...doc.toJSON() };
 
-                    // Decrypt numeric fields
-                    ['totalWealth', 'totalLiabilities', 'zakatableWealth', 'zakatAmount'].forEach(field => {
-                        if (typeof data[field] === 'string' && cryptoService.isEncrypted(data[field])) {
-                            try {
-                                const packed = cryptoService.unpackEncrypted(data[field]);
-                                if (packed) {
-                                    const decrypted = cryptoService.decrypt(packed.ciphertext, packed.iv);
-                                    if (decrypted) data[field] = Number(decrypted);
+                        // Decrypt numeric fields
+                        for (const field of ['totalWealth', 'totalLiabilities', 'zakatableWealth', 'zakatAmount']) {
+                            if (typeof data[field] === 'string' && cryptoService.isEncrypted(data[field])) {
+                                try {
+                                    const packed = cryptoService.unpackEncrypted(data[field]);
+                                    if (packed) {
+                                        const decrypted = await cryptoService.decrypt(packed.ciphertext, packed.iv);
+                                        if (decrypted) data[field] = Number(decrypted);
+                                    }
+                                } catch (e) {
+                                    console.warn(`Failed to decrypt ${field}`, e);
+                                    data[field] = 0; // Fallback to safe 0
                                 }
-                            } catch (e) {
-                                console.warn(`Failed to decrypt ${field}`, e);
                             }
                         }
-                    });
 
-                    // Decrypt string/JSON fields
-                    ['assetBreakdown', 'calculationDetails', 'userNotes'].forEach(field => {
-                        if (typeof data[field] === 'string' && cryptoService.isEncrypted(data[field])) {
-                            try {
-                                const packed = cryptoService.unpackEncrypted(data[field]);
-                                if (packed) {
-                                    const decrypted = cryptoService.decrypt(packed.ciphertext, packed.iv);
-                                    if (decrypted) data[field] = decrypted;
+                        // Decrypt string/JSON fields
+                        for (const field of ['assetBreakdown', 'calculationDetails', 'userNotes']) {
+                            if (typeof data[field] === 'string' && cryptoService.isEncrypted(data[field])) {
+                                try {
+                                    const packed = cryptoService.unpackEncrypted(data[field]);
+                                    if (packed) {
+                                        const decrypted = await cryptoService.decrypt(packed.ciphertext, packed.iv);
+                                        if (decrypted) data[field] = decrypted;
+                                    }
+                                } catch (e) {
+                                    console.warn(`Failed to decrypt ${field}`, e);
                                 }
-                            } catch (e) {
-                                console.warn(`Failed to decrypt ${field}`, e);
                             }
                         }
-                    });
 
-                    return data;
-                }))
+                        return data;
+                    })) as Promise<any[]>;
+                })
             )
             .subscribe({
                 next: (data: NisabYearRecord[]) => {

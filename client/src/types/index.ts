@@ -78,6 +78,7 @@ export interface User {
     hijriAdjustment?: number;
     currency?: string;
   };
+  isSetupCompleted?: boolean;
 }
 
 export interface ZakatCalculation {

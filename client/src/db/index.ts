@@ -127,10 +127,10 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
             console.log('DatabaseService: Database created. Adding collections...');
             await db.addCollections({
                 assets: { schema: AssetSchema, migrationStrategies: migrationStrategiesV4 },
-                liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV2 },
+                liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
                 zakat_calculations: { schema: ZakatCalculationSchema, migrationStrategies: migrationStrategiesV2 },
                 nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
-                payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV3 },
+                payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV4 }
             });
             console.log('DatabaseService: Collections added.');
