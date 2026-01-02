@@ -263,11 +263,16 @@ export const AssetDetails: React.FC = () => {
                 <dt className="text-sm font-medium text-gray-900">Name</dt>
                 <dd className="text-sm text-gray-700">{safeAsset.name}</dd>
               </div>
-              <div>
+              <div className="flex-1">
                 <dt className="text-sm font-medium text-gray-900">Category</dt>
                 <dd className="text-sm text-gray-700">{getCategoryLabel(safeAsset.type)}</dd>
               </div>
-              {/* Sub-Category Removed */}
+              {safeAsset.subCategory && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-900">Sub-Category</dt>
+                  <dd className="text-sm text-gray-700">{getSubCategoryLabel(safeAsset.subCategory)}</dd>
+                </div>
+              )}
               <div>
                 <dt className="text-sm font-medium text-gray-900">Value</dt>
                 <dd className="text-sm text-gray-700">
@@ -310,35 +315,54 @@ export const AssetDetails: React.FC = () => {
       </div>
 
       {/* Zakat Calculation Info */}
-      {isAssetZakatable(safeAsset, 'STANDARD') && (
-        <div className="bg-green-50 rounded-lg border border-green-200 p-6 mb-6">
-          <h3 className="text-xl font-semibold text-green-900 mb-4">
-            Zakat Calculation Information
-          </h3>
-          <div className="space-y-3">
-            <p className="text-sm text-green-800">
-              <span className="font-medium">Original Value:</span> {formatCurrency(numericValue, safeAsset.currency)}
-            </p>
-            {modifier !== 1.0 && (
+      <div className={`rounded-lg border p-6 mb-6 ${isAssetZakatable(safeAsset, 'STANDARD')
+        ? 'bg-green-50 border-green-200'
+        : 'bg-gray-50 border-gray-200'
+        }`}>
+        <h3 className={`text-xl font-semibold mb-4 ${isAssetZakatable(safeAsset, 'STANDARD') ? 'text-green-900' : 'text-gray-900'}`}>
+          Zakat Calculation Information
+        </h3>
+        <div className="space-y-3">
+          <p className={`text-sm ${isAssetZakatable(safeAsset, 'STANDARD') ? 'text-green-800' : 'text-gray-700'}`}>
+            <span className="font-medium">Original Value:</span> {formatCurrency(numericValue, safeAsset.currency)}
+          </p>
+
+          {isAssetZakatable(safeAsset, 'STANDARD') ? (
+            <>
+              {modifier !== 1.0 && (
+                <p className="text-sm text-green-800">
+                  <span className="font-medium">Zakatable Value (after modifier {Math.round(modifier * 100)}%):</span> {formatCurrency(zakatableValue, safeAsset.currency)}
+                </p>
+              )}
+              {modifier === 1.0 && (
+                <p className="text-sm text-green-800">
+                  <span className="font-medium">Zakatable Value:</span> {formatCurrency(zakatableValue, safeAsset.currency)}
+                </p>
+              )}
               <p className="text-sm text-green-800">
-                <span className="font-medium">Zakatable Value (after modifier {Math.round(modifier * 100)}%):</span> {formatCurrency(zakatableValue, safeAsset.currency)}
+                <span className="font-medium">Estimated Zakat (2.5%):</span> {formatCurrency(zakatableValue * 0.025, safeAsset.currency)}
               </p>
-            )}
-            {modifier === 1.0 && (
-              <p className="text-sm text-green-800">
-                <span className="font-medium">Zakatable Value:</span> {formatCurrency(zakatableValue, safeAsset.currency)}
+            </>
+          ) : (
+            <div className="text-sm text-gray-700">
+              <p className="font-medium mb-1">🚫 Asset Excluded from Calculations</p>
+              <p>
+                Calculated Zakat: $0.00
               </p>
-            )}
-            <p className="text-sm text-green-800">
-              <span className="font-medium">Estimated Zakat (2.5%):</span> {formatCurrency(zakatableValue * 0.025, safeAsset.currency)}
-            </p>
-            <p className="text-xs text-green-600">
-              * This is an estimate. Actual Zakat calculation depends on your total wealth,
-              nisab threshold, and chosen calculation methodology.
-            </p>
-          </div>
+              {safeAsset.subCategory === 'jewelry' && (
+                <p className="mt-2 text-xs text-gray-500 italic">
+                  Note: Jewelry for personal use is exempt under certain schools of thought (e.g., Hanbali, Shafi'i, Maliki).
+                </p>
+              )}
+            </div>
+          )}
+
+          <p className={`text-xs mt-3 ${isAssetZakatable(safeAsset, 'STANDARD') ? 'text-green-600' : 'text-gray-500'}`}>
+            * This is an estimate. Actual Zakat calculation depends on your total wealth,
+            nisab threshold, and chosen calculation methodology.
+          </p>
         </div>
-      )}
+      </div>
 
       {/* Action Buttons */}
       <div className="flex justify-between items-center">

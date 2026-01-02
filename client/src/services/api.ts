@@ -373,7 +373,7 @@ class ApiService {
   }
 
   async compareMethodologies(data: {
-    methodologies: ('STANDARD' | 'HANAFI' | 'SHAFII' | 'CUSTOM')[];
+    methodologies: ('STANDARD' | 'HANAFI' | 'SHAFII' | 'MALIKI' | 'HANBALI' | 'CUSTOM')[];
     customConfigIds?: string[];
     referenceDate?: string;
   }): Promise<ApiResponse> {
@@ -670,7 +670,7 @@ class ApiService {
 
   async updateCalendarPreferences(preferences: {
     preferredCalendar?: 'hijri' | 'gregorian';
-    preferredMethodology?: 'standard' | 'hanafi' | 'shafi' | 'custom';
+    preferredMethodology?: 'standard' | 'hanafi' | 'shafi' | 'maliki' | 'hanbali' | 'custom';
     lastZakatDate?: string;
   }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/calendar/preferences`, {

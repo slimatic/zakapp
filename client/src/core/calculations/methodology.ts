@@ -17,7 +17,7 @@
 
 import { AssetType } from '../../types/index';
 
-export type MethodologyName = 'STANDARD' | 'HANAFI' | 'SHAFI';
+export type MethodologyName = 'STANDARD' | 'HANAFI' | 'SHAFI' | 'MALIKI' | 'HANBALI';
 export type NisabSource = 'GOLD' | 'SILVER';
 
 export interface MethodologyConfig {
@@ -25,6 +25,7 @@ export interface MethodologyConfig {
     nisabSource: NisabSource;
     zakatableAssets: AssetType[];
     deductibleLiabilities: string[]; // Using string for Liability type keys for now
+    jewelryExempt?: boolean;
     description: string;
 }
 
@@ -59,7 +60,8 @@ export const METHODOLOGIES: Record<MethodologyName, MethodologyConfig> = {
             AssetType.INVESTMENT_ACCOUNT
         ],
         deductibleLiabilities: ['LOAN', 'MORTGAGE', 'CREDIT_CARD', 'BUSINESS_DEBT'], // Broader deduction
-        description: "Hanafi view: Silver Nisab (precautionary), broader debt deductions."
+        jewelryExempt: false,
+        description: "Hanafi view: Silver Nisab (precautionary), broader debt deductions. Jewelry is Zakatable."
     },
     SHAFI: {
         name: 'SHAFI',
@@ -72,10 +74,42 @@ export const METHODOLOGIES: Record<MethodologyName, MethodologyConfig> = {
             AssetType.CRYPTOCURRENCY,
             AssetType.RETIREMENT,
             AssetType.INVESTMENT_ACCOUNT
-            // Often excludes general business merchandise unless explicitly trading
         ],
         deductibleLiabilities: ['LOAN', 'BUSINESS_DEBT'], // Stricter deductions
-        description: "Shafi'i view: Gold Nisab, stricter debt deductions."
+        jewelryExempt: true,
+        description: "Shafi'i view: Gold Nisab. Personal jewelry is exempt."
+    },
+    MALIKI: {
+        name: 'MALIKI',
+        nisabSource: 'GOLD',
+        zakatableAssets: [
+            AssetType.CASH,
+            AssetType.BANK_ACCOUNT,
+            AssetType.GOLD,
+            AssetType.SILVER,
+            AssetType.CRYPTOCURRENCY,
+            AssetType.RETIREMENT,
+            AssetType.INVESTMENT_ACCOUNT
+        ],
+        deductibleLiabilities: ['LOAN', 'BUSINESS_DEBT'],
+        jewelryExempt: true,
+        description: "Maliki view: Gold Nisab. Personal jewelry is exempt."
+    },
+    HANBALI: {
+        name: 'HANBALI',
+        nisabSource: 'GOLD',
+        zakatableAssets: [
+            AssetType.CASH,
+            AssetType.BANK_ACCOUNT,
+            AssetType.GOLD,
+            AssetType.SILVER,
+            AssetType.CRYPTOCURRENCY,
+            AssetType.RETIREMENT,
+            AssetType.INVESTMENT_ACCOUNT
+        ],
+        deductibleLiabilities: ['LOAN', 'BUSINESS_DEBT'],
+        jewelryExempt: true,
+        description: "Hanbali view: Gold Nisab. Personal jewelry is exempt."
     }
 };
 

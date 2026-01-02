@@ -23,6 +23,7 @@ import { apiService } from '../../../services/api';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
+import { useAssetRepository } from '../../../hooks/useAssetRepository';
 
 // Types extracted locally since they aren't exported from types/index
 interface ProfileFormData {
@@ -39,7 +40,8 @@ interface ProfileFormData {
 }
 
 export const ProfileForm: React.FC = () => {
-    const { user, refreshUser } = useAuth();
+    const { user, refreshUser, updateLocalProfile } = useAuth();
+    const { reassessAssets } = useAssetRepository();
     const queryClient = useQueryClient();
     const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
 
@@ -94,6 +96,8 @@ export const ProfileForm: React.FC = () => {
         { value: 'standard', name: 'Standard (2.5%)' },
         { value: 'hanafi', name: 'Hanafi School' },
         { value: 'shafi', name: 'Shafi\'i School' },
+        { value: 'maliki', name: 'Maliki School' },
+        { value: 'hanbali', name: 'Hanbali School' },
         { value: 'custom', name: 'Custom Method' },
     ];
 
@@ -106,10 +110,31 @@ export const ProfileForm: React.FC = () => {
             // Update calendar preferences separately via new calendar API
             const calendarPrefs = {
                 preferredCalendar: data.preferences.calendarType === 'lunar' ? 'hijri' as const : 'gregorian' as const,
-                preferredMethodology: data.preferences.zakatMethod as 'standard' | 'hanafi' | 'shafi' | 'custom',
+                preferredMethodology: data.preferences.zakatMethod as 'standard' | 'hanafi' | 'shafi' | 'maliki' | 'hanbali' | 'custom',
                 hijriAdjustment: data.hijriAdjustment
             };
             await apiService.updateCalendarPreferences(calendarPrefs);
+
+            // OPTIMISTIC / LOCAL-FIRST UPDATE:
+            // Ensure local DB has the new values immediately. 
+            // We pass the settings object, which updateLocalProfile will now flatten for RxDB.
+            if (user?.id) {
+                await updateLocalProfile({
+                    settings: {
+                        ...user.settings,
+                        preferredMethodology: calendarPrefs.preferredMethodology,
+                        preferredCalendar: calendarPrefs.preferredCalendar,
+                        currency: data.preferences.currency
+                    }
+                } as any);
+            }
+
+            // Trigger Asset Reassessment based on new methodology
+            try {
+                await reassessAssets(calendarPrefs.preferredMethodology);
+            } catch (e) {
+                console.error("Failed to reassess assets after profile update", e);
+            }
 
             return profileResult;
         },
@@ -339,11 +364,11 @@ export const ProfileForm: React.FC = () => {
                                 })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="en">English</option>
-                                <option value="ar">العربية (Arabic)</option>
-                                <option value="ur">اردو (Urdu)</option>
-                                <option value="id">Bahasa Indonesia</option>
-                                <option value="ms">Bahasa Melayu</option>
+                                <option value="en">English (US)</option>
+                                <option value="ar" disabled>العربية (Arabic) - Coming Soon</option>
+                                <option value="ur" disabled>اردو (Urdu) - Coming Soon</option>
+                                <option value="id" disabled>Bahasa Indonesia - Coming Soon</option>
+                                <option value="ms" disabled>Bahasa Melayu - Coming Soon</option>
                             </select>
                         </div>
                     </div>

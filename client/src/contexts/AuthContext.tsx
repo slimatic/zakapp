@@ -319,6 +319,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         firstName: await decryptField(rawFirstName),
         lastName: await decryptField(rawLastName),
         isSetupCompleted: userDoc.get('isSetupCompleted') || false,
+        settings: {
+          ...((apiResult.user as any).settings || {}),
+          preferredMethodology: userDoc.get('preferredMethodology') || (apiResult.user as any).settings?.preferredMethodology || 'standard',
+          preferredCalendar: userDoc.get('preferredCalendar') || (apiResult.user as any).settings?.preferredCalendar || 'gregorian',
+          currency: userDoc.get('baseCurrency') || (apiResult.user as any).settings?.currency || 'USD'
+        }
       };
 
       // 4. Persist Session (Key + User) -> SessionStorage
@@ -535,7 +541,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (verifyResult.success && verifyResult.data?.user) {
         console.log('AuthContext: User data refreshed from backend');
-        const user = verifyResult.data.user;
+        let user = verifyResult.data.user;
+
+        // Merge with local settings (Methodology, Calendar, etc.)
+        // This ensures that if the backend is stale or doesn't support a field, we keep our local choice.
+        if (state.user?.id) {
+          try {
+            const db = await getDb();
+            const userDoc = await db.user_settings.findOne(state.user.id).exec();
+            if (userDoc) {
+              const localMethodology = userDoc.get('preferredMethodology');
+              if (localMethodology) {
+                console.log(`AuthContext: Overriding backend methodology with local setting: ${localMethodology}`);
+              }
+
+              user = {
+                ...user,
+                settings: {
+                  ...user.settings,
+                  preferredMethodology: localMethodology || user.settings?.preferredMethodology || 'standard',
+                  preferredCalendar: userDoc.get('preferredCalendar') || user.settings?.preferredCalendar || 'gregorian',
+                  currency: userDoc.get('baseCurrency') || user.settings?.currency || 'USD'
+                },
+                // Decrypt local-only fields if needed (omitted for brevity as API usually handles this, 
+                // but strictly speaking we should prefer local decrypted over API if we want true local-first)
+              };
+            }
+          } catch (e) {
+            console.warn('AuthContext: Failed to merge local settings in refreshUser', e);
+          }
+        }
 
         // Update session storage to persist across reloads
         const currentSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
@@ -558,15 +593,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const db = await getDb();
       const userDoc = await db.user_settings.findOne(state.user.id).exec();
       if (userDoc) {
+        // Prepare patch data by flattening known nested structures
+        const patchData: any = { ...updates };
+
+        // Handle 'settings' mapping to flat RxDB schema
+        if (updates.settings) {
+          if (updates.settings.preferredMethodology) patchData.preferredMethodology = updates.settings.preferredMethodology;
+          if (updates.settings.preferredCalendar) patchData.preferredCalendar = updates.settings.preferredCalendar;
+          if (updates.settings.currency) patchData.baseCurrency = updates.settings.currency;
+
+          // Remove the nested settings object as it violates RxDB schema (VD2 error)
+          delete patchData.settings;
+        }
+
         await userDoc.patch({
-          ...updates,
+          ...patchData,
           updatedAt: new Date().toISOString()
         });
 
         // Update state
         dispatch({
           type: 'LOGIN_SUCCESS',
-          payload: { ...state.user, ...updates }
+          payload: {
+            ...state.user,
+            ...updates,
+            // We also need to ensure the state reflects the merged settings if we passed partial settings
+            settings: {
+              ...state.user.settings,
+              ...(updates.settings || {})
+            }
+          }
         });
 
         // Update session storage
@@ -574,7 +630,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (currentSession) {
           const { jwk } = JSON.parse(currentSession);
           sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
-            user: { ...state.user, ...updates },
+            user: {
+              ...state.user,
+              ...updates,
+              settings: {
+                ...state.user.settings,
+                ...(updates.settings || {})
+              }
+            },
             jwk
           }));
         }

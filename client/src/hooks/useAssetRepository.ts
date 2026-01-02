@@ -230,5 +230,61 @@ export function useAssetRepository() {
         }
     };
 
-    return { assets, isLoading, error, addAsset, removeAsset, updateAsset };
+    const reassessAssets = async (methodologyName: string) => {
+        if (!db) throw new Error('Database not initialized');
+
+        // Dynamic import to avoid circular dependencies if any
+        const { METHODOLOGIES } = await import('../core/calculations/methodology');
+        // @ts-ignore
+        const config = METHODOLOGIES[methodologyName.toUpperCase()] || METHODOLOGIES.STANDARD;
+        const isJewelryExempt = config.jewelryExempt || false;
+
+        console.log(`[useAssetRepository] Reassessing assets for ${config.name} (Jewelry Exempt: ${isJewelryExempt})`);
+
+        const allAssets = await db.assets.find().exec();
+
+        for (const doc of allAssets) {
+            const data = doc.toJSON();
+
+            // Parse metadata to check manual override
+            let meta: any = {};
+            try {
+                meta = data.metadata ? (typeof data.metadata === 'string' ? JSON.parse(data.metadata) : data.metadata) : {};
+            } catch (e) {
+                console.warn('Metadata parse fail', e);
+            }
+
+            // JOIN data and meta for easier checking
+            const asset = { ...data, ...meta };
+
+            // RULES:
+            // 1. If isEligibilityManual is true, DO NOT TOUCH.
+            if (asset.isEligibilityManual) {
+                console.log(`Skipping Asset ${asset.name} (Manual Override)`);
+                continue;
+            }
+
+            // 2. Logic for Jewelry (Gold/Silver/Jewelry subcat)
+            // We verify if it matches the current methodology
+            const isJewelry =
+                (asset.subCategory === 'jewelry') ||
+                (asset.type === 'GOLD' && (!asset.subCategory || asset.subCategory === 'jewelry')) ||
+                (asset.type === 'SILVER' && (!asset.subCategory || asset.subCategory === 'jewelry'));
+
+            if (isJewelry) {
+                let shouldBeEligible = true;
+                if (isJewelryExempt) {
+                    shouldBeEligible = false;
+                }
+
+                // If current state differs from rule, update it
+                if (asset.zakatEligible !== shouldBeEligible) {
+                    console.log(`Updating Asset ${asset.name}: zakatEligible ${asset.zakatEligible} -> ${shouldBeEligible}`);
+                    await updateAsset(asset.id, { zakatEligible: shouldBeEligible });
+                }
+            }
+        }
+    };
+
+    return { assets, isLoading, error, addAsset, removeAsset, updateAsset, reassessAssets };
 }

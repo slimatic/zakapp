@@ -34,6 +34,7 @@ export interface Asset {
   isPassiveInvestment?: boolean;
   isRestrictedAccount?: boolean;
   calculationModifier?: number;
+  isEligibilityManual?: boolean;
 }
 
 export enum AssetType {
@@ -75,6 +76,7 @@ export interface User {
   username: string;
   settings?: {
     preferredCalendar?: 'gregorian' | 'hijri';
+    preferredMethodology?: 'standard' | 'hanafi' | 'shafi' | 'maliki' | 'hanbali' | 'custom';
     hijriAdjustment?: number;
     currency?: string;
   };

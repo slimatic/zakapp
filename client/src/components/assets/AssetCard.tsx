@@ -96,17 +96,27 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
               {asset.name}
             </h3>
             <p className="text-xs text-gray-500 capitalize">
-              {asset.type ? asset.type.replace(/_/g, ' ').toLowerCase() : 'Unknown'}
+              {asset.subCategory ? (
+                <span>
+                  {asset.subCategory.replace(/_/g, ' ')} • {asset.type.replace(/_/g, ' ').toLowerCase()}
+                </span>
+              ) : (
+                asset.type.replace(/_/g, ' ').toLowerCase()
+              )}
             </p>
           </div>
         </div>
 
         {/* Modifier Badge */}
         <div
-          className={`px-2 py-1 rounded text-xs font-medium ${modifierBadge.color} whitespace-nowrap ml-2`}
+          className={`px-2 py-1 rounded text-xs font-medium ${!isEligible ? 'bg-gray-100 text-gray-600' : modifierBadge.color
+            } whitespace-nowrap ml-2`}
           title={getModifierLabel(modifier)}
         >
-          <span aria-hidden="true">{modifierBadge.icon}</span> {modifierBadge.text}
+          <span aria-hidden="true">{!isEligible ? '🚫' : modifierBadge.icon}</span>{' '}
+          {!isEligible
+            ? (asset.subCategory === 'jewelry' ? 'Exempt (Jewelry)' : 'Exempt')
+            : modifierBadge.text}
         </div>
       </div>
 

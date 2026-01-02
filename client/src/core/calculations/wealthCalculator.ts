@@ -52,7 +52,8 @@ interface WealthCalculationResult {
 export const calculateWealth = (
     assets: Asset[],
     liabilities: Liability[] = [],
-    referenceDate: Date = new Date()
+    referenceDate: Date = new Date(),
+    methodology: string = 'standard'
 ): WealthCalculationResult => {
     // 1. Calculate Asset Wealth
     let totalWealth = 0;
@@ -68,7 +69,7 @@ export const calculateWealth = (
         const isPotentialType = POTENTIAL_ZAKATABLE_TYPES.includes(asset.type);
         const explicitEligibility = asset.zakatEligible;
 
-        // Determine strict eligibility
+        // Determine strict eligibility - PURELY based on Asset flag
         let isEligible = false;
 
         if (explicitEligibility === true) {
