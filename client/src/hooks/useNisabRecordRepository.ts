@@ -44,7 +44,7 @@ export function useNisabRecordRepository() {
         }).$
             .pipe(
                 map((docs: any[]) => docs.map((doc: any) => {
-                    const data = doc.toJSON();
+                    const data = { ...doc.toJSON() };
 
                     // Decrypt numeric fields
                     ['totalWealth', 'totalLiabilities', 'zakatableWealth', 'zakatAmount'].forEach(field => {
