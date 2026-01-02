@@ -18,6 +18,7 @@
 import { useState } from 'react';
 import { useDb } from '../db';
 import toast from 'react-hot-toast';
+import { syncService } from '../services/SyncService';
 
 export function useDataCleanup() {
     const db = useDb();
@@ -30,6 +31,8 @@ export function useDataCleanup() {
         }
 
         setIsClearing(true);
+        const toastId = toast.loading('Clearing financial data...');
+
         try {
             // We wipe financial data but preserve the User (auth) and potentially Settings if desired.
             // User requested "clean up the data, not the account". 
@@ -43,16 +46,22 @@ export function useDataCleanup() {
                 db.zakat_calculations
             ];
 
-            // Execute in parallel
+            // 1. Delete Locally
             await Promise.all(collections.map(col => col.find().remove()));
 
-            toast.success('All financial data has been cleared from this device.');
+            toast.loading('Pushing deletion to server...', { id: toastId });
+
+            // 2. Ensure Remote Deletion (Wait for Sync)
+            // This is critical effectively to "Remote Purge"
+            await syncService.awaitSync();
+
+            toast.success('All financial data has been cleared from this device and synced.', { id: toastId });
 
             // Optional: Trigger a window reload or router push to refresh state visualizers
             // window.location.reload(); 
         } catch (error: any) {
             console.error('Data cleanup failed:', error);
-            toast.error('Failed to clear data: ' + error.message);
+            toast.error('Failed to clear data: ' + error.message, { id: toastId });
         } finally {
             setIsClearing(false);
         }
