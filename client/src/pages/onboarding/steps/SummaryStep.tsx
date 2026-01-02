@@ -337,7 +337,6 @@ export const SummaryStep: React.FC = () => {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <WealthSummaryCard
                         totalWealth={finalTotalWealth}
-                        zakatableWealth={finalZakatableWealth} // Pass net zakatable for accurate display if supported
                         nisabThreshold={nisabThreshold}
                         currency="USD"
                     />
