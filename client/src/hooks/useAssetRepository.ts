@@ -19,7 +19,8 @@ import { useState, useEffect } from 'react';
 import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
 import { Asset } from '../types';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
+import { cryptoService } from '../services/CryptoService';
 
 // Fields defined in asset.schema.ts
 const ALLOWED_SCHEMA_FIELDS = [
@@ -38,24 +39,62 @@ export function useAssetRepository() {
     useEffect(() => {
         if (!db) return;
 
-        // Subscribe to asset query
+        // Subscribe to asset query with transparent decryption
         const sub = db.assets.find().$
             .pipe(
-                map((docs: any[]) => docs.map((doc: any) => {
-                    const data = { ...doc.toJSON() };
-                    // Unpack metadata to ensure UI sees all fields (subtype, zakatEligible, etc.)
-                    if (data.metadata) {
+                switchMap(async (docs: any[]) => {
+                    return Promise.all(docs.map(async (doc: any) => {
+                        const data = { ...doc.toJSON() };
+
+                        // Decrypt fields if needed
                         try {
-                            const meta = typeof data.metadata === 'string' ? JSON.parse(data.metadata) : data.metadata;
-                            if (meta && typeof meta === 'object') {
-                                Object.assign(data, meta);
+                            if (cryptoService.isEncrypted(data.name)) {
+                                const p = cryptoService.unpackEncrypted(data.name);
+                                if (p) data.name = await cryptoService.decrypt(p.ciphertext, p.iv);
+                            }
+
+                            if (cryptoService.isEncrypted(data.value)) {
+                                const p = cryptoService.unpackEncrypted(data.value);
+                                if (p) {
+                                    const valStr = await cryptoService.decrypt(p.ciphertext, p.iv);
+                                    data.value = parseFloat(valStr);
+                                }
+                            }
+
+                            if (cryptoService.isEncrypted(data.description)) {
+                                const p = cryptoService.unpackEncrypted(data.description);
+                                if (p) data.description = await cryptoService.decrypt(p.ciphertext, p.iv);
+                            }
+
+                            if (cryptoService.isEncrypted(data.notes)) {
+                                const p = cryptoService.unpackEncrypted(data.notes);
+                                if (p) data.notes = await cryptoService.decrypt(p.ciphertext, p.iv);
+                            }
+
+                            if (cryptoService.isEncrypted(data.metadata)) {
+                                const p = cryptoService.unpackEncrypted(data.metadata);
+                                if (p) data.metadata = await cryptoService.decrypt(p.ciphertext, p.iv);
                             }
                         } catch (e) {
-                            console.warn(`Failed to parse/merge metadata for asset ${data.id}. Error:`, e);
+                            console.error('Decryption failed for asset', data.id, e);
+                            // Fallback? Keep ciphertext or render null?
+                            // For now, keep as is (likely ciphertext) to avoid crash
                         }
-                    }
-                    return data;
-                }))
+
+                        // Unpack metadata to ensure UI sees all fields (subtype, zakatEligible, etc.)
+                        if (data.metadata) {
+                            try {
+                                const meta = typeof data.metadata === 'string' ? JSON.parse(data.metadata) : data.metadata;
+                                if (meta && typeof meta === 'object') {
+                                    Object.assign(data, meta);
+                                }
+                            } catch (e) {
+                                console.warn(`Failed to parse/merge metadata for asset ${data.id}. Error:`, e);
+                            }
+                        }
+                        return data;
+                    }));
+                })
             )
             .subscribe({
                 next: (data: Asset[]) => {

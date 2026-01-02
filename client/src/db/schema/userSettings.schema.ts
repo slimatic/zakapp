@@ -16,7 +16,7 @@
  */
 
 export const UserSettingsSchema = {
-    version: 3,
+    version: 4,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -25,16 +25,20 @@ export const UserSettingsSchema = {
             maxLength: 100
         },
         profileName: {
-            type: 'string' // e.g. "My Profile"
+            type: 'string', // e.g. "My Profile"
+            encrypted: true
         },
         firstName: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         lastName: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         email: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         preferredCalendar: {
             type: 'string',

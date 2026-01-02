@@ -287,6 +287,24 @@ export class CryptoService {
         }
         return bytes;
     }
+    // --- ZK Packing Helpers ---
+
+    static readonly ZK_PREFIX = 'ZK1:';
+
+    packEncrypted(iv: string, ciphertext: string): string {
+        return `${CryptoService.ZK_PREFIX}${iv}:${ciphertext}`;
+    }
+
+    unpackEncrypted(data: string): { iv: string; ciphertext: string } | null {
+        if (!data || !data.startsWith(CryptoService.ZK_PREFIX)) return null;
+        const parts = data.substring(CryptoService.ZK_PREFIX.length).split(':');
+        if (parts.length < 2) return null;
+        return { iv: parts[0], ciphertext: parts[1] };
+    }
+
+    isEncrypted(data: any): boolean {
+        return typeof data === 'string' && data.startsWith(CryptoService.ZK_PREFIX);
+    }
 }
 
 export const cryptoService = CryptoService.getInstance();

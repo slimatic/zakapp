@@ -16,7 +16,7 @@
  */
 
 export const AssetSchema = {
-    version: 3,
+    version: 4,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -36,7 +36,7 @@ export const AssetSchema = {
             maxLength: 50
         },
         value: {
-            type: 'number',
+            type: ['number', 'string'],
             encrypted: true
         },
         currency: {

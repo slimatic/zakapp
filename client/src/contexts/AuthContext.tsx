@@ -291,17 +291,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       }
 
-      // Ensure we use the latest data from the server for the session state
-      // This includes flattened profile fields like firstName/lastName
-      const user: User = {
-        ...apiResult.user,
-        username: apiResult.user.username || userDoc.get('profileName') || 'Local User', // Ensure string
-        // Fallback to local data if missing (though API should provide it now)
-        firstName: (apiResult.user as any).firstName || userDoc.get('firstName') || '',
-        lastName: (apiResult.user as any).lastName || userDoc.get('lastName') || '',
+      // 5. Construct User Object with Decrypted Fields
+      const decryptField = async (val: string | undefined): Promise<string> => {
+        if (!val) return '';
+        if (cryptoService.isEncrypted(val)) {
+          const p = cryptoService.unpackEncrypted(val);
+          if (p) return await cryptoService.decrypt(p.ciphertext, p.iv);
+        }
+        return val;
       };
 
-      // 2. Persist Session (Key + User) -> SessionStorage
+      // Helper to get field from API user or local doc
+      // API might return plaintext (if not ZK on auth) or ciphertext (if ZK sync)
+      // Local Doc will definitely be ciphertext if ZK enabled
+      const rawUsername = apiResult.user.username || userDoc.get('profileName') || 'Local User';
+      const rawFirstName = (apiResult.user as any).firstName || userDoc.get('firstName') || '';
+      const rawLastName = (apiResult.user as any).lastName || userDoc.get('lastName') || '';
+
+      const user: User = {
+        ...apiResult.user,
+        username: await decryptField(rawUsername),
+        firstName: await decryptField(rawFirstName),
+        lastName: await decryptField(rawLastName),
+      };
+
+      // 4. Persist Session (Key + User) -> SessionStorage
       const jwk = await cryptoService.exportSessionKey();
       sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
 
@@ -326,10 +340,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 2. Derive Key immediately
       await cryptoService.deriveKey(userData.password, salt);
 
+      // 2.5 Encrypt PII for Zero Knowledge Registration
+      const zkUserData = { ...userData };
+
+      if (userData.firstName) {
+        const enc = await cryptoService.encrypt(userData.firstName);
+        zkUserData.firstName = cryptoService.packEncrypted(enc.iv, enc.cipherText);
+      }
+
+      if (userData.lastName) {
+        const enc = await cryptoService.encrypt(userData.lastName);
+        zkUserData.lastName = cryptoService.packEncrypted(enc.iv, enc.cipherText);
+      }
+
       // Register with backend, passing the salt
       const { apiService: api } = await import('../services/api');
       const apiResult = await api.register({
-        ...userData,
+        ...zkUserData,
         salt: salt // Send salt to backend for multi-device sync
       });
 
