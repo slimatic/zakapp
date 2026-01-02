@@ -129,7 +129,7 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
                 assets: { schema: AssetSchema, migrationStrategies: migrationStrategiesV4 },
                 liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV2 },
                 zakat_calculations: { schema: ZakatCalculationSchema, migrationStrategies: migrationStrategiesV2 },
-                nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV3 },
+                nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV3 },
                 user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV4 }
             });
