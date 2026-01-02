@@ -16,7 +16,7 @@
  */
 
 export const NisabYearRecordSchema = {
-    version: 3,
+    version: 4,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -63,16 +63,20 @@ export const NisabYearRecordSchema = {
             type: 'number'
         },
         totalWealth: {
-            type: 'number'
+            anyOf: [{ type: 'number' }, { type: 'string' }],
+            encrypted: true
         },
         totalLiabilities: {
-            type: 'number'
+            anyOf: [{ type: 'number' }, { type: 'string' }],
+            encrypted: true
         },
         zakatableWealth: {
-            type: 'number'
+            anyOf: [{ type: 'number' }, { type: 'string' }],
+            encrypted: true
         },
         zakatAmount: {
-            type: 'number'
+            anyOf: [{ type: 'number' }, { type: 'string' }],
+            encrypted: true
         },
         currency: {
             type: 'string',
@@ -89,13 +93,16 @@ export const NisabYearRecordSchema = {
         },
 
         assetBreakdown: {
-            type: 'string' // JSON
+            type: 'string', // JSON
+            encrypted: true
         },
         calculationDetails: {
-            type: 'string' // JSON
+            type: 'string', // JSON
+            encrypted: true
         },
         userNotes: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         isPrimary: {
             type: 'boolean',
