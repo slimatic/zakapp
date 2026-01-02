@@ -19,6 +19,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatGregorianDate, gregorianToHijri, formatHijriDate } from '../../utils/calendarConverter';
+import { getFeedbackEmail } from '../../config';
 
 interface DashboardHeaderProps {
   userName?: string;
@@ -52,6 +53,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const { user } = useAuth();
   const navigate = useNavigate();
   const hijriAdjustment = (user as any)?.settings?.hijriAdjustment || 0;
+  const feedbackEmail = getFeedbackEmail();
 
   /**
    * Determine greeting based on user state
@@ -106,6 +108,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Feedback Action */}
+        {feedbackEmail && (
+          <a
+            href={`mailto:${feedbackEmail}`}
+            className="flex items-center gap-2 px-4 py-2 bg-white/50 rounded-lg border border-gray-200 backdrop-blur-sm text-gray-700 font-medium hover:text-teal-700 hover:bg-white hover:border-teal-300 transition-all shadow-sm group"
+            title="Send Feedback via Email"
+          >
+            <svg className="w-5 h-5 text-gray-500 group-hover:text-teal-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span className="hidden sm:inline">Feedback</span>
+          </a>
+        )}
+
         {/* Restart Onboarding Action */}
         <button
           onClick={() => {

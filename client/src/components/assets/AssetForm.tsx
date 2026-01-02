@@ -19,6 +19,8 @@ import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { Decimal } from 'decimal.js';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
+import { useAuth } from '../../contexts/AuthContext';
+import { METHODOLOGIES, MethodologyName } from '../../core/calculations/methodology';
 import type { Asset, AssetType } from '../../types';
 import { Button, Input } from '../ui';
 import { EncryptedBadge } from '../ui/EncryptedBadge';
@@ -42,6 +44,11 @@ interface AssetFormProps {
  * AssetForm component for creating and editing assets with modifier support
  */
 export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel }) => {
+  const { user } = useAuth();
+  const currentMethodologyName = (user?.settings?.preferredMethodology || 'STANDARD').toUpperCase() as MethodologyName;
+  const currentMethodologyConfig = METHODOLOGIES[currentMethodologyName] || METHODOLOGIES.STANDARD;
+  const isJewelryExemptMethodology = currentMethodologyConfig.jewelryExempt || false;
+
   // Helpers for category mapping
   const getInitialCategory = (assetType?: string): string => {
     if (!assetType) return 'cash';
@@ -73,6 +80,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     zakatEligible: asset?.zakatEligible ?? true,
     isPassiveInvestment: (asset as any)?.isPassiveInvestment || false,
     isRestrictedAccount: (asset as any)?.isRestrictedAccount || false,
+    isEligibilityManual: (asset as any)?.isEligibilityManual || false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -84,6 +92,22 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
   const { addAsset, updateAsset } = useAssetRepository();
 
   const isEditing = !!asset;
+
+  // Smart toggle/guidance for Jewelry Exemption
+  useEffect(() => {
+    // Check if we should auto-exempt jewelry for new assets or non-overridden assets
+    if (
+      !formData.isEligibilityManual && // Only if NOT manually overridden
+      formData.subCategory === 'jewelry' &&
+      isJewelryExemptMethodology
+    ) {
+      // If currently true, set to false
+      if (formData.zakatEligible === true) {
+        setFormData(prev => ({ ...prev, zakatEligible: false }));
+        toast.success(`Jewelry set to Exempt based on ${currentMethodologyConfig.name} rules`);
+      }
+    }
+  }, [formData.subCategory, isJewelryExemptMethodology, formData.isEligibilityManual, currentMethodologyConfig.name, formData.zakatEligible]);
 
   // Recalculate modifier when flags change
   useEffect(() => {
@@ -111,6 +135,14 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       setFormData(prev => ({ ...prev, isRestrictedAccount: false }));
     }
   }, [formData.category, formData.subCategory, formData.isRestrictedAccount, formData.isPassiveInvestment]);
+
+  const handleChange = (field: string, value: string | number | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -158,18 +190,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
       // Use Decimal for precise financial handling
       const numericValue = new Decimal(formData.value || 0).toDecimalPlaces(2).toNumber();
 
-      const categoryOptions = [
-        { value: 'cash', label: 'Cash & Savings' },
-        { value: 'gold', label: 'Gold' },
-        { value: 'silver', label: 'Silver' },
-        { value: 'business', label: 'Business Assets' },
-        { value: 'property', label: 'Property' },
-        { value: 'stocks', label: 'Stocks & Investments' },
-        { value: 'crypto', label: 'Cryptocurrency' },
-        { value: 'debts', label: 'Debts Owed to You' },
-        { value: 'expenses', label: 'Expenses' }
-      ];
-
       // Map UI category values to backend canonical categories
       const CATEGORY_SEND_MAP: Record<string, string> = {
         cash: 'CASH',
@@ -185,16 +205,20 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
       const commonData = {
         name: formData.name,
-        type: (CATEGORY_SEND_MAP[formData.category] || 'OTHER') as AssetType, // Map category to type
+        type: (CATEGORY_SEND_MAP[formData.category] || 'OTHER') as AssetType,
         subCategory: formData.subCategory || undefined,
         value: numericValue,
         currency: formData.currency,
         acquisitionDate: new Date(formData.acquisitionDate).toISOString(),
-        description: formData.description, // Keep description field
-        zakatEligible: formData.zakatEligible, // Fix: Use correct field name expected by interface
+        description: formData.description,
+        zakatEligible: formData.zakatEligible,
         isPassiveInvestment: formData.isPassiveInvestment,
         isRestrictedAccount: formData.isRestrictedAccount,
         calculationModifier: calculationModifier,
+        // Save manual override status
+        metadata: JSON.stringify({
+          isEligibilityManual: formData.isEligibilityManual
+        }),
         // Ensure other required fields have defaults
         country: 'US', // Default
         city: '',
@@ -217,14 +241,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     }
   };
 
-  const handleChange = (field: string, value: string | number | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
   const categoryOptions = [
     { value: 'cash', label: 'Cash & Savings' },
     { value: 'gold', label: 'Gold' },
@@ -236,20 +252,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     { value: 'debts', label: 'Debts Owed to You' },
     { value: 'expenses', label: 'Expenses' }
   ];
-
-
-  // Map UI category values to backend canonical categories
-  const CATEGORY_SEND_MAP: Record<string, string> = {
-    cash: 'CASH',
-    gold: 'GOLD',
-    silver: 'SILVER',
-    business: 'BUSINESS_ASSETS',
-    property: 'REAL_ESTATE',
-    stocks: 'INVESTMENT_ACCOUNT',
-    crypto: 'CRYPTOCURRENCY',
-    debts: 'DEBTS_OWED_TO_YOU',
-    expenses: 'OTHER'
-  };
 
   const subCategoryOptions: Record<string, Array<{ value: string; label: string }>> = {
     cash: [
@@ -510,7 +512,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               checked={formData.zakatEligible}
               onChange={(e) => {
                 const checked = e.target.checked;
+                // Set manual flag when user clicks
                 handleChange('zakatEligible', checked);
+                setFormData(prev => ({ ...prev, isEligibilityManual: true })); // Explicit override
+
                 // If eligibility is removed, also clear passive investment selection
                 if (!checked) {
                   handleChange('isPassiveInvestment', false);
@@ -522,11 +527,50 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             <span className="ml-2 text-sm text-gray-700">
               This asset is eligible for Zakat calculation
             </span>
+            {formData.isEligibilityManual && (
+              <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded border border-gray-200">
+                Manual Override
+              </span>
+            )}
           </label>
           <p id="zakat-help" className="mt-1 ml-6 text-xs text-gray-500">
             Check this if the asset should be included in Zakat calculations
           </p>
+
+          {/* Smart Guidance for Jewelry */}
+          {formData.zakatEligible && formData.subCategory === 'jewelry' && isJewelryExemptMethodology && (
+            <div className="mt-2 ml-6 p-2 bg-amber-50 border border-amber-200 rounded text-amber-800 text-xs flex gap-2 animate-pulse">
+              <span className="text-lg">ℹ️</span>
+              <span>
+                <strong>Note:</strong> Under the <strong>{currentMethodologyConfig.name}</strong> school, personal jewelry is typically <strong>exempt</strong> from Zakat.
+                <br />Only keep this checked if the jewelry is for <strong>investment</strong> or <strong>trade</strong> purposes.
+              </span>
+            </div>
+          )}
+
+          {/* Show inverse guidance: If UNCHECKED but methodology says it SHOULD be checked (rare, e.g. Hanafi) */}
+          {!formData.zakatEligible && formData.subCategory === 'jewelry' && !isJewelryExemptMethodology && (
+            <div className="mt-2 ml-6 p-2 bg-blue-50 border border-blue-200 rounded text-blue-800 text-xs flex gap-2">
+              <span className="text-lg">ℹ️</span>
+              <span>
+                <strong>Note:</strong> Under the <strong>{currentMethodologyConfig.name}</strong> school, jewelry is typically <strong>Zakatable</strong>.
+                <br />You have manually exempted this (personal use?).
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Modifier Section: Passive Investment */}
+        {/* Guidance for Auto-Exempted Assets */}
+        {!formData.zakatEligible && formData.subCategory === 'jewelry' && isJewelryExemptMethodology && !formData.isEligibilityManual && (
+          <div className="mt-2 ml-6 p-2 bg-gray-50 border border-gray-200 rounded text-gray-700 text-xs flex gap-2">
+            <span className="text-lg">ℹ️</span>
+            <span>
+              <strong>Note:</strong> This asset is set to <strong>Exempt</strong> based on <strong>{currentMethodologyConfig.name}</strong> rules regarding personal jewelry.
+              <br />Check the box above if this jewelry is for investment/trade (making it Zakatable).
+            </span>
+          </div>
+        )}
 
         {/* Modifier Section: Passive Investment */}
         {shouldShowPassiveCheckbox(formData.category as string) && (

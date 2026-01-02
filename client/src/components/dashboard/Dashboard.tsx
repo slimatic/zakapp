@@ -24,18 +24,23 @@ import { Badge } from '../ui/Badge';
 import { Wallet, Calculator, TrendingUp, History, ArrowRight } from 'lucide-react';
 import { Asset } from '../../types';
 import { isAssetZakatable } from '../../core/calculations/zakat';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
   // Use Local-First hook instead of API
   const { assets, isLoading } = useAssetRepository();
 
   // Simple metrics calculation from local data
   const dashboardMetrics = useMemo(() => {
+    const methodology = (user?.settings?.preferredMethodology || 'STANDARD').toUpperCase();
+
     const totalAssetValue = assets.reduce((sum, asset) => sum + (asset.value || 0), 0);
-    const zakatableAssets = assets.filter(a => isAssetZakatable(a, 'STANDARD')).length;
+    const zakatableAssets = assets.filter(a => isAssetZakatable(a, methodology as any)).length;
     return { totalAssetValue, zakatableAssets };
-  }, [assets]);
+  }, [assets, user]);
 
   const { totalAssetValue, zakatableAssets } = dashboardMetrics;
 

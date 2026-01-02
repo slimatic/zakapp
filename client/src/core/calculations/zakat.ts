@@ -42,7 +42,22 @@ export interface CalculationResult {
 // AssetZakatable Logic
 export function isAssetZakatable(asset: Asset, methodologyName: ZakatMethodology): boolean {
     const config = getMethodology(methodologyName);
-    return config.zakatableAssets.includes(asset.type);
+    const inList = config.zakatableAssets.includes(asset.type);
+
+    if (!inList) return false;
+
+    // Check Explicit Overrides First
+    if (asset.zakatEligible === true) return true;
+    if (asset.zakatEligible === false) return false;
+
+    // Default Logic for Jewelry (Gold/Silver)
+    if (config.jewelryExempt && (asset.type === AssetType.GOLD || asset.type === AssetType.SILVER)) {
+        // If methodology exempts jewelry and user hasn't explicitly said "It is zakatable (e.g. investment)",
+        // then we assume it's personal jewelry and EXEMPT it.
+        return false;
+    }
+
+    return true;
 }
 
 // Net Withdrawable Logic for Retirement

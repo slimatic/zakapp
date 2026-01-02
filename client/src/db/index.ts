@@ -299,5 +299,15 @@ export const useDb = () => {
         };
     }, []);
 
+    // ... existing code ...
     return db;
 };
+
+// HMR Handling for Vite/React
+// This fixes the "COL23: Maximum collections limited" error during development hot-reloads
+if (import.meta.hot) {
+    import.meta.hot.dispose(async () => {
+        console.warn('DatabaseService: HMR Disposing - Closing Database...');
+        await closeDb();
+    });
+}
