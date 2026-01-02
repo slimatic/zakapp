@@ -277,9 +277,20 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
       {/* Collapsible Content */}
       {!isCollapsed && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-700 mb-4">
-            Follow these steps to track your Zakat obligations. We'll highlight what needs attention.
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700">
+              Follow these steps to track your Zakat obligations. We'll highlight what needs attention.
+            </p>
+            <div className="flex items-center gap-3 shrink-0">
+              <Link to="/onboarding" className="text-xs font-medium text-gray-500 hover:text-blue-600">
+                Restart Journey
+              </Link>
+              <span className="text-gray-300">|</span>
+              <Link to="/learn" className="text-xs font-medium text-gray-500 hover:text-blue-600">
+                Learning Guide
+              </Link>
+            </div>
+          </div>
 
           {/* Steps */}
           <div className="space-y-3">
@@ -426,7 +437,16 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
           <p className="text-sm text-gray-600">
             {completedSteps.length} of {steps.length} steps completed
           </p>
-          <span className="text-xs text-blue-600 font-medium">Click to expand</span>
+          <div className="flex items-center gap-3">
+            <Link to="/onboarding" className="text-xs font-medium text-gray-500 hover:text-blue-600">
+              Restart Journey
+            </Link>
+            <span className="text-gray-300">|</span>
+            <Link to="/learn" className="text-xs font-medium text-gray-500 hover:text-blue-600">
+              Learning Guide
+            </Link>
+          </div>
+          <span className="text-xs text-blue-600 font-medium cursor-pointer" onClick={toggleCollapsed}>Click to expand</span>
         </div>
       )}
     </div>

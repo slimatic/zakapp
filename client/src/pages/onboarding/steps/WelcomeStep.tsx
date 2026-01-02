@@ -13,9 +13,18 @@ export const WelcomeStep: React.FC = () => {
                 </div>
             </div>
 
-            <div className="space-y-2 mb-6">
-                <p className="text-emerald-800 font-arabic text-xl" lang="ar" dir="rtl">السلام عليكم</p>
-                <p className="text-gray-600">As-salamu alaykum</p>
+            <div className="space-y-4 mb-8">
+                <div className="space-y-1">
+                    <p className="text-emerald-800 font-arabic text-xl" lang="ar" dir="rtl">السلام عليكم</p>
+                    <p className="text-gray-600">As-salamu alaykum</p>
+                </div>
+
+                <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
+                    <p className="text-emerald-800 italic font-serif text-lg leading-relaxed">
+                        "...and spend from that of which He has made you trustees."
+                    </p>
+                    <p className="text-emerald-600 text-sm mt-2 font-medium">— Surah Al-Hadid (57:7)</p>
+                </div>
             </div>
 
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -23,22 +32,25 @@ export const WelcomeStep: React.FC = () => {
             </h1>
 
             <h2 className="text-lg text-gray-600 font-medium mb-8">
-                Your Wealth, Your Privacy
+                Helping you fulfill the Trust, privately.
             </h2>
 
-            <div className="prose prose-sm mx-auto text-gray-500 mb-8">
+            <div className="prose prose-sm mx-auto text-gray-500 mb-8 text-left max-w-sm">
                 <p className="mb-4">
-                    ZakApp is built on a <strong>Local-First</strong> architecture. This means:
+                    ZakApp helps you calculate your Zakat while honoring your privacy through a <strong>Local-First</strong> architecture:
                 </p>
-                <ul className="text-left list-disc pl-6 space-y-2">
-                    <li>Your financial data <strong>never</strong> leaves this device unencrypted.</li>
-                    <li>Calculations happen <strong>offline</strong> in your browser.</li>
-                    <li>We have <strong>zero knowledge</strong> of your assets or Zakat dues.</li>
+                <ul className="list-disc pl-5 space-y-2">
+                    <li>The details of your provision (rizq) <strong>never</strong> leave this device.</li>
+                    <li>All calculations happen <strong>offline</strong>, right here in your browser.</li>
+                    <li>We have <strong>zero knowledge</strong> of your assets or data.</li>
                 </ul>
             </div>
 
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-800 text-left mb-6">
-                <strong>💡 Note:</strong> In the next few steps, we'll configure your Zakat preferences according to your Madhab (School of Thought).
+            <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 text-sm text-amber-900 text-left mb-6 flex gap-3">
+                <span className="text-xl">💡</span>
+                <span>
+                    <strong>Note:</strong> In the next few steps, we'll configure settings according to your Madhab (School of Thought).
+                </span>
             </div>
 
             <button

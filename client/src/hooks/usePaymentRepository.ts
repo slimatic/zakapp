@@ -18,7 +18,8 @@
 import { useState, useEffect } from 'react';
 import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
+import { cryptoService } from '../services/CryptoService';
 // Payment Record matches the shared type but lives locally in RxDB
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
 
@@ -42,7 +43,40 @@ export function usePaymentRepository() {
             sort: [{ paymentDate: 'desc' }]
         }).$
             .pipe(
-                map((docs: any[]) => docs.map((doc: any) => doc.toJSON()))
+                switchMap(async (docs: any[]) => {
+                    return Promise.all(docs.map(async (doc: any) => {
+                        const data = { ...doc.toJSON() };
+
+                        // Decrypt strings
+                        for (const field of ['recipientName', 'notes', 'receiptReference']) {
+                            if (data[field] && cryptoService.isEncrypted(data[field])) {
+                                try {
+                                    const p = cryptoService.unpackEncrypted(data[field]);
+                                    if (p) data[field] = await cryptoService.decrypt(p.ciphertext, p.iv);
+                                } catch (e) {
+                                    console.warn(`PaymentRepo: Failed to decrypt ${field}`, e);
+                                }
+                            }
+                        }
+
+                        // Decrypt amount
+                        if (data.amount && typeof data.amount === 'string' && cryptoService.isEncrypted(data.amount)) {
+                            try {
+                                const p = cryptoService.unpackEncrypted(data.amount);
+                                if (p) {
+                                    const decrypted = await cryptoService.decrypt(p.ciphertext, p.iv);
+                                    const parsed = parseFloat(decrypted);
+                                    data.amount = isNaN(parsed) ? 0 : parsed;
+                                }
+                            } catch (e) {
+                                console.warn('PaymentRepo: Failed to decrypt amount', e);
+                                data.amount = 0;
+                            }
+                        }
+
+                        return data;
+                    }));
+                })
             )
             .subscribe({
                 next: (data: PaymentRecord[]) => {

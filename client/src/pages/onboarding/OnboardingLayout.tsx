@@ -23,16 +23,19 @@ export const OnboardingLayout: React.FC = () => {
     const progress = ((currentStep + 1) / totalSteps) * 100;
 
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, updateLocalProfile } = useAuth();
 
-    const handleSkip = () => {
+    const handleSkip = async () => {
         if (window.confirm("Skip the setup wizard? You can always access these tools from the Dashboard.")) {
             if (user?.id) {
-                // Mark as skipped in local prefs to prevent auto-redirect loop in Dashboard
+                // Mark as skipped in local prefs (legacy)
                 localStorage.setItem(`zakapp_local_prefs_${user.id}`, JSON.stringify({
                     skipped: true,
                     completedAt: new Date().toISOString()
                 }));
+
+                // Update User Context to prevent Redirect Loop
+                await updateLocalProfile({ isSetupCompleted: true });
             }
             navigate('/dashboard');
         }

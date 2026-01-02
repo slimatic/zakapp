@@ -18,8 +18,8 @@
 import { useState, useEffect } from 'react';
 import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
-import { map } from 'rxjs/operators';
-
+import { map, switchMap } from 'rxjs/operators';
+import { cryptoService } from '../services/CryptoService';
 import { Liability } from '../types';
 
 export function useLiabilityRepository() {
@@ -34,7 +34,40 @@ export function useLiabilityRepository() {
 
         const sub = db.liabilities.find().$
             .pipe(
-                map((docs: any[]) => docs.map((doc: any) => doc.toJSON()))
+                switchMap(async (docs: any[]) => {
+                    return Promise.all(docs.map(async (doc: any) => {
+                        const data = { ...doc.toJSON() };
+
+                        // Decrypt strings
+                        for (const field of ['name', 'description', 'creditor', 'notes', 'metadata']) {
+                            if (data[field] && cryptoService.isEncrypted(data[field])) {
+                                try {
+                                    const p = cryptoService.unpackEncrypted(data[field]);
+                                    if (p) data[field] = await cryptoService.decrypt(p.ciphertext, p.iv);
+                                } catch (e) {
+                                    console.warn(`LiabilityRepo: Failed to decrypt ${field}`, e);
+                                }
+                            }
+                        }
+
+                        // Decrypt amount (number | string)
+                        if (data.amount && typeof data.amount === 'string' && cryptoService.isEncrypted(data.amount)) {
+                            try {
+                                const p = cryptoService.unpackEncrypted(data.amount);
+                                if (p) {
+                                    const decrypted = await cryptoService.decrypt(p.ciphertext, p.iv);
+                                    const parsed = parseFloat(decrypted);
+                                    data.amount = isNaN(parsed) ? 0 : parsed;
+                                }
+                            } catch (e) {
+                                console.warn('LiabilityRepo: Failed to decrypt amount', e);
+                                data.amount = 0;
+                            }
+                        }
+
+                        return data;
+                    }));
+                })
             )
             .subscribe({
                 next: (data: Liability[]) => {

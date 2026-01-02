@@ -85,6 +85,7 @@ interface AuthContextType extends AuthState {
   register: (userData: any) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateLocalProfile: (updates: Partial<User>) => Promise<void>;
   clearError: () => void;
 }
 
@@ -285,7 +286,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           id: backendUserId, // Use Real Backend ID
           profileName: apiResult.user.username || 'My Profile',
           email: apiResult.user.email || 'local@device',
-          isSetupCompleted: true,
+          isSetupCompleted: false, // Default to false for fresh devices/resets so onboarding triggers
           securityProfile: {
             salt: salt,
             verifier: 'TODO-HASH-OF-KEY'
@@ -317,6 +318,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         username: await decryptField(rawUsername),
         firstName: await decryptField(rawFirstName),
         lastName: await decryptField(rawLastName),
+        isSetupCompleted: userDoc.get('isSetupCompleted') || false,
       };
 
       // 4. Persist Session (Key + User) -> SessionStorage
@@ -370,6 +372,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
           }
           if (migratedRecords > 0) console.log(`ZK Migration: Encrypted ${migratedRecords} legacy Zakat records.`);
+
+          // Liabilities
+          const liabilities = await encryptedDb.liabilities.find().exec();
+          let migratedLiabilities = 0;
+          for (const doc of liabilities) {
+            const name = doc.get('name');
+            const amount = doc.get('amount');
+            if ((name && !cryptoService.isEncrypted(name)) ||
+              (amount !== undefined && typeof amount === 'number') ||
+              (amount && typeof amount === 'string' && !cryptoService.isEncrypted(amount))) {
+              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
+              migratedLiabilities++;
+            }
+          }
+          if (migratedLiabilities > 0) console.log(`ZK Migration: Encrypted ${migratedLiabilities} legacy liabilities.`);
+
+          // Payment Records
+          const payments = await encryptedDb.payment_records.find().exec();
+          let migratedPayments = 0;
+          for (const doc of payments) {
+            const recipient = doc.get('recipientName');
+            const amount = doc.get('amount');
+            if ((recipient && !cryptoService.isEncrypted(recipient)) ||
+              (amount !== undefined && typeof amount === 'number') ||
+              (amount && typeof amount === 'string' && !cryptoService.isEncrypted(amount))) {
+              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
+              migratedPayments++;
+            }
+          }
+          if (migratedPayments > 0) console.log(`ZK Migration: Encrypted ${migratedPayments} legacy payments.`);
+
         } catch (e) { console.warn('ZK Migration Failed', e); }
       }, 500);
 
@@ -450,7 +483,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         firstName: userData.firstName || '',
         lastName: userData.lastName || '',
         email: userData.email,
-        isSetupCompleted: true,
+        isSetupCompleted: false,
         securityProfile: {
           salt: salt,
           verifier: 'TODO-HASH-OF-KEY'
@@ -464,7 +497,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         username: userData.username,
         email: userData.email,
         firstName: userData.firstName,
-        lastName: userData.lastName
+        lastName: userData.lastName,
+        isSetupCompleted: false
       };
 
       // 4. Persist Session
@@ -515,7 +549,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.warn('AuthContext: refreshUser failed - user data missing in response', verifyResult);
       }
     } catch (error) {
-      console.error('AuthContext: Failed to refresh user data', error);
+    }
+  };
+
+  const updateLocalProfile = async (updates: Partial<User>): Promise<void> => {
+    if (!state.user?.id) return;
+    try {
+      const db = await getDb();
+      const userDoc = await db.user_settings.findOne(state.user.id).exec();
+      if (userDoc) {
+        await userDoc.patch({
+          ...updates,
+          updatedAt: new Date().toISOString()
+        });
+
+        // Update state
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: { ...state.user, ...updates }
+        });
+
+        // Update session storage
+        const currentSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
+        if (currentSession) {
+          const { jwk } = JSON.parse(currentSession);
+          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+            user: { ...state.user, ...updates },
+            jwk
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('AuthContext: Failed to update local profile', error);
+      throw error;
     }
   };
 
@@ -529,6 +595,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     refreshUser,
+    updateLocalProfile,
     clearError,
   };
 

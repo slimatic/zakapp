@@ -248,7 +248,19 @@ export const SummaryStep: React.FC = () => {
 
                 if (hawlDoc) {
                     hawlRecordId = hawlDoc.id;
-                    setCreatedRecord({ ...hawlDoc.toJSON(), id: hawlDoc.id });
+                    // Use calculated plain values for immediate display to avoid encryption/decryption lag
+                    setCreatedRecord({
+                        id: hawlDoc.id,
+                        hawlStartDate: now.toISOString(),
+                        hawlCompletionDate: completionDate.toISOString(),
+                        hijriYear: hijriStart.hy,
+                        totalWealth: grandTotalNetWealth,
+                        zakatableWealth: grandTotalNetWealth,
+                        zakatAmount: calculatedZakatAmount,
+                        nisabThresholdAtStart: nisabThreshold,
+                        nisabBasis: data.nisab.standard.toUpperCase(),
+                        status: 'DRAFT'
+                    });
                 }
 
                 setTasks(prev => ({ ...prev, hawl: 'success' }));

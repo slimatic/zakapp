@@ -187,6 +187,14 @@ export const Dashboard: React.FC = () => {
   // Let's rely on local derivation for "Smart" steps to be consistent.
   const maskedCurrency = useMaskedCurrency();
 
+  // Redirect to onboarding if setup is incomplete
+  useEffect(() => {
+    if (user && user.isSetupCompleted === false) {
+      console.log('Dashboard: User setup incomplete, redirecting to onboarding wizard.');
+      navigate('/onboarding');
+    }
+  }, [user, navigate]);
+
   // Local Data Repositories (RxDB)
   const { assets, isLoading: assetsLoading, error: assetsError } = useAssetRepository();
   const { activeRecord, isLoading: recordsLoading, error: recordsError } = useNisabRecordRepository();

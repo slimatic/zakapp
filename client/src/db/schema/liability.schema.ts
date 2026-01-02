@@ -16,7 +16,7 @@
  */
 
 export const LiabilitySchema = {
-    version: 2,
+    version: 3,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -28,14 +28,16 @@ export const LiabilitySchema = {
             type: 'string'
         },
         name: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         type: {
             type: 'string',
             maxLength: 50
         },
         amount: {
-            type: 'number'
+            anyOf: [{ type: 'number' }, { type: 'string' }],
+            encrypted: true
         },
         currency: {
             type: 'string',
@@ -43,10 +45,12 @@ export const LiabilitySchema = {
             maxLength: 3
         },
         description: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         metadata: {
-            type: 'string' // Encrypted JSON
+            type: 'string', // Encrypted JSON
+            encrypted: true
         },
         isActive: {
             type: 'boolean',
@@ -66,10 +70,12 @@ export const LiabilitySchema = {
             maxLength: 30
         },
         creditor: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         },
         notes: {
-            type: 'string'
+            type: 'string',
+            encrypted: true
         }
     },
     required: ['id', 'name', 'type', 'amount', 'isActive', 'dueDate'],
