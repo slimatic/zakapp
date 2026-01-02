@@ -58,7 +58,14 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [x] **E2E Encryption Layer**: Ensure all replicated data is encrypted on-device (Host-Proof Hosting).
 - [x] **Conflict Resolution**: "Last-Write-Wins" merging handled by RxDB; passwords auto-heal.
 
-## Phase 6: V1.0 Launch Readiness (The "Onboarding" Engine)
+## Phase 6: Performance & Privacy (The "Responsiveness" Engine)
+*Goal: Ensure the app feels instant and handles data lifecycle responsibly.*
+
+- [ ] **Realtime "Live" Sync**: Replace polling-based sync with RxDB Live Replication to ensure instant data availability and reduce network overhead on navigation.
+- [ ] **Secure Remote Purge**: Implement authoritative deletion where "Clear Data" ensures removal from Cloud/CouchDB immediately.
+- [ ] **Offline Caching Strategy**: Optimize standard browser caching to prevent re-fetching static assets.
+
+## Phase 7: V1.0 Launch Readiness (The "Onboarding" Engine)
 *Goal: Remove friction for non-expert users and ensure rock-solid privacy.*
 
 - [x] **Knowledge Hub**: "Zakat Encyclopedia" (Static & Offline-ready) accessible via Settings/Sidebar.
