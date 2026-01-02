@@ -319,6 +319,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const jwk = await cryptoService.exportSessionKey();
       sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
 
+      // 6. Zero Knowledge Migration (Sanitize Legacy Data)
+      // Background process: find cleartext data and force-save it to trigger encryption
+      setTimeout(async () => {
+        try {
+          console.log('ZK Migration: Scanning for cleartext data...');
+          // Assets
+          const assets = await encryptedDb.assets.find().exec();
+          let migratedCount = 0;
+          for (const doc of assets) {
+            // Check if ANY key field is cleartext
+            if (doc.get('name') && !cryptoService.isEncrypted(doc.get('name'))) {
+              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
+              migratedCount++;
+            } else if (doc.get('value') && !cryptoService.isEncrypted(doc.get('value'))) {
+              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
+              migratedCount++;
+            }
+          }
+          if (migratedCount > 0) console.log(`ZK Migration: Encrypted ${migratedCount} legacy assets.`);
+
+          // User Profile
+          if (userDoc) {
+            const fn = userDoc.get('firstName');
+            const ln = userDoc.get('lastName');
+            if ((fn && !cryptoService.isEncrypted(fn)) || (ln && !cryptoService.isEncrypted(ln))) {
+              console.log('ZK Migration: Encrypting legacy user profile');
+              await userDoc.atomicPatch({ updatedAt: new Date().toISOString() });
+            }
+          }
+        } catch (e) { console.warn('ZK Migration Failed', e); }
+      }, 500);
+
       // Note: accessToken already stored in localStorage above
 
       console.log('AuthContext: Dispatching LOGIN_SUCCESS');
