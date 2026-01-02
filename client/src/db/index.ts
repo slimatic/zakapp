@@ -27,6 +27,7 @@ import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
 import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
 import { wrappedKeyEncryptionCryptoJsStorage } from 'rxdb/plugins/encryption-crypto-js';
+import { RxDBZeroKnowledgePlugin } from './plugins/zeroKnowledgePlugin';
 import { AssetSchema } from './schema/asset.schema';
 import { LiabilitySchema } from './schema/liability.schema';
 import { ZakatCalculationSchema } from './schema/zakatCalc.schema';
@@ -45,6 +46,7 @@ console.log('RxDB Storage Adapter (Dexie):', getRxStorageDexie);
 addRxPlugin(RxDBUpdatePlugin);
 addRxPlugin(RxDBQueryBuilderPlugin);
 addRxPlugin(RxDBMigrationSchemaPlugin);
+addRxPlugin(RxDBZeroKnowledgePlugin);
 
 export type ZakAppCollections = {
     assets: RxCollection;
@@ -67,6 +69,11 @@ const migrationStrategiesV3 = {
     1: (doc: any) => doc,
     2: (doc: any) => doc,
     3: (doc: any) => doc
+};
+
+const migrationStrategiesV4 = {
+    ...migrationStrategiesV3,
+    4: (doc: any) => doc
 };
 
 if (process.env.NODE_ENV === 'development') {
@@ -119,12 +126,12 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
         if (!db.collections.assets) {
             console.log('DatabaseService: Database created. Adding collections...');
             await db.addCollections({
-                assets: { schema: AssetSchema, migrationStrategies: migrationStrategiesV3 },
+                assets: { schema: AssetSchema, migrationStrategies: migrationStrategiesV4 },
                 liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV2 },
                 zakat_calculations: { schema: ZakatCalculationSchema, migrationStrategies: migrationStrategiesV2 },
                 nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV3 },
                 payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV3 },
-                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV3 }
+                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV4 }
             });
             console.log('DatabaseService: Collections added.');
         } else {
