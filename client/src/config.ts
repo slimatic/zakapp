@@ -91,6 +91,16 @@ export const getCouchDbPassword = (): string => {
   return import.meta.env.VITE_COUCHDB_PASSWORD || 'password';
 };
 
+export const getFeedbackEmail = (): string => {
+  // Check for runtime configuration
+  if (typeof window !== 'undefined' && window.APP_CONFIG?.FEEDBACK_EMAIL) {
+    return window.APP_CONFIG.FEEDBACK_EMAIL;
+  }
+
+  // Fallback to build-time environment variable
+  return import.meta.env.VITE_FEEDBACK_EMAIL || '';
+};
+
 // Type definition for the global window object
 declare global {
   interface Window {
@@ -98,6 +108,7 @@ declare global {
       API_BASE_URL?: string;
       FEEDBACK_ENABLED?: string;
       FEEDBACK_WEBHOOK_URL?: string;
+      FEEDBACK_EMAIL?: string;
       COUCHDB_URL?: string;
       COUCHDB_USER?: string;      // @deprecated - remove after JWT
       COUCHDB_PASSWORD?: string;  // @deprecated - remove after JWT
