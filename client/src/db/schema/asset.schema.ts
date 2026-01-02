@@ -36,7 +36,10 @@ export const AssetSchema = {
             maxLength: 50
         },
         value: {
-            type: ['number', 'string'],
+            anyOf: [
+                { type: 'number' },
+                { type: 'string' }
+            ],
             encrypted: true
         },
         currency: {
