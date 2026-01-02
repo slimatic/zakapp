@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatGregorianDate, gregorianToHijri, formatHijriDate } from '../../utils/calendarConverter';
 
@@ -48,6 +49,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   hasAssets,
   hasActiveRecord,
 }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const hijriAdjustment = (user as any)?.settings?.hijriAdjustment || 0;
+
   /**
    * Determine greeting based on user state
    */
@@ -76,9 +81,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     return 'Your Zakat tracking is active. Monitor your progress below.';
   };
 
-  const { user } = useAuth();
-  const hijriAdjustment = (user as any)?.settings?.hijriAdjustment || 0;
-
   // Get current date components
   const today = new Date();
   const gregorian = formatGregorianDate(today);
@@ -103,10 +105,29 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         )}
       </div>
 
-      {/* Date Display Widget */}
-      <div className="hidden md:block text-right bg-white/50 p-3 rounded-lg border border-gray-100 backdrop-blur-sm">
-        <p className="text-sm font-semibold text-gray-900">{gregorian}</p>
-        <p className="text-sm text-teal-700 font-medium font-serif mt-0.5">{hijri}</p>
+      <div className="flex items-center gap-3">
+        {/* Restart Onboarding Action */}
+        <button
+          onClick={() => {
+            if (window.confirm("Run the Setup Wizard again? This preserves your history but allows you to re-enter your wealth data from scratch.")) {
+              navigate('/onboarding');
+            }
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-white/50 rounded-lg border border-gray-200 backdrop-blur-sm text-gray-700 font-medium hover:text-emerald-700 hover:bg-white hover:border-emerald-300 transition-all shadow-sm group"
+          title="Run Setup Wizard"
+          aria-label="Run Setup Wizard"
+        >
+          <svg className="w-5 h-5 text-gray-500 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+          <span className="hidden sm:inline">Setup Wizard</span>
+        </button>
+
+        {/* Date Display Widget */}
+        <div className="hidden md:block text-right bg-white/50 p-2.5 px-4 rounded-lg border border-gray-100 backdrop-blur-sm shadow-sm">
+          <p className="text-sm font-semibold text-gray-900 leading-tight">{gregorian}</p>
+          <p className="text-xs text-teal-700 font-medium font-serif mt-0.5">{hijri}</p>
+        </div>
       </div>
     </div>
   );
