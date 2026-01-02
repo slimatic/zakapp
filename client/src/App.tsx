@@ -109,8 +109,8 @@ function App() {
     <ToastProvider>
       <QueryProvider>
         <AuthProvider>
-          <SyncManager />
           <PrivacyProvider>
+            <SyncManager />
             <Router>
               <ErrorBoundary>
                 <div className="App">
