@@ -188,8 +188,22 @@ export const Dashboard: React.FC = () => {
   const maskedCurrency = useMaskedCurrency();
 
   // Redirect to onboarding if setup is incomplete
+  // Redirect to onboarding if setup is incomplete
   useEffect(() => {
-    if (user && user.isSetupCompleted === false) {
+    // Check if user explicitly skipped via local prefs (fallback for robust UX)
+    const localPrefs = user?.id ? localStorage.getItem(`zakapp_local_prefs_${user.id}`) : null;
+    let hasSkipped = false;
+    if (localPrefs) {
+      try {
+        const prefs = JSON.parse(localPrefs);
+        if (prefs.skipped) hasSkipped = true;
+      } catch (e) {
+        console.warn('Dashboard: Failed to parse local prefs', e);
+      }
+    }
+
+    // Only redirect if NOT complete AND NOT skipped
+    if (user && user.isSetupCompleted === false && !hasSkipped) {
       console.log('Dashboard: User setup incomplete, redirecting to onboarding wizard.');
       navigate('/onboarding');
     }
