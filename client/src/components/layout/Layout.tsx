@@ -392,6 +392,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Powered By Footer */}
         <footer className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center justify-center pb-4 gap-2">
+          <Link to="/privacy-policy" className="text-xs text-gray-500 hover:text-emerald-600 transition-colors">
+            Privacy Policy
+          </Link>
           <a
             href="https://rstlabs.io"
             target="_blank"
