@@ -20,6 +20,7 @@ import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
 import { map } from 'rxjs/operators';
 import { NisabYearRecord } from '../types/nisabYearRecord';
+import { cryptoService } from '../services/CryptoService';
 
 /**
  * Hook for managing Nisab Year Records in the local database.
@@ -32,16 +33,51 @@ export function useNisabRecordRepository() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
+
+
     useEffect(() => {
         if (!db) return;
 
         // Subscribe to records query
-        // Sort by hawlStartDate descending (newest first)
         const sub = db.nisab_year_records.find({
             sort: [{ hawlStartDate: 'desc' }]
         }).$
             .pipe(
-                map((docs: any[]) => docs.map((doc: any) => doc.toJSON()))
+                map((docs: any[]) => docs.map((doc: any) => {
+                    const data = doc.toJSON();
+
+                    // Decrypt numeric fields
+                    ['totalWealth', 'totalLiabilities', 'zakatableWealth', 'zakatAmount'].forEach(field => {
+                        if (typeof data[field] === 'string' && cryptoService.isEncrypted(data[field])) {
+                            try {
+                                const packed = cryptoService.unpackEncrypted(data[field]);
+                                if (packed) {
+                                    const decrypted = cryptoService.decrypt(packed.ciphertext, packed.iv);
+                                    if (decrypted) data[field] = Number(decrypted);
+                                }
+                            } catch (e) {
+                                console.warn(`Failed to decrypt ${field}`, e);
+                            }
+                        }
+                    });
+
+                    // Decrypt string/JSON fields
+                    ['assetBreakdown', 'calculationDetails', 'userNotes'].forEach(field => {
+                        if (typeof data[field] === 'string' && cryptoService.isEncrypted(data[field])) {
+                            try {
+                                const packed = cryptoService.unpackEncrypted(data[field]);
+                                if (packed) {
+                                    const decrypted = cryptoService.decrypt(packed.ciphertext, packed.iv);
+                                    if (decrypted) data[field] = decrypted;
+                                }
+                            } catch (e) {
+                                console.warn(`Failed to decrypt ${field}`, e);
+                            }
+                        }
+                    });
+
+                    return data;
+                }))
             )
             .subscribe({
                 next: (data: NisabYearRecord[]) => {

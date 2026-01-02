@@ -352,6 +352,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               await userDoc.atomicPatch({ updatedAt: new Date().toISOString() });
             }
           }
+
+          // Nisab Year Records (Encrypt History)
+          const records = await encryptedDb.nisab_year_records.find().exec();
+          let migratedRecords = 0;
+          for (const doc of records) {
+            const tw = doc.get('totalWealth');
+            const za = doc.get('zakatAmount');
+            // If these fields exist and are currently numbers (or unencrypted strings), touch the doc
+            // Note: 'totalWealth' will be a number in legacy docs
+            if ((tw !== undefined && typeof tw === 'number') || (tw && typeof tw === 'string' && !cryptoService.isEncrypted(tw))) {
+              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
+              migratedRecords++;
+            } else if ((za !== undefined && typeof za === 'number')) {
+              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
+              migratedRecords++;
+            }
+          }
+          if (migratedRecords > 0) console.log(`ZK Migration: Encrypted ${migratedRecords} legacy Zakat records.`);
         } catch (e) { console.warn('ZK Migration Failed', e); }
       }, 500);
 
