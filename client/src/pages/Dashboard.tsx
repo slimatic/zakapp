@@ -33,6 +33,7 @@ import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '../types';
 import { useBestAction } from '../hooks/useBestAction';
+import { GlossaryTerm } from '../components/common/GlossaryTerm';
 
 /**
  * Educational Module Component
@@ -103,29 +104,29 @@ const EducationalModule: React.FC = () => {
       {isExpanded && (
         <div className="space-y-4">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">What is Zakat?</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">What is <GlossaryTerm term="zakat" />?</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              Zakat is one of the Five Pillars of Islam and is an obligatory act of charity. It requires Muslims
+              <GlossaryTerm term="zakat" /> is one of the Five Pillars of Islam and is an obligatory act of charity. It requires Muslims
               who meet specific wealth criteria to donate 2.5% of their qualifying wealth annually to those in need.
-              Zakat purifies wealth and helps create a more equitable society.
+              <GlossaryTerm term="zakat" /> purifies wealth and helps create a more equitable society.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">What is Nisab?</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">What is <GlossaryTerm term="nisab" />?</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              Nisab is the minimum threshold of wealth a Muslim must possess for one lunar year (Hawl) before
-              Zakat becomes obligatory. The Nisab can be calculated based on the value of gold (85 grams) or
-              silver (595 grams). ZakApp helps you track your wealth and determine when you've reached the Nisab threshold.
+              <GlossaryTerm term="nisab" /> is the minimum threshold of wealth a Muslim must possess for one lunar year (<GlossaryTerm term="hawl" />) before
+              <GlossaryTerm term="zakat" /> becomes obligatory. The <GlossaryTerm term="nisab" /> can be calculated based on the value of gold (85 grams) or
+              silver (595 grams). ZakApp helps you track your wealth and determine when you've reached the <GlossaryTerm term="nisab" /> threshold.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">The Hawl Period</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">The <GlossaryTerm term="hawl" /> Period</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              The Hawl is the Islamic lunar year period (354 days) during which your wealth must remain above
-              the Nisab threshold for Zakat to be due. ZakApp's Nisab Year Record feature helps you track this
-              period automatically and alerts you when Zakat payment is due.
+              The <GlossaryTerm term="hawl" /> is the Islamic lunar year period (354 days) during which your wealth must remain above
+              the <GlossaryTerm term="nisab" /> threshold for <GlossaryTerm term="zakat" /> to be due. ZakApp's Nisab Year Record feature helps you track this
+              period automatically and alerts you when <GlossaryTerm term="zakat" /> payment is due.
             </p>
           </div>
 
@@ -164,7 +165,7 @@ const EducationalModule: React.FC = () => {
 
       {!isExpanded && (
         <p className="text-sm text-gray-600">
-          Learn about Zakat obligations, Nisab threshold, and the Hawl period. Click to expand.
+          Learn about <GlossaryTerm term="zakat" /> obligations, <GlossaryTerm term="nisab" /> threshold, and the <GlossaryTerm term="hawl" /> period. Click to expand.
         </p>
       )}
     </div>

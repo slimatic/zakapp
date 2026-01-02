@@ -34,8 +34,7 @@ import {
 } from './components/common/LoadingFallback';
 import InstallPrompt from './components/pwa/InstallPrompt';
 import UpdateNotification from './components/pwa/UpdateNotification';
-import { FeedbackWidget } from './components/FeedbackWidget';
-import { getFeedbackEnabled } from './config';
+
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { SkipLink } from './components/common/SkipLink';
 import { useSyncManager } from './hooks/useSyncManager';
@@ -93,6 +92,7 @@ const SeederPage = lazy(() => import('./pages/SeederPage').then(m => ({ default:
 
 
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
 // const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
 
 /**
@@ -379,6 +379,17 @@ function App() {
                       }
                     />
 
+                    {/* Privacy Policy - Publicly accessible */}
+                    <Route
+                      path="/privacy-policy"
+                      element={
+                        <Suspense fallback={<PageLoadingFallback />}>
+                          <PrivacyPolicyPage />
+                        </Suspense>
+                      }
+                    />
+
+
 
 
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -388,8 +399,7 @@ function App() {
                   <InstallPrompt />
                   <UpdateNotification />
 
-                  {/* Feedback Widget - toggleable via environment variable */}
-                  {getFeedbackEnabled() && <FeedbackWidget />}
+
                 </div>
               </ErrorBoundary>
             </Router>

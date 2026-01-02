@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Video, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { FAQS_DATA } from '../../data/faqs';
+import { GLOSSARY } from '../../data/glossary';
+import { Link } from 'react-router-dom';
 
 const VIDEO_PLAYLIST_ID = "PLXguldgkbZPffh6p4efOetXkTeJATAbcS";
 
@@ -42,7 +44,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ question, answer, isOpen,
 };
 
 export const KnowledgeHub: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'faqs' | 'videos' | 'guides'>('faqs');
+    const [activeTab, setActiveTab] = useState<'faqs' | 'videos' | 'guides' | 'glossary'>('faqs');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
@@ -96,6 +98,13 @@ export const KnowledgeHub: React.FC = () => {
                     >
                         <BookOpen size={18} />
                         Guides
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('glossary')}
+                        className={`${activeTab === 'glossary' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+                    >
+                        <BookOpen size={18} />
+                        Glossary
                     </button>
                 </nav>
             </div>
@@ -176,6 +185,26 @@ export const KnowledgeHub: React.FC = () => {
                                 Notify when available
                             </button>
                         </div>
+                    </motion.div>
+                )}
+
+                {activeTab === 'glossary' && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="max-w-4xl mx-auto grid gap-6 md:grid-cols-2"
+                    >
+                        {Object.values(GLOSSARY).sort((a, b) => a.term.localeCompare(b.term)).map((term) => (
+                            <div key={term.term} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                                <h3 className="text-xl font-bold text-emerald-800 mb-2 capitalize">{term.display}</h3>
+                                <p className="text-gray-700 font-medium mb-3">{term.definition}</p>
+                                {term.longDefinition && (
+                                    <p className="text-gray-500 text-sm leading-relaxed border-t border-gray-50 pt-3 mt-2">
+                                        {term.longDefinition}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
                     </motion.div>
                 )}
             </div>
