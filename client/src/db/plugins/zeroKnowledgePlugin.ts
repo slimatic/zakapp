@@ -42,9 +42,10 @@ export const RxDBZeroKnowledgePlugin: RxPlugin = {
                 // Hook: preSave - Encrypt data before update
                 collection.preSave(async (data: any, oldData: any) => {
                     for (const path of encryptedPaths) {
-                        // Only encrypt if changed/present and not already encrypted
-                        if (data[path] && data[path] !== oldData[path]) {
-                            // Check if it looks like it's already encrypted (avoid double encryption)
+                        // Logic: If field exists AND is not already encrypted...
+                        // We do NOT check if it changed. We secure it if it's open.
+                        if (data[path]) {
+                            // Check if it's already encrypted
                             if (cryptoService.isEncrypted(data[path])) continue;
 
                             try {
