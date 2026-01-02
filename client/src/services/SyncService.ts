@@ -232,10 +232,7 @@ export class SyncService {
         }
     }
 
-    private pollingInterval: any = null;
-    private localChangeSubs: any[] = [];
-    private isSyncingOneShot = new Map<string, boolean>();
-    private pendingSyncs = new Set<string>();
+
 
     /**
      * Start "Smart Sync" for the given user.
@@ -255,7 +252,6 @@ export class SyncService {
 
         this.db = db;
         this.userId = userId;
-
         const safeUserId = userId.toLowerCase().replace(/[^a-z0-9]/g, '_');
 
         this.syncStatus$.next({
@@ -265,73 +261,40 @@ export class SyncService {
             active: true
         });
 
-        // 1. Setup Local Change Listeners (Immediate Push)
-        SYNC_COLLECTIONS.forEach(colName => {
-            const col = db[colName];
-            if (col) {
-                const sub = col.$.subscribe(changeEvent => {
-                    // Only trigger on LOCAL changes to avoid loops
-                    if (!changeEvent.isLocal) return;
-                    console.log(`📝 Local change in ${colName} -> Triggering sync`);
-                    this.syncCollection(colName, safeUserId);
-                });
-                this.localChangeSubs.push(sub);
-            }
-        });
+        console.log(`🚀 Starting LIVE sync for user: ${safeUserId}`);
 
-        // 2. Initial Full Sync (Sequential)
-        this.syncAllSequentially(safeUserId);
-
-        // 3. Setup Polling (Every 30s)
-        this.pollingInterval = setInterval(() => {
-            console.log('⏰ Polling for server changes...');
-            this.syncAllSequentially(safeUserId);
-        }, 30000);
-    }
-
-    private async syncAllSequentially(safeUserId: string) {
+        // Start Live Replication for all collections
         for (const colName of SYNC_COLLECTIONS) {
-            await this.syncCollection(colName, safeUserId);
+            await this.startCollectionSync(colName, safeUserId);
         }
     }
 
-    private async syncCollection(collectionName: string, safeUserId: string) {
-        // Prevent concurrent runs for same collection, but queue it up
-        if (this.isSyncingOneShot.get(collectionName)) {
-            console.log(`⏳ Sync for ${collectionName} already active, queuing next run.`);
-            this.pendingSyncs.add(collectionName);
-            return;
-        }
-
-        this.isSyncingOneShot.set(collectionName, true);
-
-        // Notify UI
-        this.activeCollections.add(collectionName);
-        this.updateSyncStatus();
-
+    private async startCollectionSync(collectionName: string, safeUserId: string) {
         try {
             const remoteDbName = `zakapp_${safeUserId}_${collectionName}`;
             const couchUrl = getCouchDbUrl();
 
-            // Ensure the user's database exists
+            // Ensure the user's database exists (Safe check, usually handled by backend)
+            // But we can skip it if we want faster startup, trusting backend.
+            // Keeping it for robustness.
             await this.ensureUserDatabase(remoteDbName);
 
             const collection = this.db![collectionName as keyof ZakAppCollections];
             if (!collection) return;
 
-            // One-Shot Replication
+            console.log(`⚡ Connecting Live Sync: ${collectionName}`);
+
             const replicationState = await replicateCouchDB({
                 replicationIdentifier: `zakapp-${safeUserId}-${collectionName}`,
                 collection,
                 url: `${couchUrl}/${remoteDbName}/`,
-                live: false, // ONE-SHOT
+                live: true, // LIVE REPLICATION
                 retryTime: 5000,
+                autoStart: true,
                 pull: {
                     batchSize: 50,
                     modifier: async (doc: any) => {
-                        // Skip system documents or invalid docs
                         if (!doc?._id || typeof doc._id !== 'string' || doc._id.startsWith('_design/')) return doc;
-
                         if (doc.encrypted && doc.iv && doc.tag) {
                             try {
                                 const decrypted = await cryptoService.decryptObject({
@@ -342,7 +305,7 @@ export class SyncService {
                                 return { _id: doc._id, _rev: doc._rev, ...decrypted };
                             } catch (err) {
                                 console.error(`Decryption failed for ${collectionName}:`, err);
-                                throw err; // allow retry
+                                throw err;
                             }
                         }
                         return doc;
@@ -369,11 +332,10 @@ export class SyncService {
                 }
             });
 
-            // Wait for completion with timeout and progress tracking
-            const replicationPromise = replicationState.awaitInitialReplication();
+            this.replicationStates.push(replicationState);
 
-            // Monitor progress
-            const errorSub = replicationState.error$.subscribe(err => {
+            // Subscribe to errors
+            replicationState.error$.subscribe(err => {
                 console.error(`❌ Sync Error (${collectionName}):`, err);
                 this.syncStatus$.next({
                     ...this.syncStatus$.getValue(),
@@ -381,53 +343,36 @@ export class SyncService {
                 });
             });
 
-            const docSub = replicationState.received$.subscribe(doc => {
-                console.debug(`📥 Received doc in ${collectionName}:`, doc.id);
+            // Monitor Activity
+            replicationState.active$.subscribe(active => {
+                this.activeCollections.delete(collectionName);
+                if (active) this.activeCollections.add(collectionName);
+                this.updateSyncStatus();
             });
 
-            const sentSub = replicationState.sent$.subscribe(doc => {
-                console.debug(`📤 Sent doc in ${collectionName}:`, doc.id);
-            });
-
-            // 2 Minute Timeout for large datasets
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Sync Timeout')), 120000)
-            );
-
-            await Promise.race([replicationPromise, timeoutPromise]);
-
-            // Clean up subscriptions
-            errorSub.unsubscribe();
-            docSub.unsubscribe();
-            sentSub.unsubscribe();
-
-        } catch (err: any) {
-            console.warn(`⚠️ Sync Warning (${collectionName}):`, err.message || err);
-            // If timeout or error, ensure we cancel to stop retries
-            // Note: replicationState might not be accessible here cleanly due to scope, 
-            // but awaitInitialReplication error usually implies it halted or we timed out.
-        } finally {
-            this.isSyncingOneShot.set(collectionName, false);
-            this.activeCollections.delete(collectionName);
-            this.updateSyncStatus();
-
-            // Check if a run was queued while we were busy
-            if (this.pendingSyncs.has(collectionName)) {
-                this.pendingSyncs.delete(collectionName);
-                console.log(`🔄 Re-triggering pending sync for ${collectionName}`);
-                // Execute immediately, but let the stack clear first to act async
-                setTimeout(() => this.syncCollection(collectionName, safeUserId), 0);
-            }
+        } catch (err) {
+            console.error(`❌ Failed to start sync for ${collectionName}:`, err);
         }
+    }
+
+    /**
+     * Waits for the client to be fully up-to-date with the remote server.
+     * Useful for "Clear Data" where we want to ensure the deletion replication is processed.
+     */
+    async awaitSync() {
+        if (this.replicationStates.length === 0) return;
+
+        console.log("⏳ Awaiting sync completion...");
+        await Promise.all(this.replicationStates.map(state => state.awaitInSync()));
+        console.log("✅ Sync fully up-to-date.");
     }
 
     async stopSync() {
         console.log(`🛑 SyncService: Stopping sync for ${this.userId}`);
 
-        // Clear Intervals/Listeners
-        if (this.pollingInterval) clearInterval(this.pollingInterval);
-        this.localChangeSubs.forEach(sub => sub.unsubscribe());
-        this.localChangeSubs = [];
+        // Cancel all replications
+        await Promise.all(this.replicationStates.map(state => state.cancel()));
+        this.replicationStates = [];
 
         this.activeCollections.clear();
         this.syncCredentials = null;
