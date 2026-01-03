@@ -56,17 +56,36 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     // Map backend UPPERCASE types to frontend lowercase values
     const map: Record<string, string> = {
       'CASH': 'cash',
+      'BANK_ACCOUNT': 'cash',
       'GOLD': 'gold',
       'SILVER': 'silver',
       'BUSINESS_ASSETS': 'business',
       'REAL_ESTATE': 'property',
       'INVESTMENT_ACCOUNT': 'stocks',
+      'RETIREMENT': 'stocks',
       'CRYPTOCURRENCY': 'crypto',
       'DEBTS_OWED_TO_YOU': 'debts',
       'OTHER': 'expenses'
     };
 
     return map[assetType] || 'cash';
+  };
+
+  // Parse initial retirement treatment from metadata
+  const getInitialRetirementTreatment = (asset: Asset | undefined): string => {
+    if (!asset || !asset.metadata) return 'net_value';
+    try {
+      const meta = typeof asset.metadata === 'string' ? JSON.parse(asset.metadata) : asset.metadata;
+      const details = meta.retirementDetails;
+      if (!details) return 'net_value';
+
+      if (details.withdrawalPenalty === 1.0) return 'deferred';
+      if (details.withdrawalPenalty === 0.7) return 'passive';
+      if (details.withdrawalPenalty === 0 && details.taxRate === 0) return 'full';
+      return 'net_value';
+    } catch (e) {
+      return 'net_value';
+    }
   };
 
   const [formData, setFormData] = useState({
@@ -81,6 +100,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     isPassiveInvestment: (asset as any)?.isPassiveInvestment || false,
     isRestrictedAccount: (asset as any)?.isRestrictedAccount || false,
     isEligibilityManual: (asset as any)?.isEligibilityManual || false,
+    retirementTreatment: getInitialRetirementTreatment(asset),
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -112,10 +132,18 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
   // Recalculate modifier when flags change
   useEffect(() => {
     const propertyExempt = ['personal_residence', 'rental_property', 'vacant_land'];
+    const isRetirement = formData.category === 'stocks' && formData.subCategory?.startsWith('retirement');
 
     let newModifier = 1.0;
 
-    if (formData.isRestrictedAccount) {
+    if (isRetirement) {
+      switch (formData.retirementTreatment) {
+        case 'deferred': newModifier = 0.0; break;
+        case 'passive': newModifier = 0.3; break;
+        case 'net_value': newModifier = 0.7; break; // Approx
+        case 'full': default: newModifier = 1.0; break;
+      }
+    } else if (formData.isRestrictedAccount) {
       newModifier = 0.0;
     } else if (formData.isPassiveInvestment) {
       newModifier = 0.3;
@@ -125,8 +153,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
     setCalculationModifier(newModifier);
 
-    // Clear passive flag if category changes to ineligible type
-    if (!PASSIVE_INVESTMENT_TYPES.includes(formData.category as any)) {
+    // Clear passive flag if category changes to ineligible type OR if it's a retirement subcategory
+    const isRetirementSubCategory = formData.subCategory?.startsWith('retirement');
+    if (!PASSIVE_INVESTMENT_TYPES.includes(formData.category as any) || isRetirementSubCategory) {
       setFormData(prev => ({ ...prev, isPassiveInvestment: false }));
     }
 
@@ -134,7 +163,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     if (!RESTRICTED_ACCOUNT_TYPES.includes(formData.category as any)) {
       setFormData(prev => ({ ...prev, isRestrictedAccount: false }));
     }
-  }, [formData.category, formData.subCategory, formData.isRestrictedAccount, formData.isPassiveInvestment]);
+  }, [formData.category, formData.subCategory, formData.isRestrictedAccount, formData.isPassiveInvestment, formData.retirementTreatment]);
 
   const handleChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -203,9 +232,39 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         expenses: 'OTHER'
       };
 
+      let finalType = (CATEGORY_SEND_MAP[formData.category] || 'OTHER') as AssetType;
+
+      // Special handling: if category is 'stocks' but subCategory indicates retirement, use RETIREMENT type
+      if (formData.category === 'stocks' && formData.subCategory?.startsWith('retirement')) {
+        finalType = 'RETIREMENT' as AssetType;
+      }
+
+      // Special handling: if category is 'cash' but subCategoriy indicates Bank Account, use BANK_ACCOUNT type
+      if (formData.category === 'cash' && ['checking', 'savings', 'money_market', 'certificates_of_deposit'].includes(formData.subCategory)) {
+        finalType = 'BANK_ACCOUNT' as AssetType;
+      }
+
+      const isRetirement = finalType === 'RETIREMENT';
+      let metadataObj: any = {
+        isEligibilityManual: formData.isEligibilityManual
+      };
+
+      if (isRetirement) {
+        const treatment = formData.retirementTreatment || 'net_value';
+        if (treatment === 'net_value') {
+          metadataObj.retirementDetails = { withdrawalPenalty: 0.1, taxRate: 0.2 };
+        } else if (treatment === 'deferred') {
+          metadataObj.retirementDetails = { withdrawalPenalty: 1.0, taxRate: 0 };
+        } else if (treatment === 'passive') {
+          metadataObj.retirementDetails = { withdrawalPenalty: 0.7, taxRate: 0 };
+        } else { // Full
+          metadataObj.retirementDetails = { withdrawalPenalty: 0, taxRate: 0 };
+        }
+      }
+
       const commonData = {
         name: formData.name,
-        type: (CATEGORY_SEND_MAP[formData.category] || 'OTHER') as AssetType,
+        type: finalType,
         subCategory: formData.subCategory || undefined,
         value: numericValue,
         currency: formData.currency,
@@ -216,9 +275,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         isRestrictedAccount: formData.isRestrictedAccount,
         calculationModifier: calculationModifier,
         // Save manual override status
-        metadata: JSON.stringify({
-          isEligibilityManual: formData.isEligibilityManual
-        }),
+        metadata: JSON.stringify(metadataObj),
         // Ensure other required fields have defaults
         country: 'US', // Default
         city: '',
@@ -572,8 +629,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           </div>
         )}
 
-        {/* Modifier Section: Passive Investment */}
-        {shouldShowPassiveCheckbox(formData.category as string) && (
+        {/* Modifier Section: Passive Investment (hidden for retirement since radio has this option) */}
+        {shouldShowPassiveCheckbox(formData.category as string) && !formData.subCategory?.startsWith('retirement') && (
           <div className="border-l-4 border-blue-300 bg-blue-50 p-4 rounded">
             <label className="flex items-start">
               <input
@@ -615,8 +672,90 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           </div>
         )}
 
-        {/* Modifier Section: Restricted Account */}
-        {shouldShowRestrictedCheckbox(formData.category as string) && (
+        {/* Modifier Section: Retirement Treatment (Radio Group) */}
+        {formData.category === 'stocks' && formData.subCategory?.startsWith('retirement') && (
+          <div className="bg-white/50 p-4 rounded-lg border border-blue-100/50 space-y-3">
+            <p className="text-sm font-medium text-blue-900">Zakat Treatment:</p>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name="retirement-treatment"
+                checked={formData.retirementTreatment === 'full'}
+                onChange={() => handleChange('retirementTreatment', 'full')}
+                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <div>
+                <span className="block text-sm font-medium text-gray-900">Full Assessment (100%)</span>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name="retirement-treatment"
+                checked={formData.retirementTreatment === 'net_value'}
+                onChange={() => handleChange('retirementTreatment', 'net_value')}
+                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <div>
+                <span className="block text-sm font-medium text-gray-900">Deduct Taxes/Penalties (Net Value)</span>
+                <span className="block text-xs text-gray-500">Calculates zakat on ~70% of the value (after estimated taxes/fees).</span>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name="retirement-treatment"
+                checked={formData.retirementTreatment === 'passive'}
+                onChange={() => handleChange('retirementTreatment', 'passive')}
+                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <div>
+                <span className="block text-sm font-medium text-gray-900">Passive Investment (30%)</span>
+                <span className="block text-xs text-gray-500">Treats underlying assets as passive/business assets (Zakatable on 30%).</span>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="radio"
+                name="retirement-treatment"
+                checked={formData.retirementTreatment === 'deferred'}
+                onChange={() => handleChange('retirementTreatment', 'deferred')}
+                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <div>
+                <span className="block text-sm font-medium text-gray-900">Deferred (Exempt)</span>
+                <span className="block text-xs text-gray-500">No Zakat due until withdrawal (based on lack of complete ownership/access).</span>
+              </div>
+            </label>
+
+            {/* Modifier Summary */}
+            {formData.value && (
+              <div className="mt-4 pt-4 border-t border-blue-100">
+                <div className="bg-blue-50 rounded-lg p-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Original Value:</span>
+                    <span className="font-medium text-gray-900">${parseFloat(String(formData.value)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Modifier Applied:</span>
+                    <span className="font-bold text-blue-600">{(calculationModifier * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t border-blue-200 pt-2">
+                    <span className="font-medium text-gray-900">Zakatable Value:</span>
+                    <span className="font-bold text-emerald-600">${(parseFloat(String(formData.value)) * calculationModifier).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Modifier Section: Restricted Account (Legacy/Non-Retirement) */}
+        {shouldShowRestrictedCheckbox(formData.category as string) && (!formData.subCategory?.startsWith('retirement')) && (
           <div className="border-l-4 border-gray-300 bg-gray-50 p-4 rounded">
             <label className="flex items-start">
               <input
@@ -635,7 +774,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               />
               <span className="ml-3">
                 <span className="text-sm font-medium text-gray-700 block">
-                  Restricted Account (Deferred Contribution)
+                  Zakat-Deferred (401k/IRA/HSA)
                 </span>
                 <span className="text-xs text-gray-600 block mt-1">
                   {getRestrictedAccountGuidance()}

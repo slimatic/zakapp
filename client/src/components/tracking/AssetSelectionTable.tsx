@@ -28,6 +28,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Asset } from '../../types';
+import { getAssetZakatableValue, ZakatMethodology } from '../../core/calculations/zakat';
 
 export interface AssetSelectionTableProps {
   assets: Asset[];
@@ -58,13 +59,10 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
   const totals = useMemo(() => {
     const selectedAssets = assets.filter(a => selectedIds.has(a.id));
     const totalWealth = selectedAssets.reduce((sum, a) => sum + a.value, 0);
-    const zakatableWealth = selectedAssets
-      .filter(a => a.zakatEligible)
-      .reduce((sum, a) => {
-        // Check if zakatableValue exists (custom property not in strict interface but might be attached at runtime)
-        const val = (a as any).zakatableValue;
-        return sum + (typeof val === 'number' ? val : a.value);
-      }, 0);
+    const zakatableWealth = selectedAssets.reduce((sum, a) => {
+      // Use core zakat calculation for accurate zakatable value
+      return sum + getAssetZakatableValue(a, 'STANDARD' as ZakatMethodology);
+    }, 0);
     const zakatAmount = zakatableWealth * 0.025; // 2.5%
 
     return { totalWealth, zakatableWealth, zakatAmount };
@@ -137,9 +135,8 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
       <div className="md:hidden space-y-3">
         {assets.map((asset) => {
           const isSelected = selectedIds.has(asset.id);
-          // Safe access for optional zakatableValue
-          const zakatableVal = (asset as any).zakatableValue;
-          const displayZakatable = typeof zakatableVal === 'number' ? zakatableVal : asset.value;
+          // Use core zakat calculator for accurate display
+          const displayZakatable = getAssetZakatableValue(asset, 'STANDARD' as ZakatMethodology);
 
           return (
             <div
@@ -234,9 +231,8 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {assets.map((asset) => {
               const isSelected = selectedIds.has(asset.id);
-              // Safe access for optional zakatableValue
-              const zakatableVal = (asset as any).zakatableValue;
-              const displayZakatable = typeof zakatableVal === 'number' ? zakatableVal : asset.value;
+              // Use core zakat calculator for accurate display
+              const displayZakatable = getAssetZakatableValue(asset, 'STANDARD' as ZakatMethodology);
 
               return (
                 <tr
