@@ -93,8 +93,20 @@ export function getAssetZakatableValue(asset: Asset, methodologyName: ZakatMetho
         return 0;
     }
 
+    // For retirement assets, use the net-withdrawable calculation
     if (asset.type === AssetType.RETIREMENT) {
         return calculateNetWithdrawable(asset);
+    }
+
+    // For assets with a calculationModifier (e.g., passive investments), apply it
+    const modifier = (asset as any).calculationModifier;
+    if (typeof modifier === 'number' && modifier !== 1.0) {
+        return asset.value * modifier;
+    }
+
+    // Check if explicitly marked as passive investment (30% rule)
+    if ((asset as any).isPassiveInvestment === true) {
+        return asset.value * 0.3;
     }
 
     return asset.value;
