@@ -203,9 +203,15 @@ export function useAssetRepository() {
 
             let currentMeta = {};
             try {
+                // Check if metadata is the encrypted string (starts with ZK1:)
+                if (doc.metadata && typeof doc.metadata === 'string' && doc.metadata.startsWith('ZK1:')) {
+                    console.error('[useAssetRepository] Asset metadata is still encrypted (ZK1:...), cannot merge. Aborting update to prevent data loss.', id);
+                    return;
+                }
                 currentMeta = doc.metadata ? JSON.parse(doc.metadata) : {};
             } catch (e) {
-                console.warn('[useAssetRepository] Failed to parse existing doc metadata during update. Overwriting.', doc.metadata);
+                console.error('[useAssetRepository] Failed to parse existing doc metadata during update. Aborting to prevent data loss.', doc.metadata);
+                return;
             }
 
             const safeUpdates = sanitizeAssetPayload(updates);
@@ -249,6 +255,11 @@ export function useAssetRepository() {
             // Parse metadata to check manual override
             let meta: any = {};
             try {
+                // Check if metadata is encrypted string
+                if (data.metadata && typeof data.metadata === 'string' && data.metadata.startsWith('ZK1:')) {
+                    console.warn(`[reassessAssets] Skipping Asset ${data.id}: Metadata is encrypted (ZK1:...), cannot read rules.`);
+                    continue;
+                }
                 meta = data.metadata ? (typeof data.metadata === 'string' ? JSON.parse(data.metadata) : data.metadata) : {};
             } catch (e) {
                 console.warn('Metadata parse fail', e);
