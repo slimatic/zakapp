@@ -17,6 +17,7 @@
 
 import { NisabInfo } from '@zakapp/shared';
 import { NISAB_THRESHOLDS } from '@zakapp/shared';
+import axios from 'axios';
 
 /**
  * Nisab Threshold Service
@@ -33,9 +34,9 @@ export class NisabService {
     gold?: { price: number; timestamp: number };
     silver?: { price: number; timestamp: number };
   } = {};
-  
-  // Cache validity period (1 hour)
-  private readonly CACHE_VALIDITY_MS = 60 * 60 * 1000;
+
+  // Cache validity period (12 hours)
+  private readonly CACHE_VALIDITY_MS = 12 * 60 * 60 * 1000;
 
   /**
    * Calculate nisab thresholds based on current metal prices
@@ -91,24 +92,28 @@ export class NisabService {
     }
 
     try {
-      // TODO: Integrate with real precious metals API
-      // For now, use placeholder value
-      const goldPriceUSD = 65; // USD per gram (placeholder)
-      
+      const price = await this.fetchLivePrice('XAU', currency);
+
       // Update cache
       this.priceCache.gold = {
-        price: goldPriceUSD,
+        price: price,
         timestamp: Date.now()
       };
 
-      return this.convertCurrency(goldPriceUSD, 'USD', currency);
+      return price;
     } catch (error) {
+      console.error('GoldAPI Error (Gold):', error instanceof Error ? error.message : 'Unknown error');
+
       // Fallback to cached value if available
       if (cached) {
-        console.warn('Using cached gold price due to API error:', error);
+        console.warn('Using cached gold price due to API error');
         return this.convertCurrency(cached.price, 'USD', currency);
       }
-      throw new Error('Unable to retrieve gold price data');
+
+      // Fallback to static constant if all else fails
+      const FALLBACK_GOLD_PRICE = 65; // USD/g
+      console.warn(`Using static fallback gold price: $${FALLBACK_GOLD_PRICE}/g`);
+      return this.convertCurrency(FALLBACK_GOLD_PRICE, 'USD', currency);
     }
   }
 
@@ -126,25 +131,79 @@ export class NisabService {
     }
 
     try {
-      // TODO: Integrate with real precious metals API
-      // For now, use placeholder value
-      const silverPriceUSD = 0.85; // USD per gram (placeholder)
-      
+      const price = await this.fetchLivePrice('XAG', currency);
+
       // Update cache
       this.priceCache.silver = {
-        price: silverPriceUSD,
+        price: price,
         timestamp: Date.now()
       };
 
-      return this.convertCurrency(silverPriceUSD, 'USD', currency);
+      return price;
     } catch (error) {
+      console.error('GoldAPI Error (Silver):', error instanceof Error ? error.message : 'Unknown error');
+
       // Fallback to cached value if available
       if (cached) {
-        console.warn('Using cached silver price due to API error:', error);
+        console.warn('Using cached silver price due to API error');
         return this.convertCurrency(cached.price, 'USD', currency);
       }
-      throw new Error('Unable to retrieve silver price data');
+
+      // Fallback to static constant if all else fails
+      const FALLBACK_SILVER_PRICE = 0.85; // USD/g
+      console.warn(`Using static fallback silver price: $${FALLBACK_SILVER_PRICE}/g`);
+      return this.convertCurrency(FALLBACK_SILVER_PRICE, 'USD', currency);
     }
+  }
+
+  /**
+   * Fetch live price from GoldAPI
+   * @param symbol - 'XAU' (Gold) or 'XAG' (Silver)
+   * @param currency - Target currency
+   */
+  private async fetchLivePrice(symbol: 'XAU' | 'XAG', currency: string): Promise<number> {
+    const apiKey = process.env.GOLD_API_KEY;
+    if (!apiKey) {
+      throw new Error('GOLD_API_KEY is not configured');
+    }
+
+    // GoldAPI expects symbol and currency in URL, e.g., /api/XAU/USD
+    // Note: GoldAPI returns price per OUNCE usually, but we need GRAMS.
+    // However, some endpoints return price per gram directly if configured or we need to convert.
+    // GoldAPI default is 1 oz. 1 Troy Ounce = 31.1034768 grams.
+
+    // Using standard endpoint: https://www.goldapi.io/api/{symbol}/{currency}
+    const response = await axios.get(`https://www.goldapi.io/api/${symbol}/${currency}`, {
+      headers: {
+        'x-access-token': apiKey,
+        'Content-Type': 'application/json'
+      },
+      timeout: 5000 // 5s timeout
+    });
+
+    if (response.status !== 200 || !response.data) {
+      throw new Error(`Invalid response from GoldAPI: ${response.status}`);
+    }
+
+    // Response format: { price: number, price_gram_24k: number, ... }
+    // We prefer `price_gram_24k` for pure gold/silver calculations if available,
+    // otherwise fallback to `price` (ounce) / 31.1035
+
+    // For calculating Nisab (pure gold/silver), we should use 24k price.
+    const pricePerGram = response.data.price_gram_24k;
+
+    if (typeof pricePerGram === 'number') {
+      return pricePerGram;
+    }
+
+    // Fallback calculation if configured differently
+    const pricePerOunce = response.data.price;
+    if (typeof pricePerOunce === 'number') {
+      const GRAMS_PER_OUNCE = 31.1034768;
+      return pricePerOunce / GRAMS_PER_OUNCE;
+    }
+
+    throw new Error('Price data missing in GoldAPI response');
   }
 
   /**
@@ -203,7 +262,7 @@ export class NisabService {
         // This ensures more people are eligible for Zakat payment
         const effectiveNisab = Math.min(goldNisab, silverNisab);
         const nisabBasis = goldNisab < silverNisab ? 'gold' : 'silver';
-        
+
         return {
           effectiveNisab,
           nisabBasis: `dual_minimum_${nisabBasis}`
@@ -223,7 +282,7 @@ export class NisabService {
     calculation: string;
   } {
     const baseExplanation = 'Nisab is the minimum amount of wealth one must have before being obligated to pay Zakat.';
-    
+
     switch (methodology.toLowerCase()) {
       case 'hanafi':
         return {
@@ -325,15 +384,15 @@ export class NisabService {
     // For now, return placeholder data
     const historicalData: Array<{ date: string; nisab: number; basis: string }> = [];
     const currentDate = new Date();
-    
+
     for (let i = days; i >= 0; i--) {
       const date = new Date(currentDate);
       date.setDate(date.getDate() - i);
-      
+
       // Simulate historical data with slight variations
       const baseGold = 65 + (Math.random() - 0.5) * 5;
       const baseSilver = 0.85 + (Math.random() - 0.5) * 0.1;
-      
+
       const goldNisab = this.calculateGoldNisab(baseGold);
       const silverNisab = this.calculateSilverNisab(baseSilver);
       const { effectiveNisab, nisabBasis } = this.determineEffectiveNisab(
@@ -341,14 +400,14 @@ export class NisabService {
         goldNisab,
         silverNisab
       );
-      
+
       historicalData.push({
         date: date.toISOString().split('T')[0],
         nisab: effectiveNisab,
         basis: nisabBasis
       });
     }
-    
+
     return historicalData;
   }
 
@@ -383,7 +442,7 @@ export class NisabService {
     silver: { cached: boolean; age?: number };
   } {
     const now = Date.now();
-    
+
     return {
       gold: {
         cached: !!this.priceCache.gold,

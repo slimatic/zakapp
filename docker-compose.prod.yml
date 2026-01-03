@@ -1,0 +1,79 @@
+version: '3.8'
+
+# Production Deployment Configuration
+# Usage: docker-compose -f docker-compose.prod.yml up -d
+
+services:
+  # 1. CouchDB (Required for Sync)
+  couchdb:
+    image: apache/couchdb:3.3.2
+    container_name: zakapp-prod-couchdb
+    restart: always
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER:-admin}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-password}
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+    ports:
+      - "5984:5984"
+
+  # 2. Backend API (Production Build)
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.production
+      target: backend-production
+    container_name: zakapp-prod-backend
+    restart: always
+    depends_on:
+      - couchdb
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=file:/app/server/prisma/data/prod.db?connection_limit=1
+      # CouchDB Connection
+      - COUCHDB_URL=${COUCHDB_URL:-http://couchdb:5984}
+      - COUCHDB_USER=${COUCHDB_USER:-admin}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-password}
+      - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET:-change-me-in-prod-min-32-chars}
+      # Security & App
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-prod-min-32-chars}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
+      - GOLD_API_KEY=${GOLD_API_KEY}
+    volumes:
+      - backend_data:/app/server/prisma/data
+      # Mount backups directory for persistence
+      - ./backups:/app/server/backups
+    ports:
+      - "3001:3001"
+    # Healthcheck to ensure it's up before frontend/nginx relies on it (optional but good)
+    healthcheck:
+        test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 20s
+
+  # 3. Frontend (Nginx serving React Production Build)
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.production
+      target: frontend-production
+    container_name: zakapp-prod-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    environment:
+      # These are injected into window.APP_CONFIG by nginx-entrypoint.sh at runtime
+      - REACT_APP_API_BASE_URL=/api
+      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL:-http://localhost:5984}
+      - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
+      - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
+
+volumes:
+  couchdb_data:
+  backend_data:
