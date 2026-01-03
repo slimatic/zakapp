@@ -98,6 +98,8 @@ export const DangerZone: React.FC = () => {
     const handleConfirmClearData = async () => {
         await clearAllData();
         setIsClearDataModalOpen(false);
+        // User Request: Refresh page and start fresh from onboarding
+        window.location.href = '/onboarding';
     };
 
     const handlePurgeCloudData = async () => {

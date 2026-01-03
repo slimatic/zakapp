@@ -30,6 +30,7 @@ import React, { useMemo } from 'react';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useHawlStatus } from '../hooks/useHawlStatus';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
+import { Tooltip } from './ui';
 
 export interface NisabComparisonWidgetProps {
   /**
@@ -183,27 +184,33 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
         {/* Main comparison */}
         <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
           {/* Zakatable Wealth */}
-          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100">
-            <div className="text-xs font-medium text-gray-500 mb-1">Zakatable Wealth</div>
-            <div className="text-lg font-bold text-gray-900 tracking-tight">
-              {formatMaskedCurrency(displayWealth)}
-            </div>
+          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
+            <div className="text-xs font-medium text-gray-500 mb-1 truncate">Zakatable Wealth</div>
+            <Tooltip content={formatMaskedCurrency(displayWealth)}>
+              <div className="text-base sm:text-lg font-bold text-gray-900 tracking-tight truncate block">
+                {formatMaskedCurrency(displayWealth)}
+              </div>
+            </Tooltip>
           </div>
 
           {/* Total Wealth */}
-          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100">
-            <div className="text-xs font-medium text-gray-500 mb-1">Total Wealth</div>
-            <div className="text-lg font-bold text-gray-900 tracking-tight">
-              {formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}
-            </div>
+          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
+            <div className="text-xs font-medium text-gray-500 mb-1 truncate">Total Wealth</div>
+            <Tooltip content={formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}>
+              <div className="text-base sm:text-lg font-bold text-gray-900 tracking-tight truncate block">
+                {formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}
+              </div>
+            </Tooltip>
           </div>
 
           {/* Nisab Threshold - Full width on mobile, standard on desktop */}
-          <div className="col-span-2 sm:col-span-1 rounded-lg bg-white p-3 shadow-sm border border-gray-100 flex flex-col justify-center sm:block">
-            <div className="text-xs font-medium text-gray-500 mb-1">Nisab Threshold</div>
-            <div className="text-lg font-bold text-gray-700 tracking-tight">
-              {formatMaskedCurrency(displayNisab)}
-            </div>
+          <div className="col-span-2 sm:col-span-1 rounded-lg bg-white p-3 shadow-sm border border-gray-100 flex flex-col justify-center sm:block min-w-0">
+            <div className="text-xs font-medium text-gray-500 mb-1 truncate">Nisab Threshold</div>
+            <Tooltip content={formatMaskedCurrency(displayNisab)}>
+              <div className="text-base sm:text-lg font-bold text-gray-700 tracking-tight truncate block">
+                {formatMaskedCurrency(displayNisab)}
+              </div>
+            </Tooltip>
           </div>
         </div>
 
