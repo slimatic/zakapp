@@ -387,6 +387,37 @@ export class SyncService {
             authMethod: 'none'
         });
     }
+
+    /**
+     * securely purges all data from the remote cloud (CouchDB).
+     * This is an irreversible action.
+     */
+    async purgeRemoteData(): Promise<void> {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) throw new Error('No access token');
+
+        const apiUrl = getApiBaseUrl();
+        console.log('🗑️ Initiating Remote Data Purge...');
+
+        // Stop sync first to prevent immediate re-upload attempts or errors
+        await this.stopSync();
+
+        const response = await fetch(`${apiUrl}/sync/purge`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const body = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(body.message || body.error || 'Failed to purge remote data');
+        }
+
+        console.log('✅ Remote data purged successfully.');
+        toast.success("Cloud data wiped successfully");
+    }
 }
 
 export const syncService = new SyncService();
