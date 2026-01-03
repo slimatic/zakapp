@@ -67,6 +67,14 @@ const migrationStrategiesV4 = {
     4: (doc: any) => doc
 };
 
+const migrationStrategiesV5 = {
+    ...migrationStrategiesV4,
+    5: (doc: any) => {
+        doc.hijriAdjustment = 0;
+        return doc;
+    }
+};
+
 if (process.env.NODE_ENV === 'development') {
     addRxPlugin(RxDBDevModePlugin);
 }
@@ -121,7 +129,7 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
                 liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
                 nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
-                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV4 }
+                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV5 }
             });
             console.log('DatabaseService: Collections added.');
         } else {
