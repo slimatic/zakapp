@@ -42,8 +42,7 @@ export function useDataCleanup() {
                 db.assets,
                 db.liabilities,
                 db.payment_records,
-                db.nisab_year_records,
-                db.zakat_calculations
+                db.nisab_year_records
             ];
 
             // 1. Delete Locally
@@ -53,12 +52,16 @@ export function useDataCleanup() {
 
             // 2. Ensure Remote Deletion (Wait for Sync)
             // This is critical effectively to "Remote Purge"
-            await syncService.awaitSync();
+            // Add a timeout so we don't hang effectively forever if offline
+            const syncPromise = syncService.awaitSync();
+            const timeoutPromise = new Promise(resolve => setTimeout(resolve, 5000));
 
-            toast.success('All financial data has been cleared from this device and synced.', { id: toastId });
+            await Promise.race([syncPromise, timeoutPromise]);
+
+            toast.success('All financial data has been cleared from this device.', { id: toastId });
 
             // Optional: Trigger a window reload or router push to refresh state visualizers
-            // window.location.reload(); 
+            setTimeout(() => window.location.reload(), 1000);
         } catch (error: any) {
             console.error('Data cleanup failed:', error);
             toast.error('Failed to clear data: ' + error.message, { id: toastId });

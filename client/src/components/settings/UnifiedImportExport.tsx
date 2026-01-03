@@ -23,7 +23,6 @@ import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { useNisabRecordRepository } from '../../hooks/useNisabRecordRepository';
 import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
-import { useZakatCalculationRepository } from '../../hooks/useZakatCalculationRepository';
 import { useUserSettingsRepository } from '../../hooks/useUserSettingsRepository';
 import { MigrationService } from '../../services/migrationService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -51,7 +50,6 @@ export const UnifiedImportExport: React.FC = () => {
     const { payments, bulkAddPayments } = usePaymentRepository();
     const { records: nisabRecords, addRecord, bulkAddRecords } = useNisabRecordRepository();
     const { liabilities, bulkAddLiabilities } = useLiabilityRepository();
-    const { calculations, bulkAddCalculations } = useZakatCalculationRepository();
     const { settings, updateSettings } = useUserSettingsRepository();
 
     const handleExport = () => {
@@ -65,14 +63,13 @@ export const UnifiedImportExport: React.FC = () => {
                     payments: payments.length,
                     nisabRecords: nisabRecords.length,
                     liabilities: liabilities.length,
-                    calculations: calculations.length,
+                    calculations: 0,
                     hasSettings: !!settings
                 },
                 assets,
                 payments,
                 nisabRecords,
                 liabilities,
-                calculations,
                 settings
             };
 
@@ -164,18 +161,6 @@ export const UnifiedImportExport: React.FC = () => {
                     }
                 }
 
-                // 5. Migrate Calculations
-                let calcCount = 0;
-                if (rawData.calculations && Array.isArray(rawData.calculations)) {
-                    try {
-                        const cleanCalcs = MigrationService.adaptCalculations(rawData.calculations, targetUserId);
-                        await bulkAddCalculations(cleanCalcs);
-                        calcCount += cleanCalcs.length;
-                    } catch (err: any) {
-                        errors.push(`Calculation Batch Error: ${err.message}`);
-                    }
-                }
-
                 // 6. Migrate Settings
                 let settingsRestored = false;
                 if (rawData.settings) {
@@ -193,7 +178,7 @@ export const UnifiedImportExport: React.FC = () => {
                     payments: paymentCount,
                     nisabRecords: nisabCount,
                     liabilities: liabilityCount,
-                    calculations: calcCount,
+                    calculations: 0,
                     settings: settingsRestored,
                     errors
                 });
@@ -241,7 +226,7 @@ export const UnifiedImportExport: React.FC = () => {
                             <div className="text-center">
                                 <h3 className="font-medium text-gray-900">Backup Vault</h3>
                                 <p className="text-xs text-gray-500 mb-3">
-                                    Exports Assets, Liabilities, Payments, Calculations, and Settings ({assets.length + liabilities.length + payments.length + calculations.length} records)
+                                    Exports Assets, Liabilities, Payments, and Settings ({assets.length + liabilities.length + payments.length} records)
                                 </p>
                                 <Button onClick={handleExport} disabled={exporting} variant="outline" className="w-full">
                                     {exporting ? <LoadingSpinner size="sm" /> : 'Download JSON Backup'}
