@@ -120,8 +120,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
   };
 
   return (
-    <div className={`relative inline-block ${className}`}>
-      <div
+    <span className={`relative inline-block ${className}`}>
+      <span
         ref={triggerRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -132,10 +132,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
         tabIndex={0}
         role="button"
         aria-label="Show tooltip"
-        className="cursor-help"
+        className="cursor-help inline"
       >
         {children}
-      </div>
+      </span>
 
       {isVisible && (
         <div
@@ -157,7 +157,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           />
         </div>
       )}
-    </div>
+    </span>
   );
 };
 

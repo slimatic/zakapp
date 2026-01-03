@@ -164,9 +164,9 @@ const EducationalModule: React.FC = () => {
       )}
 
       {!isExpanded && (
-        <p className="text-sm text-gray-600">
+        <span className="text-sm text-gray-600 block">
           Learn about <GlossaryTerm term="zakat" /> obligations, <GlossaryTerm term="nisab" /> threshold, and the <GlossaryTerm term="hawl" /> period. Click to expand.
-        </p>
+        </span>
       )}
     </div>
   );
