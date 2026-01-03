@@ -10,15 +10,78 @@
     <meta name="description"
         content="ZakApp - Privacy-first Islamic Zakat calculator with comprehensive asset management and yearly tracking" />
     <script>
+        // Global Error Handler with RxDB specific overrides
         window.onerror = function (message, source, lineno, colno, error) {
             console.error('GLOBAL ERROR:', message, source, lineno, colno, error);
-            document.body.innerHTML = '<div style="color:red; padding:20px;">' +
+
+            // Detect RxDB Collection Limit Error (COL23)
+            const isRxDBLimit = (message && message.includes && message.includes('COL23')) || 
+                                (error && error.message && error.message.includes('COL23')) ||
+                                (message && message.includes && message.includes('collections that can exist in parallel is limited'));
+
+            if (isRxDBLimit) {
+                document.body.innerHTML = `
+                    <div style="
+                        font-family: system-ui, -apple-system, sans-serif;
+                        height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background-color: #f3f4f6;
+                    ">
+                        <div style="
+                            background: white;
+                            padding: 2rem;
+                            border-radius: 1rem;
+                            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                            max-width: 28rem;
+                            text-align: center;
+                        ">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🔄</div>
+                            <h1 style="color: #111827; font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">Database Connection Reset Needed</h1>
+                            <p style="color: #4b5563; margin-bottom: 1.5rem; line-height: 1.5;">
+                                The local database limit was reached. This usually happens during development updates.
+                                <br/>Please reload to reset the connection.
+                            </p>
+                            <button onclick="window.location.reload()" style="
+                                background-color: #059669;
+                                color: white;
+                                border: none;
+                                padding: 0.75rem 1.5rem;
+                                border-radius: 0.5rem;
+                                font-weight: 500;
+                                cursor: pointer;
+                                transition: background-color 0.2s;
+                                font-size: 1rem;
+                            ">
+                                Reload Application
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return true; // Prevent default error reporting
+            }
+
+            // Fallback for other critical errors
+            // Only show if the React App hasn't mounted or has crashed completely
+            if (!document.getElementById('root') || document.getElementById('root').innerHTML === '') {
+                 document.body.innerHTML = '<div style="color:red; padding:20px;">' +
                 '<h1>Critical Error</h1>' +
                 '<pre>' + message + '\n' + (error ? error.stack : '') + '</pre>' +
                 '</div>';
+            }
         };
+
         window.onunhandledrejection = function (event) {
-            console.error('UNHANDLED REJECTION:', event.reason);
+             // Catch Async RxDB Errors
+             if (event.reason && (
+                (event.reason.code === 'COL23') ||
+                (event.reason.message && event.reason.message.includes('COL23'))
+             )) {
+                // Manually trigger the onerror logic
+                window.onerror(event.reason.message, null, null, null, event.reason);
+                event.preventDefault();
+             }
         };
         console.log('Index.html loaded');
     </script>
