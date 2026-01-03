@@ -139,6 +139,15 @@ export const NisabYearRecordsPage: React.FC = () => {
     }
   }, [showCreateModal]);
 
+  // Auto-select first record on Desktop initial load
+  useEffect(() => {
+    // Only auto-select if we have records, none is selected, and we are on desktop
+    // This prevents "navigating" away from the list on mobile
+    if (!selectedRecordId && records.length > 0 && window.innerWidth >= 1024) {
+      setSelectedRecordId(records[0].id);
+    }
+  }, [records, selectedRecordId]);
+
   // Status badges
   const statusBadges: Record<string, { color: string; label: string }> = {
     'DRAFT': { color: 'blue', label: 'Draft' },
@@ -546,8 +555,14 @@ export const NisabYearRecordsPage: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="hidden lg:block rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
-                Select a record to view details
+              <div className="hidden lg:flex flex-col items-center justify-center h-64 rounded-xl border-2 border-dashed border-gray-200 p-8 text-center text-gray-500 bg-white/50">
+                <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4 text-2xl">
+                  👈
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Record</h3>
+                <p className="max-w-xs mx-auto">
+                  Click on any Nisab Year card from the list on the left to view its full wealth breakdown and Zakat obligations.
+                </p>
               </div>
             )}
           </div>

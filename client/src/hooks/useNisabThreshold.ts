@@ -62,7 +62,7 @@ async function fetchNisabThreshold(
   }
 
   const data = await response.json();
-  
+
   if (!data.success || !data.data) {
     throw new Error(data.message || 'Invalid Nisab threshold response');
   }
@@ -71,7 +71,7 @@ async function fetchNisabThreshold(
   const { goldPrice, silverPrice } = data.data;
   const nisabAmount = nisabBasis === 'GOLD' ? goldPrice.nisabValue : silverPrice.nisabValue;
   const fetchedAt = new Date(data.data.lastUpdated || data.data.effectiveDate);
-  
+
   const now = new Date();
   const daysSinceUpdate = Math.floor((now.getTime() - fetchedAt.getTime()) / (1000 * 60 * 60 * 24));
   const isStale = daysSinceUpdate > 7; // Stale if >7 days old
@@ -95,16 +95,18 @@ export interface UseNisabThresholdResult {
   currency: string;
   nisabBasis: 'GOLD' | 'SILVER';
   metalType?: string;
-  
+  goldPrice?: number;
+  silverPrice?: number;
+
   // Timestamps
   fetchedAt: Date | undefined;
   daysSinceUpdate: number | undefined;
   isStale: boolean;
-  
+
   // State
   isLoading: boolean;
   error: Error | null;
-  
+
   // Actions
   refetch: () => void;
 }
@@ -154,6 +156,8 @@ export function useNisabThreshold(
       currency: data?.currency || currency,
       nisabBasis: data?.nisabBasis || nisabBasis,
       metalType: data?.metalType,
+      goldPrice: data?.goldPrice,
+      silverPrice: data?.silverPrice,
       fetchedAt: data?.fetchedAt,
       daysSinceUpdate: data?.daysSinceUpdate,
       isStale: data?.isStale ?? false,

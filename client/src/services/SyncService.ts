@@ -42,7 +42,6 @@ import { cryptoService } from './CryptoService';
 const SYNC_COLLECTIONS: (keyof ZakAppCollections)[] = [
     'assets',
     'liabilities',
-    'zakat_calculations',
     'nisab_year_records',
     'payment_records',
     'user_settings'
@@ -161,7 +160,8 @@ export class SyncService {
         const isActive = isInitialSync || isThroughputActive;
 
         const current = this.syncStatus$.getValue();
-        const pendingList = Array.from(this.initialSyncPending);
+        // Use activeCollections as the source of 'pending' since initialSyncPending is unused
+        const pendingList = Array.from(this.activeCollections);
         const pendingChanged = JSON.stringify(current.pending.sort()) !== JSON.stringify(pendingList.sort());
 
         if (current.active !== isActive || pendingChanged) {
@@ -174,6 +174,7 @@ export class SyncService {
             });
 
             if (isActive) {
+                // Log detailed status
                 console.log(`🔄 Sync Active [${this.userId}]: [${pendingList.join(', ')}]`);
             } else {
                 console.log(`✅ Sync Idle [${this.userId}]: All collections synced`);
@@ -345,8 +346,14 @@ export class SyncService {
 
             // Monitor Activity
             replicationState.active$.subscribe(active => {
-                this.activeCollections.delete(collectionName);
-                if (active) this.activeCollections.add(collectionName);
+                const existed = this.activeCollections.has(collectionName);
+                if (active && !existed) {
+                    console.log(`⚡ Collection Busy: ${collectionName}`);
+                    this.activeCollections.add(collectionName);
+                } else if (!active && existed) {
+                    console.log(`💤 Collection Idle: ${collectionName}`);
+                    this.activeCollections.delete(collectionName);
+                }
                 this.updateSyncStatus();
             });
 

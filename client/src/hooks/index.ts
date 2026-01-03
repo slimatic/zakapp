@@ -47,5 +47,5 @@ export { useNisabYearRecords } from './useNisabYearRecords';
 export type { SnapshotFilters } from './useZakatSnapshots';
 export { useComparison } from './useComparison';
 export { useLiabilityRepository } from './useLiabilityRepository';
-export { useZakatCalculationRepository } from './useZakatCalculationRepository';
+
 export { useUserSettingsRepository } from './useUserSettingsRepository';

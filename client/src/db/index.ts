@@ -26,7 +26,6 @@ import { wrappedKeyEncryptionCryptoJsStorage } from 'rxdb/plugins/encryption-cry
 import { RxDBZeroKnowledgePlugin } from './plugins/zeroKnowledgePlugin';
 import { AssetSchema } from './schema/asset.schema';
 import { LiabilitySchema } from './schema/liability.schema';
-import { ZakatCalculationSchema } from './schema/zakatCalc.schema';
 import { NisabYearRecordSchema } from './schema/nisabYearRecord.schema';
 import { PaymentRecordSchema } from './schema/paymentRecord.schema';
 import { UserSettingsSchema } from './schema/userSettings.schema';
@@ -44,7 +43,6 @@ addRxPlugin(RxDBZeroKnowledgePlugin);
 export type ZakAppCollections = {
     assets: RxCollection;
     liabilities: RxCollection;
-    zakat_calculations: RxCollection;
     nisab_year_records: RxCollection;
     payment_records: RxCollection;
     user_settings: RxCollection;
@@ -121,7 +119,6 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
             await db.addCollections({
                 assets: { schema: AssetSchema, migrationStrategies: migrationStrategiesV4 },
                 liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
-                zakat_calculations: { schema: ZakatCalculationSchema, migrationStrategies: migrationStrategiesV2 },
                 nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV4 }
