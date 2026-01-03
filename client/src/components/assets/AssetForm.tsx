@@ -93,7 +93,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     category: getInitialCategory(asset?.type as unknown as string),
     subCategory: asset?.subCategory || (asset as any)?.subtype || '',
     value: asset?.value ? new Decimal(asset.value).toFixed(2) : '', // Store as string for input stability
-    currency: asset?.currency || 'USD',
+    currency: asset?.currency || user?.settings?.currency || 'USD',
     acquisitionDate: asset?.acquisitionDate ? new Date(asset.acquisitionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     description: asset?.description || '',
     zakatEligible: asset?.zakatEligible ?? true,

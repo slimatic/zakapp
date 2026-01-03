@@ -302,6 +302,16 @@ export class CryptoService {
         return { iv: parts[0], ciphertext: parts[1] };
     }
 
+    /**
+     * Compute SHA-256 hash of a string
+     */
+    async hash(data: string): Promise<string> {
+        const encoder = new TextEncoder();
+        const dataBuffer = encoder.encode(data);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', dataBuffer);
+        return this.arrayBufferToBase64(hashBuffer);
+    }
+
     isEncrypted(data: any): boolean {
         return typeof data === 'string' && data.startsWith(CryptoService.ZK_PREFIX);
     }

@@ -17,7 +17,7 @@ export const CashStep: React.FC = () => {
             <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Cash Assets</h3>
                 <p className="text-sm text-gray-500 mb-6">
-                    Enter the total amount of cash you possess, whether on hand or in bank accounts.
+                    Enter your cash holdings. You don't have to add everything now—feel free to enter your main account and add others later via the Assets page.
                 </p>
 
                 <div className="space-y-4">

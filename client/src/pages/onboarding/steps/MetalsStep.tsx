@@ -50,7 +50,7 @@ export const MetalsStep: React.FC = () => {
             <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Precious Metals</h3>
                 <p className="text-sm text-gray-500 mb-6">
-                    Enter the weight of gold and silver you own. We'll pull live prices to calculate the value.
+                    Gold & Silver. Enter the weight you own. You don't need to be exact right now—you can always update this later in your Assets Dashboard.
                 </p>
 
                 <div className="space-y-6">

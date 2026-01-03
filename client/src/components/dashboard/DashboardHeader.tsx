@@ -125,18 +125,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {/* Restart Onboarding Action */}
         <button
           onClick={() => {
-            if (window.confirm("Run the Setup Wizard again? This preserves your history but allows you to re-enter your wealth data from scratch.")) {
-              navigate('/onboarding');
+            if (window.confirm("Start another wealth assessment? This will update your settings and add any new items to your existing assets, liabilities, or payments. A new Nisab record will be created.")) {
+              // Clear local prefs to re-trigger onboarding w/o verify step
+              window.location.href = '/onboarding';
             }
           }}
           className="flex items-center gap-2 px-3 py-1.5 bg-white/50 rounded-lg border border-gray-200 backdrop-blur-sm text-gray-600 text-sm font-medium hover:text-emerald-700 hover:bg-white hover:border-emerald-300 transition-all shadow-sm group"
-          title="Run Setup Wizard"
-          aria-label="Run Setup Wizard"
+          title="Re-assess"
+          aria-label="Re-assess"
         >
           <svg className="w-4 h-4 text-gray-500 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
           </svg>
-          <span className="hidden sm:inline">Setup Wizard</span>
+          <span className="hidden sm:inline">Re-assess</span>
         </button>
 
         {/* Date Display Widget */}

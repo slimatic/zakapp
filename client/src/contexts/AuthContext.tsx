@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const storedSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
         if (storedSession) {
-          console.log('AuthContext: Found stored session, attempting restore...');
+          // Logs removed for hygiene
           const { user, jwk } = JSON.parse(storedSession);
 
           if (user && jwk) {
@@ -130,7 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               // Close any existing DB instance first (important for multi-user scenarios)
               await closeDb();
               await getDb(keyString);
-              console.log('AuthContext: DB opened successfully with restored key');
+              // console.log('AuthContext: DB opened successfully with restored key');
 
               // Verification Step: Check if the session is still valid with the backend
               // This handles cases where the server restarted and invalidated existing tokens.
@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 const verifyResult = await api.getCurrentUser();
 
                 if (verifyResult.success) {
-                  console.log('AuthContext: Session verified with backend');
+                  // console.log('AuthContext: Session verified with backend');
                   dispatch({ type: 'LOGIN_SUCCESS', payload: user });
                 } else if (verifyResult.message === 'API Unauthorized (Local Mode)') {
                   // This is the suppressed 401 from api.ts
@@ -193,7 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    console.log('AuthContext: Attempting login for', email);
+    // console.log('AuthContext: Attempting login for', email);
     dispatch({ type: 'LOGIN_START' });
     try {
       // 1. Authenticate with Backend API First
@@ -250,9 +250,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // 3. Derive Key
-      console.log('AuthContext: Deriving key...');
+      // console.log('AuthContext: Deriving key...');
       await cryptoService.deriveKey(password, salt);
-      console.log('AuthContext: Key derived successfully');
+      // console.log('AuthContext: Key derived successfully');
 
       // 4. Initialize DB with Derived Key
       const keyString = await cryptoService.exportKeyString();
@@ -473,6 +473,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // 3. Initialize Database with Encryption Key (Derived Key String)
       const keyString = await cryptoService.exportKeyString();
+      // Generate a verifier hash of the key itself to validate passwords without opening DB
+      // We use a simple SHA-256 of the keyString. Since any valid keyString allows DB access,
+      // knowing the hash doesn't compromise the DB if the key itself is unknown,
+      // but to be safe we could salt it. For now, a direct hash is sufficient for local validation.
+      const keyVerifier = await cryptoService.hash(keyString);
 
       // Ensure we start with a clean slate (nuke any existing DB leftovers)
       // resetDb() only works if DB is open, so we use forceResetDatabase()
@@ -492,7 +497,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isSetupCompleted: false,
         securityProfile: {
           salt: salt,
-          verifier: 'TODO-HASH-OF-KEY'
+          verifier: keyVerifier
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -515,8 +520,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return true;
     } catch (error) {
       console.error('REGISTRATION ERROR:', error);
-      alert('REGISTRATION ERROR: ' + (error instanceof Error ? error.message : String(error)));
-      toast.error('Registration failed');
+      toast.error('Registration failed: ' + (error instanceof Error ? error.message : String(error)));
       dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Registration failed' });
       return false;
     }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useOnboarding } from '../context/OnboardingContext';
 
 export const LiabilitiesStep: React.FC = () => {
@@ -20,7 +21,7 @@ export const LiabilitiesStep: React.FC = () => {
             <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Liabilities & Expenses</h3>
                 <p className="text-sm text-gray-500 mb-6">
-                    Deductible debts can lower your Zakat. Enter confirmed debts due immediately or within this lunar year.
+                    Deductible debts can lower your Zakat. <Link to="/learning-hub" className="text-emerald-600 underline">Learn more about liabilities</Link>.
                 </p>
 
                 <div className="space-y-6">
