@@ -16,7 +16,7 @@
  */
 
 import { Asset, Liability } from '../../types';
-import { getAssetZakatableValue } from './zakat';
+import { getAssetZakatableValue, ZakatMethodology } from './zakat';
 
 /**
  * Zakat Calculation Logic extracted from UI components.
@@ -54,7 +54,7 @@ export const calculateWealth = (
     assets: Asset[],
     liabilities: Liability[] = [],
     referenceDate: Date = new Date(),
-    methodology: string = 'standard'
+    methodology: ZakatMethodology = 'STANDARD'
 ): WealthCalculationResult => {
     // 1. Calculate Asset Wealth
     let totalWealth = 0;
@@ -84,7 +84,7 @@ export const calculateWealth = (
 
         if (isEligible) {
             // Use core zakat calculation for accurate zakatable value
-            zakatableWealth += getAssetZakatableValue(asset, methodology as any);
+            zakatableWealth += getAssetZakatableValue(asset, methodology);
         }
     });
 

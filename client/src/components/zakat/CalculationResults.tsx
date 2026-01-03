@@ -19,21 +19,55 @@ import React, { useState } from 'react';
 import type { ZakatCalculationResult } from '@zakapp/shared';
 
 /**
+ * Interface for individual breakdown item
+ */
+interface AssetBreakdownItem {
+  name: string;
+  value: number;
+}
+
+/**
+ * Interface for asset category breakdown
+ */
+interface AssetBreakdownCategory {
+  category: string;
+  totalValue: number;
+  zakatableAmount: number;
+  zakatAmount: number;
+  assets?: AssetBreakdownItem[];
+}
+
+/**
+ * Extended calculation result with breakdown (local display type)
+ */
+interface CalculationWithBreakdown {
+  totalZakat: number;
+  zakatYear?: number;
+  calculationId?: string;
+  calculationDate: string;
+  methodology?: { name: string; description?: string };
+  nisabThreshold?: number;
+  nisabBasis?: string;
+  assetBreakdown?: AssetBreakdownCategory[];
+  deductibleDebts?: number;
+}
+
+/**
  * Props for the CalculationResults component
  */
 interface CalculationResultsProps {
   /** Calculation result data */
-  calculation: ZakatCalculationResult | any; // TODO: Refactor component to match correct ZakatCalculationResult nested structure
-  
+  calculation: CalculationWithBreakdown;
+
   /** Whether data is currently loading */
   isLoading?: boolean;
-  
+
   /** Optional CSS class name */
   className?: string;
-  
+
   /** Optional callback for recording a payment */
   onRecordPayment?: () => void;
-  
+
   /** Optional callback for saving a snapshot */
   onSaveSnapshot?: () => void;
 }
@@ -212,7 +246,7 @@ const CalculationResults: React.FC<CalculationResultsProps> = ({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {calculation.assetBreakdown?.map((asset: any, index: number) => {
+              {calculation.assetBreakdown?.map((asset: AssetBreakdownCategory, index: number) => {
                 const categoryId = `category-${index}`;
                 const isExpanded = expandedRows.has(categoryId);
 
@@ -258,7 +292,7 @@ const CalculationResults: React.FC<CalculationResultsProps> = ({
                       <tr>
                         <td colSpan={5} className="px-4 py-2 bg-gray-50">
                           <div className="space-y-2">
-                            {asset.assets.map((item: any, itemIndex: number) => (
+                            {asset.assets.map((item: AssetBreakdownItem, itemIndex: number) => (
                               <div key={itemIndex} className="flex justify-between items-center text-sm">
                                 <span className="text-gray-600">{item.name}</span>
                                 <span className="font-medium">{formatCurrency(item.value || 0)}</span>

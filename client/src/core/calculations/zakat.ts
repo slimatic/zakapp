@@ -62,19 +62,14 @@ export function isAssetZakatable(asset: Asset, methodologyName: ZakatMethodology
 
 // Net Withdrawable Logic for Retirement
 function calculateNetWithdrawable(asset: Asset): number {
-    const assetAny = asset as any;
+    // Access metadata for retirement-specific settings
     let penalty = 0;
     let tax = 0;
 
-    // Try typed property
-    if (assetAny.retirementDetails) {
-        penalty = assetAny.retirementDetails.withdrawalPenalty || 0;
-        tax = assetAny.retirementDetails.taxRate || 0;
-    }
-    // Try metadata string parse
-    else if (typeof assetAny.metadata === 'string' && assetAny.metadata.startsWith('{')) {
+    // Try metadata string parse for retirement details
+    if (typeof asset.metadata === 'string' && asset.metadata.startsWith('{')) {
         try {
-            const meta = JSON.parse(assetAny.metadata);
+            const meta = JSON.parse(asset.metadata);
             if (meta.retirementDetails) {
                 penalty = meta.retirementDetails.withdrawalPenalty || 0;
                 tax = meta.retirementDetails.taxRate || 0;
@@ -99,13 +94,12 @@ export function getAssetZakatableValue(asset: Asset, methodologyName: ZakatMetho
     }
 
     // For assets with a calculationModifier (e.g., passive investments), apply it
-    const modifier = (asset as any).calculationModifier;
-    if (typeof modifier === 'number' && modifier !== 1.0) {
-        return asset.value * modifier;
+    if (typeof asset.calculationModifier === 'number' && asset.calculationModifier !== 1.0) {
+        return asset.value * asset.calculationModifier;
     }
 
     // Check if explicitly marked as passive investment (30% rule)
-    if ((asset as any).isPassiveInvestment === true) {
+    if (asset.isPassiveInvestment === true) {
         return asset.value * 0.3;
     }
 
