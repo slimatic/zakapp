@@ -71,7 +71,6 @@ export const InstallPrompt: React.FC = () => {
 
     // Listen for app installed event
     window.addEventListener('appinstalled', () => {
-      console.log('✅ PWA installed successfully');
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
@@ -100,7 +99,6 @@ export const InstallPrompt: React.FC = () => {
 
     // Wait for the user's response
     const { outcome } = await deferredPrompt.userChoice;
-    console.log(`🔔 User install choice: ${outcome}`);
 
     // Track user choice
     if (window.gtag) {
@@ -113,12 +111,6 @@ export const InstallPrompt: React.FC = () => {
     // Clear the deferred prompt
     setDeferredPrompt(null);
     setShowPrompt(false);
-
-    if (outcome === 'accepted') {
-      console.log('✅ User accepted the install prompt');
-    } else {
-      console.log('❌ User dismissed the install prompt');
-    }
   };
 
   const handleDismiss = () => {

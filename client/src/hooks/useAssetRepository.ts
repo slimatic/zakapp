@@ -189,12 +189,10 @@ export function useAssetRepository() {
 
     const updateAsset = async (id: string, updates: Partial<Asset>) => {
         if (!db) throw new Error('Database not initialized');
-        console.log('[useAssetRepository] Updating asset:', id, updates);
 
         const doc = await db.assets.findOne(id).exec();
 
         if (doc) {
-            console.log('[useAssetRepository] Document found, patching...');
             // Need to handle metadata merging carefully
             // The sanitize function parses incoming metadata, but we should also consider existing doc metadata?
             // Yes, doc.patch merges top-level fields. 
@@ -215,7 +213,6 @@ export function useAssetRepository() {
             }
 
             const safeUpdates = sanitizeAssetPayload(updates);
-            console.log('[useAssetRepository] Sanitized updates:', safeUpdates);
 
             // Merge metadata
             let newMeta = {};
@@ -244,8 +241,6 @@ export function useAssetRepository() {
         // @ts-ignore
         const config = METHODOLOGIES[methodologyName.toUpperCase()] || METHODOLOGIES.STANDARD;
         const isJewelryExempt = config.jewelryExempt || false;
-
-        console.log(`[useAssetRepository] Reassessing assets for ${config.name} (Jewelry Exempt: ${isJewelryExempt})`);
 
         const allAssets = await db.assets.find().exec();
 
@@ -290,7 +285,6 @@ export function useAssetRepository() {
 
                 // If current state differs from rule, update it
                 if (asset.zakatEligible !== shouldBeEligible) {
-                    console.log(`Updating Asset ${asset.name}: zakatEligible ${asset.zakatEligible} -> ${shouldBeEligible}`);
                     await updateAsset(asset.id, { zakatEligible: shouldBeEligible });
                 }
             }

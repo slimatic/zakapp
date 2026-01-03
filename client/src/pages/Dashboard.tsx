@@ -205,7 +205,6 @@ export const Dashboard: React.FC = () => {
 
     // Only redirect if NOT complete AND NOT skipped
     if (user && user.isSetupCompleted === false && !hasSkipped) {
-      console.log('Dashboard: User setup incomplete, redirecting to onboarding wizard.');
       navigate('/onboarding');
     }
   }, [user, navigate]);
