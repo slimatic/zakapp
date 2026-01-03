@@ -19,6 +19,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
 import type { NisabYearRecord } from '../types/nisabYearRecord';
+import { Decimal } from 'decimal.js';
 
 /**
  * Filter options for snapshot queries.
@@ -308,11 +309,16 @@ export const useSnapshotStats = (year?: number) => {
       const docs = await db.nisab_year_records.find({ selector: query }).exec();
       const records = docs.map(d => d.toJSON());
 
+
+      const totalZakatDecimal = records.reduce((sum, r) => {
+        return sum.plus(new Decimal(r.zakatAmount || 0));
+      }, new Decimal(0));
+
       return {
         success: true,
         data: {
           totalRecords: records.length,
-          totalZakat: records.reduce((sum, r) => sum + (parseFloat(String(r.zakatAmount || 0))), 0),
+          totalZakat: totalZakatDecimal.toNumber(),
           completedRecords: records.filter(r => r.status === 'FINALIZED').length,
         }
       };

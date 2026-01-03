@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
 import { usePayments } from '../../hooks/usePayments';
+import { Decimal } from 'decimal.js';
 
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
 
@@ -64,14 +65,16 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
   const { data: paymentsResp } = usePayments({ snapshotId: record?.id, enabled: !!record?.id });
   const payments = paymentsResp?.payments || [];
 
-  const safeAmount = (p: any) => {
+  const safeAmount = (p: any): Decimal => {
     const raw = p?.amount;
-    if (raw === null || raw === undefined) return 0;
-    const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
-    return Number.isFinite(num) ? num : 0;
+    if (raw === null || raw === undefined) return new Decimal(0);
+    return new Decimal(raw);
   };
 
-  const totalPaid = useMemo(() => payments.reduce((s: number, p: any) => s + safeAmount(p), 0), [payments]);
+  const totalPaid = useMemo(() => {
+    return payments.reduce((s: Decimal, p: any) => s.plus(safeAmount(p)), new Decimal(0)).toNumber();
+  }, [payments]);
+
   const zakatRemaining = Math.max(0, zakatDue - totalPaid);
 
   if (!record) {
