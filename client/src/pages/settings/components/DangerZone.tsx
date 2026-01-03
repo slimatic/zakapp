@@ -33,6 +33,10 @@ export const DangerZone: React.FC = () => {
     const [password, setPassword] = React.useState('');
     const [deleteError, setDeleteError] = React.useState<string | null>(null);
 
+    // Phase 6: Secure Remote Purge State
+    const [isPurgeCloudModalOpen, setIsPurgeCloudModalOpen] = React.useState(false);
+    const [isPurgingCloud, setIsPurgingCloud] = React.useState(false);
+
     const { clearAllData, isClearing } = useDataCleanup();
 
     const deleteAccountMutation = useMutation({
@@ -96,6 +100,20 @@ export const DangerZone: React.FC = () => {
         setIsClearDataModalOpen(false);
     };
 
+    const handlePurgeCloudData = async () => {
+        setIsPurgingCloud(true);
+        try {
+            const { syncService } = await import('../../../services/SyncService');
+            await syncService.purgeRemoteData();
+            setIsPurgeCloudModalOpen(false);
+        } catch (error) {
+            console.error('Failed to purge cloud data:', error);
+            // Error is handled in service (toast usually) but good to log
+        } finally {
+            setIsPurgingCloud(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -121,6 +139,23 @@ export const DangerZone: React.FC = () => {
                     onClick={handleClearLocalDatabase}
                 >
                     Reset & Re-sync
+                </Button>
+            </div>
+
+            {/* Purge Cloud Data Section (New Phase 6 Feature) */}
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-orange-900 mb-2">
+                    Purge Cloud Data
+                </h3>
+                <p className="text-orange-800 mb-4">
+                    Permanently delete your encrypted data from the synchronization server. Your local data will be preserved, but you will need to re-enable sync.
+                </p>
+                <Button
+                    variant="outline"
+                    className="border-orange-600 text-orange-900 hover:bg-orange-100"
+                    onClick={() => setIsPurgeCloudModalOpen(true)}
+                >
+                    Purge Cloud Data
                 </Button>
             </div>
 
@@ -194,6 +229,47 @@ export const DangerZone: React.FC = () => {
                             isLoading={isClearing}
                         >
                             Yes, Clear Everything
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Purge Cloud Data Modal */}
+            <Modal
+                isOpen={isPurgeCloudModalOpen}
+                onClose={() => setIsPurgeCloudModalOpen(false)}
+                title="Purge Cloud Data?"
+            >
+                <div className="space-y-4">
+                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <AlertTriangle className="w-5 h-5 text-orange-600 mb-2" />
+                        <p className="text-sm text-orange-900 font-bold">
+                            Warning: This will destroy your remote backups.
+                        </p>
+                        <p className="text-sm text-orange-800 mt-1">
+                            Your encrypted data on the secure cloud server will be permanently deleted.
+                            This will break synchronization with other devices.
+                        </p>
+                    </div>
+
+                    <p className="text-sm text-gray-600">
+                        Your local data on this device will NOT be deleted. You can re-enable sync later to upload a fresh copy.
+                    </p>
+
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsPurgeCloudModalOpen(false)}
+                            disabled={isPurgingCloud}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handlePurgeCloudData}
+                            isLoading={isPurgingCloud}
+                        >
+                            Yes, Purge Cloud Data
                         </Button>
                     </div>
                 </div>

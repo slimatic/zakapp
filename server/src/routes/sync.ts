@@ -109,4 +109,41 @@ router.get('/status', (req: Request, res: Response) => {
     });
 });
 
+/**
+ * DELETE /api/sync/purge
+ * 
+ * Secure Remote Purge:
+ * Deletes all user databases and the user document from CouchDB.
+ * This ensures data is "gone" from the cloud, satisfying privacy requirements.
+ * Data remains on the local client unless cleared there too.
+ */
+router.delete('/purge', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+    console.log('Purge sync data endpoint called');
+    try {
+        const user = req.user;
+        if (!user || !user.id) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+
+        console.log(`🗑️ PURGE REQUEST for user: ${user.id} (${user.email})`);
+
+        // This is the "Secure Remote Purge" - authoritative deletion from CouchDB
+        await syncService.deleteUser(user.id);
+
+        console.log(`✅ Data purged for user ${user.id}`);
+
+        res.json({
+            success: true,
+            message: 'All cloud data and sync account have been purged.'
+        });
+
+    } catch (error: any) {
+        console.error('Failed to purge sync data:', error);
+        res.status(500).json({
+            error: 'Failed to purge data',
+            message: error.message
+        });
+    }
+});
+
 export default router;
