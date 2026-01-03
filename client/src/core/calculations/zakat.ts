@@ -18,6 +18,8 @@
 import { Asset, AssetType } from '../../types/index';
 import { MethodologyName, getMethodology } from './methodology';
 
+import { Decimal } from 'decimal.js';
+
 export type ZakatMethodology = MethodologyName;
 
 export interface CalculationResult {
@@ -63,24 +65,34 @@ export function isAssetZakatable(asset: Asset, methodologyName: ZakatMethodology
 // Net Withdrawable Logic for Retirement
 function calculateNetWithdrawable(asset: Asset): number {
     // Access metadata for retirement-specific settings
-    let penalty = 0;
-    let tax = 0;
+    let penalty = new Decimal(0);
+    let tax = new Decimal(0);
 
     // Try metadata string parse for retirement details
     if (typeof asset.metadata === 'string' && asset.metadata.startsWith('{')) {
         try {
             const meta = JSON.parse(asset.metadata);
             if (meta.retirementDetails) {
-                penalty = meta.retirementDetails.withdrawalPenalty || 0;
-                tax = meta.retirementDetails.taxRate || 0;
+                penalty = new Decimal(meta.retirementDetails.withdrawalPenalty || 0);
+                tax = new Decimal(meta.retirementDetails.taxRate || 0);
             }
         } catch (e) {
             // ignore
         }
+    } else if ((asset as any).retirementDetails) {
+        // Fallback: Check if retirementDetails is already on the object (pre-parsed)
+        const details = (asset as any).retirementDetails;
+        penalty = new Decimal(details.withdrawalPenalty || 0);
+        tax = new Decimal(details.taxRate || 0);
     }
 
-    const netFactor = 1 - penalty - tax;
-    return asset.value * Math.max(0, netFactor);
+    // netFactor = 1 - penalty - tax
+    const one = new Decimal(1);
+    const netFactor = one.minus(penalty).minus(tax);
+
+    // asset.value * max(0, netFactor)
+    const factor = Decimal.max(0, netFactor);
+    return new Decimal(asset.value || 0).times(factor).toNumber();
 }
 
 export function getAssetZakatableValue(asset: Asset, methodologyName: ZakatMethodology): number {
@@ -91,7 +103,7 @@ export function getAssetZakatableValue(asset: Asset, methodologyName: ZakatMetho
     // For assets with a calculationModifier (e.g., passive investments, deferred retirement), apply it first
     // This allows specific overrides (like 0 for deferred) to take precedence over generic type logic
     if (typeof asset.calculationModifier === 'number' && asset.calculationModifier !== 1.0) {
-        return asset.value * asset.calculationModifier;
+        return new Decimal(asset.value || 0).times(asset.calculationModifier).toNumber();
     }
 
     // For retirement assets, use the net-withdrawable calculation (fallback if modifier is 1.0 or missing)
@@ -101,10 +113,10 @@ export function getAssetZakatableValue(asset: Asset, methodologyName: ZakatMetho
 
     // Check if explicitly marked as passive investment (30% rule)
     if (asset.isPassiveInvestment === true) {
-        return asset.value * 0.3;
+        return new Decimal(asset.value || 0).times(0.3).toNumber();
     }
 
-    return asset.value;
+    return new Decimal(asset.value || 0).toNumber();
 }
 
 export function calculateZakat(
@@ -116,60 +128,65 @@ export function calculateZakat(
     const config = getMethodology(methodologyName);
 
     // 1. Determine Correct Nisab
-    const nisabThreshold = config.nisabSource === 'SILVER' ? nisabValues.silver : nisabValues.gold;
+    const nisabThreshold = new Decimal(config.nisabSource === 'SILVER' ? nisabValues.silver : nisabValues.gold);
 
     // 2. Assets
     const assetBreakdown: Record<string, { total: number; zakatable: number }> = {};
-    let totalAssets = 0;
-    let zakatableAssets = 0;
+    let totalAssets = new Decimal(0);
+    let zakatableAssets = new Decimal(0);
 
     for (const asset of assets) {
-        totalAssets += asset.value;
-        const zakatableVal = getAssetZakatableValue(asset, methodologyName);
-        zakatableAssets += zakatableVal;
+        const assetValue = new Decimal(asset.value || 0);
+        totalAssets = totalAssets.plus(assetValue);
+
+        const zakatableVal = new Decimal(getAssetZakatableValue(asset, methodologyName));
+        zakatableAssets = zakatableAssets.plus(zakatableVal);
 
         if (!assetBreakdown[asset.type]) {
             assetBreakdown[asset.type] = { total: 0, zakatable: 0 };
         }
-        assetBreakdown[asset.type].total += asset.value;
-        assetBreakdown[asset.type].zakatable += zakatableVal;
+
+        // Accumulate breakdown using Decimal -> toNumber
+        assetBreakdown[asset.type].total = new Decimal(assetBreakdown[asset.type].total).plus(assetValue).toNumber();
+        assetBreakdown[asset.type].zakatable = new Decimal(assetBreakdown[asset.type].zakatable).plus(zakatableVal).toNumber();
     }
 
     // 3. Liabilities
-    let totalLiabilities = 0;
-    let deductibleLiabilities = 0;
+    let totalLiabilities = new Decimal(0);
+    let deductibleLiabilities = new Decimal(0);
     const liabilityBreakdown: Record<string, { total: number; deductible: number }> = {};
 
     for (const liability of liabilities) {
-        const amount = liability.amount || 0;
-        totalLiabilities += amount;
+        const amount = new Decimal(liability.amount || 0);
+        totalLiabilities = totalLiabilities.plus(amount);
 
         const type = liability.type?.toUpperCase() || 'OTHER';
         const isDeductible = config.deductibleLiabilities.includes(type);
 
-        const deductibleVal = isDeductible ? amount : 0;
-        deductibleLiabilities += deductibleVal;
+        const deductibleVal = isDeductible ? amount : new Decimal(0);
+        deductibleLiabilities = deductibleLiabilities.plus(deductibleVal);
 
         if (!liabilityBreakdown[type]) {
             liabilityBreakdown[type] = { total: 0, deductible: 0 };
         }
-        liabilityBreakdown[type].total += amount;
-        liabilityBreakdown[type].deductible += deductibleVal;
+
+        liabilityBreakdown[type].total = new Decimal(liabilityBreakdown[type].total).plus(amount).toNumber();
+        liabilityBreakdown[type].deductible = new Decimal(liabilityBreakdown[type].deductible).plus(deductibleVal).toNumber();
     }
 
     // 4. Final Calculations
-    const netWorth = zakatableAssets - deductibleLiabilities;
-    const isZakatObligatory = netWorth >= nisabThreshold;
-    const zakatRate = 0.025;
-    const zakatDue = isZakatObligatory ? netWorth * zakatRate : 0;
+    const netWorth = zakatableAssets.minus(deductibleLiabilities);
+    const isZakatObligatory = netWorth.greaterThanOrEqualTo(nisabThreshold);
+    const zakatRate = new Decimal(0.025);
+    const zakatDue = isZakatObligatory ? netWorth.times(zakatRate) : new Decimal(0);
 
     return {
-        totalAssets,
-        zakatableAssets,
-        totalLiabilities,
-        deductibleLiabilities,
-        netWorth,
-        zakatDue,
+        totalAssets: totalAssets.toNumber(),
+        zakatableAssets: zakatableAssets.toNumber(),
+        totalLiabilities: totalLiabilities.toNumber(),
+        deductibleLiabilities: deductibleLiabilities.toNumber(),
+        netWorth: netWorth.toNumber(),
+        zakatDue: zakatDue.toNumber(),
         isZakatObligatory,
         breakdown: {
             assets: assetBreakdown,
@@ -178,7 +195,7 @@ export function calculateZakat(
         meta: {
             methodology: config.name,
             nisabSource: config.nisabSource,
-            zakatRate
+            zakatRate: zakatRate.toNumber() // 0.025 is safe
         }
     };
 }
