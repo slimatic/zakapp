@@ -22,7 +22,7 @@ import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { Asset } from '../../types';
 import { Button, LoadingSpinner, ErrorMessage } from '../ui';
 import { EncryptedBadge } from '../ui/EncryptedBadge';
-import { isAssetZakatable } from '../../core/calculations/zakat';
+import { isAssetZakatable, getAssetZakatableValue } from '../../core/calculations/zakat';
 
 /**
  * AssetDetails component for displaying comprehensive asset information
@@ -167,8 +167,10 @@ export const AssetDetails: React.FC = () => {
 
   // Normalize numeric value for reliable calculations
   const numericValue = typeof safeAsset.value === 'string' ? parseFloat(safeAsset.value as any) : (safeAsset.value || 0);
-  const modifier = typeof (safeAsset as any).calculationModifier === 'number' ? (safeAsset as any).calculationModifier : 1.0;
-  const zakatableValue = numericValue * modifier;
+
+  // Use core zakat calculation for accurate zakatable value
+  const zakatableValue = getAssetZakatableValue(safeAsset, 'STANDARD');
+  const effectiveModifier = numericValue > 0 ? zakatableValue / numericValue : 1.0;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -329,12 +331,12 @@ export const AssetDetails: React.FC = () => {
 
           {isAssetZakatable(safeAsset, 'STANDARD') ? (
             <>
-              {modifier !== 1.0 && (
+              {effectiveModifier !== 1.0 && (
                 <p className="text-sm text-green-800">
-                  <span className="font-medium">Zakatable Value (after modifier {Math.round(modifier * 100)}%):</span> {formatCurrency(zakatableValue, safeAsset.currency)}
+                  <span className="font-medium">Zakatable Value (after modifier {Math.round(effectiveModifier * 100)}%):</span> {formatCurrency(zakatableValue, safeAsset.currency)}
                 </p>
               )}
-              {modifier === 1.0 && (
+              {effectiveModifier === 1.0 && (
                 <p className="text-sm text-green-800">
                   <span className="font-medium">Zakatable Value:</span> {formatCurrency(zakatableValue, safeAsset.currency)}
                 </p>

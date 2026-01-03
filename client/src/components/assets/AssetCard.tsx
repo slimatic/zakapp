@@ -18,6 +18,7 @@
 import React from 'react';
 import { Asset } from '../../types';
 import { getModifierBadge, getModifierLabel } from '../../utils/assetModifiers';
+import { getAssetZakatableValue } from '../../core/calculations/zakat';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 
 interface AssetCardProps {
@@ -33,10 +34,12 @@ interface AssetCardProps {
 export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, onDelete }) => {
   const { privacyMode } = usePrivacy();
   const isEligible = asset.zakatEligible !== false; // Default to true
-  const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
 
-  const modifierBadge = isEligible ? getModifierBadge(modifier) : { icon: '🚫', text: 'Exempt', color: 'bg-gray-100 text-gray-600' };
-  const zakatableAmount = asset.value * modifier;
+  // Use core zakat calculation for accurate zakatable value
+  const zakatableAmount = getAssetZakatableValue(asset, 'STANDARD');
+  const effectiveModifier = asset.value > 0 ? zakatableAmount / asset.value : (isEligible ? 1.0 : 0);
+
+  const modifierBadge = isEligible ? getModifierBadge(effectiveModifier) : { icon: '🚫', text: 'Exempt', color: 'bg-gray-100 text-gray-600' };
   const zakatOwed = zakatableAmount * 0.025; // Estimate at 2.5%
 
   const getCategoryIcon = (type: string): string => {
@@ -111,7 +114,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
         <div
           className={`px-2 py-1 rounded text-xs font-medium ${!isEligible ? 'bg-gray-100 text-gray-600' : modifierBadge.color
             } whitespace-nowrap ml-2`}
-          title={getModifierLabel(modifier)}
+          title={getModifierLabel(effectiveModifier)}
         >
           <span aria-hidden="true">{!isEligible ? '🚫' : modifierBadge.icon}</span>{' '}
           {!isEligible
@@ -128,29 +131,29 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
         </div>
 
         {/* Zakatable Amount (only show if modifier applies) */}
-        {modifier !== 1.0 && (
+        {effectiveModifier !== 1.0 && (
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-600">Zakatable:</span>
             <span className="font-medium text-blue-600">{formatCurrency(zakatableAmount)}</span>
           </div>
         )}
 
-        {/* Zakat Owed */}
+        {/* Estimated Zakat */}
         <div className="flex justify-between items-center text-sm border-t border-gray-100 pt-2 mt-2">
-          <span className="font-medium text-gray-900">Zakat Owed:</span>
+          <span className="font-medium text-gray-900">Estimated Zakat:</span>
           <span className="font-bold text-green-600">{formatCurrency(zakatOwed)}</span>
         </div>
       </div>
 
       {/* Modifier Info (if applicable) */}
-      {modifier !== 1.0 && (
+      {effectiveModifier !== 1.0 && (
         <div className="text-xs text-gray-600 bg-gray-50 rounded px-2 py-2 mb-3">
           <p className="font-medium mb-1">
-            {modifier === 0.3 ? '📊 30% Rule Applied' : modifier === 0.0 ? '⏸️ Deferred' : `◐ ${(modifier * 100).toFixed(1)}% Applied`}
+            {effectiveModifier === 0.3 ? '📊 30% Rule Applied' : effectiveModifier === 0.0 ? '⏸️ Deferred' : `◐ ${(effectiveModifier * 100).toFixed(1)}% Applied`}
           </p>
           <p>
-            {modifier === 0.3 && 'Passive investments contribute 30% of value to Zakat.'}
-            {modifier === 0.0 && 'Restricted accounts are deferred from Zakat calculation.'}
+            {effectiveModifier === 0.3 && 'Passive investments contribute 30% of value to Zakat.'}
+            {effectiveModifier === 0.0 && 'Zakat-Deferred assets are exempt until withdrawal.'}
           </p>
         </div>
       )}
