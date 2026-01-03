@@ -36,7 +36,6 @@ export function useSyncManager() {
     useEffect(() => {
         // Only start sync if authenticated with userId AND db is ready
         if (isAuthenticated && user?.id && db && !syncStartedRef.current) {
-            console.log(`🔄 SyncManager: Starting sync for user ${user.id}`);
             syncService.startSync(db, user.id);
             syncStartedRef.current = true;
         }
@@ -44,7 +43,6 @@ export function useSyncManager() {
         // Cleanup when user logs out or db changes
         return () => {
             if (syncStartedRef.current) {
-                console.log('🛑 SyncManager: Stopping sync');
                 syncService.stopSync();
                 syncStartedRef.current = false;
             }

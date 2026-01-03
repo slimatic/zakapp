@@ -107,7 +107,6 @@ export const useUserOnboarding = () => {
     // Check if changed to avoid loop
     const currentStepsSorted = [...completedSteps].sort();
     if (JSON.stringify(stepsArray) !== JSON.stringify(currentStepsSorted)) {
-      console.log('[useUserOnboarding] Updating completed steps:', stepsArray);
       setCompletedSteps(stepsArray);
 
       // Persist to localStorage

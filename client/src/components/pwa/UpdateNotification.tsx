@@ -42,12 +42,11 @@ export const UpdateNotification: React.FC = () => {
         // Listen for updates
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
-          
+
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 // New service worker available
-                console.log('🔄 New version available');
                 setRegistration(reg);
                 setShowUpdate(true);
               }
@@ -58,8 +57,6 @@ export const UpdateNotification: React.FC = () => {
 
       // Listen for controller change (new SW activated)
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('✅ New version activated');
-        
         // Reload the page to load new assets
         window.location.reload();
       });
@@ -70,7 +67,7 @@ export const UpdateNotification: React.FC = () => {
     if (registration?.waiting) {
       // Send skip waiting message to the waiting service worker
       skipWaiting();
-      
+
       // The page will reload automatically when the new SW takes control
       setShowUpdate(false);
     }
@@ -78,7 +75,7 @@ export const UpdateNotification: React.FC = () => {
 
   const handleDismiss = () => {
     setShowUpdate(false);
-    
+
     // Show again after 1 hour if user dismisses
     setTimeout(() => {
       setShowUpdate(true);
@@ -114,7 +111,7 @@ export const UpdateNotification: React.FC = () => {
             >
               Update Now
             </button>
-            
+
             <button
               onClick={handleDismiss}
               className="px-4 py-2 border border-indigo-400 text-white font-medium rounded-lg hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 transition-colors text-sm"
