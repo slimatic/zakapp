@@ -16,7 +16,7 @@
  */
 
 export const UserSettingsSchema = {
-    version: 4,
+    version: 5,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -43,6 +43,12 @@ export const UserSettingsSchema = {
         preferredCalendar: {
             type: 'string',
             default: 'gregorian' // 'hijri' or 'gregorian'
+        },
+        hijriAdjustment: {
+            type: 'integer',
+            default: 0, // -2 to +2 days for moon sighting adjustment
+            minimum: -2,
+            maximum: 2
         },
         preferredMethodology: {
             type: 'string',

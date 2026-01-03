@@ -16,7 +16,7 @@
  */
 
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../../contexts/AuthContext';
 import { apiService } from '../../../services/api';
@@ -24,6 +24,7 @@ import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
 import { useAssetRepository } from '../../../hooks/useAssetRepository';
+import { gregorianToHijri, formatHijriDate } from '../../../utils/calendarConverter';
 
 // Types extracted locally since they aren't exported from types/index
 interface ProfileFormData {
@@ -344,8 +345,20 @@ export const ProfileForm: React.FC = () => {
                                     {hijriAdjustment > 0 ? `+${hijriAdjustment}` : hijriAdjustment} Days
                                 </span>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">
-                                Adjust the Hijri calendar by +/- days to align with local moon sighting.
+                            {/* Live Date Preview */}
+                            <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                <p className="text-xs text-gray-500 mb-1">Today's Date Preview:</p>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-700">
+                                        📅 {new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                    </span>
+                                    <span className="text-sm font-medium text-green-700">
+                                        🌙 {formatHijriDate(gregorianToHijri(new Date(), hijriAdjustment))}
+                                    </span>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Adjust by +/- days to align with your local moon sighting.
                             </p>
                         </div>
 
