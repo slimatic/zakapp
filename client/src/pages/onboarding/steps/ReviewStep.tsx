@@ -137,7 +137,7 @@ export const ReviewStep: React.FC = () => {
             await updateLocalProfile({
                 isSetupCompleted: true,
                 settings: {
-                    currency: 'USD',
+                    currency: data.settings?.currency || 'USD',
                     preferredMethodology: madhabMap[data.methodology.madhab] as any,
                     preferredCalendar: 'gregorian',
                 }
@@ -186,7 +186,7 @@ export const ReviewStep: React.FC = () => {
                         name,
                         value: asset.value,
                         quantity: asset.grams ? asset.grams : undefined,
-                        currency: 'USD',
+                        currency: data.settings?.currency || 'USD',
                         isPassiveInvestment: asset.isPassive,
                         isRestrictedAccount: asset.isRestricted,
                         acquisitionDate: new Date().toISOString(),
@@ -196,6 +196,7 @@ export const ReviewStep: React.FC = () => {
                     });
                 }
             };
+
 
             pushAsset('gold', 'GOLD', 'Gold Assets');
             pushAsset('silver', 'SILVER', 'Silver Assets');
@@ -283,7 +284,7 @@ export const ReviewStep: React.FC = () => {
         }
     };
 
-    const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+    const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: data.settings?.currency || 'USD' }).format(val);
 
     if (completed) {
         return (
@@ -389,7 +390,7 @@ export const ReviewStep: React.FC = () => {
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-4">Summary</h4>
+                <h4 className="font-medium text-gray-900 mb-4">Summary of Entries</h4>
                 <div className="space-y-3 text-sm">
                     {/* Only showing Wizard Assets to prevent confusion/double counting */}
                     {Object.entries(data.assets).map(([key, asset]) => {

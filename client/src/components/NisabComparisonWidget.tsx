@@ -87,7 +87,7 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   const maskedCurrency = useMaskedCurrency();
   // Pass nisabBasis from record to hook to get correct Nisab threshold
   const nisabBasis = (record.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
-  const { nisabAmount } = useNisabThreshold(record.currency, nisabBasis);
+  const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold(record.currency, nisabBasis);
 
   // Only enable live tracking for DRAFT records, not FINALIZED or UNLOCKED
   const shouldEnableLiveTracking = record.status === 'DRAFT';
@@ -181,22 +181,27 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
         </div>
 
         {/* Main comparison */}
-        <div className="mb-4 grid grid-cols-3 gap-4">
-          <div className="rounded-lg bg-white p-3">
-            <div className="text-xs text-gray-600">Zakatable Wealth</div>
-            <div className="text-lg font-bold text-gray-900">
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+          {/* Zakatable Wealth */}
+          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100">
+            <div className="text-xs font-medium text-gray-500 mb-1">Zakatable Wealth</div>
+            <div className="text-lg font-bold text-gray-900 tracking-tight">
               {formatMaskedCurrency(displayWealth)}
             </div>
           </div>
-          <div className="rounded-lg bg-white p-3">
-            <div className="text-xs text-gray-600">Total Wealth</div>
-            <div className="text-lg font-bold text-gray-900">
+
+          {/* Total Wealth */}
+          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100">
+            <div className="text-xs font-medium text-gray-500 mb-1">Total Wealth</div>
+            <div className="text-lg font-bold text-gray-900 tracking-tight">
               {formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}
             </div>
           </div>
-          <div className="rounded-lg bg-white p-3">
-            <div className="text-xs text-gray-600">Nisab Threshold</div>
-            <div className="text-lg font-bold text-gray-700">
+
+          {/* Nisab Threshold - Full width on mobile, standard on desktop */}
+          <div className="col-span-2 sm:col-span-1 rounded-lg bg-white p-3 shadow-sm border border-gray-100 flex flex-col justify-center sm:block">
+            <div className="text-xs font-medium text-gray-500 mb-1">Nisab Threshold</div>
+            <div className="text-lg font-bold text-gray-700 tracking-tight">
               {formatMaskedCurrency(displayNisab)}
             </div>
           </div>
@@ -254,6 +259,17 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
                   {record.nisabBasis === 'GOLD' ? 'Gold (87.48g)' : 'Silver (612.36g)'}
                 </span>
               </div>
+
+              {/* Live Price Display by Antigravity */}
+              {(record.nisabBasis === 'GOLD' ? goldPrice : silverPrice) && (
+                <div className="flex justify-between text-gray-500">
+                  <span>Current Price:</span>
+                  <span className="font-medium">
+                    {formatMaskedCurrency(Number(record.nisabBasis === 'GOLD' ? goldPrice : silverPrice))}/g
+                  </span>
+                </div>
+              )}
+
               <div className="flex justify-between">
                 <span>Status:</span>
                 <span className="font-medium text-gray-900">{record.status}</span>

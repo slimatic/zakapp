@@ -35,8 +35,9 @@ export class NisabService {
     silver?: { price: number; timestamp: number };
   } = {};
 
-  // Cache validity period (12 hours)
-  private readonly CACHE_VALIDITY_MS = 12 * 60 * 60 * 1000;
+  // Cache validity period (24 hours) - Optimizes for 100 reqs/month limit
+  // 100 reqs / 2 metals = 50 updates/month = ~1.6 updates/day. 24h is safe.
+  private readonly CACHE_VALIDITY_MS = 24 * 60 * 60 * 1000;
 
   /**
    * Calculate nisab thresholds based on current metal prices

@@ -19,12 +19,12 @@ export const InvestmentsStep: React.FC = () => {
             <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Investments</h3>
                 <p className="text-sm text-gray-500 mb-6">
-                    Enter market value for investments. Use the toggles to apply Zakat rules automatically.
+                    Enter market value for investments. You can start with your primary account and add more later.
                 </p>
 
                 <div className="space-y-6">
                     {/* Retirement Accounts */}
-                    <div className="bg-blue-50 rounded-xl p-5 border border-blue-200">
+                    <div className="bg-blue-50 rounded-xl p-5 border border-blue-200 transition-all duration-300">
                         <div className="flex justify-between items-start mb-4">
                             <label className="text-blue-900 font-medium flex items-center gap-2">
                                 <span className="p-1.5 bg-blue-200 rounded text-blue-800">☂️</span>
@@ -43,64 +43,67 @@ export const InvestmentsStep: React.FC = () => {
                             />
                         </div>
 
-                        <div className="bg-white/50 p-4 rounded-lg border border-blue-100/50 space-y-3">
-                            <p className="text-sm font-medium text-blue-900">Zakat Treatment:</p>
+                        {/* Collapsible Treatment Section */}
+                        {(data.assets.retirement.value || 0) > 0 && (
+                            <div className="bg-white/50 p-4 rounded-lg border border-blue-100/50 space-y-3 animate-fadeIn">
+                                <p className="text-sm font-medium text-blue-900">Zakat Treatment:</p>
 
-                            <label className="flex items-start gap-3 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="retirement-treatment"
-                                    checked={data.assets.retirement.retirementTreatment === 'full'}
-                                    onChange={() => updateAsset('retirement', { retirementTreatment: 'full' })}
-                                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                />
-                                <div>
-                                    <span className="block text-sm font-medium text-gray-900">Full Assessment (100%)</span>
-                                </div>
-                            </label>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="retirement-treatment"
+                                        checked={data.assets.retirement.retirementTreatment === 'full'}
+                                        onChange={() => updateAsset('retirement', { retirementTreatment: 'full' })}
+                                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <div>
+                                        <span className="block text-sm font-medium text-gray-900">Full Assessment (100%)</span>
+                                    </div>
+                                </label>
 
-                            <label className="flex items-start gap-3 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="retirement-treatment"
-                                    checked={data.assets.retirement.retirementTreatment === 'net_value' || !data.assets.retirement.retirementTreatment}
-                                    onChange={() => updateAsset('retirement', { retirementTreatment: 'net_value' })}
-                                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                />
-                                <div>
-                                    <span className="block text-sm font-medium text-gray-900">Deduct Taxes/Penalties (Net Value)</span>
-                                    <span className="block text-xs text-gray-500">Calculates zakat on ~70% of the value (after estimated taxes/fees).</span>
-                                </div>
-                            </label>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="retirement-treatment"
+                                        checked={data.assets.retirement.retirementTreatment === 'net_value' || !data.assets.retirement.retirementTreatment}
+                                        onChange={() => updateAsset('retirement', { retirementTreatment: 'net_value' })}
+                                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <div>
+                                        <span className="block text-sm font-medium text-gray-900">Deduct Taxes/Penalties (Net Value)</span>
+                                        <span className="block text-xs text-gray-500">Calculates zakat on ~70% of the value (after estimated taxes/fees).</span>
+                                    </div>
+                                </label>
 
-                            <label className="flex items-start gap-3 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="retirement-treatment"
-                                    checked={data.assets.retirement.retirementTreatment === 'passive'}
-                                    onChange={() => updateAsset('retirement', { retirementTreatment: 'passive' })}
-                                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                />
-                                <div>
-                                    <span className="block text-sm font-medium text-gray-900">Passive Investment (30%)</span>
-                                    <span className="block text-xs text-gray-500">Treats underlying assets as passive/business assets (Zakatable on 30%).</span>
-                                </div>
-                            </label>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="retirement-treatment"
+                                        checked={data.assets.retirement.retirementTreatment === 'passive'}
+                                        onChange={() => updateAsset('retirement', { retirementTreatment: 'passive' })}
+                                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <div>
+                                        <span className="block text-sm font-medium text-gray-900">Passive Investment (30%)</span>
+                                        <span className="block text-xs text-gray-500">Treats underlying assets as passive/business assets (Zakatable on 30%).</span>
+                                    </div>
+                                </label>
 
-                            <label className="flex items-start gap-3 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="retirement-treatment"
-                                    checked={data.assets.retirement.retirementTreatment === 'deferred'}
-                                    onChange={() => updateAsset('retirement', { retirementTreatment: 'deferred' })}
-                                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                />
-                                <div>
-                                    <span className="block text-sm font-medium text-gray-900">Deferred (Exempt)</span>
-                                    <span className="block text-xs text-gray-500">No Zakat due until withdrawal (based on lack of complete ownership/access).</span>
-                                </div>
-                            </label>
-                        </div>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="retirement-treatment"
+                                        checked={data.assets.retirement.retirementTreatment === 'deferred'}
+                                        onChange={() => updateAsset('retirement', { retirementTreatment: 'deferred' })}
+                                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <div>
+                                        <span className="block text-sm font-medium text-gray-900">Deferred (Exempt)</span>
+                                        <span className="block text-xs text-gray-500">No Zakat due until withdrawal (based on lack of complete ownership/access).</span>
+                                    </div>
+                                </label>
+                            </div>
+                        )}
                     </div>
 
                     {/* Stocks / ETFs */}

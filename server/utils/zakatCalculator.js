@@ -9,7 +9,7 @@ class ZakatCalculator {
     // Default values in USD - should be configurable
     this.goldNisab = 2512; // Approx value of 87.48 grams of gold
     this.silverNisab = 357; // Approx value of 612.36 grams of silver
-    
+
     // Zakat rates
     this.standardRate = 0.025; // 2.5%
     this.agricultureRate = 0.10; // 10% for rain-fed crops
@@ -39,7 +39,7 @@ class ZakatCalculator {
     for (const [assetType, typeAssets] of Object.entries(assetGroups)) {
       const calculation = this.calculateAssetTypeZakat(assetType, typeAssets, nisab);
       calculations[assetType] = calculation;
-      
+
       if (calculation.eligible) {
         totalZakatableWealth += calculation.totalValue;
         totalZakat += calculation.zakatAmount;
@@ -52,7 +52,7 @@ class ZakatCalculator {
 
     // Recalculate if net wealth affects nisab eligibility
     const meetsNisab = netZakatableWealth >= nisab;
-    
+
     if (!meetsNisab) {
       // Reset all calculations if below nisab
       for (const calc of Object.values(calculations)) {
@@ -84,17 +84,17 @@ class ZakatCalculator {
    */
   groupAssetsByType(assets) {
     const groups = {};
-    
+
     for (const asset of assets) {
       if (!asset.zakatEligible) continue;
-      
+
       const type = asset.type || 'cash';
       if (!groups[type]) {
         groups[type] = [];
       }
       groups[type].push(asset);
     }
-    
+
     return groups;
   }
 
@@ -103,7 +103,7 @@ class ZakatCalculator {
    */
   calculateAssetTypeZakat(assetType, assets, nisab) {
     const totalValue = assets.reduce((sum, asset) => sum + (asset.value || 0), 0);
-    
+
     let zakatRate = this.standardRate;
     let zakatAmount = 0;
     let eligible = false;
@@ -211,7 +211,7 @@ class ZakatCalculator {
   calculateLivestockZakat(livestockAssets) {
     // This is a simplified version - actual livestock Zakat is quite complex
     // and depends on specific numbers and types of animals
-    
+
     let totalZakat = 0;
     let eligible = false;
     let notes = 'Livestock Zakat calculation (simplified)';
@@ -251,11 +251,37 @@ class ZakatCalculator {
   }
 
   /**
-   * Get current gold price (placeholder - should integrate with real API)
+   * Get current gold price from GoldAPI.io
    */
   async getCurrentGoldPrice() {
-    // In production, this would fetch from a real API
-    // For now, return a default value
+    try {
+      if (process.env.GOLD_API_KEY) {
+        const axios = require('axios');
+        const response = await axios.get('https://www.goldapi.io/api/XAU/USD', {
+          headers: {
+            'x-access-token': process.env.GOLD_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          timeout: 5000
+        });
+
+        if (response.data) {
+          // GoldAPI returns price per ounce (sometimes) or price_gram_24k
+          // We prefer price_gram_24k for accuracy
+          const pricePerGram = response.data.price_gram_24k || (response.data.price / 31.1034768);
+
+          return {
+            pricePerGram: pricePerGram,
+            currency: 'USD',
+            lastUpdated: new Date().toISOString()
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch gold price:', error.message);
+    }
+
+    // Fallback if API fails or no key
     return {
       pricePerGram: 65, // USD per gram
       currency: 'USD',
@@ -264,9 +290,35 @@ class ZakatCalculator {
   }
 
   /**
-   * Get current silver price (placeholder)
+   * Get current silver price from GoldAPI.io
    */
   async getCurrentSilverPrice() {
+    try {
+      if (process.env.GOLD_API_KEY) {
+        const axios = require('axios');
+        const response = await axios.get('https://www.goldapi.io/api/XAG/USD', {
+          headers: {
+            'x-access-token': process.env.GOLD_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          timeout: 5000
+        });
+
+        if (response.data) {
+          const pricePerGram = response.data.price_gram_24k || (response.data.price / 31.1034768);
+
+          return {
+            pricePerGram: pricePerGram,
+            currency: 'USD',
+            lastUpdated: new Date().toISOString()
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch silver price:', error.message);
+    }
+
+    // Fallback
     return {
       pricePerGram: 0.85, // USD per gram
       currency: 'USD',
@@ -284,7 +336,7 @@ class ZakatCalculator {
 
       // 87.48 grams of gold
       this.goldNisab = 87.48 * goldPrice.pricePerGram;
-      
+
       // 612.36 grams of silver  
       this.silverNisab = 612.36 * silverPrice.pricePerGram;
 
@@ -306,7 +358,7 @@ class ZakatCalculator {
    */
   validateAssets(assets) {
     const errors = [];
-    
+
     for (const asset of assets) {
       if (!asset.id) {
         errors.push(`Asset missing ID: ${asset.name || 'Unknown'}`);
@@ -318,7 +370,7 @@ class ZakatCalculator {
         errors.push(`Asset missing type: ${asset.name || asset.id}`);
       }
     }
-    
+
     return {
       valid: errors.length === 0,
       errors

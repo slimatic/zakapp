@@ -35,19 +35,20 @@ if (typeof (global as any).TextDecoder === 'undefined') {
 }
 
 // Polyfill Web Crypto API
+// Polyfill Web Crypto API
 import { webcrypto } from 'node:crypto';
-if (typeof window.crypto === 'undefined') {
-	Object.defineProperty(window, 'crypto', {
-		value: webcrypto,
-		writable: true
-	});
-}
-// Ensure subtle is available even if window.crypto existed but was incomplete
-if (window.crypto && !window.crypto.subtle) {
-	Object.defineProperty(window.crypto, 'subtle', {
-		value: (webcrypto as any).subtle,
-		writable: true
-	});
+
+// Forcefully polyfill window.crypto for JSDOM
+Object.defineProperty(window, 'crypto', {
+	configurable: true,
+	enumerable: true,
+	value: webcrypto,
+	writable: true,
+});
+
+// Also ensure global.crypto is available
+if (typeof global.crypto === 'undefined') {
+	(global as any).crypto = webcrypto;
 }
 
 // Provide a simple matchMedia mock for components that use it
@@ -143,6 +144,9 @@ global.ResizeObserver = class ResizeObserver {
 	unobserve() { }
 	disconnect() { }
 };
+
+// Polyfill IndexedDB
+import 'fake-indexeddb/auto';
 
 // Reset Database after each test to ensure isolation
 afterEach(async () => {

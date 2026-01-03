@@ -17,6 +17,9 @@ export interface OnboardingData {
         madhab: 'hanafi' | 'shafii' | 'standard';
         calendar: 'lunar' | 'solar';
     };
+    settings: {
+        currency: string;
+    };
     nisab: {
         standard: 'gold' | 'silver';
     };
@@ -58,6 +61,9 @@ const INITIAL_DATA: OnboardingData = {
     methodology: {
         madhab: 'standard',
         calendar: 'lunar'
+    },
+    settings: {
+        currency: 'USD'
     },
     nisab: {
         standard: 'silver'

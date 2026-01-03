@@ -93,6 +93,7 @@
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.21",
     "axe-core": "^4.11.0",
+    "fake-indexeddb": "^6.2.5",
     "fast-check": "^4.5.2",
     "jest-axe": "^10.0.0",
     "jest-environment-jsdom": "^30.2.0",
