@@ -203,13 +203,16 @@ export function useAssetRepository() {
             try {
                 // Check if metadata is the encrypted string (starts with ZK1:)
                 if (doc.metadata && typeof doc.metadata === 'string' && doc.metadata.startsWith('ZK1:')) {
-                    console.error('[useAssetRepository] Asset metadata is still encrypted (ZK1:...), cannot merge. Aborting update to prevent data loss.', id);
-                    return;
+                    console.warn('[useAssetRepository] Asset metadata is encrypted (ZK1:...), overwriting with new data to recover asset.', id);
+                    // We knowingly discard the unreadable ciphertext and start fresh with the updates
+                    currentMeta = {};
+                } else {
+                    currentMeta = doc.metadata ? JSON.parse(doc.metadata) : {};
                 }
-                currentMeta = doc.metadata ? JSON.parse(doc.metadata) : {};
             } catch (e) {
-                console.error('[useAssetRepository] Failed to parse existing doc metadata during update. Aborting to prevent data loss.', doc.metadata);
-                return;
+                console.warn('[useAssetRepository] Failed to parse existing doc metadata. Overwriting with new data.', doc.metadata);
+                // Also recover from bad JSON
+                currentMeta = {};
             }
 
             const safeUpdates = sanitizeAssetPayload(updates);
