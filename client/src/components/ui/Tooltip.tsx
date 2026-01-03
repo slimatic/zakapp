@@ -48,8 +48,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
   // Handle click outside to close tooltip
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: Event) => {
       if (
+        isVisible &&
         tooltipRef.current &&
         triggerRef.current &&
         !tooltipRef.current.contains(event.target as Node) &&
@@ -59,11 +60,17 @@ export const Tooltip: React.FC<TooltipProps> = ({
       }
     };
 
-    if (trigger === 'click' || trigger === 'both') {
+    if (isVisible) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      // Handle touch events for mobile fast-click
+      document.addEventListener('touchstart', handleClickOutside);
     }
-  }, [trigger]);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isVisible]);
 
   const handleMouseEnter = () => {
     if (trigger === 'hover' || trigger === 'both') {
