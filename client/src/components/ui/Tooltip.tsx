@@ -151,7 +151,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
           style={{ maxWidth }}
           role="tooltip"
         >
-          <div className="bg-gray-900 text-white text-sm rounded-lg p-3 shadow-lg">
+          {/* Added w-64 to force rectangular box shape instead of narrow column */}
+          <div className="bg-gray-900 text-white text-sm rounded-lg p-3 shadow-lg w-64">
             {typeof content === 'string' ? (
               <p className="leading-relaxed">{content}</p>
             ) : (

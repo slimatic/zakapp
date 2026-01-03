@@ -182,7 +182,7 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
         </div>
 
         {/* Main comparison */}
-        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-3 sm:gap-4">
           {/* Zakatable Wealth */}
           <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
             <div className="text-xs font-medium text-gray-500 mb-1 truncate">Zakatable Wealth</div>
@@ -203,8 +203,8 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
             </Tooltip>
           </div>
 
-          {/* Nisab Threshold - Full width on mobile, standard on desktop */}
-          <div className="col-span-2 sm:col-span-1 rounded-lg bg-white p-3 shadow-sm border border-gray-100 flex flex-col justify-center sm:block min-w-0">
+          {/* Nisab Threshold */}
+          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
             <div className="text-xs font-medium text-gray-500 mb-1 truncate">Nisab Threshold</div>
             <Tooltip content={formatMaskedCurrency(displayNisab)}>
               <div className="text-base sm:text-lg font-bold text-gray-700 tracking-tight truncate block">
