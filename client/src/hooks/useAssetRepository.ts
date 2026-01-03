@@ -136,6 +136,12 @@ export function useAssetRepository() {
 
             if (ALLOWED_SCHEMA_FIELDS.includes(key)) {
                 clean[key] = asset[key as keyof Asset];
+
+                // CRITICAL FIX: Double-write calculationModifier to metadata 
+                // This ensures it persists even if the local RxDB schema is outdated (missing the column)
+                if (key === 'calculationModifier') {
+                    extraMetadata[key] = asset[key as keyof Asset];
+                }
             } else if (key.startsWith('_')) {
                 // Skip internal RxDB fields like _rev, _meta unless absolutely needed (usually managed by RxDB)
             } else {
