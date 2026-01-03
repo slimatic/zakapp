@@ -74,3 +74,16 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [ ] **Dashboard Action Cards**: Replace "Smart Navigation" with simple "Next Best Action" cards (e.g., "Add Assets" if empty).
 - [x] **Date Localization**: Dual display (Gregorian/Hijri) with +/- 1 day moon adjustment settings.
 - [x] **Critical Hotfix**: Resolve Profile Update issue where updating the user information like Name username and email address does not persist (User Details Persistence). Improve this.
+
+## Phase 8: Code Cleanup (Pre-Launch Polish)
+*Goal: Ensure codebase is production-ready, maintainable, and open-source quality.*
+
+- [ ] **Console Cleanup**: Replace debug `console.log` statements with structured logging (20+ files identified).
+- [ ] **Financial Precision**: Replace `parseFloat`/`parseInt` with BigNumber in financial calculations (20+ files).
+- [ ] **Large File Refactors**:
+  - [ ] Split `AssetForm.tsx` (850 lines) into smaller components.
+  - [ ] Extract modals from `NisabYearRecordsPage.tsx` (717 lines).
+  - [ ] Extract crypto/sync logic from `AuthContext.tsx` (669 lines).
+- [ ] **Unused Imports**: Run ESLint auto-fix to remove unused imports across all files.
+- [ ] **TODO Resolution**: Address remaining `TODO-HASH-OF-KEY` placeholders in AuthContext.
+

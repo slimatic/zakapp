@@ -21,7 +21,7 @@
  * Refactored for Local-First Architecture
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
@@ -33,7 +33,7 @@ import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { formatCurrency } from '../utils/formatters';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
-import { isAssetZakatable } from '../core/calculations/zakat';
+import { isAssetZakatable, getAssetZakatableValue } from '../core/calculations/zakat';
 import type { NisabYearRecord } from '../types/nisabYearRecord';
 
 type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
@@ -48,18 +48,51 @@ export const AnalyticsPage: React.FC = () => {
   const { records: nisabRecords } = useNisabRecordRepository();
   const { payments } = usePaymentRepository();
 
+  // Calculate timeframe start date
+  const timeframeStartDate = useMemo(() => {
+    if (selectedTimeframe === 'all_time') return null;
+    const now = new Date();
+    switch (selectedTimeframe) {
+      case 'last_year':
+        return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      case 'last_3_years':
+        return new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
+      case 'last_5_years':
+        return new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
+      default:
+        return null;
+    }
+  }, [selectedTimeframe]);
+
+  // Filter nisabRecords by timeframe
+  const filteredNisabRecords = useMemo(() => {
+    if (!timeframeStartDate) return nisabRecords;
+    return nisabRecords.filter(record => {
+      const dateStr = record.hawlStartDate || record.createdAt || new Date().toISOString();
+      const recordDate = new Date(dateStr);
+      return recordDate >= timeframeStartDate;
+    });
+  }, [nisabRecords, timeframeStartDate]);
+
+  // Filter payments by timeframe
+  const filteredPayments = useMemo(() => {
+    if (!timeframeStartDate) return payments;
+    return payments.filter((payment: any) => {
+      const dateStr = payment.paymentDate || payment.createdAt || new Date().toISOString();
+      const paymentDate = new Date(dateStr);
+      return paymentDate >= timeframeStartDate;
+    });
+  }, [payments, timeframeStartDate]);
+
   // Calculate summary statistics locally
   const totalWealth = assets.reduce<number>((sum, asset) => sum + (Number(asset.value) || 0), 0) || 0;
 
-  const totalZakatableWealth = assets.reduce((sum: number, asset: any) => {
-    const zakatable = isAssetZakatable(asset, 'STANDARD');
-    if (!zakatable) return sum;
-    const modifier = typeof asset.calculationModifier === 'number' ? asset.calculationModifier : 1.0;
-    const zakVal = typeof asset.zakatableValue === 'number' ? asset.zakatableValue : (Number(asset.value) || 0) * modifier;
-    return sum + (zakVal || 0);
-  }, 0) || 0;
+  const totalZakatableWealth = assets.reduce((sum: number, asset) => {
+    // Use centralized calculation for consistency with Nisab records
+    return sum + getAssetZakatableValue(asset, 'STANDARD');
+  }, 0);
 
-  const totalZakatDue = nisabRecords.reduce((sum: number, record: NisabYearRecord) => {
+  const totalZakatDue = filteredNisabRecords.reduce((sum: number, record: NisabYearRecord) => {
     // Decrypt and parse zakatAmount if it's a string
     const amount = typeof record.zakatAmount === 'string'
       ? parseFloat(record.zakatAmount)
@@ -67,8 +100,8 @@ export const AnalyticsPage: React.FC = () => {
     return sum + amount;
   }, 0) || 0;
 
-  // Calculate total Zakat paid from actual payment records
-  const totalZakatPaid = payments.reduce((sum: number, payment: any) => {
+  // Calculate total Zakat paid from actual payment records (filtered by timeframe)
+  const totalZakatPaid = filteredPayments.reduce((sum: number, payment: any) => {
     return sum + (Number(payment.amount) || 0);
   }, 0) || 0;
 
@@ -179,7 +212,7 @@ export const AnalyticsPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-transparent">
           {/* Wealth Trend (Full Width on mobile, half on desktop) */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <WealthTrendChart records={nisabRecords} />
+            <WealthTrendChart records={filteredNisabRecords} />
           </div>
 
           {/* Asset Composition */}
@@ -189,12 +222,12 @@ export const AnalyticsPage: React.FC = () => {
 
           {/* Payment Distribution */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <PaymentDistributionChart payments={payments} />
+            <PaymentDistributionChart payments={filteredPayments} />
           </div>
 
           {/* Obligations */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <ZakatObligationsChart records={nisabRecords} payments={payments} />
+            <ZakatObligationsChart records={filteredNisabRecords} payments={filteredPayments} />
           </div>
         </div>
       </div>

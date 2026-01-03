@@ -124,6 +124,7 @@ export const ProfileForm: React.FC = () => {
                         ...user.settings,
                         preferredMethodology: calendarPrefs.preferredMethodology,
                         preferredCalendar: calendarPrefs.preferredCalendar,
+                        hijriAdjustment: calendarPrefs.hijriAdjustment,
                         currency: data.preferences.currency
                     }
                 } as any);
