@@ -561,7 +561,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   ...user.settings,
                   preferredMethodology: localMethodology || user.settings?.preferredMethodology || 'standard',
                   preferredCalendar: userDoc.get('preferredCalendar') || user.settings?.preferredCalendar || 'gregorian',
-                  currency: userDoc.get('baseCurrency') || user.settings?.currency || 'USD'
+                  currency: userDoc.get('baseCurrency') || user.settings?.currency || 'USD',
+                  hijriAdjustment: userDoc.get('hijriAdjustment') ?? user.settings?.hijriAdjustment ?? 0
                 },
                 // Decrypt local-only fields if needed (omitted for brevity as API usually handles this, 
                 // but strictly speaking we should prefer local decrypted over API if we want true local-first)
