@@ -4,10 +4,14 @@ module.exports = {
   roots: ['<rootDir>/tests', '<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.(ts|js)$': ['ts-jest', {
+      allowJs: true,
+      tsconfig: 'tsconfig.json'
+    }],
   },
   collectCoverageFrom: [
     'src/**/*.ts',
+    'src/**/*.js',
     '!src/**/*.d.ts',
     '!src/**/*.test.ts',
     '!src/**/*.spec.ts',
@@ -15,8 +19,9 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@zakapp/shared$': '<rootDir>/../shared/dist/index.js',
-    '^@zakapp/shared/(.*)$': '<rootDir>/../shared/dist/$1',
+    '^@zakapp/shared$': '<rootDir>/../shared/src/index.ts',
+    '^@zakapp/shared/(.*)$': '<rootDir>/../shared/src/$1',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   // Ensure test environment setup + DB migrations
   // `setupFiles` runs before the test framework is installed – this is required
@@ -28,4 +33,7 @@ module.exports = {
   globalTeardown: '<rootDir>/test/globalTeardown.ts',
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   coveragePathIgnorePatterns: ['/node_modules/', '/dist/'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(@zakapp/shared)/)',
+  ],
 };

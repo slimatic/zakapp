@@ -78,6 +78,7 @@ services:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
       - COUCHDB_URL=${COUCHDB_URL}
+      - GOLD_API_KEY=${GOLD_API_KEY}
     healthcheck:
       test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:${BACKEND_INTERNAL_PORT:-3001}/api/auth/register || exit 0"]
       interval: 10s
