@@ -16,6 +16,7 @@
  */
 
 import { Asset, Liability } from '../../types';
+import { getAssetZakatableValue } from './zakat';
 
 /**
  * Zakat Calculation Logic extracted from UI components.
@@ -82,8 +83,8 @@ export const calculateWealth = (
         }
 
         if (isEligible) {
-            const modifier = asset.calculationModifier ?? 1.0;
-            zakatableWealth += value * modifier;
+            // Use core zakat calculation for accurate zakatable value
+            zakatableWealth += getAssetZakatableValue(asset, methodology as any);
         }
     });
 
