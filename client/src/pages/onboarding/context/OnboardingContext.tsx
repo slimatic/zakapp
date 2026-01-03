@@ -3,8 +3,13 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 // Types for the onboarding data
 export interface AssetData {
     enabled: boolean;
-    value?: number; // Make value optional as it's not always present in initial state
-    category?: string; // Add category for the new structure
+    value?: number; // Calculated total value in currency
+    // Metal specific
+    grams?: number;
+    // Investment specific
+    isPassive?: boolean; // 30% rule
+    isRestricted?: boolean; // 401k/penalties
+    retirementTreatment?: 'full' | 'net_value' | 'deferred' | 'passive';
 }
 
 export interface OnboardingData {
@@ -15,12 +20,20 @@ export interface OnboardingData {
     nisab: {
         standard: 'gold' | 'silver';
     };
-    assets: Record<string, AssetData>;
-    liabilities: Record<string, AssetData>;
-    payments: {
-        madePayments: boolean;
-        amount?: number;
-        date?: string;
+    // Flattened assets structure for wizard
+    assets: {
+        gold: AssetData;
+        silver: AssetData;
+        cash_on_hand: AssetData;
+        bank_accounts: AssetData;
+        stocks: AssetData;
+        retirement: AssetData; // 401k
+        crypto: AssetData;
+        other: AssetData;
+    };
+    liabilities: {
+        immediate: number;
+        expenses: number;
     };
 }
 
@@ -30,6 +43,7 @@ export interface OnboardingContextType {
     data: OnboardingData;
     canProceed: boolean;
     updateData: (section: keyof OnboardingData, payload: any) => void;
+    updateAsset: (key: keyof OnboardingData['assets'], data: Partial<AssetData>) => void;
     nextStep: () => void;
     prevStep: () => void;
     setCanProceed: (can: boolean) => void;
@@ -49,35 +63,27 @@ const INITIAL_DATA: OnboardingData = {
         standard: 'silver'
     },
     assets: {
-        cash: { category: 'cash', enabled: false },
-        gold: { category: 'gold', enabled: false },
-        silver: { category: 'silver', enabled: false },
-        stocks: { category: 'stock', enabled: false },
-        crypto: { category: 'crypto', enabled: false },
-        retirement: { category: 'retirement', enabled: false },
-        business: { category: 'business_assets', enabled: false },
-        receivables: { category: 'receivables', enabled: false },
-        realEstateRental: { category: 'property', enabled: false },
-        realEstateResale: { category: 'property', enabled: false },
+        gold: { ...INITIAL_ASSET_DATA, grams: 0 },
+        silver: { ...INITIAL_ASSET_DATA, grams: 0 },
+        cash_on_hand: { ...INITIAL_ASSET_DATA },
+        bank_accounts: { ...INITIAL_ASSET_DATA },
+        stocks: { ...INITIAL_ASSET_DATA, isPassive: false },
+        retirement: { ...INITIAL_ASSET_DATA, isRestricted: true, retirementTreatment: 'net_value' },
+        crypto: { ...INITIAL_ASSET_DATA },
+        other: { ...INITIAL_ASSET_DATA },
     },
     liabilities: {
-        personal_loans: { category: 'debt_personal', enabled: false },
-        credit_cards: { category: 'debt_credit_card', enabled: false },
-        student_loans: { category: 'debt_student_loan', enabled: false },
-        mortgage: { category: 'debt_mortgage', enabled: false },
-        commercial_debt: { category: 'debt_commercial', enabled: false },
-    },
-    payments: {
-        madePayments: false,
+        immediate: 0,
+        expenses: 0
     }
 };
 
 export const OnboardingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [data, setData] = useState<OnboardingData>(INITIAL_DATA);
-    const [canProceed, setCanProceed] = useState(true); // Default to true, steps disable if needed
+    const [canProceed, setCanProceed] = useState(true);
 
-    // Fixed number of steps: Welcome, Methodology, Nisab, Assets, Liabilities, Payments, Summary
+    // 7 Steps: Welcome, Identity, Metals, Cash, Investments, Liabilities, Review
     const totalSteps = 7;
 
     const updateData = (section: keyof OnboardingData, payload: any) => {
@@ -87,23 +93,34 @@ export const OnboardingProvider: React.FC<{ children: ReactNode }> = ({ children
         }));
     };
 
+    const updateAsset = (key: keyof OnboardingData['assets'], assetData: Partial<AssetData>) => {
+        setData((prev) => ({
+            ...prev,
+            assets: {
+                ...prev.assets,
+                [key]: { ...prev.assets[key], ...assetData }
+            }
+        }));
+    };
+
     const nextStep = () => {
         if (currentStep < totalSteps - 1) {
             setCurrentStep((curr) => curr + 1);
-            setCanProceed(true); // Reset for next step
+            window.scrollTo(0, 0);
         }
     };
 
     const prevStep = () => {
         if (currentStep > 0) {
             setCurrentStep((curr) => curr - 1);
-            setCanProceed(true);
+            window.scrollTo(0, 0);
         }
     };
 
     const goToStep = (step: number) => {
         if (step >= 0 && step < totalSteps) {
             setCurrentStep(step);
+            window.scrollTo(0, 0);
         }
     };
 
@@ -115,6 +132,7 @@ export const OnboardingProvider: React.FC<{ children: ReactNode }> = ({ children
                 data,
                 canProceed,
                 updateData,
+                updateAsset,
                 nextStep,
                 prevStep,
                 setCanProceed,

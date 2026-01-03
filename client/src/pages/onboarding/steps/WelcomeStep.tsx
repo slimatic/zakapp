@@ -1,58 +1,36 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useOnboarding } from '../context/OnboardingContext';
 import { Logo } from '../../../components/common/Logo';
-import { GlossaryTerm } from '../../../components/common/GlossaryTerm';
 
 export const WelcomeStep: React.FC = () => {
     const { nextStep } = useOnboarding();
 
     return (
-        <div className="text-center">
-            <div className="flex justify-center mb-8">
-                <div className="w-20 h-20 bg-emerald-50 rounded-2xl flex items-center justify-center shadow-sm">
-                    <Logo className="w-12 h-12 text-emerald-600" />
-                </div>
+        <div className="flex flex-col items-center justify-center space-y-8 animate-fadeIn text-center pt-8">
+            <div className="flex items-center justify-center mb-4">
+                <Logo className="w-24 h-24 text-emerald-600" />
             </div>
 
-            <div className="space-y-4 mb-8">
-                <div className="space-y-1">
-                    <p className="text-emerald-800 font-arabic text-xl" lang="ar" dir="rtl">السلام عليكم</p>
-                    <p className="text-gray-600">As-salamu alaykum</p>
-                </div>
+            <h1 className="text-3xl font-bold text-gray-900">
+                Welcome to ZakApp
+            </h1>
 
-                <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
-                    <p className="text-emerald-800 italic font-serif text-lg leading-relaxed">
-                        "...and spend from that of which He has made you trustees."
-                    </p>
-                    <p className="text-emerald-600 text-sm mt-2 font-medium">— Surah Al-Hadid (57:7)</p>
-                </div>
-            </div>
-
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Helping you fulfill the Trust, privately.
-            </h2>
-
-            <div className="text-gray-600 mb-8 max-w-sm mx-auto">
-                <p className="mb-4">
-                    Your financial data never leaves this device. We have zero knowledge of your assets.
+            <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100 max-w-lg">
+                <p className="text-emerald-800 font-serif text-lg italic mb-2">
+                    "Take from their wealth a charity by which you purify them and cause them increase..."
                 </p>
-                <Link to="/privacy-policy" className="text-emerald-600 hover:text-emerald-700 font-medium text-sm inline-flex items-center gap-1" target="_blank" rel="noopener noreferrer">
-                    Read our Privacy Policy
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                </Link>
+                <p className="text-emerald-600 text-xs font-medium uppercase tracking-wide">
+                    Surah At-Tawbah (9:103)
+                </p>
             </div>
 
-            <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 text-sm text-amber-900 text-left mb-6 flex gap-3">
-                <span className="text-xl">💡</span>
-                <span>
-                    <strong>Note:</strong> In the next few steps, we'll configure settings according to your <GlossaryTerm term="madhab" /> (School of Thought).
-                </span>
-            </div>
+            <p className="text-gray-600 max-w-md">
+                Let's get your portfolio set up. We'll walk you through adding your assets to accurately track your Zakat obligations securely.
+            </p>
 
             <button
                 onClick={nextStep}
-                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium shadow-md transition-colors"
+                className="mt-8 px-12 py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-1"
             >
                 Get Started
             </button>
