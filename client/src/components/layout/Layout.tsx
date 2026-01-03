@@ -207,7 +207,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="flex-shrink-0 flex items-center">
                 <Link to="/dashboard" className="flex items-center gap-2" aria-label="ZakApp Home">
                   <Logo className="h-8 w-8" />
-                  <span className="text-xl font-bold text-gray-900">ZakApp</span>
+                  <span className="hidden sm:inline-block text-xl font-bold text-gray-900">ZakApp</span>
                 </Link>
               </div>
               <div className="hidden md:block">
@@ -268,7 +268,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
               <Link
                 to="/learn"
-                className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+                className="hidden sm:block p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
                 aria-label="Knowledge Hub"
                 title="Knowledge Hub"
               >

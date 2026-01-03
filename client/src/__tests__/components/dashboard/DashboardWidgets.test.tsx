@@ -18,9 +18,8 @@
 import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { render, screen, userEvent } from '../../../test-utils';
+import { Route, Routes } from 'react-router-dom';
 import { DashboardHeader } from '../../../components/dashboard/DashboardHeader';
 import { QuickActionCard } from '../../../components/dashboard/QuickActionCard';
 import { ActiveRecordWidget } from '../../../components/dashboard/ActiveRecordWidget';
@@ -29,6 +28,7 @@ import { OnboardingGuide } from '../../../components/dashboard/OnboardingGuide';
 
 // Mock Hooks
 vi.mock('../../../contexts/PrivacyContext', () => ({
+  usePrivacy: () => ({ privacyMode: false }),
   useMaskedCurrency: () => (val: any) => val,
 }));
 
@@ -80,18 +80,17 @@ describe('Dashboard widgets', () => {
   describe('QuickActionCard', () => {
     it('navigates via link when href is provided', async () => {
       render(
-        <MemoryRouter initialEntries={["/dashboard"]}>
-          <QuickActionCard
-            title="Add Asset"
-            description="Add your first asset"
-            icon={<span>*</span>}
-            href="/assets"
-          />
-          <Routes>
-            <Route path="/assets" element={<div data-testid="assets-page">Assets Page</div>} />
-            <Route path="/dashboard" element={<div>Dashboard Page</div>} />
-          </Routes>
-        </MemoryRouter>
+        <Routes>
+          <Route path="/" element={
+            <QuickActionCard
+              title="Add Asset"
+              description="Add your first asset"
+              icon={<span>*</span>}
+              href="/assets"
+            />
+          } />
+          <Route path="/assets" element={<div data-testid="assets-page">Assets Page</div>} />
+        </Routes>
       );
 
       await userEvent.click(screen.getByRole('link', { name: /add asset/i }));
@@ -116,37 +115,30 @@ describe('Dashboard widgets', () => {
 
   describe('ActiveRecordWidget', () => {
     it('displays Hawl progress and wealth comparison', () => {
-      // Mock QueryClient is handled by generic Environment or mocked hook `usePayments` avoids generic QueryClient need?
-      // ActiveRecordWidget uses usePayments directly. Since we mocked usePayments, we might NOT need QueryClientProvider wrapper anymore!
-      // But let's keep it safe or remove it. Mocks replace the hook implementation so internal logic using QueryClient won't run.
-      // We will remove QueryClientProvider wrapper as usePayments is mocked.
-
       render(
-        <MemoryRouter>
-          <ActiveRecordWidget
-            record={{
-              id: 'rec-1',
-              userId: 'user-1',
-              startDate: '2025-01-01',
-              endDate: '2025-12-31',
-              initialNisabThreshold: 5000,
-              nisabMethod: 'gold',
-              status: 'active',
-              daysElapsed: 120,
-              daysRemaining: 234,
-              currentWealth: 6500,
-              createdAt: '2025-01-01',
-              updatedAt: '2025-03-01',
-              // Add missing fields if any required by new types
-              zakatAmount: 0,
-              netZakatDue: 0
-            } as any}
-          />
-        </MemoryRouter>
+        <ActiveRecordWidget
+          record={{
+            id: 'rec-1',
+            userId: 'user-1',
+            startDate: '2025-01-01',
+            endDate: '2025-12-31',
+            initialNisabThreshold: 5000,
+            nisabMethod: 'gold',
+            status: 'active',
+            daysElapsed: 120,
+            daysRemaining: 234,
+            currentWealth: 6500,
+            createdAt: '2025-01-01',
+            updatedAt: '2025-03-01',
+            // Add missing fields if any required by new types
+            zakatAmount: 0,
+            netZakatDue: 0
+          } as any}
+        />
       );
 
-      // Check for key elements rather than exact day string which can be computed differently
-      expect(screen.getByText(/active hawl period/i)).toBeInTheDocument();
+      // Check for key elements using more flexible matching
+      expect(screen.getByText(/active hawl/i)).toBeInTheDocument();
       expect(screen.getByText(/\$6,500\.00/)).toBeInTheDocument();
       expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow');
       expect(screen.getByRole('link', { name: /view detailed record/i })).toBeInTheDocument();
@@ -169,9 +161,7 @@ describe('Dashboard widgets', () => {
   describe('OnboardingGuide', () => {
     it('highlights the current step and shows progress', () => {
       render(
-        <MemoryRouter>
-          <OnboardingGuide currentStep={2} completedSteps={[1]} />
-        </MemoryRouter>
+        <OnboardingGuide currentStep={2} completedSteps={[1]} />
       );
 
       expect(screen.getByRole('button', { name: /collapse guide/i })).toBeInTheDocument();

@@ -16,12 +16,8 @@
  */
 
 import { useState, useEffect } from 'react';
-// @ts-ignore
-// @ts-ignore
 import { createRxDatabase, RxDatabase, RxCollection, addRxPlugin, removeRxDatabase } from 'rxdb';
-// @ts-ignore
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
-// @ts-ignore
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
@@ -35,10 +31,7 @@ import { NisabYearRecordSchema } from './schema/nisabYearRecord.schema';
 import { PaymentRecordSchema } from './schema/paymentRecord.schema';
 import { UserSettingsSchema } from './schema/userSettings.schema';
 
-// @ts-ignore
-// @ts-ignore
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
-// @ts-ignore
 import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
 
 console.log('RxDB Storage Adapter (Dexie):', getRxStorageDexie);
