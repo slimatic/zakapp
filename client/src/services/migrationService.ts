@@ -86,8 +86,8 @@ export class MigrationService {
                 isPassiveInvestment: false,
                 isRestrictedAccount: false,
                 calculationModifier: 1.0,
-                // Note: zakatEligible is implicit in logic now, but we could store it in notes if needed
-                metadata: raw.zakatEligible !== undefined ? JSON.stringify({ legacyZakatEligible: raw.zakatEligible }) : undefined
+                zakatEligible: raw.zakatEligible,
+                metadata: raw.metadata || (raw.zakatEligible !== undefined ? JSON.stringify({ legacyZakatEligible: raw.zakatEligible }) : undefined)
             } as Asset;
         });
     }
@@ -138,7 +138,13 @@ export class MigrationService {
             'business': AssetType.BUSINESS_ASSETS,
             'loan': AssetType.DEBTS_OWED_TO_YOU,
             'retirement': AssetType.RETIREMENT,
-            '401k': AssetType.RETIREMENT
+            '401k': AssetType.RETIREMENT,
+            // Full Enum Support (for re-importing v2 exports)
+            'investment_account': AssetType.INVESTMENT_ACCOUNT,
+            'business_assets': AssetType.BUSINESS_ASSETS,
+            'debts_owed_to_you': AssetType.DEBTS_OWED_TO_YOU,
+            'bank_account': AssetType.BANK_ACCOUNT,
+            'real_estate': AssetType.REAL_ESTATE
         };
 
         const normalized = (legacyCategory || '').toLowerCase().trim();
