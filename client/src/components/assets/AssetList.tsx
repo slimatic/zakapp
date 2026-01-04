@@ -21,6 +21,8 @@ import { Plus, LayoutGrid, List as ListIcon } from 'lucide-react';
 import { AssetCard } from './AssetCard';
 import { AssetsBreakdownChart } from '../dashboard/AssetsBreakdownChart';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
+import { useUserSettingsRepository } from '../../hooks/useUserSettingsRepository';
+import { getAssetZakatableValue, ZakatMethodology } from '../../core/calculations/zakat';
 import { Asset } from '../../types';
 import { Button, Card } from '../ui';
 import { usePrivacy } from '../../contexts/PrivacyContext';
@@ -41,9 +43,20 @@ export const AssetList: React.FC = () => {
     navigate(`/assets/${id}/edit`);
   };
 
-  const totalAssets = useMemo(() => {
-    return assets.reduce((sum, asset) => sum + asset.value, 0);
-  }, [assets]);
+  const { settings } = useUserSettingsRepository();
+  const methodology = (settings?.preferredMethodology?.toUpperCase() || 'STANDARD') as ZakatMethodology;
+
+  const { totalAssets, estimatedZakat } = useMemo(() => {
+    const total = assets.reduce((sum, asset) => sum + asset.value, 0);
+    const zakatable = assets.reduce((sum, asset) => {
+      const zVal = getAssetZakatableValue(asset, methodology);
+      return sum + zVal;
+    }, 0);
+    return {
+      totalAssets: total,
+      estimatedZakat: zakatable * 0.025
+    };
+  }, [assets, methodology]);
 
   const formatCurrency = (value: number, currency = 'USD') => {
     if (privacyMode) return '****';
@@ -102,8 +115,13 @@ export const AssetList: React.FC = () => {
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-600">Asset Count</span>
                 <span className="font-medium text-slate-900">{assets.length} items</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-slate-100 mt-2">
+                <span className="text-slate-600 font-medium">Estimated Zakat</span>
+                <span className="font-bold text-slate-900 text-blue-600">
+                  {formatCurrency(estimatedZakat)}
+                </span>
               </div>
               <div className="pt-4 mt-2">
                 <div className="bg-green-100 text-green-800 text-xs px-3 py-2 rounded-md">
