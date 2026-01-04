@@ -255,6 +255,17 @@ class ZakatCalculator {
    */
   async getCurrentGoldPrice() {
     try {
+      // 1. Manual Override (for when API limits are hit)
+      if (process.env.MANUAL_GOLD_PRICE_USD) {
+        console.log('Using manual gold price from env:', process.env.MANUAL_GOLD_PRICE_USD);
+        return {
+          pricePerGram: parseFloat(process.env.MANUAL_GOLD_PRICE_USD),
+          currency: 'USD',
+          lastUpdated: new Date().toISOString(),
+          isManual: true
+        };
+      }
+
       if (process.env.GOLD_API_KEY) {
         const axios = require('axios');
         const response = await axios.get('https://www.goldapi.io/api/XAU/USD', {
@@ -294,6 +305,16 @@ class ZakatCalculator {
    */
   async getCurrentSilverPrice() {
     try {
+      // 1. Manual Override
+      if (process.env.MANUAL_SILVER_PRICE_USD) {
+        return {
+          pricePerGram: parseFloat(process.env.MANUAL_SILVER_PRICE_USD),
+          currency: 'USD',
+          lastUpdated: new Date().toISOString(),
+          isManual: true
+        };
+      }
+
       if (process.env.GOLD_API_KEY) {
         const axios = require('axios');
         const response = await axios.get('https://www.goldapi.io/api/XAG/USD', {

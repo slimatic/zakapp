@@ -24,6 +24,10 @@ export const WelcomeStep: React.FC = () => {
                 <Logo className="w-20 h-20 text-emerald-600" />
             </div>
 
+            <p className="text-2xl text-gray-800 font-serif font-arabic mb-2" dir="rtl">
+                ٱلسَّلَامُ عَلَيْكُمْ
+            </p>
+
             <div className="space-y-2">
                 <h1 className="text-3xl font-bold text-gray-900">
                     Welcome to ZakApp
@@ -32,10 +36,6 @@ export const WelcomeStep: React.FC = () => {
                     Helping you to purify and increase entrusted wealth
                 </p>
             </div>
-
-            <p className="text-2xl text-gray-800 font-serif font-arabic mb-2" dir="rtl">
-                ٱلسَّلَامُ عَلَيْكُمْ
-            </p>
 
             <p className="text-gray-600 max-w-md leading-relaxed">
                 Let's get your portfolios set up. You are not expected to enter all your information in one sitting. You can simply start by adding a few assets now and return to the wizard or your dashboard to add more anytime.

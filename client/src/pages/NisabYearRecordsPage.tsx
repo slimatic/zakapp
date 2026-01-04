@@ -150,10 +150,12 @@ export const NisabYearRecordsPage: React.FC = () => {
 
   // Status badges
   const statusBadges: Record<string, { color: string; label: string }> = {
-    'DRAFT': { color: 'blue', label: 'Draft' },
+    'DRAFT': { color: 'blue', label: 'Active' }, // Changed from Draft to Active
     'FINALIZED': { color: 'green', label: 'Finalized' },
     'UNLOCKED': { color: 'amber', label: 'Unlocked for Editing' },
   };
+
+  // Format currency
 
   // Format currency
   const maskedCurrency = useMaskedCurrency();
@@ -287,6 +289,12 @@ export const NisabYearRecordsPage: React.FC = () => {
     const liabilities = allLiabilities.filter(l => selectedLiabilityIds.includes(l.id));
     return calculateWealth(assets, liabilities);
   }, [selectedAssetIds, selectedLiabilityIds, allAssets, allLiabilities]);
+
+  // Calculate totals for active record
+  const totalPaid = recordPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const totalObligation = Number(activeRecord?.zakatAmount || 0);
+  const remainingBalance = Math.max(0, totalObligation - totalPaid);
+  const isFullyPaid = totalObligation > 0 && remainingBalance === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-6">
@@ -541,6 +549,30 @@ export const NisabYearRecordsPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-3">
+                    {/* Payment Progress Summary */}
+                    {totalObligation > 0 && (
+                      <div className={`mb-2 p-3 rounded-lg border ${isFullyPaid ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-100'}`}>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="text-gray-500 block text-xs">Total Paid</span>
+                            <span className="font-semibold text-gray-900">{formatCurrency(totalPaid)}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-gray-500 block text-xs">Remaining</span>
+                            <span className={`font-bold ${isFullyPaid ? 'text-green-600' : 'text-orange-600'}`}>
+                              {formatCurrency(remainingBalance)}
+                            </span>
+                          </div>
+                        </div>
+                        {/* Progress Bar */}
+                        <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${isFullyPaid ? 'bg-green-500' : 'bg-blue-500'}`}
+                            style={{ width: `${Math.min(100, (totalPaid / totalObligation) * 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
                     {recordPayments.length > 0 ? recordPayments.map(p => (
                       <PaymentCard
                         key={p.id}
