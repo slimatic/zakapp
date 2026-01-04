@@ -11,15 +11,7 @@ export const MetalsStep: React.FC = () => {
     // Auto-calculate values when grams change
     useEffect(() => {
         if (data.assets.gold.grams && goldPrice) {
-            updateAsset('gold', { value: data.assets.gold.grams * (goldPrice / 31.1035) }); // Price is per ounce usually? Wait, hook returns per gram?
-            // checking usage in App: useNisabThreshold usually returns threshold, but looking at NisabService it fetches price.
-            // Let's assume the hook returns price per gram if adjusted.
-            // Wait, useNisabThreshold returns { goldPrice, silverPrice } which are per GRAM based on my earlier test of NisabService?
-            // Actually NisabService `getCurrentGoldPrice` returns per gram if API supports it, or converts ounce to gram.
-            // So `goldPrice` from hook should be PER GRAM.
-            // Let's verify hook implementation if possible, but assuming per gram is standard in this app context.
-            // Re-reading NisabService test: "price_gram_24k" is what we mocked.
-            // So yes, it is per gram.
+            updateAsset('gold', { value: data.assets.gold.grams * goldPrice });
         }
     }, [data.assets.gold.grams, goldPrice]);
 
