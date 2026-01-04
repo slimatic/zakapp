@@ -92,6 +92,13 @@ export class NisabService {
       return this.convertCurrency(cached.price, 'USD', currency);
     }
 
+    // 1. Manual Override
+    if (process.env.MANUAL_GOLD_PRICE_USD) {
+      console.log('Using manual gold price from env:', process.env.MANUAL_GOLD_PRICE_USD);
+      const price = parseFloat(process.env.MANUAL_GOLD_PRICE_USD);
+      return this.convertCurrency(price, 'USD', currency);
+    }
+
     try {
       const price = await this.fetchLivePrice('XAU', currency);
 
@@ -129,6 +136,13 @@ export class NisabService {
     const cached = this.priceCache.silver;
     if (cached && this.isCacheValid(cached.timestamp)) {
       return this.convertCurrency(cached.price, 'USD', currency);
+    }
+
+    // 1. Manual Override
+    if (process.env.MANUAL_SILVER_PRICE_USD) {
+      console.log('Using manual silver price from env:', process.env.MANUAL_SILVER_PRICE_USD);
+      const price = parseFloat(process.env.MANUAL_SILVER_PRICE_USD);
+      return this.convertCurrency(price, 'USD', currency);
     }
 
     try {

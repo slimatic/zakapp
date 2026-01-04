@@ -131,7 +131,7 @@ export const IdentityStep: React.FC = () => {
             <div className="border-t border-gray-100 pt-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Nisab Threshold</h3>
                 <p className="text-sm text-gray-500 mb-4">
-                    The minimum wealth required before Zakat is due. Live values provided by GoldAPI.io.
+                    The minimum wealth required before Zakat is due. Updated automatically with live market prices.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[

@@ -143,14 +143,14 @@ export const InvestmentsStep: React.FC = () => {
                     </div>
 
                     {/* Crypto */}
-                    <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
-                        <label className="text-gray-900 font-medium flex items-center gap-2 mb-4">
-                            <span className="p-1.5 bg-gray-200 rounded text-gray-700">₿</span>
+                    <div className="bg-orange-50 rounded-xl p-5 border border-orange-200">
+                        <label className="text-orange-900 font-medium flex items-center gap-2 mb-4">
+                            <span className="p-1.5 bg-orange-100 rounded text-orange-600">₿</span>
                             Cryptocurrency
                         </label>
                         <input
                             type="number"
-                            className="block w-full rounded-lg border-gray-300 focus:border-gray-500 focus:ring-gray-500 py-3"
+                            className="block w-full rounded-lg border-orange-300 focus:border-orange-500 focus:ring-orange-500 py-3"
                             placeholder="Total Market Value ($)"
                             value={data.assets.crypto.value || ''}
                             onChange={(e) => handleValueChange('crypto', e.target.value)}

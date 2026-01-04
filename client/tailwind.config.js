@@ -50,6 +50,7 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         heading: ['Outfit', 'system-ui', 'sans-serif'],
+        arabic: ['Amiri', 'serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
