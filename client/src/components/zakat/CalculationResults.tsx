@@ -17,6 +17,7 @@
 
 import React, { useState } from 'react';
 import type { ZakatCalculationResult } from '@zakapp/shared';
+import { DonationSuccessModal } from '../donation/DonationSuccessModal';
 
 /**
  * Interface for individual breakdown item
@@ -86,6 +87,7 @@ const CalculationResults: React.FC<CalculationResultsProps> = ({
   isLoading = false
 }) => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [isDonationModalOpen, setIsDonationModalOpen] = useState(true);
 
   const toggleRowExpansion = (categoryId: string) => {
     const newExpanded = new Set(expandedRows);
@@ -341,6 +343,11 @@ const CalculationResults: React.FC<CalculationResultsProps> = ({
           </div>
         </div>
       )}
+
+      <DonationSuccessModal
+        isOpen={isDonationModalOpen}
+        onClose={() => setIsDonationModalOpen(false)}
+      />
     </div>
   );
 };
