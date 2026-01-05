@@ -35,22 +35,34 @@ interface WealthTrendChartProps {
 
 export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records }) => {
     const { privacyMode } = usePrivacy();
+    const [calendarFormat, setCalendarFormat] = React.useState<'hijri' | 'gregorian'>('hijri');
 
     // Create sanitized data for the chart from Nisab Records
     const data = React.useMemo(() => {
         // Sort records oldest to newest
         const sorted = [...records].sort((a, b) => {
-            const dateA = new Date(a.startDate || a.createdAt || 0).getTime();
-            const dateB = new Date(b.startDate || b.createdAt || 0).getTime();
+            const dateA = new Date(a.hawlStartDate || a.calculationDate || a.createdAt || 0).getTime();
+            const dateB = new Date(b.hawlStartDate || b.calculationDate || b.createdAt || 0).getTime();
             return dateA - dateB;
         });
 
-        return sorted.map(record => ({
-            name: record.hijriYear ? `${record.hijriYear} AH` : new Date(record.createdAt || Date.now()).getFullYear().toString(),
-            totalWealth: typeof record.totalWealth === 'number' ? record.totalWealth : parseFloat(record.totalWealth as string || '0'),
-            zakatDue: typeof record.zakatAmount === 'number' ? record.zakatAmount : parseFloat(record.zakatAmount as string || '0'),
-        }));
-    }, [records]);
+        return sorted.map(record => {
+            let label = '';
+            if (calendarFormat === 'hijri') {
+                label = record.hijriYear ? `${record.hijriYear} AH` : 'AH';
+            } else {
+                // Fallback to Gregorian year from hawlStartDate or calculationDate
+                const date = new Date(record.hawlStartDate || record.calculationDate || record.createdAt || Date.now());
+                label = date.getFullYear().toString();
+            }
+
+            return {
+                name: label,
+                totalWealth: typeof record.totalWealth === 'number' ? record.totalWealth : parseFloat(record.totalWealth as string || '0'),
+                zakatDue: typeof record.zakatAmount === 'number' ? record.zakatAmount : parseFloat(record.zakatAmount as string || '0'),
+            };
+        });
+    }, [records, calendarFormat]);
 
     // Format currency for tooltip/axis
     const formatCurrency = (value: number) => {
@@ -83,15 +95,38 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records }) =
 
     return (
         <div className="h-[320px] w-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Wealth Trend</h3>
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Wealth Trend</h3>
+                <div className="flex bg-gray-100 p-0.5 rounded-lg">
+                    <button
+                        onClick={() => setCalendarFormat('hijri')}
+                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${calendarFormat === 'hijri'
+                                ? 'bg-white text-primary-700 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        Hijri
+                    </button>
+                    <button
+                        onClick={() => setCalendarFormat('gregorian')}
+                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${calendarFormat === 'gregorian'
+                                ? 'bg-white text-primary-700 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        Gregorian
+                    </button>
+                </div>
+            </div>
+
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                     data={data}
                     margin={{
                         top: 10,
-                        right: 30,
+                        right: 10,
                         left: 0,
-                        bottom: 0,
+                        bottom: 20, // Increased bottom margin for X-axis labels
                     }}
                 >
                     <defs>
@@ -105,7 +140,14 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records }) =
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <XAxis
+                        dataKey="name"
+                        stroke="#94a3b8"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={10} // Push labels down slightly
+                    />
                     <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
                     <Tooltip
                         formatter={(value: number) => [formatTooltip(value)]}

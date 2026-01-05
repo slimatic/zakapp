@@ -37,19 +37,28 @@ interface ZakatObligationsChartProps {
 
 export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ records, payments }) => {
     const { privacyMode } = usePrivacy();
+    const [calendarFormat, setCalendarFormat] = React.useState<'hijri' | 'gregorian'>('hijri');
 
     // combine records with payment data
     const data = React.useMemo(() => {
         // Sort records oldest to newest
         const sorted = [...records].sort((a, b) => {
-            const dateA = new Date(a.startDate || a.createdAt || 0).getTime();
-            const dateB = new Date(b.startDate || b.createdAt || 0).getTime();
+            const dateA = new Date(a.hawlStartDate || a.calculationDate || a.createdAt || 0).getTime();
+            const dateB = new Date(b.hawlStartDate || b.calculationDate || b.createdAt || 0).getTime();
             return dateA - dateB;
         });
 
         return sorted.map(record => {
             const recordId = record.id;
-            const yearLabel = record.hijriYear ? `${record.hijriYear} AH` : new Date(record.createdAt || Date.now()).getFullYear().toString();
+
+            let label = '';
+            if (calendarFormat === 'hijri') {
+                label = record.hijriYear ? `${record.hijriYear} AH` : 'AH';
+            } else {
+                // Fallback to Gregorian year from hawlStartDate or calculationDate
+                const date = new Date(record.hawlStartDate || record.calculationDate || record.createdAt || Date.now());
+                label = date.getFullYear().toString();
+            }
 
             // Sum payments linked to this record ID (assuming payment has nisabYearId) 
             // OR fallback: sum payments within the date range of the hawl
@@ -64,14 +73,14 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
             const due = typeof record.zakatAmount === 'number' ? record.zakatAmount : parseFloat(record.zakatAmount as string || '0');
 
             return {
-                name: yearLabel,
+                name: label,
                 due: due,
                 paid: paidForYear,
                 remaining: Math.max(0, due - paidForYear)
             };
         });
 
-    }, [records, payments]);
+    }, [records, payments, calendarFormat]);
 
     const formatCurrency = (value: number) => {
         if (privacyMode) return '****';
@@ -102,26 +111,56 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
 
     return (
         <div className="h-[320px] w-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Zakat Obligations</h3>
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Zakat Obligations</h3>
+                <div className="flex bg-gray-100 p-0.5 rounded-lg">
+                    <button
+                        onClick={() => setCalendarFormat('hijri')}
+                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${calendarFormat === 'hijri'
+                                ? 'bg-white text-primary-700 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        Hijri
+                    </button>
+                    <button
+                        onClick={() => setCalendarFormat('gregorian')}
+                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${calendarFormat === 'gregorian'
+                                ? 'bg-white text-primary-700 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        Gregorian
+                    </button>
+                </div>
+            </div>
+
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                     data={data}
                     margin={{
                         top: 20,
-                        right: 30,
+                        right: 10,
                         left: 20,
-                        bottom: 5,
+                        bottom: 20, // Increased bottom margin
                     }}
                 >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <XAxis
+                        dataKey="name"
+                        stroke="#94a3b8"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={10} // Push labels down
+                    />
                     <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
                     <Tooltip
                         formatter={(value: number) => [formatTooltip(value)]}
                         cursor={{ fill: '#f1f5f9' }}
                         contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                     />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                    <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                     <Bar dataKey="due" name="Total Due" fill="#94a3b8" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="paid" name="Paid" fill="#0f766e" radius={[4, 4, 0, 0]} />
                 </BarChart>
