@@ -46,7 +46,7 @@ export const DonationSuccessModal: React.FC<DonationSuccessModalProps> = ({ isOp
                             </h3>
                             <div className="mt-2">
                                 <p className="text-sm text-gray-500">
-                                    We keep ZakApp privacy-first and open-source for everyone. If you found it useful, consider a small Sadaqah to help cover our server costs.
+                                    We keep ZakApp privacy-first and open-source for everyone. If you found it useful, consider a small Sadaqah to support the project's sustainability.
                                 </p>
                             </div>
                         </div>
