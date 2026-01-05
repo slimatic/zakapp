@@ -53,7 +53,7 @@ export const Login: React.FC = () => {
             Welcome Back
           </CardTitle>
           <CardDescription className="text-center text-gray-500 text-lg">
-            Securely access your ZakApp local vault
+            Securely access your ZakApp vault
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -139,7 +139,7 @@ export const Login: React.FC = () => {
           <div className="flex gap-1 justify-center">
             <span>Don't have a vault?</span>
             <Link to="/register" className="text-primary-700 hover:text-primary-800 hover:underline font-bold">
-              Create Local Profile
+              Create New Vault
             </Link>
           </div>
 
