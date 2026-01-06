@@ -8,11 +8,13 @@
   </p>
 </div>
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-AGPLv3-blue.svg)
 ![Status](https://img.shields.io/badge/status-stable-green.svg)
 ![Compliance](https://img.shields.io/badge/compliance-shariah--compliant-green.svg)
 
 ZakApp Re-imagines the Zakat calculation experience by prioritizing user privacy, Fiqh precision, and modern design. Unlike other calculators that send your Net Worth to a cloud server, ZakApp performs all math inside your browser.
+
+[![Sustain ZakApp](https://img.shields.io/badge/Sustain-ZakApp-teal?style=for-the-badge&logo=kofi)](website/donate.html)
 
 ## 🔒 Privacy First
 
@@ -67,6 +69,8 @@ Visit `http://localhost:3000` to view the app.
 -   **Icons**: Lucide React, Custom SVG Brand Assets
 -   **Testing**: Vitest, Playwright
 
+See [docs/](docs/) for detailed Architecture and Security documentation.
+
 ## 🔄 Sync & Multi-Device Setup
 
 ZakApp supports private, end-to-end encrypted synchronization between devices using a self-hosted CouchDB instance.
@@ -91,7 +95,7 @@ We welcome contributions from the community! Please read our [CONTRIBUTING.md](C
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgements
 
