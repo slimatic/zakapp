@@ -366,9 +366,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         Settings
                       </Link>
 
-                      <div className="px-4 py-2 border-t border-gray-100">
-                        <DonationCTA variant="minimal" className="w-full justify-start !px-0" />
-                      </div>
+                      {user?.isAdmin && (
+                        <Link
+                          to="/admin"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
+                          role="menuitem"
+                          onClick={() => setIsOpen(false)}
+                          tabIndex={0}
+                        >
+                          Admin Dashboard
+                        </Link>
+                      )}
+
+                      <div className="border-t border-gray-100 my-1"></div>
 
                       <button
                         onClick={() => {

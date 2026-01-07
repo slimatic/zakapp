@@ -24,6 +24,7 @@ import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
 import { OnboardingWizard } from './pages/onboarding/OnboardingWizard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { AdminRoute } from './components/auth/AdminRoute';
 import { Layout } from './components/layout/Layout';
 import {
   DashboardSkeleton,
@@ -94,6 +95,8 @@ const SeederPage = lazy(() => import('./pages/SeederPage').then(m => ({ default:
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
 // const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
+
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard }))); // Admin
 
 /**
  * SyncManager Component - must be inside AuthProvider to access user context.
@@ -362,6 +365,20 @@ function App() {
                             </Suspense>
                           </Layout>
                         </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Admin Dashboard */}
+                    <Route
+                      path="/admin"
+                      element={
+                        <AdminRoute>
+                          <Layout>
+                            <Suspense fallback={<DashboardSkeleton />}>
+                              <AdminDashboard />
+                            </Suspense>
+                          </Layout>
+                        </AdminRoute>
                       }
                     />
 

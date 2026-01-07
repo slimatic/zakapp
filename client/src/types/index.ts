@@ -81,6 +81,7 @@ export interface User {
     currency?: string;
   };
   isSetupCompleted?: boolean;
+  isAdmin?: boolean;
 }
 
 export interface ZakatCalculation {

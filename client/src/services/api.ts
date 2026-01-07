@@ -64,6 +64,8 @@ export interface AuthResponse {
       preferredCalendar?: 'gregorian' | 'hijri';
       hijriAdjustment?: number;
     };
+    isAdmin?: boolean;
+    userType?: string;
   };
   message?: string;
 }
