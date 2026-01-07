@@ -140,6 +140,7 @@ export class AuthService {
       preferredCalendar: user.preferredCalendar,
       preferredMethodology: user.preferredMethodology,
       lastZakatDate: user.lastZakatDate,
+      userType: user.userType,
       ...(user.profile ? JSON.parse(await EncryptionService.decrypt(user.profile, ENCRYPTION_KEY)) : {}),
       ...(user.settings ? JSON.parse(await EncryptionService.decrypt(user.settings, ENCRYPTION_KEY)) : {})
     };
@@ -216,6 +217,7 @@ export class AuthService {
       preferredCalendar: user.preferredCalendar,
       preferredMethodology: user.preferredMethodology,
       lastZakatDate: user.lastZakatDate,
+      userType: user.userType,
       ...(user.profile ? JSON.parse(await EncryptionService.decrypt(user.profile, ENCRYPTION_KEY)) : {}),
       ...(user.settings ? JSON.parse(await EncryptionService.decrypt(user.settings, ENCRYPTION_KEY)) : {})
     };
@@ -471,6 +473,7 @@ export class AuthService {
       preferredCalendar: user.preferredCalendar,
       preferredMethodology: user.preferredMethodology,
       lastZakatDate: user.lastZakatDate,
+      userType: user.userType,
       ...(user.profile ? JSON.parse(await EncryptionService.decrypt(user.profile, ENCRYPTION_KEY)) : {}),
       ...(user.settings ? JSON.parse(await EncryptionService.decrypt(user.settings, ENCRYPTION_KEY)) : {})
     };

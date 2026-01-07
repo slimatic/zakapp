@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="emerald_gradient" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2dd4bf"/> <!-- Teal 400 -->
+      <stop offset="1" stop-color="#0f766e"/> <!-- Teal 700 (Midnight) -->
+    </linearGradient>
+    <filter id="soft_shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#134e4a" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background Shape: Modern Rounded Octagon -->
+  <g filter="url(#soft_shadow)">
+    <path d="M165.6 52H346.4C354.3 52 362 55.4 367.3 61.3L450.7 154.7C455.4 160 458 167 458 174.1V337.9C458 345 455.4 352 450.7 357.3L367.3 450.7C362 456.6 354.3 460 346.4 460H165.6C157.7 460 150 456.6 144.7 450.7L61.3 357.3C56.6 352 54 345 54 337.9V174.1C54 167 56.6 160 61.3 154.7L144.7 61.3C150 55.4 157.7 52 165.6 52Z" 
+          fill="url(#emerald_gradient)"/>
+    
+    <!-- Gold Geometric Accent (Inner Border) - True Gold -->
+    <path d="M175 75H337L437 185V327L337 437H175L75 327V185L175 75Z" 
+          stroke="#fbbf24" stroke-width="4" stroke-opacity="0.6" fill="none"/>
+  </g>
+
+  <!-- Stylized Z Symbol -->
+  <path d="M180 170 H340 L180 342 H340" 
+        stroke="white" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+        
+  <!-- Gold Currency Accent Dot (Top Right) - True Gold -->
+  <circle cx="340" cy="140" r="16" fill="#fbbf24" />
+</svg>
