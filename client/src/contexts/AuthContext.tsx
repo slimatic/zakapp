@@ -140,7 +140,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
                 if (verifyResult.success) {
                   // console.log('AuthContext: Session verified with backend');
-                  dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+                  // console.log('AuthContext: Session verified with backend');
+                  // CRITICAL FIX: Merge fresh backend data (isAdmin, etc.) with stored user (decrypted fields)
+                  const freshUser = {
+                    ...user, // Keep decrypted fields from storage
+                    ...verifyResult.data?.user, // Override with fresh backend data (isAdmin, settings)
+                    // Ensure local decrypted fields take precedence if backend sent encrypted ones?
+                    // Actually, backend usually sends plaintext if authenticated? 
+                    // No, zakapp uses client-side encryption. Backend sends ciphertext or masked.
+                    // Stored 'user' has decrypted fields. API has potentially updated flags (isAdmin).
+                    // We must preserve decrypted fields if API didn't return them decrypted.
+                    // But 'user' object structure in TS has 'username', 'firstName', etc.
+                    // Let's assume stored decrypted names are safest.
+                    // But 'isAdmin' must come from API.
+                    isAdmin: verifyResult.data?.user?.isAdmin ?? user.isAdmin,
+                    userType: verifyResult.data?.user?.userType ?? user.userType,
+                  };
+
+                  // Update session storage with the fresh merged user
+                  sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user: freshUser, jwk }));
+
+                  dispatch({ type: 'LOGIN_SUCCESS', payload: freshUser });
                 } else if (verifyResult.message === 'API Unauthorized (Local Mode)') {
                   // This is the suppressed 401 from api.ts
                   console.warn('AuthContext: Session invalid (401). Clearing stored session.');

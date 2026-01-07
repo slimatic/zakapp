@@ -39,6 +39,7 @@ import calendarRoutes from './routes/calendar';
 import nisabYearRecordsRoutes from './routes/nisab-year-records';
 import feedbackRoutes from './routes/feedback';
 import adminEncryptionRoutes from './routes/admin/encryption';
+import adminRoutes from './routes/admin';
 import debugRoutes from './routes/debug';
 
 // Import middleware
@@ -147,7 +148,9 @@ app.use('/api/user', userRoutes);
 app.use('/api/users', userRoutes); // Alias for consistency (hotfix for 404s)
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/feedback', feedbackRoutes);
-app.use('/api/admin/encryption', adminEncryptionRoutes);
+// app.use('/api/admin/encryption', adminEncryptionRoutes); // Replaced by generic admin routes
+app.use('/api/admin', adminRoutes);
+
 // Mount development-only diagnostics
 if (process.env.NODE_ENV === 'development') {
   app.use('/api/debug', debugRoutes);

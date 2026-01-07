@@ -142,7 +142,8 @@ export class AuthController {
       id: result.user.id,
       email: result.user.email,
       username: result.user.username,
-      createdAt: result.user.createdAt
+      createdAt: result.user.createdAt,
+      isAdmin: result.user.userType === 'ADMIN_USER' || (result.user.email && process.env.ADMIN_EMAILS?.split(',').map((e: string) => e.trim().toLowerCase()).includes(result.user.email.toLowerCase()))
     };
 
     const response: ApiResponse = {
@@ -266,11 +267,14 @@ export class AuthController {
       return;
     }
 
+    const isAdmin = user.userType === 'ADMIN_USER' || (user.email && process.env.ADMIN_EMAILS?.split(',').map((e: string) => e.trim().toLowerCase()).includes(user.email.toLowerCase()));
+
     // Create user response with profile and settings
     const userResponse = {
       id: user.id,
       email: user.email,
       username: user.username,
+      isAdmin,
       createdAt: user.createdAt,
       updatedAt: user.createdAt, // For now, same as created
       profile: {

@@ -1,0 +1,13 @@
+{
+    "watch": [
+        "src"
+    ],
+    "ext": "ts,json",
+    "exec": "ts-node src/app.ts",
+    "ignore": [
+        "src/**/*.test.ts",
+        "prisma/*",
+        "dist/*",
+        "test-admin-api.ts"
+    ]
+}

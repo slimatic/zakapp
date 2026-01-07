@@ -211,6 +211,8 @@ router.post('/login',
             username: user.username,
             firstName: (profileData as any).firstName || '',
             lastName: (profileData as any).lastName || '',
+            isAdmin: user.userType === 'ADMIN_USER' || (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).includes(user.email.toLowerCase()),
+            userType: user.userType,
             profile: profileData, // Includes salt
             preferences: {
               calendar: user.preferredCalendar,
@@ -735,6 +737,8 @@ router.get('/me',
             firstName: profile.firstName || '',
             lastName: profile.lastName || '',
             name: `${profile.firstName} ${profile.lastName}`.trim() || user.email,
+            isAdmin: user.userType === 'ADMIN_USER' || (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).includes(user.email.toLowerCase()),
+            userType: user.userType,
             preferences: {
               calendar: user.preferredCalendar,
               methodology: user.preferredMethodology
