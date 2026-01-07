@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support ZakApp Development</title>
+    <meta name="description" content="Help sustain the development of ZakApp, the privacy-first Zakat calculator.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teal: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        },
+                        bronze: {
+                            100: '#f5efe6',
+                            500: '#b08d55',
+                            600: '#8c6b3d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Outfit"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-900 flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center space-x-2 group">
+                    <img src="./images/logo.svg" alt="ZakApp Logo" class="h-10 w-auto">
+                    <span
+                        class="text-2xl font-display font-bold bg-gradient-to-r from-teal-800 to-teal-600 bg-clip-text text-transparent">ZakApp</span>
+                </a>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html#features"
+                        class="text-sm font-medium text-gray-600 hover:text-teal-700 transition-colors">Features</a>
+                    <a href="index.html#security"
+                        class="text-sm font-medium text-gray-600 hover:text-teal-700 transition-colors">Security</a>
+                    <a href="/app/login"
+                        class="text-sm font-medium text-teal-700 hover:text-teal-800 transition-colors">Sign In</a>
+                    <a href="/app/register"
+                        class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-teal-600 hover:bg-teal-700 transition-all shadow-sm hover:shadow-md">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+
+            <!-- Header -->
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-800 mb-6 tracking-wide uppercase">
+                    Support Open Source
+                </span>
+                <h1 class="text-4xl sm:text-5xl font-display font-bold text-gray-900 mb-6 tracking-tight">
+                    Help Sustain <span class="text-teal-600">ZakApp</span>
+                </h1>
+                <p class="text-lg text-gray-600 leading-relaxed mb-8">
+                    ZakApp is free and open-source software. Your contributions directly support the development,
+                    maintenance, and growth of the ZakApp project.
+                </p>
+
+                <!-- Disclaimer Box -->
+                <div class="inline-block bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-2xl">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3 text-left">
+                            <h3 class="text-sm font-medium text-amber-800">Important Note on Intention (Niyyah)</h3>
+                            <div class="mt-1 text-sm text-amber-700">
+                                <p>Donations to ZakApp are <strong>Sadaqah</strong> (voluntary charity) to support the
+                                    platform. They are <strong>NOT Zakat</strong>. Please distribute your Zakat directly
+                                    to eligible recipients.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two-Stream Donation Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+
+                <!-- Fiat Column (Ko-fi) -->
+                <div
+                    class="bg-white rounded-2xl p-8 border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden group">
+                    <div
+                        class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-teal-50 rounded-full group-hover:bg-teal-100 transition-colors">
+                    </div>
+
+                    <div class="relative z-10 text-center">
+                        <div
+                            class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
+                            ☕
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Support with Fiat</h2>
+                        <p class="text-gray-500 mb-8 h-12">One-time or monthly support via Ko-fi using Card or Paypal.
+                        </p>
+
+                        <a href='https://ko-fi.com/zakapp' target='_blank'
+                            class="inline-flex items-center justify-center w-full px-6 py-4 text-base font-medium text-white transition-all duration-200 bg-[#29abe0] hover:bg-[#208ebc] rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Ko-fi"
+                                class="h-6 w-auto mr-2 animate-bounce">
+                            Support on Ko-fi
+                        </a>
+                        <p class="text-xs text-gray-400 mt-4">Safe & Secure via Ko-fi</p>
+                    </div>
+                </div>
+
+                <!-- Crypto Column (BTCPay) -->
+                <div
+                    class="bg-gray-900 rounded-2xl p-8 border border-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden group">
+                    <div
+                        class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-gray-800 rounded-full group-hover:bg-gray-700 transition-colors opacity-50">
+                    </div>
+
+                    <div class="relative z-10 text-center">
+                        <div
+                            class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
+                            ⚡
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-2">Support with Crypto</h2>
+                        <p class="text-gray-400 mb-8 h-12">Private donations via Bitcoin (On-Chain or Lightning).</p>
+
+                        <!-- BTCPay Button Placeholder (To be replaced with real instance URL when live) -->
+                        <form method="POST" action="https://pay.zakapp.org/api/v1/invoices" class="btcpayserver-form">
+                            <input type="hidden" name="storeId" value="STORE_ID_GOES_HERE" />
+                            <button type="submit" disabled
+                                class="inline-flex items-center justify-center w-full px-6 py-4 text-base font-medium text-white transition-all duration-200 bg-orange-500 hover:bg-orange-600 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-75 disabled:cursor-not-allowed">
+                                <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.05-1.244 15.525.362 9.105 1.962 2.67 8.475-1.243 14.9.358c6.43 1.605 10.342 8.115 8.738 14.548v.002zm-3.96-3.618c.588-3.943-2.404-6.062-6.502-7.48l1.328-5.334-3.25 8.106-1.325 5.332-1.7-4.25h-5.91L5 8.868l1.198-4.793 4.25 1.7 1.328-5.333-3.255-8.11 1.32 5.332-1.306 0L8.864 0l-4.793 1.198-1.574 6.33h1.7l.865-3.468c.206.516.84 0.16.84.16l2.35 1.77s.655 1.637.25 2.11L5.95 21.05l7.92-1.98c3.27-.816 5.6-3.21 4.808-7.78z" />
+                                </svg>
+                                Donate with BTCPay
+                            </button>
+                        </form>
+                        <p class="text-xs text-gray-500 mt-4">Self-hosted & Private</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <span class="text-2xl font-display font-bold text-gray-900">ZakApp</span>
+                    <p class="text-sm text-gray-500 mt-1">Privacy-First Zakat Calculator</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="https://github.com/slimatic/zakapp"
+                        class="text-gray-400 hover:text-gray-500 transition-colors">
+                        <span class="sr-only">GitHub</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd"
+                                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-gray-100 pt-8 text-center md:text-left">
+                <p class="text-sm text-gray-400">&copy; 2024 ZakApp Contributors. Open Source (AGPLv3).</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

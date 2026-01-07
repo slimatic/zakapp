@@ -17,12 +17,13 @@
     "db:migrate": "npx prisma migrate dev",
     "db:generate": "npx prisma generate",
     "db:seed": "ts-node prisma/seed.ts",
-    "db:seed:dev": "ts-node --transpile-only scripts/seed-dev-data.ts"
-    ,"migrate:snapshots-to-nisab": "ts-node --transpile-only prisma/migrations/migrate-snapshots-to-nisab.ts"
+    "db:seed:dev": "ts-node --transpile-only scripts/seed-dev-data.ts",
+    "migrate:snapshots-to-nisab": "ts-node --transpile-only prisma/migrations/migrate-snapshots-to-nisab.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "@types/compression": "^1.8.1",
+    "@types/node-fetch": "^2.6.13",
     "@zakapp/shared": "file:../shared",
     "axios": "^1.13.0",
     "bcrypt": "^5.1.1",
@@ -44,7 +45,7 @@
     "moment-hijri": "^3.0.0",
     "morgan": "^1.10.1",
     "node-cron": "^4.2.1",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.7.0",
     "redis": "^4.6.13",
     "uuid": "^13.0.0",
     "zod": "^3.25.76"

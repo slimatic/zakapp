@@ -25,7 +25,7 @@ import { AuthenticatedRequest } from '../types';
  * Follows ZakApp constitutional principle: Privacy & Security First
  */
 export class AuthMiddleware {
-  
+
   constructor() {
     // Use singleton jwtService instance
   }
@@ -42,7 +42,7 @@ export class AuthMiddleware {
     try {
       // Extract Authorization header
       const authHeader = req.headers.authorization;
-      
+
       if (!authHeader) {
         res.status(401).json({
           success: false,
@@ -119,7 +119,7 @@ export class AuthMiddleware {
   optionalAuthenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     try {
       const authHeader = req.headers.authorization;
-      
+
       // If no auth header, continue without user info
       if (!authHeader) {
         next();
@@ -179,7 +179,7 @@ export class AuthMiddleware {
       const userPermissions: string[] = []; // TODO: Extract from user data or token
 
       // Check if user has all required permissions
-      const hasPermissions = requiredPermissions.every(permission => 
+      const hasPermissions = requiredPermissions.every(permission =>
         userPermissions.includes(permission)
       );
 
@@ -235,6 +235,15 @@ export class AuthMiddleware {
       const user = await prisma.user.findUnique({ where: { id: req.userId } as any });
       await prisma.$disconnect();
 
+      // Check process.env.ADMIN_EMAILS
+      if (user && process.env.ADMIN_EMAILS) {
+        const adminEmails = process.env.ADMIN_EMAILS.split(',').map((e: string) => e.trim().toLowerCase());
+        if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+          next();
+          return;
+        }
+      }
+
       if (user && (user as any).userType === 'ADMIN_USER') {
         next();
         return;
@@ -269,7 +278,7 @@ export class AuthMiddleware {
             }
           });
           break;
-        
+
         case 'Invalid access token':
           res.status(401).json({
             success: false,
@@ -279,7 +288,7 @@ export class AuthMiddleware {
             }
           });
           break;
-        
+
         case 'Invalid token type':
           res.status(401).json({
             success: false,
@@ -289,7 +298,7 @@ export class AuthMiddleware {
             }
           });
           break;
-        
+
         default:
           res.status(401).json({
             success: false,

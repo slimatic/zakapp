@@ -17,31 +17,35 @@
 
 
 import React, { useState } from 'react';
-import { Layout } from '../../components/layout/Layout'; // Assuming Layout exists
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { ProfileForm } from './components/ProfileForm';
 import { SecuritySettings } from './components/SecuritySettings';
 import { DataManagement } from './components/DataManagement';
 import { DangerZone } from './components/DangerZone';
 import { HelpSupport } from './components/HelpSupport';
-import { User, Lock, Database, AlertOctagon } from 'lucide-react';
+import { User, Lock, Database, AlertOctagon, LayoutDashboard } from 'lucide-react';
 
 type SettingsTab = 'profile' | 'security' | 'data' | 'help' | 'danger';
 
 export const SettingsPage: React.FC = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 
     const navigation = [
         { id: 'profile', name: 'Profile Information', icon: User },
         { id: 'security', name: 'Security', icon: Lock },
         { id: 'data', name: 'Data Management', icon: Database },
-        { id: 'help', name: 'Help & Support', icon: User }, // Or a HelpCircle icon if available, reusing User for now or importing HelpCircle
+        { id: 'help', name: 'Help & Support', icon: User },
         { id: 'danger', name: 'Danger Zone', icon: AlertOctagon },
     ];
 
+    if (user?.isAdmin) {
+        navigation.splice(1, 0, { id: 'admin', name: 'Admin Dashboard', icon: LayoutDashboard });
+    }
+
     return (
-        // If Layout wraps pages in App.tsx/routes, we might not need to render it here.
-        // However, usually pages are standalone. Let's assume standardized container usage.
-        // I'll use a container div, assuming the Router wraps this in the Layout.
         <div className="container mx-auto px-4 py-8 max-w-6xl">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
@@ -59,7 +63,13 @@ export const SettingsPage: React.FC = () => {
                             return (
                                 <button
                                     key={item.id}
-                                    onClick={() => setActiveTab(item.id as SettingsTab)}
+                                    onClick={() => {
+                                        if (item.id === 'admin') {
+                                            navigate('/admin');
+                                        } else {
+                                            setActiveTab(item.id as SettingsTab);
+                                        }
+                                    }}
                                     className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === item.id
                                         ? 'bg-blue-50 text-blue-700'
                                         : 'text-gray-900 hover:bg-gray-50 hover:text-gray-900'
