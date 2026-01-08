@@ -41,10 +41,6 @@ export const SettingsPage: React.FC = () => {
         { id: 'danger', name: 'Danger Zone', icon: AlertOctagon },
     ];
 
-    if (user?.isAdmin) {
-        navigation.splice(1, 0, { id: 'admin', name: 'Admin Dashboard', icon: LayoutDashboard });
-    }
-
     return (
         <div className="container mx-auto px-4 py-8 max-w-6xl">
             <div className="mb-8">
@@ -63,13 +59,7 @@ export const SettingsPage: React.FC = () => {
                             return (
                                 <button
                                     key={item.id}
-                                    onClick={() => {
-                                        if (item.id === 'admin') {
-                                            navigate('/admin');
-                                        } else {
-                                            setActiveTab(item.id as SettingsTab);
-                                        }
-                                    }}
+                                    onClick={() => setActiveTab(item.id as SettingsTab)}
                                     className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === item.id
                                         ? 'bg-blue-50 text-blue-700'
                                         : 'text-gray-900 hover:bg-gray-50 hover:text-gray-900'
@@ -85,6 +75,25 @@ export const SettingsPage: React.FC = () => {
                                 </button>
                             );
                         })}
+
+                        {/* Admin Dashboard Link - Separated */}
+                        {user?.isAdmin && (
+                            <>
+                                <div className="my-3 border-t border-gray-200" />
+                                <button
+                                    onClick={() => navigate('/admin')}
+                                    className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                                >
+                                    <LayoutDashboard
+                                        className="flex-shrink-0 -ml-1 mr-3 h-5 w-5 text-emerald-600"
+                                        aria-hidden="true"
+                                    />
+                                    <span className="truncate font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                                        Admin Dashboard
+                                    </span>
+                                </button>
+                            </>
+                        )}
                     </nav>
                 </div>
 
