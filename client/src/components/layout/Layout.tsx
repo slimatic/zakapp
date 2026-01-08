@@ -25,6 +25,7 @@ import { BottomNav } from './BottomNav';
 import { SyncIndicator } from '../SyncIndicator';
 import { Logo } from '../common/Logo';
 import { DonationCTA } from '../donation/DonationCTA';
+import { Footer } from './Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -406,25 +407,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           {children}
         </div>
 
-        {/* Powered By Footer */}
-        <footer className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center justify-center pb-4 gap-2">
-          <DonationCTA variant="footer" />
-          <Link to="/privacy-policy" className="text-xs text-gray-500 hover:text-emerald-600 transition-colors">
-            Privacy Policy
-          </Link>
-          <a
-            href="https://rstlabs.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <span>Made with ❤️ by</span>
-            <span className="font-semibold">RST Labs</span>
-          </a>
-          <div className="text-[10px] text-gray-300 font-mono">
-            {__APP_VERSION__} ({__COMMIT_HASH__})
-          </div>
-        </footer>
+        {/* Footer */}
+        <Footer />
       </main>
 
       <BottomNav
