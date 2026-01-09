@@ -28,6 +28,12 @@ model User {
   preferredMethodology  String?   @default("standard")  // 'standard', 'hanafi', 'shafi', 'custom'
   lastZakatDate         DateTime? // Last Zakat payment date for calculating next due date
 
+  // Resource Limits (SaaS)
+  maxAssets        Int?      // Optional override for max assets
+  maxNisabRecords  Int?      // Optional override for max nisab records
+  maxPayments      Int?      // Optional override for max payments
+  maxLiabilities   Int?      // Optional override for max liabilities
+
   // Relationships
   assets           Asset[]
   liabilities      Liability[]

@@ -66,6 +66,10 @@ export interface AuthResponse {
     };
     isAdmin?: boolean;
     userType?: string;
+    maxAssets?: number;
+    maxNisabRecords?: number;
+    maxPayments?: number;
+    maxLiabilities?: number;
   };
   message?: string;
 }
