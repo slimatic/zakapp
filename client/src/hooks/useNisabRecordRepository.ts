@@ -106,6 +106,17 @@ export function useNisabRecordRepository() {
         if (!db) throw new Error('Database not initialized');
         if (!user || !user.id) throw new Error('User not authenticated');
 
+        // Check Resource Limits (Client-Side)
+        if (typeof user.maxNisabRecords === 'number') {
+            const currentCount = await db.nisab_year_records.find({
+                selector: { userId: { $eq: user.id } }
+            }).exec().then((docs: any[]) => docs.length);
+
+            if (currentCount >= user.maxNisabRecords) {
+                throw new Error(`Record limit reached. You can create a maximum of ${user.maxNisabRecords} annual records.`);
+            }
+        }
+
         const newRecord = {
             ...record,
             id: record.id || crypto.randomUUID(),

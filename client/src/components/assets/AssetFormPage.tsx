@@ -18,8 +18,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AssetForm } from './AssetForm';
-import { useAssetRepository } from '../../hooks/useAssetRepository';
-import { useAuth } from '../../contexts/AuthContext';
+import { useNisabRecordRepository } from '../../hooks/useNisabRecordRepository';
+import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 
 /**
  * AssetFormPage - A wrapper component for the AssetForm that handles navigation
@@ -27,26 +27,28 @@ import { useAuth } from '../../contexts/AuthContext';
  */
 export const AssetFormPage: React.FC = () => {
   const navigate = useNavigate();
-  const { assets } = useAssetRepository();
-  const { user } = useAuth();
-
-  // Track if this is potentially the first asset being added
-  // We use a ref to capture the state on mount/initial load to avoid race conditions after add
-  const isFirstAssetRef = React.useRef<boolean | null>(null);
-
-  React.useEffect(() => {
-    if (isFirstAssetRef.current === null && assets !== undefined) {
-      isFirstAssetRef.current = assets.length === 0;
-    }
-  }, [assets]);
+  // We don't rely on 'assets' count for the redirect logic itself anymore, 
+  // as adding an asset satisfies the first step. We check the other steps.
+  const { records } = useNisabRecordRepository();
+  const { payments } = usePaymentRepository();
 
   const handleSuccess = () => {
-    // If this was the first asset, redirect to Dashboard to show the "Action Cards" guidance
-    // Otherwise, standard behavior is to view the assets list
-    if (isFirstAssetRef.current === true) {
-      navigate('/dashboard');
-    } else {
+    // UX Requirement: 
+    // If the "Zakat Journey" is incomplete (Progress < 3/3), redirect to Dashboard to guide next steps.
+    // "Zakat Journey" steps: 1. Assets, 2. Nisab Record, 3. Payments.
+    // Since we just successfully created an asset, Step 1 is done.
+    // We check if Step 2 (Records) and Step 3 (Payments) are also done.
+
+    // Note: This assumes repositories have loaded. Since the form interaction takes time, 
+    // these should be populated by the time submit happens.
+    const hasRecords = records.length > 0;
+    const hasPayments = payments.length > 0;
+    const isJourneyComplete = hasRecords && hasPayments;
+
+    if (isJourneyComplete) {
       navigate('/assets');
+    } else {
+      navigate('/dashboard');
     }
   };
 

@@ -42,6 +42,21 @@ vi.mock('../hooks/useAssetRepository', () => ({
     useAssetRepository: vi.fn()
 }));
 
+// Mock AuthContext
+vi.mock('../contexts/AuthContext', () => ({
+    useAuth: () => ({
+        user: {
+            maxAssets: 10,
+            maxNisabRecords: 100,
+            maxPayments: 1000,
+            settings: {
+                currency: 'USD',
+                madhab: 'hanafi'
+            }
+        }
+    }),
+}));
+
 // Mock PrivacyContext
 vi.mock('../contexts/PrivacyContext', () => ({
     useMaskedCurrency: () => (val: string) => val,
