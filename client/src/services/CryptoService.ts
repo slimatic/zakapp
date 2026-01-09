@@ -37,7 +37,7 @@ export class CryptoService {
         }
 
         // Check for Secure Context immediately
-        if (typeof window !== 'undefined' && (!window.crypto || !window.crypto.subtle)) {
+        if (process.env.NODE_ENV !== 'test' && typeof window !== 'undefined' && (!window.crypto || !window.crypto.subtle)) {
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             const protocol = window.location.protocol;
 

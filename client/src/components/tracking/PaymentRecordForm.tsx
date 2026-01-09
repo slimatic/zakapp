@@ -203,9 +203,10 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
           updatedAt: new Date().toISOString()
         } as any);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error('Error saving payment record');
+      const msg = error instanceof Error ? error.message : 'Error saving payment record';
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

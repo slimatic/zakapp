@@ -33,7 +33,8 @@
 // client files are not writable in the environment (some containers have
 // restricted permissions). This avoids TS compiler errors during tests.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
+// const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
+import { PrismaClient, Prisma } from '@prisma/client';
 import { EncryptionService } from '../services/EncryptionService';
 
 import { getEncryptionKey } from '../config/security';
@@ -456,7 +457,7 @@ export class DatabaseManager {
     try {
       // Use Prisma's DMMF (Data Model Meta Format) for database-agnostic table introspection
       // Use runtime require here to avoid TS errors when generated client is not present
-      const { Prisma } = require('@prisma/client') as any;
+      // const { Prisma } = require('@prisma/client') as any;
       const models = Prisma?.dmmf?.datamodel?.models || [];
 
       const stats: any = {

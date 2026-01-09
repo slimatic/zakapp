@@ -23,6 +23,23 @@ export class PaymentService {
    * Creates a new payment record
    */
   static async createPayment(data: CreatePaymentData): Promise<PaymentData> {
+    // Check resource limits
+    const user = await prisma.user.findUnique({
+      where: { id: data.userId },
+      select: { maxPayments: true }
+    });
+
+    if (user) {
+      const limit = user.maxPayments ?? parseInt(process.env.DEFAULT_MAX_PAYMENTS || '100');
+      const currentCount = await prisma.paymentRecord.count({
+        where: { userId: data.userId }
+      });
+
+      if (currentCount >= limit) {
+        throw new Error(`Payment limit reached. You can create a maximum of ${limit} payments.`);
+      }
+    }
+
     // Validate that the snapshot exists and belongs to the user
     const snapshot = await prisma.yearlySnapshot.findFirst({
       where: {

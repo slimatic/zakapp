@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server/src/app.js",
-    "dev": "nodemon --exec ts-node src/app.ts",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/app.ts",
     "dev:old": "nodemon index.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -76,6 +76,7 @@
     "supertest": "^7.1.4",
     "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2"
   },
   "directories": {

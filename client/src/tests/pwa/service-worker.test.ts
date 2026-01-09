@@ -69,7 +69,7 @@ describe('Service Worker Tests', () => {
 
       // In development, we typically skip SW registration
       const shouldRegister = process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator;
-      
+
       expect(shouldRegister).toBe(false);
 
       process.env.NODE_ENV = originalEnv;
@@ -144,7 +144,7 @@ describe('Service Worker Tests', () => {
     it('should claim clients after activation', async () => {
       const claim = jest.fn();
       const clients = { claim };
-      
+
       await clients.claim();
       expect(claim).toHaveBeenCalled();
     });
@@ -194,7 +194,7 @@ describe('Service Worker Tests', () => {
         writable: true,
       });
 
-      const request = new Request('/static/js/main.js');
+      const request = new Request('http://localhost/static/js/main.js');
       const cachedResponse = await caches.match(request);
 
       expect(cachedResponse).toBeTruthy();
@@ -208,7 +208,7 @@ describe('Service Worker Tests', () => {
         })
       );
 
-      const request = new Request('/api/v1/assets');
+      const request = new Request('http://localhost/api/v1/assets');
       const response = await fetch(request);
       const data = await response.json();
 
@@ -236,8 +236,8 @@ describe('Service Worker Tests', () => {
         writable: true,
       });
 
-      const request = new Request('/api/v1/assets');
-      
+      const request = new Request('http://localhost/api/v1/assets');
+
       try {
         await fetch(request);
       } catch {
@@ -306,11 +306,11 @@ describe('Service Worker Tests', () => {
       } as any);
 
       const registration = await navigator.serviceWorker.register('/service-worker.js');
-      
+
       if (registration.installing) {
         registration.onupdatefound = onUpdateFound;
         registration.onupdatefound();
-        
+
         expect(onUpdateFound).toHaveBeenCalled();
       }
     });
@@ -341,11 +341,11 @@ describe('Service Worker Tests', () => {
 
       // Simulate update available
       const updateAvailable = true;
-      
+
       if (updateAvailable && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
         window.location.reload();
-        
+
         expect(reload).toHaveBeenCalled();
       }
     });
@@ -364,7 +364,7 @@ describe('Service Worker Tests', () => {
       };
 
       registerBackgroundSync('sync-assets');
-      
+
       expect(mockRegistration.sync.register).toHaveBeenCalledWith('sync-assets');
     });
   });
@@ -395,7 +395,7 @@ describe('Service Worker Tests', () => {
       }
 
       const permission = await Notification.requestPermission();
-      
+
       expect(permission).toBe('granted');
       expect(Notification.requestPermission).toHaveBeenCalled();
     });

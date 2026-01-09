@@ -169,6 +169,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 });
 
 export { app };
+// Force restart attempt 3
 export default app;
 
 // Start server if this file is run directly

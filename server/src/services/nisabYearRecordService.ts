@@ -58,7 +58,7 @@ export class NisabYearRecordService {
     hawlTrackingService?: HawlTrackingService,
     wealthAggregationService?: WealthAggregationService
   ) {
-  this.prisma = prisma || new PrismaClient();
+    this.prisma = prisma || new PrismaClient();
     this.auditTrailService = auditTrailService || new AuditTrailService();
     this.nisabCalculationService = nisabCalculationService || new NisabCalculationService();
     this.hawlTrackingService = hawlTrackingService || new HawlTrackingService();
@@ -78,6 +78,23 @@ export class NisabYearRecordService {
     dto: CreateNisabYearRecordDto
   ): Promise<NisabYearRecord | NisabYearRecordWithLiveTracking> {
     try {
+      // Check resource limits
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { maxNisabRecords: true }
+      });
+
+      if (user) {
+        const limit = user.maxNisabRecords ?? parseInt(process.env.DEFAULT_MAX_NISAB_RECORDS || '10');
+        const currentCount = await this.prisma.yearlySnapshot.count({
+          where: { userId }
+        });
+
+        if (currentCount >= limit) {
+          throw new Error(`Nisab Record limit reached. You can create a maximum of ${limit} records.`);
+        }
+      }
+
       // Validate Nisab basis
       if (!['GOLD', 'SILVER'].includes(dto.nisabBasis)) {
         throw new Error('Invalid Nisab basis: must be GOLD or SILVER');
@@ -99,9 +116,9 @@ export class NisabYearRecordService {
       if (dto.selectedAssetIds && dto.selectedAssetIds.length > 0) {
         // Fetch all zakatable assets
         const allAssets = await this.wealthAggregationService.getZakatableAssets(userId);
-        
+
         // Filter to selected assets only
-        const selectedAssets = allAssets.filter(asset => 
+        const selectedAssets = allAssets.filter(asset =>
           dto.selectedAssetIds!.includes(asset.id)
         );
 
@@ -224,7 +241,7 @@ export class NisabYearRecordService {
       if (record.status === 'DRAFT' && record.hawlStartDate) {
         const currentWealth = await this.wealthAggregationService.calculateTotalZakatableWealth(userId);
         const liveHawlData = await this.hawlTrackingService.calculateLiveHawlData(
-          record as { hawlStartDate: Date; nisabThreshold: string; [key: string]: unknown },
+          record as { hawlStartDate: Date; nisabThreshold: string;[key: string]: unknown },
           currentWealth.totalZakatableWealth
         );
         // Convert live data and include both totalWealth and totalZakatableWealth for richer UI
@@ -466,8 +483,8 @@ export class NisabYearRecordService {
       // Note: Hawl period tracking validates duration requirement, not which assets to include
       const zakatableWealth = await this.wealthAggregationService.calculateTotalZakatableWealth(userId);
 
-  const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
-      
+      const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
+
       // Calculate total gross wealth. Prefer explicit totalWealth if provided by the aggregation service.
       const totalWealth = typeof zakatableWealth.totalWealth === 'number'
         ? zakatableWealth.totalWealth
@@ -644,8 +661,8 @@ export class NisabYearRecordService {
       // Note: Hawl period tracking validates duration requirement, not which assets to include
       const zakatableWealth = await this.wealthAggregationService.calculateTotalZakatableWealth(userId);
 
-  const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
-      
+      const finalZakatAmount = zakatableWealth.totalZakatableWealth * 0.025;
+
       // Calculate total gross wealth. Prefer explicit totalWealth if provided by the aggregation service.
       const totalWealth = typeof zakatableWealth.totalWealth === 'number'
         ? zakatableWealth.totalWealth
@@ -697,7 +714,7 @@ export class NisabYearRecordService {
   /**
    * Private: Verify user ownership of record
    */
-  private async _verifyOwnership(userId: string, recordId: string): Promise<{ id: string; userId: string; status: string; [key: string]: unknown }> {
+  private async _verifyOwnership(userId: string, recordId: string): Promise<{ id: string; userId: string; status: string;[key: string]: unknown }> {
     const record = await this.prisma.yearlySnapshot.findUnique({
       where: { id: recordId },
     });

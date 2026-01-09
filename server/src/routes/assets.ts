@@ -26,7 +26,7 @@ import crypto from 'crypto';
 
 // Simple UUID v4 implementation to avoid Jest ES module issues
 function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
@@ -105,7 +105,7 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
   try {
     const userId = req.userId!;
     const { modifierType, page, limit } = req.query;
-    
+
     // Get user's assets using the real service with filter support
     const assetService = new AssetService();
     const filters = {
@@ -113,9 +113,9 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
       page: page ? parseInt(page as string) : 1,
       limit: limit ? parseInt(limit as string) : 50,
     };
-    
+
     const result = await assetService.getUserAssets(userId, filters);
-    
+
     // Create summary statistics
     const summary = {
       totalAssets: result.assets.length,
@@ -149,7 +149,7 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
         pagination: result.pagination
       }
     };
-    
+
     res.status(200).json(response);
   } catch (error) {
     const response = createResponse(false, undefined, {
@@ -168,11 +168,11 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
 router.get('/summary', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    
+
     // Get user's assets using the real service
     const assetService = new AssetService();
     const result = await assetService.getUserAssets(userId);
-    
+
     // Create detailed summary statistics
     const summary = {
       totalValueUSD: result.assets.reduce((sum, asset) => sum + asset.value, 0),
@@ -213,11 +213,11 @@ router.get('/summary', authenticate, async (req: AuthenticatedRequest, res: Resp
 router.get('/deleted', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    
+
     // Get user's deleted assets using the real service
     const assetService = new AssetService();
     const result = await assetService.getDeletedAssets(userId);
-    
+
     const response = createResponse(true, { assets: result.assets });
     res.status(200).json(response);
   } catch (error) {
@@ -238,11 +238,11 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
   try {
     const userId = req.userId!;
     const assetId = req.params.id;
-    
+
     // Use the AssetService to get the asset
     const assetService = new AssetService();
     const asset = await assetService.getAssetById(userId, assetId);
-    
+
     if (!asset) {
       const response = createResponse(false, undefined, {
         code: 'ASSET_NOT_FOUND',
@@ -250,7 +250,7 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
       });
       return res.status(404).json(response);
     }
-    
+
     const response = createResponse(true, { asset });
     res.status(200).json(response);
   } catch (error) {
@@ -261,7 +261,7 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
       });
       return res.status(404).json(response);
     }
-    
+
     const response = createResponse(false, undefined, {
       code: 'ASSET_RETRIEVAL_ERROR',
       message: 'Failed to retrieve asset',
@@ -275,7 +275,7 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
  * POST /api/assets
  * Create new encrypted asset
  */
-router.post('/', 
+router.post('/',
   authenticate,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -294,7 +294,7 @@ router.post('/',
       const { category, name, value, currency, description, subCategory, zakatEligible, acquisitionDate, notes, isPassiveInvestment, isRestrictedAccount } = validation.data;
 
       const userId = req.userId!;
-      
+
       // Build metadata object
       const metadata: any = {};
       if (description) {
@@ -306,7 +306,7 @@ router.post('/',
       if (zakatEligible !== undefined) {
         metadata.zakatEligible = zakatEligible;
       }
-      
+
       // Use the AssetService to create the asset
       const assetService = new AssetService();
       const asset = await assetService.createAsset(userId, {
@@ -320,7 +320,7 @@ router.post('/',
         isPassiveInvestment: isPassiveInvestment || false,
         isRestrictedAccount: isRestrictedAccount || false,
       });
-      
+
       const response = createResponse(true, { asset });
       res.status(201).json(response);
     } catch (error) {
@@ -368,7 +368,7 @@ router.put('/:id',
       // Transform request data to match UpdateAssetDto
       const { description, subCategory, zakatEligible, ...otherData } = req.body;
       const updateData: Partial<UpdateAssetDto> = { ...otherData };
-      
+
       // Build metadata object with all the extra fields
       const metadataFields: any = {};
       if (description !== undefined) {
@@ -380,7 +380,7 @@ router.put('/:id',
       if (zakatEligible !== undefined) {
         metadataFields.zakatEligible = zakatEligible;
       }
-      
+
       // Only set metadata if we have fields to update
       if (Object.keys(metadataFields).length > 0) {
         updateData.metadata = metadataFields;
@@ -389,25 +389,25 @@ router.put('/:id',
       // Use AssetService to update the asset
       const assetService = new AssetService();
       const updatedAsset = await assetService.updateAsset(userId, assetId, updateData);
-      
+
       const response = createResponse(true, { asset: updatedAsset });
       res.status(200).json(response);
     } catch (error) {
-        const errMsg = error instanceof Error ? error.message : 'Unknown error';
-        if (errMsg.includes('Passive investment') || errMsg.includes('Restricted account') || errMsg.includes('cannot be both')) {
-          const response = createResponse(false, undefined, {
-            code: 'VALIDATION_ERROR',
-            message: errMsg
-          });
-          return res.status(400).json(response);
-        }
-
+      const errMsg = error instanceof Error ? error.message : 'Unknown error';
+      if (errMsg.includes('Passive investment') || errMsg.includes('Restricted account') || errMsg.includes('cannot be both')) {
         const response = createResponse(false, undefined, {
-          code: 'ASSET_UPDATE_ERROR',
-          message: 'Failed to update asset',
-          details: [errMsg]
+          code: 'VALIDATION_ERROR',
+          message: errMsg
         });
-        res.status(500).json(response);
+        return res.status(400).json(response);
+      }
+
+      const response = createResponse(false, undefined, {
+        code: 'ASSET_UPDATE_ERROR',
+        message: 'Failed to update asset',
+        details: [errMsg]
+      });
+      res.status(500).json(response);
     }
   }
 );
@@ -420,11 +420,11 @@ router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res: Respo
   try {
     const userId = req.userId!;
     const assetId = req.params.id;
-    
+
     // Use AssetService to delete the asset
     const assetService = new AssetService();
     await assetService.deleteAsset(userId, assetId);
-    
+
     // Return response with soft delete information
     const response = createResponse(true, {
       deletedAssetId: assetId,
@@ -451,11 +451,11 @@ router.post('/:id/recover', authenticate, async (req: AuthenticatedRequest, res:
   try {
     const userId = req.userId!;
     const assetId = req.params.id;
-    
+
     // Recover the asset using the real service
     const assetService = new AssetService();
     const asset = await assetService.recoverAsset(userId, assetId);
-    
+
     const response = createResponse(true, { asset });
     res.status(200).json(response);
   } catch (error) {
@@ -466,7 +466,7 @@ router.post('/:id/recover', authenticate, async (req: AuthenticatedRequest, res:
       });
       return res.status(404).json(response);
     }
-    
+
     const response = createResponse(false, undefined, {
       code: 'ASSET_RECOVERY_ERROR',
       message: 'Failed to recover asset',

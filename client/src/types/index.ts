@@ -82,6 +82,10 @@ export interface User {
   };
   isSetupCompleted?: boolean;
   isAdmin?: boolean;
+  maxAssets?: number;
+  maxNisabRecords?: number;
+  maxPayments?: number;
+  maxLiabilities?: number;
 }
 
 export interface ZakatCalculation {

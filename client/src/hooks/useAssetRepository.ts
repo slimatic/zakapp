@@ -167,6 +167,20 @@ export function useAssetRepository() {
             throw new Error('User not authenticated');
         }
 
+        // Check Resource Limits (Client-Side)
+        if (typeof user.maxAssets === 'number') {
+            const currentCount = await db.assets.find({
+                selector: {
+                    isActive: { $eq: true },
+                    userId: { $eq: user.id }
+                }
+            }).exec().then((docs: any[]) => docs.length);
+
+            if (currentCount >= user.maxAssets) {
+                throw new Error(`Asset limit reached. You can create a maximum of ${user.maxAssets} assets.`);
+            }
+        }
+
         const safePayload = sanitizeAssetPayload(asset);
 
         // Ensure ID and timestamps
