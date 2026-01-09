@@ -76,7 +76,13 @@ export class AuthController {
         id: result.user.id,
         email: result.user.email,
         username: result.user.username,
-        createdAt: result.user.createdAt
+        firstName: result.user.firstName,
+        lastName: result.user.lastName,
+        createdAt: result.user.createdAt,
+        maxAssets: result.user.maxAssets,
+        maxNisabRecords: result.user.maxNisabRecords,
+        maxPayments: result.user.maxPayments,
+        salt: result.user.salt
       };
 
       const response: ApiResponse = {
@@ -142,8 +148,14 @@ export class AuthController {
       id: result.user.id,
       email: result.user.email,
       username: result.user.username,
+      firstName: result.user.firstName,
+      lastName: result.user.lastName,
       createdAt: result.user.createdAt,
-      isAdmin: result.user.userType === 'ADMIN_USER' || (result.user.email && process.env.ADMIN_EMAILS?.split(',').map((e: string) => e.trim().toLowerCase()).includes(result.user.email.toLowerCase()))
+      isAdmin: result.user.userType === 'ADMIN_USER' || (result.user.email && process.env.ADMIN_EMAILS?.split(',').map((e: string) => e.trim().toLowerCase()).includes(result.user.email.toLowerCase())),
+      maxAssets: result.user.maxAssets,
+      maxNisabRecords: result.user.maxNisabRecords,
+      maxPayments: result.user.maxPayments,
+      salt: result.user.salt
     };
 
     const response: ApiResponse = {
@@ -277,12 +289,16 @@ export class AuthController {
       isAdmin,
       createdAt: user.createdAt,
       updatedAt: user.createdAt, // For now, same as created
+      maxAssets: user.maxAssets,
+      maxNisabRecords: user.maxNisabRecords,
+      maxPayments: user.maxPayments,
       profile: {
-        firstName: null,
-        lastName: null,
+        firstName: user.firstName,
+        lastName: user.lastName,
         currency: 'USD',
         locale: 'en',
-        timezone: null
+        timezone: user.timezone,
+        salt: user.salt
       },
       settings: {
         defaultCalculationMethod: 'standard',

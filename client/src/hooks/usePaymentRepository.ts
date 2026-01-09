@@ -97,6 +97,17 @@ export function usePaymentRepository() {
         if (!db) throw new Error('Database not initialized');
         if (!user || !user.id) throw new Error('User not authenticated');
 
+        // Check Resource Limits (Client-Side)
+        if (typeof user.maxPayments === 'number') {
+            const currentCount = await db.payment_records.find({
+                selector: { userId: { $eq: user.id } }
+            }).exec().then((docs: any[]) => docs.length);
+
+            if (currentCount >= user.maxPayments) {
+                throw new Error(`Payment limit reached. You can create a maximum of ${user.maxPayments} payments.`);
+            }
+        }
+
         const newPayment = {
             ...payment,
             id: payment.id || crypto.randomUUID(),

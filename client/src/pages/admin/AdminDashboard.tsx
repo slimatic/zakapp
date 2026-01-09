@@ -4,6 +4,9 @@ import { adminService, User, AdminStats } from '../../services/adminService';
 import { PageLoadingFallback } from '../../components/common/LoadingFallback';
 import { ErrorDisplay } from '../../components/common/ErrorDisplay';
 
+import { LimitModal } from './LimitModal';
+import { DEFAULT_LIMITS } from '../../constants/limits';
+
 export const AdminDashboard: React.FC = () => {
     const [stats, setStats] = useState<AdminStats | null>(null);
     const [users, setUsers] = useState<User[]>([]);
@@ -12,6 +15,7 @@ export const AdminDashboard: React.FC = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
+    const [editingLimitUser, setEditingLimitUser] = useState<User | null>(null);
 
     const loadData = async () => {
         setLoading(true);
@@ -84,6 +88,10 @@ export const AdminDashboard: React.FC = () => {
         }
     };
 
+    const handleLimitSave = (userId: string, limits: { maxAssets: number | null, maxNisabRecords: number | null, maxPayments: number | null }) => {
+        setUsers(users.map(u => u.id === userId ? { ...u, ...limits } : u));
+    };
+
     if (loading && !stats) return <PageLoadingFallback />;
     if (error) return <ErrorDisplay error={error} onRetry={loadData} />;
 
@@ -128,6 +136,7 @@ export const AdminDashboard: React.FC = () => {
                                 <th className="px-6 py-3 font-medium">User</th>
                                 <th className="px-6 py-3 font-medium">Status</th>
                                 <th className="px-6 py-3 font-medium">Type</th>
+                                <th className="px-6 py-3 font-medium">Limits</th>
                                 <th className="px-6 py-3 font-medium">Last Login</th>
                                 <th className="px-6 py-3 font-medium text-right">Actions</th>
                             </tr>
@@ -150,31 +159,47 @@ export const AdminDashboard: React.FC = () => {
                                     <td className="px-6 py-4 text-sm text-gray-600">
                                         {user.userType}
                                     </td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                        <div className="flex flex-col gap-0.5 text-xs">
+                                            <span title="Assets Usage / Limit">Assets: {user._count?.assets ?? 0} / {user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS}</span>
+                                            <span title="Nisab Usage / Limit">Nisab: {user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS}</span>
+                                            <span title="Payments Usage / Limit">Payments: {user._count?.payments ?? 0} / {user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS}</span>
+                                            <span title="Liabilities Usage / Limit">Liabilities: {user._count?.liabilities ?? 0} / {user.maxLiabilities ?? DEFAULT_LIMITS.MAX_LIABILITIES}</span>
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4 text-sm text-gray-600">
                                         {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => handleDelete(user.id)}
-                                            className="text-red-600 hover:text-red-900 hover:bg-red-50 px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                                        >
-                                            Delete
-                                        </button>
-                                        <button
-                                            onClick={() => handleRoleUpdate(user.id, user.userType === 'ADMIN_USER' ? 'USER' : 'ADMIN_USER')}
-                                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${user.userType === 'ADMIN_USER'
-                                                ? 'text-amber-600 hover:text-amber-900 hover:bg-amber-50'
-                                                : 'text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50'
-                                                }`}
-                                        >
-                                            {user.userType === 'ADMIN_USER' ? 'Demote' : 'Promote'}
-                                        </button>
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => setEditingLimitUser(user)}
+                                                className="text-emerald-600 hover:text-emerald-900 hover:bg-emerald-50 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                                            >
+                                                Limits
+                                            </button>
+                                            <button
+                                                onClick={() => handleRoleUpdate(user.id, user.userType === 'ADMIN_USER' ? 'USER' : 'ADMIN_USER')}
+                                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${user.userType === 'ADMIN_USER'
+                                                    ? 'text-amber-600 hover:text-amber-900 hover:bg-amber-50'
+                                                    : 'text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50'
+                                                    }`}
+                                            >
+                                                {user.userType === 'ADMIN_USER' ? 'Demote' : 'Promote'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(user.id)}
+                                                className="text-red-600 hover:text-red-900 hover:bg-red-50 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
                             {users.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                                         No users found matching your search.
                                     </td>
                                 </tr>
@@ -204,6 +229,14 @@ export const AdminDashboard: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            {editingLimitUser && (
+                <LimitModal
+                    user={editingLimitUser}
+                    onClose={() => setEditingLimitUser(null)}
+                    onSave={handleLimitSave}
+                />
+            )}
         </div >
     );
 };

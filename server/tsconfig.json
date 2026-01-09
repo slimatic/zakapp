@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
     "module": "CommonJS",
     "moduleResolution": "node",
     "esModuleInterop": true,
@@ -23,14 +26,25 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
-    "typeRoots": ["node_modules/@types", "./src/types"],
-    "types": ["jest"],
+    "typeRoots": [
+      "node_modules/@types",
+      "./src/types"
+    ],
+    "types": [
+      "jest"
+    ],
     "paths": {
-      "@/*": ["./src/*"],
+      "@/*": [
+        "./src/*"
+      ],
       // During development prefer consuming shared source types directly so ts-node
       // can compile without relying on the prebuilt `dist` declaration files.
-      "@zakapp/shared": ["../shared/src/index.ts"],
-      "@zakapp/shared/*": ["../shared/src/*"]
+      "@zakapp/shared": [
+        "./src/shared_local.ts"
+      ],
+      "@zakapp/shared/*": [
+        "./src/shared_local.ts"
+      ]
     }
   },
   "include": [
@@ -46,9 +60,15 @@
     "compilerOptions": {
       "moduleResolution": "node",
       "paths": {
-        "@/*": ["./src/*"],
-        "@zakapp/shared": ["../shared/src/index.ts"],
-        "@zakapp/shared/*": ["../shared/src/*"]
+        "@/*": [
+          "./src/*"
+        ],
+        "@zakapp/shared": [
+          "./src/shared_local.ts"
+        ],
+        "@zakapp/shared/*": [
+          "./src/shared_local.ts"
+        ]
       }
     }
   }

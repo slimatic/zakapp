@@ -1,0 +1,54 @@
+/**
+ * Copyright (c) 2024 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+// Temporary augmentation to help tests compile when the Prisma client hasn't
+// been regenerated in the test environment due to permission constraints.
+// Once `npx prisma generate` is runnable in CI, this can be removed.
+declare module '@prisma/client' {
+  interface PrismaClient {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    encryptionRemediation: any;
+    // Allow access to other models during test runs when generated client is not
+    // available due to permission restrictions in the environment.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+  }
+
+  // Minimal type shims for commonly used model types to let tests compile
+  export type PaymentRecord = any;
+  export type YearlySnapshot = any;
+  export type ZakatCalculation = any;
+  export type Asset = any;
+  export type Liability = any;
+  export type User = any;
+  export type TestResult = any;
+  export type MigrationRecord = any;
+  export type EncryptionRemediation = any;
+  export type ZakatPayment = any;
+  export type ReminderEvent = any;
+  export type AnnualSummary = any;
+  export type AnalyticsMetric = any;
+
+  // Minimal Prisma namespace shims used in tests
+  export namespace Prisma {
+    export type YearlySnapshotWhereInput = any;
+    export type YearlySnapshotCreateInput = any;
+    export type YearlySnapshotUpdateInput = any;
+    export type YearlySnapshotUncheckedCreateInput = any;
+  }
+}
+
