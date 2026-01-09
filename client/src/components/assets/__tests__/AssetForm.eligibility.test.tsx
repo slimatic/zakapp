@@ -40,6 +40,18 @@ vi.mock('../../../db', () => ({
   resetDb: vi.fn(), // Also mock resetDb to prevent setupTests issues
 }));
 
+// Mock AuthContext
+vi.mock('../../../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: {
+      maxAssets: 10,
+      maxNisabRecords: 100,
+      maxPayments: 1000
+    }
+  }),
+  AuthProvider: ({ children }: any) => <div>{children}</div>
+}));
+
 describe('AssetForm eligibility and passive behavior', () => {
   beforeEach(() => {
     vi.clearAllMocks();

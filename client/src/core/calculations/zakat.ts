@@ -106,7 +106,7 @@ export function getAssetZakatableValue(asset: Asset, methodologyName: ZakatMetho
 
     // For assets with a calculationModifier (e.g., passive investments, deferred retirement), apply it first
     // This allows specific overrides (like 0 for deferred) to take precedence over generic type logic
-    if (typeof asset.calculationModifier === 'number' && asset.calculationModifier !== 1.0) {
+    if (typeof asset.calculationModifier === 'number' && Number.isFinite(asset.calculationModifier) && asset.calculationModifier !== 1.0) {
         return new Decimal(asset.value || 0).times(asset.calculationModifier).toNumber();
     }
 

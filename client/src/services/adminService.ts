@@ -16,6 +16,16 @@ export interface User {
     isActive: boolean;
     lastLoginAt: string | null;
     createdAt: string;
+    maxAssets: number | null;
+    maxNisabRecords: number | null;
+    maxPayments: number | null;
+    maxLiabilities: number | null;
+    _count?: {
+        assets: number;
+        yearlySnapshots: number;
+        payments: number;
+        liabilities: number;
+    };
 }
 
 export interface UserListResponse {
@@ -73,6 +83,26 @@ export const adminService = {
                 method: 'PATCH',
                 headers,
                 body: JSON.stringify({ role })
+            });
+            const result = await response.json();
+            return result;
+        } catch (e) {
+            return { success: false, message: e instanceof Error ? e.message : 'Network error' };
+        }
+    },
+
+    updateUserLimits: async (id: string, limits: { maxAssets?: number | null, maxNisabRecords?: number | null, maxPayments?: number | null, maxLiabilities?: number | null }): Promise<ApiResponse> => {
+        const token = localStorage.getItem('accessToken');
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/users/${id}/limits`, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify(limits)
             });
             const result = await response.json();
             return result;

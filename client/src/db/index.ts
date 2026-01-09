@@ -111,7 +111,7 @@ const getStorage = () => {
 const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
     console.log('DatabaseService: Creating database instance...');
     const storage = getStorage();
-    const dbName = 'zakapp_db_v10';
+    const dbName = process.env.NODE_ENV === 'test' ? 'testdb' : 'zakapp_db_v10';
 
     try {
         const db = await createRxDatabase<ZakAppCollections>({
@@ -256,7 +256,8 @@ export const forceResetDatabase = async () => {
             storage = getRxStorageDexie();
         }
 
-        await removeRxDatabase('zakapp_db_v10', storage);
+        const dbName = process.env.NODE_ENV === 'test' ? 'testdb' : 'zakapp_db_v10';
+        await removeRxDatabase(dbName, storage);
         console.log("DatabaseService: DB Forced Removed via removeRxDatabase.");
         window._zakapp_db_promise = null;
         window._zakapp_db_password = undefined;

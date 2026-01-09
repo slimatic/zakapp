@@ -19,6 +19,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { UserService } from '../services/UserService';
+import { PrismaClient } from '@prisma/client';
 
 const userService = new UserService();
 
@@ -165,7 +166,7 @@ export class UserController {
       const profile = await userService.getProfile(userId);
 
       // Get user's assets
-      const { PrismaClient } = require('@prisma/client');
+      // const { PrismaClient } = require('@prisma/client');
       const prisma = new PrismaClient();
 
       const assets = await prisma.asset.findMany({

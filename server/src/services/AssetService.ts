@@ -17,7 +17,21 @@
 
 import { EncryptionService } from './EncryptionService';
 import { determineModifier } from '../utils/assetModifiers';
-import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
+// import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
+
+const PASSIVE_INVESTMENT_TYPES = [
+  'STOCK',
+  'ETF',
+  'MUTUAL_FUND',
+  'ROTH_IRA',
+] as const;
+
+const RESTRICTED_ACCOUNT_TYPES = [
+  '401K',
+  'TRADITIONAL_IRA',
+  'PENSION',
+  'ROTH_IRA',
+] as const;
 import { prisma } from '../utils/prisma';
 
 import { getEncryptionKey } from '../config/security';
@@ -66,6 +80,25 @@ export class AssetService {
    * Automatically calculates and applies calculation modifier based on asset flags
    */
   async createAsset(userId: string, assetData: CreateAssetDto) {
+    // Check resource limits
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { maxAssets: true }
+    });
+
+    // Default to strict limit if user fetch fails or property missing (shouldn't happen)
+    const envLimit = parseInt(process.env.DEFAULT_MAX_ASSETS || '50');
+    const limit = user?.maxAssets ?? envLimit;
+
+    // Count active assets
+    const currentCount = await prisma.asset.count({
+      where: { userId, isActive: true }
+    });
+
+    if (currentCount >= limit) {
+      throw new Error(`Asset limit reached. You can create a maximum of ${limit} assets.`);
+    }
+
     // Normalize and validate asset category (accept common variants)
     const validCategories = ['cash', 'gold', 'silver', 'business', 'property', 'stocks', 'crypto', 'debts', 'expenses', '401k', 'traditional ira', 'roth ira', 'pension'];
 
@@ -447,6 +480,23 @@ export class AssetService {
 
     if (!asset) {
       throw new Error('Deleted asset not found');
+    }
+
+    // Check resource limits before recovering
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { maxAssets: true }
+    });
+
+    if (user) {
+      const limit = user.maxAssets ?? parseInt(process.env.DEFAULT_MAX_ASSETS || '50');
+      const currentCount = await prisma.asset.count({
+        where: { userId, isActive: true }
+      });
+
+      if (currentCount >= limit) {
+        throw new Error(`Asset limit reached. You cannot recover this asset because you have reached your maximum of ${limit} assets.`);
+      }
     }
 
     // Recover asset

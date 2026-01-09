@@ -219,7 +219,8 @@ export const NisabYearRecordsPage: React.FC = () => {
       setNisabBasis('GOLD');
     } catch (err: any) {
       console.error(err);
-      toast.error('Failed to create record');
+      const msg = err instanceof Error ? err.message : 'Failed to create record';
+      toast.error(msg);
     }
   };
 
