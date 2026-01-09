@@ -26,8 +26,8 @@ import { asyncHandler } from '../middleware/ErrorHandler';
 // Use runtime require for Prisma client in test environments where generated client files
 // may not be writable. This prevents compile-time errors during Jest runs.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { PrismaClient: _PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
-import type { PrismaClient } from '@prisma/client';
+// const { PrismaClient: _PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { EncryptionService } from '../services/EncryptionService';
@@ -35,6 +35,7 @@ import { Logger } from '../utils/logger';
 
 const logger = new Logger('AuthRoutes');
 import { getEncryptionKey } from '../config/security';
+import { DEFAULT_LIMITS } from '../config/limits';
 
 const ENCRYPTION_KEY = getEncryptionKey();
 
@@ -43,7 +44,7 @@ function getPrismaClient() {
   // Use a runtime-instantiated client backed by the TEST_DATABASE_URL when present
   // so tests and other processes share the same DB instance.
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
+  // const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
   return new PrismaClient({ datasources: { db: { url: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL } } });
 }
 
@@ -217,7 +218,11 @@ router.post('/login',
             preferences: {
               calendar: user.preferredCalendar,
               methodology: user.preferredMethodology
-            }
+            },
+            maxAssets: user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS,
+            maxNisabRecords: user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS,
+            maxPayments: user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS,
+            maxLiabilities: (user as any).maxLiabilities ?? DEFAULT_LIMITS.MAX_LIABILITIES
           },
           tokens: {
             accessToken,
@@ -375,10 +380,15 @@ router.post('/register',
             firstName: profileData.firstName || '',
             lastName: profileData.lastName || '',
             isActive: user.isActive,
+            profile: profileData,
             preferences: {
               calendar: user.preferredCalendar,
               methodology: user.preferredMethodology
-            }
+            },
+            maxAssets: user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS,
+            maxNisabRecords: user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS,
+            maxPayments: user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS,
+            maxLiabilities: (user as any).maxLiabilities ?? DEFAULT_LIMITS.MAX_LIABILITIES
           },
           tokens: {
             accessToken,
@@ -739,10 +749,15 @@ router.get('/me',
             name: `${profile.firstName} ${profile.lastName}`.trim() || user.email,
             isAdmin: user.userType === 'ADMIN_USER' || (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).includes(user.email.toLowerCase()),
             userType: user.userType,
+            profile: profile,
             preferences: {
               calendar: user.preferredCalendar,
               methodology: user.preferredMethodology
             },
+            maxAssets: user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS,
+            maxNisabRecords: user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS,
+            maxPayments: user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS,
+            maxLiabilities: (user as any).maxLiabilities ?? DEFAULT_LIMITS.MAX_LIABILITIES,
             createdAt: user.createdAt.toISOString()
           }
         },

@@ -17,6 +17,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
+import { DEFAULT_LIMITS } from '../config/limits';
 import * as crypto from 'crypto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -250,7 +251,7 @@ export class ImportExportService {
       finalData = this.convertToCSV(exportData);
       fileName = `zakapp-export-${userId}-${Date.now()}.csv`;
     } else {
-      finalData = encrypt ? 
+      finalData = encrypt ?
         await EncryptionService.encrypt(JSON.stringify(exportData), ENCRYPTION_KEY) :
         JSON.stringify(exportData, null, 2);
       fileName = `zakapp-export-${userId}-${Date.now()}.json`;
@@ -267,8 +268,8 @@ export class ImportExportService {
    * Import user data
    */
   async importUserData(
-    userId: string, 
-    filePath: string, 
+    userId: string,
+    filePath: string,
     options: ImportOptions = {}
   ): Promise<ImportResult> {
     const {
@@ -323,7 +324,7 @@ export class ImportExportService {
         const tempMetadata = { ...importData.metadata };
         delete tempMetadata.checksum;
         const tempData = { ...importData, metadata: tempMetadata };
-        
+
         const calculatedChecksum = crypto.createHash('sha256')
           .update(JSON.stringify(tempData))
           .digest('hex');
@@ -340,10 +341,16 @@ export class ImportExportService {
         result.summary.calculationsImported = importData.calculations?.length || 0;
         result.summary.paymentsImported = importData.payments?.length || 0;
         result.summary.snapshotsImported = importData.snapshots?.length || 0;
-        
+
         result.success = result.summary.errors.length === 0;
         return result;
       }
+
+      // Fetch user limits
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { maxLiabilities: true, maxAssets: true }
+      });
 
       // Start transaction for atomic import
       await prisma.$transaction(async (tx) => {
@@ -363,7 +370,11 @@ export class ImportExportService {
         if (importData.liabilities) {
           for (const liabilityData of importData.liabilities) {
             try {
-              await this.importLiability(tx, userId, liabilityData, { overwriteExisting, skipDuplicates });
+              await this.importLiability(tx, userId, liabilityData, {
+                overwriteExisting,
+                skipDuplicates,
+                maxLiabilities: user?.maxLiabilities ?? DEFAULT_LIMITS.MAX_LIABILITIES
+              });
               result.summary.liabilitiesImported++;
             } catch (error) {
               result.summary.errors.push(`Liability import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -440,7 +451,7 @@ export class ImportExportService {
       for (const file of files) {
         const filePath = path.join(this.TEMP_DIR, file);
         const stats = await fs.stat(filePath);
-        
+
         if (stats.mtime.getTime() < cutoffTime) {
           await fs.unlink(filePath);
         }
@@ -622,6 +633,17 @@ export class ImportExportService {
         });
       }
     } else {
+      // Check resource limit if not a duplicate
+      if (options.maxLiabilities !== null && options.maxLiabilities !== undefined) {
+        const activeCount = await tx.liability.count({
+          where: { userId, isActive: true }
+        });
+
+        if (activeCount >= options.maxLiabilities) {
+          throw new Error(`Liability limit of ${options.maxLiabilities} reached.`);
+        }
+      }
+
       await tx.liability.create({
         data: {
           userId,
