@@ -1,12 +1,14 @@
-
 import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
+import { Prisma } from '@prisma/client';
+
+interface AuthenticatedRequest extends Request {
+    userId?: string;
+}
 
 export const getStats = async (req: Request, res: Response) => {
     try {
-        console.log('AdminController.getStats called'); // DEBUG
         const totalUsers = await prisma.user.count();
-        console.log('Total users count result:', totalUsers); // DEBUG
 
         // Active users: logged in within last 30 days
         const thirtyDaysAgo = new Date();
@@ -55,7 +57,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
         const skip = (page - 1) * limit;
 
-        const whereClause: any = {};
+        const whereClause: Prisma.UserWhereInput = {};
         if (search) {
             whereClause.OR = [
                 { email: { contains: search } },
@@ -76,7 +78,19 @@ export const getUsers = async (req: Request, res: Response) => {
                     userType: true,
                     isActive: true,
                     lastLoginAt: true,
-                    createdAt: true
+                    createdAt: true,
+                    maxAssets: true,
+                    maxNisabRecords: true,
+                    maxPayments: true,
+                    maxLiabilities: true,
+                    _count: {
+                        select: {
+                            assets: true,
+                            yearlySnapshots: true,
+                            payments: true,
+                            liabilities: true
+                        }
+                    }
                 }
             }),
             prisma.user.count({ where: whereClause })
@@ -122,7 +136,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     }
 };
 
-export const updateUserRole = async (req: Request, res: Response) => {
+export const updateUserRole = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
         const { role } = req.body;
@@ -138,7 +152,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
         }
 
         // Prevent self-demotion for safety
-        const currentAdminId = (req as any).userId;
+        const currentAdminId = req.userId;
         if (id === currentAdminId && role === 'USER') { // Basic check, relies on auth middleware populating userId
             return res.status(400).json({ success: false, error: 'Cannot demote your own account' });
         }
@@ -151,6 +165,35 @@ export const updateUserRole = async (req: Request, res: Response) => {
         res.json({ success: true, message: `User role updated to ${role}` });
     } catch (error) {
         console.error('Error updating user role:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+};
+
+export const updateUserLimits = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { maxAssets, maxNisabRecords, maxPayments } = req.body;
+
+        const data: Prisma.UserUpdateInput = {};
+        if (maxAssets !== undefined) data.maxAssets = maxAssets === null ? null : Number(maxAssets);
+        if (maxNisabRecords !== undefined) data.maxNisabRecords = maxNisabRecords === null ? null : Number(maxNisabRecords);
+        if (maxPayments !== undefined) data.maxPayments = maxPayments === null ? null : Number(maxPayments);
+        if (req.body.maxLiabilities !== undefined) data.maxLiabilities = req.body.maxLiabilities === null ? null : Number(req.body.maxLiabilities);
+
+        // Check if user exists
+        const user = await prisma.user.findUnique({ where: { id } });
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        await prisma.user.update({
+            where: { id },
+            data
+        });
+
+        res.json({ success: true, message: 'User limits updated successfully' });
+    } catch (error) {
+        console.error('Error updating user limits:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 };

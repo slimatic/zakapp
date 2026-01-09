@@ -20,7 +20,8 @@
 // `npx prisma generate` cannot be executed (e.g., restricted CI containers).
 // The client will respect TEST_DATABASE_URL when present for deterministic tests.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
+// const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
+import { PrismaClient } from '@prisma/client';
 
 const url = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL || 'file:./dev.db';
 console.log('Prisma Utils initializing with URL:', url); // DEBUG LOG
