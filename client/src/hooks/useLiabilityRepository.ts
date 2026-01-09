@@ -87,6 +87,10 @@ export function useLiabilityRepository() {
         if (!db) throw new Error('Database not initialized');
         if (!user || !user.id) throw new Error('User not authenticated');
 
+        if (user.maxLiabilities !== undefined && liabilities.length >= user.maxLiabilities) {
+            throw new Error(`Liability limit of ${user.maxLiabilities} reached. Please delete some liabilities or upgrade your plan.`);
+        }
+
         const newLiability = {
             ...liability,
             id: liability.id || crypto.randomUUID(),
