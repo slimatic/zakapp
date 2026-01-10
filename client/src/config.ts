@@ -61,9 +61,8 @@ export const getCouchDbUrl = (): string => {
   }
 
   // Priority 3: Hostname-based fallback (for LAN development)
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    return `http://${hostname}:5984`;
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return '/couchdb';
   }
 
   return 'http://localhost:5984';
