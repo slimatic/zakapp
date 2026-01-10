@@ -567,6 +567,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('AuthContext: User data refreshed from backend');
         let user = verifyResult.data.user;
 
+        // Decrypt fields if they are encrypted (ZK1 prefix)
+        // This mirrors the logic in login() to ensure consistent state
+        const decryptField = async (val: string | undefined): Promise<string> => {
+          if (!val) return '';
+          if (cryptoService.isEncrypted(val)) {
+            const p = cryptoService.unpackEncrypted(val);
+            if (p) {
+              try {
+                return await cryptoService.decrypt(p.ciphertext, p.iv);
+              } catch (e) {
+                console.warn('AuthContext: Failed to decrypt field in refreshUser', e);
+                return val; // Fallback to ciphertext on error
+              }
+            }
+          }
+          return val;
+        };
+
+        const rawFirstName = (user as any).firstName || '';
+        const rawLastName = (user as any).lastName || '';
+        const rawUsername = user.username || '';
+
+        const decryptedUser = {
+          ...user,
+          username: await decryptField(rawUsername),
+          firstName: await decryptField(rawFirstName),
+          lastName: await decryptField(rawLastName),
+        };
+
         // Merge with local settings (Methodology, Calendar, etc.)
         // This ensures that if the backend is stale or doesn't support a field, we keep our local choice.
         if (state.user?.id) {
@@ -580,21 +609,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               }
 
               user = {
-                ...user,
+                ...decryptedUser,
                 settings: {
-                  ...user.settings,
-                  preferredMethodology: localMethodology || user.settings?.preferredMethodology || 'standard',
-                  preferredCalendar: userDoc.get('preferredCalendar') || user.settings?.preferredCalendar || 'gregorian',
-                  currency: userDoc.get('baseCurrency') || user.settings?.currency || 'USD',
-                  hijriAdjustment: userDoc.get('hijriAdjustment') ?? user.settings?.hijriAdjustment ?? 0
+                  ...decryptedUser.settings,
+                  preferredMethodology: localMethodology || decryptedUser.settings?.preferredMethodology || 'standard',
+                  preferredCalendar: userDoc.get('preferredCalendar') || decryptedUser.settings?.preferredCalendar || 'gregorian',
+                  currency: userDoc.get('baseCurrency') || decryptedUser.settings?.currency || 'USD',
+                  hijriAdjustment: userDoc.get('hijriAdjustment') ?? decryptedUser.settings?.hijriAdjustment ?? 0
                 },
-                // Decrypt local-only fields if needed (omitted for brevity as API usually handles this, 
-                // but strictly speaking we should prefer local decrypted over API if we want true local-first)
               };
+            } else {
+              user = decryptedUser;
             }
           } catch (e) {
             console.warn('AuthContext: Failed to merge local settings in refreshUser', e);
+            user = decryptedUser;
           }
+        } else {
+          user = decryptedUser;
         }
 
         // Update session storage to persist across reloads
