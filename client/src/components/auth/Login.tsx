@@ -21,12 +21,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/Card';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { Logo } from '../common/Logo';
 
 export const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { isAuthenticated, login, isLoading, error } = useAuth();
 
   // Redirect if already authenticated
@@ -60,7 +61,7 @@ export const Login: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
-                {error}
+                {error === 'Failed to fetch' ? 'Unable to connect to server. Please check your network connection.' : error}
                 {(error.includes('DB1') || error.includes('password') || error.includes('salt')) && (
                   <div className="mt-2">
                     <Button
@@ -102,6 +103,7 @@ export const Login: React.FC = () => {
                 placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                onBlur={() => setUsername(prev => prev.trim())}
                 disabled={isLoading}
                 autoComplete="username"
                 aria-required="true"
@@ -113,17 +115,27 @@ export const Login: React.FC = () => {
               <label htmlFor="password" className="text-sm font-medium leading-none text-gray-700">
                 Password
               </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                autoComplete="current-password"
-                aria-required="true"
-                className="focus:ring-primary-500 border-gray-300"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  autoComplete="current-password"
+                  aria-required="true"
+                  className="focus:ring-primary-500 border-gray-300 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <Button
