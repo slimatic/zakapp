@@ -49,6 +49,8 @@ export const getStats = async (req: Request, res: Response) => {
     }
 };
 
+import { getUserCouchDBStats } from '../utils/couchStats';
+
 export const getUsers = async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
@@ -82,23 +84,29 @@ export const getUsers = async (req: Request, res: Response) => {
                     maxAssets: true,
                     maxNisabRecords: true,
                     maxPayments: true,
-                    maxLiabilities: true,
-                    _count: {
-                        select: {
-                            assets: true,
-                            yearlySnapshots: true,
-                            payments: true,
-                            liabilities: true
-                        }
-                    }
+                    maxLiabilities: true
                 }
             }),
             prisma.user.count({ where: whereClause })
         ]);
 
+        // Enrich with CouchDB Stats
+        const usersWithStats = await Promise.all(users.map(async (user) => {
+            const stats = await getUserCouchDBStats(user.id);
+            return {
+                ...user,
+                _count: {
+                    assets: stats.assets,
+                    liabilities: stats.liabilities,
+                    yearlySnapshots: stats.nisabRecords,
+                    payments: stats.payments
+                }
+            };
+        }));
+
         res.json({
             success: true,
-            data: users,
+            data: usersWithStats,
             pagination: {
                 page,
                 limit,
