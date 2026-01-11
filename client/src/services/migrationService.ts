@@ -143,8 +143,7 @@ export class MigrationService {
             'investment_account': AssetType.INVESTMENT_ACCOUNT,
             'business_assets': AssetType.BUSINESS_ASSETS,
             'debts_owed_to_you': AssetType.DEBTS_OWED_TO_YOU,
-            'bank_account': AssetType.BANK_ACCOUNT,
-            'real_estate': AssetType.REAL_ESTATE
+            'bank_account': AssetType.BANK_ACCOUNT
         };
 
         const normalized = (legacyCategory || '').toLowerCase().trim();

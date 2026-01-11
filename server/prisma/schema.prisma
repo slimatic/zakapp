@@ -22,6 +22,11 @@ model User {
   createdAt      DateTime @default(now())
   lastLoginAt    DateTime?
   updatedAt      DateTime @updatedAt
+  
+  // Email Verification (Feature: Email Verification & SMTP)
+  isVerified           Boolean   @default(false)
+  verificationToken    String?   @unique
+  verificationTokenExpires DateTime?
 
   // Zakat Preferences (Feature 004)
   preferredCalendar     String?   @default("gregorian") // 'hijri' or 'gregorian'
@@ -798,6 +803,8 @@ model CalculationSnapshot {
   calendarType      String   // "GREGORIAN" | "HIJRI" (snapshot of user pref)
   zakatYearStart    DateTime // Start of Zakat year (Gregorian)
   zakatYearEnd      DateTime // End of Zakat year (Gregorian)
+
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @default(now()) @updatedAt
 
@@ -845,4 +852,34 @@ model PasswordReset {
   @@map("password_resets")
   @@index([token])
   @@index([expiresAt])
+}
+
+// ============================================================================
+// System Configuration
+// Feature: Email Verification & SMTP Support
+// ============================================================================
+
+model SystemSettings {
+  id        String   @id @default("global") // Singleton ID
+  
+  // SMTP Config
+  smtpHost        String?
+  smtpPort        Int?
+  smtpSecure      Boolean @default(true)
+  smtpUser        String?
+  smtpPass        String? // Encrypted
+  smtpFromEmail   String?
+  smtpFromName    String?
+  
+  // Resend Config
+  emailProvider   String  @default("smtp") // "smtp", "resend"
+  resendApiKey    String? // Encrypted
+  
+  // Feature Configuration
+  requireEmailVerification Boolean @default(false)
+  allowRegistration        Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+  
+  @@map("system_settings")
 }

@@ -54,7 +54,7 @@ export type {
 	CalculationSnapshotDetail,
 	CreateCalculationSnapshotRequest,
 	NisabInfo,
-} from './types';
+} from './coreTypes.js';
 
 // Nisab year record related types
 export type {
@@ -85,7 +85,7 @@ export type {
 	CalendarCalculation,
 	CalculationBreakdown,
 	AlternativeCalculation,
-} from './types';
+} from './coreTypes.js';
 // Import-export utilities added in improve-import-export
 export * from './schemas.js';
 export * from './utils/stableId.js';

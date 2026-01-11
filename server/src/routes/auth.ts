@@ -31,6 +31,8 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { EncryptionService } from '../services/EncryptionService';
+import { emailService } from '../services/EmailService';
+import { SettingsService } from '../services/SettingsService';
 import { Logger } from '../utils/logger';
 
 const logger = new Logger('AuthRoutes');
@@ -157,6 +159,19 @@ router.post('/login',
           error: {
             code: 'INVALID_CREDENTIALS',
             message: 'Invalid email/username or password'
+          }
+        });
+        return;
+      }
+
+      // Check Email Verification
+      const settings = await SettingsService.getSettings();
+      if (settings.requireEmailVerification && user.isVerified === false) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: 'EMAIL_NOT_VERIFIED',
+            message: 'Email verification is required to log in.'
           }
         });
         return;
@@ -347,6 +362,25 @@ router.post('/register',
           userId: user.id
         }
       });
+
+      // Email Verification Logic
+      try {
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+        await getPrismaClient().user.update({
+          where: { id: user.id },
+          data: {
+            verificationToken: token,
+            verificationTokenExpires: expiry,
+            isVerified: false
+          }
+        });
+
+        await emailService.sendVerificationEmail(normalizedEmail, token);
+      } catch (err) {
+        logger.error('Failed to initiate email verification', err);
+      }
 
       // Generate tokens
       const accessToken = jwtService.createAccessToken({
@@ -775,6 +809,58 @@ router.get('/me',
         }
       });
     }
+  })
+);
+
+/**
+ * GET /api/auth/verify-email
+ * Validate verification token
+ */
+router.get('/verify-email',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { token } = req.query;
+
+    if (!token || typeof token !== 'string') {
+      res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Token is required' }
+      });
+      return;
+    }
+
+    const user = await getPrismaClient().user.findUnique({
+      where: { verificationToken: token }
+    });
+
+    if (!user) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TOKEN', message: 'Invalid or expired token' }
+      });
+      return;
+    }
+
+    if (user.verificationTokenExpires && user.verificationTokenExpires < new Date()) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'TOKEN_EXPIRED', message: 'Token has expired' }
+      });
+      return;
+    }
+
+    await getPrismaClient().user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationToken: null,
+        verificationTokenExpires: null
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully'
+    });
   })
 );
 

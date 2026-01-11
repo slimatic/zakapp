@@ -60,4 +60,5 @@ export interface User {
   };
   createdAt: string;
   lastLoginAt?: string;
+  isVerified?: boolean;
 }
