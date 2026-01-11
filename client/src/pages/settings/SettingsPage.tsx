@@ -78,21 +78,25 @@ export const SettingsPage: React.FC = () => {
 
                         {/* Admin Dashboard Link - Separated */}
                         {user?.isAdmin && (
-                            <>
-                                <div className="my-3 border-t border-gray-200" />
+                            <div className="mt-6 pt-6 border-t border-gray-200">
+                                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                                    Administration
+                                </h3>
                                 <button
                                     onClick={() => navigate('/admin')}
-                                    className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                                    className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 
+                                    bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 
+                                    hover:from-emerald-100 hover:to-teal-100 hover:shadow-sm border border-emerald-100"
                                 >
                                     <LayoutDashboard
                                         className="flex-shrink-0 -ml-1 mr-3 h-5 w-5 text-emerald-600"
                                         aria-hidden="true"
                                     />
-                                    <span className="truncate font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                                    <span className="truncate font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
                                         Admin Dashboard
                                     </span>
                                 </button>
-                            </>
+                            </div>
                         )}
                     </nav>
                 </div>
