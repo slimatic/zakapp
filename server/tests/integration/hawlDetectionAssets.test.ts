@@ -7,7 +7,7 @@
 
 import { prisma } from '../../src/lib/prisma';
 import { EncryptionService } from '../../src/services/EncryptionService';
-import { HawlTrackingService } from '../../src/services/HawlTrackingService';
+import { HawlTrackingService } from '../../src/services/hawlTrackingService';
 import { authHelpers } from '../helpers/authHelpers';
 import { assetHelpers } from '../helpers/assetHelpers';
 
@@ -253,7 +253,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
 
       // Should only have 2 zakatable assets, not the residence
       expect(assetBreakdown.assets).toHaveLength(2);
-      
+
       const assetNames = assetBreakdown.assets.map((a: AssetSnapshotItem) => a.name);
       expect(assetNames).toContain('Cash');
       expect(assetNames).toContain('Gold');
@@ -261,7 +261,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
 
       // totalWealth should include all assets (including non-zakatable)
       expect(assetBreakdown.totalWealth).toBe(258000);
-      
+
       // zakatableWealth should only include zakatable assets
       expect(assetBreakdown.zakatableWealth).toBe(8000);
     });
@@ -403,7 +403,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
       const secondRecords = await prisma.yearlySnapshot.findMany({
         where: { userId },
       });
-      
+
       // Should still only have 1 record
       expect(secondRecords).toHaveLength(1);
       expect(secondRecords[0].id).toBe(firstRecords[0].id);
@@ -446,7 +446,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
 
       // Both assets should be included
       expect(assetBreakdown.assets).toHaveLength(2);
-      
+
       const emptyAccount = assetBreakdown.assets.find(
         (a: AssetSnapshotItem) => a.name === 'Empty Account'
       );

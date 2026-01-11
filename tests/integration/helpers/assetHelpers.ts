@@ -16,6 +16,7 @@ export const assetHelpers = {
       category: string;
       value: number;
       isZakatable: boolean;
+      isPassiveInvestment?: boolean;
       notes?: string;
     },
     authToken: string
@@ -39,6 +40,7 @@ export const assetHelpers = {
       category?: string;
       value?: number;
       isZakatable?: boolean;
+      isPassiveInvestment?: boolean;
       notes?: string;
     },
     authToken: string
