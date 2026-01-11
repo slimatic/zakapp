@@ -11,8 +11,9 @@ export class MetalPriceScraperService {
     private static readonly SILVER_URL = 'https://www.livepriceofgold.com/silver-price.html'; // Main silver page generally has gram price too
 
     // Fallback static values in case scraping fails entirely
-    private static readonly FALLBACK_GOLD = 65.0; // USD/g
-    private static readonly FALLBACK_SILVER = 0.85; // USD/g
+    // Note: These are defaults; NisabService may also check MANUAL_GOLD/SILVER_PRICE_USD env vars.
+    private static readonly FALLBACK_GOLD = process.env.MANUAL_GOLD_PRICE_USD ? parseFloat(process.env.MANUAL_GOLD_PRICE_USD) : 65.0;
+    private static readonly FALLBACK_SILVER = process.env.MANUAL_SILVER_PRICE_USD ? parseFloat(process.env.MANUAL_SILVER_PRICE_USD) : 0.85;
 
     /**
      * Scrape current Gold price per Gram in USD
