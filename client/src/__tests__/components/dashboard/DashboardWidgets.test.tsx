@@ -36,8 +36,8 @@ vi.mock('../../../hooks/useNisabThreshold', () => ({
   useNisabThreshold: () => ({ nisabAmount: 5000, isLoading: false, error: null }),
 }));
 
-vi.mock('../../../hooks/usePayments', () => ({
-  usePayments: () => ({ data: { payments: [] }, isLoading: false }),
+vi.mock('../../../hooks/usePaymentRepository', () => ({
+  usePaymentRepository: () => ({ payments: [], isLoading: false, error: null }),
 }));
 
 // Mock DB just in case
