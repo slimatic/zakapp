@@ -27,7 +27,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { formatCurrency, formatPercentage } from '../../utils/formatters';
 import { formatGregorianDate, formatHijriDate } from '../../utils/calendarConverter';
 import { generateAnnualSummaryPDF, downloadPDF } from '../../utils/pdfGenerator';
-import { usePayments } from '../../hooks/usePayments';
+import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 interface AnnualSummaryCardProps {
@@ -44,8 +44,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
   const [isExporting, setIsExporting] = useState(false);
 
   // Fetch payment records for this snapshot
-  const { data: paymentsData } = usePayments({ snapshotId: snapshot.id });
-  const payments = paymentsData?.payments || [];
+  const { payments } = usePaymentRepository({ snapshotId: snapshot.id });
 
   // Calculate summary statistics
   const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
@@ -116,8 +115,8 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
               hd: snapshot.hijriDay
             })}</span>
             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${snapshot.status === 'finalized'
-                ? 'bg-green-100 text-green-800'
-                : 'bg-yellow-100 text-yellow-800'
+              ? 'bg-green-100 text-green-800'
+              : 'bg-yellow-100 text-yellow-800'
               }`}>
               {snapshot.status === 'finalized' ? '✅ Finalized' : '🔄 Draft'}
             </span>

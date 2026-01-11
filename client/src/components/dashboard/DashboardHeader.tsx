@@ -73,7 +73,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
    */
   const getSubtitle = (): string => {
     if (!hasAssets) {
-      return 'Your Islamic Zakat Calculator';
+      return 'Your Wealth & Zakat Portfolio';
     }
 
     if (!hasActiveRecord) {

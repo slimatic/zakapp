@@ -27,7 +27,7 @@ import { PaymentRecord } from '@zakapp/shared/types/tracking';
  * Hook for managing Payment Records in the local RxDB database.
  * Replaces the API-based usePayments hook for Offline-First functionality.
  */
-export function usePaymentRepository() {
+export function usePaymentRepository(options: { snapshotId?: string } = {}) {
     const db = useDb();
     const { user } = useAuth();
     const [payments, setPayments] = useState<PaymentRecord[]>([]);
@@ -37,9 +37,16 @@ export function usePaymentRepository() {
     useEffect(() => {
         if (!db) return;
 
+        // Build selector based on options
+        const selector: any = {};
+        if (options.snapshotId) {
+            selector.snapshotId = { $eq: options.snapshotId };
+        }
+
         // Subscribe to payments query
         // Sort by paymentDate descending (newest first)
         const sub = db.payment_records.find({
+            selector,
             sort: [{ paymentDate: 'desc' }]
         }).$
             .pipe(
