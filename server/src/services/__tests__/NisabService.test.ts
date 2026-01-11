@@ -56,6 +56,9 @@ describe('NisabService', () => {
     });
 
     it('should fallback to static value on API error', async () => {
+        // Ensure manual env is unset
+        delete process.env.MANUAL_GOLD_PRICE_USD;
+
         // Mock scraper failure
         (metalPriceScraper.scrapeGoldPrice as jest.Mock).mockRejectedValue(new Error('Scraper failed'));
         // Mock API failure
@@ -63,6 +66,21 @@ describe('NisabService', () => {
 
         const price = await service['getCurrentGoldPrice']('USD');
         expect(price).toBe(65); // Static fallback
+    });
+
+    it('should fallback to manual env var if set on API & Scraper error', async () => {
+        process.env.MANUAL_GOLD_PRICE_USD = '142.933';
+
+        // Mock scraper failure
+        (metalPriceScraper.scrapeGoldPrice as jest.Mock).mockRejectedValue(new Error('Scraper failed'));
+        // Mock API failure
+        mockedAxios.get.mockRejectedValueOnce(new Error('Network Error'));
+
+        const price = await service['getCurrentGoldPrice']('USD');
+        expect(price).toBe(142.933);
+
+        // Cleanup
+        delete process.env.MANUAL_GOLD_PRICE_USD;
     });
 
     it('should use cache if valid', async () => {

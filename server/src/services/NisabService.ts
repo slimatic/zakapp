@@ -93,14 +93,7 @@ export class NisabService {
       return this.convertCurrency(cached.price, 'USD', currency);
     }
 
-    // 1. Manual Override
-    if (process.env.MANUAL_GOLD_PRICE_USD) {
-      console.log('Using manual gold price from env:', process.env.MANUAL_GOLD_PRICE_USD);
-      const price = parseFloat(process.env.MANUAL_GOLD_PRICE_USD);
-      return this.convertCurrency(price, 'USD', currency);
-    }
-
-    // 2. Try Scraper (Primary)
+    // 1. Try Scraper (Primary)
     try {
       console.log('Attempting to scrape gold price...');
       const price = await metalPriceScraper.scrapeGoldPrice();
@@ -116,7 +109,7 @@ export class NisabService {
       console.warn('Scraper failed for Gold, trying API fallback:', error instanceof Error ? error.message : 'Unknown error');
     }
 
-    // 3. Try API (Fallback)
+    // 2. Try API (Fallback)
     try {
       const price = await this.fetchLivePrice('XAU', currency);
 
@@ -130,13 +123,22 @@ export class NisabService {
     } catch (error) {
       console.error('GoldAPI Error (Gold):', error instanceof Error ? error.message : 'Unknown error');
 
-      // Fallback to cached value if available
+      // 3. Last Resort Fallbacks
+
+      // a. Check Cache (even if stale)
       if (cached) {
         console.warn('Using cached gold price due to API error');
         return this.convertCurrency(cached.price, 'USD', currency);
       }
 
-      // Fallback to static constant if all else fails
+      // b. Manual Env Variable (Configured Fallback)
+      if (process.env.MANUAL_GOLD_PRICE_USD) {
+        console.warn('Using manual gold price from env as fallback:', process.env.MANUAL_GOLD_PRICE_USD);
+        const price = parseFloat(process.env.MANUAL_GOLD_PRICE_USD);
+        return this.convertCurrency(price, 'USD', currency);
+      }
+
+      // c. Static Constant (Hard Fallback)
       const FALLBACK_GOLD_PRICE = 65; // USD/g
       console.warn(`Using static fallback gold price: $${FALLBACK_GOLD_PRICE}/g`);
       return this.convertCurrency(FALLBACK_GOLD_PRICE, 'USD', currency);
@@ -156,14 +158,7 @@ export class NisabService {
       return this.convertCurrency(cached.price, 'USD', currency);
     }
 
-    // 1. Manual Override
-    if (process.env.MANUAL_SILVER_PRICE_USD) {
-      console.log('Using manual silver price from env:', process.env.MANUAL_SILVER_PRICE_USD);
-      const price = parseFloat(process.env.MANUAL_SILVER_PRICE_USD);
-      return this.convertCurrency(price, 'USD', currency);
-    }
-
-    // 2. Try Scraper (Primary)
+    // 1. Try Scraper (Primary)
     try {
       console.log('Attempting to scrape silver price...');
       const price = await metalPriceScraper.scrapeSilverPrice();
@@ -179,7 +174,7 @@ export class NisabService {
       console.warn('Scraper failed for Silver, trying API fallback:', error instanceof Error ? error.message : 'Unknown error');
     }
 
-    // 3. Try API (Fallback)
+    // 2. Try API (Fallback)
     try {
       const price = await this.fetchLivePrice('XAG', currency);
 
@@ -193,13 +188,22 @@ export class NisabService {
     } catch (error) {
       console.error('GoldAPI Error (Silver):', error instanceof Error ? error.message : 'Unknown error');
 
-      // Fallback to cached value if available
+      // 3. Last Resort Fallbacks
+
+      // a. Check Cache (even if stale)
       if (cached) {
         console.warn('Using cached silver price due to API error');
         return this.convertCurrency(cached.price, 'USD', currency);
       }
 
-      // Fallback to static constant if all else fails
+      // b. Manual Env Variable (Configured Fallback)
+      if (process.env.MANUAL_SILVER_PRICE_USD) {
+        console.warn('Using manual silver price from env as fallback:', process.env.MANUAL_SILVER_PRICE_USD);
+        const price = parseFloat(process.env.MANUAL_SILVER_PRICE_USD);
+        return this.convertCurrency(price, 'USD', currency);
+      }
+
+      // c. Static Constant (Hard Fallback)
       const FALLBACK_SILVER_PRICE = 0.85; // USD/g
       console.warn(`Using static fallback silver price: $${FALLBACK_SILVER_PRICE}/g`);
       return this.convertCurrency(FALLBACK_SILVER_PRICE, 'USD', currency);
