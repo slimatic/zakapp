@@ -56,5 +56,30 @@ describe('MetalPriceScraperService', () => {
             const price = await metalPriceScraper.scrapeSilverPrice();
             expect(price).toBeCloseTo(1.00, 2);
         });
+
+        it('should ignore high values (gold price) in body and throw or find correct silver price', async () => {
+            // Simulator: Gold price appears first in sidebar
+            const html = `<html>
+                <body>
+                    <div class="sidebar">Gold Price: PER GRAM 140.89 $</div>
+                    <div class="main">
+                        <h1>Silver Price</h1>
+                        <div>Silver Price per Gram: $0.98</div>
+                    </div>
+                </body>
+            </html>`;
+            mockedAxios.get.mockResolvedValueOnce({ data: html });
+
+            // Should find 0.98 via Strict Body Match, or at least NOT return 140.89
+            const price = await metalPriceScraper.scrapeSilverPrice();
+            expect(price).toBe(0.98);
+        });
+
+        it('should throw error if only high value (gold) is found', async () => {
+            const html = `<html><body><div>Gold Price: PER GRAM 140.89 $</div></body></html>`;
+            mockedAxios.get.mockResolvedValueOnce({ data: html });
+
+            await expect(metalPriceScraper.scrapeSilverPrice()).rejects.toThrow();
+        });
     });
 });
