@@ -1,6 +1,6 @@
 # Contributing to ZakApp (Project Ikhlas)
 
-Thank you for your interest in contributing to ZakApp! We are building the world's first **Privacy-First, Local-First Zakat Calculator**.
+Thank you for your interest in contributing to ZakApp! We are building the open-source **Privacy-First Wealth & Zakat Vault**.
 
 Our mission is to help Muslims fulfill their religious obligation with accuracy, privacy, and peace of mind.
 

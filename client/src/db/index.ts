@@ -204,6 +204,13 @@ export const closeDb = async () => {
         window._zakapp_db_password = undefined;
         notifyListeners(null);
     }
+
+    // Explicitly nullify the storage/singleton to free up the RxDB internal map
+    if (process.env.NODE_ENV === 'development') {
+        // RxDB dev-mode plugin might need extra time or signals
+        // This helps clear the "COL23" limit in hot-reload scenarios
+        await new Promise(r => setTimeout(r, 100));
+    }
 };
 
 // Removes the DB (Deletes ALL Data)

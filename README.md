@@ -4,7 +4,7 @@
   </a>
   <h1>ZakApp</h1>
   <p>
-    <b>The World's First Local-First, Privacy-Focused Islamic Finance Platform.</b>
+    <b>Your Secure, Private Wealth & Zakat Vault.</b>
   </p>
 </div>
 
@@ -12,7 +12,7 @@
 ![Status](https://img.shields.io/badge/status-stable-green.svg)
 ![Compliance](https://img.shields.io/badge/compliance-shariah--compliant-green.svg)
 
-ZakApp Re-imagines the Zakat calculation experience by prioritizing user privacy, Fiqh precision, and modern design. Unlike other calculators that send your Net Worth to a cloud server, ZakApp performs all math inside your browser.
+ZakApp Re-imagines the wealth purification experience by prioritizing user privacy, Fiqh precision, and modern design. Unlike other tools that send your Net Worth to a cloud server, ZakApp performs all calculations locally.
 
 [![Sustain ZakApp](https://img.shields.io/badge/Sustain-ZakApp-teal?style=for-the-badge&logo=kofi)](website/donate.html)
 

@@ -44,7 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
     // Check for chunk load errors (deployment updates)
     if (error.message.includes('Loading chunk') || error.message.includes('ChunkLoadError')) {
       const isReloading = sessionStorage.getItem('chunk_reload');
-      
+
       if (!isReloading) {
         sessionStorage.setItem('chunk_reload', 'true');
         window.location.reload();
@@ -72,10 +72,19 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
             <p className="text-gray-600 mb-6">
-              {this.state.error?.message.includes('Loading chunk') 
+              {this.state.error?.message.includes('Loading chunk')
                 ? 'A new version of the app is available. Please refresh the page.'
-                : 'An unexpected error occurred. Please try refreshing the page.'}
+                : this.state.error?.message.includes('COL23') || this.state.error?.message.includes('limit')
+                  ? 'Connection limit reached. Please refresh the page to reconnect.'
+                  : process.env.NODE_ENV === 'production'
+                    ? 'An unexpected error occurred. Please try refreshing the page.'
+                    : `Error: ${this.state.error?.message}`}
             </p>
+            {process.env.NODE_ENV !== 'production' && this.state.error?.message && (
+              <div className="mt-4 p-2 bg-red-50 text-red-800 text-xs text-left overflow-auto max-h-32 rounded">
+                {this.state.error.message}
+              </div>
+            )}
             <Button onClick={this.handleReload} variant="default" className="w-full">
               Refresh Page
             </Button>

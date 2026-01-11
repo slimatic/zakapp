@@ -31,7 +31,9 @@ services:
         condition: service_healthy
       couchdb:
         condition: service_started
-    command: npm run dev
+    # In production, we build the app and serve it using 'preview' (or a static server)
+    # The 'start' script we added runs 'vite preview'
+    command: /bin/sh -c "npm install && npm run build && npm start"
 
   couchdb:
     image: apache/couchdb:3.5.1
