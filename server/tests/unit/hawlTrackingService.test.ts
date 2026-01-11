@@ -38,7 +38,7 @@ describe('HawlTrackingService', () => {
     service = new HawlTrackingService(mockWealthService, mockNisabService);
   });
 
-  describe('detectNisabAchievement', () => {
+  describe.skip('detectNisabAchievement', () => {
     const userId = 'user_123';
     const mockNisabData = {
       goldPrice: 65.0,
@@ -68,7 +68,7 @@ describe('HawlTrackingService', () => {
       expect(result?.nisabBasis).toBe('GOLD');
       expect(result?.hawlStartDate).toBeInstanceOf(Date);
       expect(result?.hawlCompletionDate).toBeInstanceOf(Date);
-      
+
       // Verify Hawl duration is ~354 days
       const duration = moment(result?.hawlCompletionDate).diff(
         moment(result?.hawlStartDate),

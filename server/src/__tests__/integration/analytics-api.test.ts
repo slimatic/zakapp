@@ -36,6 +36,9 @@ describe('Analytics API Integration Tests', () => {
         lastName: 'Test'
       });
 
+    if (registrationResponse.status !== 201) {
+      throw new Error(`Registration Failed: ${JSON.stringify(registrationResponse.body, null, 2)}`);
+    }
     expect(registrationResponse.status).toBe(201);
     testUser = registrationResponse.body.user;
     authToken = registrationResponse.body.accessToken;
