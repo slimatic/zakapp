@@ -18,6 +18,7 @@
 import { NisabInfo } from '@zakapp/shared';
 import { NISAB_THRESHOLDS } from '@zakapp/shared';
 import axios from 'axios';
+import { metalPriceScraper } from './MetalPriceScraperService';
 
 /**
  * Nisab Threshold Service
@@ -99,6 +100,23 @@ export class NisabService {
       return this.convertCurrency(price, 'USD', currency);
     }
 
+    // 2. Try Scraper (Primary)
+    try {
+      console.log('Attempting to scrape gold price...');
+      const price = await metalPriceScraper.scrapeGoldPrice();
+
+      // Update cache
+      this.priceCache.gold = {
+        price: price,
+        timestamp: Date.now()
+      };
+
+      return this.convertCurrency(price, 'USD', currency);
+    } catch (error) {
+      console.warn('Scraper failed for Gold, trying API fallback:', error instanceof Error ? error.message : 'Unknown error');
+    }
+
+    // 3. Try API (Fallback)
     try {
       const price = await this.fetchLivePrice('XAU', currency);
 
@@ -145,6 +163,23 @@ export class NisabService {
       return this.convertCurrency(price, 'USD', currency);
     }
 
+    // 2. Try Scraper (Primary)
+    try {
+      console.log('Attempting to scrape silver price...');
+      const price = await metalPriceScraper.scrapeSilverPrice();
+
+      // Update cache
+      this.priceCache.silver = {
+        price: price,
+        timestamp: Date.now()
+      };
+
+      return this.convertCurrency(price, 'USD', currency);
+    } catch (error) {
+      console.warn('Scraper failed for Silver, trying API fallback:', error instanceof Error ? error.message : 'Unknown error');
+    }
+
+    // 3. Try API (Fallback)
     try {
       const price = await this.fetchLivePrice('XAG', currency);
 
