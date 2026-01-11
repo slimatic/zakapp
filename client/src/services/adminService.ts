@@ -8,12 +8,27 @@ export interface AdminStats {
     storageUsed: string;
 }
 
+export interface SystemSettings {
+    id: string;
+    smtpHost?: string;
+    smtpPort?: number;
+    smtpSecure: boolean;
+    smtpUser?: string;
+    smtpFromEmail?: string;
+    smtpFromName?: string;
+    emailProvider: 'smtp' | 'resend';
+    resendApiKey?: string; // Will come back masked usually?
+    requireEmailVerification: boolean;
+    allowRegistration: boolean;
+}
+
 export interface User {
     id: string;
     email: string;
     username: string | null;
     userType: string;
     isActive: boolean;
+    isVerified?: boolean;
     lastLoginAt: string | null;
     createdAt: string;
     maxAssets: number | null;
@@ -109,5 +124,21 @@ export const adminService = {
         } catch (e) {
             return { success: false, message: e instanceof Error ? e.message : 'Network error' };
         }
+    },
+
+    getSettings: async (): Promise<ApiResponse<SystemSettings>> => {
+        return apiService.get('/admin/settings');
+    },
+
+    updateSettings: async (settings: Partial<SystemSettings> & { smtpPass?: string, resendApiKey?: string }): Promise<ApiResponse<SystemSettings>> => {
+        return apiService.put('/admin/settings', settings);
+    },
+
+    sendTestEmail: async (to: string): Promise<ApiResponse> => {
+        return apiService.post('/admin/settings/test-email', { to });
+    },
+
+    verifyUser: async (userId: string): Promise<ApiResponse> => {
+        return apiService.post(`/admin/settings/users/${userId}/verify`, {});
     }
-};
+}

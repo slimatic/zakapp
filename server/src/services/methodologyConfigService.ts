@@ -15,7 +15,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { MethodologyConfig, CreateMethodologyConfig, UpdateMethodologyConfig } from '@zakapp/shared';
+import { MethodologyConfig, CreateMethodologyConfig } from '@zakapp/shared';
+
+// Workaround for shared package resolution issue
+type UpdateMethodologyConfig = Partial<CreateMethodologyConfig>;
 import { prisma } from '../config/database';
 import { AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { EncryptionService } from './EncryptionService';
