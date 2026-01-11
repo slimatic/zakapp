@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as cheerio from 'cheerio';
+import cheerio from 'cheerio';
 
 /**
  * MetalPriceScraperService
@@ -75,10 +75,7 @@ export class MetalPriceScraperService {
      */
     async scrapeSilverPrice(): Promise<number> {
         try {
-            // Use the US Silver page which often lists gram prices or at least ounce prices
-            // Based on user request URL: https://www.livepriceofgold.com/silver-price
-            // But better: https://www.livepriceofgold.com/silver-price/us.html might be more specific
-            // Let's try the generic one first as it often has a summary table
+            // Use the US Silver page
             const url = 'https://www.livepriceofgold.com/silver-price/us.html';
 
             console.log(`Scraping Silver price from ${url}...`);
@@ -93,39 +90,67 @@ export class MetalPriceScraperService {
             const title = $('title').text();
             console.log('Silver Page Title:', title);
 
-            // Title often: "Silver Price today in US: $30.50 Ounce, $0.98 Gram..."
-            const gramMatch = title.match(/\$\s*([\d,]+\.?\d*)\s*Gram/i);
+            const MAX_REASONABLE_SILVER_PRICE = 5.0; // Hard cap to prevent grabbing Gold price (~$80-150+)
+
+            // Strategy 1: Title Parsing
+            // "Silver Price today in US: $30.50 Ounce, $0.98 Gram..."
+            const gramMatch = title.match(/Silver.*?\$?\s*([\d,]+\.?\d*)\s*(?:USD)?\s*\/?[gG]ram/i); // Specific "Silver... $X Gram"
             if (gramMatch && gramMatch[1]) {
                 const price = parseFloat(gramMatch[1].replace(/,/g, ''));
-                if (!isNaN(price) && price > 0) {
-                    console.log(`Scraped Silver Price (Gram): ${price}`);
+                if (!isNaN(price) && price > 0 && price < MAX_REASONABLE_SILVER_PRICE) {
+                    console.log(`Scraped Silver Price (Gram from Title): ${price}`);
                     return price;
                 }
             }
 
-            // Search for "Ounce" price and convert
-            const ounceMatch = title.match(/\$\s*([\d,]+\.?\d*)\s*Ounce/i); // "Silver Price: $30.50 Ounce"
+            // Strategy 2: Ounce in Title
+            const ounceMatch = title.match(/Silver.*?\$?\s*([\d,]+\.?\d*)\s*(?:USD)?\s*\/?[oO]unce/i);
             if (ounceMatch && ounceMatch[1]) {
                 const pricePerOz = parseFloat(ounceMatch[1].replace(/,/g, ''));
                 if (!isNaN(pricePerOz) && pricePerOz > 0) {
-                    const pricePerGram = pricePerOz / 31.1034768; // Troy Ounce to Grams
-                    console.log(`Scraped Silver Price (Ounce: ${pricePerOz} -> Gram: ${pricePerGram})`);
-                    return pricePerGram;
+                    const pricePerGram = pricePerOz / 31.1034768;
+                    if (pricePerGram < MAX_REASONABLE_SILVER_PRICE) {
+                        console.log(`Scraped Silver Price (Ounce from Title): ${pricePerGram}`);
+                        return pricePerGram;
+                    }
                 }
             }
 
-            // Body fallback similar to gold
+            // Strategy 3: Body Fallback - Targeted Search
+            // We look for specifically "Silver Price per Gram" or similar context
+            // The site likely has a table row for "Silver Price per Gram"
+
+            // Try to find a table cell that contains "Silver" and "Gram", then look at the next cell?
+            // Or just a stricter Regex on the whole body that forces "Silver" to appear close to the price.
+
             const bodyText = $('body').text();
+
+            // Regex: Look for "Silver" ... "Per Gram" ... "$X.XX"
+            const strictBodyMatch = bodyText.match(/Silver\s+Price\s+per\s+Gram\s*(?:\(USD\))?[:\s]*\$?\s*([\d,]+\.?\d*)/i);
+            if (strictBodyMatch && strictBodyMatch[1]) {
+                const price = parseFloat(strictBodyMatch[1].replace(/,/g, ''));
+                if (!isNaN(price) && price > 0 && price < MAX_REASONABLE_SILVER_PRICE) {
+                    console.log(`Scraped Silver Price (Strict Body Match): ${price}`);
+                    return price;
+                }
+            }
+
+            // Generic "PER GRAM" match BUT validated against sanity check
+            // This was the one likely failing before (matching Gold)
             const bodyGramMatch = bodyText.match(/PER GRAM\s+([\d,]+\.?\d*)\s*\$/i);
             if (bodyGramMatch && bodyGramMatch[1]) {
                 const price = parseFloat(bodyGramMatch[1].replace(/,/g, ''));
                 if (!isNaN(price) && price > 0) {
-                    console.log(`Scraped Silver Price (from Body): ${price}`);
-                    return price;
+                    if (price < MAX_REASONABLE_SILVER_PRICE) {
+                        console.log(`Scraped Silver Price (Generic Body Match): ${price}`);
+                        return price;
+                    } else {
+                        console.warn(`Ignored scraped silver price (Generic Body) as it seems too high (Likely Gold): ${price}`);
+                    }
                 }
             }
 
-            throw new Error('Could not parse silver price from page');
+            throw new Error('Could not parse silver price from page (Sanity Check Failed or Pattern Not Found)');
 
         } catch (error) {
             console.error('Silver Scraping Failed:', error instanceof Error ? error.message : 'Unknown error');
