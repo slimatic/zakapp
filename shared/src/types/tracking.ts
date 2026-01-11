@@ -141,6 +141,7 @@ export interface PaymentRecord {
   id: string;
   userId: string;
   snapshotId: string;
+  calculationId?: string;
   amount: number; // Encrypted in DB
   paymentDate: Date | string;
   recipientName: string; // Encrypted in DB
