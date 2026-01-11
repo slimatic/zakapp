@@ -19,7 +19,7 @@ import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
-import { usePayments } from '../../hooks/usePayments';
+import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { Decimal } from 'decimal.js';
 
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
@@ -62,8 +62,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
     return Number.isFinite(parsed) ? parsed : 0;
   }, [record?.zakatAmount]);
 
-  const { data: paymentsResp } = usePayments({ snapshotId: record?.id, enabled: !!record?.id });
-  const payments = paymentsResp?.payments || [];
+  const { payments } = usePaymentRepository({ snapshotId: record?.id });
 
   const safeAmount = (p: any): Decimal => {
     const raw = p?.amount;
