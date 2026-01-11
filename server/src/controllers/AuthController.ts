@@ -22,6 +22,9 @@ import { asyncHandler, AppError } from '../middleware/ErrorHandler';
 import { AuthService } from '../services/AuthService';
 import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken, invalidateAllUserRefreshTokens } from '../utils/jwt';
 import { generateResetToken, validateResetToken, useResetToken, invalidateUserResetTokens } from '../utils/resetTokens';
+import { emailService } from '../services/EmailService';
+import { SettingsService } from '../services/SettingsService';
+import { prisma } from '../utils/prisma';
 
 const authService = new AuthService();
 
@@ -92,6 +95,28 @@ export class AuthController {
         tokens: result.tokens
       };
 
+      // Send Verification Email
+      try {
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+        await prisma.user.update({
+          where: { id: result.user.id },
+          data: {
+            verificationToken: token,
+            verificationTokenExpires: expiry,
+            isVerified: false // Explicitly set to false on new registration
+          }
+        });
+
+        // Fire and forget email (don't block response) or wait?
+        // Better to wait briefly or log error, but return success to user.
+        await emailService.sendVerificationEmail(email, token);
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+        // Continue, user can request resend later
+      }
+
       res.status(201).json(response);
     } catch (error: any) {
       if (error.message === 'User with this email or username already exists') {
@@ -104,6 +129,55 @@ export class AuthController {
       }
       throw error;
     }
+  });
+
+  verifyEmail = asyncHandler(async (req: Request, res: Response) => {
+    const { token } = req.query;
+
+    if (!token || typeof token !== 'string') {
+      res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Verification token is required'
+      });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { verificationToken: token }
+    });
+
+    if (!user) {
+      res.status(400).json({
+        success: false,
+        error: 'INVALID_TOKEN',
+        message: 'Invalid or expired verification token'
+      });
+      return;
+    }
+
+    if (user.verificationTokenExpires && user.verificationTokenExpires < new Date()) {
+      res.status(400).json({
+        success: false,
+        error: 'TOKEN_EXPIRED',
+        message: 'Verification token has expired'
+      });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationToken: null,
+        verificationTokenExpires: null
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully'
+    });
   });
 
   login = asyncHandler(async (req: Request, res: Response) => {
@@ -139,6 +213,19 @@ export class AuthController {
         success: false,
         error: 'INVALID_CREDENTIALS',
         message: 'Invalid email or password'
+      });
+      return;
+    }
+
+    // Check email verification status
+    const settings = await SettingsService.getSettings();
+    const userVerified = result.user.isVerified !== false; // Default to true if undefined (legacy users)
+
+    if (settings.requireEmailVerification && !userVerified) {
+      res.status(403).json({
+        success: false,
+        error: 'EMAIL_NOT_VERIFIED',
+        message: 'Email verification is required to log in.'
       });
       return;
     }

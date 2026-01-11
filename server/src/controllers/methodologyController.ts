@@ -17,7 +17,9 @@
 
 import { Response } from 'express';
 import { MethodologyConfigService } from '../services/methodologyConfigService';
-import { CreateMethodologyConfig, UpdateMethodologyConfig } from '@zakapp/shared';
+import { CreateMethodologyConfig } from '@zakapp/shared';
+// Workaround for shared package resolution issue
+type UpdateMethodologyConfig = Partial<CreateMethodologyConfig>;
 import { AppError } from '../middleware/ErrorHandler';
 import { AuthenticatedRequest } from '../types';
 

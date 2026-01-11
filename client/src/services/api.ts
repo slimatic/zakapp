@@ -186,6 +186,20 @@ class ApiService {
     }
   }
 
+  async put(path: string, body?: any): Promise<ApiResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : '/' + path}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const result = await response.json();
+      return result as ApiResponse;
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : 'Network error' };
+    }
+  }
+
   // Authentication endpoints
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
@@ -263,6 +277,17 @@ class ApiService {
         message: error instanceof Error ? error.message : 'Network error occurred'
       };
     }
+  }
+
+  async verifyEmail(token: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/auth/verify-email?token=${token}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    return this.handleResponse(response);
   }
 
   async logout(): Promise<ApiResponse> {

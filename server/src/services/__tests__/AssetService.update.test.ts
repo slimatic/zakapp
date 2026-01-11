@@ -17,8 +17,8 @@
 
 // Mock @zakapp/shared to avoid ESM runtime in Jest
 jest.mock('@zakapp/shared', () => ({
-  PASSIVE_INVESTMENT_TYPES: ['Stock','ETF','Mutual Fund','Roth IRA'],
-  RESTRICTED_ACCOUNT_TYPES: ['401k','Traditional IRA','Pension','Roth IRA'],
+  PASSIVE_INVESTMENT_TYPES: ['Stock', 'ETF', 'Mutual Fund', 'Roth IRA'],
+  RESTRICTED_ACCOUNT_TYPES: ['401k', 'Traditional IRA', 'Pension', 'Roth IRA'],
   CalculationModifier: { RESTRICTED: 0.0, PASSIVE: 0.3, FULL: 1.0 }
 }));
 
@@ -51,7 +51,8 @@ describe('AssetService update asset modifier validation', () => {
     } as any;
 
     jest.spyOn(prisma.asset, 'findFirst').mockResolvedValue(existing);
-    jest.spyOn(prisma.asset, 'update').mockImplementation(async ({ where, data }: any) => ({ ...existing, ...data }));
+    // @ts-ignore
+    jest.spyOn(prisma.asset, 'update').mockImplementation(async (args: any) => ({ ...existing, ...args.data }));
 
     const svc = new AssetService();
     const updated = await svc.updateAsset('u1', 'a1', { category: 'STOCKS', isPassiveInvestment: true } as any);

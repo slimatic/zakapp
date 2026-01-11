@@ -84,7 +84,8 @@ export const getUsers = async (req: Request, res: Response) => {
                     maxAssets: true,
                     maxNisabRecords: true,
                     maxPayments: true,
-                    maxLiabilities: true
+                    maxLiabilities: true,
+                    isVerified: true
                 }
             }),
             prisma.user.count({ where: whereClause })
