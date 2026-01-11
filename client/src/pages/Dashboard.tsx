@@ -203,11 +203,12 @@ export const Dashboard: React.FC = () => {
       }
     }
 
-    // Only redirect if NOT complete AND NOT skipped
-    if (user && user.isSetupCompleted === false && !hasSkipped) {
+    // Only redirect if NOT complete AND NOT skipped AND NO ASSETS/RECORDS
+    // (Legacy users or partially synced users might have assets but isSetupCompleted=false)
+    if (user && user.isSetupCompleted === false && !hasSkipped && !hasAssets && !hasActiveRecord) {
       navigate('/onboarding');
     }
-  }, [user, navigate]);
+  }, [user, navigate, hasAssets, hasActiveRecord]);
 
   // Local Data Repositories (RxDB)
   const { assets, isLoading: assetsLoading, error: assetsError } = useAssetRepository();

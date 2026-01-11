@@ -156,11 +156,11 @@ describe('NisabYearRecordsPage Integration', () => {
 
         // Wait for record to appear
         await waitFor(() => {
-            expect(screen.getByText('1445 H')).toBeInTheDocument();
+            expect(screen.getByText(/1445 H/)).toBeInTheDocument();
         });
 
         // Click on the record to select it
-        screen.getByText('1445 H').click();
+        screen.getByText(/1445 H/).click();
 
         // Verify detail view appears (Payment Progress section)
         await waitFor(() => {

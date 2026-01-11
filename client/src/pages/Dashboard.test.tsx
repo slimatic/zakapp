@@ -6,7 +6,18 @@ import * as router from 'react-router-dom';
 
 // Mock hooks
 vi.mock('../contexts/AuthContext', () => ({
-    useAuth: () => ({ user: { id: 'test-user', name: 'Test User' } }),
+    useAuth: () => ({
+        user: {
+            id: 'test-user',
+            name: 'Test User',
+            isAdmin: false,
+            userType: 'free',
+            maxAssets: 10,
+            maxNisabRecords: 12,
+            maxPayments: 50,
+            isSetupCompleted: false
+        }
+    }),
 }));
 
 vi.mock('../hooks/useAssetRepository', () => ({
@@ -15,6 +26,10 @@ vi.mock('../hooks/useAssetRepository', () => ({
 
 vi.mock('../hooks/useNisabRecordRepository', () => ({
     useNisabRecordRepository: vi.fn(),
+}));
+
+vi.mock('../hooks/usePaymentRepository', () => ({
+    usePaymentRepository: vi.fn(),
 }));
 
 vi.mock('../hooks/useUserOnboarding', () => ({
@@ -32,6 +47,7 @@ vi.mock('../contexts/PrivacyContext', () => ({
 // Mock repositories imports to control them in tests
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
+import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -61,6 +77,11 @@ describe('Dashboard Redirection', () => {
         });
         (useNisabRecordRepository as any).mockReturnValue({
             activeRecord: null,
+            isLoading: false,
+            error: null,
+        });
+        (usePaymentRepository as any).mockReturnValue({
+            payments: [],
             isLoading: false,
             error: null,
         });
@@ -108,7 +129,7 @@ describe('Dashboard Redirection', () => {
 
     it('does NOT redirect if local prefs exist for user', async () => {
         // Mock existing prefs
-        localStorage.setItem('zakapp_local_prefs_test-user', '{"completed": true}');
+        localStorage.setItem('zakapp_local_prefs_test-user', '{"skipped": true}');
 
         (useAssetRepository as any).mockReturnValue({
             assets: [],
@@ -117,6 +138,11 @@ describe('Dashboard Redirection', () => {
         });
         (useNisabRecordRepository as any).mockReturnValue({
             activeRecord: null,
+            isLoading: false,
+            error: null,
+        });
+        (usePaymentRepository as any).mockReturnValue({
+            payments: [],
             isLoading: false,
             error: null,
         });
