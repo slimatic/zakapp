@@ -17,7 +17,7 @@
 
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { usePayments, useCreatePayment } from '../../hooks/usePayments';
+import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { Button, LoadingSpinner } from '../ui';
 
 interface ImportResult {
@@ -34,10 +34,8 @@ export const PaymentImportExport: React.FC = () => {
   const [exporting, setExporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
-  const { data: paymentsData } = usePayments();
-  const createPaymentMutation = useCreatePayment();
-
-  const payments = paymentsData?.payments || [];
+  // Use repository without filtering (or filter by snapshot if context supports it in future)
+  const { payments, addPayment } = usePaymentRepository();
 
   // Export payments to CSV
   const handleExportCSV = () => {
@@ -79,7 +77,7 @@ export const PaymentImportExport: React.FC = () => {
         p.status || ''
       ]);
 
-      const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+      const csvContent = [headers.join(','), ...rows.map((row: string[]) => row.join(','))].join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -248,10 +246,11 @@ export const PaymentImportExport: React.FC = () => {
               throw new Error('Missing required snapshot ID for payment');
             }
 
-            await createPaymentMutation.mutateAsync({
+            await addPayment({
+              // snapshotId: p.snapshotId, // Schema uses snapshotId
               snapshotId: p.snapshotId,
               amount: p.amount,
-              paymentDate: new Date(p.paymentDate),
+              paymentDate: new Date(p.paymentDate).toISOString(),
               recipientName: p.recipientName,
               recipientType: p.recipientType || 'individual',
               recipientCategory: p.recipientCategory || 'fakir',
@@ -261,7 +260,7 @@ export const PaymentImportExport: React.FC = () => {
               status: p.status || 'recorded',
               currency: p.currency || 'USD',
               calculationId: p.calculationId
-            } as any);
+            });
 
             successful++;
           } catch (error: any) {
