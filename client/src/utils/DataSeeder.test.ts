@@ -34,7 +34,7 @@ describe('DataSeeder', () => {
         await DataSeeder.seedAssets(10);
         expect(mockBulkInsert).toHaveBeenCalledTimes(1);
         const args = mockBulkInsert.mock.calls[0][0];
-        expect(args[0]).not.toHaveProperty('metadata'); // Cleaned up
+        expect(args[0]).toHaveProperty('metadata'); // Metadata is now expected (e.g. seed timestamp)
         expect(args[0]).toHaveProperty('value');
     });
 
