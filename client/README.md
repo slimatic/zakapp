@@ -1,6 +1,6 @@
 # ZakApp Frontend
 
-This is the React frontend for ZakApp, a privacy-first Islamic Zakat calculator. This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the React frontend for ZakApp, a privacy-first wealth & Zakat portfolio vault. This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Quick Start
 
