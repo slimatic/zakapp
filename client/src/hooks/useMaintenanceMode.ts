@@ -27,10 +27,10 @@ interface MaintenanceStatus {
  * useMaintenanceMode Hook
  * 
  * Checks if the application is in maintenance mode by polling the backend status endpoint.
- * Automatically re-checks every 30 seconds to detect when maintenance ends.
+ * Simple, predictable behavior: only shows maintenance page when MAINTENANCE_ENABLED=true.
  * 
+ * Default Behavior: If API call fails, assumes normal operation (false) to prevent false positives.
  * Privacy-First: No user data is transmitted during status checks.
- * Offline-First: Gracefully handles network failures by assuming maintenance mode.
  * 
  * @returns {MaintenanceStatus} Current maintenance mode status and loading state
  * 
@@ -67,20 +67,25 @@ export const useMaintenanceMode = (): MaintenanceStatus => {
                     signal: AbortSignal.timeout(5000),
                 });
 
+                // Only proceed if response is OK
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const data = await response.json();
 
                 setStatus({
-                    isMaintenanceMode: data.maintenanceMode || false,
+                    isMaintenanceMode: data.maintenanceMode === true, // Explicit true check
                     isLoading: false,
                     error: null,
                 });
             } catch (error) {
-                // If we can't reach the server, assume maintenance mode (fail-safe)
-                // This ensures that network issues don't lock users out with a broken UI
-                console.warn('Failed to check maintenance status, assuming maintenance mode:', error);
+                // Default to FALSE on error (normal operation)
+                // This prevents false positives from temporary network issues
+                console.warn('Failed to check maintenance status, defaulting to normal operation:', error);
 
                 setStatus({
-                    isMaintenanceMode: true,
+                    isMaintenanceMode: false, // Default to normal operation
                     isLoading: false,
                     error: error as Error,
                 });
@@ -90,9 +95,13 @@ export const useMaintenanceMode = (): MaintenanceStatus => {
         // Initial check
         checkMaintenanceStatus();
 
-        // Poll every 30 seconds to detect when maintenance ends
-        // This allows users to automatically see the app when it comes back online
-        const interval = setInterval(checkMaintenanceStatus, 30000);
+        // Poll every 60 seconds (reduced from 30 to minimize network overhead)
+        // Only poll if user is actively viewing the page
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                checkMaintenanceStatus();
+            }
+        }, 60000);
 
         return () => clearInterval(interval);
     }, []);
