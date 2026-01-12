@@ -55,10 +55,7 @@
       "@zakapp/shared/*": [
         "../shared/src/*"
       ]
-    },
-    "types": [
-      "vite/client"
-    ]
+    }
   },
   "include": [
     "src"
