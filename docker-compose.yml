@@ -91,3 +91,11 @@ services:
     depends_on:
       - couchdb
 
+volumes:
+  zakapp-db:
+    name: zakapp-database
+
+networks:
+  default:
+    name: zakapp-dev
+
