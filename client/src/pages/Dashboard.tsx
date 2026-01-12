@@ -188,6 +188,15 @@ export const Dashboard: React.FC = () => {
   // Let's rely on local derivation for "Smart" steps to be consistent.
   const maskedCurrency = useMaskedCurrency();
 
+  // Local Data Repositories (RxDB) - moved before useEffect
+  const { assets, isLoading: assetsLoading, error: assetsError } = useAssetRepository();
+  const { activeRecord, isLoading: recordsLoading, error: recordsError } = useNisabRecordRepository();
+  const { payments, isLoading: paymentsLoading } = usePaymentRepository();
+
+  const hasAssets = assets.length > 0;
+  const hasActiveRecord = activeRecord !== null;
+  const hasPayments = payments.length > 0;
+
   // Redirect to onboarding if setup is incomplete
   // Redirect to onboarding if setup is incomplete
   useEffect(() => {
@@ -209,15 +218,6 @@ export const Dashboard: React.FC = () => {
       navigate('/onboarding');
     }
   }, [user, navigate, hasAssets, hasActiveRecord]);
-
-  // Local Data Repositories (RxDB)
-  const { assets, isLoading: assetsLoading, error: assetsError } = useAssetRepository();
-  const { activeRecord, isLoading: recordsLoading, error: recordsError } = useNisabRecordRepository();
-  const { payments, isLoading: paymentsLoading } = usePaymentRepository();
-
-  const hasAssets = assets.length > 0;
-  const hasActiveRecord = activeRecord !== null;
-  const hasPayments = payments.length > 0;
 
   // Calculate total wealth
   const totalWealth = assets.reduce((sum: number, asset: Asset) => {
