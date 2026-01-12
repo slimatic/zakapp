@@ -16,7 +16,7 @@ services:
     env_file:
       - .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
       - HOST=0.0.0.0
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - PORT=${FRONTEND_INTERNAL_PORT:-3000}
@@ -71,7 +71,7 @@ services:
     env_file:
       - .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
       - PORT=${BACKEND_INTERNAL_PORT:-3001}
       - DATABASE_URL=file:./prisma/data/dev.db
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
