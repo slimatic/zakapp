@@ -26,6 +26,9 @@ export const ReviewStep: React.FC = () => {
     const [completed, setCompleted] = useState(false);
     const [createdRecordId, setCreatedRecordId] = useState<string | null>(null);
 
+    // State to hold frozen estimates after completion to prevent double-counting
+    const [finalEstimates, setFinalEstimates] = useState<any>(null);
+
     // Calculate Estimated Zakat for Preview
     const calculateEstimates = () => {
         let totalWealth = 0;
@@ -41,19 +44,24 @@ export const ReviewStep: React.FC = () => {
         const selectedMethodologyName = madhabMap[data.methodology.madhab] || 'STANDARD';
 
         // 1. Process Existing Assets (from DB)
-        // SKIPPED: User is running wizard to define/re-define portfolio. 
-        // Including DB assets causes double counting if they are re-entering data.
+        // Only valid if we haven't completed (otherwise we get double counting)
+        if (!completed) {
+            const dbStats = calculateWealth(
+                dbAssets.filter(a => a.isActive),
+                [],
+                new Date(),
+                selectedMethodologyName
+            );
+            // We will sum them up at the end for the Grand Total
+            existingAssetsValue = dbStats.totalWealth;
+            // Note: We are ignoring existing zakatable wealth for now to simplify, 
+            // or we should add it:
+            // zakatableWealth += dbStats.zakatableWealth;
+            // (Original code didn't add it to zakatableWealth properly in step 1, but added it in step 3)
+            // Let's stick to original logic structure but be careful.
 
-        // 1. Process Existing Assets (from DB)
-        const dbStats = calculateWealth(
-            dbAssets.filter(a => a.isActive),
-            [],
-            new Date(),
-            selectedMethodologyName
-        );
-        // We will sum them up at the end for the Grand Total
-        existingAssetsValue = dbStats.totalWealth;
-        // zakatableWealth += dbStats.zakatableWealth; // Don't add yet, handle carefully
+            // Actually, original code did: grandTotalZakatable = zakatableWealth + dbStats.zakatableWealth;
+        }
 
         // 2. Process Wizard Assets
         const addWizardAsset = (type: string, val: number | undefined, isPassive: boolean, retirementTreatment?: string) => {
@@ -104,11 +112,18 @@ export const ReviewStep: React.FC = () => {
         const totalLiabilities = (data.liabilities?.immediate || 0) + (data.liabilities?.expenses || 0);
 
         // combine
+        const existingZakatable = !completed
+            ? calculateWealth(dbAssets.filter(a => a.isActive), [], new Date(), selectedMethodologyName).zakatableWealth
+            : 0;
+
         const grandTotalWealth = totalWealth + existingAssetsValue;
-        const grandTotalZakatable = zakatableWealth + dbStats.zakatableWealth;
+        const grandTotalZakatable = zakatableWealth + existingZakatable;
 
         const netZakatable = Math.max(0, grandTotalZakatable - totalLiabilities);
-        const zakatDue = Math.max(0, (netZakatable * 0.025) - zakatPaid);
+
+        // Split Zakat Due: Gross (Obligation) vs Net (Remaining)
+        const totalZakatDue = netZakatable * 0.025; // Gross Obligation
+        const remainingZakatDue = Math.max(0, totalZakatDue - zakatPaid);
 
         return {
             totalWealth: grandTotalWealth, // Show GRAND TOTAL
@@ -117,15 +132,25 @@ export const ReviewStep: React.FC = () => {
             existingAssetsValue,
             totalLiabilities,
             netZakatable,
-            zakatDue
+            totalZakatDue,      // Absolute Obligation
+            remainingZakatDue   // Net Payable
         };
     };
 
     const estimates = calculateEstimates();
 
+    // Use finalEstimates if completed, otherwise live estimates
+    const displayEstimates = completed ? finalEstimates : estimates;
+
     const saveData = async () => {
         setIsSubmitting(true);
         const toastId = toast.loading('Setting up your portfolio...');
+
+        // Snapshot estimates NOW before saving assets (which would cause double counting)
+        // We use the 'estimates' calculated *before* the new assets are in the DB.
+        const currentEstimates = estimates;
+        setFinalEstimates(currentEstimates); // Save for success screens
+
         try {
             // 1. Update Profile Settings
             const madhabMap: Record<string, string> = {
@@ -241,10 +266,10 @@ export const ReviewStep: React.FC = () => {
                 status: 'DRAFT',
                 hijriYear: startHijri.hy,
                 nisabBasis: 'GOLD', // Default to Gold safe standard
-                totalWealth: estimates.totalWealth,
-                zakatableWealth: estimates.netZakatable,
-                totalLiabilities: estimates.totalLiabilities,
-                zakatAmount: estimates.zakatDue,
+                totalWealth: currentEstimates.totalWealth,
+                zakatableWealth: currentEstimates.netZakatable,
+                totalLiabilities: currentEstimates.totalLiabilities,
+                zakatAmount: currentEstimates.totalZakatDue, // SAVE GROSS OBLIGATION!
                 nisabThresholdAtStart: (nisabAmount || 0).toString(),
                 userNotes: 'Initial record created from Onboarding Wizard',
                 calculationDetails: JSON.stringify({
@@ -286,7 +311,7 @@ export const ReviewStep: React.FC = () => {
 
     const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: data.settings?.currency || 'USD' }).format(val);
 
-    if (completed) {
+    if (completed && displayEstimates) {
         return (
             <div className="text-center space-y-8 animate-fadeIn py-8">
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 text-green-600 mb-2">
@@ -308,23 +333,29 @@ export const ReviewStep: React.FC = () => {
                     <div className="p-6 space-y-4">
                         <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-sm text-gray-600">Total Assets</span>
-                            <span className="font-bold text-gray-900">{formatCurrency(estimates.totalWealth)}</span>
+                            <span className="font-bold text-gray-900">{formatCurrency(displayEstimates.totalWealth)}</span>
                         </div>
                         <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-sm text-gray-600">Zakatable Wealth</span>
-                            <span className="font-bold text-emerald-700">{formatCurrency(estimates.zakatableWealth)}</span>
+                            <span className="font-bold text-emerald-700">{formatCurrency(displayEstimates.zakatableWealth)}</span>
                         </div>
                         <div className="flex justify-between items-center py-3 bg-emerald-50 rounded-lg px-4 -mx-2">
-                            <span className="text-sm font-medium text-emerald-800">Zakat Due (2.5%)</span>
-                            <span className="text-xl font-extrabold text-emerald-700">{formatCurrency(estimates.zakatDue)}</span>
+                            <span className="text-sm font-medium text-emerald-800">Remaining Due</span>
+                            <span className="text-xl font-extrabold text-emerald-700">{formatCurrency(displayEstimates.remainingZakatDue)}</span>
                         </div>
+                        {zakatPaid > 0 && (
+                            <div className="flex justify-between items-center py-1 px-2 text-xs text-gray-500">
+                                <span>Total Obligation: {formatCurrency(displayEstimates.totalZakatDue)}</span>
+                                <span>Paid: {formatCurrency(zakatPaid)}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="max-w-md mx-auto bg-green-50 rounded-xl p-6 border border-green-100">
                     <p className="font-medium text-green-800 mb-1">Current Status</p>
                     <p className="text-sm text-green-700">
-                        Hawl Started • {estimates.zakatDue > 0 ? 'Zakat Due' : 'Tracking in Progress'}
+                        Hawl Started • {displayEstimates.remainingZakatDue > 0 ? 'Zakat Due' : 'Tracking in Progress'}
                     </p>
                 </div>
 
@@ -382,7 +413,7 @@ export const ReviewStep: React.FC = () => {
             <div className="bg-emerald-600 rounded-2xl p-8 text-center text-white shadow-xl shadow-emerald-200">
                 <p className="text-emerald-100 font-medium mb-1">Estimated Zakat Due</p>
                 <div className="text-4xl font-bold mb-2">
-                    {formatCurrency(estimates.zakatDue)}
+                    {formatCurrency(estimates.remainingZakatDue)}
                 </div>
                 <p className="text-xs text-emerald-200 opacity-80">
                     *Net Zakat after {formatCurrency(estimates.totalLiabilities)} liabilities and {formatCurrency(zakatPaid)} already paid.
