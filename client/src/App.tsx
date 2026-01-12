@@ -39,7 +39,9 @@ import UpdateNotification from './components/pwa/UpdateNotification';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { SkipLink } from './components/common/SkipLink';
 import { useSyncManager } from './hooks/useSyncManager';
+import { useMaintenanceMode } from './hooks/useMaintenanceMode';
 import { ToastProvider } from './components/ui/ToastProvider';
+import { MaintenancePage } from './pages/MaintenancePage';
 
 /**
  * T023 Performance Optimization: Route-Based Code Splitting
@@ -109,6 +111,20 @@ function SyncManager() {
 }
 
 function App() {
+  // Check maintenance mode before rendering app
+  const { isMaintenanceMode, isLoading } = useMaintenanceMode();
+
+  // Show loading state while checking maintenance status
+  if (isLoading) {
+    return <PageLoadingFallback />;
+  }
+
+  // Show maintenance page if enabled
+  if (isMaintenanceMode) {
+    return <MaintenancePage />;
+  }
+
+  // Normal app flow
   return (
     <ToastProvider>
       <QueryProvider>
