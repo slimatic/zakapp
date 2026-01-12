@@ -66,6 +66,8 @@
     "**/*.test.tsx",
     "**/*.test.ts",
     "**/__tests__/**",
-    "**/tests/**"
+    "**/tests/**",
+    "src/setupTests.ts",
+    "src/test-utils.tsx"
   ]
 }
