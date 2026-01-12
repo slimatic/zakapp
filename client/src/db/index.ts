@@ -75,7 +75,8 @@ const migrationStrategiesV5 = {
     }
 };
 
-if (process.env.NODE_ENV === 'development') {
+// Enable DevMode plugin even in prod temporarily to catch the DB9 error details
+if (true || import.meta.env.NODE_ENV === 'development') {
     addRxPlugin(RxDBDevModePlugin);
 }
 
@@ -98,7 +99,8 @@ const getStorage = () => {
         storage = wrappedKeyEncryptionCryptoJsStorage({ storage });
     } else {
         storage = getRxStorageDexie();
-        if (process.env.NODE_ENV === 'development') {
+        // Enable validation in prod temporarily for debugging
+        if (true || import.meta.env.NODE_ENV === 'development') {
             storage = wrappedValidateAjvStorage({ storage });
         }
         storage = wrappedKeyEncryptionCryptoJsStorage({ storage });
