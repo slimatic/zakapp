@@ -45,6 +45,7 @@ import debugRoutes from './routes/debug';
 // Import middleware
 // import { DatabaseManager } from './config/database';
 // import { errorHandler } from './middleware/ErrorHandler';
+import { MaintenanceMiddleware } from './middleware/MaintenanceMiddleware';
 
 // Import job scheduler
 // import { initializeJobs, stopAllJobs } from './jobs/scheduler';
@@ -53,6 +54,15 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
+
+// Maintenance Mode - must be early in middleware chain
+const maintenanceMw = new MaintenanceMiddleware();
+
+// Maintenance status endpoint (must be before maintenance middleware)
+app.get('/api/maintenance-status', maintenanceMw.getStatusEndpoint());
+
+// Apply maintenance middleware globally (blocks all routes except /health and /api/maintenance-status)
+app.use(maintenanceMw.getMiddleware());
 
 // CORS Configuration - supports localhost, IP addresses, and custom domains
 const allowedOrigins = process.env.ALLOWED_ORIGINS
