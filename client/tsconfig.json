@@ -57,8 +57,7 @@
       ]
     },
     "types": [
-      "vite/client",
-      "node"
+      "vite/client"
     ]
   },
   "include": [
