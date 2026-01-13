@@ -89,8 +89,8 @@ export const OnboardingProvider: React.FC<{ children: ReactNode }> = ({ children
     const [data, setData] = useState<OnboardingData>(INITIAL_DATA);
     const [canProceed, setCanProceed] = useState(true);
 
-    // 7 Steps: Welcome, Identity, Metals, Cash, Investments, Liabilities, Review
-    const totalSteps = 7;
+    // 8 Steps: Welcome, Identity, Metals, Cash, Investments, Liabilities, Review, Zakat Setup
+    const totalSteps = 8;
 
     const updateData = (section: keyof OnboardingData, payload: any) => {
         setData((prev) => ({

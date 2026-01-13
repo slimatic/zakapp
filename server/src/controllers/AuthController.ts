@@ -85,7 +85,8 @@ export class AuthController {
         maxAssets: result.user.maxAssets,
         maxNisabRecords: result.user.maxNisabRecords,
         maxPayments: result.user.maxPayments,
-        salt: result.user.salt
+        salt: result.user.salt,
+        isVerified: result.user.isVerified
       };
 
       const response: ApiResponse = {
@@ -242,7 +243,8 @@ export class AuthController {
       maxAssets: result.user.maxAssets,
       maxNisabRecords: result.user.maxNisabRecords,
       maxPayments: result.user.maxPayments,
-      salt: result.user.salt
+      salt: result.user.salt,
+      isVerified: result.user.isVerified
     };
 
     const response: ApiResponse = {
@@ -379,6 +381,7 @@ export class AuthController {
       maxAssets: user.maxAssets,
       maxNisabRecords: user.maxNisabRecords,
       maxPayments: user.maxPayments,
+      isVerified: user.isVerified,
       profile: {
         firstName: user.firstName,
         lastName: user.lastName,

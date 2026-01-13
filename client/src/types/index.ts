@@ -86,6 +86,7 @@ export interface User {
   maxNisabRecords?: number;
   maxPayments?: number;
   maxLiabilities?: number;
+  isVerified?: boolean;
 }
 
 export interface ZakatCalculation {
