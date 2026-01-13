@@ -5,3 +5,4 @@ export * from './CashStep';
 export * from './InvestmentsStep';
 export * from './LiabilitiesStep';
 export * from './ReviewStep';
+export * from './ZakatSetupStep';
