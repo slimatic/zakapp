@@ -100,19 +100,7 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
                             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                         />
                     </div>
-                    <div>
-                        <label htmlFor="maxLiabilities" className="block text-sm font-medium text-gray-700 mb-1">
-                            Max Liabilities (Default: {DEFAULT_LIMITS.MAX_LIABILITIES})
-                        </label>
-                        <input
-                            id="maxLiabilities"
-                            type="number"
-                            value={maxLiabilities}
-                            onChange={(e) => setMaxLiabilities(e.target.value)}
-                            placeholder="Leave empty for default"
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                        />
-                    </div>
+
 
                     <div className="flex justify-end gap-3 mt-6">
                         <button

@@ -3,23 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useOnboarding, OnboardingData } from '../context/OnboardingContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useAssetRepository } from '../../../hooks/useAssetRepository';
-import { useNisabRecordRepository } from '../../../hooks/useNisabRecordRepository';
 import { useLiabilityRepository } from '../../../hooks/useLiabilityRepository';
-import { usePaymentRepository } from '../../../hooks/usePaymentRepository';
-import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
 import { isAssetZakatable, getAssetZakatableValue } from '../../../core/calculations/zakat';
 import { calculateWealth } from '../../../core/calculations/wealthCalculator';
-import { gregorianToHijri } from '../../../utils/calendarConverter';
 import toast from 'react-hot-toast';
 
 export const ReviewStep: React.FC = () => {
-    const { data, prevStep } = useOnboarding();
+    const { data, prevStep, nextStep } = useOnboarding();
     const { updateLocalProfile, user } = useAuth();
     const { assets: dbAssets, addAsset } = useAssetRepository();
-    const { addRecord } = useNisabRecordRepository();
     const { addLiability } = useLiabilityRepository();
-    const { addPayment } = usePaymentRepository();
-    const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold();
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [zakatPaid, setZakatPaid] = useState<number>(0);
@@ -45,22 +38,27 @@ export const ReviewStep: React.FC = () => {
 
         // 1. Process Existing Assets (from DB)
         // Only valid if we haven't completed (otherwise we get double counting)
+        // CRITICAL FIX: To prevent double counting during partial saves/retries,
+        // we EXCLUDE any DB assets that match the names of assets we are about to create from the wizard.
+        const onboardingAssetNames = [
+            'Gold Assets', 'Silver Assets', 'Cash on Hand', 'Main Bank Account',
+            'Stock Portfolio', 'Retirement Fund', 'Crypto Holdings', 'Other Assets'
+        ];
+
         if (!completed) {
+            // Filter out assets that we are managing in the wizard
+            const nonOnboardingAssets = dbAssets.filter(a =>
+                a.isActive && !onboardingAssetNames.includes(a.name)
+            );
+
             const dbStats = calculateWealth(
-                dbAssets.filter(a => a.isActive),
+                nonOnboardingAssets,
                 [],
                 new Date(),
                 selectedMethodologyName
             );
             // We will sum them up at the end for the Grand Total
             existingAssetsValue = dbStats.totalWealth;
-            // Note: We are ignoring existing zakatable wealth for now to simplify, 
-            // or we should add it:
-            // zakatableWealth += dbStats.zakatableWealth;
-            // (Original code didn't add it to zakatableWealth properly in step 1, but added it in step 3)
-            // Let's stick to original logic structure but be careful.
-
-            // Actually, original code did: grandTotalZakatable = zakatableWealth + dbStats.zakatableWealth;
         }
 
         // 2. Process Wizard Assets
@@ -113,7 +111,7 @@ export const ReviewStep: React.FC = () => {
 
         // combine
         const existingZakatable = !completed
-            ? calculateWealth(dbAssets.filter(a => a.isActive), [], new Date(), selectedMethodologyName).zakatableWealth
+            ? calculateWealth(dbAssets.filter(a => a.isActive && !onboardingAssetNames.includes(a.name)), [], new Date(), selectedMethodologyName).zakatableWealth
             : 0;
 
         const grandTotalWealth = totalWealth + existingAssetsValue;
@@ -144,12 +142,7 @@ export const ReviewStep: React.FC = () => {
 
     const saveData = async () => {
         setIsSubmitting(true);
-        const toastId = toast.loading('Setting up your portfolio...');
-
-        // Snapshot estimates NOW before saving assets (which would cause double counting)
-        // We use the 'estimates' calculated *before* the new assets are in the DB.
-        const currentEstimates = estimates;
-        setFinalEstimates(currentEstimates); // Save for success screens
+        const toastId = toast.loading('Saving your portfolio...');
 
         try {
             // 1. Update Profile Settings
@@ -160,7 +153,7 @@ export const ReviewStep: React.FC = () => {
             };
 
             await updateLocalProfile({
-                isSetupCompleted: true,
+                isSetupCompleted: false, // Not complete yet, next step is final
                 settings: {
                     currency: data.settings?.currency || 'USD',
                     preferredMethodology: madhabMap[data.methodology.madhab] as any,
@@ -222,7 +215,6 @@ export const ReviewStep: React.FC = () => {
                 }
             };
 
-
             pushAsset('gold', 'GOLD', 'Gold Assets');
             pushAsset('silver', 'SILVER', 'Silver Assets');
             pushAsset('cash_on_hand', 'CASH', 'Cash on Hand');
@@ -233,7 +225,11 @@ export const ReviewStep: React.FC = () => {
             pushAsset('other', 'OTHER', 'Other Assets');
 
             for (const asset of assetsToSave) {
-                await addAsset(asset);
+                // Idempotency: Check if asset already exists
+                const exists = dbAssets.some(a => a.isActive && a.name === asset.name && a.type === asset.type);
+                if (!exists) {
+                    await addAsset(asset);
+                }
             }
 
             // 3. Save Liabilities
@@ -254,54 +250,15 @@ export const ReviewStep: React.FC = () => {
                 });
             }
 
-            // 4. Create Initial Nisab Record
-            const hawlStartDate = new Date();
-            const hawlEndDate = new Date();
-            hawlEndDate.setDate(hawlStartDate.getDate() + 354);
-            const startHijri = gregorianToHijri(hawlStartDate);
-
-            const record = await addRecord({
-                hawlStartDate: hawlStartDate.toISOString(),
-                hawlCompletionDate: hawlEndDate.toISOString(),
-                status: 'DRAFT',
-                hijriYear: startHijri.hy,
-                nisabBasis: 'GOLD', // Default to Gold safe standard
-                totalWealth: currentEstimates.totalWealth,
-                zakatableWealth: currentEstimates.netZakatable,
-                totalLiabilities: currentEstimates.totalLiabilities,
-                zakatAmount: currentEstimates.totalZakatDue, // SAVE GROSS OBLIGATION!
-                nisabThresholdAtStart: (nisabAmount || 0).toString(),
-                userNotes: 'Initial record created from Onboarding Wizard',
-                calculationDetails: JSON.stringify({
-                    method: 'onboarding_wizard',
-                    prices: { gold: goldPrice, silver: silverPrice }
-                })
-            });
-
-            // 5. Save Payment Record if entered
-            if (zakatPaid > 0 && record) {
-                await addPayment({
-                    amount: zakatPaid,
-                    paymentDate: new Date().toISOString(),
-                    paymentMethod: 'other',
-                    notes: 'Previous payment recorded during onboarding',
-                    snapshotId: record.id,
-                    recipientName: 'Self-Reported (Onboarding)',
-                    recipientCategory: 'general'
-                });
-            }
-
-            // 6. Complete
-            localStorage.setItem(`zakapp_local_prefs_${user?.id}`, JSON.stringify({
-                skipped: false,
-                completedAt: new Date().toISOString()
-            }));
-
-            toast.success('Setup Complete!', { id: toastId });
-            if (record) setCreatedRecordId(record.id);
-            setCompleted(true);
+            toast.success('Assets Saved!', { id: toastId });
             setIsSubmitting(false);
 
+            // Navigate to next step (Zakat Setup)
+            nextStep();
+
+            // IMPORTANT: Since we are splitting, we need to call nextStep()
+            // However, calculateEstimates logic above (lines 33-143) is still used for display?
+            // Yes, display logic is fine.
         } catch (error: any) {
             console.error("Onboarding Save Failed", error);
             toast.error(`Failed to save data: ${error.message || 'Unknown error'}`, { id: toastId });
@@ -311,119 +268,21 @@ export const ReviewStep: React.FC = () => {
 
     const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: data.settings?.currency || 'USD' }).format(val);
 
-    if (completed && displayEstimates) {
-        return (
-            <div className="text-center space-y-8 animate-fadeIn py-8">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 text-green-600 mb-2">
-                    <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">You're All Set!</h2>
-                    <p className="text-gray-500 max-w-md mx-auto text-lg">
-                        Your assets have been imported and your first Nisab Record has been created successfully.
-                    </p>
-                </div>
-
-                <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-                    <div className="bg-emerald-50 px-6 py-4 border-b border-emerald-100">
-                        <h3 className="font-semibold text-emerald-900">Setup Summary</h3>
-                    </div>
-                    <div className="p-6 space-y-4">
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm text-gray-600">Total Assets</span>
-                            <span className="font-bold text-gray-900">{formatCurrency(displayEstimates.totalWealth)}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm text-gray-600">Zakatable Wealth</span>
-                            <span className="font-bold text-emerald-700">{formatCurrency(displayEstimates.zakatableWealth)}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-3 bg-emerald-50 rounded-lg px-4 -mx-2">
-                            <span className="text-sm font-medium text-emerald-800">Remaining Due</span>
-                            <span className="text-xl font-extrabold text-emerald-700">{formatCurrency(displayEstimates.remainingZakatDue)}</span>
-                        </div>
-                        {zakatPaid > 0 && (
-                            <div className="flex justify-between items-center py-1 px-2 text-xs text-gray-500">
-                                <span>Total Obligation: {formatCurrency(displayEstimates.totalZakatDue)}</span>
-                                <span>Paid: {formatCurrency(zakatPaid)}</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="max-w-md mx-auto bg-green-50 rounded-xl p-6 border border-green-100">
-                    <p className="font-medium text-green-800 mb-1">Current Status</p>
-                    <p className="text-sm text-green-700">
-                        Hawl Started • {displayEstimates.remainingZakatDue > 0 ? 'Zakat Due' : 'Tracking in Progress'}
-                    </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                    <button
-                        onClick={() => navigate('/nisab-records')}
-                        className="px-8 py-4 bg-white text-gray-700 border border-gray-300 rounded-xl font-semibold shadow-sm hover:bg-gray-50 hover:border-gray-400 transition-all flex items-center justify-center gap-2"
-                    >
-                        <span>📄</span> View Nisab Record
-                    </button>
-                    <button
-                        onClick={() => navigate('/dashboard')}
-                        className="px-8 py-4 bg-emerald-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all flex items-center justify-center gap-2"
-                    >
-                        <span>📊</span> Go to Dashboard
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-8 animate-fadeIn">
             <div className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-6">
-                    <span className="text-3xl">🎉</span>
+                    <span className="text-3xl">📝</span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">You're All Set!</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Review Your Entries</h2>
                 <p className="text-gray-500 max-w-sm mx-auto">
-                    We'll now create your <strong>Assets</strong> and initialize your first <strong>Nisab Record</strong> to start tracking your Hawl.
-                </p>
-            </div>
-
-            {/* Payment Input */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Have you already paid some Zakat for this period?
-                </label>
-                <div className="relative rounded-md shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
-                    </div>
-                    <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={zakatPaid || ''}
-                        onChange={(e) => setZakatPaid(parseFloat(e.target.value) || 0)}
-                        className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md py-3"
-                        placeholder="0.00"
-                    />
-                </div>
-            </div>
-
-            <div className="bg-emerald-600 rounded-2xl p-8 text-center text-white shadow-xl shadow-emerald-200">
-                <p className="text-emerald-100 font-medium mb-1">Estimated Zakat Due</p>
-                <div className="text-4xl font-bold mb-2">
-                    {formatCurrency(estimates.remainingZakatDue)}
-                </div>
-                <p className="text-xs text-emerald-200 opacity-80">
-                    *Net Zakat after {formatCurrency(estimates.totalLiabilities)} liabilities and {formatCurrency(zakatPaid)} already paid.
+                    Please review your assets below. We will save these to your portfolio and then calculate your Zakat.
                 </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                 <h4 className="font-medium text-gray-900 mb-4">Summary of Entries</h4>
                 <div className="space-y-3 text-sm">
-                    {/* Only showing Wizard Assets to prevent confusion/double counting */}
                     {Object.entries(data.assets).map(([key, asset]) => {
                         if (!asset.enabled || !asset.value) return null;
                         return (
@@ -434,7 +293,6 @@ export const ReviewStep: React.FC = () => {
                         );
                     })}
 
-                    {/* Liabilities Summary */}
                     {(data.liabilities?.immediate > 0 || data.liabilities?.expenses > 0) && (
                         <div className="border-t border-gray-200 my-2 pt-2"></div>
                     )}
@@ -451,6 +309,10 @@ export const ReviewStep: React.FC = () => {
                         </div>
                     )}
                 </div>
+                <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
+                    <span className="text-base font-semibold text-gray-900">Total Net Assets</span>
+                    <span className="text-lg font-bold text-emerald-700">{formatCurrency(estimates.totalWealth - estimates.totalLiabilities)}</span>
+                </div>
             </div>
 
             <div className="flex justify-between pt-4">
@@ -466,9 +328,10 @@ export const ReviewStep: React.FC = () => {
                     disabled={isSubmitting}
                     className="px-12 py-3 bg-emerald-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {isSubmitting ? 'Finalizing Setup...' : 'Let\'s Review Your Setup'}
+                    {isSubmitting ? 'Finalizing Setup...' : 'Save & Continue'}
                 </button>
             </div>
         </div>
     );
 };
+
