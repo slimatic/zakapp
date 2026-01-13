@@ -10,7 +10,8 @@ import {
     InvestmentsStep,
     LiabilitiesStep,
     ReviewStep,
-    WelcomeStep
+    WelcomeStep,
+    ZakatSetupStep
 } from './steps';
 
 const steps = [
@@ -20,7 +21,8 @@ const steps = [
     { component: CashStep, title: 'Cash Assets' },
     { component: InvestmentsStep, title: 'Investments' },
     { component: LiabilitiesStep, title: 'Liabilities' },
-    { component: ReviewStep, title: 'Review' },
+    { component: ReviewStep, title: 'Review & Save' },
+    { component: ZakatSetupStep, title: 'Zakat Setup' },
 ];
 
 export const OnboardingLayout: React.FC = () => {

@@ -138,7 +138,7 @@ export class EmailService {
         const link = `${baseUrl}/verify-email?token=${token}`;
 
         const currentYear = new Date().getFullYear();
-        const logoUrl = `${baseUrl}/logo512.png`;
+        const logoUrl = `${baseUrl}/images/logo.png`;
 
         const subject = 'Verify your email for ZakApp';
 
