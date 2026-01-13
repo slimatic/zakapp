@@ -4,14 +4,26 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment variables
+# Environment variables (NEVER COMMIT SECRETS)
 .env
 .env.local
 .env.staging
+.env.staging.*
 .env.production
+.env.production.*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.docker
+.env.temp
+.env.test
+.env.bak
+**/.env.staging*
+**/.env.production*
+**/.env.temp
+**/.env.test
+**/.env.bak
+**/config/env/.env.*
 
 # Build outputs
 dist/

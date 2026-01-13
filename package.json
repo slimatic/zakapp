@@ -31,7 +31,7 @@
     "finance"
   ],
   "author": "zakapp contributors",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",
     "@playwright/test": "1.55.1",
