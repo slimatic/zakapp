@@ -1,0 +1,50 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, develop, copilot/** ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install root dependencies
+      run: npm ci
+
+    - name: Install server dependencies
+      run: cd server && npm ci
+
+    - name: Install client dependencies
+      run: cd client && npm ci
+
+    - name: Run client unit tests
+      run: cd client && npm test -- --run
+      env:
+        CI: true
+
+    # Server tests require database setup, skip in CI for now
+    # - name: Run server tests
+    #   run: cd server && npm test
+    #   env:
+    #     CI: true
+
+    - name: Build client
+      run: cd client && npm run build
+
+    - name: Build server
+      run: cd server && npm run build
