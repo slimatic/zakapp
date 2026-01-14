@@ -172,15 +172,17 @@ export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
 
     // If we have an existing promise, check if it was created with the SAME password
     if (window._zakapp_db_promise) {
-        if (window._zakapp_db_password === password) {
-            console.log('DatabaseService: Returning existing DB singleton');
-            return window._zakapp_db_promise;
-        } else {
+        // Only trigger reset if a NEW password is provided and it differs from the current one
+        // If password is undefined, the caller is requesting the EXISTING instance regardless of its password
+        if (password !== undefined && window._zakapp_db_password !== password) {
             // Password changed! We MUST close the old one before creating a new one
             console.warn('DatabaseService: Password changed, closing old instance...');
             await closeDb();
             // Small delay to ensure RxDB internal registry is updated
             await new Promise(resolve => setTimeout(resolve, 100));
+        } else {
+            // console.log('DatabaseService: Returning existing DB singleton');
+            return window._zakapp_db_promise;
         }
     }
 
