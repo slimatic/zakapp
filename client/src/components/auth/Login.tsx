@@ -46,7 +46,7 @@ export const Login: React.FC = () => {
       <Card className="w-full max-w-md shadow-2xl border-white/20">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-6">
-            <div className="animate-fade-in">
+            <div className="animate-fade-in" onAnimationEnd={(e) => e.stopPropagation()}>
               <Logo className="h-16 w-16" />
             </div>
           </div>

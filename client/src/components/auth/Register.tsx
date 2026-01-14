@@ -229,7 +229,10 @@ export const Register: React.FC = () => {
 
             {/* Password requirements with live validation */}
             {showPasswordHints && (
-              <div className="text-xs space-y-1 mt-1 -mt-3 px-3 py-3 bg-blue-50/80 backdrop-blur-sm rounded-lg border border-blue-100 shadow-sm animate-fade-in">
+              <div
+                className="text-xs space-y-1 mt-1 -mt-3 px-3 py-3 bg-blue-50/80 backdrop-blur-sm rounded-lg border border-blue-100 shadow-sm animate-fade-in"
+                onAnimationEnd={(e) => e.stopPropagation()}
+              >
                 <p className="font-semibold text-blue-900 mb-2">Password must include:</p>
                 <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.length ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
                   <span>{passwordStrength.length ? '✓' : '○'}</span>
