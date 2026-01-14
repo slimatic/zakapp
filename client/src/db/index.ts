@@ -160,6 +160,7 @@ const notifyListeners = (db: ZakAppDatabase | null) => {
 
 // Public Accessor (Singleton) with concurrency protection
 export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
+    // console.log("DatabaseService: getDb called with", password ? '***' : 'undefined'); // Debug fix
     // If there's already a creation in progress, wait for it
     if (_dbCreationInProgress) {
         console.log('DatabaseService: Creation in progress, waiting...');
