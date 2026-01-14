@@ -106,7 +106,7 @@ export class SnapshotsController {
     }
 
     try {
-      const snapshot = await snapshotService.getSnapshot(userId, id);
+      const snapshot = await snapshotService.getSnapshot(userId, id as string);
 
       if (!snapshot) {
         throw new AppError('Snapshot not found', 404, ErrorCode.NOT_FOUND);
@@ -176,7 +176,7 @@ export class SnapshotsController {
     }
 
     try {
-      await snapshotService.deleteSnapshot(userId, id);
+      await snapshotService.deleteSnapshot(userId, id as string);
 
       const response: ApiResponse = {
         success: true,
@@ -212,7 +212,7 @@ export class SnapshotsController {
     }
 
     try {
-      await snapshotService.unlockSnapshot(userId, id, reason.trim());
+      await snapshotService.unlockSnapshot(userId, id as string, reason.trim());
 
       const response: ApiResponse = {
         success: true,
@@ -243,7 +243,7 @@ export class SnapshotsController {
     }
 
     try {
-      await snapshotService.lockSnapshot(userId, id);
+      await snapshotService.lockSnapshot(userId, id as string);
 
       const response: ApiResponse = {
         success: true,
@@ -274,7 +274,7 @@ export class SnapshotsController {
     }
 
     try {
-      const snapshot = await snapshotService.getSnapshot(userId, id);
+      const snapshot = await snapshotService.getSnapshot(userId, id as string);
 
       if (!snapshot) {
         throw new AppError('Snapshot not found', 404, ErrorCode.NOT_FOUND);

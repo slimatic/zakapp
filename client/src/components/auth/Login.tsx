@@ -165,9 +165,14 @@ export const Login: React.FC = () => {
               <span>Made with ❤️ by</span>
               <span className="font-semibold">RST Labs</span>
             </a>
-            <div className="text-[10px] text-gray-300 font-mono">
+            <a
+              href="https://github.com/slimatic/zakapp/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] text-gray-300 hover:text-primary-600 font-mono transition-colors"
+            >
               {__APP_VERSION__} ({__COMMIT_HASH__})
-            </div>
+            </a>
           </div>
         </CardFooter>
       </Card>

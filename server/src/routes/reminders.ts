@@ -106,7 +106,7 @@ router.get('/', authMiddleware, validateSchema(reminderQuerySchema), async (req:
 router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
-    const reminderId = req.params.id;
+    const reminderId = req.params.id as string;
 
     const reminder = await reminderService.getReminder(reminderId, userId);
 
@@ -134,7 +134,7 @@ router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
 router.put('/:id', authMiddleware, validateSchema(updateReminderSchema), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
-    const reminderId = req.params.id;
+    const reminderId = req.params.id as string;
     const updateData = req.body;
 
     // Use updateStatus for status updates
@@ -165,7 +165,7 @@ router.put('/:id', authMiddleware, validateSchema(updateReminderSchema), async (
 router.delete('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
-    const reminderId = req.params.id;
+    const reminderId = req.params.id as string;
 
     await reminderService.deleteReminder(reminderId, userId);
 
@@ -186,7 +186,7 @@ router.delete('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => 
 router.post('/:id/acknowledge', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId as string;
-    const reminderId = req.params.id;
+    const reminderId = req.params.id as string;
 
     const reminder = await reminderService.acknowledgeReminder(reminderId, userId);
 

@@ -149,7 +149,8 @@ export class PaymentRecordsController {
       }
 
       const { id } = req.params;
-      const payment = await this.paymentService.getPayment(req.userId, id);
+      const paymentId = id as string;
+      const payment = await this.paymentService.getPayment(req.userId, paymentId);
 
       if (!payment) {
         const response = createResponse(false, undefined, {
@@ -186,8 +187,9 @@ export class PaymentRecordsController {
       }
 
       const { id } = req.params;
+      const paymentId = id as string;
       const updateData: UpdatePaymentDto = req.body;
-      const payment = await this.paymentService.updatePayment(req.userId, id, updateData);
+      const payment = await this.paymentService.updatePayment(req.userId, paymentId, updateData);
 
       const response = createResponse(true, { payment });
       res.status(200).json(response);
@@ -216,7 +218,8 @@ export class PaymentRecordsController {
       }
 
       const { id } = req.params;
-      await this.paymentService.deletePayment(req.userId, id);
+      const paymentId = id as string;
+      await this.paymentService.deletePayment(req.userId, paymentId);
 
       const response = createResponse(true, { message: 'Payment record deleted successfully' });
       res.status(200).json(response);
@@ -245,7 +248,8 @@ export class PaymentRecordsController {
       }
 
       const { id } = req.params;
-      const payment = await this.paymentService.getPayment(req.userId, id);
+      const paymentId = id as string;
+      const payment = await this.paymentService.getPayment(req.userId, paymentId);
 
       if (!payment) {
         const response = createResponse(false, undefined, {
