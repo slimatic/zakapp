@@ -304,7 +304,7 @@ router.get('/:id',
         });
       }
 
-      const calculationId = req.params.id;
+      const calculationId = req.params.id as string;
 
       // Get calculation
       const calculation = await calculationHistoryService.getCalculationById(userId, calculationId);
@@ -382,8 +382,8 @@ router.post('/compare',
       }
 
       const errorMessage = getErrorMessage(error);
-      if (errorMessage.includes('At least 2 methodologies') || 
-          errorMessage.includes('Maximum 4 methodologies')) {
+      if (errorMessage.includes('At least 2 methodologies') ||
+        errorMessage.includes('Maximum 4 methodologies')) {
         return res.status(400).json({
           success: false,
           error: 'INVALID_REQUEST',
@@ -429,7 +429,7 @@ router.patch('/:id/notes',
         });
       }
 
-      const calculationId = req.params.id;
+      const calculationId = req.params.id as string;
 
       // Update notes
       const calculation = await calculationHistoryService.updateCalculationNotes(
@@ -492,7 +492,7 @@ router.delete('/:id',
         });
       }
 
-      const calculationId = req.params.id;
+      const calculationId = req.params.id as string;
 
       // Delete calculation
       const result = await calculationHistoryService.deleteCalculation(userId, calculationId);

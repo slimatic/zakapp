@@ -237,7 +237,7 @@ router.get('/deleted', authenticate, async (req: AuthenticatedRequest, res: Resp
 router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    const assetId = req.params.id;
+    const assetId = req.params.id as string;
 
     // Use the AssetService to get the asset
     const assetService = new AssetService();
@@ -353,7 +353,7 @@ router.put('/:id',
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const userId = req.userId!;
-      const assetId = req.params.id;
+      const assetId = req.params.id as string;
 
       // Check if update data is empty
       const hasUpdateData = Object.keys(req.body).length > 0;
@@ -419,7 +419,7 @@ router.put('/:id',
 router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    const assetId = req.params.id;
+    const assetId = req.params.id as string;
 
     // Use AssetService to delete the asset
     const assetService = new AssetService();
@@ -450,7 +450,7 @@ router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res: Respo
 router.post('/:id/recover', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    const assetId = req.params.id;
+    const assetId = req.params.id as string;
 
     // Recover the asset using the real service
     const assetService = new AssetService();

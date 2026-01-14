@@ -154,7 +154,7 @@ router.post('/calculate',
         // Calculate Zakat year boundaries
         const calculationDate = new Date(calcRequest.calculationDate);
         const zakatYear = await calendarService.calculateZakatYear(calculationDate, calcRequest.calendarType as 'HIJRI' | 'GREGORIAN');
-        
+
         await calculationHistoryService.saveCalculation(req.userId!, {
           methodology: result.methodology.id,
           calendarType: calcRequest.calendarType,
@@ -368,9 +368,10 @@ router.get('/receipts/:token',
   async (req: Request, res: Response) => {
     try {
       const { token } = req.params;
+      const tokenStr = token as string;
 
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-jwt-secret-for-development') as { paymentId: string; userId: string };
+      const decoded = jwt.verify(tokenStr, process.env.JWT_SECRET || 'default-jwt-secret-for-development') as unknown as { paymentId: string; userId: string };
 
       const payment = await paymentService.getPayment(decoded.userId, decoded.paymentId);
 

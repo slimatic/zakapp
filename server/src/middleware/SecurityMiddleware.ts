@@ -185,7 +185,7 @@ export class SecurityMiddleware {
           objectSrc: ["'none'"],
           baseUri: ["'self'"],
           formAction: ["'self'"],
-          upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null
+          ...(process.env.ENABLE_HTTPS_REDIRECT === 'true' ? { upgradeInsecureRequests: [] } : {})
         }
       } : false,
 
@@ -367,14 +367,14 @@ export const ipWhitelistMiddleware = (
   next: NextFunction
 ): void => {
   const allowedIPs = process.env.ADMIN_ALLOWED_IPS?.split(',') || [];
-  
+
   if (allowedIPs.length === 0) {
     // If no whitelist configured, allow all (for development)
     return next();
   }
 
   const clientIP = req.ip;
-  
+
   if (!allowedIPs.includes(clientIP)) {
     const error = new AppError(
       'IP address not authorized',
@@ -402,7 +402,7 @@ export const contentTypeValidation = (
   }
 
   const contentType = req.get('Content-Type');
-  
+
   if (!contentType || !contentType.includes('application/json')) {
     const error = new AppError(
       'Invalid content type',
@@ -421,7 +421,7 @@ export const contentTypeValidation = (
  */
 export const initializeSecurity = () => {
   const security = SecurityMiddleware.getInstance();
-  
+
   return {
     cors: security.getCorsMiddleware(),
     helmet: security.getHelmetMiddleware(),

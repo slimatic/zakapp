@@ -126,7 +126,7 @@ export const deleteUser = async (req: Request, res: Response) => {
         const { id } = req.params;
 
         // Check if user exists
-        const user = await prisma.user.findUnique({ where: { id } });
+        const user = await prisma.user.findUnique({ where: { id: id as string } });
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
@@ -134,7 +134,7 @@ export const deleteUser = async (req: Request, res: Response) => {
         // Prevent deleting self (if needed) but admin might want to.
 
         // Delete user
-        await prisma.user.delete({ where: { id } });
+        await prisma.user.delete({ where: { id: id as string } });
 
         // TODO: Trigger cleanup of CouchDB user database if applicable
 
@@ -155,7 +155,7 @@ export const updateUserRole = async (req: AuthenticatedRequest, res: Response) =
         }
 
         // Check if user exists
-        const user = await prisma.user.findUnique({ where: { id } });
+        const user = await prisma.user.findUnique({ where: { id: id as string } });
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
@@ -167,7 +167,7 @@ export const updateUserRole = async (req: AuthenticatedRequest, res: Response) =
         }
 
         await prisma.user.update({
-            where: { id },
+            where: { id: id as string },
             data: { userType: role }
         });
 
@@ -190,13 +190,13 @@ export const updateUserLimits = async (req: Request, res: Response) => {
         if (req.body.maxLiabilities !== undefined) data.maxLiabilities = req.body.maxLiabilities === null ? null : Number(req.body.maxLiabilities);
 
         // Check if user exists
-        const user = await prisma.user.findUnique({ where: { id } });
+        const user = await prisma.user.findUnique({ where: { id: id as string } });
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
 
         await prisma.user.update({
-            where: { id },
+            where: { id: id as string },
             data
         });
 

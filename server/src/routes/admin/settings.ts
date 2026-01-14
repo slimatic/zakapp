@@ -69,7 +69,7 @@ router.post('/users/:userId/verify', asyncHandler(async (req, res) => {
     const { userId } = req.params;
 
     await prisma.user.update({
-        where: { id: userId },
+        where: { id: userId as string },
         data: {
             isVerified: true,
             verificationToken: null,

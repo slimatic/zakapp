@@ -127,8 +127,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('AuthContext: Session restored. Key generated (len=' + keyString.length + ')');
 
             try {
-              // Close any existing DB instance first (important for multi-user scenarios)
-              await closeDb();
+              // Note: Do NOT call closeDb() here - getDb() handles key changes internally
+              // Calling closeDb() before getDb() causes a race condition with RxDB's internal registry (DB9 error)
               await getDb(keyString);
               // console.log('AuthContext: DB opened successfully with restored key');
 
@@ -279,7 +279,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       let encryptedDb;
 
       try {
-        await closeDb();
+        // Note: Do NOT call closeDb() here - getDb() handles password changes internally
+        // Calling closeDb() before getDb() causes a race condition with RxDB's internal registry (DB9 error)
         encryptedDb = await getDb(keyString);
       } catch (dbError: any) {
         console.error('AuthContext: DB Open Failed during login', dbError);
