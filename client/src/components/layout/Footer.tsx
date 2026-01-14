@@ -61,9 +61,15 @@ export const Footer: React.FC = () => {
                                 <span className="font-semibold text-gray-500 group-hover:text-gray-700">RST Labs</span>
                             </a>
                             <div className="w-px h-3 bg-gray-300 hidden md:block"></div>
-                            <div className="font-mono opacity-70" title="Build Version">
+                            <a
+                                href="https://github.com/slimatic/zakapp/releases"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-mono opacity-70 hover:opacity-100 hover:text-emerald-600 transition-all"
+                                title="Build Version"
+                            >
                                 v{__APP_VERSION__} ({__COMMIT_HASH__})
-                            </div>
+                            </a>
                         </div>
                     </div>
                 </div>

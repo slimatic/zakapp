@@ -2,7 +2,6 @@
   "name": "@zakapp/shared",
   "version": "1.0.0",
   "description": "Shared types and utilities for zakapp",
-  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -15,8 +14,8 @@
       "import": "./dist/types/tracking.js",
       "require": "./dist/types/tracking.js",
       "types": "./dist/types/tracking.d.ts"
-    }
-    ,"./types": {
+    },
+    "./types": {
       "import": "./dist/types.js",
       "require": "./dist/types.js",
       "types": "./dist/types.d.ts"
@@ -25,8 +24,8 @@
       "import": "./dist/types/*.js",
       "require": "./dist/types/*.js",
       "types": "./dist/types/*.d.ts"
-    }
-    ,"./constants": {
+    },
+    "./constants": {
       "import": "./dist/constants/index.js",
       "require": "./dist/constants/index.js",
       "types": "./dist/constants/index.d.ts"

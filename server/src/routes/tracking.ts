@@ -171,7 +171,7 @@ router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit
 
       // Parse breakdown JSON
       const breakdown = JSON.parse(calculation.breakdown);
-      
+
       snapshotData = {
         calculationDate: calculation.calculationDate.toISOString(),
         gregorianYear: calculation.calculationDate.getFullYear(),
@@ -252,7 +252,7 @@ router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
     console.error('Error object:', error);
-    
+
     if (error.message?.includes('already exists')) {
       return sendError(res, 'DUPLICATE_SNAPSHOT', error.message, 409);
     }
@@ -314,7 +314,7 @@ router.get('/snapshots/:id', authenticate, validateUserOwnership, validateSnapsh
       return sendError(res, 'VALIDATION_ERROR', 'Snapshot ID is required', 400);
     }
 
-    const snapshot = await snapshotService.getSnapshot(id, userId);
+    const snapshot = await snapshotService.getSnapshot(id as string, userId);
 
     if (!snapshot) {
       return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
@@ -346,7 +346,7 @@ router.put('/snapshots/:id', authenticate, validateUserOwnership, validateSnapsh
     }
 
     // Verify ownership and finalization status
-    const existing = await snapshotService.getSnapshot(id, userId);
+    const existing = await snapshotService.getSnapshot(id as string, userId);
     if (!existing) {
       return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
     }
@@ -378,7 +378,7 @@ router.put('/snapshots/:id', authenticate, validateUserOwnership, validateSnapsh
       return sendError(res, 'VALIDATION_ERROR', 'Invalid zakatAmount (must be non-negative number)', 400);
     }
 
-    const snapshot = await snapshotService.updateSnapshot(id, userId, {
+    const snapshot = await snapshotService.updateSnapshot(id as string, userId, {
       totalWealth,
       totalLiabilities,
       zakatAmount,
@@ -414,12 +414,12 @@ router.delete('/snapshots/:id', authenticate, validateUserOwnership, validateSna
     }
 
     // Verify ownership
-    const existing = await snapshotService.getSnapshot(id, userId);
+    const existing = await snapshotService.getSnapshot(id as string, userId);
     if (!existing) {
       return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
     }
 
-    await snapshotService.deleteSnapshot(id, userId);
+    await snapshotService.deleteSnapshot(id as string, userId);
 
     sendSuccess(res, { message: 'Snapshot deleted successfully' });
   } catch (error: any) {
@@ -447,7 +447,7 @@ router.post('/snapshots/:id/finalize', authenticate, validateUserOwnership, vali
     }
 
     // Verify ownership and finalization status
-    const existing = await snapshotService.getSnapshot(id, userId);
+    const existing = await snapshotService.getSnapshot(id as string, userId);
     if (!existing) {
       return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
     }
@@ -456,7 +456,7 @@ router.post('/snapshots/:id/finalize', authenticate, validateUserOwnership, vali
       return sendError(res, 'INVALID_OPERATION', 'Snapshot is already finalized', 400);
     }
 
-    const snapshot = await snapshotService.finalizeSnapshot(id, userId);
+    const snapshot = await snapshotService.finalizeSnapshot(id as string, userId);
 
     sendSuccess(res, { snapshot, message: 'Snapshot finalized successfully' });
   } catch (error: any) {
@@ -606,12 +606,12 @@ router.get('/snapshots/:id/payments', authenticate, validateUserOwnership, valid
     const { id } = req.params;
 
     // Verify snapshot ownership
-    const snapshot = await snapshotService.getSnapshot(id, userId);
+    const snapshot = await snapshotService.getSnapshot(id as string, userId);
     if (!snapshot) {
       return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
     }
 
-    const payments = await paymentService.getPaymentsBySnapshot(id, userId);
+    const payments = await paymentService.getPaymentsBySnapshot(id as string, userId);
 
     sendSuccess(res, { payments });
   } catch (error: any) {
@@ -634,7 +634,7 @@ router.post('/snapshots/:id/payments', authenticate, validateUserOwnership, vali
     const { id: snapshotId } = req.params;
 
     // Verify snapshot ownership
-    const snapshot = await snapshotService.getSnapshot(snapshotId, userId);
+    const snapshot = await snapshotService.getSnapshot(snapshotId as string, userId);
     if (!snapshot) {
       return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
     }
@@ -669,12 +669,12 @@ router.put('/snapshots/:snapshotId/payments/:paymentId', authenticate, validateU
     const { snapshotId, paymentId } = req.params;
 
     // Verify snapshot ownership
-    const snapshot = await snapshotService.getSnapshot(snapshotId, userId);
+    const snapshot = await snapshotService.getSnapshot(snapshotId as string, userId);
     if (!snapshot) {
       return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
     }
 
-    const payment = await paymentService.updatePayment(paymentId, userId, req.body);
+    const payment = await paymentService.updatePayment(paymentId as string, userId, req.body);
 
     sendSuccess(res, { payment });
   } catch (error: any) {
@@ -700,12 +700,12 @@ router.delete('/snapshots/:snapshotId/payments/:paymentId', authenticate, valida
     const { snapshotId, paymentId } = req.params;
 
     // Verify snapshot ownership
-    const snapshot = await snapshotService.getSnapshot(snapshotId, userId);
+    const snapshot = await snapshotService.getSnapshot(snapshotId as string, userId);
     if (!snapshot) {
       return sendError(res, 'NOT_FOUND', 'Snapshot not found', 404);
     }
 
-    await paymentService.deletePayment(paymentId, userId);
+    await paymentService.deletePayment(paymentId as string, userId);
 
     sendSuccess(res, { message: 'Payment deleted successfully' });
   } catch (error: any) {
@@ -771,12 +771,12 @@ router.put('/reminders/:id/acknowledge', authenticate, async (req: Authenticated
     const { id } = req.params;
 
     // Verify ownership
-    const existing = await reminderService.getReminder(id, userId);
+    const existing = await reminderService.getReminder(id as string, userId);
     if (!existing) {
       return sendError(res, 'NOT_FOUND', 'Reminder not found', 404);
     }
 
-    const reminder = await reminderService.acknowledgeReminder(id, userId);
+    const reminder = await reminderService.acknowledgeReminder(id as string, userId);
 
     sendSuccess(res, { reminder });
   } catch (error: any) {

@@ -54,8 +54,8 @@ router.get('/', authMiddleware, validateSchema(paymentQuerySchema), async (req: 
 // GET /api/payments/:id
 router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
-  const userId = req.userId as string;
-    const payment = await PaymentService.getPaymentById(req.params.id, userId);
+    const userId = req.userId as string;
+    const payment = await PaymentService.getPaymentById(req.params.id as string, userId);
     if (!payment) return res.status(404).json({ success: false, error: 'Payment not found' });
     res.json({ success: true, data: { payment } });
   } catch (err) {
@@ -67,9 +67,9 @@ router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
 // PUT /api/payments/:id
 router.put('/:id', authMiddleware, validateSchema(updatePaymentSchema), async (req: AuthenticatedRequest, res) => {
   try {
-  const userId = req.userId as string;
+    const userId = req.userId as string;
     const body = req.body as Partial<CreatePaymentData>;
-    const updated = await PaymentService.updatePayment(req.params.id, userId, body);
+    const updated = await PaymentService.updatePayment(req.params.id as string, userId, body);
     res.json({ success: true, data: { payment: updated } });
   } catch (err) {
     const error = err instanceof Error ? err : new Error('Unknown error');
@@ -80,8 +80,8 @@ router.put('/:id', authMiddleware, validateSchema(updatePaymentSchema), async (r
 // DELETE /api/payments/:id
 router.delete('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
   try {
-  const userId = req.userId as string;
-    const ok = await PaymentService.deletePayment(req.params.id, userId);
+    const userId = req.userId as string;
+    const ok = await PaymentService.deletePayment(req.params.id as string, userId);
     if (!ok) return res.status(404).json({ success: false, error: 'Payment not found' });
     res.json({ success: true });
   } catch (err) {

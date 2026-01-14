@@ -124,9 +124,10 @@ app.use(cors({
   maxAge: 86400 // 24 hours
 }));
 
-// Logging middleware - TEMPORARILY DISABLED due to hanging issue
-// TODO: Debug morgan middleware hanging on Node v23.1.0
-// app.use(morgan('dev'));
+// Logging middleware
+// Use 'combined' for production (standard Apache format) and 'dev' for development
+const logFormat = process.env.NODE_ENV === 'production' ? 'combined' : 'dev';
+app.use(morgan(logFormat));
 
 // Compression middleware
 app.use(compression({
