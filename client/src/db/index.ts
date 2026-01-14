@@ -107,18 +107,26 @@ const getStorage = () => {
     return storage;
 };
 
+// Mutex to prevent concurrent database creation
+let _dbCreationInProgress: Promise<ZakAppDatabase> | null = null;
+
 // Internal Creator
 const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
     console.log('DatabaseService: Creating database instance...');
     const storage = getStorage();
     const dbName = process.env.NODE_ENV === 'test' ? 'testdb' : 'zakapp_db_v10';
 
+    // CRITICAL: ignoreDuplicate is ONLY allowed in development mode
+    // RxDB throws DB9 in production when this flag is set (by design)
+    const isDev = process.env.NODE_ENV === 'development';
+
     try {
         const db = await createRxDatabase<ZakAppCollections>({
             name: dbName,
             storage: storage,
             password: password,
-            ignoreDuplicate: true
+            // Only use ignoreDuplicate in development (for HMR scenarios)
+            ...(isDev ? { ignoreDuplicate: true } : {})
         });
 
         // Always check if collections are already there
@@ -150,39 +158,67 @@ const notifyListeners = (db: ZakAppDatabase | null) => {
     dbListeners.forEach(listener => listener(db));
 };
 
-// Public Accessor (Singleton)
+// Public Accessor (Singleton) with concurrency protection
 export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
+    // If there's already a creation in progress, wait for it
+    if (_dbCreationInProgress) {
+        console.log('DatabaseService: Creation in progress, waiting...');
+        try {
+            await _dbCreationInProgress;
+        } catch {
+            // Previous creation failed, we'll try again below
+        }
+    }
+
     // If we have an existing promise, check if it was created with the SAME password
     if (window._zakapp_db_promise) {
         if (window._zakapp_db_password === password) {
             console.log('DatabaseService: Returning existing DB singleton');
             return window._zakapp_db_promise;
         } else {
-            // Password changed! We MUST close the old one before returning a new one
+            // Password changed! We MUST close the old one before creating a new one
             console.warn('DatabaseService: Password changed, closing old instance...');
             await closeDb();
+            // Small delay to ensure RxDB internal registry is updated
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
     }
 
-    // Otherwise create new
+    // Create new database with mutex protection
+    console.log('DatabaseService: Starting database creation...');
     window._zakapp_db_password = password;
-    window._zakapp_db_promise = _createDb(password)
+
+    _dbCreationInProgress = _createDb(password)
         .then(db => {
+            window._zakapp_db_promise = Promise.resolve(db);
+            _dbCreationInProgress = null;
             notifyListeners(db);
             return db;
         })
         .catch(err => {
             console.error("FATAL: Failed to initialize DB", err);
-            window._zakapp_db_promise = null; // Reset on failure
+            window._zakapp_db_promise = null;
             window._zakapp_db_password = undefined;
+            _dbCreationInProgress = null;
             throw err;
         });
 
-    return window._zakapp_db_promise;
+    return _dbCreationInProgress;
 };
 
 // Destroys the DB instance (Close Connection) WITHOUT deleting data
 export const closeDb = async () => {
+    // Clear any in-progress creation first
+    if (_dbCreationInProgress) {
+        console.log('DatabaseService: Waiting for in-progress creation to complete before closing...');
+        try {
+            await _dbCreationInProgress;
+        } catch {
+            // Creation failed, that's fine - we still want to clean up
+        }
+        _dbCreationInProgress = null;
+    }
+
     if (window._zakapp_db_promise) {
         try {
             console.log("DatabaseService: Closing DB connection...");
@@ -205,12 +241,9 @@ export const closeDb = async () => {
         notifyListeners(null);
     }
 
-    // Explicitly nullify the storage/singleton to free up the RxDB internal map
-    if (process.env.NODE_ENV === 'development') {
-        // RxDB dev-mode plugin might need extra time or signals
-        // This helps clear the "COL23" limit in hot-reload scenarios
-        await new Promise(r => setTimeout(r, 100));
-    }
+    // CRITICAL: Always wait for RxDB internal registry to update
+    // This delay is needed in BOTH dev and production to prevent DB8 errors
+    await new Promise(r => setTimeout(r, 200));
 };
 
 // Removes the DB (Deletes ALL Data)

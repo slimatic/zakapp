@@ -189,7 +189,7 @@ router.post('/api/nisab-year-records', async (req: AuthenticatedRequest, res: Re
  */
 router.get('/api/nisab-year-records/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const record = await nisabYearRecordService.getRecord(req.userId, req.params.id);
+    const record = await nisabYearRecordService.getRecord(req.userId, req.params.id as string);
 
     res.status(200).json({
       success: true,
@@ -232,7 +232,7 @@ router.put('/api/nisab-year-records/:id', async (req: AuthenticatedRequest, res:
   try {
     const dto: UpdateNisabYearRecordDto = req.body;
 
-    const record = await nisabYearRecordService.updateRecord(req.userId, req.params.id, dto);
+    const record = await nisabYearRecordService.updateRecord(req.userId, req.params.id as string, dto);
 
     res.status(200).json({
       success: true,
@@ -275,7 +275,7 @@ router.put('/api/nisab-year-records/:id', async (req: AuthenticatedRequest, res:
  */
 router.delete('/api/nisab-year-records/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    await nisabYearRecordService.deleteRecord(req.userId, req.params.id);
+    await nisabYearRecordService.deleteRecord(req.userId, req.params.id as string);
 
     res.status(200).json({
       success: true,
@@ -336,8 +336,8 @@ router.get(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Fetch the record
-      const record = await nisabYearRecordService.getRecord(req.userId, req.params.id);
-      
+      const record = await nisabYearRecordService.getRecord(req.userId, req.params.id as string);
+
       if (!record) {
         return res.status(404).json({
           success: false,
@@ -434,7 +434,7 @@ router.post(
     try {
       const dto: FinalizeRecordDto = req.body || {};
 
-      const record = await nisabYearRecordService.finalizeRecord(req.userId, req.params.id, dto);
+      const record = await nisabYearRecordService.finalizeRecord(req.userId, req.params.id as string, dto);
 
       res.status(200).json({
         success: true,
@@ -522,7 +522,7 @@ router.post(
         });
       }
 
-      const record = await nisabYearRecordService.unlockRecord(req.userId, req.params.id, dto);
+      const record = await nisabYearRecordService.unlockRecord(req.userId, req.params.id as string, dto);
 
       res.status(200).json({
         success: true,
@@ -582,10 +582,10 @@ router.post(
 router.get('/api/nisab-year-records/:id/audit', async (req: AuthenticatedRequest, res: Response) => {
   try {
     // Verify user owns the record first (authorization check)
-    await nisabYearRecordService.getRecord(req.userId, req.params.id);
+    await nisabYearRecordService.getRecord(req.userId, req.params.id as string);
 
-    const entries = await auditTrailService.getAuditTrail(req.params.id);
-    const integrity = await auditTrailService.verifyAuditTrailIntegrity(req.params.id);
+    const entries = await auditTrailService.getAuditTrail(req.params.id as string);
+    const integrity = await auditTrailService.verifyAuditTrailIntegrity(req.params.id as string);
 
     res.status(200).json({
       success: true,

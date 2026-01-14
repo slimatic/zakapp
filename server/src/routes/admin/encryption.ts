@@ -49,7 +49,7 @@ router.post('/:id/retry', requireAdmin, async (req, res) => {
 
   try {
     const adminId = (req as any).user?.id;
-    await EncryptionAdminService.retryWithKey(id, key, adminId);
+    await EncryptionAdminService.retryWithKey(id as string, key, adminId);
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, error: 'RETRY_FAILED', message: e instanceof Error ? e.message : String(e) });
@@ -61,7 +61,7 @@ router.post('/:id/unrecoverable', requireAdmin, async (req, res) => {
   const { note } = req.body;
   try {
     const adminId = (req as any).user?.id;
-    const rem = await EncryptionAdminService.markUnrecoverable(id, adminId, note);
+    const rem = await EncryptionAdminService.markUnrecoverable(id as string, adminId, note);
     res.json({ success: true, remediation: rem });
   } catch (e) {
     res.status(500).json({ success: false, error: 'MARK_FAILED', message: e instanceof Error ? e.message : String(e) });
