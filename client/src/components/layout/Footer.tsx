@@ -56,7 +56,10 @@ export const Footer: React.FC = () => {
                                 className="flex items-center gap-1.5 hover:text-gray-600 transition-colors group"
                             >
                                 <span>Made with</span>
-                                <span className="text-red-400 group-hover:text-red-500 animate-pulse">❤️</span>
+                                <span
+                                    className="text-red-400 group-hover:text-red-500 animate-pulse"
+                                    onAnimationEnd={(e) => e.stopPropagation()}
+                                >❤️</span>
                                 <span>by</span>
                                 <span className="font-semibold text-gray-500 group-hover:text-gray-700">RST Labs</span>
                             </a>
