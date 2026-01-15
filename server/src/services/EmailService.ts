@@ -132,7 +132,7 @@ export class EmailService {
     /**
      * Send verification email
      */
-    async sendVerificationEmail(to: string, token: string): Promise<boolean> {
+    async sendVerificationEmail(to: string, token: string, firstName?: string, username?: string): Promise<boolean> {
         // Determine base URL (could be from env or settings)
         const baseUrl = process.env.APP_URL || 'http://localhost:5173';
         const link = `${baseUrl}/verify-email?token=${token}`;
@@ -141,6 +141,14 @@ export class EmailService {
         const logoUrl = `${baseUrl}/images/logo.png`;
 
         const subject = 'Verify your email for ZakApp';
+
+        // Personalize greeting
+        let greeting = 'Welcome to ZakApp!';
+        if (firstName) {
+            greeting = `Salam ${firstName}, Welcome to ZakApp!`;
+        }
+
+        const usernameDisplay = username ? `<p style="margin: 0 0 16px 0; color: #4b5563; font-size: 14px;">Username: <strong>${username}</strong></p>` : '';
 
         const html = `
 <!DOCTYPE html>
@@ -166,7 +174,8 @@ export class EmailService {
                     <!-- Content -->
                     <tr>
                         <td style="padding: 40px;">
-                            <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 20px; font-weight: 600;">Welcome to ZakApp!</h2>
+                            <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 20px; font-weight: 600;">${greeting}</h2>
+                            ${usernameDisplay}
                             <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 16px; line-height: 24px;">
                                 Thank you for joining us. Please verify your email address to secure your account and access all features.
                             </p>

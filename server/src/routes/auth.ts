@@ -377,7 +377,7 @@ router.post('/register',
           }
         });
 
-        await emailService.sendVerificationEmail(normalizedEmail, token);
+        await emailService.sendVerificationEmail(normalizedEmail, token, firstName, username);
       } catch (err) {
         logger.error('Failed to initiate email verification', err);
       }
