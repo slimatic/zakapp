@@ -160,7 +160,6 @@ const notifyListeners = (db: ZakAppDatabase | null) => {
 
 // Public Accessor (Singleton) with concurrency protection
 export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
-    // console.log("DatabaseService: getDb called with", password ? '***' : 'undefined'); // Debug fix
     // If there's already a creation in progress, wait for it
     if (_dbCreationInProgress) {
         console.log('DatabaseService: Creation in progress, waiting...');
@@ -181,6 +180,12 @@ export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
             await closeDb();
             // Small delay to ensure RxDB internal registry is updated
             await new Promise(resolve => setTimeout(resolve, 100));
+
+            // RECURSIVE CALL: Re-call getDb with the new password.
+            // This ensures we re-enter the standard mutex flow (_dbCreationInProgress)
+            // and handle any race conditions where another call might have started creation 
+            // while we were waiting for closeDb().
+            return getDb(password);
         } else {
             // console.log('DatabaseService: Returning existing DB singleton');
             return window._zakapp_db_promise;
