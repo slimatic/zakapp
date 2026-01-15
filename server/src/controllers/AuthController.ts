@@ -112,7 +112,7 @@ export class AuthController {
 
         // Fire and forget email (don't block response) or wait?
         // Better to wait briefly or log error, but return success to user.
-        await emailService.sendVerificationEmail(email, token);
+        await emailService.sendVerificationEmail(email, token, firstName, username);
       } catch (emailError) {
         console.error('Failed to send verification email:', emailError);
         // Continue, user can request resend later
