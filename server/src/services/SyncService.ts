@@ -80,37 +80,49 @@ export class SyncService {
         console.log(`Ensuring CouchDB user: ${couchUsername}`);
 
         // 1. Ensure CouchDB User exists in _users
-        try {
-            const userDocUrl = `${this.couchDbUrl}/_users/org.couchdb.user:${couchUsername}`;
-            let rev = undefined;
-
+        // Use retry logic to handle race conditions when multiple requests hit simultaneously
+        const MAX_RETRIES = 3;
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
-                // Check if user exists and get revision
-                const existingUser = await axios.get(userDocUrl, { headers: { 'Authorization': this.authHeader } });
-                rev = existingUser.data._rev;
-                console.log(`✅ CouchDB user exists: ${couchUsername} (rev: ${rev})`);
-            } catch (userErr: any) {
-                if (userErr.response?.status !== 404) {
-                    throw userErr;
+                const userDocUrl = `${this.couchDbUrl}/_users/org.couchdb.user:${couchUsername}`;
+                let rev: string | undefined = undefined;
+
+                try {
+                    // Check if user exists and get revision
+                    const existingUser = await axios.get(userDocUrl, { headers: { 'Authorization': this.authHeader } });
+                    rev = existingUser.data._rev;
+                    console.log(`✅ CouchDB user exists: ${couchUsername} (rev: ${rev})`);
+                } catch (userErr: any) {
+                    if (userErr.response?.status !== 404) {
+                        throw userErr;
+                    }
+                    console.log(`Creating new CouchDB user: ${couchUsername}`);
                 }
-                console.log(`Creating new CouchDB user: ${couchUsername}`);
+
+                // Create or Update user
+                await axios.put(userDocUrl, {
+                    _id: `org.couchdb.user:${couchUsername}`,
+                    name: couchUsername,
+                    password: couchPassword,
+                    roles: [couchUsername], // Role matches username for isolation
+                    type: 'user',
+                    ...(rev ? { _rev: rev } : {})
+                }, { headers: { 'Authorization': this.authHeader, 'Content-Type': 'application/json' } });
+
+                console.log(`✅ Ensure CouchDB user: ${couchUsername} (Synced Credentials)`);
+                break; // Success, exit retry loop
+
+            } catch (err: any) {
+                // Handle 409 Conflict (race condition with another request)
+                if (err.response?.status === 409 && attempt < MAX_RETRIES) {
+                    console.log(`CouchDB user update conflict, retrying (${attempt}/${MAX_RETRIES})...`);
+                    // Small delay before retry to let the other request complete
+                    await new Promise(r => setTimeout(r, 100 * attempt));
+                    continue; // Retry with fresh rev fetch
+                }
+                console.error('Failed to ensure CouchDB user:', err.response?.data || err.message);
+                throw new Error(`Failed to ensure CouchDB user: ${err.message}`);
             }
-
-            // Create or Update user
-            await axios.put(userDocUrl, {
-                _id: `org.couchdb.user:${couchUsername}`,
-                name: couchUsername,
-                password: couchPassword,
-                roles: [couchUsername], // Role matches username for isolation
-                type: 'user',
-                ...(rev ? { _rev: rev } : {})
-            }, { headers: { 'Authorization': this.authHeader, 'Content-Type': 'application/json' } });
-
-            console.log(`✅ Ensure CouchDB user: ${couchUsername} (Synced Credentials)`);
-
-        } catch (err: any) {
-            console.error('Failed to ensure CouchDB user:', err.response?.data || err.message);
-            throw new Error(`Failed to ensure CouchDB user: ${err.message}`);
         }
 
         // 2. Ensure user's databases exist and have correct permissions
