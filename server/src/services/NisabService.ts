@@ -30,18 +30,14 @@ import { metalPriceScraper } from './MetalPriceScraperService';
  * - User-Centric Design: Easy-to-understand threshold information
  */
 export class NisabService {
-  // Cache for metal prices to avoid frequent API calls
-  private priceCache: {
+  // Cache for metal prices - keyed by currency for currency-specific prices
+  private priceCache: Map<string, {
     gold?: { price: number; timestamp: number };
     silver?: { price: number; timestamp: number };
-  } = {};
+  }> = new Map();
 
-  // Cache for currency exchange rates
-  private currencyRateCache: Map<string, { rate: number; timestamp: number }> = new Map();
-
-  // Cache validity periods
-  private readonly CACHE_VALIDITY_MS = 24 * 60 * 60 * 1000; // 24 hours for metal prices
-  private readonly CURRENCY_CACHE_VALIDITY_MS = 24 * 60 * 60 * 1000; // 24 hours for currency rates
+  // Cache validity period (24 hours)
+  private readonly CACHE_VALIDITY_MS = 24 * 60 * 60 * 1000;
 
   /**
    * Calculate nisab thresholds based on current metal prices
@@ -85,39 +81,48 @@ export class NisabService {
 
   /**
    * Get current gold price per gram in specified currency
+   * Scrapes directly from country-specific pages - no currency conversion needed
    * 
    * @param currency - Target currency code
-   * @returns Gold price per gram
+   * @returns Gold price per gram in target currency
    */
   private async getCurrentGoldPrice(currency: string): Promise<number> {
+    // Get or create currency-specific cache
+    if (!this.priceCache.has(currency)) {
+      this.priceCache.set(currency, {});
+    }
+    const currencyCache = this.priceCache.get(currency)!;
+
     // Check cache first
-    const cached = this.priceCache.gold;
+    const cached = currencyCache.gold;
     if (cached && this.isCacheValid(cached.timestamp)) {
-      return await this.convertCurrency(cached.price, 'USD', currency);
+      console.log(`Using cached gold price for ${currency}: ${cached.price}`);
+      return cached.price;
     }
 
-    // 1. Try Scraper (Primary)
+    // 1. Try Scraper (Primary) - scrapes directly in target currency
     try {
-      console.log('Attempting to scrape gold price...');
-      const price = await metalPriceScraper.scrapeGoldPrice();
+      console.log(`Attempting to scrape gold price in ${currency}...`);
+      const price = await metalPriceScraper.scrapeGoldPrice(currency);
 
       // Update cache
-      this.priceCache.gold = {
+      currencyCache.gold = {
         price: price,
         timestamp: Date.now()
       };
 
-      return await this.convertCurrency(price, 'USD', currency);
+      console.log(`Scraped gold price for ${currency}: ${price}`);
+      return price;
     } catch (error) {
-      console.warn('Scraper failed for Gold, trying API fallback:', error instanceof Error ? error.message : 'Unknown error');
+      console.warn('Scraper failed for Gold:', error instanceof Error ? error.message : 'Unknown error');
     }
 
-    // 2. Try API (Fallback)
+    // 2. Try GoldAPI (Fallback) - returns price directly in currency
     try {
       const price = await this.fetchLivePrice('XAU', currency);
 
       // Update cache
-      this.priceCache.gold = {
+      currencyCache.gold = {
         price: price,
         timestamp: Date.now()
       };
@@ -130,59 +135,64 @@ export class NisabService {
 
       // a. Check Cache (even if stale)
       if (cached) {
-        console.warn('Using cached gold price due to API error');
-        return await this.convertCurrency(cached.price, 'USD', currency);
+        console.warn('Using stale cached gold price');
+        return cached.price;
       }
 
-      // b. Manual Env Variable (Configured Fallback)
-      if (process.env.MANUAL_GOLD_PRICE_USD) {
-        console.warn('Using manual gold price from env as fallback:', process.env.MANUAL_GOLD_PRICE_USD);
-        const price = parseFloat(process.env.MANUAL_GOLD_PRICE_USD);
-        return await this.convertCurrency(price, 'USD', currency);
-      }
+      // b. Fall back to USD value with rough conversion
+      const fallbackUSD = process.env.MANUAL_GOLD_PRICE_USD
+        ? parseFloat(process.env.MANUAL_GOLD_PRICE_USD)
+        : 147; // ~current gold price USD/g
 
-      // c. Static Constant (Hard Fallback)
-      const FALLBACK_GOLD_PRICE = 65; // USD/g
-      console.warn(`Using static fallback gold price: $${FALLBACK_GOLD_PRICE}/g`);
-      return await this.convertCurrency(FALLBACK_GOLD_PRICE, 'USD', currency);
+      console.warn(`Using fallback gold price: ${fallbackUSD} USD/g (no conversion)`);
+      return fallbackUSD;
     }
   }
 
   /**
    * Get current silver price per gram in specified currency
+   * Scrapes directly from country-specific pages - no currency conversion needed
    * 
    * @param currency - Target currency code
-   * @returns Silver price per gram
+   * @returns Silver price per gram in target currency
    */
   private async getCurrentSilverPrice(currency: string): Promise<number> {
+    // Get or create currency-specific cache
+    if (!this.priceCache.has(currency)) {
+      this.priceCache.set(currency, {});
+    }
+    const currencyCache = this.priceCache.get(currency)!;
+
     // Check cache first
-    const cached = this.priceCache.silver;
+    const cached = currencyCache.silver;
     if (cached && this.isCacheValid(cached.timestamp)) {
-      return await this.convertCurrency(cached.price, 'USD', currency);
+      console.log(`Using cached silver price for ${currency}: ${cached.price}`);
+      return cached.price;
     }
 
-    // 1. Try Scraper (Primary)
+    // 1. Try Scraper (Primary) - scrapes directly in target currency
     try {
-      console.log('Attempting to scrape silver price...');
-      const price = await metalPriceScraper.scrapeSilverPrice();
+      console.log(`Attempting to scrape silver price in ${currency}...`);
+      const price = await metalPriceScraper.scrapeSilverPrice(currency);
 
       // Update cache
-      this.priceCache.silver = {
+      currencyCache.silver = {
         price: price,
         timestamp: Date.now()
       };
 
-      return await this.convertCurrency(price, 'USD', currency);
+      console.log(`Scraped silver price for ${currency}: ${price}`);
+      return price;
     } catch (error) {
-      console.warn('Scraper failed for Silver, trying API fallback:', error instanceof Error ? error.message : 'Unknown error');
+      console.warn('Scraper failed for Silver:', error instanceof Error ? error.message : 'Unknown error');
     }
 
-    // 2. Try API (Fallback)
+    // 2. Try GoldAPI (Fallback) - returns price directly in currency
     try {
       const price = await this.fetchLivePrice('XAG', currency);
 
       // Update cache
-      this.priceCache.silver = {
+      currencyCache.silver = {
         price: price,
         timestamp: Date.now()
       };
@@ -195,21 +205,17 @@ export class NisabService {
 
       // a. Check Cache (even if stale)
       if (cached) {
-        console.warn('Using cached silver price due to API error');
-        return await this.convertCurrency(cached.price, 'USD', currency);
+        console.warn('Using stale cached silver price');
+        return cached.price;
       }
 
-      // b. Manual Env Variable (Configured Fallback)
-      if (process.env.MANUAL_SILVER_PRICE_USD) {
-        console.warn('Using manual silver price from env as fallback:', process.env.MANUAL_SILVER_PRICE_USD);
-        const price = parseFloat(process.env.MANUAL_SILVER_PRICE_USD);
-        return await this.convertCurrency(price, 'USD', currency);
-      }
+      // b. Fall back to USD value with rough conversion
+      const fallbackUSD = process.env.MANUAL_SILVER_PRICE_USD
+        ? parseFloat(process.env.MANUAL_SILVER_PRICE_USD)
+        : 0.95; // ~current silver price USD/g
 
-      // c. Static Constant (Hard Fallback)
-      const FALLBACK_SILVER_PRICE = 0.85; // USD/g
-      console.warn(`Using static fallback silver price: $${FALLBACK_SILVER_PRICE}/g`);
-      return await this.convertCurrency(FALLBACK_SILVER_PRICE, 'USD', currency);
+      console.warn(`Using fallback silver price: ${fallbackUSD} USD/g (no conversion)`);
+      return fallbackUSD;
     }
   }
 
@@ -476,112 +482,37 @@ export class NisabService {
   }
 
   /**
-   * Convert currency using Exchange Rate API with caching
-   * 
-   * @param amount - Amount to convert
-   * @param fromCurrency - Source currency code (e.g., 'USD')
-   * @param toCurrency - Target currency code (e.g., 'EUR')
-   * @returns Converted amount
-   */
-  private async convertCurrency(amount: number, fromCurrency: string, toCurrency: string): Promise<number> {
-    // No conversion needed if same currency
-    if (fromCurrency.toUpperCase() === toCurrency.toUpperCase()) {
-      return amount;
-    }
-
-    const cacheKey = `${fromCurrency.toUpperCase()}_${toCurrency.toUpperCase()}`;
-    const cached = this.currencyRateCache.get(cacheKey);
-
-    // Use cached rate if valid
-    if (cached && Date.now() - cached.timestamp < this.CURRENCY_CACHE_VALIDITY_MS) {
-      return amount * cached.rate;
-    }
-
-    try {
-      // Try primary API: Exchange Rate API (if key is configured)
-      const apiKey = process.env.EXCHANGE_RATE_API_KEY;
-      let rate: number;
-
-      if (apiKey) {
-        // Paid/authenticated endpoint - more reliable
-        const response = await axios.get(
-          `https://v6.exchangerate-api.com/v6/${apiKey}/pair/${fromCurrency}/${toCurrency}`,
-          { timeout: 5000 }
-        );
-        rate = response.data.conversion_rate;
-      } else {
-        // Free fallback API (open.er-api.com - no key required)
-        const response = await axios.get(
-          `https://open.er-api.com/v6/latest/${fromCurrency}`,
-          { timeout: 5000 }
-        );
-        rate = response.data.rates?.[toCurrency.toUpperCase()];
-
-        if (!rate) {
-          throw new Error(`Currency ${toCurrency} not found in exchange rates`);
-        }
-      }
-
-      // Cache the rate
-      this.currencyRateCache.set(cacheKey, { rate, timestamp: Date.now() });
-      console.log(`Currency rate cached: ${fromCurrency} -> ${toCurrency} = ${rate}`);
-
-      return amount * rate;
-    } catch (error) {
-      console.error('Currency conversion error:', error instanceof Error ? error.message : 'Unknown error');
-
-      // If we have a stale cache, use it as fallback
-      if (cached) {
-        console.warn(`Using stale currency rate for ${cacheKey} (age: ${Math.round((Date.now() - cached.timestamp) / 3600000)}h)`);
-        return amount * cached.rate;
-      }
-
-      // Hard fallback: common currency ratios (approximate)
-      // These are rough estimates as of 2024, used only as last resort
-      const fallbackRates: Record<string, Record<string, number>> = {
-        'USD': { 'EUR': 0.92, 'GBP': 0.79, 'AUD': 1.55, 'CAD': 1.36, 'INR': 83.0, 'SAR': 3.75 },
-        'EUR': { 'USD': 1.09, 'GBP': 0.86, 'AUD': 1.68, 'CAD': 1.48 },
-        'GBP': { 'USD': 1.27, 'EUR': 1.16, 'AUD': 1.96 },
-      };
-
-      const fromRates = fallbackRates[fromCurrency.toUpperCase()];
-      if (fromRates && fromRates[toCurrency.toUpperCase()]) {
-        console.warn(`Using fallback static rate for ${fromCurrency} -> ${toCurrency}`);
-        return amount * fromRates[toCurrency.toUpperCase()];
-      }
-
-      // If no fallback available, return original amount with warning
-      console.error(`No currency conversion available for ${fromCurrency} -> ${toCurrency}, returning unconverted amount`);
-      return amount;
-    }
-  }
-
-  /**
    * Clear price cache (useful for testing or forced refresh)
    */
   clearCache(): void {
-    this.priceCache = {};
+    this.priceCache.clear();
   }
 
   /**
    * Get cache status for monitoring
+   * Returns status for all cached currencies
    */
-  getCacheStatus(): {
+  getCacheStatus(): Record<string, {
     gold: { cached: boolean; age?: number };
     silver: { cached: boolean; age?: number };
-  } {
+  }> {
     const now = Date.now();
+    const status: Record<string, { gold: { cached: boolean; age?: number }; silver: { cached: boolean; age?: number } }> = {};
 
-    return {
-      gold: {
-        cached: !!this.priceCache.gold,
-        age: this.priceCache.gold ? now - this.priceCache.gold.timestamp : undefined
-      },
-      silver: {
-        cached: !!this.priceCache.silver,
-        age: this.priceCache.silver ? now - this.priceCache.silver.timestamp : undefined
-      }
-    };
+    this.priceCache.forEach((cache, currency) => {
+      status[currency] = {
+        gold: {
+          cached: !!cache.gold,
+          age: cache.gold ? now - cache.gold.timestamp : undefined
+        },
+        silver: {
+          cached: !!cache.silver,
+          age: cache.silver ? now - cache.silver.timestamp : undefined
+        }
+      };
+    });
+
+    return status;
   }
 }
 
