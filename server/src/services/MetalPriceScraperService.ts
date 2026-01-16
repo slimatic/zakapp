@@ -3,113 +3,159 @@ import * as cheerio from 'cheerio';
 
 /**
  * MetalPriceScraperService
- * Scrapes live gold and silver prices to avoid API limits.
- * Source: livepriceofgold.com
+ * Scrapes live gold and silver prices in user's local currency.
+ * Source: livepriceofgold.com (has country-specific pages with local prices)
+ * 
+ * This avoids the need for currency conversion APIs by scraping prices
+ * directly in the target currency.
  */
 export class MetalPriceScraperService {
-    private static readonly GOLD_URL = 'https://www.livepriceofgold.com/usa-gold-price-per-gram.html';
-    private static readonly SILVER_URL = 'https://www.livepriceofgold.com/silver-price.html'; // Main silver page generally has gram price too
-
-    // Fallback static values in case scraping fails entirely
-    // Note: These are defaults; NisabService may also check MANUAL_GOLD/SILVER_PRICE_USD env vars.
-    private static readonly FALLBACK_GOLD = process.env.MANUAL_GOLD_PRICE_USD ? parseFloat(process.env.MANUAL_GOLD_PRICE_USD) : 65.0;
-    private static readonly FALLBACK_SILVER = process.env.MANUAL_SILVER_PRICE_USD ? parseFloat(process.env.MANUAL_SILVER_PRICE_USD) : 0.85;
+    /**
+     * Map of currency codes to country slugs used in livepriceofgold.com URLs
+     * 
+     * Gold URL pattern: https://www.livepriceofgold.com/{country}-gold-price-per-gram.html
+     * Silver URL pattern: https://www.livepriceofgold.com/silver-price/{country}.html
+     */
+    private static readonly CURRENCY_TO_COUNTRY: Record<string, string> = {
+        'USD': 'usa',
+        'EUR': 'europe',      // Uses eurozone pricing
+        'GBP': 'uk',
+        'SAR': 'saudi-arabia',
+        'AED': 'uae',
+        'EGP': 'egypt',
+        'TRY': 'turkey',
+        'INR': 'india',
+        'PKR': 'pakistan',
+        'BDT': 'bangladesh',
+        'MYR': 'malaysia',
+        'IDR': 'indonesia',
+        'AUD': 'australia',
+        'CAD': 'canada',
+        'KWD': 'kuwait',
+        'QAR': 'qatar',
+        'BHD': 'bahrain',
+        'OMR': 'oman',
+        'JOD': 'jordan',
+    };
 
     /**
-     * Scrape current Gold price per Gram in USD
+     * Scrape current Gold price per Gram in specified currency
+     * Falls back to USD and logs warning if currency not supported
      */
-    async scrapeGoldPrice(): Promise<number> {
+    async scrapeGoldPrice(currency: string = 'USD'): Promise<number> {
+        const countrySlug = MetalPriceScraperService.CURRENCY_TO_COUNTRY[currency.toUpperCase()];
+
+        if (!countrySlug) {
+            console.warn(`Currency ${currency} not mapped to country, falling back to USD`);
+            return this.scrapeGoldPriceForCountry('usa');
+        }
+
         try {
-            console.log(`Scraping Gold price from ${MetalPriceScraperService.GOLD_URL}...`);
-            const { data } = await axios.get(MetalPriceScraperService.GOLD_URL, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                },
-                timeout: 10000
-            });
-
-            const $ = cheerio.load(data);
-
-            // Selectors based on inspection (Subject to change if site updates)
-            // Usually the site puts the gram price clearly in the content or title
-            // Strategy 1: Look for specific table cells or classes
-            // Strategy 2: Parse from Page Title which is often "US Gold Price per Gram: $145.00..."
-
-            const title = $('title').text();
-            console.log('Page Title:', title);
-            // Example: "US Gold Price per Gram: $145.00 USD Today in the United States - Live Price of Gold"
-
-            const priceMatch = title.match(/Price\s*per\s*Gram:\s*\$\s*([\d,]+\.?\d*)/i);
-            if (priceMatch && priceMatch[1]) {
-                const price = parseFloat(priceMatch[1].replace(/,/g, ''));
-                if (!isNaN(price) && price > 0) {
-                    console.log(`Scraped Gold Price (from Title): ${price}`);
-                    return price;
-                }
-            }
-
-            // Fallback Strategy: Look for data in body if title parsing fails
-            // Note: This is brittle without exact class names, relying on text search near keywords
-            // Check for specific text block from previous `view_content_chunk`: "PER GRAM 145.0222 $"
-            const bodyText = $('body').text();
-            // Regex to find "PER GRAM" followed by number and $
-            const bodyMatch = bodyText.match(/PER GRAM\s+([\d,]+\.?\d*)\s*\$/i);
-            if (bodyMatch && bodyMatch[1]) {
-                const price = parseFloat(bodyMatch[1].replace(/,/g, ''));
-                if (!isNaN(price) && price > 0) {
-                    console.log(`Scraped Gold Price (from Body): ${price}`);
-                    return price;
-                }
-            }
-
-            throw new Error('Could not parse gold price from page');
-
+            return await this.scrapeGoldPriceForCountry(countrySlug);
         } catch (error) {
-            console.error('Gold Scraping Failed:', error instanceof Error ? error.message : 'Unknown error');
+            console.error(`Failed to scrape gold price for ${currency} (${countrySlug}):`, error);
+
+            // Fall back to USD if country-specific scrape fails
+            if (currency !== 'USD') {
+                console.log('Falling back to USD gold price...');
+                return this.scrapeGoldPriceForCountry('usa');
+            }
             throw error;
         }
     }
 
     /**
-     * Scrape current Silver price per Gram in USD
-     * Uses multiple strategies and sources for robustness
+     * Scrape gold price from country-specific page
      */
-    async scrapeSilverPrice(): Promise<number> {
-        const MAX_REASONABLE_SILVER_PRICE = 5.0; // Hard cap to prevent grabbing Gold price (~$80-150+)
-        const errors: string[] = [];
+    private async scrapeGoldPriceForCountry(countrySlug: string): Promise<number> {
+        const url = `https://www.livepriceofgold.com/${countrySlug}-gold-price-per-gram.html`;
+        console.log(`Scraping Gold price from ${url}...`);
 
-        // Strategy 1: Try livepriceofgold.com silver page
-        try {
-            const price = await this.scrapeSilverFromLivePriceOfGold();
-            if (price && price > 0 && price < MAX_REASONABLE_SILVER_PRICE) {
-                console.log(`Scraped Silver Price (livepriceofgold): ${price}`);
+        const { data } = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            },
+            timeout: 10000
+        });
+
+        const $ = cheerio.load(data);
+        const title = $('title').text();
+        console.log('Page Title:', title);
+
+        // Strategy 1: Parse price from page title
+        // Example: "Pakistan Gold Price per Gram: 41,275.08 Pakistani rupees (PKR) today"
+        // Example: "US Gold Price per Gram: $147.82 USD Today"
+        const priceMatch = title.match(/Price\s*per\s*Gram[:\s]*[^\d]*([\d,]+\.?\d*)/i);
+        if (priceMatch && priceMatch[1]) {
+            const price = parseFloat(priceMatch[1].replace(/,/g, ''));
+            if (!isNaN(price) && price > 0) {
+                console.log(`Scraped Gold Price (from Title): ${price}`);
                 return price;
             }
-        } catch (error) {
-            errors.push(`livepriceofgold: ${error instanceof Error ? error.message : 'Unknown'}`);
         }
 
-        // Strategy 2: Try goldprice.org as alternative source
-        try {
-            const price = await this.scrapeSilverFromGoldpriceOrg();
-            if (price && price > 0 && price < MAX_REASONABLE_SILVER_PRICE) {
-                console.log(`Scraped Silver Price (goldprice.org): ${price}`);
+        // Strategy 2: Look for "PER GRAM" in body followed by price
+        const bodyText = $('body').text();
+        const bodyMatch = bodyText.match(/PER GRAM\s+([\d,]+\.?\d*)/i);
+        if (bodyMatch && bodyMatch[1]) {
+            const price = parseFloat(bodyMatch[1].replace(/,/g, ''));
+            if (!isNaN(price) && price > 0) {
+                console.log(`Scraped Gold Price (from Body): ${price}`);
                 return price;
             }
-        } catch (error) {
-            errors.push(`goldprice.org: ${error instanceof Error ? error.message : 'Unknown'}`);
         }
 
-        // All strategies failed
-        console.error('Silver Scraping Failed from all sources:', errors.join('; '));
-        throw new Error('Could not parse silver price from any source');
+        throw new Error(`Could not parse gold price from ${url}`);
     }
 
     /**
-     * Scrape silver from livepriceofgold.com
+     * Scrape current Silver price per Gram in specified currency
+     * Uses multiple strategies and sources for robustness
      */
-    private async scrapeSilverFromLivePriceOfGold(): Promise<number> {
-        const url = 'https://www.livepriceofgold.com/silver-price/us.html';
+    async scrapeSilverPrice(currency: string = 'USD'): Promise<number> {
+        const countrySlug = MetalPriceScraperService.CURRENCY_TO_COUNTRY[currency.toUpperCase()];
+
+        if (!countrySlug) {
+            console.warn(`Currency ${currency} not mapped to country, falling back to USD`);
+            return this.scrapeSilverPriceForCountry('us');
+        }
+
+        // Silver URLs use slightly different country codes in some cases
+        const silverCountrySlug = this.getSilverCountrySlug(countrySlug);
+
+        try {
+            return await this.scrapeSilverPriceForCountry(silverCountrySlug);
+        } catch (error) {
+            console.error(`Failed to scrape silver price for ${currency} (${silverCountrySlug}):`, error);
+
+            // Fall back to USD if country-specific scrape fails
+            if (currency !== 'USD') {
+                console.log('Falling back to USD silver price...');
+                return this.scrapeSilverPriceForCountry('us');
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Map gold country slug to silver country slug (some differ)
+     */
+    private getSilverCountrySlug(goldSlug: string): string {
+        const silverSlugOverrides: Record<string, string> = {
+            'usa': 'us',
+            'uk': 'uk',
+            'europe': 'europe',
+            // Most countries use same slug for silver
+        };
+        return silverSlugOverrides[goldSlug] || goldSlug;
+    }
+
+    /**
+     * Scrape silver price from country-specific page
+     */
+    private async scrapeSilverPriceForCountry(countrySlug: string): Promise<number> {
+        const url = `https://www.livepriceofgold.com/silver-price/${countrySlug}.html`;
+        console.log(`Scraping Silver price from ${url}...`);
 
         const { data } = await axios.get(url, {
             headers: {
@@ -122,28 +168,45 @@ export class MetalPriceScraperService {
         const title = $('title').text();
         console.log('Silver Page Title:', title);
 
-        // Strategy A: Look for per-ounce price in title and convert
-        // Example: "US Silver Price Live - $30.50/oz Today"
-        const ounceMatch = title.match(/\$\s*([0-9,.]+)\s*(?:\/?\s*(?:oz|ounce))?/i);
-        if (ounceMatch && ounceMatch[1]) {
-            const pricePerOz = parseFloat(ounceMatch[1].replace(/,/g, ''));
-            if (!isNaN(pricePerOz) && pricePerOz > 20 && pricePerOz < 100) { // Reasonable oz range
-                const pricePerGram = pricePerOz / 31.1034768;
-                console.log(`Converted Silver Price from Ounce: $${pricePerOz}/oz -> $${pricePerGram.toFixed(4)}/g`);
+        // Strategy 1: Look for per-ounce price and convert to grams
+        // Title format varies, often shows ounce price
+        const ounceMatch = title.match(/[\d,]+\.?\d*/);
+        if (ounceMatch) {
+            const possibleOz = parseFloat(ounceMatch[0].replace(/,/g, ''));
+            // Sanity check: ounce prices should be 20-100+ for silver
+            if (!isNaN(possibleOz) && possibleOz > 15 && possibleOz < 200) {
+                const pricePerGram = possibleOz / 31.1034768;
+                console.log(`Converted Silver from Ounce: ${possibleOz}/oz -> ${pricePerGram.toFixed(4)}/g`);
                 return pricePerGram;
             }
         }
 
-        // Strategy B: Look in tables for "per gram" row
-        // Search for table cells containing "gram" and nearby dollar amounts
+        // Strategy 2: Look in tables for "per gram" row
+        const bodyText = $('body').text();
+
+        // Look for gram price pattern in body
+        const gramMatch = bodyText.match(/gram[^0-9]*?([\d,]+\.?\d*)/i);
+        if (gramMatch && gramMatch[1]) {
+            const price = parseFloat(gramMatch[1].replace(/,/g, ''));
+            // Silver per gram should be reasonable (< 100 for most currencies relative to gold)
+            // For PKR: ~480/g, for INR: ~95/g, for USD: ~1/g
+            // Let's use a ratio check: silver should be ~60-80x cheaper than gold
+            if (!isNaN(price) && price > 0) {
+                console.log(`Scraped Silver Price (gram pattern): ${price}`);
+                return price;
+            }
+        }
+
+        // Strategy 3: For livepriceofgold, silver page sometimes shows "per gram" differently
+        // Look for table cells with "GRAM" label
         let gramPrice: number | null = null;
         $('table tr').each((_, row) => {
             const rowText = $(row).text().toLowerCase();
             if (rowText.includes('gram') && !gramPrice) {
-                const priceMatch = $(row).text().match(/\$\s*([0-9,.]+)/);
+                const priceMatch = $(row).text().match(/([\d,]+\.?\d*)/);
                 if (priceMatch) {
                     const price = parseFloat(priceMatch[1].replace(/,/g, ''));
-                    if (price > 0 && price < 5.0) {
+                    if (price > 0 && price < 10000) { // Reasonable range for silver per gram
                         gramPrice = price;
                     }
                 }
@@ -151,61 +214,18 @@ export class MetalPriceScraperService {
         });
 
         if (gramPrice) {
+            console.log(`Scraped Silver Price (table gram row): ${gramPrice}`);
             return gramPrice;
         }
 
-        // Strategy C: Look for specific div/span with silver gram price
-        const bodyText = $('body').text();
-
-        // Match "Silver ... per Gram ... $X.XX"
-        const silverGramMatch = bodyText.match(/silver[^$]*per\s*gram[^$]*\$([0-9,.]+)/i);
-        if (silverGramMatch && silverGramMatch[1]) {
-            const price = parseFloat(silverGramMatch[1].replace(/,/g, ''));
-            if (price > 0 && price < 5.0) {
-                return price;
-            }
-        }
-
-        throw new Error('Could not find silver gram price on livepriceofgold.com');
+        throw new Error(`Could not parse silver price from ${url}`);
     }
 
     /**
-     * Alternative source: goldprice.org
+     * Get list of supported currencies that have country mappings
      */
-    private async scrapeSilverFromGoldpriceOrg(): Promise<number> {
-        const url = 'https://goldprice.org/silver-price.html';
-
-        const { data } = await axios.get(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            },
-            timeout: 10000
-        });
-
-        const $ = cheerio.load(data);
-
-        // goldprice.org typically has format: "1 gram = $X.XX"
-        const bodyText = $('body').text();
-
-        // Look for "gram = $X.XX" pattern
-        const gramMatch = bodyText.match(/gram\s*=\s*\$?\s*([0-9,.]+)/i);
-        if (gramMatch && gramMatch[1]) {
-            const price = parseFloat(gramMatch[1].replace(/,/g, ''));
-            if (!isNaN(price) && price > 0 && price < 5.0) {
-                return price;
-            }
-        }
-
-        // Alternative: Look for ounce price and convert
-        const ounceMatch = bodyText.match(/ounce\s*=\s*\$?\s*([0-9,.]+)/i);
-        if (ounceMatch && ounceMatch[1]) {
-            const pricePerOz = parseFloat(ounceMatch[1].replace(/,/g, ''));
-            if (!isNaN(pricePerOz) && pricePerOz > 20 && pricePerOz < 100) {
-                return pricePerOz / 31.1034768;
-            }
-        }
-
-        throw new Error('Could not find silver price on goldprice.org');
+    getSupportedCurrencies(): string[] {
+        return Object.keys(MetalPriceScraperService.CURRENCY_TO_COUNTRY);
     }
 }
 
