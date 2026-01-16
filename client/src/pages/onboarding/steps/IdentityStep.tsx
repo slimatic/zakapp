@@ -9,8 +9,8 @@ export const IdentityStep: React.FC = () => {
     const { data, updateData, nextStep } = useOnboarding();
     const selectedCurrency = data.settings?.currency || 'USD';
 
-    // Fetch prices in selected currency
-    const { goldPrice, silverPrice } = useNisabThreshold(selectedCurrency, 'SILVER');
+    // Always fetch Nisab prices in USD for consistent display during onboarding
+    const { goldPrice, silverPrice } = useNisabThreshold('USD', 'SILVER');
 
     const handleMadhabChange = (madhab: 'hanafi' | 'shafii' | 'standard') => {
         updateData('methodology', { madhab });
@@ -26,6 +26,10 @@ export const IdentityStep: React.FC = () => {
 
     const formatCurrency = (val: number) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: selectedCurrency }).format(val);
+
+    // Nisab thresholds are always shown in USD for clarity during onboarding
+    const formatNisabUSD = (val: number) =>
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
 
     const currencies = [
         { code: 'USD', name: 'US Dollar ($)' },
@@ -163,10 +167,10 @@ export const IdentityStep: React.FC = () => {
                                 <div>
                                     <span className="block font-bold text-gray-900 text-lg mb-1">{option.title}</span>
                                     <span className="block text-2xl font-bold text-emerald-700 my-2">
-                                        {option.price ? formatCurrency(threshold) : 'Loading...'}
+                                        {option.price ? formatNisabUSD(threshold) : 'Loading...'}
                                     </span>
                                     <span className="block text-xs text-gray-500 mb-2">
-                                        Based on {option.gramWeight}g @ {option.price ? formatCurrency(option.price) : '...'}/g
+                                        Based on {option.gramWeight}g @ {option.price ? formatNisabUSD(option.price) : '...'}/g
                                     </span>
                                 </div>
                                 <span className="block text-xs text-gray-400 mt-2 border-t border-gray-100 pt-2">{option.desc}</span>
