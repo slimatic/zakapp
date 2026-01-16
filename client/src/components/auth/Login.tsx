@@ -61,35 +61,48 @@ export const Login: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
-                {error === 'Failed to fetch' ? 'Unable to connect to server. Please check your network connection.' : error}
-                {(error.includes('DB1') || error.includes('password') || error.includes('salt')) && (
-                  <div className="mt-2">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="w-full text-xs"
-                      onClick={async () => {
-                        if (window.confirm('This will delete the LOCAL database (sync mismatch). Are you sure?')) {
-                          try {
-                            const { forceResetDatabase } = await import('../../db');
-                            await forceResetDatabase();
-                            // Also clear auth tokens
-                            localStorage.removeItem('accessToken');
-                            localStorage.removeItem('refreshToken');
-                            localStorage.removeItem('zakapp_session');
-                            window.location.reload();
-                          } catch (e) {
-                            console.error(e);
-                            alert('Failed to reset DB');
+                {error === 'Failed to fetch'
+                  ? 'Unable to connect to server. Please check your network connection.'
+                  : error}
+                {/* Show reset button for vault/encryption/sync related errors */}
+                {(error.includes('vault') ||
+                  error.includes('local data') ||
+                  error.includes('encryption') ||
+                  error.includes('site data') ||
+                  error.includes('DB1') ||
+                  error.includes('DB8') ||
+                  error.includes('password') ||
+                  error.includes('salt')) && (
+                    <div className="mt-2">
+                      <p className="text-xs text-red-600 mb-2">
+                        If this persists, you can reset your local data. Your cloud data is safe and will sync again after login.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="w-full text-xs"
+                        onClick={async () => {
+                          if (window.confirm('This will clear your local browser data for this app. Your cloud data is safe. Continue?')) {
+                            try {
+                              const { forceResetDatabase } = await import('../../db');
+                              await forceResetDatabase();
+                              // Also clear auth tokens
+                              localStorage.removeItem('accessToken');
+                              localStorage.removeItem('refreshToken');
+                              sessionStorage.clear();
+                              window.location.reload();
+                            } catch (e) {
+                              console.error(e);
+                              alert('Failed to reset. Try clearing site data manually in browser settings.');
+                            }
                           }
-                        }
-                      }}
-                    >
-                      Reset Local Data & Retry
-                    </Button>
-                  </div>
-                )}
+                        }}
+                      >
+                        Clear Local Data & Retry
+                      </Button>
+                    </div>
+                  )}
               </div>
             )}
 

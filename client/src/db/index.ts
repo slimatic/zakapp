@@ -296,22 +296,79 @@ export const forceResetDatabase = async () => {
     await closeDb();
 
     try {
-        // Need to replicate logic of storage selection
-        let storage;
-        if (process.env.NODE_ENV === 'test') {
-            storage = getRxStorageMemory();
-        } else {
-            storage = getRxStorageDexie();
+        // IMPORTANT: We must use the SAME storage wrapper used to create the database.
+        // For encrypted databases, we need the encryption-wrapped storage.
+        // However, for deletion purposes, we also need to try multiple approaches
+        // since the exact storage state may vary.
+        const dbName = process.env.NODE_ENV === 'test' ? 'testdb' : 'zakapp_db_v10';
+
+        // Approach 1: Try with the cached storage (if available)
+        if (window._zakapp_storage) {
+            try {
+                await removeRxDatabase(dbName, window._zakapp_storage);
+                console.log("DatabaseService: DB Forced Removed via cached storage.");
+            } catch (e) {
+                console.warn("DatabaseService: Cached storage removal failed, trying base storage", e);
+            }
         }
 
-        const dbName = process.env.NODE_ENV === 'test' ? 'testdb' : 'zakapp_db_v10';
-        await removeRxDatabase(dbName, storage);
-        console.log("DatabaseService: DB Forced Removed via removeRxDatabase.");
+        // Approach 2: Try with base storage (for IndexedDB cleanup)
+        // This ensures the underlying Dexie/IndexedDB tables are cleaned up
+        let baseStorage;
+        if (process.env.NODE_ENV === 'test') {
+            baseStorage = getRxStorageMemory();
+        } else {
+            baseStorage = getRxStorageDexie();
+        }
+
+        try {
+            await removeRxDatabase(dbName, baseStorage);
+            console.log("DatabaseService: DB Forced Removed via base storage.");
+        } catch (e) {
+            console.warn("DatabaseService: Base storage removal failed (may be already deleted)", e);
+        }
+
+        // Approach 3: Direct IndexedDB cleanup for Dexie-based storage
+        // This is a nuclear option to ensure IndexedDB is truly clean
+        if (process.env.NODE_ENV !== 'test' && typeof indexedDB !== 'undefined') {
+            const dbsToDelete = [
+                dbName,           // Main DB
+                `${dbName}-rxdb-version`, // RxDB version tracking
+                `rxdb-internal-${dbName}`, // Possible internal DB
+            ];
+
+            for (const dbToDelete of dbsToDelete) {
+                try {
+                    const deleteRequest = indexedDB.deleteDatabase(dbToDelete);
+                    await new Promise<void>((resolve, reject) => {
+                        deleteRequest.onsuccess = () => resolve();
+                        deleteRequest.onerror = () => reject(deleteRequest.error);
+                        deleteRequest.onblocked = () => {
+                            console.warn(`DatabaseService: IndexedDB delete blocked for ${dbToDelete}`);
+                            resolve(); // Continue anyway
+                        };
+                    });
+                } catch (e) {
+                    // Ignore errors for non-existent databases
+                }
+            }
+            console.log("DatabaseService: Direct IndexedDB cleanup complete.");
+        }
+
+        // Clear the cached storage to force fresh creation next time
+        window._zakapp_storage = undefined;
         window._zakapp_db_promise = null;
         window._zakapp_db_password = undefined;
         notifyListeners(null);
+
+        // Additional delay to let IndexedDB fully release resources
+        await new Promise(r => setTimeout(r, 300));
     } catch (err) {
         console.error("DatabaseService: Failed to force remove DB", err);
+        // Even on error, clear state to allow retry
+        window._zakapp_storage = undefined;
+        window._zakapp_db_promise = null;
+        window._zakapp_db_password = undefined;
     }
 };
 
