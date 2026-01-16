@@ -21,6 +21,57 @@ import type { User } from '../types';
 import { getDb, resetDb, closeDb, forceResetDatabase } from '../db';
 import { cryptoService } from '../services/CryptoService';
 
+/**
+ * Translates RxDB error codes into user-friendly messages
+ */
+const getUserFriendlyDbError = (error: any): { message: string; isRecoverable: boolean; requiresReset: boolean } => {
+  const errorCode = error?.code || '';
+  const errorMessage = error?.message || String(error);
+
+  // DB1: Password/encryption key mismatch
+  if (errorCode === 'DB1' || errorMessage.includes('different password')) {
+    return {
+      message: 'Your local data was encrypted with a different session. This can happen after a password change or when logging in from a new device.',
+      isRecoverable: true,
+      requiresReset: true
+    };
+  }
+
+  // DB8: Database already exists (duplicate creation attempt)
+  if (errorCode === 'DB8' || errorMessage.includes('already exists')) {
+    return {
+      message: 'There was a conflict with your local data. Try refreshing the page. If the issue persists, clear your browser data for this site.',
+      isRecoverable: true,
+      requiresReset: true
+    };
+  }
+
+  // DB6: Schema mismatch (app update with new schema)
+  if (errorCode === 'DB6' || errorMessage.includes('different schema')) {
+    return {
+      message: 'The app has been updated and your local data needs to be refreshed. Your cloud data is safe.',
+      isRecoverable: true,
+      requiresReset: true
+    };
+  }
+
+  // COL23: Max collections reached (memory leak)
+  if (errorCode === 'COL23' || errorMessage.includes('Maximum collections')) {
+    return {
+      message: 'Too many browser tabs or sessions are open. Please close other tabs and refresh.',
+      isRecoverable: false,
+      requiresReset: false
+    };
+  }
+
+  // Generic fallback
+  return {
+    message: 'Unable to access your local vault. Please try again or clear site data if the problem continues.',
+    isRecoverable: false,
+    requiresReset: false
+  };
+};
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
@@ -284,17 +335,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         encryptedDb = await getDb(keyString);
       } catch (dbError: any) {
         console.error('AuthContext: DB Open Failed during login', dbError);
+        const friendlyError = getUserFriendlyDbError(dbError);
 
-        // Handle Password Mismatch (DB1) - Only if we are SURE it's not a key derivation issue
-        if (dbError?.code === 'DB1' || (dbError?.message && dbError.message.includes('different password'))) {
+        // Automatically recover from known recoverable errors
+        if (friendlyError.isRecoverable && friendlyError.requiresReset) {
+          console.log('AuthContext: Attempting automatic recovery...');
+          toast.loading('Syncing your vault encryption...', { id: 'db-recovery', duration: 5000 });
+
           // Force delete the old DB
           await forceResetDatabase();
 
           // Re-initialize with correct key
-          encryptedDb = await getDb(keyString);
-          console.log('AuthContext: DB Re-initialized after nuke (Login).');
+          try {
+            encryptedDb = await getDb(keyString);
+            console.log('AuthContext: DB Re-initialized after recovery (Login).');
+            toast.success('Successfully synced your vault!', { id: 'db-recovery' });
+          } catch (retryError: any) {
+            console.error('AuthContext: Recovery failed', retryError);
+            toast.error('Recovery failed. Please clear site data and try again.', { id: 'db-recovery' });
+            throw new Error('Unable to initialize your vault. Clear site data and log in again.');
+          }
         } else {
-          throw dbError;
+          // Non-recoverable error - show friendly message
+          throw new Error(friendlyError.message);
         }
       }
 
