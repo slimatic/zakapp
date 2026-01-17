@@ -246,13 +246,11 @@ function App() {
                     <Route
                       path="/help"
                       element={
-                        <ProtectedRoute>
-                          <Layout>
-                            <Suspense fallback={<PageLoadingFallback />}>
-                              <GettingStarted />
-                            </Suspense>
-                          </Layout>
-                        </ProtectedRoute>
+                        <Layout>
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <GettingStarted />
+                          </Suspense>
+                        </Layout>
                       }
                     />
 
@@ -260,13 +258,11 @@ function App() {
                     <Route
                       path="/learn"
                       element={
-                        <ProtectedRoute>
-                          <Layout>
-                            <Suspense fallback={<PageLoadingFallback />}>
-                              <KnowledgeHub />
-                            </Suspense>
-                          </Layout>
-                        </ProtectedRoute>
+                        <Layout>
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <KnowledgeHub />
+                          </Suspense>
+                        </Layout>
                       }
                     />
 
