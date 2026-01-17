@@ -27,7 +27,7 @@ module.exports = {
   // `setupFiles` runs before the test framework is installed – this is required
   // so module-level imports that instantiate Prisma clients pick up the
   // TEST_DATABASE_URL correctly.
-  setupFiles: ['<rootDir>/test/setupEnv.ts'],
+  setupFiles: ['<rootDir>/test/polyfills.js', '<rootDir>/test/setupEnv.ts'],
   setupFilesAfterEnv: ['<rootDir>/test/setupTests.ts', '<rootDir>/tests/setup.ts'],
   globalSetup: '<rootDir>/test/globalSetup.ts',
   globalTeardown: '<rootDir>/test/globalTeardown.ts',

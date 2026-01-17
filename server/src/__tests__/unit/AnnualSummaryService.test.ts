@@ -63,6 +63,7 @@ describe('AnnualSummaryService', () => {
       zakatableWealth: 130000,
       zakatAmount: 3250,
       methodologyUsed: 'Standard',
+      nisabType: 'silver',
       nisabThreshold: 85000,
       calculationDate: new Date('2024-06-15'),
       startDate: new Date('2024-01-01'),
@@ -104,7 +105,7 @@ describe('AnnualSummaryService', () => {
     it('should calculate total paid correctly', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(
+      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(mockUserId,
         expect.objectContaining({
           totalZakatPaid: 3250 // sum of all payments
         })
@@ -114,7 +115,7 @@ describe('AnnualSummaryService', () => {
     it('should calculate outstanding Zakat correctly', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(
+      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(mockUserId,
         expect.objectContaining({
           outstandingZakat: 0 // 3250 - 3250
         })
@@ -124,7 +125,7 @@ describe('AnnualSummaryService', () => {
     it('should group payments by category', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][0];
+      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
       const recipientSummary = call.recipientSummary;
 
       expect(recipientSummary.byCategory).toBeDefined();
@@ -138,7 +139,7 @@ describe('AnnualSummaryService', () => {
     it('should group payments by type', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][0];
+      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
       const recipientSummary = call.recipientSummary;
 
       expect(recipientSummary.byType).toBeDefined();
@@ -157,7 +158,7 @@ describe('AnnualSummaryService', () => {
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(
+      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(mockUserId,
         expect.objectContaining({
           totalZakatPaid: 0,
           outstandingZakat: 3250, // full amount outstanding
@@ -179,12 +180,12 @@ describe('AnnualSummaryService', () => {
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][0];
+      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
 
       expect(call.comparativeAnalysis).toBeDefined();
-      expect(call.comparativeAnalysis.previousYear).toBe(2023);
-      expect(call.comparativeAnalysis.wealthChange).toBe(30000); // 150000 - 120000
-      expect(call.comparativeAnalysis.zakatChange).toBe(250); // 3250 - 3000
+      expect(call.comparativeAnalysis.previousYear.year).toBe(2023);
+      expect(call.comparativeAnalysis.changes.wealthChange).toBe(30000); // 150000 - 120000
+      expect(call.comparativeAnalysis.changes.zakatChange).toBe(250); // 3250 - 3000
     });
 
     it('should calculate percentage changes correctly', async () => {
@@ -200,14 +201,14 @@ describe('AnnualSummaryService', () => {
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][0];
-      const analysis = call.comparativeAnalysis;
+      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const analysis = call.comparativeAnalysis.changes;
 
       // Wealth change: (150000 - 100000) / 100000 = 50%
-      expect(analysis.wealthChangePercentage).toBeCloseTo(50, 1);
+      expect(analysis.wealthChangePercent).toBeCloseTo(50, 1);
 
       // Zakat change: (3250 - 2500) / 2500 = 30%
-      expect(analysis.zakatChangePercentage).toBeCloseTo(30, 1);
+      expect(analysis.zakatChangePercent).toBeCloseTo(30, 1);
     });
 
     it('should handle division by zero in percentage calculations', async () => {
@@ -223,11 +224,11 @@ describe('AnnualSummaryService', () => {
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][0];
-      const analysis = call.comparativeAnalysis;
+      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const analysis = call.comparativeAnalysis.changes;
 
-      expect(analysis.wealthChangePercentage).toBe(0);
-      expect(analysis.zakatChangePercentage).toBe(0);
+      expect(analysis.wealthChangePercent).toBe(0);
+      expect(analysis.zakatChangePercent).toBe(0);
     });
 
     it('should not include comparative analysis for first year', async () => {
@@ -235,7 +236,7 @@ describe('AnnualSummaryService', () => {
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][0];
+      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
 
       expect(call.comparativeAnalysis).toBeUndefined();
     });
@@ -255,7 +256,7 @@ describe('AnnualSummaryService', () => {
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][0];
+      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
 
       expect(call.assetBreakdown).toBeDefined();
       expect(call.assetBreakdown.cash).toBe(50000);
@@ -264,7 +265,7 @@ describe('AnnualSummaryService', () => {
     it('should include nisab information', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][0];
+      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
 
       expect(call.nisabInfo).toBeDefined();
       expect(call.nisabInfo.threshold).toBe(85000);
@@ -274,7 +275,7 @@ describe('AnnualSummaryService', () => {
     it('should calculate correct number of payments', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(
+      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(mockUserId,
         expect.objectContaining({
           numberOfPayments: 3
         })
@@ -284,7 +285,7 @@ describe('AnnualSummaryService', () => {
     it('should set correct years', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(
+      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(mockUserId,
         expect.objectContaining({
           gregorianYear: 2024,
           hijriYear: 1446
@@ -295,7 +296,7 @@ describe('AnnualSummaryService', () => {
     it('should use methodology from snapshot', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(
+      expect(AnnualSummaryModel.createOrUpdate).toHaveBeenCalledWith(mockUserId,
         expect.objectContaining({
           methodologyUsed: 'Standard'
         })
