@@ -229,6 +229,7 @@ router.post('/login',
             lastName: (profileData as any).lastName || '',
             isAdmin: user.userType === 'ADMIN_USER' || (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).includes(user.email.toLowerCase()),
             userType: user.userType,
+            isVerified: user.isVerified,
             profile: profileData, // Includes salt
             preferences: {
               calendar: user.preferredCalendar,
@@ -414,6 +415,7 @@ router.post('/register',
             firstName: profileData.firstName || '',
             lastName: profileData.lastName || '',
             isActive: user.isActive,
+            isVerified: user.isVerified,
             profile: profileData,
             preferences: {
               calendar: user.preferredCalendar,
@@ -783,6 +785,7 @@ router.get('/me',
             name: `${profile.firstName} ${profile.lastName}`.trim() || user.email,
             isAdmin: user.userType === 'ADMIN_USER' || (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).includes(user.email.toLowerCase()),
             userType: user.userType,
+            isVerified: user.isVerified,
             profile: profile,
             preferences: {
               calendar: user.preferredCalendar,
