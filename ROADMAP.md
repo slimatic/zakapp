@@ -78,12 +78,19 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 ## Phase 8: Code Cleanup (Pre-Launch Polish)
 *Goal: Ensure codebase is production-ready, maintainable, and open-source quality.*
 
-- [ ] **Console Cleanup**: Replace debug `console.log` statements with structured logging (20+ files identified).
-- [ ] **Financial Precision**: Replace `parseFloat`/`parseInt` with BigNumber in financial calculations (20+ files).
-- [ ] **Large File Refactors**:
-  - [ ] Split `AssetForm.tsx` (850 lines) into smaller components.
+- [x] **Console Cleanup**: Replace debug `console.log` statements with structured logging (20+ files identified).
+- [x] **Financial Precision**: Replace `parseFloat`/`parseInt` with Decimal.js in financial calculations.
+- [x] **Large File Refactors**:
+  - [x] Split `AssetForm.tsx` (850 lines) into smaller components.
   - [ ] Extract modals from `NisabYearRecordsPage.tsx` (717 lines).
-  - [ ] Extract crypto/sync logic from `AuthContext.tsx` (669 lines).
+  - [x] Extract crypto/sync logic from `AuthContext.tsx` (669 lines) to `AuthService.ts`.
 - [ ] **Unused Imports**: Run ESLint auto-fix to remove unused imports across all files.
-- [ ] **TODO Resolution**: Address remaining `TODO-HASH-OF-KEY` placeholders in AuthContext.
+- [x] **TODO Resolution**: Address remaining `TODO-HASH-OF-KEY` placeholders in AuthContext.
+
+## Phase 9: Technical Debt & Stability (Post-Launch)
+*Goal: Harden the development environment and ensure long-term maintainability.*
+
+- [ ] **Unified Testing**: Migrate Server tests to `vitest` (matching Client) to remove fragile Jest/JSDOM polyfills.
+- [ ] **Strict Financial Typing**: Enforce `Decimal` type across all shared interfaces to prevent `number` regression.
+- [ ] **CI/CD Reliability**: Resolve `npm run build` permission issues permanently in deployment scripts.
 
