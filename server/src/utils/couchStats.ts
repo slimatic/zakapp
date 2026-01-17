@@ -1,5 +1,7 @@
-
 import fetch from 'node-fetch';
+import { Logger } from './logger';
+
+const logger = new Logger('CouchStats');
 
 const COUCHDB_URL = process.env.COUCHDB_URL || 'http://couchdb:5984';
 const COUCHDB_USER = process.env.COUCHDB_USER || 'admin';
@@ -31,7 +33,7 @@ export const getCouchDBStats = async (dbName: string): Promise<CouchDBStats> => 
             disk_size: data.sizes?.active || 0
         };
     } catch (error) {
-        console.warn(`Failed to fetch stats for ${dbName}:`, error);
+        logger.warn(`Failed to fetch stats for ${dbName}: ${error instanceof Error ? error.message : String(error)}`);
         return { doc_count: 0, disk_size: 0 };
     }
 };

@@ -19,14 +19,7 @@ import { getApiBaseUrl } from '../config';
 
 export const API_BASE_URL = getApiBaseUrl();
 
-// Log API configuration in development mode
-// Log API configuration in development mode
-if (import.meta.env.DEV) {
-  console.log('🔧 API Configuration:', {
-    baseUrl: API_BASE_URL,
-    source: window.APP_CONFIG?.API_BASE_URL ? 'runtime-config' : (import.meta.env.VITE_API_BASE_URL ? 'environment' : 'default'),
-  });
-}
+// API configuration is handled via environment or runtime config
 
 export interface LoginRequest {
   email?: string;
@@ -145,7 +138,6 @@ class ApiService {
     if (!response.ok) {
       // Handle 401 Unauthorized - clear tokens and reload to trigger redirect to login
       if (response.status === 401) {
-        console.warn('API: 401 Unauthorized. Suppressing error for Local-First mode.');
         // Return a safe failure object to prevent UI crashes/toasts
         return { success: false, message: 'API Unauthorized (Local Mode)' } as unknown as T;
       }
@@ -221,7 +213,6 @@ class ApiService {
       if (!response.ok) {
         // Extract detailed error message
         const errorMessage = result.error?.message || result.message || `Login failed: ${response.status}`;
-        console.error('Login error response:', result);
         return {
           success: false,
           message: errorMessage
@@ -236,7 +227,6 @@ class ApiService {
         user: result.data.user
       };
     } catch (error) {
-      console.error('Login error:', error);
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Network error occurred'
@@ -257,7 +247,6 @@ class ApiService {
       if (!response.ok) {
         // Extract detailed error message
         const errorMessage = result.error?.message || result.message || result.details?.[0]?.msg || `Registration failed: ${response.status}`;
-        console.error('Registration error response:', result);
         return {
           success: false,
           message: errorMessage
@@ -272,7 +261,6 @@ class ApiService {
         user: result.data?.user
       };
     } catch (error) {
-      console.error('Registration error:', error);
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Network error occurred'

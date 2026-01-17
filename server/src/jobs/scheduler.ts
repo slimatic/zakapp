@@ -26,6 +26,10 @@ import cron from 'node-cron';
 import { runCacheCleanupJob } from './cleanupCache';
 import { runReminderGenerationJob } from './generateReminders';
 import { runSummaryRegenerationJob } from './regenerateSummaries';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('Scheduler');
+
 
 /**
  * Job configuration interface
@@ -73,17 +77,17 @@ let scheduledTasks: any[] = [];
  */
 function wrapJobHandler(jobName: string, handler: () => Promise<void>): () => void {
   return () => {
-    // eslint-disable-next-line no-console
-    console.log(`[Scheduler] Starting job: ${jobName}`);
-    
+    logger.info(`Starting job: ${jobName}`);
+
+
     handler()
       .then(() => {
-        // eslint-disable-next-line no-console
-        console.log(`[Scheduler] Job completed: ${jobName}`);
+        logger.info(`Job completed: ${jobName}`);
+
       })
       .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(`[Scheduler] Job failed: ${jobName}`, error);
+        logger.error(`Job failed: ${jobName}`, error);
+
       });
   };
 }
@@ -94,20 +98,20 @@ function wrapJobHandler(jobName: string, handler: () => Promise<void>): () => vo
  * @param runImmediately - If true, runs all jobs once immediately (useful for testing)
  */
 export function initializeJobs(runImmediately = false): void {
-  // eslint-disable-next-line no-console
-  console.log('[Scheduler] Initializing background jobs...');
+  logger.info('Initializing background jobs...');
+
 
   for (const job of JOBS) {
     if (!job.enabled) {
-      // eslint-disable-next-line no-console
-      console.log(`[Scheduler] Skipping disabled job: ${job.name}`);
+      logger.info(`Skipping disabled job: ${job.name}`);
+
       continue;
     }
 
     // Validate cron expression
     if (!cron.validate(job.schedule)) {
-      // eslint-disable-next-line no-console
-      console.error(`[Scheduler] Invalid cron expression for job ${job.name}: ${job.schedule}`);
+      logger.error(`Invalid cron expression for job ${job.name}: ${job.schedule}`);
+
       continue;
     }
 
@@ -117,19 +121,19 @@ export function initializeJobs(runImmediately = false): void {
     });
 
     scheduledTasks.push(task);
-    // eslint-disable-next-line no-console
-    console.log(`[Scheduler] Scheduled job: ${job.name} (${job.schedule})`);
+    logger.info(`Scheduled job: ${job.name} (${job.schedule})`);
+
 
     // Run immediately if requested (for testing)
     if (runImmediately) {
-      // eslint-disable-next-line no-console
-      console.log(`[Scheduler] Running job immediately: ${job.name}`);
+      logger.info(`Running job immediately: ${job.name}`);
+
       wrapJobHandler(job.name, job.handler)();
     }
   }
 
-  // eslint-disable-next-line no-console
-  console.log(`[Scheduler] Initialized ${scheduledTasks.length} jobs`);
+  logger.info(`Initialized ${scheduledTasks.length} jobs`);
+
 }
 
 /**
@@ -137,16 +141,16 @@ export function initializeJobs(runImmediately = false): void {
  * Should be called during server shutdown
  */
 export function stopAllJobs(): void {
-  // eslint-disable-next-line no-console
-  console.log('[Scheduler] Stopping all scheduled jobs...');
+  logger.info('Stopping all scheduled jobs...');
+
 
   for (const task of scheduledTasks) {
     task.stop();
   }
 
   scheduledTasks = [];
-  // eslint-disable-next-line no-console
-  console.log('[Scheduler] All jobs stopped');
+  logger.info('All jobs stopped');
+
 }
 
 /**
@@ -171,7 +175,7 @@ export function getJobStatus(): Array<{ name: string; enabled: boolean; schedule
  */
 export async function triggerJob(jobName: string): Promise<void> {
   const job = JOBS.find(j => j.name === jobName);
-  
+
   if (!job) {
     throw new Error(`Job not found: ${jobName}`);
   }
@@ -180,7 +184,7 @@ export async function triggerJob(jobName: string): Promise<void> {
     throw new Error(`Job is disabled: ${jobName}`);
   }
 
-  // eslint-disable-next-line no-console
-  console.log(`[Scheduler] Manually triggering job: ${jobName}`);
+  logger.info(`Manually triggering job: ${jobName}`);
+
   await job.handler();
 }

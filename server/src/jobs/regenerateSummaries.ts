@@ -27,8 +27,11 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { Logger } from '../utils/logger';
 
+const logger = new Logger('SummaryRegeneration');
 const prisma = new PrismaClient();
+
 
 /**
  * Configuration for summary regeneration
@@ -57,8 +60,8 @@ export async function regenerateAnnualSummaries(): Promise<{
   let failed = 0;
 
   try {
-    // eslint-disable-next-line no-console
-    console.log('[Summary Regeneration] Starting summary regeneration');
+    logger.info('Starting summary regeneration');
+
 
     // Find snapshots updated recently that need summary refresh
     const cutoffDate = new Date();
@@ -83,8 +86,8 @@ export async function regenerateAnnualSummaries(): Promise<{
       take: SUMMARY_REGEN_CONFIG.maxSummariesPerRun,
     });
 
-    // eslint-disable-next-line no-console
-    console.log(`[Summary Regeneration] Found ${recentlyUpdatedSnapshots.length} snapshots to regenerate`);
+    logger.info(`Found ${recentlyUpdatedSnapshots.length} snapshots to regenerate`);
+
 
     for (const snapshot of recentlyUpdatedSnapshots) {
       try {
@@ -165,20 +168,20 @@ export async function regenerateAnnualSummaries(): Promise<{
         }
 
         regenerated++;
-        // eslint-disable-next-line no-console
-        console.log(`[Summary Regeneration] Regenerated summary for snapshot ${snapshot.id}`);
+        logger.info(`Regenerated summary for snapshot ${snapshot.id}`);
+
       } catch (error) {
         failed++;
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         errors.push(`Failed to regenerate summary for snapshot ${snapshot.id}: ${errorMessage}`);
-        // eslint-disable-next-line no-console
-        console.error(`[Summary Regeneration] Error for snapshot ${snapshot.id}:`, error);
+        logger.error(`Error for snapshot ${snapshot.id}:`, error);
+
       }
     }
 
     const duration = Date.now() - startTime;
-    // eslint-disable-next-line no-console
-    console.log(`[Summary Regeneration] Regenerated ${regenerated} summaries, failed ${failed} in ${duration}ms`);
+    logger.info(`Regenerated ${regenerated} summaries, failed ${failed} in ${duration}ms`);
+
 
     return {
       regenerated,
@@ -189,8 +192,8 @@ export async function regenerateAnnualSummaries(): Promise<{
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(`Summary regeneration failed: ${errorMessage}`);
-    // eslint-disable-next-line no-console
-    console.error('[Summary Regeneration] Error:', error);
+    logger.error('Error:', error);
+
 
     return {
       regenerated,
@@ -205,15 +208,15 @@ export async function regenerateAnnualSummaries(): Promise<{
  * Job handler for scheduled execution
  */
 export async function runSummaryRegenerationJob(): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log('[Summary Regeneration] Job started');
+  logger.info('Job started');
+
   const result = await regenerateAnnualSummaries();
-  
+
   if (result.errors.length > 0) {
-    // eslint-disable-next-line no-console
-    console.error('[Summary Regeneration] Job completed with errors:', result.errors);
+    logger.error('Job completed with errors:', result.errors);
+
   } else {
-    // eslint-disable-next-line no-console
-    console.log('[Summary Regeneration] Job completed successfully');
+    logger.info('Job completed successfully');
+
   }
 }
