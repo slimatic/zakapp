@@ -62,14 +62,34 @@ Visit `http://localhost:3000` to view the app.
 
 ## 🛠 Tech Stack
 
--   **Framework**: React 18, Vite
--   **Language**: TypeScript
--   **Database**: RxDB (Local-First) + CouchDB (Sync)
--   **Styling**: Tailwind CSS, shadcn/ui (Islamic Fintech Aesthetic)
--   **Icons**: Lucide React, Custom SVG Brand Assets
--   **Testing**: Vitest, Playwright
+-   **Frontend**: React 18, Vite, Tailwind CSS, shadcn/ui.
+-   **Local Database**: RxDB (Reactive Database) using SQLite-WASM.
+-   **Security**: Client-side AES-GCM (256-bit) powered by Web Crypto API.
 
-See [docs/](docs/) for detailed Architecture and Security documentation.
+Detailed technical details can be found in our [Architecture Guide](docs/ARCHITECTURE.md).
+
+## 🚀 Getting Started
+
+### The Quick Way (Docker Compose)
+
+The fastest way to run ZakApp locally with the sync relay is via Docker Compose:
+
+```bash
+docker compose up -d
+```
+Visit `http://localhost:3000` to start your Zakat journey.
+
+### Manual Installation (Developer Mode)
+
+If you prefer to run the components independently:
+
+```bash
+# Install all dependencies (Root)
+npm run install-all
+
+# Start both Client and Server concurrently
+npm start
+```
 
 ## 🔄 Sync & Multi-Device Setup
 
