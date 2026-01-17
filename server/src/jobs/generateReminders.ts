@@ -28,8 +28,11 @@
 
 import { PrismaClient } from '@prisma/client';
 import { toHijri } from 'hijri-converter';
+import { Logger } from '../utils/logger';
 
+const logger = new Logger('ReminderGeneration');
 const prisma = new PrismaClient();
+
 
 /**
  * Configuration for reminder generation
@@ -94,8 +97,8 @@ export async function generateZakatReminders(): Promise<{
   let skipped = 0;
 
   try {
-    // eslint-disable-next-line no-console
-    console.log('[Reminder Generation] Starting reminder generation');
+    logger.info('Starting reminder generation');
+
 
     // Get all users with finalized snapshots
     const users = await prisma.user.findMany({
@@ -112,8 +115,8 @@ export async function generateZakatReminders(): Promise<{
       },
     });
 
-    // eslint-disable-next-line no-console
-    console.log(`[Reminder Generation] Checking ${users.length} users for reminders`);
+    logger.info(`Checking ${users.length} users for reminders`);
+
 
     for (const user of users) {
       try {
@@ -175,19 +178,19 @@ export async function generateZakatReminders(): Promise<{
         });
 
         created++;
-        // eslint-disable-next-line no-console
-        console.log(`[Reminder Generation] Created reminder for user ${user.id}`);
+        logger.info(`Created reminder for user ${user.id}`);
+
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         errors.push(`Failed to create reminder for user ${user.id}: ${errorMessage}`);
-        // eslint-disable-next-line no-console
-        console.error(`[Reminder Generation] Error for user ${user.id}:`, error);
+        logger.error(`Error for user ${user.id}:`, error);
+
       }
     }
 
     const duration = Date.now() - startTime;
-    // eslint-disable-next-line no-console
-    console.log(`[Reminder Generation] Created ${created} reminders, skipped ${skipped} in ${duration}ms`);
+    logger.info(`Created ${created} reminders, skipped ${skipped} in ${duration}ms`);
+
 
     return {
       created,
@@ -198,8 +201,8 @@ export async function generateZakatReminders(): Promise<{
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(`Reminder generation failed: ${errorMessage}`);
-    // eslint-disable-next-line no-console
-    console.error('[Reminder Generation] Error:', error);
+    logger.error('Error:', error);
+
 
     return {
       created,
@@ -214,15 +217,15 @@ export async function generateZakatReminders(): Promise<{
  * Job handler for scheduled execution
  */
 export async function runReminderGenerationJob(): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log('[Reminder Generation] Job started');
+  logger.info('Job started');
+
   const result = await generateZakatReminders();
-  
+
   if (result.errors.length > 0) {
-    // eslint-disable-next-line no-console
-    console.error('[Reminder Generation] Job completed with errors:', result.errors);
+    logger.error('Job completed with errors:', result.errors);
+
   } else {
-    // eslint-disable-next-line no-console
-    console.log('[Reminder Generation] Job completed successfully');
+    logger.info('Job completed successfully');
+
   }
 }

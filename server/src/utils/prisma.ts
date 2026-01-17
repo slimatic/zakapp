@@ -24,7 +24,7 @@
 import { PrismaClient } from '@prisma/client';
 
 const url = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL || 'file:./dev.db';
-console.log('Prisma Utils initializing with URL:', url); // DEBUG LOG
+
 
 export const prisma = new PrismaClient({ datasources: { db: { url } } });
 

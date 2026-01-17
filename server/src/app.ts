@@ -41,6 +41,10 @@ import feedbackRoutes from './routes/feedback';
 import adminEncryptionRoutes from './routes/admin/encryption';
 import adminRoutes from './routes/admin';
 import debugRoutes from './routes/debug';
+import { Logger } from './utils/logger';
+
+const logger = new Logger('App');
+
 
 // Import middleware
 // import { DatabaseManager } from './config/database';
@@ -110,9 +114,10 @@ app.use(cors({
 
     // Log rejected origin in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`⚠️  CORS rejected origin: ${origin}`);
-      console.log(`   Allowed origins: ${allowedOrigins.join(', ')}`);
+      logger.warn(`CORS rejected origin: ${origin}`);
+      logger.info(`Allowed origins: ${allowedOrigins.join(', ')}`);
     }
+
 
     // Reject unauthorized origins
     callback(new Error('Not allowed by CORS'));
@@ -175,9 +180,10 @@ app.get('/health', (req, res) => {
 
 // Error handling middleware (must be last)
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
+  logger.error(`Application Error: ${err.message}`, err);
   res.status(500).json({ success: false, error: 'Internal server error' });
 });
+
 
 export { app };
 // Force restart attempt 3
@@ -187,17 +193,18 @@ export default app;
 if (require.main === module) {
   const PORT = process.env.PORT || 3001;
   const server = app.listen(PORT, () => {
-    console.log(`🚀 ZakApp Server running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+    logger.info(`ZakApp Server running on port ${PORT}`);
+    logger.info(`Health check: http://localhost:${PORT}/health`);
+    logger.info(`API Base URL: http://localhost:${PORT}/api`);
 
     // Initialize database connection
     // const dbManager = DatabaseManager.getInstance();
 
     // Initialize background jobs
-    console.log('⏰ Initializing background jobs...');
+    logger.info('Initializing background jobs...');
     // initializeJobs();
   });
+
 
   // Graceful shutdown handler
   // const gracefulShutdown = (signal: string) => {
