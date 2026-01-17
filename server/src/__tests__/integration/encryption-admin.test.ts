@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -17,7 +18,7 @@
 
 const request = require('supertest');
 // Mock shared module to avoid ESM parsing issues in Jest runtime
-jest.mock('@zakapp/shared', () => ({
+vi.mock('@zakapp/shared', () => ({
   VALID_ASSET_CATEGORY_VALUES: ['cash','gold','silver'],
   PASSIVE_INVESTMENT_TYPES: [],
   RESTRICTED_ACCOUNT_TYPES: [],

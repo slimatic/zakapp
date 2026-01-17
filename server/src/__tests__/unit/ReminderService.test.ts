@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -25,8 +26,8 @@ import { ReminderEventModel } from '../../models/ReminderEvent';
 import { YearlySnapshotModel } from '../../models/YearlySnapshot';
 
 // Mock the models
-jest.mock('../../models/ReminderEvent');
-jest.mock('../../models/YearlySnapshot');
+vi.mock('../../models/ReminderEvent');
+vi.mock('../../models/YearlySnapshot');
 
 describe('ReminderService', () => {
   let service: ReminderService;
@@ -34,7 +35,7 @@ describe('ReminderService', () => {
 
   beforeEach(() => {
     service = new ReminderService();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('createReminder', () => {
@@ -49,7 +50,7 @@ describe('ReminderService', () => {
         metadata: { year: 2025 }
       };
 
-      (ReminderEventModel.create as jest.Mock).mockResolvedValue({
+      (ReminderEventModel.create as Mock).mockResolvedValue({
         id: 'reminder-123',
         ...reminderData,
         userId: mockUserId,
@@ -71,7 +72,7 @@ describe('ReminderService', () => {
         priority: 'medium' as const
       };
 
-      (ReminderEventModel.create as jest.Mock).mockResolvedValue({
+      (ReminderEventModel.create as Mock).mockResolvedValue({
         id: 'reminder-123',
         ...reminderData,
         userId: mockUserId
@@ -92,7 +93,7 @@ describe('ReminderService', () => {
         status: 'pending'
       };
 
-      (ReminderEventModel.findById as jest.Mock).mockResolvedValue(mockReminder);
+      (ReminderEventModel.findById as Mock).mockResolvedValue(mockReminder);
 
       const result = await service.getReminder('reminder-123', mockUserId);
 
@@ -101,7 +102,7 @@ describe('ReminderService', () => {
     });
 
     it('should return null if reminder not found', async () => {
-      (ReminderEventModel.findById as jest.Mock).mockResolvedValue(null);
+      (ReminderEventModel.findById as Mock).mockResolvedValue(null);
 
       const result = await service.getReminder('invalid-id', mockUserId);
 
@@ -116,7 +117,7 @@ describe('ReminderService', () => {
         { id: 'rem2', status: 'shown', triggerDate: new Date() }
       ];
 
-      (ReminderEventModel.findActive as jest.Mock).mockResolvedValue(mockReminders);
+      (ReminderEventModel.findActive as Mock).mockResolvedValue(mockReminders);
 
       const result = await service.getActiveReminders(mockUserId);
 
@@ -125,7 +126,7 @@ describe('ReminderService', () => {
     });
 
     it('should return empty array if no active reminders', async () => {
-      (ReminderEventModel.findActive as jest.Mock).mockResolvedValue([]);
+      (ReminderEventModel.findActive as Mock).mockResolvedValue([]);
 
       const result = await service.getActiveReminders(mockUserId);
 
@@ -143,7 +144,7 @@ describe('ReminderService', () => {
         total: 2
       };
 
-      (ReminderEventModel.findByUser as jest.Mock).mockResolvedValue(mockResult);
+      (ReminderEventModel.findByUser as Mock).mockResolvedValue(mockResult);
 
       const result = await service.listReminders(mockUserId, {
         page: 1,
@@ -159,7 +160,7 @@ describe('ReminderService', () => {
     });
 
     it('should filter by status', async () => {
-      (ReminderEventModel.findByUser as jest.Mock).mockResolvedValue({ data: [], total: 0 });
+      (ReminderEventModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
 
       await service.listReminders(mockUserId, { status: 'acknowledged' });
 
@@ -170,7 +171,7 @@ describe('ReminderService', () => {
     });
 
     it('should filter by event type', async () => {
-      (ReminderEventModel.findByUser as jest.Mock).mockResolvedValue({ data: [], total: 0 });
+      (ReminderEventModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
 
       await service.listReminders(mockUserId, { eventType: 'zakat_anniversary_approaching' });
 
@@ -181,7 +182,7 @@ describe('ReminderService', () => {
     });
 
     it('should support sorting', async () => {
-      (ReminderEventModel.findByUser as jest.Mock).mockResolvedValue({ data: [], total: 0 });
+      (ReminderEventModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
 
       await service.listReminders(mockUserId, { sortOrder: 'desc' });
 
@@ -199,7 +200,7 @@ describe('ReminderService', () => {
         status: 'shown'
       };
 
-      (ReminderEventModel.updateStatus as jest.Mock).mockResolvedValue(mockReminder);
+      (ReminderEventModel.updateStatus as Mock).mockResolvedValue(mockReminder);
 
       const result = await service.updateStatus('reminder-123', mockUserId, 'shown');
 
@@ -220,7 +221,7 @@ describe('ReminderService', () => {
       ];
 
       for (const status of statuses) {
-        (ReminderEventModel.updateStatus as jest.Mock).mockResolvedValue({ id: 'rem', status });
+        (ReminderEventModel.updateStatus as Mock).mockResolvedValue({ id: 'rem', status });
 
         const result = await service.updateStatus('reminder-123', mockUserId, status);
 
@@ -237,7 +238,7 @@ describe('ReminderService', () => {
         acknowledgedAt: new Date()
       };
 
-      (ReminderEventModel.acknowledge as jest.Mock).mockResolvedValue(mockReminder);
+      (ReminderEventModel.acknowledge as Mock).mockResolvedValue(mockReminder);
 
       const result = await service.acknowledgeReminder('reminder-123', mockUserId);
 
@@ -254,7 +255,7 @@ describe('ReminderService', () => {
         status: 'dismissed'
       };
 
-      (ReminderEventModel.dismiss as jest.Mock).mockResolvedValue(mockReminder);
+      (ReminderEventModel.dismiss as Mock).mockResolvedValue(mockReminder);
 
       const result = await service.dismissReminder('reminder-123', mockUserId);
 
@@ -265,7 +266,7 @@ describe('ReminderService', () => {
 
   describe('markPendingAsShown', () => {
     it('should mark all pending reminders as shown', async () => {
-      (ReminderEventModel.markPendingAsShown as jest.Mock).mockResolvedValue(5);
+      (ReminderEventModel.markPendingAsShown as Mock).mockResolvedValue(5);
 
       const result = await service.markPendingAsShown(mockUserId);
 
@@ -274,7 +275,7 @@ describe('ReminderService', () => {
     });
 
     it('should return 0 if no pending reminders', async () => {
-      (ReminderEventModel.markPendingAsShown as jest.Mock).mockResolvedValue(0);
+      (ReminderEventModel.markPendingAsShown as Mock).mockResolvedValue(0);
 
       const result = await service.markPendingAsShown(mockUserId);
 
@@ -284,7 +285,7 @@ describe('ReminderService', () => {
 
   describe('deleteReminder', () => {
     it('should delete a reminder', async () => {
-      (ReminderEventModel.delete as jest.Mock).mockResolvedValue(undefined);
+      (ReminderEventModel.delete as Mock).mockResolvedValue(undefined);
 
       await service.deleteReminder('reminder-123', mockUserId);
 
@@ -294,7 +295,7 @@ describe('ReminderService', () => {
 
   describe('deleteOldReminders', () => {
     it('should delete reminders older than specified days', async () => {
-      (ReminderEventModel.deleteOld as jest.Mock).mockResolvedValue(10);
+      (ReminderEventModel.deleteOld as Mock).mockResolvedValue(10);
 
       const result = await service.deleteOldReminders(90);
 
@@ -303,7 +304,7 @@ describe('ReminderService', () => {
     });
 
     it('should use default of 90 days if not specified', async () => {
-      (ReminderEventModel.deleteOld as jest.Mock).mockResolvedValue(5);
+      (ReminderEventModel.deleteOld as Mock).mockResolvedValue(5);
 
       const result = await service.deleteOldReminders();
 
@@ -312,7 +313,7 @@ describe('ReminderService', () => {
     });
 
     it('should handle different retention periods', async () => {
-      (ReminderEventModel.deleteOld as jest.Mock).mockResolvedValue(3);
+      (ReminderEventModel.deleteOld as Mock).mockResolvedValue(3);
 
       await service.deleteOldReminders(30);
 
@@ -330,7 +331,7 @@ describe('ReminderService', () => {
         dismissed: 1
       };
 
-      (ReminderEventModel.getStatistics as jest.Mock).mockResolvedValue(mockStats);
+      (ReminderEventModel.getStatistics as Mock).mockResolvedValue(mockStats);
 
       const result = await service.getStatistics(mockUserId);
 
@@ -347,7 +348,7 @@ describe('ReminderService', () => {
         dismissed: 0
       };
 
-      (ReminderEventModel.getStatistics as jest.Mock).mockResolvedValue(emptyStats);
+      (ReminderEventModel.getStatistics as Mock).mockResolvedValue(emptyStats);
 
       const result = await service.getStatistics(mockUserId);
 
@@ -379,12 +380,12 @@ describe('ReminderService', () => {
     ];
 
     beforeEach(() => {
-      (YearlySnapshotModel.findByUser as jest.Mock).mockResolvedValue({
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue({
         data: mockSnapshots,
         total: 2
       });
-      (ReminderEventModel.findByUser as jest.Mock).mockResolvedValue({ data: [], total: 0 });
-      (ReminderEventModel.create as jest.Mock).mockImplementation(async (userId, data) => ({
+      (ReminderEventModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
+      (ReminderEventModel.create as Mock).mockImplementation(async (userId, data) => ({
         id: 'reminder-new',
         userId,
         ...data
@@ -415,7 +416,7 @@ describe('ReminderService', () => {
         triggerDate: new Date()
       };
 
-      (ReminderEventModel.findByUser as jest.Mock).mockResolvedValue({
+      (ReminderEventModel.findByUser as Mock).mockResolvedValue({
         data: [existingReminder],
         total: 1
       });
@@ -437,7 +438,7 @@ describe('ReminderService', () => {
         priority: 'high' as const
       };
 
-      (ReminderEventModel.create as jest.Mock).mockResolvedValue({
+      (ReminderEventModel.create as Mock).mockResolvedValue({
         ...highPriorityData,
         id: 'rem',
         userId: mockUserId
@@ -457,7 +458,7 @@ describe('ReminderService', () => {
         priority: 'medium' as const
       };
 
-      (ReminderEventModel.create as jest.Mock).mockResolvedValue({
+      (ReminderEventModel.create as Mock).mockResolvedValue({
         ...mediumPriorityData,
         id: 'rem',
         userId: mockUserId
@@ -477,7 +478,7 @@ describe('ReminderService', () => {
         priority: 'low' as const
       };
 
-      (ReminderEventModel.create as jest.Mock).mockResolvedValue({
+      (ReminderEventModel.create as Mock).mockResolvedValue({
         ...lowPriorityData,
         id: 'rem',
         userId: mockUserId
@@ -507,7 +508,7 @@ describe('ReminderService', () => {
           priority: 'medium' as const
         };
 
-        (ReminderEventModel.create as jest.Mock).mockResolvedValue({
+        (ReminderEventModel.create as Mock).mockResolvedValue({
           ...reminderData,
           id: 'rem',
           userId: mockUserId

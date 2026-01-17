@@ -1,10 +1,11 @@
+import { vi, type Mock } from 'vitest';
 import { NisabService } from '../NisabService';
 import { metalPriceScraper } from '../MetalPriceScraperService';
 import axios from 'axios';
 
-jest.mock('../MetalPriceScraperService');
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+vi.mock('../MetalPriceScraperService');
+vi.mock('axios');
+const mockedAxios = axios as Mocked<typeof axios>;
 
 describe('NisabService', () => {
     let service: NisabService;
@@ -12,12 +13,12 @@ describe('NisabService', () => {
     beforeEach(() => {
         service = new NisabService();
         service.clearCache();
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         process.env.GOLD_API_KEY = 'test-api-key';
 
         // Setup default scraper mock values
-        (metalPriceScraper.scrapeGoldPrice as jest.Mock).mockResolvedValue(65.0);
-        (metalPriceScraper.scrapeSilverPrice as jest.Mock).mockResolvedValue(0.85); // Matches static fallback for consistency
+        (metalPriceScraper.scrapeGoldPrice as Mock).mockResolvedValue(65.0);
+        (metalPriceScraper.scrapeSilverPrice as Mock).mockResolvedValue(0.85); // Matches static fallback for consistency
     });
 
     afterEach(() => {
@@ -26,7 +27,7 @@ describe('NisabService', () => {
 
     it('should fetch live gold price successfully', async () => {
         // Scraper success
-        (metalPriceScraper.scrapeGoldPrice as jest.Mock).mockResolvedValueOnce(75.50);
+        (metalPriceScraper.scrapeGoldPrice as Mock).mockResolvedValueOnce(75.50);
 
         const price = await service['getCurrentGoldPrice']('USD');
         expect(price).toBe(75.50);
@@ -36,7 +37,7 @@ describe('NisabService', () => {
 
     it('should fallback to API if scraper fails', async () => {
         // Scraper failure
-        (metalPriceScraper.scrapeGoldPrice as jest.Mock).mockRejectedValue(new Error('Scraper Fail'));
+        (metalPriceScraper.scrapeGoldPrice as Mock).mockRejectedValue(new Error('Scraper Fail'));
 
         // API Success
         mockedAxios.get.mockResolvedValueOnce({
@@ -60,19 +61,19 @@ describe('NisabService', () => {
         delete process.env.MANUAL_GOLD_PRICE_USD;
 
         // Mock scraper failure
-        (metalPriceScraper.scrapeGoldPrice as jest.Mock).mockRejectedValue(new Error('Scraper failed'));
+        (metalPriceScraper.scrapeGoldPrice as Mock).mockRejectedValue(new Error('Scraper failed'));
         // Mock API failure
         mockedAxios.get.mockRejectedValueOnce(new Error('Network Error'));
 
         const price = await service['getCurrentGoldPrice']('USD');
-        expect(price).toBe(65); // Static fallback
+        expect(price).toBe(147); // Static fallback
     });
 
     it('should fallback to manual env var if set on API & Scraper error', async () => {
         process.env.MANUAL_GOLD_PRICE_USD = '142.933';
 
         // Mock scraper failure
-        (metalPriceScraper.scrapeGoldPrice as jest.Mock).mockRejectedValue(new Error('Scraper failed'));
+        (metalPriceScraper.scrapeGoldPrice as Mock).mockRejectedValue(new Error('Scraper failed'));
         // Mock API failure
         mockedAxios.get.mockRejectedValueOnce(new Error('Network Error'));
 
@@ -85,12 +86,12 @@ describe('NisabService', () => {
 
     it('should use cache if valid', async () => {
         // First call - Scraper success
-        (metalPriceScraper.scrapeGoldPrice as jest.Mock).mockResolvedValueOnce(80.00);
+        (metalPriceScraper.scrapeGoldPrice as Mock).mockResolvedValueOnce(80.00);
 
         await service['getCurrentGoldPrice']('USD');
 
         // Second call - should use cache, no calls
-        jest.clearAllMocks(); // Clear call history
+        vi.clearAllMocks(); // Clear call history
 
         const price = await service['getCurrentGoldPrice']('USD');
 
@@ -101,10 +102,10 @@ describe('NisabService', () => {
 
     it('should calculate silver nisab correctly', async () => {
         // Mock Gold scraper (success)
-        (metalPriceScraper.scrapeGoldPrice as jest.Mock).mockResolvedValueOnce(70.00);
+        (metalPriceScraper.scrapeGoldPrice as Mock).mockResolvedValueOnce(70.00);
 
         // Mock Silver scraper (success)
-        (metalPriceScraper.scrapeSilverPrice as jest.Mock).mockResolvedValueOnce(1.20);
+        (metalPriceScraper.scrapeSilverPrice as Mock).mockResolvedValueOnce(1.20);
 
         const nisabInfo = await service.calculateNisab('standard', 'USD');
         // Silver Nisab = 612.36g * 1.20

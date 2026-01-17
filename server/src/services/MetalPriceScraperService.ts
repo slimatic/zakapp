@@ -221,6 +221,15 @@ export class MetalPriceScraperService {
             }
         }
 
+        // Strategy 4: Look for "Silver Price per Gram" in body
+        const gramMatch = bodyText.match(/silver\s+price\s+per\s+gram[:\s]*[^\d]*([\d,]+\.?\d*)/i);
+        if (gramMatch && gramMatch[1]) {
+            const price = parseFloat(gramMatch[1].replace(/,/g, ''));
+            if (!isNaN(price) && price > 0 && price < 10) { // Silver gram price is low
+                return price;
+            }
+        }
+
         throw new Error(`Could not find silver price on ${url}. Check if page structure changed.`);
     }
 

@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * T029: Integration Test - Finalization Workflow
  * 

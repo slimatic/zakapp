@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * T027: Integration Test - Live Wealth Tracking
  * 

@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * T032: Integration Test - Invalid Operations and Error Handling
  * 
