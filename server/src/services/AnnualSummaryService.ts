@@ -227,12 +227,12 @@ export class AnnualSummaryService {
       recipientSummary,
       assetBreakdown,
       comparativeAnalysis,
-      methodologyUsed: ((snapshot as any).methodology || 'standard') as ZakatMethodology, // TODO: Add methodology to YearlySnapshot schema
+      methodologyUsed: ((snapshot as any).methodologyUsed || (snapshot as any).methodology || 'standard') as ZakatMethodology, // TODO: Add methodology to YearlySnapshot schema
       nisabInfo,
       userNotes: snapshot.userNotes
     };
 
-    const summary = await AnnualSummaryModel.create(userId, summaryData);
+    const summary = await AnnualSummaryModel.createOrUpdate(userId, summaryData);
     return await this.decryptSummaryData(summary);
   }
 

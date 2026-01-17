@@ -203,7 +203,7 @@ describe('AuditTrailService', () => {
     it('should handle all event types correctly', async () => {
       // Arrange
       const eventTypes = ['CREATED', 'FINALIZED', 'UNLOCKED', 'EDITED', 'REFINALIZED'];
-      
+
       for (const eventType of eventTypes) {
         const mockEntry = {
           id: `audit_${eventType}`,
@@ -520,6 +520,7 @@ describe('AuditTrailService', () => {
           nisabYearRecordId: recordId,
           eventType: 'UNLOCKED',
         },
+        orderBy: { timestamp: 'asc' },
       });
       expect(result).toHaveLength(2);
       expect(result.every(e => e.eventType === 'UNLOCKED')).toBe(true);
@@ -538,7 +539,7 @@ describe('AuditTrailService', () => {
 
     it('should work with all event types', async () => {
       // Arrange
-      const eventTypes: Array<'CREATED' | 'FINALIZED' | 'UNLOCKED' | 'EDITED' | 'REFINALIZED'> = 
+      const eventTypes: Array<'CREATED' | 'FINALIZED' | 'UNLOCKED' | 'EDITED' | 'REFINALIZED'> =
         ['CREATED', 'FINALIZED', 'UNLOCKED', 'EDITED', 'REFINALIZED'];
 
       for (const eventType of eventTypes) {
@@ -553,6 +554,7 @@ describe('AuditTrailService', () => {
             nisabYearRecordId: recordId,
             eventType,
           },
+          orderBy: { timestamp: 'asc' },
         });
       }
     });
