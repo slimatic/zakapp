@@ -18,59 +18,15 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import toast from 'react-hot-toast';
 import type { User } from '../types';
-import { getDb, resetDb, closeDb, forceResetDatabase } from '../db';
-import { cryptoService } from '../services/CryptoService';
+import { authService } from '../services/auth/AuthService';
+import { Logger } from '../utils/logger';
+import { getDb } from '../db';
 
-/**
- * Translates RxDB error codes into user-friendly messages
- */
-const getUserFriendlyDbError = (error: any): { message: string; isRecoverable: boolean; requiresReset: boolean } => {
-  const errorCode = error?.code || '';
-  const errorMessage = error?.message || String(error);
 
-  // DB1: Password/encryption key mismatch
-  if (errorCode === 'DB1' || errorMessage.includes('different password')) {
-    return {
-      message: 'Your local data was encrypted with a different session. This can happen after a password change or when logging in from a new device.',
-      isRecoverable: true,
-      requiresReset: true
-    };
-  }
+const logger = new Logger('AuthContext');
 
-  // DB8: Database already exists (duplicate creation attempt)
-  if (errorCode === 'DB8' || errorMessage.includes('already exists')) {
-    return {
-      message: 'There was a conflict with your local data. Try refreshing the page. If the issue persists, clear your browser data for this site.',
-      isRecoverable: true,
-      requiresReset: true
-    };
-  }
 
-  // DB6: Schema mismatch (app update with new schema)
-  if (errorCode === 'DB6' || errorMessage.includes('different schema')) {
-    return {
-      message: 'The app has been updated and your local data needs to be refreshed. Your cloud data is safe.',
-      isRecoverable: true,
-      requiresReset: true
-    };
-  }
 
-  // COL23: Max collections reached (memory leak)
-  if (errorCode === 'COL23' || errorMessage.includes('Maximum collections')) {
-    return {
-      message: 'Too many browser tabs or sessions are open. Please close other tabs and refresh.',
-      isRecoverable: false,
-      requiresReset: false
-    };
-  }
-
-  // Generic fallback
-  return {
-    message: 'Unable to access your local vault. Please try again or clear site data if the problem continues.',
-    isRecoverable: false,
-    requiresReset: false
-  };
-};
 
 interface AuthState {
   user: User | null;
@@ -163,466 +119,68 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Restore session from sessionStorage on mount
   useEffect(() => {
-    const restoreSession = async () => {
+    const initSession = async () => {
       try {
-        const storedSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
-        if (storedSession) {
-          // Logs removed for hygiene
-          const { user, jwk } = JSON.parse(storedSession);
-
-          if (user && jwk) {
-            await cryptoService.restoreSessionKey(jwk);
-
-            // Initialize DB with the restored key so components can access data
-            const keyString = await cryptoService.exportKeyString();
-            console.log('AuthContext: Session restored. Key generated (len=' + keyString.length + ')');
-
-            try {
-              // Note: Do NOT call closeDb() here - getDb() handles key changes internally
-              // Calling closeDb() before getDb() causes a race condition with RxDB's internal registry (DB9 error)
-              await getDb(keyString);
-              // console.log('AuthContext: DB opened successfully with restored key');
-
-              // Verification Step: Check if the session is still valid with the backend
-              // This handles cases where the server restarted and invalidated existing tokens.
-              try {
-                const { apiService: api } = await import('../services/api');
-                const verifyResult = await api.getCurrentUser();
-
-                if (verifyResult.success) {
-                  // console.log('AuthContext: Session verified with backend');
-                  // console.log('AuthContext: Session verified with backend');
-                  // CRITICAL FIX: Merge fresh backend data (isAdmin, etc.) with stored user (decrypted fields)
-                  const freshUser = {
-                    ...user, // Keep decrypted fields from storage
-                    ...verifyResult.data?.user, // Override with fresh backend data (isAdmin, settings)
-                    // Ensure local decrypted fields take precedence if backend sent encrypted ones?
-                    // Actually, backend usually sends plaintext if authenticated? 
-                    // No, zakapp uses client-side encryption. Backend sends ciphertext or masked.
-                    // Stored 'user' has decrypted fields. API has potentially updated flags (isAdmin).
-                    // We must preserve decrypted fields if API didn't return them decrypted.
-                    // But 'user' object structure in TS has 'username', 'firstName', etc.
-                    // Let's assume stored decrypted names are safest.
-                    // But 'isAdmin' must come from API.
-                    isAdmin: verifyResult.data?.user?.isAdmin ?? user.isAdmin,
-                    userType: verifyResult.data?.user?.userType ?? user.userType,
-                    isVerified: verifyResult.data?.user?.isVerified ?? user.isVerified,
-                  };
-
-                  // Update session storage with the fresh merged user
-                  sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user: freshUser, jwk }));
-
-                  dispatch({ type: 'LOGIN_SUCCESS', payload: freshUser });
-                } else if (verifyResult.message === 'API Unauthorized (Local Mode)') {
-                  // This is the suppressed 401 from api.ts
-                  console.warn('AuthContext: Session invalid (401). Clearing stored session.');
-                  sessionStorage.removeItem(SESSION_STORAGE_KEY);
-                  localStorage.removeItem('accessToken');
-                  localStorage.removeItem('refreshToken');
-                  dispatch({ type: 'SET_LOADING', payload: false });
-                  return; // Don't login
-                } else {
-                  console.warn('AuthContext: Could not verify session with backend (offline?), continuing in local mode');
-                  dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-                }
-              } catch (verifyError) {
-                console.warn('AuthContext: verification call failed, assuming offline mode', verifyError);
-                dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-              }
-            } catch (dbError: any) {
-              console.error('AuthContext: DB Open Failed during restore', dbError);
-
-              // Handle Password Mismatch (DB1) - Nuclear Option
-              if (dbError?.code === 'DB1' || (dbError?.message && dbError.message.includes('different password'))) {
-                console.warn('AuthContext: Pasword mismatch detected (DB1). Nuking local DB to recover...');
-                toast.loading('Resetting local database due to security update...', { duration: 3000 });
-
-                // Force delete the old DB
-                await forceResetDatabase();
-
-                // Re-initialize with correct key
-                await getDb(keyString);
-                console.log('AuthContext: DB Re-initialized after nuke.');
-
-                dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-              } else {
-                throw new Error('Database Open Failed: ' + (dbError instanceof Error ? dbError.message : String(dbError)));
-              }
-            }
-          }
+        const user = await authService.restoreSession();
+        if (user) {
+          dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+        } else {
+          dispatch({ type: 'SET_LOADING', payload: false });
         }
       } catch (error) {
-        console.error('AuthContext: Session restore failed', error);
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        toast.error('Session Restore Failed: ' + errorMsg);
-        sessionStorage.removeItem(SESSION_STORAGE_KEY);
-      } finally {
+        logger.error('Session restore failed', error);
+        toast.error('Session Restore Failed: ' + (error instanceof Error ? error.message : String(error)));
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
 
-    restoreSession();
+    initSession();
   }, []);
 
+
   const login = async (email: string, password: string): Promise<boolean> => {
-    // console.log('AuthContext: Attempting login for', email);
     dispatch({ type: 'LOGIN_START' });
     try {
-      // 1. Authenticate with Backend API First
-      const { apiService: api } = await import('../services/api');
-      const apiResult = await api.login({ email, password });
-
-      if (!apiResult.success || !apiResult.user) {
-        throw new Error(apiResult.message || 'Login failed');
-      }
-
-      // Store access token for sync service
-      if (apiResult.accessToken) {
-        localStorage.setItem('accessToken', apiResult.accessToken);
-      }
-      if (apiResult.refreshToken) {
-        localStorage.setItem('refreshToken', apiResult.refreshToken);
-      }
-
-      // Use the REAL user ID from the backend to lookup local settings
-      const backendUserId = apiResult.user.id;
-      let userDoc = null;
-
-      // 2. Determine Salt (Prefer API salt to avoid Catch-22 opening locked DB)
-      let salt: string;
-      const remoteUser = apiResult.user as any;
-
-      if (remoteUser.salt) {
-        salt = remoteUser.salt;
-        console.log('AuthContext: Retrieved salt from API user object');
-      } else if (remoteUser.profile?.salt) {
-        salt = remoteUser.profile.salt;
-        console.log('AuthContext: Retrieved salt from API profile object');
-      } else {
-        // SALT HEALING STRATEGY
-        // If API lacks salt, we check localStorage or generate a new one.
-        const localSaltKey = `zakapp_salt_${backendUserId}`;
-        const storedSalt = localStorage.getItem(localSaltKey);
-
-        if (storedSalt) {
-          salt = storedSalt;
-          console.log('AuthContext: Recovered salt from localStorage (Healing)');
-        } else {
-          console.warn('AuthContext: Salt missing from Server. Generating new salt to restore access.');
-          const { CryptoService } = await import('../services/CryptoService');
-          salt = CryptoService.generateSalt();
-          localStorage.setItem(localSaltKey, salt);
-
-          // Attempt to push the new salt to the server so other devices can work
-          // We run this without awaiting to ensure login proceeds even if server api is strict
-          api.updateProfile({ salt }).catch(err => {
-            console.warn('AuthContext: Could not sync new salt to server. Multi-device sync may fail.', err);
-          });
-        }
-      }
-
-      // 3. Derive Key
-      // console.log('AuthContext: Deriving key...');
-      await cryptoService.deriveKey(password, salt);
-      // console.log('AuthContext: Key derived successfully');
-
-      // 4. Initialize DB with Derived Key
-      const keyString = await cryptoService.exportKeyString();
-      let encryptedDb;
-
-      try {
-        // Note: Do NOT call closeDb() here - getDb() handles password changes internally
-        // Calling closeDb() before getDb() causes a race condition with RxDB's internal registry (DB9 error)
-        encryptedDb = await getDb(keyString);
-      } catch (dbError: any) {
-        console.error('AuthContext: DB Open Failed during login', dbError);
-        const friendlyError = getUserFriendlyDbError(dbError);
-
-        // Automatically recover from known recoverable errors
-        if (friendlyError.isRecoverable && friendlyError.requiresReset) {
-          console.log('AuthContext: Attempting automatic recovery...');
-          toast.loading('Syncing your vault encryption...', { id: 'db-recovery', duration: 5000 });
-
-          // Force delete the old DB
-          await forceResetDatabase();
-
-          // Re-initialize with correct key
-          try {
-            encryptedDb = await getDb(keyString);
-            console.log('AuthContext: DB Re-initialized after recovery (Login).');
-            toast.success('Successfully synced your vault!', { id: 'db-recovery' });
-          } catch (retryError: any) {
-            console.error('AuthContext: Recovery failed', retryError);
-            toast.error('Recovery failed. Please clear site data and try again.', { id: 'db-recovery' });
-            throw new Error('Unable to initialize your vault. Clear site data and log in again.');
-          }
-        } else {
-          // Non-recoverable error - show friendly message
-          throw new Error(friendlyError.message);
-        }
-      }
-
-      // If Scenario B (Fresh Device or salt retrieved from API), create local user record if it doesn't exist
-      userDoc = await encryptedDb.user_settings.findOne(backendUserId).exec();
-
-      if (!userDoc) {
-        console.log('AuthContext: Creating local user record for', backendUserId);
-        userDoc = await encryptedDb.user_settings.insert({
-          id: backendUserId, // Use Real Backend ID
-          profileName: apiResult.user.username || 'My Profile',
-          email: apiResult.user.email || 'local@device',
-          isSetupCompleted: false, // Default to false for fresh devices/resets so onboarding triggers
-          securityProfile: {
-            salt: salt,
-            verifier: 'TODO-HASH-OF-KEY'
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      }
-
-      // 5. Construct User Object with Decrypted Fields
-      const decryptField = async (val: string | undefined): Promise<string> => {
-        if (!val) return '';
-        if (cryptoService.isEncrypted(val)) {
-          const p = cryptoService.unpackEncrypted(val);
-          if (p) return await cryptoService.decrypt(p.ciphertext, p.iv);
-        }
-        return val;
-      };
-
-      // Helper to get field from API user or local doc
-      // API might return plaintext (if not ZK on auth) or ciphertext (if ZK sync)
-      // Local Doc will definitely be ciphertext if ZK enabled
-      const rawUsername = apiResult.user.username || userDoc.get('profileName') || 'Local User';
-      const rawFirstName = (apiResult.user as any).firstName || userDoc.get('firstName') || '';
-      const rawLastName = (apiResult.user as any).lastName || userDoc.get('lastName') || '';
-
-      const user: User = {
-        ...apiResult.user,
-        username: await decryptField(rawUsername),
-        firstName: await decryptField(rawFirstName),
-        lastName: await decryptField(rawLastName),
-        isSetupCompleted: userDoc.get('isSetupCompleted') || false,
-        settings: {
-          ...((apiResult.user as any).settings || {}),
-          preferredMethodology: userDoc.get('preferredMethodology') || (apiResult.user as any).settings?.preferredMethodology || 'standard',
-          preferredCalendar: userDoc.get('preferredCalendar') || (apiResult.user as any).settings?.preferredCalendar || 'gregorian',
-          currency: userDoc.get('baseCurrency') || (apiResult.user as any).settings?.currency || 'USD'
-        }
-      };
-
-      // 4. Persist Session (Key + User) -> SessionStorage
-      const jwk = await cryptoService.exportSessionKey();
-      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
-
-      // 6. Zero Knowledge Migration (Sanitize Legacy Data)
-      // Background process: find cleartext data and force-save it to trigger encryption
-      setTimeout(async () => {
-        try {
-          console.log('ZK Migration: Scanning for cleartext data...');
-          // Assets
-          const assets = await encryptedDb.assets.find().exec();
-          let migratedCount = 0;
-          for (const doc of assets) {
-            // Check if ANY key field is cleartext
-            if (doc.get('name') && !cryptoService.isEncrypted(doc.get('name'))) {
-              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
-              migratedCount++;
-            } else if (doc.get('value') && !cryptoService.isEncrypted(doc.get('value'))) {
-              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
-              migratedCount++;
-            }
-          }
-          if (migratedCount > 0) console.log(`ZK Migration: Encrypted ${migratedCount} legacy assets.`);
-
-          // User Profile
-          if (userDoc) {
-            const fn = userDoc.get('firstName');
-            const ln = userDoc.get('lastName');
-            if ((fn && !cryptoService.isEncrypted(fn)) || (ln && !cryptoService.isEncrypted(ln))) {
-              console.log('ZK Migration: Encrypting legacy user profile');
-              await userDoc.atomicPatch({ updatedAt: new Date().toISOString() });
-            }
-          }
-
-          // Nisab Year Records (Encrypt History)
-          const records = await encryptedDb.nisab_year_records.find().exec();
-          let migratedRecords = 0;
-          for (const doc of records) {
-            const tw = doc.get('totalWealth');
-            const za = doc.get('zakatAmount');
-            // If these fields exist and are currently numbers (or unencrypted strings), touch the doc
-            // Note: 'totalWealth' will be a number in legacy docs
-            if ((tw !== undefined && typeof tw === 'number') || (tw && typeof tw === 'string' && !cryptoService.isEncrypted(tw))) {
-              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
-              migratedRecords++;
-            } else if ((za !== undefined && typeof za === 'number')) {
-              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
-              migratedRecords++;
-            }
-          }
-          if (migratedRecords > 0) console.log(`ZK Migration: Encrypted ${migratedRecords} legacy Zakat records.`);
-
-          // Liabilities
-          const liabilities = await encryptedDb.liabilities.find().exec();
-          let migratedLiabilities = 0;
-          for (const doc of liabilities) {
-            const name = doc.get('name');
-            const amount = doc.get('amount');
-            if ((name && !cryptoService.isEncrypted(name)) ||
-              (amount !== undefined && typeof amount === 'number') ||
-              (amount && typeof amount === 'string' && !cryptoService.isEncrypted(amount))) {
-              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
-              migratedLiabilities++;
-            }
-          }
-          if (migratedLiabilities > 0) console.log(`ZK Migration: Encrypted ${migratedLiabilities} legacy liabilities.`);
-
-          // Payment Records
-          const payments = await encryptedDb.payment_records.find().exec();
-          let migratedPayments = 0;
-          for (const doc of payments) {
-            const recipient = doc.get('recipientName');
-            const amount = doc.get('amount');
-            if ((recipient && !cryptoService.isEncrypted(recipient)) ||
-              (amount !== undefined && typeof amount === 'number') ||
-              (amount && typeof amount === 'string' && !cryptoService.isEncrypted(amount))) {
-              await doc.atomicPatch({ updatedAt: new Date().toISOString() });
-              migratedPayments++;
-            }
-          }
-          if (migratedPayments > 0) console.log(`ZK Migration: Encrypted ${migratedPayments} legacy payments.`);
-
-        } catch (e) { console.warn('ZK Migration Failed', e); }
-      }, 500);
-
-      // Note: accessToken already stored in localStorage above
-
-      console.log('AuthContext: Dispatching LOGIN_SUCCESS');
+      const user = await authService.login(email, password);
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       return true;
     } catch (error) {
-      console.error('AuthContext: Login error', error);
-      dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Login failed' });
+      logger.error('Login error', error);
+      dispatch({
+        type: 'LOGIN_FAILURE',
+        payload: error instanceof Error ? error.message : 'Login failed'
+      });
       return false;
     }
   };
+
 
   const register = async (userData: any): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      // 1. Generate Security Params
-      const salt = (await import('../services/CryptoService')).CryptoService.generateSalt();
-
-      // 2. Derive Key immediately
-      await cryptoService.deriveKey(userData.password, salt);
-
-      // 2.5 Encrypt PII for Zero Knowledge Registration
-      const zkUserData = { ...userData };
-
-      if (userData.firstName) {
-        const enc = await cryptoService.encrypt(userData.firstName);
-        zkUserData.firstName = cryptoService.packEncrypted(enc.iv, enc.cipherText);
-      }
-
-      if (userData.lastName) {
-        const enc = await cryptoService.encrypt(userData.lastName);
-        zkUserData.lastName = cryptoService.packEncrypted(enc.iv, enc.cipherText);
-      }
-
-      // Register with backend, passing the salt
-      const { apiService: api } = await import('../services/api');
-      const apiResult = await api.register({
-        ...zkUserData,
-        salt: salt // Send salt to backend for multi-device sync
-      });
-
-      if (!apiResult.success) {
-        throw new Error(apiResult.message);
-      }
-
-      // Store access token for sync service
-      if (apiResult.accessToken) {
-        localStorage.setItem('accessToken', apiResult.accessToken);
-      }
-      if (apiResult.refreshToken) {
-        localStorage.setItem('refreshToken', apiResult.refreshToken);
-      }
-
-      if (!apiResult.user || !apiResult.user.id) {
-        throw new Error('Registration successful but user ID missing from response');
-      }
-
-      const newUserId = apiResult.user.id;
-
-      // 3. Initialize Database with Encryption Key (Derived Key String)
-      const keyString = await cryptoService.exportKeyString();
-      // Generate a verifier hash of the key itself to validate passwords without opening DB
-      // We use a simple SHA-256 of the keyString. Since any valid keyString allows DB access,
-      // knowing the hash doesn't compromise the DB if the key itself is unknown,
-      // but to be safe we could salt it. For now, a direct hash is sufficient for local validation.
-      const keyVerifier = await cryptoService.hash(keyString);
-
-      // Ensure we start with a clean slate (nuke any existing DB leftovers)
-      // resetDb() only works if DB is open, so we use forceResetDatabase()
-      await forceResetDatabase();
-
-      await getDb(keyString);
-
-      // 4. Create User Profile
-      const encryptedDb = await getDb();
-
-      const userDoc = (await encryptedDb.user_settings.insert({
-        id: newUserId, // Use Real Backend ID
-        profileName: userData.username || 'My Profile',
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        email: userData.email,
-        isSetupCompleted: false,
-        securityProfile: {
-          salt: salt,
-          verifier: keyVerifier
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      })) as any;
-
-      const user: User = {
-        id: newUserId,
-        username: userData.username,
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        isSetupCompleted: false,
-        isVerified: apiResult.user?.isVerified ?? false
-      };
-
-      // 4. Persist Session
-      const jwk = await cryptoService.exportSessionKey();
-      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ user, jwk }));
-
+      const user = await authService.register(userData);
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       return true;
     } catch (error) {
-      console.error('REGISTRATION ERROR:', error);
+      logger.error('REGISTRATION ERROR:', error);
       toast.error('Registration failed: ' + (error instanceof Error ? error.message : String(error)));
-      dispatch({ type: 'LOGIN_FAILURE', payload: error instanceof Error ? error.message : 'Registration failed' });
+      dispatch({
+        type: 'LOGIN_FAILURE',
+        payload: error instanceof Error ? error.message : 'Registration failed'
+      });
       return false;
     }
   };
 
+
   const logout = async (): Promise<void> => {
     try {
-      cryptoService.clearSession();
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      await closeDb(); // Close connection but keep data!
+      await authService.logout();
     } finally {
       dispatch({ type: 'LOGOUT' });
     }
   };
+
 
   const refreshUser = async (): Promise<void> => {
     try {
@@ -630,26 +188,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const verifyResult = await api.getCurrentUser();
 
       if (verifyResult.success && verifyResult.data?.user) {
-        console.log('AuthContext: User data refreshed from backend');
+        logger.info('User data refreshed from backend');
+
         let user = verifyResult.data.user;
 
         // Decrypt fields if they are encrypted (ZK1 prefix)
-        // This mirrors the logic in login() to ensure consistent state
-        const decryptField = async (val: string | undefined): Promise<string> => {
-          if (!val) return '';
-          if (cryptoService.isEncrypted(val)) {
-            const p = cryptoService.unpackEncrypted(val);
-            if (p) {
-              try {
-                return await cryptoService.decrypt(p.ciphertext, p.iv);
-              } catch (e) {
-                console.warn('AuthContext: Failed to decrypt field in refreshUser', e);
-                return val; // Fallback to ciphertext on error
-              }
-            }
-          }
-          return val;
-        };
+        const decryptField = authService.decryptField;
+
 
         const rawFirstName = (user as any).firstName || '';
         const rawLastName = (user as any).lastName || '';
@@ -671,7 +216,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (userDoc) {
               const localMethodology = userDoc.get('preferredMethodology');
               if (localMethodology) {
-                console.log(`AuthContext: Overriding backend methodology with local setting: ${localMethodology}`);
+                logger.info(`Overriding backend methodology with local setting: ${localMethodology}`);
+
               }
 
               user = {
@@ -688,7 +234,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               user = decryptedUser;
             }
           } catch (e) {
-            console.warn('AuthContext: Failed to merge local settings in refreshUser', e);
+            logger.warn('Failed to merge local settings in refreshUser', e);
+
             user = decryptedUser;
           }
         } else {
@@ -704,7 +251,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       } else {
-        console.warn('AuthContext: refreshUser failed - user data missing in response', verifyResult);
+        logger.warn('refreshUser failed - user data missing in response', verifyResult);
+
       }
     } catch (error) {
     }
@@ -767,7 +315,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
     } catch (error) {
-      console.error('AuthContext: Failed to update local profile', error);
+      logger.error('Failed to update local profile', error);
+
       throw error;
     }
   };

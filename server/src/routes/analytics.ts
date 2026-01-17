@@ -22,8 +22,12 @@ import { AuthenticatedRequest } from '../types';
 import { validateSchema } from '../middleware/ValidationMiddleware';
 import { z } from 'zod';
 import { AnalyticsMetric } from '@zakapp/shared/types/tracking';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('AnalyticsRoute');
 
 const router = express.Router();
+
 const analyticsService = new AnalyticsService();
 
 // Validation schemas
@@ -291,13 +295,14 @@ router.post('/web-vitals', async (req, res) => {
     }
 
     // Log metric for monitoring (in production, store in database)
-    console.log('[Web Vitals]', {
+    logger.info('Web Vitals received:', {
       name,
       value: typeof value === 'number' ? `${value.toFixed(2)}` : value,
       rating,
       url,
       timestamp: timestamp ? new Date(timestamp).toISOString() : new Date().toISOString(),
     });
+
 
     // TODO: Store in database for analytics dashboard
     // await prisma.webVital.create({
@@ -318,7 +323,8 @@ router.post('/web-vitals', async (req, res) => {
       message: 'Metric recorded successfully',
     });
   } catch (error) {
-    console.error('[Analytics] Error recording web vital:', error);
+    logger.error('Error recording web vital:', error);
+
     return res.status(500).json({
       success: false,
       error: 'INTERNAL_ERROR',

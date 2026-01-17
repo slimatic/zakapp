@@ -37,6 +37,10 @@ import { BehaviorSubject } from 'rxjs';
 import toast from 'react-hot-toast';
 import { getCouchDbUrl, getApiBaseUrl } from '../config';
 import { cryptoService } from './CryptoService';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('SyncService');
+
 
 // Collections to sync - only core user data that needs multi-device sync
 const SYNC_COLLECTIONS: (keyof ZakAppCollections)[] = [
@@ -124,7 +128,6 @@ export class SyncService {
         }
 
         const apiUrl = getApiBaseUrl();
-        console.log('🔑 Fetching CouchDB sync credentials...');
 
         const response = await fetch(`${apiUrl}/sync/token`, {
             method: 'POST',
@@ -150,7 +153,8 @@ export class SyncService {
 
         this.syncCredentials = credentials;
 
-        console.log(`🔑 Sync credentials received (expires: ${data.expiresAt})`);
+        logger.info(`Sync credentials received (expires: ${data.expiresAt})`);
+
         return credentials;
     }
 
@@ -174,10 +178,7 @@ export class SyncService {
             });
 
             if (isActive) {
-                // Log detailed status
-                console.log(`🔄 Sync Active [${this.userId}]: [${pendingList.join(', ')}]`);
-            } else {
-                console.log(`✅ Sync Idle [${this.userId}]: All collections synced`);
+                // Status changes are tracked in syncStatus$
             }
         }
     }
@@ -211,24 +212,23 @@ export class SyncService {
             });
 
             if (response.ok) {
-                console.log(`📦 Database '${dbName}' is available`);
                 return true;
             }
 
-            if (response.status === 401 || response.status === 403) {
-                console.warn(`⚠️ Access to '${dbName}' denied. This may be temporary during provisioning.`);
-                return false;
-            }
+            logger.warn(`Access to '${dbName}' denied. This may be temporary during provisioning.`);
+
 
             if (response.status === 404) {
-                console.warn(`📦 Database '${dbName}' not found. Backend provisioning may be in progress.`);
+                logger.warn(`Database '${dbName}' not found. Backend provisioning may be in progress.`);
                 return false;
             }
 
-            console.error(`❌ Unexpected status for DB '${dbName}': ${response.status}`);
+            logger.error(`Unexpected status for DB '${dbName}': ${response.status}`);
+
             return false;
         } catch (err) {
-            console.error(`❌ Error checking DB '${dbName}':`, err);
+            logger.error(`Error checking DB '${dbName}':`, err);
+
             return false;
         }
     }
@@ -262,7 +262,8 @@ export class SyncService {
             active: true
         });
 
-        console.log(`🚀 Starting LIVE sync for user: ${safeUserId}`);
+        logger.info(`Starting LIVE sync for user: ${safeUserId}`);
+
 
         // Start Live Replication for all collections
         for (const colName of SYNC_COLLECTIONS) {
@@ -283,7 +284,8 @@ export class SyncService {
             const collection = this.db![collectionName as keyof ZakAppCollections];
             if (!collection) return;
 
-            console.log(`⚡ Connecting Live Sync: ${collectionName}`);
+            logger.info(`Connecting Live Sync: ${collectionName}`);
+
 
             const replicationState = await replicateCouchDB({
                 replicationIdentifier: `zakapp-${safeUserId}-${collectionName}`,
@@ -305,7 +307,8 @@ export class SyncService {
                                 });
                                 return { _id: doc._id, _rev: doc._rev, ...decrypted };
                             } catch (err) {
-                                console.error(`Decryption failed for ${collectionName}:`, err);
+                                logger.error(`Decryption failed for ${collectionName}:`, err);
+
                                 throw err;
                             }
                         }
@@ -337,7 +340,8 @@ export class SyncService {
 
             // Subscribe to errors
             replicationState.error$.subscribe(err => {
-                console.error(`❌ Sync Error (${collectionName}):`, err);
+                logger.error(`Sync Error (${collectionName}):`, err);
+
                 this.syncStatus$.next({
                     ...this.syncStatus$.getValue(),
                     errors: [...this.syncStatus$.getValue().errors, { collection: collectionName, error: err }]
@@ -348,17 +352,16 @@ export class SyncService {
             replicationState.active$.subscribe(active => {
                 const existed = this.activeCollections.has(collectionName);
                 if (active && !existed) {
-                    console.log(`⚡ Collection Busy: ${collectionName}`);
                     this.activeCollections.add(collectionName);
                 } else if (!active && existed) {
-                    console.log(`💤 Collection Idle: ${collectionName}`);
                     this.activeCollections.delete(collectionName);
                 }
                 this.updateSyncStatus();
             });
 
         } catch (err) {
-            console.error(`❌ Failed to start sync for ${collectionName}:`, err);
+            logger.error(`Failed to start sync for ${collectionName}:`, err);
+
         }
     }
 
@@ -369,13 +372,10 @@ export class SyncService {
     async awaitSync() {
         if (this.replicationStates.length === 0) return;
 
-        console.log("⏳ Awaiting sync completion...");
         await Promise.all(this.replicationStates.map(state => state.awaitInSync()));
-        console.log("✅ Sync fully up-to-date.");
     }
 
     async stopSync() {
-        console.log(`🛑 SyncService: Stopping sync for ${this.userId}`);
 
         // Cancel all replications
         await Promise.all(this.replicationStates.map(state => state.cancel()));
@@ -404,7 +404,8 @@ export class SyncService {
         if (!accessToken) throw new Error('No access token');
 
         const apiUrl = getApiBaseUrl();
-        console.log('🗑️ Initiating Remote Data Purge...');
+        logger.info('Initiating Remote Data Purge...');
+
 
         // Stop sync first to prevent immediate re-upload attempts or errors
         await this.stopSync();
@@ -422,7 +423,6 @@ export class SyncService {
             throw new Error(body.message || body.error || 'Failed to purge remote data');
         }
 
-        console.log('✅ Remote data purged successfully.');
         toast.success("Cloud data wiped successfully");
     }
 }

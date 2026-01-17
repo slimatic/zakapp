@@ -27,6 +27,10 @@ import { ReminderService } from '../services/ReminderService';
 import { CalendarConversionService } from '../services/CalendarConversionService';
 import { ComparisonService } from '../services/ComparisonService';
 import { PrismaClient } from '@prisma/client';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('TrackingRoute');
+
 import {
   snapshotRateLimit,
   analyticsRateLimit,
@@ -245,13 +249,11 @@ router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit
       isPrimary: snapshotData.isPrimary
     });
 
-    console.log('✅ Snapshot created successfully:', snapshot.id);
+    logger.info(`Snapshot created successfully: ${snapshot.id}`);
+
     sendSuccess(res, { snapshot }, 201);
-  } catch (error: any) {
-    console.error('❌ ERROR CREATING SNAPSHOT:');
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    console.error('Error object:', error);
+    logger.error('Error creating snapshot:', error);
+
 
     if (error.message?.includes('already exists')) {
       return sendError(res, 'DUPLICATE_SNAPSHOT', error.message, 409);
@@ -291,7 +293,8 @@ router.get('/snapshots', authenticate, validateUserOwnership, validatePagination
       pagination: result.pagination
     });
   } catch (error: any) {
-    console.error('Error fetching snapshots:', error);
+    logger.error('Error fetching snapshots:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to fetch snapshots', 500);
   }
 });
@@ -322,7 +325,8 @@ router.get('/snapshots/:id', authenticate, validateUserOwnership, validateSnapsh
 
     sendSuccess(res, { snapshot });
   } catch (error: any) {
-    console.error('Error fetching snapshot:', error);
+    logger.error('Error fetching snapshot:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to fetch snapshot', 500);
   }
 });
@@ -390,7 +394,8 @@ router.put('/snapshots/:id', authenticate, validateUserOwnership, validateSnapsh
 
     sendSuccess(res, { snapshot });
   } catch (error: any) {
-    console.error('Error updating snapshot:', error);
+    logger.error('Error updating snapshot:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to update snapshot', 500);
   }
 });
@@ -423,7 +428,8 @@ router.delete('/snapshots/:id', authenticate, validateUserOwnership, validateSna
 
     sendSuccess(res, { message: 'Snapshot deleted successfully' });
   } catch (error: any) {
-    console.error('Error deleting snapshot:', error);
+    logger.error('Error deleting snapshot:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to delete snapshot', 500);
   }
 });
@@ -460,7 +466,8 @@ router.post('/snapshots/:id/finalize', authenticate, validateUserOwnership, vali
 
     sendSuccess(res, { snapshot, message: 'Snapshot finalized successfully' });
   } catch (error: any) {
-    console.error('Error finalizing snapshot:', error);
+    logger.error('Error finalizing snapshot:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to finalize snapshot', 500);
   }
 });
@@ -517,7 +524,8 @@ router.get('/analytics/metrics', authenticate, validateUserOwnership, analyticsR
       }
     });
   } catch (error: any) {
-    console.error('Error fetching analytics metrics:', error);
+    logger.error('Error fetching analytics metrics:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to fetch analytics metrics', 500);
   }
 });
@@ -562,7 +570,8 @@ router.get('/comparison', authenticate, validateUserOwnership, validateCompariso
 
     sendSuccess(res, { comparison });
   } catch (error: any) {
-    console.error('Error comparing snapshots:', error);
+    logger.error('Error comparing snapshots:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to compare snapshots', 500);
   }
 });
@@ -587,7 +596,8 @@ router.get('/payments', authenticate, paymentRateLimit, async (req: Authenticate
 
     sendSuccess(res, { payments });
   } catch (error: any) {
-    console.error('Error fetching all payments:', error);
+    logger.error('Error fetching all payments:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to fetch payments', 500);
   }
 });
@@ -615,7 +625,8 @@ router.get('/snapshots/:id/payments', authenticate, validateUserOwnership, valid
 
     sendSuccess(res, { payments });
   } catch (error: any) {
-    console.error('Error fetching payments:', error);
+    logger.error('Error fetching payments:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to fetch payments', 500);
   }
 });
@@ -644,13 +655,15 @@ router.post('/snapshots/:id/payments', authenticate, validateUserOwnership, vali
       snapshotId
     };
 
-    console.log('DEBUG - Payment data received:', JSON.stringify(paymentData, null, 2));
+    logger.info(`Processing payment creation for snapshot: ${snapshotId}`);
+
 
     const payment = await paymentService.createPayment(userId, paymentData);
 
     sendSuccess(res, { payment }, 201);
   } catch (error: any) {
-    console.error('Error creating payment:', error);
+    logger.error('Error creating payment:', error);
+
     sendError(res, 'INTERNAL_ERROR', error.message || 'Failed to create payment', 500);
   }
 });
@@ -678,7 +691,8 @@ router.put('/snapshots/:snapshotId/payments/:paymentId', authenticate, validateU
 
     sendSuccess(res, { payment });
   } catch (error: any) {
-    console.error('Error updating payment:', error);
+    logger.error('Error updating payment:', error);
+
     if (error.message === 'Payment not found') {
       return sendError(res, 'NOT_FOUND', 'Payment not found', 404);
     }
@@ -709,7 +723,8 @@ router.delete('/snapshots/:snapshotId/payments/:paymentId', authenticate, valida
 
     sendSuccess(res, { message: 'Payment deleted successfully' });
   } catch (error: any) {
-    console.error('Error deleting payment:', error);
+    logger.error('Error deleting payment:', error);
+
     sendError(res, 'INTERNAL_ERROR', error.message || 'Failed to delete payment', 500);
   }
 });
@@ -732,7 +747,8 @@ router.get('/reminders', authenticate, validateUserOwnership, snapshotRateLimit,
 
     sendSuccess(res, { reminders: reminders.data, total: reminders.total });
   } catch (error: any) {
-    console.error('Error fetching reminders:', error);
+    logger.error('Error fetching reminders:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to fetch reminders', 500);
   }
 });
@@ -752,7 +768,8 @@ router.post('/reminders/trigger', authenticate, validateUserOwnership, snapshotR
 
     sendSuccess(res, { reminders, count: reminders.length });
   } catch (error: any) {
-    console.error('Error triggering reminders:', error);
+    logger.error('Error triggering reminders:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to trigger reminders', 500);
   }
 });
@@ -780,7 +797,8 @@ router.put('/reminders/:id/acknowledge', authenticate, async (req: Authenticated
 
     sendSuccess(res, { reminder });
   } catch (error: any) {
-    console.error('Error acknowledging reminder:', error);
+    logger.error('Error acknowledging reminder:', error);
+
     sendError(res, 'INTERNAL_ERROR', 'Failed to acknowledge reminder', 500);
   }
 });

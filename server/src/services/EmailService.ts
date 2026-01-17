@@ -1,6 +1,10 @@
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 import { SettingsService } from './SettingsService';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('EmailService');
+
 
 export class EmailService {
     private static instance: EmailService;
@@ -77,7 +81,8 @@ export class EmailService {
     async sendEmail(to: string, subject: string, html: string, text?: string): Promise<boolean> {
         const config = await this.getConfig();
         if (!config) {
-            console.warn('EmailService: No configuration found. Email not sent.');
+            logger.warn('EmailService: No configuration found. Email not sent.');
+
             return false;
         }
 
@@ -95,7 +100,8 @@ export class EmailService {
                 });
 
                 if (error) {
-                    console.error('Resend Error:', error);
+                    logger.error('Resend Error:', error);
+
                     return false;
                 }
                 return true;
@@ -122,7 +128,8 @@ export class EmailService {
                 return true;
             }
         } catch (error) {
-            console.error('EmailService Error:', error);
+            logger.error('EmailService Error:', error);
+
             return false;
         }
 

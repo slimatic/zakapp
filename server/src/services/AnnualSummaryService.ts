@@ -19,6 +19,10 @@ import { AnnualSummaryModel } from '../models/AnnualSummary';
 import { YearlySnapshotModel } from '../models/YearlySnapshot';
 import { PaymentRecordModel } from '../models/PaymentRecord';
 import { EncryptionService } from './EncryptionService';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('AnnualSummaryService');
+
 import {
   AnnualSummary,
   RecipientSummary,
@@ -89,7 +93,8 @@ export class AnnualSummaryService {
       }
     } catch (error) {
       // If decryption fails, data might already be decrypted
-      console.error('Decryption error in AnnualSummaryService:', error);
+      logger.error('Decryption error in AnnualSummaryService:', error);
+
     }
 
     return decrypted as AnnualSummary;
@@ -239,7 +244,7 @@ export class AnnualSummaryService {
    */
   async getSummary(id: string, userId: string): Promise<AnnualSummary | null> {
     const summary = await AnnualSummaryModel.findById(id, userId);
-    
+
     if (!summary) {
       return null;
     }
@@ -255,7 +260,7 @@ export class AnnualSummaryService {
    */
   async getSummaryBySnapshot(snapshotId: string, userId: string): Promise<AnnualSummary | null> {
     const summary = await AnnualSummaryModel.findBySnapshot(snapshotId, userId);
-    
+
     if (!summary) {
       return null;
     }
@@ -271,7 +276,7 @@ export class AnnualSummaryService {
    */
   async getSummariesByYear(year: number, userId: string): Promise<AnnualSummary[]> {
     const summaries = await AnnualSummaryModel.findByYear(userId, year); // Fixed parameter order
-    
+
     return await Promise.all(
       summaries.map(summary => this.decryptSummaryData(summary))
     );
@@ -290,7 +295,7 @@ export class AnnualSummaryService {
     limit: number = 20
   ): Promise<{ data: AnnualSummary[]; total: number }> {
     const result = await AnnualSummaryModel.findByUser(userId, { page, limit });
-    
+
     const decryptedData = await Promise.all(
       result.data.map(summary => this.decryptSummaryData(summary))
     );
