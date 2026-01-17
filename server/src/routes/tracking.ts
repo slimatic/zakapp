@@ -252,6 +252,7 @@ router.post('/snapshots', authenticate, validateUserOwnership, snapshotRateLimit
     logger.info(`Snapshot created successfully: ${snapshot.id}`);
 
     sendSuccess(res, { snapshot }, 201);
+  } catch (error: any) {
     logger.error('Error creating snapshot:', error);
 
 

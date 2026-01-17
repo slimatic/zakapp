@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -22,7 +23,7 @@ describe('WealthAggregationService.getZakatableAssets', () => {
     // Mock prisma client on the service instance
     const fakePrisma: any = {
       asset: {
-        findMany: jest.fn().mockResolvedValue([
+        findMany: vi.fn().mockResolvedValue([
           { id: 'a1', name: 'Cash', category: 'cash', value: 600, calculationModifier: 1.0, createdAt: new Date(), metadata: null },
           { id: 'a2', name: 'Passive', category: 'stocks', value: 6000, calculationModifier: 0.3, createdAt: new Date(), metadata: 'encrypted:passive' },
           { id: 'a3', name: 'Excluded', category: 'cash', value: 100, calculationModifier: 1.0, createdAt: new Date(), metadata: 'encrypted:excluded' }
@@ -31,7 +32,7 @@ describe('WealthAggregationService.getZakatableAssets', () => {
     };
 
     // Mock EncryptionService.decryptObject to return metadata objects
-    const mockDecrypt = jest.spyOn(require('../EncryptionService'), 'decryptObject' as any)
+    const mockDecrypt = vi.spyOn(require('../EncryptionService'), 'decryptObject' as any)
       .mockImplementation((str: any) => {
         if (str === 'encrypted:passive') return Promise.resolve({ zakatEligible: true });
         if (str === 'encrypted:excluded') return Promise.resolve({ zakatEligible: false });

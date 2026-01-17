@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -25,8 +26,8 @@ import { YearlySnapshotModel } from '../../models/YearlySnapshot';
 import { PaymentRecordModel } from '../../models/PaymentRecord';
 
 // Mock the models
-jest.mock('../../models/YearlySnapshot');
-jest.mock('../../models/PaymentRecord');
+vi.mock('../../models/YearlySnapshot');
+vi.mock('../../models/PaymentRecord');
 
 describe('ComparisonService', () => {
   let service: ComparisonService;
@@ -36,7 +37,7 @@ describe('ComparisonService', () => {
     // Set encryption key for tests
     process.env.ENCRYPTION_KEY = 'test-encryption-key-32-characters!!';
     service = new ComparisonService();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -82,7 +83,7 @@ describe('ComparisonService', () => {
     ];
 
     beforeEach(() => {
-      (YearlySnapshotModel.findById as jest.Mock).mockImplementation(async (id: string) => {
+      (YearlySnapshotModel.findById as Mock).mockImplementation(async (id: string) => {
         return mockSnapshots.find(s => s.id === id) || null;
       });
     });
@@ -94,7 +95,7 @@ describe('ComparisonService', () => {
     });
 
     it('should throw error if snapshot not found', async () => {
-      (YearlySnapshotModel.findById as jest.Mock).mockResolvedValueOnce(null);
+      (YearlySnapshotModel.findById as Mock).mockResolvedValueOnce(null);
 
       await expect(
         service.compareSnapshots(['snap1', 'invalid-id'], mockUserId)
@@ -184,7 +185,7 @@ describe('ComparisonService', () => {
         { ...mockSnapshots[2], totalWealth: 100000, zakatAmount: 2500 }
       ];
 
-      (YearlySnapshotModel.findById as jest.Mock).mockImplementation(async (id: string) => {
+      (YearlySnapshotModel.findById as Mock).mockImplementation(async (id: string) => {
         return decreasingSnapshots.find(s => s.id === id) || null;
       });
 
@@ -204,7 +205,7 @@ describe('ComparisonService', () => {
         zakatAmount: 2500
       }));
 
-      (YearlySnapshotModel.findById as jest.Mock).mockImplementation(async (id: string) => {
+      (YearlySnapshotModel.findById as Mock).mockImplementation(async (id: string) => {
         return stableSnapshots.find(s => s.id === id) || null;
       });
 
@@ -244,15 +245,15 @@ describe('ComparisonService', () => {
     };
 
     beforeEach(() => {
-      (YearlySnapshotModel.findByUser as jest.Mock).mockResolvedValue(mockAllSnapshots);
-      (PaymentRecordModel.findBySnapshot as jest.Mock).mockResolvedValue([
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue(mockAllSnapshots);
+      (PaymentRecordModel.findBySnapshot as Mock).mockResolvedValue([
         { id: 'pay1', amount: 1000 },
         { id: 'pay2', amount: 1500 }
       ]);
     });
 
     it('should return empty result if no snapshots', async () => {
-      (YearlySnapshotModel.findByUser as jest.Mock).mockResolvedValue({ data: [], total: 0 });
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
 
       const result = await service.compareAllYears(mockUserId);
 
