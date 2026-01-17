@@ -26,8 +26,11 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { Logger } from '../utils/logger';
 
+const logger = new Logger('CacheCleanup');
 const prisma = new PrismaClient();
+
 
 /**
  * Configuration for cache cleanup
@@ -58,8 +61,8 @@ export async function cleanupExpiredCache(): Promise<{
     const cutoffDate = new Date();
     cutoffDate.setHours(cutoffDate.getHours() - CACHE_CLEANUP_CONFIG.maxAgeHours);
 
-    // eslint-disable-next-line no-console
-    console.log(`[Cache Cleanup] Starting cleanup for entries before ${cutoffDate.toISOString()}`);
+    logger.info(`Starting cleanup for entries before ${cutoffDate.toISOString()}`);
+
 
     // Delete expired cache entries in batches
     while (true) {
@@ -81,8 +84,8 @@ export async function cleanupExpiredCache(): Promise<{
     }
 
     const duration = Date.now() - startTime;
-    // eslint-disable-next-line no-console
-    console.log(`[Cache Cleanup] Successfully deleted ${totalDeleted} expired entries in ${duration}ms`);
+    logger.info(`Successfully deleted ${totalDeleted} expired entries in ${duration}ms`);
+
 
     return {
       deleted: totalDeleted,
@@ -92,8 +95,8 @@ export async function cleanupExpiredCache(): Promise<{
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(`Cache cleanup failed: ${errorMessage}`);
-    // eslint-disable-next-line no-console
-    console.error('[Cache Cleanup] Error:', error);
+    logger.error('Error:', error);
+
 
     return {
       deleted: totalDeleted,
@@ -107,15 +110,15 @@ export async function cleanupExpiredCache(): Promise<{
  * Job handler for scheduled execution
  */
 export async function runCacheCleanupJob(): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log('[Cache Cleanup] Job started');
+  logger.info('Job started');
+
   const result = await cleanupExpiredCache();
-  
+
   if (result.errors.length > 0) {
-    // eslint-disable-next-line no-console
-    console.error('[Cache Cleanup] Job completed with errors:', result.errors);
+    logger.error('Job completed with errors:', result.errors);
+
   } else {
-    // eslint-disable-next-line no-console
-    console.log('[Cache Cleanup] Job completed successfully');
+    logger.info('Job completed successfully');
+
   }
 }
