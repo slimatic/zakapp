@@ -206,6 +206,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     // But 'isAdmin' must come from API.
                     isAdmin: verifyResult.data?.user?.isAdmin ?? user.isAdmin,
                     userType: verifyResult.data?.user?.userType ?? user.userType,
+                    isVerified: verifyResult.data?.user?.isVerified ?? user.isVerified,
                   };
 
                   // Update session storage with the fresh merged user
@@ -593,7 +594,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: userData.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
-        isSetupCompleted: false
+        isSetupCompleted: false,
+        isVerified: apiResult.user?.isVerified ?? false
       };
 
       // 4. Persist Session

@@ -64,6 +64,7 @@ export interface AuthResponse {
       preferredCalendar?: 'gregorian' | 'hijri';
       hijriAdjustment?: number;
     };
+    isVerified?: boolean;
     isAdmin?: boolean;
     userType?: string;
     maxAssets?: number;
