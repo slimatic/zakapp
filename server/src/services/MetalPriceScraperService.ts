@@ -46,18 +46,13 @@ export class MetalPriceScraperService {
         const countrySlug = MetalPriceScraperService.CURRENCY_TO_COUNTRY[currency.toUpperCase()];
 
         if (!countrySlug) {
-            console.warn(`Currency ${currency} not mapped to country, falling back to USD`);
             return this.scrapeGoldPriceForCountry('usa');
         }
 
         try {
             return await this.scrapeGoldPriceForCountry(countrySlug);
         } catch (error) {
-            console.error(`Failed to scrape gold price for ${currency} (${countrySlug}):`, error);
-
-            // Fall back to USD if country-specific scrape fails
             if (currency !== 'USD') {
-                console.log('Falling back to USD gold price...');
                 return this.scrapeGoldPriceForCountry('usa');
             }
             throw error;
@@ -69,7 +64,6 @@ export class MetalPriceScraperService {
      */
     private async scrapeGoldPriceForCountry(countrySlug: string): Promise<number> {
         const url = `https://www.livepriceofgold.com/${countrySlug}-gold-price-per-gram.html`;
-        console.log(`Scraping Gold price from ${url}...`);
 
         const { data } = await axios.get(url, {
             headers: {
@@ -80,7 +74,6 @@ export class MetalPriceScraperService {
 
         const $ = cheerio.load(data);
         const title = $('title').text();
-        console.log('Page Title:', title);
 
         // Strategy 1: Parse price from page title
         // Example: "Pakistan Gold Price per Gram: 41,275.08 Pakistani rupees (PKR) today"
@@ -89,7 +82,6 @@ export class MetalPriceScraperService {
         if (priceMatch && priceMatch[1]) {
             const price = parseFloat(priceMatch[1].replace(/,/g, ''));
             if (!isNaN(price) && price > 0) {
-                console.log(`Scraped Gold Price (from Title): ${price}`);
                 return price;
             }
         }
@@ -100,7 +92,6 @@ export class MetalPriceScraperService {
         if (bodyMatch && bodyMatch[1]) {
             const price = parseFloat(bodyMatch[1].replace(/,/g, ''));
             if (!isNaN(price) && price > 0) {
-                console.log(`Scraped Gold Price (from Body): ${price}`);
                 return price;
             }
         }
@@ -116,7 +107,6 @@ export class MetalPriceScraperService {
         const countrySlug = MetalPriceScraperService.CURRENCY_TO_COUNTRY[currency.toUpperCase()];
 
         if (!countrySlug) {
-            console.warn(`Currency ${currency} not mapped to country, falling back to USD`);
             return this.scrapeSilverPriceForCountry('us');
         }
 
@@ -126,11 +116,7 @@ export class MetalPriceScraperService {
         try {
             return await this.scrapeSilverPriceForCountry(silverCountrySlug);
         } catch (error) {
-            console.error(`Failed to scrape silver price for ${currency} (${silverCountrySlug}):`, error);
-
-            // Fall back to USD if country-specific scrape fails
             if (currency !== 'USD') {
-                console.log('Falling back to USD silver price...');
                 return this.scrapeSilverPriceForCountry('us');
             }
             throw error;
@@ -158,7 +144,6 @@ export class MetalPriceScraperService {
      */
     private async scrapeSilverPriceForCountry(countrySlug: string): Promise<number> {
         const url = `https://www.livepriceofgold.com/silver-price/${countrySlug}.html`;
-        console.log(`Scraping Silver price from ${url}...`);
 
         const { data } = await axios.get(url, {
             headers: {
@@ -169,7 +154,6 @@ export class MetalPriceScraperService {
 
         const $ = cheerio.load(data);
         const title = $('title').text();
-        console.log('Silver Page Title:', title);
 
         // Strategy 1: Look for "(999) Silver/gram" table row - this is 999 fine silver
         // The table structure is: <tr><td>(999) Silver/gram</td><td class="bold3">2.90</td>...
@@ -185,7 +169,6 @@ export class MetalPriceScraperService {
                     const priceText = priceCell.text().trim();
                     const price = parseFloat(priceText.replace(/,/g, ''));
                     if (!isNaN(price) && price > 0) {
-                        console.log(`Found (999) Silver/gram price: ${price}`);
                         silverPrice = price;
                         return false; // Exit loop
                     }
@@ -196,7 +179,6 @@ export class MetalPriceScraperService {
                 if (match && match[1]) {
                     const price = parseFloat(match[1]);
                     if (!isNaN(price) && price > 0) {
-                        console.log(`Extracted (999) Silver/gram price from text: ${price}`);
                         silverPrice = price;
                         return false;
                     }
@@ -216,7 +198,6 @@ export class MetalPriceScraperService {
                 if (priceCell.length) {
                     const price = parseFloat(priceCell.text().replace(/,/g, ''));
                     if (!isNaN(price) && price > 0) {
-                        console.log(`Found Silver/gram price: ${price}`);
                         silverPrice = price;
                         return false;
                     }
@@ -236,7 +217,6 @@ export class MetalPriceScraperService {
             const pricePerOz = parseFloat(ounceMatch[1].replace(/,/g, ''));
             if (!isNaN(pricePerOz) && pricePerOz > 15 && pricePerOz < 200) {
                 const pricePerGram = pricePerOz / 31.1034768;
-                console.log(`Converted Silver from Ounce: ${pricePerOz}/oz -> ${pricePerGram.toFixed(4)}/g`);
                 return pricePerGram;
             }
         }

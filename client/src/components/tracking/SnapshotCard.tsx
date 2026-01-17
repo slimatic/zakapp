@@ -26,6 +26,8 @@ import type { NisabYearRecord } from '../../types/nisabYearRecord';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/formatters';
 import { formatDualCalendar } from '../../utils/calendarConverter';
+import { Decimal } from 'decimal.js';
+
 
 interface SnapshotCardProps {
   snapshot: NisabYearRecord;
@@ -76,14 +78,15 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
   const statusKey = (snapshot.status || 'draft') as 'draft' | 'finalized' | 'active';
   const status = statusConfig[statusKey];
 
-  const totalWealth = typeof snapshot.totalWealth === 'string' ? parseFloat(snapshot.totalWealth) : snapshot.totalWealth || 0;
-  const zakatAmount = typeof snapshot.zakatAmount === 'string' ? parseFloat(snapshot.zakatAmount) : snapshot.zakatAmount || 0;
-  const zakatableWealth = typeof snapshot.zakatableWealth === 'string' ? parseFloat(snapshot.zakatableWealth) : snapshot.zakatableWealth || 0;
-  const nisabThreshold = typeof snapshot.nisabThresholdAtStart === 'string' ? parseFloat(snapshot.nisabThresholdAtStart) : snapshot.nisabThresholdAtStart || 0;
+  const totalWealth = new Decimal(snapshot.totalWealth || 0).toNumber();
+  const zakatAmount = new Decimal(snapshot.zakatAmount || 0).toNumber();
+  const zakatableWealth = new Decimal(snapshot.zakatableWealth || 0).toNumber();
+  const nisabThreshold = new Decimal(snapshot.nisabThresholdAtStart || 0).toNumber();
 
-  const zakatPercentage = totalWealth > 0 
-    ? ((zakatAmount / totalWealth) * 100).toFixed(2)
+  const zakatPercentage = totalWealth > 0
+    ? new Decimal(zakatAmount).dividedBy(totalWealth).times(100).toFixed(2)
     : '0.00';
+
 
   const aboveNisab = zakatableWealth >= nisabThreshold;
 
@@ -104,7 +107,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
               className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
             />
           )}
-          
+
           <div>
             <h3 className={clsx(
               'font-semibold text-gray-900',
@@ -148,14 +151,14 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
             {formatCurrency(totalWealth)}
           </p>
         </div>
-        
+
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wide">Zakat Due</p>
           <p className="text-lg font-semibold text-green-600">
             {formatCurrency(zakatAmount)}
           </p>
         </div>
-        
+
         {!compact && (
           <>
             <div>
@@ -164,7 +167,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
                 {formatCurrency(zakatableWealth)}
               </p>
             </div>
-            
+
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">Rate</p>
               <p className="text-lg font-semibold text-gray-900">
@@ -179,8 +182,8 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
       <div className="mb-4">
         <div className={clsx(
           'inline-flex items-center px-2 py-1 rounded text-xs font-medium',
-          aboveNisab 
-            ? 'bg-green-100 text-green-700' 
+          aboveNisab
+            ? 'bg-green-100 text-green-700'
             : 'bg-gray-100 text-gray-600'
         )}>
           {aboveNisab ? '✓ Above Nisab' : '✗ Below Nisab'}
@@ -212,7 +215,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
             View Details
           </Button>
         )}
-        
+
         {onEdit && isDraft && (
           <Button
             variant="secondary"
@@ -222,7 +225,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
             Edit
           </Button>
         )}
-        
+
         {onFinalize && isDraft && (
           <Button
             variant="default"
@@ -232,7 +235,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
             Finalize
           </Button>
         )}
-        
+
         {onCompare && (
           <Button
             variant="ghost"
@@ -242,7 +245,7 @@ export const SnapshotCard: React.FC<SnapshotCardProps> = ({
             Compare
           </Button>
         )}
-        
+
         {onDelete && isDraft && (
           <Button
             variant="destructive"

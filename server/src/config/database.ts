@@ -35,6 +35,10 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
 import { PrismaClient, Prisma } from '@prisma/client';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('DatabaseConfig');
+
 import { EncryptionService } from '../services/EncryptionService';
 
 import { getEncryptionKey } from '../config/security';
@@ -365,10 +369,12 @@ export class DatabaseManager {
         throw new Error(`Backup for ${dbType} databases not implemented. Use database-native backup tools.`);
       }
 
-      console.log(`Database backup created: ${backupPath}`);
+      logger.info(`Database backup created: ${backupPath}`);
+
       return backupPath;
     } catch (error) {
-      console.error('Backup creation failed:', error);
+      logger.error('Backup creation failed:', error);
+
       throw error;
     }
   }
@@ -408,9 +414,9 @@ export class DatabaseManager {
         throw new Error(`Restore for ${dbType} databases not implemented. Use database-native restore tools.`);
       }
 
-      console.log(`Database restored from: ${backupPath}`);
+      logger.info(`Database restored from: ${backupPath}`);
     } catch (error) {
-      console.error('Backup restoration failed:', error);
+      logger.error('Backup restoration failed:', error);
       throw error;
     }
   }
@@ -437,7 +443,8 @@ export class DatabaseManager {
 
         if (attempt < maxRetries) {
           const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
-          console.warn(`Transaction attempt ${attempt} failed, retrying in ${delay}ms...`);
+          logger.warn(`Transaction attempt ${attempt} failed, retrying in ${delay}ms...`);
+
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
@@ -481,13 +488,15 @@ export class DatabaseManager {
           }
         } catch (error) {
           // Skip models that don't support count operation
-          console.warn(`Could not get count for model ${model.name}:`, error);
+          logger.warn(`Could not get count for model ${model.name}:`, error);
+
         }
       }
 
       return stats;
     } catch (error) {
-      console.error('Failed to get database statistics:', error);
+      logger.error('Failed to get database statistics:', error);
+
       throw error;
     }
   }
@@ -525,9 +534,9 @@ export const checkDatabaseHealth = async (): Promise<DatabaseHealth> => {
 export const initializeDatabase = async (): Promise<void> => {
   try {
     await database.connect();
-    console.log('✅ Database initialized successfully');
+    logger.info('✅ Database initialized successfully');
   } catch (error) {
-    console.error('❌ Database initialization failed:', error);
+    logger.error('❌ Database initialization failed:', error);
     throw error;
   }
 };
@@ -538,9 +547,9 @@ export const initializeDatabase = async (): Promise<void> => {
 export const shutdownDatabase = async (): Promise<void> => {
   try {
     await database.disconnect();
-    console.log('✅ Database shutdown completed');
+    logger.info('✅ Database shutdown completed');
   } catch (error) {
-    console.error('❌ Database shutdown failed:', error);
+    logger.error('❌ Database shutdown failed:', error);
     throw error;
   }
 };

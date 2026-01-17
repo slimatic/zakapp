@@ -1,19 +1,7 @@
-/**
- * Copyright (c) 2024 ZakApp Contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('CurrencyService');
+
 
 /**
  * Currency Service for exchange rate management and currency conversions
@@ -45,7 +33,7 @@ export class CurrencyService {
 
     const cacheKey = `${fromCurrency}_${toCurrency}`;
     const cached = this.exchangeRates.get(cacheKey);
-    
+
     // Check if cached rate is still valid
     if (cached && this.isCacheValid(cached.timestamp)) {
       return cached.rate;
@@ -54,21 +42,22 @@ export class CurrencyService {
     try {
       // Try to get real-time rate
       const rate = await this.fetchExchangeRate(fromCurrency, toCurrency);
-      
+
       // Cache the rate
       this.exchangeRates.set(cacheKey, {
         rate,
         timestamp: new Date()
       });
-      
+
       return rate;
     } catch (error) {
       // Fall back to cached rate if available
       if (cached) {
-        console.warn(`Using stale exchange rate for ${cacheKey}: ${error}`);
+        logger.warn(`Using stale exchange rate for ${cacheKey}: ${error}`);
+
         return cached.rate;
       }
-      
+
       // Fall back to default rates
       return this.getFallbackRate(fromCurrency, toCurrency);
     }
@@ -94,7 +83,7 @@ export class CurrencyService {
   private async fetchExchangeRate(fromCurrency: string, toCurrency: string): Promise<number> {
     // Mock implementation - replace with real API call
     // This would normally make HTTP request to exchange rate API
-    
+
     // For demo purposes, return mock rates
     const mockRates: { [key: string]: { [key: string]: number } } = {
       'USD': {
@@ -142,8 +131,9 @@ export class CurrencyService {
    * Get fallback exchange rate when API fails
    */
   private getFallbackRate(fromCurrency: string, toCurrency: string): number {
-    console.warn(`Using fallback exchange rate for ${fromCurrency} to ${toCurrency}`);
-    
+    logger.warn(`Using fallback exchange rate for ${fromCurrency} to ${toCurrency}`);
+
+
     // Basic fallback rates (should be updated regularly)
     const fallbackRates: { [key: string]: { [key: string]: number } } = {
       'USD': {
@@ -174,7 +164,8 @@ export class CurrencyService {
     }
 
     // Last resort - return 1:1 (this should be logged for monitoring)
-    console.error(`No fallback rate available for ${fromCurrency} to ${toCurrency}, using 1:1`);
+    logger.error(`No fallback rate available for ${fromCurrency} to ${toCurrency}, using 1:1`);
+
     return 1.0;
   }
 
@@ -203,11 +194,11 @@ export class CurrencyService {
     baseCurrency: string = 'USD'
   ): Promise<Array<{ originalAmount: number; originalCurrency: string; convertedAmount: number; rate: number }>> {
     const results = [];
-    
+
     for (const item of amounts) {
       const rate = await this.getExchangeRate(item.currency, baseCurrency);
       const convertedAmount = item.amount * rate;
-      
+
       results.push({
         originalAmount: item.amount,
         originalCurrency: item.currency,
@@ -215,7 +206,7 @@ export class CurrencyService {
         rate
       });
     }
-    
+
     return results;
   }
 
@@ -237,7 +228,8 @@ export class CurrencyService {
           timestamp: new Date()
         };
       } catch (error) {
-        console.warn(`Failed to get rate for ${currency}:`, error);
+        logger.warn(`Failed to get rate for ${currency}:`, error);
+
       }
     }
 
@@ -313,7 +305,7 @@ export class CurrencyService {
       'USD', 'EUR', 'GBP', 'SAR', 'AED', 'EGP', 'TRY',
       'INR', 'PKR', 'BDT', 'MYR', 'IDR'
     ];
-    
+
     return validCurrencies.includes(currency.toUpperCase());
   }
 }

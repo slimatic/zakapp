@@ -17,6 +17,7 @@
 
 import { Asset, Liability } from '../../types';
 import { getAssetZakatableValue, ZakatMethodology } from './zakat';
+import { Decimal } from 'decimal.js';
 
 /**
  * Zakat Calculation Logic extracted from UI components.
@@ -57,14 +58,14 @@ export const calculateWealth = (
     methodology: ZakatMethodology = 'STANDARD'
 ): WealthCalculationResult => {
     // 1. Calculate Asset Wealth
-    let totalWealth = 0;
-    let zakatableWealth = 0;
+    let totalWealth = new Decimal(0);
+    let zakatableWealth = new Decimal(0);
 
     assets.forEach(asset => {
-        const value = Number(asset.value) || 0;
+        const value = new Decimal(asset.value || 0);
 
         // 1. Always add to Total Wealth (Net Worth calculation)
-        totalWealth += value;
+        totalWealth = totalWealth.plus(value);
 
         // 2. Check Zakat Eligibility
         const isPotentialType = POTENTIAL_ZAKATABLE_TYPES.includes(asset.type);
@@ -84,21 +85,21 @@ export const calculateWealth = (
 
         if (isEligible) {
             // Use core zakat calculation for accurate zakatable value
-            zakatableWealth += getAssetZakatableValue(asset, methodology);
+            zakatableWealth = zakatableWealth.plus(new Decimal(getAssetZakatableValue(asset, methodology)));
         }
     });
 
     // 2. Calculate Deductible Liabilities
-    const deductibleLiabilities = calculateDeductibleLiabilities(liabilities, referenceDate);
+    const deductibleLiabilities = new Decimal(calculateDeductibleLiabilities(liabilities, referenceDate));
 
     // 3. Calculate Net Zakatable Wealth (prevent negative)
-    const netZakatableWealth = Math.max(0, zakatableWealth - deductibleLiabilities);
+    const netZakatableWealth = Decimal.max(0, zakatableWealth.minus(deductibleLiabilities));
 
     return {
-        totalWealth,
-        zakatableWealth,
-        deductibleLiabilities,
-        netZakatableWealth
+        totalWealth: totalWealth.toNumber(),
+        zakatableWealth: zakatableWealth.toNumber(),
+        deductibleLiabilities: deductibleLiabilities.toNumber(),
+        netZakatableWealth: netZakatableWealth.toNumber()
     };
 };
 
@@ -122,14 +123,14 @@ export const calculateWealth = (
  * @param referenceDate 
  */
 export const calculateDeductibleLiabilities = (liabilities: Liability[], referenceDate: Date): number => {
-    let totalDeductible = 0;
+    let totalDeductible = new Decimal(0);
     const hawlDurationMs = 355 * 24 * 60 * 60 * 1000; // ~1 Lunar Year (safe buffer)
     const cutoffDate = new Date(referenceDate.getTime() + hawlDurationMs);
 
     liabilities.forEach(liability => {
         if (!liability.isActive) return;
 
-        const amount = Number(liability.amount) || 0;
+        const amount = new Decimal(liability.amount || 0);
         const dueDate = new Date(liability.dueDate);
 
         // If due date is invalid, we lean on precaution and do NOT deduct (safer for zakat receiver)
@@ -138,9 +139,10 @@ export const calculateDeductibleLiabilities = (liabilities: Liability[], referen
         // Check if due within the coming lunar year
         // We also deduct past due debts (dueDate < referenceDate) as they are "Immediate"
         if (dueDate <= cutoffDate) {
-            totalDeductible += amount;
+            totalDeductible = totalDeductible.plus(amount);
         }
     });
 
-    return totalDeductible;
+    return totalDeductible.toNumber();
 };
+
