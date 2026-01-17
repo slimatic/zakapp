@@ -24,15 +24,14 @@ If a PR violates these rules, it will be rejected immediately.
 
 1.  **Fork & Clone**:
     ```bash
-    git clone https://github.com/your-username/project-ikhlas.git
-    cd project-ikhlas
+    git clone https://github.com/your-username/zakapp.git
+    cd zakapp
     ```
-2.  **Install**:
+2.  **Install All Dependencies**:
     ```bash
-    npm install
-    cd client && npm install
+    npm run install:all
     ```
-3.  **Run Dev Server**:
+3.  **Run Development Environment**:
     ```bash
     npm start
     ```
