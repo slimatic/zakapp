@@ -17,6 +17,10 @@
 
 import express from 'express';
 import axios from 'axios';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('FeedbackRoute');
+
 
 const router = express.Router();
 
@@ -32,16 +36,15 @@ router.post('/', async (req, res) => {
 
     if (!webhookUrl) {
       // If no webhook is configured, just log it
-      console.log('=== FEEDBACK RECEIVED (NO WEBHOOK CONFIGURED) ===');
-      console.log(JSON.stringify(feedback, null, 2));
-      console.log('=================================================');
+      logger.info('Feedback received (No webhook configured):', feedback);
+
       return res.status(200).json({ success: true, message: 'Feedback received' });
     }
 
     // Proxy the request to the webhook
     // Format payload based on webhook type (simple heuristic)
     let payload: any = feedback;
-    
+
     if (webhookUrl.includes('slack.com')) {
       payload = {
         text: `*New Feedback (${feedback.category})*\n${feedback.message}\n\n_From: ${feedback.email} on ${feedback.pageUrl}_`
@@ -64,14 +67,15 @@ router.post('/', async (req, res) => {
 
     return res.status(200).json({ success: true, message: 'Feedback submitted successfully' });
   } catch (error: any) {
-    console.error('Feedback submission error:', error.message);
+    logger.error(`Feedback submission error: ${error.message}`);
     if (error.response) {
-      console.error('Webhook response:', error.response.status, error.response.data);
+      logger.error(`Webhook response: ${error.response.status}`, error.response.data);
     }
-    
-    return res.status(502).json({ 
-      success: false, 
-      message: 'Failed to forward feedback to external service' 
+
+
+    return res.status(502).json({
+      success: false,
+      message: 'Failed to forward feedback to external service'
     });
   }
 });

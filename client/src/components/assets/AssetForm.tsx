@@ -32,6 +32,11 @@ import {
   getPropertyGuidance,
   getModifierBadge
 } from '../../utils/assetModifiers';
+import { RetirementTreatmentSection } from './form-sections/RetirementTreatmentSection';
+import { PassiveInvestmentSection } from './form-sections/PassiveInvestmentSection';
+import { RestrictedAccountSection } from './form-sections/RestrictedAccountSection';
+import { JewelryGuidance } from './form-sections/JewelryGuidance';
+
 import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '../../constants/sharedFallback';
 
 interface AssetFormProps {
@@ -594,202 +599,54 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             Check this if the asset should be included in Zakat calculations
           </p>
 
-          {/* Smart Guidance for Jewelry */}
-          {formData.zakatEligible && formData.subCategory === 'jewelry' && isJewelryExemptMethodology && (
-            <div className="mt-2 ml-6 p-2 bg-amber-50 border border-amber-200 rounded text-amber-800 text-xs flex gap-2 animate-pulse">
-              <span className="text-lg">ℹ️</span>
-              <span>
-                <strong>Note:</strong> Under the <strong>{currentMethodologyConfig.name}</strong> school, personal jewelry is typically <strong>exempt</strong> from Zakat.
-                <br />Only keep this checked if the jewelry is for <strong>investment</strong> or <strong>trade</strong> purposes.
-              </span>
-            </div>
-          )}
-
-          {/* Show inverse guidance: If UNCHECKED but methodology says it SHOULD be checked (rare, e.g. Hanafi) */}
-          {!formData.zakatEligible && formData.subCategory === 'jewelry' && !isJewelryExemptMethodology && (
-            <div className="mt-2 ml-6 p-2 bg-blue-50 border border-blue-200 rounded text-blue-800 text-xs flex gap-2">
-              <span className="text-lg">ℹ️</span>
-              <span>
-                <strong>Note:</strong> Under the <strong>{currentMethodologyConfig.name}</strong> school, jewelry is typically <strong>Zakatable</strong>.
-                <br />You have manually exempted this (personal use?).
-              </span>
-            </div>
+          {formData.subCategory === 'jewelry' && (
+            <JewelryGuidance
+              zakatEligible={formData.zakatEligible}
+              isEligibilityManual={formData.isEligibilityManual}
+              isJewelryExemptMethodology={isJewelryExemptMethodology}
+              methodologyName={currentMethodologyConfig.name}
+            />
           )}
         </div>
 
-        {/* Modifier Section: Passive Investment */}
-        {/* Guidance for Auto-Exempted Assets */}
-        {!formData.zakatEligible && formData.subCategory === 'jewelry' && isJewelryExemptMethodology && !formData.isEligibilityManual && (
-          <div className="mt-2 ml-6 p-2 bg-gray-50 border border-gray-200 rounded text-gray-700 text-xs flex gap-2">
-            <span className="text-lg">ℹ️</span>
-            <span>
-              <strong>Note:</strong> This asset is set to <strong>Exempt</strong> based on <strong>{currentMethodologyConfig.name}</strong> rules regarding personal jewelry.
-              <br />Check the box above if this jewelry is for investment/trade (making it Zakatable).
-            </span>
-          </div>
-        )}
+
+
 
         {/* Modifier Section: Passive Investment (hidden for retirement since radio has this option) */}
         {shouldShowPassiveCheckbox(formData.category as string) && !formData.subCategory?.startsWith('retirement') && (
-          <div className="border-l-4 border-blue-300 bg-blue-50 p-4 rounded">
-            <label className="flex items-start">
-              <input
-                type="checkbox"
-                id="isPassiveInvestment"
-                checked={formData.isPassiveInvestment}
-                onChange={(e) => handleChange('isPassiveInvestment', e.target.checked)}
-                disabled={formData.isRestrictedAccount || !formData.zakatEligible}
-                className="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-describedby="passive-help"
-                aria-disabled={formData.isRestrictedAccount || !formData.zakatEligible}
-              />
-              <span className="ml-3">
-                <span className="text-sm font-medium text-gray-700 block">
-                  Passive Investment (30% Rule)
-                </span>
-                <span className="text-xs text-gray-600 block mt-1">
-                  {getPassiveInvestmentGuidance()}
-                </span>
-              </span>
-            </label>
-            {formData.isRestrictedAccount && (
-              <p className="mt-2 text-xs text-red-600 font-medium ml-6">
-                ⚠️ Cannot be marked as both passive and restricted
-              </p>
-            )}
-            {formData.isPassiveInvestment && (
-              <div className="mt-2 ml-6 p-2 bg-blue-100 rounded">
-                <p className="text-xs text-blue-700">
-                  📊 Modifier Applied: {getModifierBadge(0.3).text}
-                </p>
-              </div>
-            )}
-            {!formData.zakatEligible && (
-              <p className="mt-2 text-xs text-gray-600 ml-6">
-                ⚠️ Passive investments can only be marked when the asset is eligible for Zakat
-              </p>
-            )}
-          </div>
+          <PassiveInvestmentSection
+            isPassiveInvestment={formData.isPassiveInvestment}
+            isRestrictedAccount={formData.isRestrictedAccount}
+            zakatEligible={formData.zakatEligible}
+            onChange={(checked) => handleChange('isPassiveInvestment', checked)}
+          />
         )}
+
 
         {/* Modifier Section: Retirement Treatment (Radio Group) */}
         {formData.category === 'stocks' && formData.subCategory?.startsWith('retirement') && (
-          <div className="bg-white/50 p-4 rounded-lg border border-blue-100/50 space-y-3">
-            <p className="text-sm font-medium text-blue-900">Zakat Treatment:</p>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="retirement-treatment"
-                checked={formData.retirementTreatment === 'full'}
-                onChange={() => handleChange('retirementTreatment', 'full')}
-                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-              />
-              <div>
-                <span className="block text-sm font-medium text-gray-900">Full Assessment (100%)</span>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="retirement-treatment"
-                checked={formData.retirementTreatment === 'net_value'}
-                onChange={() => handleChange('retirementTreatment', 'net_value')}
-                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-              />
-              <div>
-                <span className="block text-sm font-medium text-gray-900">Deduct Taxes/Penalties (Net Value)</span>
-                <span className="block text-xs text-gray-500">Calculates zakat on ~70% of the value (after estimated taxes/fees).</span>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="retirement-treatment"
-                checked={formData.retirementTreatment === 'passive'}
-                onChange={() => handleChange('retirementTreatment', 'passive')}
-                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-              />
-              <div>
-                <span className="block text-sm font-medium text-gray-900">Passive Investment (30%)</span>
-                <span className="block text-xs text-gray-500">Treats underlying assets as passive/business assets (Zakatable on 30%).</span>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="retirement-treatment"
-                checked={formData.retirementTreatment === 'deferred'}
-                onChange={() => handleChange('retirementTreatment', 'deferred')}
-                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-              />
-              <div>
-                <span className="block text-sm font-medium text-gray-900">Deferred (Exempt)</span>
-                <span className="block text-xs text-gray-500">No Zakat due until withdrawal (based on lack of complete ownership/access).</span>
-              </div>
-            </label>
-
-            {/* Modifier Summary */}
-            {formData.value && (
-              <div className="mt-4 pt-4 border-t border-blue-100">
-                <div className="bg-blue-50 rounded-lg p-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Original Value:</span>
-                    <span className="font-medium text-gray-900">${parseFloat(String(formData.value)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Modifier Applied:</span>
-                    <span className="font-bold text-blue-600">{(calculationModifier * 100).toFixed(0)}%</span>
-                  </div>
-                  <div className="flex justify-between text-sm border-t border-blue-200 pt-2">
-                    <span className="font-medium text-gray-900">Zakatable Value:</span>
-                    <span className="font-bold text-emerald-600">${(parseFloat(String(formData.value)) * calculationModifier).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <RetirementTreatmentSection
+            retirementTreatment={formData.retirementTreatment}
+            value={formData.value}
+            calculationModifier={calculationModifier}
+            onTreatmentChange={(treatment) => handleChange('retirementTreatment', treatment)}
+          />
         )}
+
 
         {/* Modifier Section: Restricted Account (Legacy/Non-Retirement) */}
         {shouldShowRestrictedCheckbox(formData.category as string) && (!formData.subCategory?.startsWith('retirement')) && (
-          <div className="border-l-4 border-gray-300 bg-gray-50 p-4 rounded">
-            <label className="flex items-start">
-              <input
-                type="checkbox"
-                id="isRestrictedAccount"
-                checked={formData.isRestrictedAccount}
-                onChange={(e) => {
-                  handleChange('isRestrictedAccount', e.target.checked);
-                  // Auto-clear passive when restricted is enabled
-                  if (e.target.checked) {
-                    handleChange('isPassiveInvestment', false);
-                  }
-                }}
-                className="mt-1 rounded border-gray-300 text-gray-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                aria-describedby="restricted-help"
-              />
-              <span className="ml-3">
-                <span className="text-sm font-medium text-gray-700 block">
-                  Zakat-Deferred (401k/IRA/HSA)
-                </span>
-                <span className="text-xs text-gray-600 block mt-1">
-                  {getRestrictedAccountGuidance()}
-                </span>
-              </span>
-            </label>
-            {formData.isRestrictedAccount && (
-              <div className="mt-2 ml-6 p-2 bg-gray-100 rounded">
-                <p className="text-xs text-gray-700">
-                  ⏸️ Modifier Applied: {getModifierBadge(0.0).text}
-                </p>
-              </div>
-            )}
-          </div>
+          <RestrictedAccountSection
+            isRestrictedAccount={formData.isRestrictedAccount}
+            onChange={(checked) => {
+              handleChange('isRestrictedAccount', checked);
+              if (checked) {
+                handleChange('isPassiveInvestment', false);
+              }
+            }}
+          />
         )}
+
 
         {/* Property Guidance Section */}
         {formData.category === 'property' && getPropertyGuidance(formData.subCategory) && (

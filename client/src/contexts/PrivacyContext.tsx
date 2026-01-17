@@ -23,6 +23,10 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('PrivacyContext');
+
 
 interface PrivacyContextType {
   privacyMode: boolean;
@@ -54,7 +58,8 @@ export const PrivacyProvider: React.FC<PrivacyProviderProps> = ({ children }) =>
     try {
       localStorage.setItem(STORAGE_KEY, String(privacyMode));
     } catch (error) {
-      console.warn('Failed to persist privacy mode:', error);
+      logger.warn('Failed to persist privacy mode:', error);
+
     }
   }, [privacyMode]);
 
@@ -89,7 +94,7 @@ export const usePrivacy = (): PrivacyContextType => {
  */
 export const useMaskedCurrency = () => {
   const { privacyMode } = usePrivacy();
-  
+
   return (value: string): string => {
     if (!privacyMode) return value;
     // Replace all digits with bullets, keep currency symbols and formatting

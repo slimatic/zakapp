@@ -33,13 +33,10 @@ try {
 }
 
 import { prisma } from '../config/database';
+import { Logger } from '../utils/logger';
 
-// Lightweight logger wrapper to avoid tight coupling with ErrorLogger in this module
-const logger = {
-  info: (...args: any[]) => console.log(...args),
-  warn: (...args: any[]) => console.warn(...args),
-  error: (...args: any[]) => console.error(...args),
-};
+const logger = new Logger('PushNotificationService');
+
 
 // VAPID keys for push notifications
 // In production, these should be environment variables
@@ -92,7 +89,7 @@ export async function sendPushNotification(
       logger.warn('⚠️ Push subscription expired:', error.endpoint);
       return false;
     }
-    
+
     logger.error('❌ Failed to send push notification:', error);
     return false;
   }
@@ -108,15 +105,15 @@ export async function sendPushToUser(
   try {
     // In a real implementation, fetch user's push subscriptions from database
     // For now, this is a placeholder
-    
+
     logger.info(`📤 Sending push notification to user: ${userId}`);
     logger.info(`Notification: ${payload.title} - ${payload.body}`);
-    
+
     // TODO: Implement database schema for storing push subscriptions
     // const subscriptions = await prisma.pushSubscription.findMany({
     //   where: { userId }
     // });
-    
+
     // for (const sub of subscriptions) {
     //   const success = await sendPushNotification(sub.subscription, payload);
     //   if (!success) {
@@ -198,7 +195,7 @@ export async function sendAssetUpdateReminder(
 export async function scheduleZakatReminders(): Promise<void> {
   try {
     logger.info('⏰ Scheduling Zakat reminders...');
-    
+
     // TODO: Implement logic to find users whose Zakat is due soon
     // const usersWithUpcomingZakat = await prisma.user.findMany({
     //   where: {
@@ -208,7 +205,7 @@ export async function scheduleZakatReminders(): Promise<void> {
     //     },
     //   },
     // });
-    
+
     // for (const user of usersWithUpcomingZakat) {
     //   const daysUntilDue = Math.ceil(
     //     (user.zakatDueDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)
@@ -218,7 +215,7 @@ export async function scheduleZakatReminders(): Promise<void> {
     //     await sendZakatReminder(user.id, daysUntilDue);
     //   }
     // }
-    
+
     logger.info('✅ Zakat reminders scheduled successfully');
   } catch (error) {
     logger.error('❌ Failed to schedule Zakat reminders:', error);

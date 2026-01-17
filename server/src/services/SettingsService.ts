@@ -1,6 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../utils/prisma';
 import { EncryptionService } from './EncryptionService';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('SettingsService');
+
 
 export const SETTINGS_ID = 'global';
 
@@ -73,7 +77,8 @@ export class SettingsService {
             try {
                 smtpPass = await EncryptionService.decrypt(smtpPass, process.env.APP_SECRET);
             } catch (error) {
-                console.error('Failed to decrypt SMTP password:', error);
+                logger.error('Failed to decrypt SMTP password:', error);
+
                 smtpPass = null;
             }
         }
@@ -83,7 +88,8 @@ export class SettingsService {
             try {
                 resendApiKey = await EncryptionService.decrypt(resendApiKey, process.env.APP_SECRET);
             } catch (error) {
-                console.error('Failed to decrypt Resend API Key:', error);
+                logger.error('Failed to decrypt Resend API Key:', error);
+
                 resendApiKey = null;
             }
         }

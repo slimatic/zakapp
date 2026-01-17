@@ -16,13 +16,18 @@
  */
 
 import express from 'express';
-import { Request, Response } from 'express';
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { AuthenticatedRequest } from '../types';
 import { jwtService } from '../services/JWTService';
 import { authenticate } from '../middleware/AuthMiddleware';
 import { handleValidationErrors, validateUserLogin, validateUserRegistration } from '../middleware/ValidationMiddleware';
 import { registrationRateLimit, loginRateLimit } from '../middleware/RateLimitMiddleware';
 import { asyncHandler } from '../middleware/ErrorHandler';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('AuthRoute');
+
+
 // Use runtime require for Prisma client in test environments where generated client files
 // may not be writable. This prevents compile-time errors during Jest runs.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -33,9 +38,7 @@ import crypto from 'crypto';
 import { EncryptionService } from '../services/EncryptionService';
 import { emailService } from '../services/EmailService';
 import { SettingsService } from '../services/SettingsService';
-import { Logger } from '../utils/logger';
 
-const logger = new Logger('AuthRoutes');
 import { getEncryptionKey } from '../config/security';
 import { DEFAULT_LIMITS } from '../config/limits';
 
@@ -138,7 +141,7 @@ const loggedProfileDecryptionFailures = new Set<string>();
 router.post('/login',
   loginRateLimit,
   validateUserLogin,
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
     const { email, username, password } = req.body;
 
     try {
@@ -211,7 +214,8 @@ router.post('/login',
         try {
           profileData = await EncryptionService.decryptObject(user.profile, ENCRYPTION_KEY);
         } catch (error) {
-          console.error('Failed to decrypt profile data during login', error);
+          logger.error('Failed to decrypt profile data during login', error);
+
           // Fallback to empty profile, but we lose salt?
           // If decryption fails, user can't login on new device anyway.
         }
@@ -251,7 +255,8 @@ router.post('/login',
         }
       });
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('Login error:', error);
+
       res.status(500).json({
         success: false,
         error: {
@@ -272,7 +277,7 @@ router.post('/register',
   registrationRateLimit,
   validateUserRegistration,
   handleValidationErrors,
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
     // Normalize email to lowercase first
     req.body.email = req.body.email.toLowerCase();
 
@@ -449,7 +454,8 @@ router.post('/register',
       }
 
       // eslint-disable-next-line no-console
-      console.error('Registration error:', error);
+      logger.error('Registration error:', error);
+
       res.status(500).json({
         success: false,
         error: {
@@ -466,7 +472,7 @@ router.post('/register',
  * Refresh access token using refresh token
  */
 router.post('/refresh',
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
     const { refreshToken } = req.body;
 
     // Validate refresh token presence and format
@@ -695,7 +701,7 @@ router.post('/refresh',
  */
 router.post('/logout',
   authenticate,
-  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  asyncHandler(async (req: AuthenticatedRequest, res: ExpressResponse) => {
     try {
       // In a production environment, you would:
       // 1. Add the access token to a blacklist
@@ -731,7 +737,7 @@ router.post('/logout',
  */
 router.get('/me',
   authenticate,
-  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  asyncHandler(async (req: AuthenticatedRequest, res: ExpressResponse) => {
     try {
       const user = await getPrismaClient().user.findUnique({
         where: { id: req.userId! }
@@ -820,7 +826,7 @@ router.get('/me',
  * Validate verification token
  */
 router.get('/verify-email',
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
     const { token } = req.query;
 
     if (!token || typeof token !== 'string') {
@@ -872,7 +878,7 @@ router.get('/verify-email',
  * Request password reset
  */
 router.post('/reset-password',
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
     const { email } = req.body;
 
     if (!email) {
@@ -919,7 +925,7 @@ router.post('/reset-password',
 if (process.env.NODE_ENV === 'test') {
   router.get('/test/validate-token',
     authenticate,
-    (req: AuthenticatedRequest, res: Response) => {
+    (req: AuthenticatedRequest, res: ExpressResponse) => {
       res.json({
         success: true,
         data: {

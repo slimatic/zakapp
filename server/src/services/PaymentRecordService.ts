@@ -39,165 +39,114 @@ export class PaymentRecordService {
     }
   }
 
-      /**
-       * Decrypts sensitive payment fields
-       * @param payment - Encrypted payment record
-       * @returns Decrypted payment record
-       */
-      private async decryptPaymentData(payment: any): Promise<PaymentRecord> {
+  /**
+   * Decrypts sensitive payment fields
+   * @param payment - Encrypted payment record
+   * @returns Decrypted payment record
+   */
+  private async decryptPaymentData(payment: any): Promise<PaymentRecord> {
+    try {
+      const decrypted: any = { ...payment };
+
+      // Amount can be stored as an encrypted string or plain numeric string
+      if (payment.amount !== undefined && payment.amount !== null) {
         try {
-          const decrypted: any = { ...payment };
+          const rawAmount = payment.amount;
 
-          // Amount can be stored as an encrypted string or plain numeric string
-          if (payment.amount !== undefined && payment.amount !== null) {
-            try {
-              const rawAmount = payment.amount;
-
-              const tryDecryptNormalizedAmount = async (raw: string) => {
-                if (EncryptionService.isEncrypted(raw)) {
-                  return await EncryptionService.decrypt(raw, this.encryptionKey);
-                }
-                if (raw.includes('.=')) {
-                  const alt = raw.replace('.=', ':');
-                  if (EncryptionService.isEncrypted(alt)) {
-                    return await EncryptionService.decrypt(alt, this.encryptionKey);
-                  }
-                }
-                if (raw.includes('.') && !raw.includes(':')) {
-                  const parts = raw.split('.');
-                  if (parts.length === 2) {
-                    const alt = parts.join(':');
-                    if (EncryptionService.isEncrypted(alt)) {
-                      return await EncryptionService.decrypt(alt, this.encryptionKey);
-                    }
-                  }
-                }
-                throw new Error('NotEncryptedOrUnsupportedFormat');
-              };
-
-              if (typeof rawAmount === 'string') {
-                try {
-                  const dec = await tryDecryptNormalizedAmount(rawAmount);
-                  decrypted.amount = parseFloat(dec);
-                } catch (inner) {
-                  // Not encrypted, parse as plain string
-                  decrypted.amount = parseFloat(rawAmount as string);
-                }
-              } else {
-                decrypted.amount = rawAmount as number;
-              }
-            } catch (err) {
-              console.error('[PaymentRecordService] Warning: failed to decrypt/parse payment.amount, falling back to raw value', err instanceof Error ? err.message : err);
-              decrypted.amount = typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount;
+          const tryDecryptNormalizedAmount = async (raw: string) => {
+            if (EncryptionService.isEncrypted(raw)) {
+              return await EncryptionService.decrypt(raw, this.encryptionKey);
             }
-          }
-
-          // recipientName, notes and receiptReference may be encrypted or plain text
-          const decryptionFailures: { field: string; err: any }[] = [];
-          const tryDecryptField = async (field: string) => {
-            const val = (payment as any)[field];
-            if (val !== undefined && val !== null) {
-              if (typeof val !== 'string') {
-                (decrypted as any)[field] = val;
-                return;
-              }
-
-              const tryDecryptNormalized = async (raw: string) => {
-                if (EncryptionService.isEncrypted(raw)) {
-                  return await EncryptionService.decrypt(raw, this.encryptionKey);
-                }
-
-                if (raw.includes('.=')) {
-                  const alt = raw.replace('.=', ':');
-                  if (EncryptionService.isEncrypted(alt)) {
-                    return await EncryptionService.decrypt(alt, this.encryptionKey);
-                  }
-                }
-
-                if (raw.includes('.') && !raw.includes(':')) {
-                  const parts = raw.split('.');
-                  if (parts.length === 2) {
-                    const alt = parts.join(':');
-                    if (EncryptionService.isEncrypted(alt)) {
-                      return await EncryptionService.decrypt(alt, this.encryptionKey);
-                    }
-                  }
-                }
-
-                throw new Error('NotEncryptedOrUnsupportedFormat');
-              };
-
-              try {
-                (decrypted as any)[field] = await tryDecryptNormalized(val as string);
-              } catch (innerErr) {
-                // Collect failure and fall back to raw value; we'll log a single consolidated warning later
-                decryptionFailures.push({ field, err: innerErr instanceof Error ? innerErr.message : innerErr });
-
-                // Additional diagnostics to help identify format issues
-                try {
-                  const sample = String(val).slice(0, 200);
-                  const isBuf = Buffer.isBuffer(val);
-                  let isEncryptedCheck = false;
-                  try {
-                    isEncryptedCheck = EncryptionService.isEncrypted(val as string);
-                  } catch (e) {
-                    isEncryptedCheck = false;
-                  }
-
-                  console.warn(`[PaymentRecordService] Decryption failure diagnostics for payment ${payment.id || '[unknown]'} field=${field} => type=${typeof val}, isBuffer=${isBuf}, looksEncrypted=${isEncryptedCheck}, sample=${sample}`);
-                } catch (diagErr) {
-                  console.warn('[PaymentRecordService] Failed to capture decryption diagnostics', diagErr instanceof Error ? diagErr.message : diagErr);
-                }
-
-                (decrypted as any)[field] = val;
+            if (raw.includes('.=')) {
+              const alt = raw.replace('.=', ':');
+              if (EncryptionService.isEncrypted(alt)) {
+                return await EncryptionService.decrypt(alt, this.encryptionKey);
               }
             }
+            if (raw.includes('.') && !raw.includes(':')) {
+              const parts = raw.split('.');
+              if (parts.length === 2) {
+                const alt = parts.join(':');
+                if (EncryptionService.isEncrypted(alt)) {
+                  return await EncryptionService.decrypt(alt, this.encryptionKey);
+                }
+              }
+            }
+            throw new Error('NotEncryptedOrUnsupportedFormat');
           };
 
-          await tryDecryptField('recipientName');
-          await tryDecryptField('notes');
-          await tryDecryptField('receiptReference');
-
-          if (decryptionFailures.length > 0) {
-            const fields = decryptionFailures.map(f => f.field).join(', ');
-            const firstErr = decryptionFailures[0].err;
-            let msg = `[PaymentRecordService] Failed to decrypt fields for payment ${payment.id || '[unknown]'}: ${fields}. First error: ${firstErr}`;
-
-            // Provide actionable guidance when no previous keys are configured
-            if (!process.env.ENCRYPTION_PREVIOUS_KEYS) {
-              msg += ' — Note: no ENCRYPTION_PREVIOUS_KEYS configured. If these payments were encrypted with an earlier key, set ENCRYPTION_PREVIOUS_KEYS to a comma-separated list of previous keys to attempt fallback decryption.';
-            } else {
-              msg += ' — Previous keys are configured; decryption still failed with all provided keys.';
-            }
-
-            console.warn(msg);
-          }
-
-          return decrypted as PaymentRecord;
-        } catch (error) {
-          // Diagnostic logging to help identify decryption format/key issues
-          try {
-            const amountFormat = typeof payment.amount === 'string' ? payment.amount.slice(0, 64) : String(payment.amount);
-            console.error('[PaymentRecordService] Failed to decrypt payment data for record', payment.id || '[unknown id]');
-            console.error('[PaymentRecordService] Encrypted field samples: amount(sample)=', amountFormat);
-            // Use EncryptionService utilities to inspect format where possible
+          if (typeof rawAmount === 'string') {
             try {
-              const isAmountEncrypted = EncryptionService.isEncrypted(payment.amount as string);
-              console.error('[PaymentRecordService] EncryptionService.isEncrypted(amount)=', isAmountEncrypted);
+              const dec = await tryDecryptNormalizedAmount(rawAmount);
+              decrypted.amount = parseFloat(dec);
             } catch (inner) {
-              console.error('[PaymentRecordService] isEncrypted check failed for amount');
+              // Not encrypted, parse as plain string
+              decrypted.amount = parseFloat(rawAmount as string);
             }
-          } catch (logErr) {
-            console.error('[PaymentRecordService] Failed to emit diagnostic log', logErr instanceof Error ? logErr.message : logErr);
+          } else {
+            decrypted.amount = rawAmount as number;
+          }
+        } catch (err) {
+          // Failed to decrypt/parse amount - fallback handled by return value
+          decrypted.amount = typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount;
+        }
+      }
+
+      // recipientName, notes and receiptReference may be encrypted or plain text
+      const tryDecryptField = async (field: string) => {
+        const val = (payment as any)[field];
+        if (val !== undefined && val !== null) {
+          if (typeof val !== 'string') {
+            (decrypted as any)[field] = val;
+            return;
           }
 
-          throw new Error(
-            `Failed to decrypt payment data: ${
-              error instanceof Error ? error.message : "Unknown error"
-            }`
-          );
+          const tryDecryptNormalized = async (raw: string) => {
+            if (EncryptionService.isEncrypted(raw)) {
+              return await EncryptionService.decrypt(raw, this.encryptionKey);
+            }
+
+            if (raw.includes('.=')) {
+              const alt = raw.replace('.=', ':');
+              if (EncryptionService.isEncrypted(alt)) {
+                return await EncryptionService.decrypt(alt, this.encryptionKey);
+              }
+            }
+
+            if (raw.includes('.') && !raw.includes(':')) {
+              const parts = raw.split('.');
+              if (parts.length === 2) {
+                const alt = parts.join(':');
+                if (EncryptionService.isEncrypted(alt)) {
+                  return await EncryptionService.decrypt(alt, this.encryptionKey);
+                }
+              }
+            }
+
+            throw new Error('NotEncryptedOrUnsupportedFormat');
+          };
+
+          try {
+            (decrypted as any)[field] = await tryDecryptNormalized(val as string);
+          } catch (innerErr) {
+            // Fall back to raw value if decryption fails
+            (decrypted as any)[field] = val;
           }
+        }
+      };
+
+      await tryDecryptField('recipientName');
+      await tryDecryptField('notes');
+      await tryDecryptField('receiptReference');
+
+      return decrypted as PaymentRecord;
+    } catch (error) {
+      throw new Error(
+        `Failed to decrypt payment data: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
   }
+
 
   /**
    * Encrypts sensitive payment fields before persistence
@@ -216,7 +165,6 @@ export class PaymentRecordService {
         try {
           encrypted[field] = await EncryptionService.encrypt(String(val), this.encryptionKey);
         } catch (err) {
-          console.error(`[PaymentRecordService] Warning: failed to encrypt ${field}, falling back to raw value`, err);
           encrypted[field] = val;
         }
       }
@@ -228,19 +176,15 @@ export class PaymentRecordService {
 
     return encrypted;
   }
-        /**
-         * Creates a new payment record
-         * @param userId - User ID
-   * @param data - Payment data
-   * @returns Created payment record
-   */
+  /**
+   * Creates a new payment record
+   * @param userId - User ID
+* @param data - Payment data
+* @returns Created payment record
+*/
   async createPayment(userId: string, data: CreatePaymentRecordDto): Promise<PaymentRecord> {
-    console.log('PaymentRecordService.createPayment - input data:', JSON.stringify(data, null, 2));
-    
     // Encrypt sensitive data
     const encrypted = await this.encryptPaymentData(data);
-    
-    console.log('PaymentRecordService.createPayment - encrypted data:', JSON.stringify(encrypted, null, 2));
 
     // Create payment in database
     const payment = await PaymentRecordModel.create(userId, encrypted);
@@ -257,7 +201,7 @@ export class PaymentRecordService {
    */
   async getPayment(id: string, userId: string): Promise<PaymentRecord | null> {
     const payment = await PaymentRecordModel.findById(id, userId);
-    
+
     if (!payment) {
       return null;
     }
@@ -303,13 +247,8 @@ export class PaymentRecordService {
       .map(item => (item.s as PromiseFulfilledResult<any>).value);
 
     // Log any failures but continue
-    settled.forEach((s, idx) => {
-      if (s.status === 'rejected') {
-        const payment = result.data[idx];
-        console.error('[PaymentRecordService] Failed to decrypt payment id=', payment?.id || '[unknown]');
-        console.error('[PaymentRecordService] decryption error:', (s as PromiseRejectedResult).reason);
-      }
-    });
+    // Log failures silently or to a future logging service
+    // console.error removed for OSS readiness
 
     const currentPage = params.page ?? 1;
     const itemsPerPage = params.limit ?? 20;
@@ -339,9 +278,9 @@ export class PaymentRecordService {
     if (category) {
       options.recipientCategory = category;
     }
-    
+
     const result = await PaymentRecordModel.findByUser(userId, options);
-    
+
     const settled = await Promise.allSettled(
       result.data.map(payment => this.decryptPaymentData(payment))
     );
@@ -351,12 +290,7 @@ export class PaymentRecordService {
       .filter(item => item.s.status === 'fulfilled')
       .map(item => (item.s as PromiseFulfilledResult<any>).value);
 
-    settled.forEach((s, idx) => {
-      if (s.status === 'rejected') {
-        const payment = result.data[idx];
-        console.error('[PaymentRecordService] Failed to decrypt payment id=', payment?.id || '[unknown]');
-      }
-    });
+    // console.error removed for OSS readiness
 
     return decrypted;
   }
@@ -378,12 +312,7 @@ export class PaymentRecordService {
       .filter(item => item.s.status === 'fulfilled')
       .map(item => (item.s as PromiseFulfilledResult<any>).value);
 
-    settled.forEach((s, idx) => {
-      if (s.status === 'rejected') {
-        const payment = payments[idx];
-        console.error('[PaymentRecordService] Failed to decrypt payment id=', payment?.id || '[unknown]');
-      }
-    });
+    // console.error removed for OSS readiness
 
     return decrypted;
   }
@@ -439,7 +368,7 @@ export class PaymentRecordService {
    */
   async getTotalPaid(snapshotId: string, userId: string): Promise<number> {
     const payments = await this.getPaymentsBySnapshot(snapshotId, userId);
-    
+
     return payments.reduce((total, payment) => total + payment.amount, 0);
   }
 

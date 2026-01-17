@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('CryptoService');
+
+
 /**
  * CryptoService
  * Implementing Zero-Knowledge Architecture
@@ -41,13 +46,14 @@ export class CryptoService {
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             const protocol = window.location.protocol;
 
-            console.error(`CryptoService Fatal Error: Web Crypto API is unavailable.
+            logger.error(`Fatal Error: Web Crypto API is unavailable.
             Context: ${window.isSecureContext ? 'Secure' : 'Insecure'}
             Protocol: ${protocol}
             Hostname: ${window.location.hostname}
             
             Solution: Access the application via 'localhost', '127.0.0.1', or 'https://'.
             Browsers block crypto.subtle on 'http://' for non-local origins.`);
+
         }
 
         return CryptoService.instance;
@@ -81,7 +87,8 @@ export class CryptoService {
             ["encrypt", "decrypt"]
         );
 
-        console.log("CryptoService: Master key derived successfully.");
+        logger.info("Master key derived successfully.");
+
     }
 
     /**
@@ -104,7 +111,6 @@ export class CryptoService {
             true,
             ["encrypt", "decrypt"]
         );
-        console.log("CryptoService: Session restored successfully");
     }
 
     /**
