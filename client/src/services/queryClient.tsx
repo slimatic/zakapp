@@ -17,6 +17,10 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('QueryClient');
+
 
 // Create a client
 const queryClient = new QueryClient({
@@ -62,7 +66,8 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({ children }) => {
     componentDidCatch(error: any) {
       // Log devtools render errors but do not rethrow so overlay won't appear
       // eslint-disable-next-line no-console
-      console.warn('React Query Devtools threw during render:', error?.message || error);
+      logger.warn('React Query Devtools threw during render:', error?.message || error);
+
     }
 
     render() {
@@ -91,7 +96,8 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({ children }) => {
           // Swallow devtools import errors to prevent app overlay in dev server
           // Log for debugging locally
           // eslint-disable-next-line no-console
-          console.warn('React Query Devtools failed to load:', err && typeof err === 'object' && 'message' in err ? (err as any).message : err);
+          logger.warn('React Query Devtools failed to load:', err && typeof err === 'object' && 'message' in err ? (err as any).message : err);
+
         }
       })();
     }

@@ -8,7 +8,11 @@
  */
 
 import axios from 'axios';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('SyncService');
+
 
 export class SyncService {
     private couchDbUrl: string;
@@ -77,7 +81,8 @@ export class SyncService {
         const couchUsername = `user_${safeUserId}`;
         const couchPassword = this.generateCouchDBPassword(userId);
 
-        console.log(`Ensuring CouchDB user: ${couchUsername}`);
+        logger.info(`Ensuring CouchDB user: ${couchUsername}`);
+
 
         // 1. Ensure CouchDB User exists in _users
         // Use retry logic to handle race conditions when multiple requests hit simultaneously
@@ -91,12 +96,12 @@ export class SyncService {
                     // Check if user exists and get revision
                     const existingUser = await axios.get(userDocUrl, { headers: { 'Authorization': this.authHeader } });
                     rev = existingUser.data._rev;
-                    console.log(`✅ CouchDB user exists: ${couchUsername} (rev: ${rev})`);
+                    logger.info(`CouchDB user exists: ${couchUsername} (rev: ${rev})`);
+
                 } catch (userErr: any) {
                     if (userErr.response?.status !== 404) {
                         throw userErr;
                     }
-                    console.log(`Creating new CouchDB user: ${couchUsername}`);
                 }
 
                 // Create or Update user
@@ -109,18 +114,19 @@ export class SyncService {
                     ...(rev ? { _rev: rev } : {})
                 }, { headers: { 'Authorization': this.authHeader, 'Content-Type': 'application/json' } });
 
-                console.log(`✅ Ensure CouchDB user: ${couchUsername} (Synced Credentials)`);
+                logger.info(`Ensure CouchDB user: ${couchUsername} (Synced Credentials)`);
+
                 break; // Success, exit retry loop
 
             } catch (err: any) {
                 // Handle 409 Conflict (race condition with another request)
                 if (err.response?.status === 409 && attempt < MAX_RETRIES) {
-                    console.log(`CouchDB user update conflict, retrying (${attempt}/${MAX_RETRIES})...`);
                     // Small delay before retry to let the other request complete
                     await new Promise(r => setTimeout(r, 100 * attempt));
                     continue; // Retry with fresh rev fetch
                 }
-                console.error('Failed to ensure CouchDB user:', err.response?.data || err.message);
+                logger.error('Failed to ensure CouchDB user:', err.response?.data || err.message);
+
                 throw new Error(`Failed to ensure CouchDB user: ${err.message}`);
             }
         }
@@ -137,16 +143,17 @@ export class SyncService {
                     await axios.head(checkUrl, {
                         headers: { 'Authorization': this.authHeader }
                     });
-                    console.log(`✅ Database exists: ${dbName}`);
                 } catch (checkErr: any) {
                     if (checkErr.response?.status === 404) {
                         // Database doesn't exist, create it
-                        console.log(`Creating database: ${dbName}`);
+                        logger.info(`Creating database: ${dbName}`);
+
 
                         await axios.put(checkUrl, {}, {
                             headers: { 'Authorization': this.authHeader }
                         });
-                        console.log(`✅ Created database: ${dbName}`);
+                        logger.info(`Created database: ${dbName}`);
+
 
                         // Set security to allow BOTH the username and the role
                         await axios.put(`${checkUrl}/_security`, {
@@ -161,13 +168,13 @@ export class SyncService {
                                 'Content-Type': 'application/json'
                             }
                         });
-                        console.log(`✅ Set security for: ${dbName} (user: ${couchUsername})`);
                     } else {
                         throw checkErr;
                     }
                 }
             } catch (err) {
-                console.error(`Error ensuring database ${dbName}:`, err);
+                logger.error(`Error ensuring database ${dbName}:`, err);
+
             }
         }
 
@@ -184,14 +191,16 @@ export class SyncService {
      */
     public async deleteUser(userId: string): Promise<void> {
         if (!this.isConfigured()) {
-            console.warn('Sync service not configured, skipping CouchDB deletion');
+            logger.warn('Sync service not configured, skipping CouchDB deletion');
+
             return;
         }
 
         const safeUserId = this.getSafeUserId(userId);
         const couchUsername = `user_${safeUserId}`;
 
-        console.log(`Deleting CouchDB user and data for: ${couchUsername}`);
+        logger.info(`Deleting CouchDB user and data for: ${couchUsername}`);
+
 
         // 1. Delete all user databases
         const dbNames = this.getUserDatabaseNames(safeUserId);
@@ -200,12 +209,13 @@ export class SyncService {
                 await axios.delete(`${this.couchDbUrl}/${dbName}`, {
                     headers: { 'Authorization': this.authHeader }
                 });
-                console.log(`✅ Deleted database: ${dbName}`);
             } catch (err: any) {
                 if (err.response?.status === 404) {
-                    console.log(`Database already gone: ${dbName}`);
+                    logger.info(`Database already gone: ${dbName}`);
+
                 } else {
-                    console.error(`Failed to delete database ${dbName}:`, err.message);
+                    logger.error(`Failed to delete database ${dbName}:`, err.message);
+
                     // Continue to try deleting other DBs even if one fails
                 }
             }
@@ -220,12 +230,13 @@ export class SyncService {
             await axios.delete(`${userDocUrl}?rev=${rev}`, {
                 headers: { 'Authorization': this.authHeader }
             });
-            console.log(`✅ Deleted CouchDB user: ${couchUsername}`);
         } catch (err: any) {
             if (err.response?.status === 404) {
-                console.log(`CouchDB user already gone: ${couchUsername}`);
+                logger.info(`CouchDB user already gone: ${couchUsername}`);
+
             } else {
-                console.error(`Failed to delete CouchDB user ${couchUsername}:`, err.message);
+                logger.error(`Failed to delete CouchDB user ${couchUsername}:`, err.message);
+
             }
         }
     }

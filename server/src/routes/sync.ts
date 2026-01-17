@@ -27,6 +27,10 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/auth';
 import { syncService } from '../services/SyncService';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('SyncRoute');
+
 
 const router = Router();
 
@@ -42,11 +46,11 @@ const TOKEN_EXPIRY_SECONDS = 3600; // 1 hour
  * Response: { token: string, expiresAt: string }
  */
 router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
-    console.log('Sync token endpoint called');
+    logger.info('Sync token requested');
     try {
-        console.log('Checking secret...');
         if (!syncService.isConfigured()) {
-            console.error('COUCHDB_JWT_SECRET not configured');
+            logger.error('Sync token request failed: server not configured');
+
             return res.status(500).json({
                 error: 'Sync not configured',
                 message: 'Server missing COUCHDB_JWT_SECRET environment variable'
@@ -57,10 +61,11 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
         // Get user from auth middleware
         const user = req.user;
         if (!user || !user.id) {
-            console.error('User not authenticated in controller');
+            logger.error('Sync token request failed: unauthenticated user');
             return res.status(401).json({ error: 'User not authenticated' });
         }
-        console.log(`User authenticated: ${user.id}`);
+        logger.info(`Processing sync token for user: ${user.id}`);
+
 
         const userId = user.id;
 
@@ -69,7 +74,8 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
 
         const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_SECONDS * 1000).toISOString();
 
-        console.log(`🔑 Issued CouchDB credentials for user ${result.username}`);
+        logger.info(`Issued CouchDB credentials for user: ${result.username}`);
+
 
         res.json({
             // Basic Auth credentials
@@ -83,7 +89,8 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
         });
 
     } catch (error: any) {
-        console.error('Failed to issue sync token:', error);
+        logger.error('Failed to issue sync token:', error);
+
         res.status(500).json({
             error: 'Failed to generate sync token',
             message: error.message
@@ -118,19 +125,21 @@ router.get('/status', (req: Request, res: Response) => {
  * Data remains on the local client unless cleared there too.
  */
 router.delete('/purge', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
-    console.log('Purge sync data endpoint called');
+    logger.info('Purge request received');
     try {
         const user = req.user;
         if (!user || !user.id) {
+            logger.error('Purge request failed: unauthenticated user');
             return res.status(401).json({ error: 'User not authenticated' });
         }
 
-        console.log(`🗑️ PURGE REQUEST for user: ${user.id} (${user.email})`);
+        logger.info(`🗑️ PURGE REQUEST for user: ${user.id} (${user.email})`);
 
         // This is the "Secure Remote Purge" - authoritative deletion from CouchDB
         await syncService.deleteUser(user.id);
 
-        console.log(`✅ Data purged for user ${user.id}`);
+        logger.info(`✅ Data purged for user ${user.id}`);
+
 
         res.json({
             success: true,
@@ -138,7 +147,8 @@ router.delete('/purge', authMiddleware, async (req: AuthenticatedRequest, res: R
         });
 
     } catch (error: any) {
-        console.error('Failed to purge sync data:', error);
+        logger.error('Failed to purge sync data:', error);
+
         res.status(500).json({
             error: 'Failed to purge data',
             message: error.message

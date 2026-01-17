@@ -17,6 +17,7 @@
 
 import { YearlySnapshotModel } from '../models/YearlySnapshot';
 import { EncryptionService } from './EncryptionService';
+import { Logger } from '../utils/logger';
 import {
   YearlySnapshot,
   CreateYearlySnapshotDto,
@@ -25,6 +26,9 @@ import {
   PaginationResult,
   SnapshotStatus
 } from '@zakapp/shared';
+
+const logger = new Logger('YearlySnapshotService');
+
 
 /**
  * YearlySnapshotService - Business logic for yearly Zakat snapshots
@@ -98,10 +102,10 @@ export class YearlySnapshotService {
     // Helper to safely decrypt or return original if not encrypted
     const safeDecrypt = async (value: any): Promise<string> => {
       if (value === undefined || value === null) return value;
-      
+
       // If it's a number, it's not encrypted
       if (typeof value === 'number') return String(value);
-      
+
       // If it's a string but doesn't look like "iv:ciphertext", assume plain text
       // EncryptionService.encrypt produces "base64:base64"
       if (typeof value === 'string' && !value.includes(':')) {
@@ -112,7 +116,8 @@ export class YearlySnapshotService {
         return await EncryptionService.decrypt(value, this.encryptionKey);
       } catch (error) {
         // If decryption fails, assume it's plain text (legacy data)
-        console.warn(`Failed to decrypt field, using raw value: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        logger.warn(`Failed to decrypt field, using raw value: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
         return String(value);
       }
     };
@@ -167,7 +172,8 @@ export class YearlySnapshotService {
         decrypted.userNotes = await safeDecrypt(snapshot.userNotes);
       }
     } catch (error) {
-      console.error(`Failed to decrypt snapshot data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      logger.error(`Failed to decrypt snapshot data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
       // Fallback to returning the snapshot as-is to prevent crashing
       return snapshot;
     }
@@ -203,7 +209,7 @@ export class YearlySnapshotService {
    */
   async getSnapshot(id: string, userId: string): Promise<YearlySnapshot | null> {
     const snapshot = await YearlySnapshotModel.findById(id, userId);
-    
+
     if (!snapshot) {
       return null;
     }
@@ -239,7 +245,7 @@ export class YearlySnapshotService {
   ): Promise<PaginationResult<YearlySnapshot>> {
     // Handle 'all' status - don't pass it to model
     const filterStatus = params.status === 'all' ? undefined : params.status;
-    
+
     // Optimization: Use indexed queries (userId + calculationDate, userId + status)
     // Database indexes ensure fast retrieval even with large datasets (50+ years)
     const result = await YearlySnapshotModel.findByUser(userId, {
@@ -362,7 +368,7 @@ export class YearlySnapshotService {
    */
   async getPrimarySnapshot(userId: string, gregorianYear: number): Promise<YearlySnapshot | null> {
     const snapshot = await YearlySnapshotModel.findPrimaryByYear(userId, gregorianYear);
-    
+
     if (!snapshot) {
       return null;
     }

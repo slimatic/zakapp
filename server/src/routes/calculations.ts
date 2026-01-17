@@ -23,6 +23,10 @@ import { CurrencyService } from '../services/currencyService';
 import { CalendarService } from '../services/calendarService';
 import { NisabService } from '../services/NisabService';
 import { authMiddleware } from '../middleware/auth';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('CalculationsRoute');
+
 
 const router = express.Router();
 const calculationHistoryService = new CalculationHistoryService();
@@ -144,7 +148,8 @@ router.post('/',
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Save calculation error:', error);
+      logger.error('Calculation error:', error);
+
 
       const errorMessage = getErrorMessage(error);
       if (errorMessage === 'Calculation not found or access denied') {
@@ -214,7 +219,7 @@ router.get('/',
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Get calculations error:', error);
+      logger.error('Get calculations error:', error);
 
       if (error instanceof z.ZodError) {
         return res.status(400).json({
@@ -266,7 +271,7 @@ router.get('/trends/analysis',
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Get trends error:', error);
+      logger.error('Get trends error:', error);
 
       if (error instanceof z.ZodError) {
         return res.status(400).json({
@@ -315,7 +320,7 @@ router.get('/:id',
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Get calculation error:', error);
+      logger.error('Get calculation error:', error);
 
       const errorMessage = getErrorMessage(error);
       if (errorMessage === 'Calculation not found or access denied') {
@@ -370,7 +375,7 @@ router.post('/compare',
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Compare calculations error:', error);
+      logger.error('Compare calculations error:', error);
 
       if (error instanceof z.ZodError) {
         return res.status(400).json({
@@ -445,7 +450,7 @@ router.patch('/:id/notes',
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Update notes error:', error);
+      logger.error('Update notes error:', error);
 
       if (error instanceof z.ZodError) {
         return res.status(400).json({
@@ -500,7 +505,7 @@ router.delete('/:id',
       return res.status(200).json(result);
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Delete calculation error:', error);
+      logger.error('Delete calculation error:', error);
 
       const errorMessage = getErrorMessage(error);
       if (errorMessage === 'Calculation not found or access denied') {

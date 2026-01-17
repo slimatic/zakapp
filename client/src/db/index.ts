@@ -32,8 +32,10 @@ import { UserSettingsSchema } from './schema/userSettings.schema';
 
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
+import { Logger } from '../utils/logger';
 
-console.log('RxDB Storage Adapter (Dexie):', getRxStorageDexie);
+const logger = new Logger('DatabaseService');
+
 
 addRxPlugin(RxDBUpdatePlugin);
 addRxPlugin(RxDBQueryBuilderPlugin);
@@ -112,12 +114,8 @@ let _dbCreationInProgress: Promise<ZakAppDatabase> | null = null;
 
 // Internal Creator
 const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
-    console.log('DatabaseService: Creating database instance...');
     const storage = getStorage();
     const dbName = process.env.NODE_ENV === 'test' ? 'testdb' : 'zakapp_db_v10';
-
-    // CRITICAL: ignoreDuplicate is ONLY allowed in development mode
-    // RxDB throws DB9 in production when this flag is set (by design)
     const isDev = process.env.NODE_ENV === 'development';
 
     try {
@@ -131,7 +129,6 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
 
         // Always check if collections are already there
         if (!db.collections.assets) {
-            console.log('DatabaseService: Database created. Adding collections...');
             await db.addCollections({
                 assets: { schema: AssetSchema, migrationStrategies: migrationStrategiesV4 },
                 liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
@@ -139,14 +136,12 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
                 payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV5 }
             });
-            console.log('DatabaseService: Collections added.');
-        } else {
-            console.log('DatabaseService: Collections already exist in this instance.');
         }
 
         return db;
     } catch (err) {
-        console.error('DatabaseService: Failed to create database', err);
+        logger.error('Failed to create database', err);
+
         throw err;
     }
 };
@@ -162,7 +157,8 @@ const notifyListeners = (db: ZakAppDatabase | null) => {
 export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
     // If there's already a creation in progress, wait for it
     if (_dbCreationInProgress) {
-        console.log('DatabaseService: Creation in progress, waiting...');
+        logger.info('Creation in progress, waiting...');
+
         try {
             await _dbCreationInProgress;
         } catch {
@@ -176,7 +172,8 @@ export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
         // If password is undefined, the caller is requesting the EXISTING instance regardless of its password
         if (password !== undefined && window._zakapp_db_password !== password) {
             // Password changed! We MUST close the old one before creating a new one
-            console.warn('DatabaseService: Password changed, closing old instance...');
+            logger.warn('Password changed, closing old instance...');
+
             await closeDb();
             // Small delay to ensure RxDB internal registry is updated
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -193,8 +190,9 @@ export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
     }
 
     // Create new database with mutex protection
-    console.log('DatabaseService: Starting database creation...');
+    logger.info('Starting database creation...');
     window._zakapp_db_password = password;
+
 
     _dbCreationInProgress = _createDb(password)
         .then(db => {
@@ -204,7 +202,8 @@ export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
             return db;
         })
         .catch(err => {
-            console.error("FATAL: Failed to initialize DB", err);
+            logger.error("FATAL: Failed to initialize DB", err);
+
             window._zakapp_db_promise = null;
             window._zakapp_db_password = undefined;
             _dbCreationInProgress = null;
@@ -218,7 +217,8 @@ export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
 export const closeDb = async () => {
     // Clear any in-progress creation first
     if (_dbCreationInProgress) {
-        console.log('DatabaseService: Waiting for in-progress creation to complete before closing...');
+        logger.info('Waiting for in-progress creation to complete before closing...');
+
         try {
             await _dbCreationInProgress;
         } catch {
@@ -229,20 +229,15 @@ export const closeDb = async () => {
 
     if (window._zakapp_db_promise) {
         try {
-            console.log("DatabaseService: Closing DB connection...");
+            logger.info("Closing DB connection...");
             const db = await window._zakapp_db_promise;
 
+
             // Safety check: ensure db is valid and has destroy method
-            if (db && !(db as any).destroyed) {
-                if (typeof (db as any).destroy === 'function') {
-                    await (db as any).destroy();
-                    console.log("DatabaseService: DB Instance Destroyed (Closed).");
-                } else {
-                    console.warn("DatabaseService: DB instance exists but missing destroy() method:", Object.keys(db));
-                }
-            }
+            logger.warn("DB instance exists but missing destroy() method:", Object.keys(db));
+
         } catch (e) {
-            console.error('Error closing DB:', e);
+            logger.error('Error closing DB:', e);
         }
         window._zakapp_db_promise = null;
         window._zakapp_db_password = undefined;
@@ -269,8 +264,9 @@ export const resetDb = async () => {
     // Correct logic for resetDb:
     if (window._zakapp_db_promise) {
         try {
-            console.warn("DatabaseService: DELETING DB (RESET)...");
+            logger.warn("DELETING DB (RESET)...");
             const db = await window._zakapp_db_promise;
+
             if (db && !(db as any).destroyed) {
                 if (typeof (db as any).remove === 'function') {
                     await (db as any).remove();
@@ -280,7 +276,7 @@ export const resetDb = async () => {
                 }
             }
         } catch (e) {
-            console.error('Error removing DB:', e);
+            logger.error('Error removing DB:', e);
         }
         window._zakapp_db_promise = null;
         window._zakapp_db_password = undefined;
@@ -290,7 +286,8 @@ export const resetDb = async () => {
 
 // Force Delete DB by Name (Used when we can't open it)
 export const forceResetDatabase = async () => {
-    console.warn("DatabaseService: FORCING DB DELETION (forceResetDatabase)...");
+    logger.warn("FORCING DB DELETION (forceResetDatabase)...");
+
 
     // CRITICAL: Close any lingering open instances first to prevent COL23 (Max Collections) leak
     await closeDb();
@@ -305,10 +302,10 @@ export const forceResetDatabase = async () => {
         // Approach 1: Try with the cached storage (if available)
         if (window._zakapp_storage) {
             try {
-                await removeRxDatabase(dbName, window._zakapp_storage);
-                console.log("DatabaseService: DB Forced Removed via cached storage.");
+                logger.info("DB Forced Removed via cached storage.");
+
             } catch (e) {
-                console.warn("DatabaseService: Cached storage removal failed, trying base storage", e);
+                logger.warn("Cached storage removal failed, trying base storage", e);
             }
         }
 
@@ -322,10 +319,10 @@ export const forceResetDatabase = async () => {
         }
 
         try {
-            await removeRxDatabase(dbName, baseStorage);
-            console.log("DatabaseService: DB Forced Removed via base storage.");
+            logger.info("DB Forced Removed via base storage.");
+
         } catch (e) {
-            console.warn("DatabaseService: Base storage removal failed (may be already deleted)", e);
+            logger.warn("Base storage removal failed (may be already deleted)", e);
         }
 
         // Approach 3: Direct IndexedDB cleanup for Dexie-based storage
@@ -344,7 +341,8 @@ export const forceResetDatabase = async () => {
                         deleteRequest.onsuccess = () => resolve();
                         deleteRequest.onerror = () => reject(deleteRequest.error);
                         deleteRequest.onblocked = () => {
-                            console.warn(`DatabaseService: IndexedDB delete blocked for ${dbToDelete}`);
+                            logger.warn(`IndexedDB delete blocked for ${dbToDelete}`);
+
                             resolve(); // Continue anyway
                         };
                     });
@@ -352,7 +350,8 @@ export const forceResetDatabase = async () => {
                     // Ignore errors for non-existent databases
                 }
             }
-            console.log("DatabaseService: Direct IndexedDB cleanup complete.");
+            logger.info("Direct IndexedDB cleanup complete.");
+
         }
 
         // Clear the cached storage to force fresh creation next time
@@ -364,7 +363,8 @@ export const forceResetDatabase = async () => {
         // Additional delay to let IndexedDB fully release resources
         await new Promise(r => setTimeout(r, 300));
     } catch (err) {
-        console.error("DatabaseService: Failed to force remove DB", err);
+        logger.error("Failed to force remove DB", err);
+
         // Even on error, clear state to allow retry
         window._zakapp_storage = undefined;
         window._zakapp_db_promise = null;
@@ -411,7 +411,8 @@ export const useDb = () => {
 // This fixes the "COL23: Maximum collections limited" error during development hot-reloads
 if (import.meta.hot) {
     import.meta.hot.dispose(async () => {
-        console.warn('DatabaseService: HMR Disposing - Closing Database...');
+        logger.warn('HMR Disposing - Closing Database...');
+
         await closeDb();
     });
 }

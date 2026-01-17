@@ -33,7 +33,7 @@ const prisma = new PrismaClient();
  */
 export class AnalyticsService {
   private encryptionKey: string;
-  
+
   // T087 Performance Optimization: Dynamic cache TTL based on metric type and data volatility
   // Strategy: Historical data is immutable, recent data changes frequently
   // - Historical metrics (WEALTH_TREND, ZAKAT_TREND, GROWTH_RATE): 60 minutes
@@ -55,7 +55,7 @@ export class AnalyticsService {
       throw new Error('ENCRYPTION_KEY environment variable is required');
     }
   }
-  
+
   /**
    * Gets the appropriate cache TTL for a metric type
    * @param metricType - The type of metric (snake_case like 'wealth_trend')
@@ -140,7 +140,7 @@ export class AnalyticsService {
         try {
           const totalWealthStr = String(s.totalWealth || '');
           const zakatableWealthStr = String(s.zakatableWealth || '');
-          
+
           return {
             ...s,
             totalWealth: totalWealthStr.includes(':')
@@ -191,8 +191,6 @@ export class AnalyticsService {
         return sum + (zakVal || 0);
       }, 0);
 
-      console.log(`[Analytics] No Nisab Year Records found. Creating trend from ${assets.length} assets. Total wealth: ${totalWealthNum} zakatable: ${totalZakatableNum}`);
-
       if (totalWealthNum > 0) {
         trendData = [{
           year: currentYear,
@@ -201,8 +199,7 @@ export class AnalyticsService {
           zakatableWealth: totalZakatableNum.toString()
         }];
       }
-    } else {
-      console.log(`[Analytics] Found ${trendData.length} Nisab Year Records for wealth trend`);
+      // Trend data ready
     }
 
     // Store in cache
@@ -258,7 +255,7 @@ export class AnalyticsService {
           const zakatAmountStr = String(s.zakatAmount || '');
           const zakatableWealthStr = String(s.zakatableWealth || '');
           const nisabThresholdStr = String(s.nisabThreshold || '');
-          
+
           return {
             ...s,
             zakatAmount: zakatAmountStr.includes(':')
@@ -347,7 +344,7 @@ export class AnalyticsService {
           const decryptedAmount = amountStr.includes(':')
             ? await EncryptionService.decrypt(amountStr, this.encryptionKey)
             : amountStr;
-          
+
           return {
             ...p,
             amount: parseFloat(decryptedAmount) || 0
@@ -457,17 +454,13 @@ export class AnalyticsService {
         })
     ).then(data => data.sort((a, b) => a.year - b.year));
 
-    // If no snapshot data, create composition from current active assets
     if (compositionData.length === 0) {
       const assets = await prisma.asset.findMany({
         where: { userId, isActive: true }
       });
 
-      console.log(`[Analytics] No Nisab Year Records for composition. Using ${assets.length} current assets`);
-
       if (assets.length > 0) {
         const totalWealthNum = assets.reduce((sum, a) => sum + (a.value || 0), 0);
-        // Compute zakatable wealth using per-asset metadata (if available) or default calculationModifier
         const totalZakatableNum = assets.reduce((sum, a) => {
           const asset = a as any;
           const isZakatable = typeof asset.zakatEligible !== 'undefined' ? Boolean(asset.zakatEligible) : true;
@@ -495,8 +488,6 @@ export class AnalyticsService {
           }
         }];
       }
-    } else {
-      console.log(`[Analytics] Found ${compositionData.length} Nisab Year Records for composition`);
     }
 
     // Store

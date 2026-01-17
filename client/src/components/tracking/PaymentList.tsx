@@ -33,6 +33,8 @@ import { PaymentDetailModal } from './PaymentDetailModal';
 import { formatCurrency } from '../../utils/formatters';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
+import { Decimal } from 'decimal.js';
+
 
 interface PaymentListProps {
   nisabRecordId?: string;
@@ -119,12 +121,17 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   }, [nisabRecordsData]);
 
   // Helper to coerce possibly-missing or non-numeric amounts into a safe number
-  const safeAmount = (p: PaymentRecord | any) => {
+  const safeAmount = (p: PaymentRecord | any): number => {
     const raw = p?.amount;
     if (raw === null || raw === undefined) return 0;
-    const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
-    return Number.isFinite(num) ? num : 0;
+    try {
+      const dec = new Decimal(raw);
+      return dec.isFinite() ? dec.toNumber() : 0;
+    } catch {
+      return 0;
+    }
   };
+
 
   // Sort and filter payments
   const sortedAndFilteredPayments = useMemo(() => {
@@ -228,12 +235,17 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     filters.endDate;
 
   // Calculate totals
-  const totalAmount = sortedAndFilteredPayments.reduce((sum: number, payment: PaymentRecord) => sum + safeAmount(payment), 0);
+  const totalAmount = sortedAndFilteredPayments.reduce((sum: Decimal, payment: PaymentRecord) => {
+    return sum.plus(new Decimal(payment.amount || 0));
+  }, new Decimal(0)).toNumber();
+
   const categoryTotals = sortedAndFilteredPayments.reduce((acc: Record<string, number>, payment: PaymentRecord) => {
     const cat = payment.recipientCategory || 'unknown';
-    acc[cat] = (acc[cat] || 0) + safeAmount(payment);
+    const amount = new Decimal(payment.amount || 0);
+    acc[cat] = new Decimal(acc[cat] || 0).plus(amount).toNumber();
     return acc;
   }, {});
+
 
   if (isLoading) {
     return (
@@ -350,8 +362,9 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="text-sm font-medium text-orange-800">Average Payment</div>
             <div className="text-2xl font-bold text-orange-900">
-              {maskedCurrency(formatCurrency(sortedAndFilteredPayments.length > 0 ? totalAmount / sortedAndFilteredPayments.length : 0))}
+              {maskedCurrency(formatCurrency(sortedAndFilteredPayments.length > 0 ? new Decimal(totalAmount).dividedBy(sortedAndFilteredPayments.length).toNumber() : 0))}
             </div>
+
           </div>
         </div>
       )}
