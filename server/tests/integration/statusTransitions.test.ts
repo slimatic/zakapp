@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * T031: Integration Test - Status Transition Validation
  * 

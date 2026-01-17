@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -38,7 +39,7 @@ describe('CalendarConversionService', () => {
       expect(result.year).toBe(1445);
       expect(result.month).toBe(6); // Jumada al-thani
       expect(result.day).toBe(19);
-      expect(result.monthName).toBe('Jumada al-thani');
+      expect(result.monthName).toBe('Jumada al-Thani');
     });
 
     it('should convert Ramadan dates correctly', () => {
@@ -67,10 +68,10 @@ describe('CalendarConversionService', () => {
       const monthNames = [
         'Muharram',
         'Safar',
-        "Rabi' al-awwal",
-        "Rabi' al-thani",
-        'Jumada al-awwal',
-        'Jumada al-thani',
+        "Rabi' al-Awwal",
+        "Rabi' al-Thani",
+        'Jumada al-Awwal',
+        'Jumada al-Thani',
         'Rajab',
         "Sha'ban",
         'Ramadan',
@@ -166,10 +167,10 @@ describe('CalendarConversionService', () => {
       const validMonths = [
         'Muharram',
         'Safar',
-        "Rabi' al-awwal",
-        "Rabi' al-thani",
-        'Jumada al-awwal',
-        'Jumada al-thani',
+        "Rabi' al-Awwal",
+        "Rabi' al-Thani",
+        'Jumada al-Awwal',
+        'Jumada al-Thani',
         'Rajab',
         "Sha'ban",
         'Ramadan',

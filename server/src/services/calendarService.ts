@@ -66,7 +66,7 @@ export class CalendarService {
         date.getMonth() + 1,
         date.getDate()
       );
-      
+
       convertedDate = {
         year: hijri.hy,
         month: hijri.hm,
@@ -88,7 +88,7 @@ export class CalendarService {
       );
 
       const gregDate = new Date(gregorian.gy, gregorian.gm - 1, gregorian.gd);
-      
+
       convertedDate = {
         year: gregorian.gy,
         month: gregorian.gm,
@@ -130,7 +130,7 @@ export class CalendarService {
         startDate.getMonth() + 1,
         startDate.getDate()
       );
-      
+
       const hijriEndConv = hijriConverter.toHijri(
         endDate.getFullYear(),
         endDate.getMonth() + 1,
@@ -203,16 +203,15 @@ export class CalendarService {
       date.getDate()
     );
 
-    // Arabic month names
+    // Arabic month names - standardized
     const monthNames = [
-      'Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
-      'Jumada al-Ula', 'Jumada al-Akhirah', 'Rajab', 'Shaban',
-      'Ramadan', 'Shawwal', 'Dhul-Qadah', 'Dhul-Hijjah'
+      'Muharram', 'Safar', "Rabi' al-Awwal", "Rabi' al-Thani",
+      'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', "Sha'ban",
+      'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah'
     ];
 
-    // Lunar year is 354 days, solar is 365 days
-    // Adjustment factor: 354/365 = 0.97
-    const adjustmentFactor = 354 / 365;
+    // Adjustment factor: 354.367 / 365.25 ≈ 0.9704
+    const adjustmentFactor = 0.9704;
 
     return {
       hijriDate: {
@@ -270,7 +269,7 @@ export class CalendarService {
    * Get lunar year adjustment factor
    */
   getLunarYearAdjustment(): number {
-    return 354 / 365; // Lunar year is 354 days, solar is 365
+    return 0.9704;
   }
 
   /**

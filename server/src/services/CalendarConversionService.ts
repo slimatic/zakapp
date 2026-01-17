@@ -23,7 +23,7 @@ import { format, parse } from 'date-fns';
  * Uses hijri-converter library for accurate Islamic calendar calculations
  */
 export class CalendarConversionService {
-  
+
   /**
    * Converts a Gregorian date to Hijri date
    * @param gregorianDate - Gregorian date to convert
@@ -44,15 +44,15 @@ export class CalendarConversionService {
     const monthNames = [
       'Muharram',
       'Safar',
-      'Rabi\' al-awwal',
-      'Rabi\' al-thani',
-      'Jumada al-awwal',
-      'Jumada al-thani',
+      "Rabi' al-Awwal",
+      "Rabi' al-Thani",
+      'Jumada al-Awwal',
+      'Jumada al-Thani',
       'Rajab',
-      'Sha\'ban',
+      "Sha'ban",
       'Ramadan',
       'Shawwal',
-      'Dhu al-Qi\'dah',
+      "Dhu al-Qi'dah",
       'Dhu al-Hijjah'
     ];
 
@@ -73,7 +73,7 @@ export class CalendarConversionService {
    */
   hijriToGregorian(hijriYear: number, hijriMonth: number, hijriDay: number): Date {
     const gregorianDate = HijriConverter.toGregorian(hijriYear, hijriMonth, hijriDay);
-    
+
     return new Date(gregorianDate.gy, gregorianDate.gm - 1, gregorianDate.gd);
   }
 
@@ -86,7 +86,7 @@ export class CalendarConversionService {
   formatBothCalendars(gregorianDate: Date, formatPattern: string = 'dd MMM yyyy'): string {
     const gregorianFormatted = format(gregorianDate, formatPattern);
     const hijri = this.gregorianToHijri(gregorianDate);
-    
+
     return `${gregorianFormatted} (${hijri.day} ${hijri.monthName} ${hijri.year} AH)`;
   }
 
@@ -165,7 +165,7 @@ export class CalendarConversionService {
   ): { year: number; month: number; day: number; monthName: string } {
     const gregorian = this.hijriToGregorian(hijriDate.year, hijriDate.month, hijriDate.day);
     gregorian.setDate(gregorian.getDate() + days);
-    
+
     return this.gregorianToHijri(gregorian);
   }
 
@@ -178,15 +178,15 @@ export class CalendarConversionService {
     const monthNames = [
       'Muharram',
       'Safar',
-      'Rabi\' al-awwal',
-      'Rabi\' al-thani',
-      'Jumada al-awwal',
-      'Jumada al-thani',
+      "Rabi' al-Awwal",
+      "Rabi' al-Thani",
+      'Jumada al-Awwal',
+      'Jumada al-Thani',
       'Rajab',
-      'Sha\'ban',
+      "Sha'ban",
       'Ramadan',
       'Shawwal',
-      'Dhu al-Qi\'dah',
+      "Dhu al-Qi'dah",
       'Dhu al-Hijjah'
     ];
 
@@ -211,7 +211,7 @@ export class CalendarConversionService {
       const monthName = this.getHijriMonthName(hijriDate.month);
       return `${hijriDate.day} ${monthName} ${hijriDate.year} AH`;
     }
-    
+
     return `${hijriDate.day}/${hijriDate.month}/${hijriDate.year} AH`;
   }
 

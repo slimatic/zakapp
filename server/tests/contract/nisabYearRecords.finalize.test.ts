@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Contract Test: POST /api/nisab-year-records/:id/finalize
  * 

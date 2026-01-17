@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Contract Test: DELETE /api/nisab-year-records/:id
  * 

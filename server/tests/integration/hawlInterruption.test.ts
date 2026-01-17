@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * T028: Integration Test - Hawl Interruption (Wealth Drop Below Nisab)
  * 

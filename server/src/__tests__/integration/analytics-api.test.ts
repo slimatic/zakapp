@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -16,7 +17,7 @@
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll } from '@jest/globals';
+import { describe, it, expect, beforeAll } from 'vitest';
 import app from '@/app';
 
 describe('Analytics API Integration Tests', () => {

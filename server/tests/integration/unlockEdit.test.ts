@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * T030: Integration Test - Unlock, Edit, and Re-finalize Workflow
  * 

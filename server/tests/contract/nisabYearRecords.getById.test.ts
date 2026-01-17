@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Contract Test: GET /api/nisab-year-records/:id
  * 

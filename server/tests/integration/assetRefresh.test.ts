@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Integration Test: Asset Refresh Workflow
  * Purpose: Test asset refresh functionality for DRAFT Nisab Year Records
