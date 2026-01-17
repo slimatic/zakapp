@@ -15,9 +15,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { PaymentRecord } from '@prisma/client';
+
 import { PaymentEncryption } from '../utils/encryption';
 import { prisma } from '../config/database';
+import { Logger } from '../utils/logger';
+
+const logger = new Logger('PaymentModel');
+
 
 export interface CreatePaymentData {
   userId: string;
@@ -213,7 +217,7 @@ export class Payment {
   /**
    * Decrypts sensitive data in a payment record
    */
-  private static async decryptPaymentData(paymentRecord: PaymentRecord): Promise<DecryptedPaymentData> {
+  private static async decryptPaymentData(paymentRecord: any): Promise<DecryptedPaymentData> {
     const encryptionKey = process.env.ENCRYPTION_KEY;
     if (!encryptionKey) {
       throw new Error('ENCRYPTION_KEY environment variable is required');
@@ -230,31 +234,35 @@ export class Payment {
     try {
       decryptedAmount = await PaymentEncryption.decryptAmount(paymentRecord.amount, encryptionKey);
     } catch (err) {
-      console.error(`[Payment] Failed to decrypt amount for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
+      logger.error(`Failed to decrypt amount for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
       // leave decryptedAmount undefined so callers can fallback to raw field
     }
+
 
     try {
       decryptedRecipientName = await PaymentEncryption.decryptRecipientName(paymentRecord.recipientName, encryptionKey);
     } catch (err) {
-      console.error(`[Payment] Failed to decrypt recipientName for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
+      logger.error(`Failed to decrypt recipientName for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
     }
+
 
     if (paymentRecord.notes) {
       try {
         decryptedNotes = await PaymentEncryption.decryptNotes(paymentRecord.notes, encryptionKey);
       } catch (err) {
-        console.error(`[Payment] Failed to decrypt notes for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
+        logger.error(`Failed to decrypt notes for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
+
 
     if (paymentRecord.receiptReference) {
       try {
         decryptedReceiptRef = await PaymentEncryption.decryptReceiptReference(paymentRecord.receiptReference, encryptionKey);
       } catch (err) {
-        console.error(`[Payment] Failed to decrypt receiptReference for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
+        logger.error(`Failed to decrypt receiptReference for payment ${paymentRecord.id}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
+
 
     return {
       id: paymentRecord.id,
