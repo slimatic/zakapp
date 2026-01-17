@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -26,9 +27,9 @@ import { YearlySnapshotModel } from '../../models/YearlySnapshot';
 import { PaymentRecordModel } from '../../models/PaymentRecord';
 
 // Mock the models
-jest.mock('../../models/AnnualSummary');
-jest.mock('../../models/YearlySnapshot');
-jest.mock('../../models/PaymentRecord');
+vi.mock('../../models/AnnualSummary');
+vi.mock('../../models/YearlySnapshot');
+vi.mock('../../models/PaymentRecord');
 
 describe('AnnualSummaryService', () => {
   let service: AnnualSummaryService;
@@ -38,7 +39,7 @@ describe('AnnualSummaryService', () => {
   beforeEach(() => {
     process.env.ENCRYPTION_KEY = 'test-encryption-key-32-characters!!';
     service = new AnnualSummaryService();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -77,17 +78,17 @@ describe('AnnualSummaryService', () => {
     ];
 
     beforeEach(() => {
-      (YearlySnapshotModel.findById as jest.Mock).mockResolvedValue(mockSnapshot);
-      (PaymentRecordModel.findBySnapshot as jest.Mock).mockResolvedValue(mockPayments);
-      (YearlySnapshotModel.findPrimaryByYear as jest.Mock).mockResolvedValue(null);
-      (AnnualSummaryModel.createOrUpdate as jest.Mock).mockImplementation(async (data) => ({
+      (YearlySnapshotModel.findById as Mock).mockResolvedValue(mockSnapshot);
+      (PaymentRecordModel.findBySnapshot as Mock).mockResolvedValue(mockPayments);
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(null);
+      (AnnualSummaryModel.createOrUpdate as Mock).mockImplementation(async (data) => ({
         id: 'summary-123',
         ...data
       }));
     });
 
     it('should throw error if snapshot not found', async () => {
-      (YearlySnapshotModel.findById as jest.Mock).mockResolvedValue(null);
+      (YearlySnapshotModel.findById as Mock).mockResolvedValue(null);
 
       await expect(
         service.generateSummary(mockSnapshotId, mockUserId)
@@ -125,7 +126,7 @@ describe('AnnualSummaryService', () => {
     it('should group payments by category', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
       const recipientSummary = call.recipientSummary;
 
       expect(recipientSummary.byCategory).toBeDefined();
@@ -139,7 +140,7 @@ describe('AnnualSummaryService', () => {
     it('should group payments by type', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
       const recipientSummary = call.recipientSummary;
 
       expect(recipientSummary.byType).toBeDefined();
@@ -154,7 +155,7 @@ describe('AnnualSummaryService', () => {
     });
 
     it('should handle zero payments', async () => {
-      (PaymentRecordModel.findBySnapshot as jest.Mock).mockResolvedValue([]);
+      (PaymentRecordModel.findBySnapshot as Mock).mockResolvedValue([]);
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
@@ -176,11 +177,11 @@ describe('AnnualSummaryService', () => {
         zakatAmount: 3000
       };
 
-      (YearlySnapshotModel.findPrimaryByYear as jest.Mock).mockResolvedValue(previousSnapshot);
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(previousSnapshot);
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
 
       expect(call.comparativeAnalysis).toBeDefined();
       expect(call.comparativeAnalysis.previousYear.year).toBe(2023);
@@ -197,11 +198,11 @@ describe('AnnualSummaryService', () => {
         zakatAmount: 2500
       };
 
-      (YearlySnapshotModel.findPrimaryByYear as jest.Mock).mockResolvedValue(previousSnapshot);
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(previousSnapshot);
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
       const analysis = call.comparativeAnalysis.changes;
 
       // Wealth change: (150000 - 100000) / 100000 = 50%
@@ -220,11 +221,11 @@ describe('AnnualSummaryService', () => {
         zakatAmount: 0
       };
 
-      (YearlySnapshotModel.findPrimaryByYear as jest.Mock).mockResolvedValue(previousSnapshot);
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(previousSnapshot);
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
       const analysis = call.comparativeAnalysis.changes;
 
       expect(analysis.wealthChangePercent).toBe(0);
@@ -232,11 +233,11 @@ describe('AnnualSummaryService', () => {
     });
 
     it('should not include comparative analysis for first year', async () => {
-      (YearlySnapshotModel.findPrimaryByYear as jest.Mock).mockResolvedValue(null);
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(null);
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
 
       expect(call.comparativeAnalysis).toBeUndefined();
     });
@@ -252,11 +253,11 @@ describe('AnnualSummaryService', () => {
         }
       };
 
-      (YearlySnapshotModel.findById as jest.Mock).mockResolvedValue(snapshotWithAssets);
+      (YearlySnapshotModel.findById as Mock).mockResolvedValue(snapshotWithAssets);
 
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
 
       expect(call.assetBreakdown).toBeDefined();
       expect(call.assetBreakdown.cash).toBe(50000);
@@ -265,7 +266,7 @@ describe('AnnualSummaryService', () => {
     it('should include nisab information', async () => {
       await service.generateSummary(mockSnapshotId, mockUserId);
 
-      const call = (AnnualSummaryModel.createOrUpdate as jest.Mock).mock.calls[0][1];
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
 
       expect(call.nisabInfo).toBeDefined();
       expect(call.nisabInfo.threshold).toBe(85000);
@@ -312,7 +313,7 @@ describe('AnnualSummaryService', () => {
         snapshotId: mockSnapshotId
       };
 
-      (AnnualSummaryModel.findById as jest.Mock).mockResolvedValue(mockSummary);
+      (AnnualSummaryModel.findById as Mock).mockResolvedValue(mockSummary);
 
       const result = await service.getSummary('summary-123', mockUserId);
 
@@ -321,7 +322,7 @@ describe('AnnualSummaryService', () => {
     });
 
     it('should return null if summary not found', async () => {
-      (AnnualSummaryModel.findById as jest.Mock).mockResolvedValue(null);
+      (AnnualSummaryModel.findById as Mock).mockResolvedValue(null);
 
       const result = await service.getSummary('invalid-id', mockUserId);
 
@@ -336,7 +337,7 @@ describe('AnnualSummaryService', () => {
         snapshotId: mockSnapshotId
       };
 
-      (AnnualSummaryModel.findBySnapshot as jest.Mock).mockResolvedValue(mockSummary);
+      (AnnualSummaryModel.findBySnapshot as Mock).mockResolvedValue(mockSummary);
 
       const result = await service.getSummaryBySnapshot(mockSnapshotId, mockUserId);
 

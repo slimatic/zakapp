@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -18,25 +19,25 @@
 import { EncryptionService } from '../../services/EncryptionService';
 
 // Mock EncryptionService
-jest.mock('../../services/EncryptionService');
+vi.mock('../../services/EncryptionService');
 
 // Mock PrismaClient
 const mockPrisma = {
-  zakatCalculation: { findFirst: jest.fn() },
+  zakatCalculation: { findFirst: vi.fn() },
   zakatPayment: {
-    create: jest.fn(),
-    findFirst: jest.fn(),
-    findMany: jest.fn(),
-    count: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    create: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    count: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
   },
-  $transaction: jest.fn((callback) => callback(mockPrisma)),
+  $transaction: vi.fn((callback) => callback(mockPrisma)),
 };
 
-jest.mock('@prisma/client', () => {
+vi.mock('@prisma/client', () => {
   return {
-    PrismaClient: jest.fn(() => mockPrisma),
+    PrismaClient: vi.fn(() => mockPrisma),
   };
 });
 
@@ -51,11 +52,11 @@ describe('PaymentService', () => {
   beforeEach(() => {
     process.env.ENCRYPTION_KEY = 'test-encryption-key-32-characters!!';
     service = new PaymentService();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Setup default EncryptionService mocks
-    (EncryptionService.encryptObject as jest.Mock).mockImplementation((data) => Promise.resolve(data));
-    (EncryptionService.decryptObject as jest.Mock).mockImplementation((data) => Promise.resolve(data));
+    (EncryptionService.encryptObject as Mock).mockImplementation((data) => Promise.resolve(data));
+    (EncryptionService.decryptObject as Mock).mockImplementation((data) => Promise.resolve(data));
   });
 
   afterEach(() => {

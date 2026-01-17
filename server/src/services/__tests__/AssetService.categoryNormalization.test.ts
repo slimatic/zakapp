@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -24,7 +25,7 @@ describe('AssetService category normalization', () => {
   });
 
   it('accepts PRIMARY_RESIDENCE and maps to property', async () => {
-    const mockCreate = jest.spyOn(prisma.asset, 'create').mockResolvedValue({
+    const mockCreate = vi.spyOn(prisma.asset, 'create').mockResolvedValue({
       id: 'test-id',
       userId: 'u1',
       category: 'property',
@@ -52,12 +53,12 @@ describe('AssetService category normalization', () => {
     } as any)).resolves.toHaveProperty('id', 'test-id');
 
     expect(mockCreate).toHaveBeenCalled();
-    const createArg = (mockCreate as jest.Mock).mock.calls[0][0];
+    const createArg = (mockCreate as Mock).mock.calls[0][0];
     expect(createArg.data.category).toBe('property');
   });
 
   it('accepts BUSINESS_INVENTORY and maps to business', async () => {
-    const mockCreate = jest.spyOn(prisma.asset, 'create').mockResolvedValue({
+    const mockCreate = vi.spyOn(prisma.asset, 'create').mockResolvedValue({
       id: 'test-id-2',
       userId: 'u1',
       category: 'business',
@@ -84,7 +85,7 @@ describe('AssetService category normalization', () => {
       acquisitionDate: new Date()
     } as any)).resolves.toHaveProperty('id', 'test-id-2');
 
-    const createArg = (mockCreate as jest.Mock).mock.calls[0][0];
+    const createArg = (mockCreate as Mock).mock.calls[0][0];
     expect(createArg.data.category).toBe('business');
   });
 });

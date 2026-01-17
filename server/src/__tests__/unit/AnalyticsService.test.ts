@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -26,9 +27,9 @@ import { YearlySnapshotModel } from '../../models/YearlySnapshot';
 import { PaymentRecordModel } from '../../models/PaymentRecord';
 
 // Mock the models
-jest.mock('../../models/AnalyticsMetric');
-jest.mock('../../models/YearlySnapshot');
-jest.mock('../../models/PaymentRecord');
+vi.mock('../../models/AnalyticsMetric');
+vi.mock('../../models/YearlySnapshot');
+vi.mock('../../models/PaymentRecord');
 
 describe('AnalyticsService - Cache Logic', () => {
   let service: AnalyticsService;
@@ -37,7 +38,7 @@ describe('AnalyticsService - Cache Logic', () => {
   beforeEach(() => {
     process.env.ENCRYPTION_KEY = 'test-encryption-key-32-characters!!';
     service = new AnalyticsService();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -131,7 +132,7 @@ describe('AnalyticsService - Cache Logic', () => {
         endDate
       };
 
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(cachedMetric);
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(cachedMetric);
 
       await service.getWealthTrend(mockUserId, startDate, endDate);
 
@@ -153,7 +154,7 @@ describe('AnalyticsService - Cache Logic', () => {
         endDate
       };
 
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(cachedMetric);
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(cachedMetric);
 
       const result = await service.getWealthTrend(mockUserId, startDate, endDate);
 
@@ -162,9 +163,9 @@ describe('AnalyticsService - Cache Logic', () => {
     });
 
     it('should calculate and cache if not in cache', async () => {
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(null);
-      (YearlySnapshotModel.findByUser as jest.Mock).mockResolvedValue(mockSnapshots);
-      (AnalyticsMetricModel.createOrUpdate as jest.Mock).mockResolvedValue({
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(null);
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue(mockSnapshots);
+      (AnalyticsMetricModel.createOrUpdate as Mock).mockResolvedValue({
         id: 'new-metric',
         userId: mockUserId,
         metricType: 'wealth_trend',
@@ -185,9 +186,9 @@ describe('AnalyticsService - Cache Logic', () => {
     });
 
     it('should use correct TTL when caching wealth trend', async () => {
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(null);
-      (YearlySnapshotModel.findByUser as jest.Mock).mockResolvedValue(mockSnapshots);
-      (AnalyticsMetricModel.createOrUpdate as jest.Mock).mockResolvedValue({});
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(null);
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue(mockSnapshots);
+      (AnalyticsMetricModel.createOrUpdate as Mock).mockResolvedValue({});
 
       await service.getWealthTrend(mockUserId, startDate, endDate);
 
@@ -211,9 +212,9 @@ describe('AnalyticsService - Cache Logic', () => {
         total: 4
       };
 
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(null);
-      (YearlySnapshotModel.findByUser as jest.Mock).mockResolvedValue(allSnapshots);
-      (AnalyticsMetricModel.createOrUpdate as jest.Mock).mockImplementation(
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(null);
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue(allSnapshots);
+      (AnalyticsMetricModel.createOrUpdate as Mock).mockImplementation(
         async (userId, type, data) => ({ calculatedValue: data.calculatedValue })
       );
 
@@ -233,9 +234,9 @@ describe('AnalyticsService - Cache Logic', () => {
     const endDate = new Date('2024-12-31');
 
     it('should use 60-minute TTL for historical Zakat data', async () => {
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(null);
-      (YearlySnapshotModel.findByUser as jest.Mock).mockResolvedValue({ data: [], total: 0 });
-      (AnalyticsMetricModel.createOrUpdate as jest.Mock).mockResolvedValue({});
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(null);
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
+      (AnalyticsMetricModel.createOrUpdate as Mock).mockResolvedValue({});
 
       await service.getZakatTrend(mockUserId, startDate, endDate);
 
@@ -254,7 +255,7 @@ describe('AnalyticsService - Cache Logic', () => {
         calculatedValue: JSON.stringify({ trend: [] })
       };
 
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(cached);
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(cached);
 
       await service.getZakatTrend(mockUserId, startDate, endDate);
 
@@ -267,9 +268,9 @@ describe('AnalyticsService - Cache Logic', () => {
     const endDate = new Date('2024-12-31');
 
     it('should use 30-minute TTL for payment distribution', async () => {
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(null);
-      (PaymentRecordModel.findByUser as jest.Mock).mockResolvedValue({ data: [], total: 0 });
-      (AnalyticsMetricModel.createOrUpdate as jest.Mock).mockResolvedValue({});
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(null);
+      (PaymentRecordModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
+      (AnalyticsMetricModel.createOrUpdate as Mock).mockResolvedValue({});
 
       await service.getPaymentDistribution(mockUserId, startDate, endDate);
 
@@ -288,7 +289,7 @@ describe('AnalyticsService - Cache Logic', () => {
         calculatedValue: JSON.stringify({ distribution: [] })
       };
 
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(cached);
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(cached);
 
       await service.getPaymentDistribution(mockUserId, startDate, endDate);
 
@@ -363,7 +364,7 @@ describe('AnalyticsService - Cache Logic', () => {
   describe('performance characteristics', () => {
     it('should minimize database calls with caching', async () => {
       const cached = { id: '1', calculatedValue: JSON.stringify({}) };
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(cached);
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(cached);
 
       await service.getWealthTrend(mockUserId, new Date(), new Date());
 
@@ -373,9 +374,9 @@ describe('AnalyticsService - Cache Logic', () => {
     });
 
     it('should batch snapshots queries efficiently', async () => {
-      (AnalyticsMetricModel.findCached as jest.Mock).mockResolvedValue(null);
-      (YearlySnapshotModel.findByUser as jest.Mock).mockResolvedValue({ data: [], total: 0 });
-      (AnalyticsMetricModel.createOrUpdate as jest.Mock).mockResolvedValue({});
+      (AnalyticsMetricModel.findCached as Mock).mockResolvedValue(null);
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
+      (AnalyticsMetricModel.createOrUpdate as Mock).mockResolvedValue({});
 
       await service.getWealthTrend(mockUserId, new Date(), new Date());
 

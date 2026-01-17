@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Integration Test: Automatic Asset Inclusion in Background Job
  * Purpose: Test that Hawl detection job automatically includes assets in DRAFT records

@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 import { EncryptionService } from '../../src/services/EncryptionService';
 import { PaymentRecordService } from '../../src/services/PaymentRecordService';
 

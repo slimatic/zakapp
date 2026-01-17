@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Integration Test: AuthController isVerified Response
  * 
@@ -10,7 +11,7 @@
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import app from '../app';
 import { PrismaClient } from '@prisma/client';
 

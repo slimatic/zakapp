@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * T026: Integration Test - Nisab Achievement Detection
  * 

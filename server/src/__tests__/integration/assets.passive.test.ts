@@ -1,3 +1,4 @@
+import { vi, type Mock } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -21,9 +22,9 @@ import { AuthenticatedRequest } from '../../types';
 
 // Mock Express app for testing asset endpoints
 const mockApp = {
-  post: jest.fn((path, handler) => {}),
-  get: jest.fn((path, handler) => {}),
-  put: jest.fn((path, handler) => {}),
+  post: vi.fn((path, handler) => {}),
+  get: vi.fn((path, handler) => {}),
+  put: vi.fn((path, handler) => {}),
 };
 
 // Test integration: POST /api/assets with passive investment flag
