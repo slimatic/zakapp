@@ -27,7 +27,6 @@
     "@types/nodemailer": "^7.0.5",
     "@zakapp/shared": "file:../shared",
     "axios": "^1.13.0",
-    "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "cheerio": "^1.0.0-rc.10",
     "compression": "^1.8.1",
@@ -55,7 +54,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cheerio": "^0.22.35",
     "@types/cors": "^2.8.17",
