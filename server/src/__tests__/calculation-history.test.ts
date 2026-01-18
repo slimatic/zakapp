@@ -165,7 +165,7 @@ describe('Calculation History Functionality', () => {
 
     beforeAll(async () => {
       const calculationData = {
-        methodology: 'shafi',
+        methodology: 'shafii',
         calendarType: 'lunar',
         totalWealth: 120000,
         nisabThreshold: 4340,
@@ -188,7 +188,7 @@ describe('Calculation History Functionality', () => {
       mockPrisma.findFirst.mockResolvedValue({
         id: savedCalculationId,
         userId: testUserId,
-        methodology: 'shafi',
+        methodology: 'shafii',
         calendarType: 'lunar',
         calculationDate: new Date(),
         totalWealth: await EncryptionService.encrypt('120000', process.env.ENCRYPTION_KEY!),
@@ -203,7 +203,7 @@ describe('Calculation History Functionality', () => {
       expect(result).toBeTruthy();
       expect(result.id).toBe(savedCalculationId);
       expect(result.userId).toBe(testUserId);
-      expect(result.methodology).toBe('shafi');
+      expect(result.methodology).toBe('shafii');
 
       // Verify data is decrypted
       expect(typeof result.totalWealth).toBe('number');
