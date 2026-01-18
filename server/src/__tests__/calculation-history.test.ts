@@ -30,18 +30,18 @@ import { prisma } from '../utils/prisma';
 vi.mock('../utils/prisma', () => ({
   prisma: {
     calculationHistory: {
-      create: vi.fn(),
-      findMany: vi.fn(),
-      findFirst: vi.fn(),
-      count: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
+      create: vi.fn(({ data }) => Promise.resolve({ id: 'mock-id', ...data, createdAt: new Date(), updatedAt: new Date() })),
+      findMany: vi.fn(() => Promise.resolve([])),
+      findFirst: vi.fn(() => Promise.resolve(null)),
+      count: vi.fn(() => Promise.resolve(0)),
+      update: vi.fn(({ where, data }) => Promise.resolve({ id: where.id, ...data })),
+      delete: vi.fn(() => Promise.resolve({ id: 'mock-id' })),
     },
   },
 }));
 
-vi.mock('../services/EncryptionService', () => ({
-  EncryptionService: {
+vi.mock('../services/EncryptionService', () => {
+  const mockMethods = {
     encryptObject: vi.fn((obj: any) => Promise.resolve(JSON.stringify(obj))),
     decryptObject: vi.fn((str: any) => {
       try {
@@ -50,8 +50,17 @@ vi.mock('../services/EncryptionService', () => ({
         return Promise.resolve({});
       }
     }),
-  },
-}));
+    encrypt: vi.fn((plaintext: string) => Promise.resolve(plaintext)),
+    decrypt: vi.fn((encrypted: any) => Promise.resolve(typeof encrypted === 'string' ? encrypted : encrypted.encryptedData || '')),
+  };
+
+  function MockEncryptionService() {
+    return mockMethods;
+  }
+  Object.assign(MockEncryptionService, mockMethods);
+
+  return { EncryptionService: MockEncryptionService };
+});
 
 const mockPrisma = prisma.calculationHistory as any;
 
