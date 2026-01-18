@@ -17,7 +17,7 @@
 
 import { AssetType } from '../../types/index';
 
-export type MethodologyName = 'STANDARD' | 'HANAFI' | 'SHAFI' | 'MALIKI' | 'HANBALI';
+export type MethodologyName = 'STANDARD' | 'HANAFI' | 'SHAFII' | 'MALIKI' | 'HANBALI';
 export type NisabSource = 'GOLD' | 'SILVER';
 
 export interface MethodologyConfig {
@@ -63,8 +63,8 @@ export const METHODOLOGIES: Record<MethodologyName, MethodologyConfig> = {
         jewelryExempt: false,
         description: "Hanafi view: Silver Nisab (precautionary), broader debt deductions. Jewelry is Zakatable."
     },
-    SHAFI: {
-        name: 'SHAFI',
+    SHAFII: {
+        name: 'SHAFII',
         nisabSource: 'GOLD',
         zakatableAssets: [
             AssetType.CASH,

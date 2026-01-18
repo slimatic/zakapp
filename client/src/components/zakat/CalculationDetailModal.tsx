@@ -67,7 +67,7 @@ export const CalculationDetailModal: React.FC<CalculationDetailModalProps> = ({
     const names: Record<string, string> = {
       'standard': 'Standard (AAOIFI)',
       'hanafi': 'Hanafi',
-      'shafi': "Shafi'i",
+      'shafii': "Shafi'i",
       'custom': 'Custom'
     };
     return names[methodology] || methodology;
@@ -101,7 +101,7 @@ export const CalculationDetailModal: React.FC<CalculationDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div 
+      <div
         className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -131,31 +131,28 @@ export const CalculationDetailModal: React.FC<CalculationDetailModalProps> = ({
           <div className="flex space-x-4 mt-6 border-b border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setActiveTab('summary')}
-              className={`pb-3 px-1 font-medium text-sm transition-colors ${
-                activeTab === 'summary'
+              className={`pb-3 px-1 font-medium text-sm transition-colors ${activeTab === 'summary'
                   ? 'border-b-2 border-green-600 text-green-600 dark:text-green-400'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
+                }`}
             >
               Summary
             </button>
             <button
               onClick={() => setActiveTab('breakdown')}
-              className={`pb-3 px-1 font-medium text-sm transition-colors ${
-                activeTab === 'breakdown'
+              className={`pb-3 px-1 font-medium text-sm transition-colors ${activeTab === 'breakdown'
                   ? 'border-b-2 border-green-600 text-green-600 dark:text-green-400'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
+                }`}
             >
               Asset Breakdown
             </button>
             <button
               onClick={() => setActiveTab('details')}
-              className={`pb-3 px-1 font-medium text-sm transition-colors ${
-                activeTab === 'details'
+              className={`pb-3 px-1 font-medium text-sm transition-colors ${activeTab === 'details'
                   ? 'border-b-2 border-green-600 text-green-600 dark:text-green-400'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
+                }`}
             >
               Details
             </button>
@@ -168,19 +165,18 @@ export const CalculationDetailModal: React.FC<CalculationDetailModalProps> = ({
           {activeTab === 'summary' && (
             <div className="space-y-6">
               {/* Status Card */}
-              <div className={`rounded-lg p-6 ${
-                isAboveNisab 
-                  ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+              <div className={`rounded-lg p-6 ${isAboveNisab
+                  ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
                   : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700'
-              }`}>
+                }`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {isAboveNisab ? 'Zakat Obligatory' : 'Below Nisab Threshold'}
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {isAboveNisab 
-                        ? `Your wealth is ${percentageAboveNisab}% above nisab` 
+                      {isAboveNisab
+                        ? `Your wealth is ${percentageAboveNisab}% above nisab`
                         : 'No Zakat obligation for this calculation'}
                     </p>
                   </div>

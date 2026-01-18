@@ -690,7 +690,7 @@ class ApiService {
 
   async updateCalendarPreferences(preferences: {
     preferredCalendar?: 'hijri' | 'gregorian';
-    preferredMethodology?: 'standard' | 'hanafi' | 'shafi' | 'maliki' | 'hanbali' | 'custom';
+    preferredMethodology?: 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom';
     lastZakatDate?: string;
   }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/calendar/preferences`, {
