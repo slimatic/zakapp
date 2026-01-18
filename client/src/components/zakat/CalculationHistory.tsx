@@ -84,11 +84,11 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
       if (selectedMethodology !== 'all') {
         params.append('methodology', selectedMethodology);
       }
-      
+
       if (startDate) {
         params.append('startDate', startDate);
       }
-      
+
       if (endDate) {
         params.append('endDate', endDate);
       }
@@ -158,7 +158,7 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
     const methodologyNames: Record<string, string> = {
       'standard': 'Standard (AAOIFI)',
       'hanafi': 'Hanafi',
-      'shafi': 'Shafi\'i',
+      'shafii': 'Shafi\'i',
       'custom': 'Custom'
     };
     return methodologyNames[methodology] || methodology;
@@ -168,7 +168,7 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
     const colors: Record<string, string> = {
       'standard': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
       'hanafi': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-      'shafi': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+      'shafii': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
       'custom': 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
     };
     return colors[methodology] || colors.custom;
@@ -224,7 +224,7 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
               <option value="all">All Methodologies</option>
               <option value="standard">Standard (AAOIFI)</option>
               <option value="hanafi">Hanafi</option>
-              <option value="shafi">Shafi'i</option>
+              <option value="shafii">Shafi'i</option>
               <option value="custom">Custom</option>
             </select>
           </div>

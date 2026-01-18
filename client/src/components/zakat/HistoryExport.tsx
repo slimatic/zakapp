@@ -170,7 +170,7 @@ export const HistoryExport: React.FC<HistoryExportProps> = ({ calculations, onEx
           }
           .methodology-standard { background: #dbeafe; color: #1e40af; }
           .methodology-hanafi { background: #d1fae5; color: #065f46; }
-          .methodology-shafi { background: #e9d5ff; color: #6b21a8; }
+          .methodology-shafii { background: #e9d5ff; color: #6b21a8; }
           .methodology-custom { background: #e5e7eb; color: #374151; }
           .amount {
             font-weight: 600;

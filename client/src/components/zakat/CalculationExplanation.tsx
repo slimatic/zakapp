@@ -25,7 +25,7 @@
 import React, { useState } from 'react';
 
 export interface CalculationExplanationProps {
-  methodology: 'standard' | 'hanafi' | 'shafi' | 'custom';
+  methodology: 'standard' | 'hanafi' | 'shafii' | 'custom';
   nisabAmount: number;
   currency?: string;
   showSources?: boolean;
@@ -202,7 +202,7 @@ const getMethodologyExplanation = (
         ]
       }
     },
-    shafi: {
+    shafii: {
       nisabReasoning: {
         title: 'Why This Nisab Threshold?',
         content: `The Shafi'i methodology uses a gold-based nisab of 85 grams, currently valued at ${new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(nisabAmount)}.`,
@@ -358,16 +358,16 @@ export const CalculationExplanation: React.FC<CalculationExplanationProps> = ({
   className = ''
 }) => {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  
+
   const explanation = getMethodologyExplanation(methodology, nisabAmount, currency);
-  
+
   const toggleSection = (sectionKey: string) => {
     setExpandedSection(expandedSection === sectionKey ? null : sectionKey);
   };
 
   const renderSection = (sectionKey: string, section: ExplanationSection) => {
     const isExpanded = expandedSection === sectionKey;
-    
+
     return (
       <div key={sectionKey} className="border border-gray-200 rounded-lg overflow-hidden">
         <button
@@ -380,11 +380,11 @@ export const CalculationExplanation: React.FC<CalculationExplanationProps> = ({
             {isExpanded ? '−' : '+'}
           </span>
         </button>
-        
+
         {isExpanded && (
           <div className="p-4 bg-white">
             <p className="text-gray-700 mb-3">{section.content}</p>
-            
+
             {section.details && section.details.length > 0 && (
               <div className="mb-3">
                 <h4 className="font-medium text-gray-900 mb-2">Details:</h4>
@@ -397,7 +397,7 @@ export const CalculationExplanation: React.FC<CalculationExplanationProps> = ({
                 </ul>
               </div>
             )}
-            
+
             {showSources && section.sources && section.sources.length > 0 && (
               <div className="mt-4 pt-3 border-t border-gray-200">
                 <h4 className="font-medium text-gray-900 mb-2 text-sm">Islamic Sources:</h4>
@@ -419,7 +419,7 @@ export const CalculationExplanation: React.FC<CalculationExplanationProps> = ({
   const methodologyNames: Record<string, string> = {
     standard: 'Standard (AAOIFI)',
     hanafi: 'Hanafi',
-    shafi: "Shafi'i",
+    shafii: "Shafi'i",
     custom: 'Custom'
   };
 
@@ -443,7 +443,7 @@ export const CalculationExplanation: React.FC<CalculationExplanationProps> = ({
 
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-900">
-          <strong>📖 Important Note:</strong> This tool provides general guidance based on established Islamic scholarship. 
+          <strong>📖 Important Note:</strong> This tool provides general guidance based on established Islamic scholarship.
           For complex situations or specific questions, always consult with a qualified Islamic scholar or local Islamic authority.
         </p>
       </div>

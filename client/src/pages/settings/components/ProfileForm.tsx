@@ -96,7 +96,7 @@ export const ProfileForm: React.FC = () => {
     const zakatMethods = [
         { value: 'standard', name: 'Standard (2.5%)' },
         { value: 'hanafi', name: 'Hanafi School' },
-        { value: 'shafi', name: 'Shafi\'i School' },
+        { value: 'shafii', name: 'Shafi\'i School' },
         { value: 'maliki', name: 'Maliki School' },
         { value: 'hanbali', name: 'Hanbali School' },
         { value: 'custom', name: 'Custom Method' },
@@ -111,7 +111,7 @@ export const ProfileForm: React.FC = () => {
             // Update calendar preferences separately via new calendar API
             const calendarPrefs = {
                 preferredCalendar: data.preferences.calendarType === 'lunar' ? 'hijri' as const : 'gregorian' as const,
-                preferredMethodology: data.preferences.zakatMethod as 'standard' | 'hanafi' | 'shafi' | 'maliki' | 'hanbali' | 'custom',
+                preferredMethodology: data.preferences.zakatMethod as 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom',
                 hijriAdjustment: data.hijriAdjustment
             };
             await apiService.updateCalendarPreferences(calendarPrefs);
