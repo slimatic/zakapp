@@ -21,7 +21,10 @@ describe('AuthController isVerified Response', () => {
     const testUser = {
         email: `test-isverified-${Date.now()}@example.com`,
         password: 'TestPassword123!',
+        confirmPassword: 'TestPassword123!',
         username: 'testisverifieduser',
+        firstName: 'Test',
+        lastName: 'User',
     };
 
     let accessToken: string;
@@ -42,13 +45,13 @@ describe('AuthController isVerified Response', () => {
                 .send(testUser)
                 .expect(201);
 
-            expect(response.body).toHaveProperty('user');
-            expect(response.body.user).toHaveProperty('isVerified');
-            expect(typeof response.body.user.isVerified).toBe('boolean');
-            expect(response.body.user.isVerified).toBe(false); // New users are unverified
+            expect(response.body.data).toHaveProperty('user');
+            expect(response.body.data.user).toHaveProperty('isVerified');
+            expect(typeof response.body.data.user.isVerified).toBe('boolean');
+            expect(response.body.data.user.isVerified).toBe(false); // New users are unverified
 
-            userId = response.body.user.id;
-            accessToken = response.body.accessToken;
+            userId = response.body.data.user.id;
+            accessToken = response.body.data.tokens.accessToken;
         });
     });
 
@@ -62,11 +65,11 @@ describe('AuthController isVerified Response', () => {
                 })
                 .expect(200);
 
-            expect(response.body).toHaveProperty('user');
-            expect(response.body.user).toHaveProperty('isVerified');
-            expect(typeof response.body.user.isVerified).toBe('boolean');
+            expect(response.body.data).toHaveProperty('user');
+            expect(response.body.data.user).toHaveProperty('isVerified');
+            expect(typeof response.body.data.user.isVerified).toBe('boolean');
 
-            accessToken = response.body.accessToken;
+            accessToken = response.body.data.tokens.accessToken;
         });
     });
 
@@ -77,9 +80,9 @@ describe('AuthController isVerified Response', () => {
                 .set('Authorization', `Bearer ${accessToken}`)
                 .expect(200);
 
-            expect(response.body).toHaveProperty('user');
-            expect(response.body.user).toHaveProperty('isVerified');
-            expect(typeof response.body.user.isVerified).toBe('boolean');
+            expect(response.body.data).toHaveProperty('user');
+            expect(response.body.data.user).toHaveProperty('isVerified');
+            expect(typeof response.body.data.user.isVerified).toBe('boolean');
         });
     });
 
