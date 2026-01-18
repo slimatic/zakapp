@@ -302,6 +302,10 @@ function App() {
 
                     {/* Nisab Records alias for simplified navigation */}
                     <Route
+                      path="/nisab-records/:id"
+                      element={<Navigate to="/nisab-records" replace />}
+                    />
+                    <Route
                       path="/nisab-records"
                       element={
                         <ProtectedRoute>

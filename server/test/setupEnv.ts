@@ -16,4 +16,17 @@ if (process.env.TEST_DATABASE_URL) {
 // Ensure ENCRYPTION_KEY has a default during tests to avoid runtime errors
 process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'test-encryption-key-32-bytes!';
 
+// Polyfill File for environments where it's missing (needed by some undici/fetch versions)
+if (typeof File === 'undefined') {
+  (global as any).File = class File extends Blob {
+    name: string;
+    lastModified: number;
+    constructor(parts: any[], name: string, options?: any) {
+      super(parts, options);
+      this.name = name;
+      this.lastModified = options?.lastModified || Date.now();
+    }
+  };
+}
+
 export { };

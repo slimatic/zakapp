@@ -252,7 +252,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
 
       {/* Action Link */}
       <Link
-        to="/nisab-records"
+        to={`/nisab-records`}
         className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600"
       >
         View Detailed Record
