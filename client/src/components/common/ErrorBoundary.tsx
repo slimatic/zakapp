@@ -18,6 +18,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
+import { DataRecoveryFallback } from '../auth/DataRecoveryFallback';
 
 interface Props {
   children: ReactNode;
@@ -62,6 +63,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      if (this.state.error?.message.includes('Decryption failed') ||
+        this.state.error?.message.includes('Invalid key') ||
+        this.state.error?.message.includes('DB1')) { // Also catch the specific auth DB code
+        return <DataRecoveryFallback onReset={this.handleReload} />;
+      }
+
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
