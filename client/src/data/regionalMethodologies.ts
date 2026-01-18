@@ -25,7 +25,7 @@
 export interface RegionalInfo {
   region: string;
   countries: string[];
-  primaryMethodology: 'standard' | 'hanafi' | 'shafi' | 'maliki';
+  primaryMethodology: 'standard' | 'hanafi' | 'shafii' | 'maliki';
   secondaryMethodologies?: string[];
   description: string;
   scholarlyTradition: string;
@@ -55,7 +55,7 @@ export const REGIONAL_METHODOLOGIES: Record<string, RegionalInfo> = {
     region: 'Middle East - Levant',
     countries: ['Jordan', 'Palestine', 'Lebanon', 'Syria'],
     primaryMethodology: 'hanafi',
-    secondaryMethodologies: ['shafi', 'standard'],
+    secondaryMethodologies: ['shafii', 'standard'],
     description: 'Levant region has strong Hanafi and Shafi\'i traditions with increasing AAOIFI adoption',
     scholarlyTradition: 'Historical mix of Hanafi and Shafi\'i schools',
     commonPractices: [
@@ -88,7 +88,7 @@ export const REGIONAL_METHODOLOGIES: Record<string, RegionalInfo> = {
   'southeast-asia': {
     region: 'Southeast Asia',
     countries: ['Indonesia', 'Malaysia', 'Singapore', 'Brunei', 'Thailand', 'Philippines', 'Cambodia'],
-    primaryMethodology: 'shafi',
+    primaryMethodology: 'shafii',
     secondaryMethodologies: ['standard'],
     description: 'Shafi\'i school predominant with strong institutional Zakat systems',
     scholarlyTradition: 'Shafi\'i madhab brought by Arab traders and scholars centuries ago',
@@ -124,7 +124,7 @@ export const REGIONAL_METHODOLOGIES: Record<string, RegionalInfo> = {
   'east-africa': {
     region: 'East Africa',
     countries: ['Somalia', 'Kenya', 'Tanzania', 'Ethiopia', 'Uganda', 'Djibouti'],
-    primaryMethodology: 'shafi',
+    primaryMethodology: 'shafii',
     secondaryMethodologies: ['standard'],
     description: 'Shafi\'i school predominant along East African coast',
     scholarlyTradition: 'Shafi\'i tradition from Arab and Persian trade connections',
@@ -174,7 +174,7 @@ export const REGIONAL_METHODOLOGIES: Record<string, RegionalInfo> = {
     region: 'Europe',
     countries: ['United Kingdom', 'France', 'Germany', 'Netherlands', 'Belgium', 'Austria', 'Spain', 'Italy'],
     primaryMethodology: 'standard',
-    secondaryMethodologies: ['hanafi', 'shafi', 'maliki'],
+    secondaryMethodologies: ['hanafi', 'shafii', 'maliki'],
     description: 'Diverse Muslim communities, AAOIFI standard most practical for modern context',
     scholarlyTradition: 'Diverse - European Council for Fatwa and Research provides contemporary guidance',
     commonPractices: [
@@ -192,7 +192,7 @@ export const REGIONAL_METHODOLOGIES: Record<string, RegionalInfo> = {
     region: 'North America',
     countries: ['United States', 'Canada'],
     primaryMethodology: 'standard',
-    secondaryMethodologies: ['hanafi', 'shafi'],
+    secondaryMethodologies: ['hanafi', 'shafii'],
     description: 'Diverse Muslim communities, AAOIFI standard recommended by major organizations',
     scholarlyTradition: 'ISNA, AMJA, and other North American fiqh councils provide contemporary guidance',
     commonPractices: [
@@ -210,7 +210,7 @@ export const REGIONAL_METHODOLOGIES: Record<string, RegionalInfo> = {
     region: 'Oceania',
     countries: ['Australia', 'New Zealand'],
     primaryMethodology: 'standard',
-    secondaryMethodologies: ['hanafi', 'shafi'],
+    secondaryMethodologies: ['hanafi', 'shafii'],
     description: 'Diverse Muslim communities follow AAOIFI standards',
     scholarlyTradition: 'Australian and New Zealand fiqh councils provide guidance',
     commonPractices: [
@@ -225,7 +225,7 @@ export const REGIONAL_METHODOLOGIES: Record<string, RegionalInfo> = {
   'yemen': {
     region: 'Yemen',
     countries: ['Yemen'],
-    primaryMethodology: 'shafi',
+    primaryMethodology: 'shafii',
     secondaryMethodologies: ['standard'],
     description: 'Predominantly Shafi\'i with Zaydi traditions in some regions',
     scholarlyTradition: 'Strong Shafi\'i and Zaydi scholarly heritage',
@@ -241,7 +241,7 @@ export const REGIONAL_METHODOLOGIES: Record<string, RegionalInfo> = {
     region: 'Egypt & Sudan',
     countries: ['Egypt', 'Sudan'],
     primaryMethodology: 'hanafi',
-    secondaryMethodologies: ['maliki', 'shafi', 'standard'],
+    secondaryMethodologies: ['maliki', 'shafii', 'standard'],
     description: 'Predominantly Hanafi with Maliki traditions, strong Islamic scholarship center',
     scholarlyTradition: 'Al-Azhar University influence, mix of madhabs',
     commonPractices: [
@@ -276,13 +276,13 @@ export const REGIONAL_METHODOLOGIES: Record<string, RegionalInfo> = {
  */
 export const getMethodologyByCountry = (country: string): string => {
   const countryLower = country.toLowerCase();
-  
+
   for (const regional of Object.values(REGIONAL_METHODOLOGIES)) {
     if (regional.countries.some(c => c.toLowerCase() === countryLower)) {
       return regional.primaryMethodology;
     }
   }
-  
+
   // Default to standard for unknown countries
   return 'standard';
 };
@@ -292,13 +292,13 @@ export const getMethodologyByCountry = (country: string): string => {
  */
 export const getRegionalInfoByCountry = (country: string): RegionalInfo | null => {
   const countryLower = country.toLowerCase();
-  
+
   for (const regional of Object.values(REGIONAL_METHODOLOGIES)) {
     if (regional.countries.some(c => c.toLowerCase() === countryLower)) {
       return regional;
     }
   }
-  
+
   return null;
 };
 
@@ -314,13 +314,13 @@ export const getAllRegions = (): string[] => {
  */
 export const getCountriesByMethodology = (methodology: string): string[] => {
   const countries: string[] = [];
-  
+
   for (const regional of Object.values(REGIONAL_METHODOLOGIES)) {
     if (regional.primaryMethodology === methodology) {
       countries.push(...regional.countries);
     }
   }
-  
+
   return countries;
 };
 
@@ -330,7 +330,7 @@ export const getCountriesByMethodology = (methodology: string): string[] => {
 export const searchRegionalInfo = (searchTerm: string): RegionalInfo[] => {
   const searchLower = searchTerm.toLowerCase();
   const results: RegionalInfo[] = [];
-  
+
   for (const regional of Object.values(REGIONAL_METHODOLOGIES)) {
     if (
       regional.region.toLowerCase().includes(searchLower) ||
@@ -340,6 +340,6 @@ export const searchRegionalInfo = (searchTerm: string): RegionalInfo[] => {
       results.push(regional);
     }
   }
-  
+
   return results;
 };

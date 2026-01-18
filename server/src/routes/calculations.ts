@@ -51,7 +51,7 @@ interface AuthenticatedRequest extends Request {
  * Save Calculation Request Schema
  */
 const SaveCalculationSchema = z.object({
-  methodology: z.enum(['standard', 'hanafi', 'shafi', 'custom']),
+  methodology: z.enum(['standard', 'hanafi', 'shafii', 'custom']),
   calendarType: z.enum(['hijri', 'gregorian']),
   totalWealth: z.number().min(0),
   nisabThreshold: z.number().min(0),
@@ -69,7 +69,7 @@ const SaveCalculationSchema = z.object({
  * Get Calculations Query Schema
  */
 const GetCalculationsQuerySchema = z.object({
-  methodology: z.enum(['standard', 'hanafi', 'shafi', 'custom']).optional(),
+  methodology: z.enum(['standard', 'hanafi', 'shafii', 'custom']).optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
   page: z.string().regex(/^\d+$/).transform(Number).optional(),

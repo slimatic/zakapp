@@ -27,13 +27,13 @@ export interface UserProfile {
   country?: string;
   assetTypes?: string[];
   preferredApproach?: 'conservative' | 'standard' | 'permissive';
-  followsMadhab?: 'hanafi' | 'shafi' | 'maliki' | 'hanbali' | 'none';
+  followsMadhab?: 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'none';
   hasComplexAssets?: boolean;
   wantsHigherZakat?: boolean;
 }
 
 export interface RecommendationResult {
-  recommendedMethodology: 'standard' | 'hanafi' | 'shafi' | 'custom';
+  recommendedMethodology: 'standard' | 'hanafi' | 'shafii' | 'custom';
   confidence: 'high' | 'medium' | 'low';
   reasoning: string[];
   alternatives: Array<{
@@ -53,30 +53,30 @@ const REGIONAL_PREFERENCES: Record<string, string[]> = {
   'kuwait': ['standard', 'maliki'],
   'bahrain': ['standard', 'maliki'],
   'oman': ['standard'],
-  'yemen': ['shafi', 'standard'],
+  'yemen': ['shafii', 'standard'],
   'jordan': ['standard', 'hanafi'],
-  'palestine': ['shafi', 'hanafi'],
-  'lebanon': ['standard', 'shafi'],
+  'palestine': ['shafii', 'hanafi'],
+  'lebanon': ['standard', 'shafii'],
   'syria': ['standard', 'hanafi'],
   'iraq': ['standard', 'hanafi'],
   'egypt': ['standard', 'hanafi'],
-  
+
   // South Asia
   'pakistan': ['hanafi', 'standard'],
   'india': ['hanafi', 'standard'],
   'bangladesh': ['hanafi', 'standard'],
   'afghanistan': ['hanafi', 'standard'],
-  'sri-lanka': ['shafi', 'standard'],
-  'maldives': ['shafi', 'standard'],
-  
+  'sri-lanka': ['shafii', 'standard'],
+  'maldives': ['shafii', 'standard'],
+
   // Southeast Asia
-  'indonesia': ['shafi', 'standard'],
-  'malaysia': ['shafi', 'standard'],
-  'singapore': ['shafi', 'standard'],
-  'brunei': ['shafi', 'standard'],
-  'thailand': ['shafi', 'standard'],
-  'philippines': ['shafi', 'standard'],
-  
+  'indonesia': ['shafii', 'standard'],
+  'malaysia': ['shafii', 'standard'],
+  'singapore': ['shafii', 'standard'],
+  'brunei': ['shafii', 'standard'],
+  'thailand': ['shafii', 'standard'],
+  'philippines': ['shafii', 'standard'],
+
   // North Africa
   'morocco': ['maliki', 'standard'],
   'algeria': ['maliki', 'standard'],
@@ -84,13 +84,13 @@ const REGIONAL_PREFERENCES: Record<string, string[]> = {
   'libya': ['maliki', 'standard'],
   'mauritania': ['maliki', 'standard'],
   'sudan': ['maliki', 'hanafi', 'standard'],
-  
+
   // East Africa
-  'somalia': ['shafi', 'standard'],
-  'kenya': ['shafi', 'standard'],
-  'tanzania': ['shafi', 'standard'],
-  'ethiopia': ['shafi', 'standard'],
-  
+  'somalia': ['shafii', 'standard'],
+  'kenya': ['shafii', 'standard'],
+  'tanzania': ['shafii', 'standard'],
+  'ethiopia': ['shafii', 'standard'],
+
   // Central Asia
   'turkey': ['hanafi', 'standard'],
   'uzbekistan': ['hanafi', 'standard'],
@@ -99,7 +99,7 @@ const REGIONAL_PREFERENCES: Record<string, string[]> = {
   'kyrgyzstan': ['hanafi', 'standard'],
   'turkmenistan': ['hanafi', 'standard'],
   'azerbaijan': ['hanafi', 'standard'],
-  
+
   // Europe & Americas (multicultural - default to standard)
   'united-kingdom': ['standard'],
   'france': ['standard'],
@@ -114,7 +114,7 @@ const REGIONAL_PREFERENCES: Record<string, string[]> = {
  */
 const MADHAB_TO_METHODOLOGY: Record<string, string> = {
   'hanafi': 'hanafi',
-  'shafi': 'shafi',
+  'shafii': 'shafii',
   'maliki': 'standard', // Maliki is similar to standard AAOIFI
   'hanbali': 'standard', // Hanbali is similar to standard AAOIFI
   'none': 'standard'
@@ -126,19 +126,19 @@ const MADHAB_TO_METHODOLOGY: Record<string, string> = {
 export const getMethodologyRecommendation = (profile: UserProfile): RecommendationResult => {
   const reasoning: string[] = [];
   const alternatives: Array<{ methodology: string; reason: string }> = [];
-  let recommendedMethodology: 'standard' | 'hanafi' | 'shafi' | 'custom' = 'standard';
+  let recommendedMethodology: 'standard' | 'hanafi' | 'shafii' | 'custom' = 'standard';
   let confidence: 'high' | 'medium' | 'low' = 'medium';
 
   // Factor 1: User explicitly follows a madhab
   if (profile.followsMadhab && profile.followsMadhab !== 'none') {
     const methodologyFromMadhab = MADHAB_TO_METHODOLOGY[profile.followsMadhab];
-    
+
     if (methodologyFromMadhab === 'hanafi') {
       recommendedMethodology = 'hanafi';
       confidence = 'high';
       reasoning.push(`You indicated you follow the Hanafi school of jurisprudence. The Hanafi methodology uses a silver-based nisab, which is more inclusive and benefits more people in need.`);
-    } else if (methodologyFromMadhab === 'shafi') {
-      recommendedMethodology = 'shafi';
+    } else if (methodologyFromMadhab === 'shafii') {
+      recommendedMethodology = 'shafii';
       confidence = 'high';
       reasoning.push(`You indicated you follow the Shafi'i school of jurisprudence. The Shafi'i methodology provides detailed categorization with specific rules for different asset types.`);
     } else {
@@ -151,26 +151,26 @@ export const getMethodologyRecommendation = (profile: UserProfile): Recommendati
   else if (profile.country) {
     const countryKey = profile.country.toLowerCase().replace(/\s+/g, '-');
     const regionalPreferences = REGIONAL_PREFERENCES[countryKey];
-    
+
     if (regionalPreferences && regionalPreferences.length > 0) {
       const primaryPreference = regionalPreferences[0];
-      
+
       if (primaryPreference === 'hanafi') {
         recommendedMethodology = 'hanafi';
         confidence = 'high';
         reasoning.push(`Based on your region (${profile.country}), the Hanafi methodology is most commonly followed by scholars and communities in your area.`);
-        
+
         if (regionalPreferences.length > 1) {
           alternatives.push({
             methodology: regionalPreferences[1],
             reason: 'Also common in your region'
           });
         }
-      } else if (primaryPreference === 'shafi') {
-        recommendedMethodology = 'shafi';
+      } else if (primaryPreference === 'shafii') {
+        recommendedMethodology = 'shafii';
         confidence = 'high';
         reasoning.push(`Based on your region (${profile.country}), the Shafi'i methodology is most commonly followed by scholars and communities in your area.`);
-        
+
         if (regionalPreferences.length > 1) {
           alternatives.push({
             methodology: regionalPreferences[1],
@@ -194,22 +194,22 @@ export const getMethodologyRecommendation = (profile: UserProfile): Recommendati
     recommendedMethodology = 'hanafi';
     confidence = 'medium';
     reasoning.push(`You prefer a more conservative approach. The Hanafi methodology uses a silver-based nisab (lower threshold), resulting in more wealth being subject to Zakat and greater benefit to those in need.`);
-    
+
     alternatives.push({
       methodology: 'custom',
       reason: 'Set custom rates higher than 2.5% if your scholar advises it'
     });
   }
   // Factor 4: Complex modern assets
-  else if (profile.hasComplexAssets || profile.assetTypes?.some(type => 
+  else if (profile.hasComplexAssets || profile.assetTypes?.some(type =>
     ['cryptocurrency', 'stocks', 'investment', 'business'].includes(type)
   )) {
     recommendedMethodology = 'standard';
     confidence = 'high';
     reasoning.push(`You have modern financial instruments. The Standard (AAOIFI) methodology provides clear, contemporary guidelines for stocks, cryptocurrency, and investment accounts.`);
-    
+
     alternatives.push({
-      methodology: 'shafi',
+      methodology: 'shafii',
       reason: 'If you prefer detailed categorization of different asset types'
     });
   }
@@ -218,14 +218,14 @@ export const getMethodologyRecommendation = (profile: UserProfile): Recommendati
     recommendedMethodology = 'standard';
     confidence = 'medium';
     reasoning.push(`The Standard (AAOIFI) methodology is the most widely accepted contemporary approach, suitable for most Muslims worldwide.`);
-    
+
     alternatives.push({
       methodology: 'hanafi',
       reason: 'If you want to maximize benefit to the poor (lower nisab threshold)'
     });
-    
+
     alternatives.push({
-      methodology: 'shafi',
+      methodology: 'shafii',
       reason: 'If you follow Shafi\'i jurisprudence tradition'
     });
   }
@@ -252,7 +252,7 @@ export const getRecommendationQuizQuestions = () => {
       type: 'single-choice' as const,
       options: [
         { value: 'hanafi', label: 'Hanafi' },
-        { value: 'shafi', label: 'Shafi\'i' },
+        { value: 'shafii', label: 'Shafi\'i' },
         { value: 'maliki', label: 'Maliki' },
         { value: 'hanbali', label: 'Hanbali' },
         { value: 'none', label: 'No specific madhab / Not sure' }
@@ -306,7 +306,7 @@ export const processQuizAnswers = (answers: Record<string, string | string[]>): 
     region: answers.region as string,
     assetTypes: Array.isArray(answers.assets) ? answers.assets : [answers.assets as string],
     preferredApproach: (answers.approach as any) || 'standard',
-    hasComplexAssets: Array.isArray(answers.assets) && 
+    hasComplexAssets: Array.isArray(answers.assets) &&
       answers.assets.some(a => ['crypto', 'stocks', 'business'].includes(a)),
     wantsHigherZakat: answers.approach === 'conservative'
   };
@@ -330,7 +330,7 @@ export const getRegionalStatistics = (region: string) => {
       percentage: 85
     },
     'southeast-asia': {
-      primary: 'shafi',
+      primary: 'shafii',
       secondary: 'standard',
       percentage: 80
     },

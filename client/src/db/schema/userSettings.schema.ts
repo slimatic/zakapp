@@ -52,7 +52,7 @@ export const UserSettingsSchema = {
         },
         preferredMethodology: {
             type: 'string',
-            default: 'standard' // 'standard', 'hanafi', 'shafi', 'custom'
+            default: 'standard' // 'standard', 'hanafi', 'shafii', 'custom'
         },
         preferredNisabStandard: {
             type: 'string',
