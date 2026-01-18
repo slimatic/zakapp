@@ -29,10 +29,10 @@ export const ReviewStep: React.FC = () => {
         let existingAssetsValue = 0;
 
         // Determine Methodology for Calculation
-        const madhabMap: Record<string, 'STANDARD' | 'HANAFI' | 'SHAFI'> = {
+        const madhabMap: Record<string, 'STANDARD' | 'HANAFI' | 'SHAFII'> = {
             'standard': 'STANDARD',
             'hanafi': 'HANAFI',
-            'shafii': 'SHAFI'
+            'shafii': 'SHAFII'
         };
         const selectedMethodologyName = madhabMap[data.methodology.madhab] || 'STANDARD';
 
@@ -149,7 +149,7 @@ export const ReviewStep: React.FC = () => {
             const madhabMap: Record<string, string> = {
                 'standard': 'standard',
                 'hanafi': 'hanafi',
-                'shafii': 'shafi' // Onboarding uses 'shafii', profile uses 'shafi'
+                'shafii': 'shafii' // Corrected mapping
             };
 
             await updateLocalProfile({
