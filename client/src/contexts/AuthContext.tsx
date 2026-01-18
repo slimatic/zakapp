@@ -21,6 +21,7 @@ import type { User } from '../types';
 import { authService } from '../services/auth/AuthService';
 import { Logger } from '../utils/logger';
 import { getDb } from '../db';
+import { cryptoService } from '../services/CryptoService';
 
 
 const logger = new Logger('AuthContext');
