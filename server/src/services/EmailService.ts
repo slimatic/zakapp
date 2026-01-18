@@ -150,10 +150,9 @@ export class EmailService {
         const subject = 'Verify your email for ZakApp';
 
         // Personalize greeting
-        let greeting = 'Welcome to ZakApp!';
-        if (firstName) {
-            greeting = `Salam ${firstName}, Welcome to ZakApp!`;
-        }
+        // Personalize greeting
+        // Note: firstName is encrypted (ZK), so we cannot use it in server-side emails.
+        const greeting = 'Salam, Welcome to ZakApp!';
 
         const usernameDisplay = username ? `<p style="margin: 0 0 16px 0; color: #4b5563; font-size: 14px;">Username: <strong>${username}</strong></p>` : '';
 

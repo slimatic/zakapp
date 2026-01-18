@@ -321,6 +321,64 @@ export class CryptoService {
     isEncrypted(data: any): boolean {
         return typeof data === 'string' && data.startsWith(CryptoService.ZK_PREFIX);
     }
+
+    /**
+     * Derive a temporary key from a provided password (for recovery purposes)
+     * Does NOT affect the current session masterKey.
+     */
+    async deriveTemporaryKey(password: string, salt: string): Promise<CryptoKey> {
+        const enc = new TextEncoder();
+        const keyMaterial = await window.crypto.subtle.importKey(
+            "raw",
+            enc.encode(password),
+            { name: "PBKDF2" },
+            false,
+            ["deriveBits", "deriveKey"]
+        );
+
+        return await window.crypto.subtle.deriveKey(
+            {
+                name: "PBKDF2",
+                salt: enc.encode(salt),
+                iterations: 600000,
+                hash: "SHA-256"
+            },
+            keyMaterial,
+            { name: "AES-GCM", length: 256 },
+            false, // Not extractable (temp use only)
+            ["decrypt"]
+        );
+    }
+
+    /**
+     * Decrypt data using a specific provided key (e.g. old recovery key)
+     */
+    async decryptWithKey(cipherText: string, ivBase64: string, key: CryptoKey): Promise<any> {
+        const encryptedContent = this.base64ToUint8Array(cipherText);
+        const iv = this.base64ToUint8Array(ivBase64);
+
+        try {
+            const decryptedContent = await window.crypto.subtle.decrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv as any
+                },
+                key,
+                encryptedContent as any
+            );
+
+            const dec = new TextDecoder();
+            const decoded = dec.decode(decryptedContent);
+
+            try {
+                return JSON.parse(decoded);
+            } catch {
+                return decoded;
+            }
+        } catch (e) {
+            throw new Error("Decryption failed. Invalid key or data corruption.");
+        }
+    }
 }
 
 export const cryptoService = CryptoService.getInstance();
