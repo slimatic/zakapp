@@ -30,9 +30,7 @@
       "node_modules/@types",
       "./src/types"
     ],
-    "types": [
-      "jest"
-    ],
+    "types": [],
     "paths": {
       "@/*": [
         "./src/*"
@@ -52,7 +50,9 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "src/__tests__",
+    "src/**/*.test.ts"
   ],
   "ts-node": {
     "esm": false,
