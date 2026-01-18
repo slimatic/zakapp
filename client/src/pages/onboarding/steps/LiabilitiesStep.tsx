@@ -21,7 +21,7 @@ export const LiabilitiesStep: React.FC = () => {
             <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Liabilities & Expenses</h3>
                 <p className="text-sm text-gray-500 mb-6">
-                    Deductible debts can lower your Zakat. <Link to="/learn" className="text-emerald-600 underline">Learn more about liabilities</Link>.
+                    Deductible debts can lower your Zakat. <Link to="/learn" target="_blank" rel="noopener" className="text-emerald-600 underline">Learn more about liabilities</Link>.
                 </p>
 
                 <div className="space-y-6">
