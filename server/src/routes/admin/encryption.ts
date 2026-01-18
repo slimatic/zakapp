@@ -17,12 +17,12 @@
 
 import express from 'express';
 import EncryptionAdminService from '../../services/EncryptionAdminService';
-import { requireAdmin } from '../../middleware/AuthMiddleware';
+import { requireAdmin, authenticate } from '../../middleware/AuthMiddleware';
 
 const router = express.Router();
 
 // Trigger a scan for undecryptable records and create remediation entries
-router.post('/scan', requireAdmin, async (req, res) => {
+router.post('/scan', authenticate, requireAdmin, async (req, res) => {
   try {
     const result = await EncryptionAdminService.scanForIssues();
     res.json({ success: true, created: result.created });
@@ -32,7 +32,7 @@ router.post('/scan', requireAdmin, async (req, res) => {
 });
 
 // List remediation issues
-router.get('/issues', requireAdmin, async (req, res) => {
+router.get('/issues', authenticate, requireAdmin, async (req, res) => {
   try {
     const issues = await EncryptionAdminService.listIssues();
     res.json({ success: true, issues });
@@ -42,7 +42,7 @@ router.get('/issues', requireAdmin, async (req, res) => {
 });
 
 // Retry remediation with provided key
-router.post('/:id/retry', requireAdmin, async (req, res) => {
+router.post('/:id/retry', authenticate, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { key } = req.body;
   if (!key) return res.status(400).json({ success: false, error: 'MISSING_KEY', message: 'Key is required' });
