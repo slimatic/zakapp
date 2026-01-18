@@ -35,6 +35,14 @@ export const Footer: React.FC = () => {
                         >
                             Open Source
                         </a>
+                        <a
+                            href="https://github.com/slimatic/zakapp/issues"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-emerald-600 transition-colors"
+                        >
+                            Report an Issue
+                        </a>
                     </div>
                 </div>
             </div>
