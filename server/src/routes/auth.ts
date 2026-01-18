@@ -174,7 +174,7 @@ router.post('/login',
           success: false,
           error: {
             code: 'EMAIL_NOT_VERIFIED',
-            message: 'Email verification is required to log in.'
+            message: 'Email verification is required to log in. Please check your email for the verification link.'
           }
         });
         return;
@@ -281,7 +281,7 @@ router.post('/register',
     // Normalize email to lowercase first
     req.body.email = req.body.email.toLowerCase();
 
-    const { email: normalizedEmail, username, password, firstName, lastName, phoneNumber, dateOfBirth, salt } = req.body;
+    const { email: normalizedEmail, username, password, firstName, lastName, phoneNumber, dateOfBirth, salt, plainFirstName } = req.body;
 
     try {
       // Check if user already exists in database by email
@@ -383,7 +383,7 @@ router.post('/register',
           }
         });
 
-        await emailService.sendVerificationEmail(normalizedEmail, token, firstName, username);
+        await emailService.sendVerificationEmail(normalizedEmail, token, plainFirstName || firstName, username);
       } catch (err) {
         logger.error('Failed to initiate email verification', err);
       }

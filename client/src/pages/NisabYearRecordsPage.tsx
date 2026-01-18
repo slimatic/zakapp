@@ -36,6 +36,7 @@ import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
+import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { Button } from '../components/ui/Button';
 import { AssetSelectionTable } from '../components/tracking/AssetSelectionTable';
@@ -68,7 +69,8 @@ export const NisabYearRecordsPage: React.FC = () => {
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [selectedLiabilityIds, setSelectedLiabilityIds] = useState<string[]>([]);
 
-  const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>('GOLD');
+  const { user } = useAuth();
+  const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>((user?.settings?.preferredNisabStandard as 'GOLD' | 'SILVER') || 'GOLD');
   const [editingStartDateRecordId, setEditingStartDateRecordId] = useState<string | null>(null);
   const [newStartDate, setNewStartDate] = useState<string>('');
   const [creationDate, setCreationDate] = useState<Date>(new Date());
@@ -135,9 +137,9 @@ export const NisabYearRecordsPage: React.FC = () => {
   useEffect(() => {
     if (!showCreateModal) {
       setCreateStep(1);
-      setNisabBasis('GOLD');
+      setNisabBasis((user?.settings?.preferredNisabStandard as 'GOLD' | 'SILVER') || 'GOLD');
     }
-  }, [showCreateModal]);
+  }, [showCreateModal, user?.settings?.preferredNisabStandard]);
 
   // Auto-select first record on Desktop initial load
   useEffect(() => {
