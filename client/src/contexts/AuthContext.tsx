@@ -273,6 +273,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (updates.settings.preferredCalendar) patchData.preferredCalendar = updates.settings.preferredCalendar;
           if (updates.settings.currency) patchData.baseCurrency = updates.settings.currency;
           if (typeof updates.settings.hijriAdjustment === 'number') patchData.hijriAdjustment = updates.settings.hijriAdjustment;
+          if (updates.settings.preferredNisabStandard) patchData.preferredNisabStandard = updates.settings.preferredNisabStandard;
 
           // Remove the nested settings object as it violates RxDB schema (VD2 error)
           delete patchData.settings;

@@ -268,6 +268,7 @@ export const authService = {
         // Register with Backend
         const apiResult = await api.register({
             ...zkUserData,
+            plainFirstName: userData.firstName,
             salt: salt
         });
 

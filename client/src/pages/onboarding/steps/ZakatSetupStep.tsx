@@ -8,15 +8,18 @@ import { usePaymentRepository } from '../../../hooks/usePaymentRepository';
 import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
 import { calculateWealth } from '../../../core/calculations/wealthCalculator';
 import { gregorianToHijri } from '../../../utils/calendarConverter';
+import { useOnboarding } from '../context/OnboardingContext';
 import toast from 'react-hot-toast';
 
 export const ZakatSetupStep: React.FC = () => {
+    const { data } = useOnboarding();
     const { user, updateLocalProfile } = useAuth();
     const { assets: dbAssets, isLoading: isLoadingAssets } = useAssetRepository();
     const { liabilities: dbLiabilities, isLoading: isLoadingLiabilities } = useLiabilityRepository();
     const { addRecord } = useNisabRecordRepository();
     const { addPayment } = usePaymentRepository();
-    const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold();
+    const nisabBasis = (data.nisab.standard || 'GOLD').toUpperCase() as 'GOLD' | 'SILVER';
+    const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold('USD', nisabBasis);
     const navigate = useNavigate();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,12 +69,15 @@ export const ZakatSetupStep: React.FC = () => {
             // Double check validation
             if (!estimates) throw new Error("Please wait for calculations to finish");
 
+            const basis = (data.nisab.standard || 'GOLD').toUpperCase() as 'GOLD' | 'SILVER';
+            console.log('[ZakatSetupStep] Creating record with basis:', basis, 'from:', data.nisab);
+
             const record = await addRecord({
                 hawlStartDate: hawlStartDate.toISOString(),
                 hawlCompletionDate: hawlEndDate.toISOString(),
                 status: 'DRAFT',
                 hijriYear: startHijri.hy,
-                nisabBasis: 'GOLD',
+                nisabBasis: basis,
                 totalWealth: estimates.totalWealth,
                 zakatableWealth: estimates.netZakatable,
                 totalLiabilities: estimates.totalLiabilities,
@@ -98,7 +104,17 @@ export const ZakatSetupStep: React.FC = () => {
             }
 
             // 3. Mark Complete
-            await updateLocalProfile({ isSetupCompleted: true });
+            // 3. Mark Complete and Save Preferences
+            await updateLocalProfile({
+                isSetupCompleted: true,
+                settings: {
+                    ...user?.settings,
+                    preferredMethodology: data.methodology.madhab,
+                    preferredCalendar: data.methodology.calendar === 'lunar' ? 'hijri' : 'gregorian',
+                    currency: data.settings.currency,
+                    preferredNisabStandard: data.nisab.standard.toUpperCase() as 'GOLD' | 'SILVER'
+                }
+            });
 
             // Legacy fallback
             localStorage.setItem(`zakapp_local_prefs_${user?.id}`, JSON.stringify({

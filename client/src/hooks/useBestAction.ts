@@ -21,9 +21,10 @@ export const useBestAction = (
     isOnboardingComplete: boolean = false
 ): BestAction | null => {
     return useMemo(() => {
-        // 1. Alert: Zakat Due (Highest Priority - Always interrupts)
         const isZakatDue = activeRecord?.hawlCompletionDate &&
             new Date(activeRecord.hawlCompletionDate) <= new Date();
+
+        console.log('[useBestAction] State:', { isZakatDue, activeRecordId: activeRecord?.id, hasActiveRecord, isOnboardingComplete });
 
         if (isZakatDue) {
             return {
@@ -31,7 +32,7 @@ export const useBestAction = (
                 title: 'Zakat Payment Due',
                 description: `Your Hawl period ended on ${new Date(activeRecord.hawlCompletionDate!).toLocaleDateString()}. Finalize record & pay Zakat.`,
                 label: 'Pay Zakat Now',
-                href: `/nisab-records/${activeRecord.id}`,
+                href: `/payments`,
                 variant: 'urgent',
                 stepNumber: 3
             };
