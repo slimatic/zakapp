@@ -96,7 +96,7 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
         description: 'Uses lower of silver or gold nisab. More inclusive approach.'
       },
       {
-        methodology: 'shafi',
+        methodology: 'shafii',
         methodologyName: "Shafi'i",
         nisabThreshold: 5500, // Gold-based (85g)
         nisabType: 'Gold-based (85g)',
@@ -242,10 +242,10 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
               <div
                 key={result.methodology}
                 className={`bg-white rounded-lg border-2 p-6 transition-all ${isHighest && totalWealth > 0
-                    ? 'border-red-500 shadow-lg'
-                    : isLowest && totalWealth > 0
-                      ? 'border-green-500 shadow-lg'
-                      : 'border-gray-200'
+                  ? 'border-red-500 shadow-lg'
+                  : isLowest && totalWealth > 0
+                    ? 'border-green-500 shadow-lg'
+                    : 'border-gray-200'
                   }`}
               >
                 {/* Badge for highest/lowest */}

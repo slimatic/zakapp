@@ -57,14 +57,14 @@ interface CalculationTrendsProps {
 const METHODOLOGY_COLORS = {
   standard: '#3B82F6', // Blue
   hanafi: '#10B981',   // Green
-  shafi: '#8B5CF6',    // Purple
+  shafii: '#8B5CF6',    // Purple
   custom: '#6B7280'    // Gray
 };
 
 const METHODOLOGY_NAMES: Record<string, string> = {
   standard: 'Standard (AAOIFI)',
   hanafi: 'Hanafi',
-  shafi: "Shafi'i",
+  shafii: "Shafi'i",
   custom: 'Custom'
 };
 
@@ -116,7 +116,7 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
           Calculation Trends
         </h2>
-        
+
         {/* Period Selector */}
         <select
           value={selectedPeriod}
@@ -140,21 +140,21 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
             {combinedData.length}
           </p>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <p className="text-sm text-gray-500 dark:text-gray-400">Average Wealth</p>
           <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">
             {formatCompactCurrency(averages.wealth)}
           </p>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <p className="text-sm text-gray-500 dark:text-gray-400">Average Zakat</p>
           <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
             {formatCompactCurrency(averages.zakat)}
           </p>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <p className="text-sm text-gray-500 dark:text-gray-400">Total Zakat</p>
           <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
@@ -171,42 +171,42 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={combinedData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis 
-              dataKey="date" 
+            <XAxis
+              dataKey="date"
               stroke="#9CA3AF"
               style={{ fontSize: '12px' }}
             />
-            <YAxis 
+            <YAxis
               stroke="#9CA3AF"
               style={{ fontSize: '12px' }}
               tickFormatter={formatCompactCurrency}
             />
-            <Tooltip 
+            <Tooltip
               formatter={(value: any, name: string) => [
-                formatCompactCurrency(value), 
+                formatCompactCurrency(value),
                 name === 'wealth' ? 'Total Wealth' : 'Zakat Due'
               ]}
               labelStyle={{ color: '#111827' }}
-              contentStyle={{ 
-                backgroundColor: '#F9FAFB', 
+              contentStyle={{
+                backgroundColor: '#F9FAFB',
                 border: '1px solid #D1D5DB',
                 borderRadius: '8px'
               }}
             />
             <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="wealth" 
-              stroke="#3B82F6" 
+            <Line
+              type="monotone"
+              dataKey="wealth"
+              stroke="#3B82F6"
               strokeWidth={3}
               name="Total Wealth"
               dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
             />
-            <Line 
-              type="monotone" 
-              dataKey="zakat" 
-              stroke="#10B981" 
+            <Line
+              type="monotone"
+              dataKey="zakat"
+              stroke="#10B981"
               strokeWidth={3}
               name="Zakat Due"
               dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
@@ -253,15 +253,15 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={methodologyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="name" 
+                <XAxis
+                  dataKey="name"
                   stroke="#9CA3AF"
                   style={{ fontSize: '12px' }}
                   angle={-15}
                   textAnchor="end"
                   height={80}
                 />
-                <YAxis 
+                <YAxis
                   stroke="#9CA3AF"
                   style={{ fontSize: '12px' }}
                   allowDecimals={false}

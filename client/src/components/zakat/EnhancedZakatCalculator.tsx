@@ -29,7 +29,7 @@ import { CalculationExplanation } from './CalculationExplanation';
 import { MethodologySelector } from './MethodologySelector';
 
 export interface EnhancedZakatCalculatorProps {
-  initialMethodology?: 'standard' | 'hanafi' | 'shafi' | 'custom';
+  initialMethodology?: 'standard' | 'hanafi' | 'shafii' | 'custom';
   showAnimations?: boolean;
   className?: string;
 }
@@ -48,7 +48,7 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
   className = ''
 }) => {
   // State management
-  const [methodology, setMethodology] = useState<'standard' | 'hanafi' | 'shafi' | 'custom'>(initialMethodology);
+  const [methodology, setMethodology] = useState<'standard' | 'hanafi' | 'shafii' | 'custom'>(initialMethodology);
   const [currentStep, setCurrentStep] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationComplete, setCalculationComplete] = useState(false);
@@ -115,7 +115,7 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
       case 'hanafi':
         setNisabThreshold(3000); // Lower threshold (silver-based)
         break;
-      case 'shafi':
+      case 'shafii':
         setNisabThreshold(5500); // Gold-based
         break;
       case 'standard':
@@ -141,7 +141,7 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
     // Simulate calculation process with animation
     setTimeout(() => {
       const zakatRate = 0.025; // 2.5%
-      
+
       // Build asset breakdowns matching CalculationBreakdown interface
       const breakdowns = [
         {
@@ -210,7 +210,7 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
       ].filter(cat => cat.totalValue > 0);
 
       const total = breakdowns.reduce((sum, cat) => sum + cat.zakatDue, 0);
-      
+
       setAssetCategories(breakdowns);
       setTotalZakat(total);
       setIsCalculating(false);
@@ -251,11 +251,10 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
             <React.Fragment key={step.id}>
               <div className="flex flex-col items-center flex-1">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                    currentStep >= index
+                  className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${currentStep >= index
                       ? 'bg-green-500 border-green-500 text-white'
                       : 'bg-white border-gray-300 text-gray-400'
-                  }`}
+                    }`}
                 >
                   {currentStep > index ? '✓' : index + 1}
                 </div>
@@ -270,9 +269,8 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
               </div>
               {index < steps.length - 1 && (
                 <div
-                  className={`flex-1 h-1 mx-2 transition-all duration-300 ${
-                    currentStep > index ? 'bg-green-500' : 'bg-gray-300'
-                  }`}
+                  className={`flex-1 h-1 mx-2 transition-all duration-300 ${currentStep > index ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
                   style={{ maxWidth: '100px' }}
                 />
               )}
@@ -382,7 +380,7 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
               nisabType={methodology === 'hanafi' ? 'silver' : 'gold'}
               showDetails={true}
             />
-            
+
             {totalWealth >= nisabThreshold && (
               <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
                 <p className="text-lg text-gray-700 mb-4">
@@ -407,7 +405,7 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
                 </button>
               </div>
             )}
-            
+
             <div className="flex justify-between">
               <button
                 onClick={prevStep}

@@ -213,7 +213,7 @@ export const History: React.FC = () => {
     const icons = {
       standard: '⚖️',
       hanafi: '🕌',
-      shafi: '📖',
+      shafii: '📖',
       custom: '⚙️'
     };
     return icons[methodology as keyof typeof icons] || '⚖️';
@@ -273,21 +273,21 @@ export const History: React.FC = () => {
               {formatCurrency(getTotalZakatThisYear())}
             </div>
           </div>
-          
+
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="text-sm font-medium text-gray-600">Paid This Year</div>
             <div className="text-2xl font-bold text-green-600 mt-1">
               {formatCurrency(getTotalPaidThisYear())}
             </div>
           </div>
-          
+
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="text-sm font-medium text-gray-600">Remaining</div>
             <div className="text-2xl font-bold text-orange-600 mt-1">
               {formatCurrency(getTotalZakatThisYear() - getTotalPaidThisYear())}
             </div>
           </div>
-          
+
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="text-sm font-medium text-gray-600">Total Calculations</div>
             <div className="text-2xl font-bold text-gray-900 mt-1">
@@ -309,11 +309,10 @@ export const History: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 ${
-                    activeTab === tab.id
+                  className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 ${activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   <span>{tab.icon}</span>
                   <span>{tab.label}</span>
@@ -351,7 +350,7 @@ export const History: React.FC = () => {
                     <option value="all">All Methodologies</option>
                     <option value="standard">Standard</option>
                     <option value="hanafi">Hanafi</option>
-                    <option value="shafi">Shafi'i</option>
+                    <option value="shafii">Shafi'i</option>
                     <option value="custom">Custom</option>
                   </select>
                   <select
@@ -378,10 +377,10 @@ export const History: React.FC = () => {
                               {calculation.name}
                             </h3>
                             <p className="text-sm text-gray-600 mt-1">
-                              Calculated on {formatDate(calculation.calculationDate)} 
+                              Calculated on {formatDate(calculation.calculationDate)}
                               using {calculation.methodology} methodology
                             </p>
-                            
+
                             <div className="flex items-center space-x-4 mt-3">
                               <div className="text-sm">
                                 <span className="font-medium text-gray-600">Total Assets:</span>
@@ -398,7 +397,7 @@ export const History: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-3">
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(calculation.status)}`}>
                             {getStatusIcon(calculation.status)} {calculation.status}
@@ -438,7 +437,7 @@ export const History: React.FC = () => {
                               {getStatusIcon(payment.status)} {payment.status}
                             </span>
                           </div>
-                          
+
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                               <span className="font-medium text-gray-600">Date:</span>
@@ -465,7 +464,7 @@ export const History: React.FC = () => {
                               </div>
                             </div>
                           </div>
-                          
+
                           {payment.notes && (
                             <div className="mt-3 p-3 bg-gray-50 rounded text-sm">
                               <span className="font-medium text-gray-600">Notes:</span>
@@ -473,7 +472,7 @@ export const History: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="flex flex-col space-y-2 ml-4">
                           <Button size="sm" variant="secondary">
                             Edit
@@ -533,9 +532,9 @@ export const History: React.FC = () => {
                     <tbody className="divide-y divide-gray-100">
                       {mockYearlySnapshots.map((snapshot, index) => {
                         const previousYear = mockYearlySnapshots[index + 1];
-                        const growth = previousYear ? 
+                        const growth = previousYear ?
                           ((snapshot.totalAssets - previousYear.totalAssets) / previousYear.totalAssets * 100) : 0;
-                        
+
                         return (
                           <tr key={snapshot.year}>
                             <td className="py-3 px-4 font-medium text-gray-900">
@@ -548,9 +547,8 @@ export const History: React.FC = () => {
                               {formatCurrency(snapshot.zakatAmount)}
                             </td>
                             <td className="py-3 px-4">
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                snapshot.isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${snapshot.isPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                }`}>
                                 {snapshot.isPaid ? '✅ Paid' : '❌ Unpaid'}
                               </span>
                             </td>
