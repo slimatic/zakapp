@@ -162,7 +162,7 @@ export const CalculationComparison: React.FC = () => {
     const names: Record<string, string> = {
       'standard': 'Standard (AAOIFI)',
       'hanafi': 'Hanafi',
-      'shafi': "Shafi'i",
+      'shafii': "Shafi'i",
       'custom': 'Custom'
     };
     return names[methodology] || methodology;
@@ -172,7 +172,7 @@ export const CalculationComparison: React.FC = () => {
     const colors: Record<string, string> = {
       'standard': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
       'hanafi': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-      'shafi': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+      'shafii': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
       'custom': 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
     };
     return colors[methodology] || colors.custom;
@@ -235,11 +235,10 @@ export const CalculationComparison: React.FC = () => {
             availableCalculations.map((calc) => (
               <label
                 key={calc.id}
-                className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                  selectedIds.includes(calc.id)
+                className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-colors ${selectedIds.includes(calc.id)
                     ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                     : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
-                }`}
+                  }`}
               >
                 <input
                   type="checkbox"

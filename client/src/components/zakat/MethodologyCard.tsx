@@ -21,48 +21,48 @@ export interface MethodologyCardProps {
   /**
    * Methodology identifier
    */
-  id: 'standard' | 'hanafi' | 'shafi' | 'custom';
-  
+  id: 'standard' | 'hanafi' | 'shafii' | 'custom';
+
   /**
    * Display name of the methodology
    */
   name: string;
-  
+
   /**
    * Short description
    */
   description: string;
-  
+
   /**
    * Key characteristics (3-4 bullet points)
    */
   characteristics: string[];
-  
+
   /**
    * Icon or emoji to represent the methodology
    */
   icon?: string;
-  
+
   /**
    * Whether this methodology is selected
    */
   isSelected?: boolean;
-  
+
   /**
    * Whether this is the recommended methodology
    */
   isRecommended?: boolean;
-  
+
   /**
    * Click handler
    */
   onClick?: () => void;
-  
+
   /**
    * Learn more handler
    */
   onLearnMore?: () => void;
-  
+
   /**
    * Whether the card is disabled
    */
