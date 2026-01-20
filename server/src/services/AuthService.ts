@@ -20,6 +20,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
+import { DEFAULT_LIMITS } from '../config/limits';
 
 const prisma = new PrismaClient();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '[REDACTED]';
@@ -102,7 +103,7 @@ export class AuthService {
     const encryptedProfile = await EncryptionService.encrypt(JSON.stringify(profileData), ENCRYPTION_KEY);
     const encryptedSettings = await EncryptionService.encrypt(JSON.stringify(settingsData), ENCRYPTION_KEY);
 
-    // Create user
+    // Create user with default limits from environment configuration
     const user = await prisma.user.create({
       data: {
         username: userData.username,
@@ -110,7 +111,12 @@ export class AuthService {
         passwordHash: hashedPassword,
         profile: encryptedProfile,
         settings: encryptedSettings,
-        isActive: true
+        isActive: true,
+        // Set default limits from environment variables
+        maxAssets: DEFAULT_LIMITS.MAX_ASSETS,
+        maxNisabRecords: DEFAULT_LIMITS.MAX_NISAB_RECORDS,
+        maxPayments: DEFAULT_LIMITS.MAX_PAYMENTS,
+        maxLiabilities: DEFAULT_LIMITS.MAX_LIABILITIES
       }
     });
 
