@@ -57,7 +57,17 @@ import { MaintenanceMiddleware } from './middleware/MaintenanceMiddleware';
 const app = express();
 
 // Security middleware
-app.use(helmet());
+// Security middleware
+app.use(helmet({
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true
+  },
+  // If we are behind a proxy (Cloudflare/Nginx), we might want to trust the proxy's headers,
+  // but Helmet generally sets headers on the response.
+  contentSecurityPolicy: false // We are handling CSP in Nginx for the frontend, and API doesn't strictly need one but good to have. Disabling here to avoid conflict or confusion if Nginx strips it.
+}));
 
 // Maintenance Mode - must be early in middleware chain
 const maintenanceMw = new MaintenanceMiddleware();

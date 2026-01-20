@@ -1,21 +1,24 @@
 version: '3.8'
 
 # Production Deployment Configuration
-# Usage: docker-compose -f docker-compose.prod.yml up -d
+# Usage: docker-compose -f docker-compose.prod.yml up -d --build
 
 services:
   # 1. CouchDB (Required for Sync)
   couchdb:
-    image: apache/couchdb:3.3.2
+    image: apache/couchdb:3.5.1
     container_name: zakapp-prod-couchdb
     restart: always
     environment:
-      - COUCHDB_USER=${COUCHDB_USER:-admin}
-      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-password}
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      # Dynamic CORS configuration
+      - COUCHDB_ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000}}
     volumes:
-      - couchdb_data:/opt/couchdb/data
+      - ./couchdb-data:/opt/couchdb/data
     ports:
-      - "5984:5984"
+      - "${COUCHDB_PORT:-5984}:${COUCHDB_INTERNAL_PORT:-5984}"
+      - "${COUCHDB_HTTPS_PORT:-6984}:6984"
 
   # 2. Backend API (Production Build)
   backend:
@@ -29,27 +32,27 @@ services:
       - couchdb
     environment:
       - NODE_ENV=production
-      - PORT=3001
+      - PORT=${BACKEND_INTERNAL_PORT:-3001}
       - DATABASE_URL=file:/app/server/prisma/data/prod.db?connection_limit=1
       # CouchDB Connection
       - COUCHDB_URL=${COUCHDB_URL:-http://couchdb:5984}
-      - COUCHDB_USER=${COUCHDB_USER:-admin}
-      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-password}
-      - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET:-change-me-in-prod-min-32-chars}
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET}
       # Security & App
-      - JWT_SECRET=${JWT_SECRET:-change-me-in-prod-min-32-chars}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - JWT_SECRET=${JWT_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
       - GOLD_API_KEY=${GOLD_API_KEY}
+      - APP_URL=${APP_URL:-http://localhost:${FRONTEND_PORT:-3000}}
     volumes:
       - backend_data:/app/server/prisma/data
       # Mount backups directory for persistence
       - ./backups:/app/server/backups
     ports:
-      - "3001:3001"
-    # Healthcheck to ensure it's up before frontend/nginx relies on it (optional but good)
+      - "${BACKEND_PORT:-3001}:${BACKEND_INTERNAL_PORT:-3001}"
     healthcheck:
-        test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+        test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${BACKEND_INTERNAL_PORT:-3001}/health"]
         interval: 30s
         timeout: 10s
         retries: 3
@@ -66,7 +69,8 @@ services:
     depends_on:
       - backend
     ports:
-      - "3000:80"
+      # Maps Host Port (default 3000) to Container Port 80 (Nginx)
+      - "${FRONTEND_PORT:-3000}:80"
     environment:
       # These are injected into window.APP_CONFIG by nginx-entrypoint.sh at runtime
       - REACT_APP_API_BASE_URL=/api
@@ -77,3 +81,7 @@ services:
 volumes:
   couchdb_data:
   backend_data:
+
+networks:
+  default:
+    name: zakapp-prod
