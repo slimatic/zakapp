@@ -21,6 +21,7 @@ services:
       - COUCHDB_CORS_METHODS=GET, PUT, POST, HEAD, DELETE
     volumes:
       - ./couchdb-data:/opt/couchdb/data
+      - ./docker/couchdb.ini:/opt/couchdb/etc/local.d/custom_cors.ini
     ports:
       - "${COUCHDB_PORT:-5984}:${COUCHDB_INTERNAL_PORT:-5984}"
       - "${COUCHDB_HTTPS_PORT:-6984}:6984"
@@ -75,6 +76,8 @@ services:
     restart: always
     depends_on:
       - backend
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
     ports:
       # Maps Host Port (default 3000) to Container Port 80 (Nginx)
       - "${FRONTEND_PORT:-3000}:80"
