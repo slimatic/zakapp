@@ -33,6 +33,9 @@ RUN cd shared && npm run build
 # Generate Prisma client
 RUN cd server && npx prisma generate
 
+# Build server (TypeScript -> JS)
+RUN cd server && npm run build
+
 # Build client (React app)
 RUN cd client && npm run build
 
