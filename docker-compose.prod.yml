@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Production Deployment Configuration
 # Usage: docker-compose -f docker-compose.prod.yml up -d --build
 
@@ -12,7 +10,6 @@ services:
     environment:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
-      # Dynamic CORS configuration
       # CORS Configuration
       - COUCHDB_HTTPD_ENABLE_CORS=true
       - COUCHDB_CORS_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000},https://app.zakapp.org}
@@ -36,35 +33,16 @@ services:
     restart: always
     depends_on:
       - couchdb
+    # Load ALL variables from .env file (same as dev compose)
+    env_file:
+      - .env
+    # Explicit overrides for production-specific values
     environment:
       - NODE_ENV=production
       - PORT=${BACKEND_INTERNAL_PORT:-3001}
       - DATABASE_URL=file:/app/server/prisma/data/prod.db?connection_limit=1
-      # CouchDB Connection
+      # CouchDB Connection (internal Docker network)
       - COUCHDB_URL=${COUCHDB_URL:-http://couchdb:5984}
-      - COUCHDB_USER=${COUCHDB_USER}
-      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
-      - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET}
-      # Security & App
-      - JWT_SECRET=${JWT_SECRET}
-      - REFRESH_SECRET=${REFRESH_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
-      - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
-      - GOLD_API_KEY=${GOLD_API_KEY}
-      - APP_URL=${APP_URL:-http://localhost:${FRONTEND_PORT:-3000}}
-      # Admin Access
-      - ADMIN_EMAILS=${ADMIN_EMAILS}
-      # Encryption (APP_SECRET used by SettingsService)
-      - APP_SECRET=${APP_SECRET}
-      # Email / SMTP Configuration
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT}
-      - SMTP_SECURE=${SMTP_SECURE}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
-      - SMTP_FROM=${SMTP_FROM}
-      - RESEND_API_KEY=${RESEND_API_KEY}
     volumes:
       - backend_data:/app/server/prisma/data
       # Mount backups directory for persistence
@@ -93,12 +71,12 @@ services:
     ports:
       # Maps Host Port (default 3000) to Container Port 80 (Nginx)
       - "${FRONTEND_PORT:-3000}:80"
+    # Load ALL variables from .env file (same as dev compose)
+    env_file:
+      - .env
+    # Explicit overrides for production-specific values
     environment:
-      # These are injected into window.APP_CONFIG by nginx-entrypoint.sh at runtime
       - REACT_APP_API_BASE_URL=/api
-      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL:-http://localhost:5984}
-      - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
-      - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
 
 volumes:
   couchdb_data:
