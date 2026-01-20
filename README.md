@@ -41,7 +41,7 @@ ZakApp Re-imagines the wealth purification experience by prioritizing user priva
 
 ```bash
 # Clone the repository
-git clone https://github.com/zakapp/zakapp.git
+git clone https://github.com/slimatic/zakapp.git
 
 # Install dependencies (Root)
 npm install
