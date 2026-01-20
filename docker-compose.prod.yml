@@ -53,6 +53,18 @@ services:
       - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
       - GOLD_API_KEY=${GOLD_API_KEY}
       - APP_URL=${APP_URL:-http://localhost:${FRONTEND_PORT:-3000}}
+      # Admin Access
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
+      # Encryption (APP_SECRET used by SettingsService)
+      - APP_SECRET=${APP_SECRET}
+      # Email / SMTP Configuration
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURE=${SMTP_SECURE}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
+      - RESEND_API_KEY=${RESEND_API_KEY}
     volumes:
       - backend_data:/app/server/prisma/data
       # Mount backups directory for persistence
