@@ -30,84 +30,61 @@ ZakApp Re-imagines the wealth purification experience by prioritizing user priva
 -   **Offline-First & PWA**: Installable as a native app with full offline capabilities (pwa-install).
 -   **Responsive Design**: optimized for all device sizes with mobile-first UX.
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### Prerequisites
-
--   Node.js v18+
--   npm or yarn
-
-### Installation
+### Option 1: Self-Host with Docker (Recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/slimatic/zakapp.git
-
-# Install dependencies (Root)
-npm install
-
-# Install dependencies (Client)
-cd client
-npm install
+git clone https://github.com/slimatic/zakapp.git && cd zakapp
+cp .env.example .env   # Edit this file with your secrets!
+docker compose up -d
 ```
 
-### Running Locally
+Visit `http://localhost:3000` — you're running! 🎉
+
+📖 **[Complete Self-Hosting Guide →](SELF-HOSTING.md)** — Production setup, Cloudflare Tunnel, backups, and more.
+
+### Option 2: Development Mode
 
 ```bash
-# Start the Vite Development Server
-npm run dev
-```
+# Clone and install
+git clone https://github.com/slimatic/zakapp.git && cd zakapp
+npm run install-all
 
-Visit `http://localhost:3000` to view the app.
+# Start both client and server
+npm start
+```
 
 ## 🛠 Tech Stack
 
 -   **Frontend**: React 18, Vite, Tailwind CSS, shadcn/ui.
--   **Local Database**: RxDB (Reactive Database) using SQLite-WASM.
+-   **Backend**: Node.js, Express, Prisma (SQLite).
+-   **Sync**: CouchDB for multi-device sync.
 -   **Security**: Client-side AES-GCM (256-bit) powered by Web Crypto API.
 
 Detailed technical details can be found in our [Architecture Guide](docs/ARCHITECTURE.md).
 
-## 🚀 Getting Started
-
-### The Quick Way (Docker Compose)
-
-The fastest way to run ZakApp locally with the sync relay is via Docker Compose:
-
-```bash
-docker compose up -d
-```
-Visit `http://localhost:3000` to start your Zakat journey.
-
-### Manual Installation (Developer Mode)
-
-If you prefer to run the components independently:
-
-```bash
-# Install all dependencies (Root)
-npm run install-all
-
-# Start both Client and Server concurrently
-npm start
-```
-
 ## 🔄 Sync & Multi-Device Setup
 
-ZakApp supports private, end-to-end encrypted synchronization between devices using a self-hosted CouchDB instance.
+ZakApp supports private, end-to-end encrypted synchronization between devices using CouchDB.
 
-### Running the Sync Server
-
-1.  Ensure Docker is installed.
-2.  Run the stack:
-    ```bash
-    docker compose up -d
-    ```
-    This spins up a CouchDB instance on port `5984` and the App on `3000`.
+-   **Local Development**: Sync is included in `docker compose up -d`
+-   **Production**: See [Self-Hosting Guide](SELF-HOSTING.md) for secure setup
 
 ### Troubleshooting Sync
 
--   **Infinite "Syncing..."**: Check that `CouchDB` is reachable at `http://localhost:5984/_utils`. If running on a different device on the LAN, ensure the firewall allows port 5984.
--   **Mobile Access**: Mobile browsers require a **Secure Context** (HTTPS) for cryptography. accessing via `http://192.168.x.x` will fail. Use a tunnel (ngrok) or `chrome://flags` to bypass.
+-   **Infinite "Syncing..."**: Check that `CouchDB` is reachable at `http://localhost:5984/_utils`
+-   **Mobile Access**: Mobile browsers require HTTPS. Use Cloudflare Tunnel or a reverse proxy.
+
+## 📚 Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Self-Hosting Guide](SELF-HOSTING.md) | Deploy ZakApp on your own server |
+| [Zakat FAQ](FAQs.md) | Islamic finance questions answered |
+| [Deployment Guide](docs/deployment-guide.md) | Advanced deployment options |
+| [Troubleshooting](docs/troubleshooting-faq.md) | Common issues and solutions |
+| [API Reference](docs/api-specification.md) | REST API documentation |
 
 ## 🤝 Contributing
 
@@ -121,3 +98,4 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 
 -   Open Source Islamic Finance Initiative
 -   RxDB for the incredible Local-First database engine.
+
