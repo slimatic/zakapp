@@ -42,8 +42,8 @@ RUN cd client && npm run build
 # Production stage - Frontend (nginx)
 FROM nginx:alpine AS frontend-production
 
-# Copy client build (Create React App builds to 'build' directory)
-COPY --from=builder /app/client/build /usr/share/nginx/html
+# Copy client build (Vite builds to 'dist' directory, CRA used 'build')
+COPY --from=builder /app/client/dist /usr/share/nginx/html
 
 # Copy custom nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
