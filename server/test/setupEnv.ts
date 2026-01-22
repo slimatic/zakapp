@@ -15,6 +15,7 @@ if (process.env.TEST_DATABASE_URL) {
 
 // Ensure ENCRYPTION_KEY has a default during tests to avoid runtime errors
 process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'test-encryption-key-32-bytes!';
+process.env.JWT_SECRET = 'supersecret';
 
 // Polyfill File for environments where it's missing (needed by some undici/fetch versions)
 if (typeof File === 'undefined') {

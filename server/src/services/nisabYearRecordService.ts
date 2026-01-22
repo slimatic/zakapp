@@ -168,10 +168,10 @@ export class NisabYearRecordService {
         hawlCompletionDateHijri: dto.hawlCompletionDateHijri,
         nisabBasis: dto.nisabBasis || 'GOLD',
         status: 'DRAFT',
-        nisabThreshold: nisabData.selectedNisab.toString(), // Deprecated but required
+        nisabThreshold: (dto.nisabThresholdAtStart ?? nisabData.selectedNisab).toString(), // Deprecated but required
         nisabType: dto.nisabBasis || 'GOLD', // Deprecated but required
         nisabThresholdAtStart: await EncryptionService.encrypt(
-          nisabData.selectedNisab.toString(),
+          (dto.nisabThresholdAtStart ?? nisabData.selectedNisab).toString(),
           process.env.ENCRYPTION_KEY!
         ),
         calculationDate: new Date(),
@@ -769,6 +769,7 @@ export class NisabYearRecordService {
     const decryptedTotalLiabilities = await safeDecrypt(record.totalLiabilities as string | null | undefined);
     const decryptedZakatableWealth = await safeDecrypt(record.zakatableWealth as string | null | undefined);
     const decryptedZakatAmount = await safeDecrypt(record.zakatAmount as string | null | undefined);
+    const decryptedNisabThreshold = await safeDecrypt(record.nisabThresholdAtStart as string | null | undefined);
 
     const baseRecord: NisabYearRecord = {
       id: record.id,
@@ -777,7 +778,7 @@ export class NisabYearRecordService {
       hawlStartDateHijri: record.hawlStartDateHijri || '',
       hawlCompletionDate: record.hawlCompletionDate as Date | string,
       hawlCompletionDateHijri: record.hawlCompletionDateHijri || '',
-      nisabThresholdAtStart: record.nisabThresholdAtStart,
+      nisabThresholdAtStart: Number(decryptedNisabThreshold),
       nisabBasis: (record.nisabBasis as NisabBasis) || 'GOLD',
       totalWealth: decryptedTotalWealth,
       totalLiabilities: decryptedTotalLiabilities,

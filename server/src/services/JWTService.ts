@@ -40,6 +40,11 @@ export class JWTService {
     if (!hasAccessSecret || !hasRefreshSecret) {
       console.warn('JWT secrets not found in environment variables. Using generated secrets (not recommended for production).');
     }
+    console.error('JWTService initialized. Access Secret:', this.accessTokenSecret);
+    console.error('JWTService Env:', {
+      JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
+      JWT_SECRET: process.env.JWT_SECRET
+    });
   }
 
   /**

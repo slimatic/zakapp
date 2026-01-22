@@ -380,7 +380,7 @@ export class CalculationHistoryService {
         zakatDue: parseFloat(await EncryptionService.decrypt(calculation.zakatDue, ENCRYPTION_KEY)),
         zakatRate: calculation.zakatRate,
         assetBreakdown: JSON.parse(await EncryptionService.decrypt(calculation.assetBreakdown, ENCRYPTION_KEY)),
-        notes: calculation.notes ? await EncryptionService.decrypt(calculation.notes, ENCRYPTION_KEY) : null,
+        notes: calculation.notes !== null ? await EncryptionService.decrypt(calculation.notes, ENCRYPTION_KEY) : null,
         metadata: calculation.metadata ? JSON.parse(await EncryptionService.decrypt(calculation.metadata, ENCRYPTION_KEY)) : null,
         createdAt: calculation.createdAt,
         updatedAt: calculation.updatedAt

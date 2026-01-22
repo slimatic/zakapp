@@ -1,22 +1,15 @@
-import { vi, type Mock } from 'vitest';
-/**
- * Copyright (c) 2024 ZakApp Contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
+import { vi, describe, it, expect } from 'vitest';
 import { WealthAggregationService } from '../wealthAggregationService';
+import { EncryptionService } from '../EncryptionService';
+
+// Mock EncryptionService
+vi.mock('../EncryptionService', () => {
+  return {
+    EncryptionService: class {
+      static decryptObject = vi.fn();
+    }
+  };
+});
 
 describe('WealthAggregationService.getZakatableAssets', () => {
   it('respects encrypted metadata zakatEligible flag and calculates zakatableValue', async () => {
@@ -31,26 +24,23 @@ describe('WealthAggregationService.getZakatableAssets', () => {
       }
     };
 
-    // Mock EncryptionService.decryptObject to return metadata objects
-    const mockDecrypt = vi.spyOn(require('../EncryptionService'), 'decryptObject' as any)
-      .mockImplementation((str: any) => {
-        if (str === 'encrypted:passive') return Promise.resolve({ zakatEligible: true });
-        if (str === 'encrypted:excluded') return Promise.resolve({ zakatEligible: false });
-        return Promise.resolve({});
-      });
+    // Mock EncryptionService.decryptObject implementation
+    vi.mocked(EncryptionService.decryptObject).mockImplementation((str: any) => {
+      if (str === 'encrypted:passive') return Promise.resolve({ zakatEligible: true });
+      if (str === 'encrypted:excluded') return Promise.resolve({ zakatEligible: false });
+      return Promise.resolve({});
+    });
 
     const svc = new WealthAggregationService(fakePrisma as any, undefined as any);
     const result = await svc.getZakatableAssets('user-1');
 
     expect(result).toBeDefined();
     const excl = result.find(a => a.id === 'a3');
-    expect(excl.isZakatable).toBe(false);
+    expect(excl?.isZakatable).toBe(false);
     expect((excl as any).zakatableValue).toBe(0);
 
     const passive = result.find(a => a.id === 'a2');
-    expect(passive.isZakatable).toBe(true);
+    expect(passive?.isZakatable).toBe(true);
     expect((passive as any).zakatableValue).toBeCloseTo(6000 * 0.3);
-
-    mockDecrypt.mockRestore();
   });
 });

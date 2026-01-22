@@ -43,6 +43,7 @@ export class AuthMiddleware {
     try {
       // Extract Authorization header
       const authHeader = req.headers.authorization;
+      console.error('AuthMiddleware - Header:', authHeader);
 
       if (!authHeader) {
         res.status(401).json({
