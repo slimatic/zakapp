@@ -66,8 +66,7 @@ services:
     restart: always
     depends_on:
       - backend
-    volumes:
-      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+
     ports:
       # Maps Host Port (default 3000) to Container Port 80 (Nginx)
       - "${FRONTEND_PORT:-3000}:80"

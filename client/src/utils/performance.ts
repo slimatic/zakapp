@@ -43,8 +43,13 @@ const SAMPLE_RATE = 0.1;
  * Uses sampling in production to reduce backend load
  */
 const shouldReport = (): boolean => {
+  // Respect the explicit enablement flag
+  if (process.env.REACT_APP_ENABLE_ANALYTICS !== 'true') {
+    return false;
+  }
+
   if (process.env.NODE_ENV === 'development') {
-    return true; // Always report in development
+    return true; // Always report in development if enabled
   }
   return Math.random() < SAMPLE_RATE;
 };
@@ -54,12 +59,12 @@ const shouldReport = (): boolean => {
  */
 const formatMetricValue = (metric: Metric): string => {
   const value = metric.value;
-  
+
   // CLS is unitless, others are in milliseconds
   if (metric.name === 'CLS') {
     return value.toFixed(3);
   }
-  
+
   return `${Math.round(value)}ms`;
 };
 
@@ -74,9 +79,9 @@ const getMetricRating = (metric: Metric): 'good' | 'needs-improvement' | 'poor' 
     FCP: [1800, 3000],     // good: <1.8s, poor: >3s
     TTFB: [800, 1800],     // good: <800ms, poor: >1.8s
   };
-  
+
   const [goodThreshold, poorThreshold] = thresholds[metric.name] || [0, 0];
-  
+
   if (metric.value <= goodThreshold) return 'good';
   if (metric.value >= poorThreshold) return 'poor';
   return 'needs-improvement';
@@ -88,13 +93,13 @@ const getMetricRating = (metric: Metric): 'good' | 'needs-improvement' | 'poor' 
 const logMetric = (metric: Metric): void => {
   const rating = getMetricRating(metric);
   const value = formatMetricValue(metric);
-  
+
   const colors = {
     good: 'color: #0cce6b',
     'needs-improvement': 'color: #ffa400',
     poor: 'color: #ff4e42',
   };
-  
+
   console.log(
     `%c${metric.name}: ${value} (${rating})`,
     colors[rating]
@@ -109,7 +114,7 @@ const sendMetricToBackend = async (metric: Metric): Promise<void> => {
   if (process.env.NODE_ENV === 'development') {
     return;
   }
-  
+
   try {
     const body = JSON.stringify({
       name: metric.name,
@@ -121,10 +126,12 @@ const sendMetricToBackend = async (metric: Metric): Promise<void> => {
       url: window.location.href,
       userAgent: navigator.userAgent,
     });
-    
+
     // Use sendBeacon if available (more reliable for page unload)
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(API_ENDPOINT, body);
+      // Create a blob to force application/json Content-Type
+      const blob = new Blob([body], { type: 'application/json' });
+      navigator.sendBeacon(API_ENDPOINT, blob);
     } else {
       // Fallback to fetch with keepalive
       fetch(API_ENDPOINT, {
@@ -151,7 +158,7 @@ const handleMetric = (metric: Metric): void => {
   if (process.env.NODE_ENV === 'development') {
     logMetric(metric);
   }
-  
+
   // Send to backend if we're reporting this session
   if (shouldReport()) {
     sendMetricToBackend(metric);
@@ -167,7 +174,7 @@ export const initPerformanceMonitoring = (): void => {
   if (!shouldReport() && process.env.NODE_ENV !== 'development') {
     return;
   }
-  
+
   if (process.env.NODE_ENV === 'development') {
     console.log(
       '%c🚀 Performance Monitoring Active',
@@ -178,7 +185,7 @@ export const initPerformanceMonitoring = (): void => {
       'color: #6b7280; font-size: 12px'
     );
   }
-  
+
   // Register metric handlers
   getCLS(handleMetric);
   getFID(handleMetric);
