@@ -62,6 +62,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile.production
       target: frontend-production
+      args:
+        GIT_COMMIT_HASH: ${GIT_COMMIT_HASH:-unknown}
     container_name: zakapp-prod-frontend
     restart: always
     depends_on:
