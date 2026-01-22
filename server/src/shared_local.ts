@@ -740,6 +740,7 @@ export interface CreateNisabYearRecordDto {
     hawlCompletionDateHijri?: any;
     nisabBasis?: string;
     currency?: string;
+    nisabThresholdAtStart?: number;
     selectedAssetIds?: string[];
     assetBreakdown?: any;
     totalWealth?: number;

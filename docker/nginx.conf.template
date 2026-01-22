@@ -52,7 +52,7 @@ http {
         # Content Security Policy
         # Adjusting for React (unsafe-inline is often needed for styled-components or similar if not strict)
         # connect-src allows calls to potential API endpoints
-        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https: wss: https://syncdb.zakapp.org https://app.zakapp.org;" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src ${CSP_CONNECT_SOURCES};" always;
         
         # Hide Nginx version
         server_tokens off;
