@@ -230,6 +230,15 @@ docker-compose exec backend node -e "const bcrypt = require('bcryptjs'); bcrypt.
 docker-compose exec backend npx prisma db execute --stdin <<< "UPDATE users SET passwordHash='<hash>' WHERE email='admin@example.com';"
 ```
 
+### "ZK1:..." Encrypted Text Visible
+If you see `ZK1:...` instead of your name or asset details:
+1. This means your local encryption key no longer matches the data (usually due to a cleared browser cache without a proper logout).
+2. **Fix:** Go to **Profile** or the relevant form, delete the `ZK1...` text, and re-type the correct value. Saving it will re-encrypt it with your current key.
+
+### Analytics API Error (400 Bad Request)
+- Ensure you have rebuilt the frontend if you suspect old code: `docker-compose up -d --build frontend`
+- Check `REACT_APP_ENABLE_ANALYTICS` in your `.env`.
+
 ---
 
 ## 📚 More Documentation
