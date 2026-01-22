@@ -13,7 +13,7 @@ We take the security of ZakApp and our users' data very seriously. If you discov
 
 **DO NOT create a public GitHub issue for security vulnerabilities.**
 
-Please email us at [security@zakapp.org](mailto:security@zakapp.org) (placeholder) or reach out to the maintainers directly.
+Please email us at [security@zakapp.org](mailto:security@zakapp.org) or reach out to the maintainers directly.
 
 ## Security Principles
 

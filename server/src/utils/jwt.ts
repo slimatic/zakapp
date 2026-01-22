@@ -20,6 +20,7 @@ import jwt from 'jsonwebtoken';
 import { getJwtSecret } from '../config/security';
 
 const JWT_SECRET = getJwtSecret();
+console.log('JWT_SECRET (jwt.ts):', JWT_SECRET);
 
 const JWT_EXPIRES_IN = '15m'; // 15 minutes for access token
 const REFRESH_EXPIRES_IN = '7d'; // 7 days for refresh token
