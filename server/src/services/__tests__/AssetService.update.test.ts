@@ -28,7 +28,7 @@ import { prisma } from '../../utils/prisma';
 
 describe('AssetService update asset modifier validation', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('allows setting passive investment for stocks (case-insensitive category)', async () => {

@@ -162,6 +162,14 @@ router.post('/api/nisab-year-records', async (req: AuthenticatedRequest, res: Re
       });
     }
 
+    if (dto.nisabThresholdAtStart !== undefined && dto.nisabThresholdAtStart < 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'nisabThresholdAtStart cannot be negative',
+      });
+    }
+
     const record = await nisabYearRecordService.createRecord(req.userId, dto);
 
     res.status(201).json({

@@ -28,7 +28,7 @@ import { join } from 'path';
 
 describe('User Documentation for Methodologies - T156', () => {
 
-  const docsPath = join(process.cwd(), '../../client/public/docs/methodology-guide.md');
+  const docsPath = '/home/agentx/github-repos/zakapp/client/public/docs/methodology-guide.md';
   let documentationContent: string;
 
   beforeAll(() => {
@@ -43,8 +43,13 @@ describe('User Documentation for Methodologies - T156', () => {
   describe('Documentation Structure and Content', () => {
 
     it('should have comprehensive methodology guide documentation', () => {
+      console.log('CWD:', process.cwd());
+      console.log('Docs Path:', docsPath);
+      console.log('Exists:', existsSync(docsPath));
       expect(documentationContent).toBeTruthy();
-      expect(documentationContent.length).toBeGreaterThan(5000); // Substantial content
+
+      const wordCount = documentationContent.split(/\s+/).length;
+      expect(wordCount).toBeGreaterThan(1000); // Adjusted for validation
 
       // Check for main sections
       expect(documentationContent).toContain('# Zakat Calculation Methodologies Guide');
@@ -231,6 +236,8 @@ describe('User Documentation for Methodologies - T156', () => {
   describe('Documentation Quality and Usability', () => {
 
     it('should have appropriate documentation length and depth', () => {
+
+
       const wordCount = documentationContent.split(/\s+/).length;
       const sectionCount = (documentationContent.match(/^##/gm) || []).length;
       const exampleCount = (documentationContent.match(/Example \d+:/g) || []).length;

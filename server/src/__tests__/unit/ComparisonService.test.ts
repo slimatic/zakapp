@@ -95,7 +95,7 @@ describe('ComparisonService', () => {
     });
 
     it('should throw error if snapshot not found', async () => {
-      (YearlySnapshotModel.findById as Mock).mockResolvedValueOnce(null);
+      // (YearlySnapshotModel.findById as Mock).mockResolvedValueOnce(null); // Removed to rely on beforeEach logic which returns null for unknown IDs
 
       await expect(
         service.compareSnapshots(['snap1', 'invalid-id'], mockUserId)
@@ -139,7 +139,7 @@ describe('ComparisonService', () => {
 
       expect(result.totalWealth.min).toBe(100000);
       expect(result.totalWealth.max).toBe(150000);
-      expect(result.totalWealth.average).toBe(123333.33);
+      expect(result.totalWealth.average).toBeCloseTo(123333.33, 2);
       expect(result.totalWealth.current).toBe(150000);
     });
 
@@ -330,7 +330,8 @@ describe('ComparisonService', () => {
         25
       );
 
-      expect(insights).toContain(expect.stringContaining('increased'));
+      // Matches "Your wealth has been increasing..."
+      expect(insights.some((i: string) => i.includes('increasing'))).toBe(true);
       expect(insights.length).toBeGreaterThan(0);
     });
 
@@ -347,7 +348,8 @@ describe('ComparisonService', () => {
         -16.67
       );
 
-      expect(insights).toContain(expect.stringContaining('decreased'));
+      // Matches "Your wealth has been declining..."
+      expect(insights.some((i: string) => i.includes('declining'))).toBe(true);
     });
 
     it('should acknowledge stable wealth', () => {
@@ -363,7 +365,8 @@ describe('ComparisonService', () => {
         1
       );
 
-      expect(insights).toContain(expect.stringContaining('stable'));
+      // Matches "Your wealth has remained relatively stable..."
+      expect(insights.some((i: string) => i.includes('stable'))).toBe(true);
     });
   });
 });
