@@ -21,7 +21,7 @@ import { prisma } from '../../utils/prisma';
 
 describe('AssetService category normalization', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('accepts PRIMARY_RESIDENCE and maps to property', async () => {
@@ -50,7 +50,7 @@ describe('AssetService category normalization', () => {
       value: 100000,
       currency: 'USD',
       acquisitionDate: new Date()
-    } as any)).resolves.toHaveProperty('id', 'test-id');
+    } as any)).resolves.toHaveProperty('assetId', 'test-id');
 
     expect(mockCreate).toHaveBeenCalled();
     const createArg = (mockCreate as Mock).mock.calls[0][0];
@@ -83,7 +83,7 @@ describe('AssetService category normalization', () => {
       value: 5000,
       currency: 'USD',
       acquisitionDate: new Date()
-    } as any)).resolves.toHaveProperty('id', 'test-id-2');
+    } as any)).resolves.toHaveProperty('assetId', 'test-id-2');
 
     const createArg = (mockCreate as Mock).mock.calls[0][0];
     expect(createArg.data.category).toBe('business');
