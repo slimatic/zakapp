@@ -3,6 +3,10 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
+# Pass git commit hash from build args
+ARG GIT_COMMIT_HASH
+ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
+
 # Fix for react-scripts / typescript 5 peer dependency conflict
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 

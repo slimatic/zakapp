@@ -22,12 +22,14 @@ export default defineConfig(({ mode }) => {
   const allowedHosts = Array.from(new Set([...defaultHosts, ...envAllowedHosts]));
 
   // Get git commit hash (if available)
-  let commitHash = 'unknown';
-  try {
-    const { execSync } = require('child_process');
-    commitHash = execSync('git rev-parse --short HEAD').toString().trim();
-  } catch (e) {
-    console.warn('Could not get git commit hash');
+  let commitHash = process.env.GIT_COMMIT_HASH || 'unknown';
+  if (commitHash === 'unknown') {
+    try {
+      const { execSync } = require('child_process');
+      commitHash = execSync('git rev-parse --short HEAD').toString().trim();
+    } catch (e) {
+      console.warn('Could not get git commit hash');
+    }
   }
 
   const pkg = require('./package.json');
