@@ -31,7 +31,7 @@
     "framer-motion": "^12.23.26",
     "hijri-converter": "^1.1.1",
     "js-sha256": "^0.10.1",
-    "jspdf": "^3.0.3",
+    "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.562.0",
     "react": "^19.1.1",
