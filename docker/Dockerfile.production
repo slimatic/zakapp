@@ -71,7 +71,7 @@ WORKDIR /app
 
 # Install runtime dependencies for better-sqlite3 (Debian equivalent)
 # libstdc++ is usually included, but openssl might be needed for Prisma
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl wget && rm -rf /var/lib/apt/lists/*
 
 # Copy built server from builder
 COPY --from=builder /app/server /app/server

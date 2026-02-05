@@ -32,64 +32,54 @@ ZakApp Re-imagines the wealth purification experience by prioritizing user priva
 
 ## 🚀 Quick Start
 
-### Option 1: Quick Start with Prebuilt Images (Easiest)
+**New to Docker?** Check out our [QUICKSTART.md](QUICKSTART.md) for the easiest setup!
+
+### Option 1: Simplest Deploy (Recommended for Beginners)
 
 ```bash
+# Clone the repository
 git clone https://github.com/slimatic/zakapp.git && cd zakapp
-cp .env.example .env   # Edit this file with your secrets!
-docker-compose -f docker-compose.simple.yml up -d
+
+# Run the automated deployment script
+./deploy.sh
+
+# Visit http://localhost:3000
+```
+
+That's it! The script will:
+- ✅ Check prerequisites
+- ✅ Generate secure secrets automatically
+- ✅ Create the configuration file
+- ✅ Build and start everything
+
+### Option 2: Docker Compose (Build from Source)
+
+If you prefer manual deployment or want to customize:
+
+```bash
+# Clone and configure
+git clone https://github.com/slimatic/zakapp.git && cd zakapp
+cp .env.docker.example .env
+
+# Generate secrets (or edit .env manually with openssl rand -base64 32)
+./scripts/generate-secrets.sh
+
+# Deploy
+docker compose -f docker-compose.local.yml up -d
 ```
 
 Visit `http://localhost:3000` — you're running! 🎉
 
-This uses prebuilt, secure Docker images from GitHub Container Registry. No building required!
+### Option 3: Development Mode
 
-For development with local builds (hot reload), use:
-```bash
-docker-compose --profile dev up -d
-```
-
-#### Verifying Prebuilt Images
-
-For security-conscious users, you can verify the integrity of prebuilt images:
+For development with hot reload:
 
 ```bash
-# Install cosign (if not already installed)
-# Verify frontend image signature
-cosign verify ghcr.io/slimatic/zakapp-frontend:latest \
-  --certificate-identity-regexp ".*" \
-  --certificate-oidc-issuer-regexp ".*"
-
-# Verify backend image signature  
-cosign verify ghcr.io/slimatic/zakapp-backend:latest \
-  --certificate-identity-regexp ".*" \
-  --certificate-oidc-issuer-regexp ".*"
-
-# Check SBOM (Software Bill of Materials)
-docker sbom ghcr.io/slimatic/zakapp-frontend:latest
-docker sbom ghcr.io/slimatic/zakapp-backend:latest
-```
-
-Images are built from verified Git commits and signed with cosign.
-
-### Option 1b: Self-Host with Local Build
-
-```bash
-git clone https://github.com/slimatic/zakapp.git && cd zakapp
-cp .env.example .env   # Edit this file with your secrets!
-docker compose up -d
-```
-
-This builds images from source. See [Self-Hosting Guide](SELF-HOSTING.md) for production setup.
-
-### Option 2: Development Mode
-
-```bash
-# Clone and install
+# Clone and install dependencies
 git clone https://github.com/slimatic/zakapp.git && cd zakapp
 npm run install-all
 
-# Start both client and server
+# Start development servers
 npm start
 ```
 
@@ -118,6 +108,7 @@ ZakApp supports private, end-to-end encrypted synchronization between devices us
 
 | Guide | Description |
 |-------|-------------|
+| [Quick Start](QUICKSTART.md) | **Start here!** Simplest deployment guide |
 | [Self-Hosting Guide](SELF-HOSTING.md) | Deploy ZakApp on your own server |
 | [Zakat FAQ](FAQs.md) | Islamic finance questions answered |
 | [Deployment Guide](docs/deployment-guide.md) | Advanced deployment options |
