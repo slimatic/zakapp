@@ -32,7 +32,47 @@ ZakApp Re-imagines the wealth purification experience by prioritizing user priva
 
 ## 🚀 Quick Start
 
-### Option 1: Self-Host with Docker (Recommended)
+### Option 1: Quick Start with Prebuilt Images (Easiest)
+
+```bash
+git clone https://github.com/slimatic/zakapp.git && cd zakapp
+cp .env.example .env   # Edit this file with your secrets!
+docker-compose -f docker-compose.simple.yml up -d
+```
+
+Visit `http://localhost:3000` — you're running! 🎉
+
+This uses prebuilt, secure Docker images from GitHub Container Registry. No building required!
+
+For development with local builds (hot reload), use:
+```bash
+docker-compose --profile dev up -d
+```
+
+#### Verifying Prebuilt Images
+
+For security-conscious users, you can verify the integrity of prebuilt images:
+
+```bash
+# Install cosign (if not already installed)
+# Verify frontend image signature
+cosign verify ghcr.io/slimatic/zakapp-frontend:latest \
+  --certificate-identity-regexp ".*" \
+  --certificate-oidc-issuer-regexp ".*"
+
+# Verify backend image signature  
+cosign verify ghcr.io/slimatic/zakapp-backend:latest \
+  --certificate-identity-regexp ".*" \
+  --certificate-oidc-issuer-regexp ".*"
+
+# Check SBOM (Software Bill of Materials)
+docker sbom ghcr.io/slimatic/zakapp-frontend:latest
+docker sbom ghcr.io/slimatic/zakapp-backend:latest
+```
+
+Images are built from verified Git commits and signed with cosign.
+
+### Option 1b: Self-Host with Local Build
 
 ```bash
 git clone https://github.com/slimatic/zakapp.git && cd zakapp
@@ -40,9 +80,7 @@ cp .env.example .env   # Edit this file with your secrets!
 docker compose up -d
 ```
 
-Visit `http://localhost:3000` — you're running! 🎉
-
-📖 **[Complete Self-Hosting Guide →](SELF-HOSTING.md)** — Production setup, Cloudflare Tunnel, backups, and more.
+This builds images from source. See [Self-Hosting Guide](SELF-HOSTING.md) for production setup.
 
 ### Option 2: Development Mode
 
