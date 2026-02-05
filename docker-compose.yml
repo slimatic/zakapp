@@ -1,10 +1,13 @@
 services:
   frontend:
+    image: ghcr.io/slimatic/zakapp-frontend:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.frontend
+      target: development
+    profiles: ["dev"]
     ports:
-      - '${FRONTEND_PORT:-3000}:${FRONTEND_INTERNAL_PORT:-3000}'
+      - '3000:3000'
     volumes:
       - ./client:/app/client
       - ./shared/src:/app/shared/src
@@ -16,51 +19,61 @@ services:
     env_file:
       - .env
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
+      - NODE_ENV=development
       - HOST=0.0.0.0
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - PORT=${FRONTEND_INTERNAL_PORT:-3000}
-      - VITE_PORT=${FRONTEND_INTERNAL_PORT:-3000}
+      - PORT=3000
+      - VITE_PORT=3000
       - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
       - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
       - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
       - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL}
-      # NOTE: COUCHDB_USER and COUCHDB_PASSWORD removed - using JWT auth via /api/sync/token
     depends_on:
       backend:
         condition: service_healthy
       couchdb:
         condition: service_started
-    # In production, we build the app and serve it using 'preview' (or a static server)
-    # The 'start' script we added runs 'vite preview'
-    command: /bin/sh -c "npm install --include=dev && npm run build && npm start"
+    command: npm start
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   couchdb:
     image: apache/couchdb:3.5.1
     ports:
-      - "${COUCHDB_PORT:-5984}:${COUCHDB_INTERNAL_PORT:-5984}"
-      - "${COUCHDB_HTTPS_PORT:-6984}:6984"
+      - "5984:5984"
+      - "6984:6984"
     environment:
       - COUCHDB_USER=${COUCHDB_USER}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
-      # CouchDB internal port configuration
       - COUCHDB_BIND_ADDRESS=0.0.0.0
-      - COUCHDB_PORT=${COUCHDB_INTERNAL_PORT:-5984}
-      # Dynamic CORS configuration
-      - COUCHDB_ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000}}
+      - COUCHDB_PORT=5984
+      - COUCHDB_ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
     volumes:
-      - ./couchdb-data:/opt/couchdb/data
+      - couchdb-data:/opt/couchdb/data
       - ./docker/couchdb/entrypoint-wrapper.sh:/usr/local/bin/entrypoint-wrapper.sh
       - ./docker/couchdb/generate-cert.sh:/usr/local/bin/generate-cert.sh
     entrypoint: ["/usr/local/bin/entrypoint-wrapper.sh"]
     command: ["couchdb"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   backend:
+    image: ghcr.io/slimatic/zakapp-backend:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
+      target: development
+    profiles: ["dev"]
     ports:
-      - '${BACKEND_PORT:-3001}:${BACKEND_INTERNAL_PORT:-3001}'
+      - '3001:3001'
     volumes:
       - ./server:/app/server
       - ./shared/src:/app/shared/src
@@ -71,8 +84,8 @@ services:
     env_file:
       - .env
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - PORT=${BACKEND_INTERNAL_PORT:-3001}
+      - NODE_ENV=development
+      - PORT=3001
       - DATABASE_URL=file:./prisma/data/dev.db
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
@@ -81,9 +94,9 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
       - COUCHDB_URL=${COUCHDB_URL}
       - GOLD_API_KEY=${GOLD_API_KEY}
-      - APP_URL=${APP_URL:-http://localhost:${FRONTEND_PORT:-3000}}
+      - APP_URL=${APP_URL:-http://localhost:3000}
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:${BACKEND_INTERNAL_PORT:-3001}/api/auth/register || exit 0"]
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:3001/api/auth/register || exit 0"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -94,6 +107,8 @@ services:
 volumes:
   zakapp-db:
     name: zakapp-database
+  couchdb-data:
+    name: couchdb-data
 
 networks:
   default:

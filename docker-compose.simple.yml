@@ -1,0 +1,75 @@
+# Simplified Docker Compose for ZakApp
+# Uses prebuilt images from GitHub Container Registry
+# For development overrides, uncomment the build sections
+
+services:
+  couchdb:
+    image: apache/couchdb:3.5.1
+    restart: unless-stopped
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER:-admin}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD:-password}
+      - COUCHDB_HTTPD_ENABLE_CORS=true
+      - COUCHDB_CORS_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - COUCHDB_CORS_CREDENTIALS=true
+      - COUCHDB_CORS_HEADERS=accept, authorization, content-type, origin, referer
+      - COUCHDB_CORS_METHODS=GET, PUT, POST, HEAD, DELETE
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+    ports:
+      - "${COUCHDB_PORT:-5984}:5984"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  backend:
+    image: ghcr.io/slimatic/zakapp-backend:latest
+    # For development builds, uncomment:
+    # build:
+    #   context: .
+    #   dockerfile: docker/Dockerfile.production
+    #   target: backend-production
+    restart: unless-stopped
+    depends_on:
+      couchdb:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=file:/app/server/prisma/data/prod.db?connection_limit=1
+      - COUCHDB_URL=http://couchdb:5984
+    volumes:
+      - backend_data:/app/server/prisma/data
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    image: ghcr.io/slimatic/zakapp-frontend:latest
+    # For development builds, uncomment:
+    # build:
+    #   context: .
+    #   dockerfile: docker/Dockerfile.production
+    #   target: frontend-production
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - REACT_APP_API_BASE_URL=/api
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+
+volumes:
+  couchdb_data:
+  backend_data:
