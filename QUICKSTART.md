@@ -123,7 +123,16 @@ Browsers require a [secure context](https://developer.mozilla.org/en-US/docs/Web
    http://localhost:3005
    ```
 
-2. **Set up HTTPS** with a reverse proxy:
+2. **Use Nginx Proxy Manager** (Recommended if you have it):
+   
+   If you already have NPM on your network, this is the easiest solution:
+   - Add a proxy host in NPM pointing to your ZakApp IP:3005
+   - Request SSL certificate via Let's Encrypt
+   - Access via `https://yourdomain.com`
+   
+   See: [docs/NGINX-PROXY-MANAGER.md](docs/NGINX-PROXY-MANAGER.md) for detailed setup
+
+3. **Set up HTTPS** with other reverse proxies:
    ```bash
    # Option A: Use Caddy (automatic HTTPS)
    docker run -d -p 80:80 -p 443:443 \
@@ -134,7 +143,7 @@ Browsers require a [secure context](https://developer.mozilla.org/en-US/docs/Web
    # See: docs/guides/CLOUDFLARE_TUNNEL_SETUP.md
    ```
 
-3. **Test the issue** with our diagnostic tool:
+4. **Test the issue** with our diagnostic tool:
    ```bash
    # Run headless browser test
    ./test-crypto.sh http://your-ip:3005
