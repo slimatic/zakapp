@@ -120,7 +120,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
   }, [metricType, visualizationType]);
 
   // Custom tooltip formatter
-  const formatTooltip = (value: any, name: string, props: any) => {
+  const formatTooltip = (value: any, name: string | undefined, props: any) => {
     if (metricType.includes('trend') || metricType === 'yearly_comparison') {
       return [formatCurrency(value), name];
     }
@@ -215,7 +215,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
   }
 
   const renderChart = () => {
-    const commonProps = {
+    const commonProps: any = {
       width: '100%',
       height,
       data: chartData,
