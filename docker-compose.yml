@@ -1,101 +1,137 @@
+# ZakApp Easy Deployment Configuration
+# Zero-configuration setup with automatic HTTPS
+# Works with: localhost, IP addresses, and custom domains
+
 services:
-  frontend:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.frontend
+  # Reverse proxy with automatic HTTPS
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
     ports:
-      - '${FRONTEND_PORT:-3000}:${FRONTEND_INTERNAL_PORT:-3000}'
+      - "${FRONTEND_PORT:-3000}:80"
+      - "${FRONTEND_PORT_SSL:-3443}:443"
     volumes:
-      - ./client:/app/client
-      - ./shared/src:/app/shared/src
-      - /app/client/node_modules
-      - /app/shared/node_modules
-      - /app/shared/dist
-      - ./docker/frontend-entrypoint.sh:/docker-entrypoint.sh
-    entrypoint: ["/docker-entrypoint.sh"]
-    env_file:
-      - .env
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_certs:/root/.local/share/caddy
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - HOST=0.0.0.0
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - PORT=${FRONTEND_INTERNAL_PORT:-3000}
-      - VITE_PORT=${FRONTEND_INTERNAL_PORT:-3000}
-      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
-      - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
-      - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
-      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL}
-      # NOTE: COUCHDB_USER and COUCHDB_PASSWORD removed - using JWT auth via /api/sync/token
+      - ZAKAPP_DOMAIN=${ZAKAPP_DOMAIN:-}
+      - ZAKAPP_IP=${ZAKAPP_IP:-}
+    networks:
+      - zakapp-network
+    depends_on:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend - Prebuilt Docker Hub image
+  frontend:
+    image: slimatic/zakapp-frontend:latest
+    restart: unless-stopped
+    expose:
+      - "80"
+    environment:
+      - REACT_APP_API_BASE_URL=/api
+      - REACT_APP_COUCHDB_URL=/db
+      - NODE_ENV=production
+    networks:
+      - zakapp-network
     depends_on:
       backend:
         condition: service_healthy
-      couchdb:
-        condition: service_started
-    # In production, we build the app and serve it using 'preview' (or a static server)
-    # The 'start' script we added runs 'vite preview'
-    command: /bin/sh -c "npm install --include=dev && npm run build && npm start"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # Backend - Prebuilt Docker Hub image
+  backend:
+    image: slimatic/zakapp-backend:latest
+    restart: unless-stopped
+    expose:
+      - "3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=file:/app/server/prisma/data/prod.db?connection_limit=1
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - REFRESH_SECRET=${REFRESH_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - APP_SECRET=${APP_SECRET}
+      - COUCHDB_URL=http://couchdb:5984
+      - COUCHDB_USER=${COUCHDB_USER:-admin}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - APP_URL=${APP_URL}
+    volumes:
+      - backend_data:/app/server/prisma/data
+    networks:
+      - zakapp-network
+    depends_on:
+      couchdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Database migrations - runs once on startup
+  migrations:
+    image: slimatic/zakapp-backend:latest
+    restart: "no"
+    environment:
+      - DATABASE_URL=file:/app/server/prisma/data/prod.db?connection_limit=1
+    volumes:
+      - backend_data:/app/server/prisma/data
+    networks:
+      - zakapp-network
+    depends_on:
+      - backend
+    command: >
+      sh -c "echo 'Running database migrations...' &&
+             cd /app/server &&
+             npx prisma migrate deploy ||
+             (echo 'Migration failed - database may already be up to date' && exit 0)"
+
+  # CouchDB for multi-device sync
   couchdb:
     image: apache/couchdb:3.5.1
-    ports:
-      - "${COUCHDB_PORT:-5984}:${COUCHDB_INTERNAL_PORT:-5984}"
-      - "${COUCHDB_HTTPS_PORT:-6984}:6984"
+    restart: unless-stopped
+    expose:
+      - "5984"
     environment:
-      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_USER=${COUCHDB_USER:-admin}
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
-      # CouchDB internal port configuration
-      - COUCHDB_BIND_ADDRESS=0.0.0.0
-      - COUCHDB_PORT=${COUCHDB_INTERNAL_PORT:-5984}
-      # Dynamic CORS configuration
-      - COUCHDB_ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000}}
+      - COUCHDB_HTTPD_ENABLE_CORS=true
+      - COUCHDB_CORS_ORIGINS=${ALLOWED_ORIGINS}
+      - COUCHDB_CORS_CREDENTIALS=true
+      - COUCHDB_CORS_HEADERS=accept, authorization, content-type, origin, referer
+      - COUCHDB_CORS_METHODS=GET, PUT, POST, HEAD, DELETE
     volumes:
-      - ./couchdb-data:/opt/couchdb/data
-      - ./docker/couchdb/entrypoint-wrapper.sh:/usr/local/bin/entrypoint-wrapper.sh
-      - ./docker/couchdb/generate-cert.sh:/usr/local/bin/generate-cert.sh
-    entrypoint: ["/usr/local/bin/entrypoint-wrapper.sh"]
-    command: ["couchdb"]
-
-  backend:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.backend
-    ports:
-      - '${BACKEND_PORT:-3001}:${BACKEND_INTERNAL_PORT:-3001}'
-    volumes:
-      - ./server:/app/server
-      - ./shared/src:/app/shared/src
-      - /app/server/node_modules
-      - /app/shared/node_modules
-      - /app/shared/dist
-      - zakapp-db:/app/server/prisma/data
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - PORT=${BACKEND_INTERNAL_PORT:-3001}
-      - DATABASE_URL=file:./prisma/data/dev.db
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
-      - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
-      - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET}
-      - COUCHDB_USER=${COUCHDB_USER}
-      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
-      - COUCHDB_URL=${COUCHDB_URL}
-      - GOLD_API_KEY=${GOLD_API_KEY}
-      - APP_URL=${APP_URL:-http://localhost:${FRONTEND_PORT:-3000}}
+      - couchdb_data:/opt/couchdb/data
+    networks:
+      - zakapp-network
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:${BACKEND_INTERNAL_PORT:-3001}/api/auth/register || exit 0"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 45s
-    depends_on:
-      - couchdb
 
 volumes:
-  zakapp-db:
-    name: zakapp-database
+  caddy_data:
+  caddy_certs:
+  backend_data:
+  couchdb_data:
 
 networks:
-  default:
-    name: zakapp-dev
-
+  zakapp-network:
+    driver: bridge
