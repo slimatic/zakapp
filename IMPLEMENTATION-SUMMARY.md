@@ -7,7 +7,7 @@
 | Task | Status | Description |
 |------|--------|-------------|
 | zakapp-15x | ✅ **CLOSED** | Docker Hub images published and live |
-| zakapp-2mp | ✅ **CLOSED** | docker-compose.easy.yml with auto-HTTPS |
+| zakapp-2mp | ✅ **CLOSED** | docker-compose.yml (was docker-compose.easy.yml) with auto-HTTPS |
 | zakapp-cqz | ✅ **CLOSED** | Single-command deploy-easy.sh script |
 | zakapp-bm7 | ✅ **CLOSED** | Auto-migrations on startup |
 | zakapp-gan | ✅ **CLOSED** | Port auto-detection and resolution |
@@ -46,7 +46,7 @@ Auto CORS configuration
 ## 📦 Deliverables Created
 
 ### Code & Configuration
-1. **docker-compose.easy.yml** - Zero-config deployment
+1. **docker-compose.yml** - Zero-config deployment (standardized filename)
 2. **docker/Caddyfile** - Automatic HTTPS handling
 3. **deploy-easy.sh** - One-command interactive setup
 4. **.env.easy.example** - Minimal configuration template

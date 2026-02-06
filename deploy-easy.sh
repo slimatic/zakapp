@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-COMPOSE_FILE="docker-compose.easy.yml"
+COMPOSE_FILE="docker-compose.yml"
 ENV_FILE=".env"
 
 # Function to print colored output
