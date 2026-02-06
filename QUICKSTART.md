@@ -103,6 +103,60 @@ docker compose -f docker-compose.local.yml up -d --build
 
 ## Troubleshooting
 
+### "Cannot read properties of undefined (reading 'importKey')" Error
+
+**Problem**: You see this error when trying to register or login via the UI.
+
+**Cause**: Your browser is blocking the Web Crypto API because you're accessing the app via an IP address (like `192.168.x.x`) over HTTP instead of HTTPS.
+
+Browsers require a [secure context](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts) for cryptographic operations:
+- ✅ `http://localhost` - Secure (explicitly allowed)
+- ✅ `http://127.0.0.1` - Secure (explicitly allowed)  
+- ❌ `http://192.168.x.x` - **NOT secure** (blocked by browsers)
+- ✅ `https://anything` - Secure (with valid certificate)
+
+**Solutions** (choose one):
+
+1. **Use localhost** (Easiest - same machine only):
+   ```bash
+   # Access via localhost instead of IP
+   http://localhost:3005
+   ```
+
+2. **Set up HTTPS** with a reverse proxy:
+   ```bash
+   # Option A: Use Caddy (automatic HTTPS)
+   docker run -d -p 80:80 -p 443:443 \
+     -v /path/to/Caddyfile:/etc/caddy/Caddyfile \
+     caddy:2
+   
+   # Option B: Use Cloudflare Tunnel (free, no open ports needed)
+   # See: docs/guides/CLOUDFLARE_TUNNEL_SETUP.md
+   ```
+
+3. **Test the issue** with our diagnostic tool:
+   ```bash
+   # Run headless browser test
+   ./test-crypto.sh http://your-ip:3005
+   
+   # Or open the test page in your browser:
+   # http://your-ip:3005/crypto-test.html
+   ```
+
+### "CORS Error" or "Not allowed by CORS"
+
+**Problem**: Browser blocks API requests with CORS errors.
+
+**Fix**: Update your `.env` file with your actual IP/domain:
+```bash
+# Replace with your actual IP or domain
+APP_URL=http://192.168.1.100:3005
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://192.168.1.100:3005
+ALLOWED_HOSTS=localhost,192.168.1.100
+```
+
+Then restart: `docker compose -f docker-compose.local.yml restart`
+
 ### "Port already in use" Error
 
 If you see an error like `port 3000 is already allocated`:

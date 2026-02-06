@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZakApp Crypto API Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-top: 0; }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        .warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+        .info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover { background: #0056b3; }
+        .test-button:disabled { background: #ccc; cursor: not-allowed; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 ZakApp Web Crypto API Test</h1>
+        <p>This page tests if your browser can access the Web Crypto API required for ZakApp's encryption features.</p>
+        
+        <div id="initial-check"></div>
+        
+        <button class="test-button" onclick="runTests()">Run Diagnostic Tests</button>
+        <button class="test-button" onclick="testRegistration()">Test Registration Flow</button>
+        
+        <div id="test-results"></div>
+        
+        <div id="solution" class="hidden">
+            <h2>💡 Solution</h2>
+            <div class="error">
+                <strong>Problem:</strong> Web Crypto API is blocked because you're accessing via IP address over HTTP.
+                <br><br>
+                <strong>Why:</strong> Browsers block crypto.subtle on insecure (HTTP) non-localhost origins for security.
+                <br><br>
+                <strong>Fix:</strong> Access ZakApp using one of these methods:
+                <ul>
+                    <li><code>http://localhost:3005</code> (if running locally)</li>
+                    <li><code>http://127.0.0.1:3005</code> (alternative localhost)</li>
+                    <li>Set up HTTPS with a valid certificate</li>
+                    <li>Use a reverse proxy with HTTPS (nginx, Traefik, Caddy)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial check on page load
+        window.onload = function() {
+            const div = document.getElementById('initial-check');
+            const hasCrypto = typeof window !== 'undefined' && window.crypto;
+            const hasSubtle = hasCrypto && window.crypto.subtle;
+            const hasImportKey = hasSubtle && typeof window.crypto.subtle.importKey === 'function';
+            const isSecure = window.isSecureContext;
+            
+            let html = '<h2>Initial Browser Check</h2>';
+            html += `<div class="${hasImportKey ? 'success' : 'error'}">`;
+            html += `<strong>Web Crypto API Status:</strong> ${hasImportKey ? '✅ Available' : '❌ Not Available'}<br>`;
+            html += `<strong>Secure Context:</strong> ${isSecure ? '✅ Yes' : '❌ No'}<br>`;
+            html += `<strong>Protocol:</strong> ${window.location.protocol}<br>`;
+            html += `<strong>Hostname:</strong> ${window.location.hostname}<br>`;
+            html += `<strong>Origin:</strong> ${window.location.origin}`;
+            html += '</div>';
+            
+            if (!hasImportKey) {
+                html += '<div class="error">❌ <strong>Registration and login will fail!</strong> The Web Crypto API is required for password encryption.</div>';
+                document.getElementById('solution').classList.remove('hidden');
+            }
+            
+            div.innerHTML = html;
+        };
+
+        async function runTests() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h2>Running Tests...</h2>';
+            
+            const tests = [];
+            
+            // Test 1: Basic crypto availability
+            tests.push({
+                name: 'window.crypto exists',
+                test: () => typeof window !== 'undefined' && !!window.crypto,
+                critical: true
+            });
+            
+            // Test 2: Subtle crypto
+            tests.push({
+                name: 'crypto.subtle exists',
+                test: () => !!(window.crypto && window.crypto.subtle),
+                critical: true
+            });
+            
+            // Test 3: importKey method
+            tests.push({
+                name: 'crypto.subtle.importKey exists',
+                test: () => !!(window.crypto && window.crypto.subtle && typeof window.crypto.subtle.importKey === 'function'),
+                critical: true
+            });
+            
+            // Test 4: Secure context
+            tests.push({
+                name: 'Secure Context (isSecureContext)',
+                test: () => window.isSecureContext,
+                critical: false
+            });
+            
+            // Test 5: Try actual importKey
+            tests.push({
+                name: 'Functional importKey test',
+                test: async () => {
+                    try {
+                        const enc = new TextEncoder();
+                        const keyMaterial = await window.crypto.subtle.importKey(
+                            "raw",
+                            enc.encode("test-password"),
+                            { name: "PBKDF2" },
+                            false,
+                            ["deriveBits", "deriveKey"]
+                        );
+                        return !!keyMaterial;
+                    } catch (e) {
+                        throw e;
+                    }
+                },
+                critical: true,
+                async: true
+            });
+            
+            let html = '<h2>Test Results</h2>';
+            let hasCriticalFailure = false;
+            
+            for (const test of tests) {
+                try {
+                    let result;
+                    if (test.async) {
+                        result = await test.test();
+                    } else {
+                        result = test.test();
+                    }
+                    
+                    const status = result ? 'success' : 'warning';
+                    const icon = result ? '✅' : '⚠️';
+                    html += `<div class="${status}">${icon} <strong>${test.name}:</strong> ${result ? 'PASS' : 'FAIL'}</div>`;
+                    
+                    if (!result && test.critical) {
+                        hasCriticalFailure = true;
+                    }
+                } catch (error) {
+                    html += `<div class="error">❌ <strong>${test.name}:</strong> ERROR - ${error.message}</div>`;
+                    if (test.critical) {
+                        hasCriticalFailure = true;
+                    }
+                }
+            }
+            
+            if (hasCriticalFailure) {
+                html += '<div class="error"><strong>❌ Critical tests failed!</strong> ZakApp will not work in this browser context.</div>';
+                document.getElementById('solution').classList.remove('hidden');
+            } else {
+                html += '<div class="success"><strong>✅ All critical tests passed!</strong> ZakApp should work correctly.</div>';
+            }
+            
+            results.innerHTML = html;
+        }
+
+        async function testRegistration() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h2>Testing Registration API...</h2>';
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: `test-${Date.now()}@example.com`,
+                        password: 'TestPass123!',
+                        confirmPassword: 'TestPass123!',
+                        firstName: 'Test',
+                        lastName: 'User'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                let html = '<h2>Registration API Test</h2>';
+                if (data.success) {
+                    html += `<div class="success">✅ Registration successful!</div>`;
+                    html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    html += `<div class="error">❌ Registration failed: ${data.error?.message || 'Unknown error'}</div>`;
+                    html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+                results.innerHTML = html;
+                
+            } catch (error) {
+                results.innerHTML = `
+                    <h2>Registration API Test</h2>
+                    <div class="error">
+                        ❌ Request failed: ${error.message}
+                        <br><br>
+                        This is expected if you're accessing via IP without HTTPS.
+                        The browser blocks the crypto operations before the request is sent.
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
