@@ -32,15 +32,34 @@ ZakApp Re-imagines the wealth purification experience by prioritizing user priva
 
 ## 🚀 Quick Start
 
-**New to Docker?** Check out our [QUICKSTART.md](QUICKSTART.md) for the easiest setup!
+### 🆕 NEW: Super Easy Deploy (Recommended)
 
-### Option 1: Simplest Deploy (Recommended for Beginners)
+The new **Easy Deployment** requires zero configuration:
+
+```bash
+# Clone and deploy in one step
+git clone https://github.com/slimatic/zakapp.git && cd zakapp
+./deploy-easy.sh
+```
+
+✅ **No build time** - Uses prebuilt images from Docker Hub  
+✅ **Automatic HTTPS** - Works with IP addresses  
+✅ **Auto-detects ports** - Fixes conflicts automatically  
+✅ **Interactive setup** - Just answer a few questions  
+
+👉 See [EASY-DEPLOY.md](EASY-DEPLOY.md) for full details
+
+---
+
+### Option 1: Traditional Deploy (Build from Source)
+
+For development or customization:
 
 ```bash
 # Clone the repository
 git clone https://github.com/slimatic/zakapp.git && cd zakapp
 
-# Run the automated deployment script
+# Run the deployment script
 ./deploy.sh
 
 # Visit http://localhost:3000
