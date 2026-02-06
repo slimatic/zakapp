@@ -2,14 +2,14 @@
 # Automatically handles HTTPS for localhost, IP addresses, and custom domains
 
 {
-    # Auto HTTPS settings
+    # Auto HTTPS settings - disable redirects since we handle them manually
     auto_https disable_redirects
     
     # Admin API (optional)
     admin off
 }
 
-# HTTP on port 80
+# HTTP on port 80 - serves HTTP traffic
 :80 {
     # Enable compression
     encode gzip
@@ -53,13 +53,15 @@
     }
 }
 
-# HTTPS on port 443 with automatic self-signed certificates
+# HTTPS on port 443 - serves HTTPS traffic with self-signed certs
 :443 {
     # Enable compression
     encode gzip
     
-    # Auto-generate self-signed certs
-    tls internal
+    # Generate self-signed certificates for any hostname
+    tls internal {
+        on_demand
+    }
     
     # Handle API requests
     handle_path /api/* {
