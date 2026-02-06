@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('ZakApp Authentication Flow', () => {
-  const BASE_URL = process.env.ZAKAPP_URL || 'http://192.168.86.45:3005';
+  const BASE_URL = process.env.ZAKAPP_URL || 'http://localhost:3000';
   
   test.beforeEach(async ({ page }) => {
     // Navigate to the app
