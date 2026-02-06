@@ -77,17 +77,17 @@ That's it! 🎉
 
 ```bash
 # View logs
-docker compose -f docker-compose.easy.yml logs -f
+docker compose logs -f
 
 # Stop
-docker compose -f docker-compose.easy.yml down
+docker compose down
 
 # Restart
-docker compose -f docker-compose.easy.yml restart
+docker compose restart
 
 # Update to latest version
-docker compose -f docker-compose.easy.yml pull
-docker compose -f docker-compose.easy.yml up -d
+docker compose pull
+docker compose up -d
 ```
 
 ## Troubleshooting
@@ -114,7 +114,7 @@ To eliminate the warning, use:
 ### Database migration errors
 These are handled automatically, but if you see issues:
 ```bash
-docker compose -f docker-compose.easy.yml run --rm migrations
+docker compose run --rm migrations
 ```
 
 ## Comparison: Easy vs Traditional
@@ -153,7 +153,7 @@ The script creates a `.env` file. You can edit it later for advanced options:
 nano .env
 
 # Restart to apply changes
-docker compose -f docker-compose.easy.yml restart
+docker compose -f docker-compose.yml restart
 ```
 
 See `.env.easy.example` for all available options.
