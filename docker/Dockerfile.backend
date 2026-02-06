@@ -1,12 +1,90 @@
-# Backend Dockerfile for development
-FROM node:20-slim
+# Build stage
+FROM node:20-slim AS build
 
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
 WORKDIR /app
 
 # Install build dependencies for native modules (better-sqlite3)
-# Debian (slim) uses apt-get
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+# Copy npmrc configuration
+COPY .npmrc ./
+
+# Copy shared package files first
+COPY shared/package*.json ./shared/
+
+# Install shared dependencies 
+RUN cd shared && npm install
+
+# Copy shared source and build
+COPY shared/ ./shared/
+RUN cd shared && npm run build
+
+# Ensure postbuild fixes
+RUN node ./shared/scripts/add-js-extension.cjs || true
+
+# Sanity check
+RUN if [ ! -f ./shared/dist/constants/index.js ]; then \
+		echo "ERROR: shared build missing ./shared/dist/constants/index.js" >&2; \
+		exit 1; \
+	fi
+
+# Ensure dist utils directory exists
+RUN mkdir -p ./shared/dist/utils
+
+# Copy server package files
+COPY server/package*.json ./server/
+
+# Install server dependencies
+RUN cd server && npm install
+
+# Copy server source code
+COPY server/ ./server/
+
+# Build the server
+WORKDIR /app/server
+RUN npm run build
+
+# Production stage
+FROM node:20-slim AS backend-production
+
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+# Copy built shared and server
+COPY --from=build /app/shared ./shared
+COPY --from=build /app/server/dist ./server/dist
+COPY --from=build /app/server/package*.json ./server/
+
+# Install production dependencies
+WORKDIR /app/server
+RUN npm install --production
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Create data directory
+RUN mkdir -p /app/server/prisma/data && chmod 777 /app/server/prisma/data
+
+# Expose port
+EXPOSE 3001
+
+# Start the server
+CMD ["npm", "start"]
+
+# Development stage (original)
+FROM node:20-slim AS development
+
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
+
+WORKDIR /app
+
+# Install build dependencies for native modules (better-sqlite3)
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Copy npmrc configuration
@@ -26,16 +104,12 @@ RUN cd shared && npm run build
 RUN node ./shared/scripts/add-js-extension.cjs || true
 
 # Sanity check: ensure the `shared` build produced the `constants` runtime module
-# Node ESM will throw on directory imports if this is missing; fail early with a helpful message
 RUN if [ ! -f ./shared/dist/constants/index.js ]; then \
 		echo "ERROR: shared build missing ./shared/dist/constants/index.js" >&2; \
-		echo "Contents of ./shared/dist:"; ls -la ./shared/dist || true; \
 		exit 1; \
 	fi
 
 # Ensure dist utils directory exists in the image so downstream steps don't fail
-# When building in CI the `shared` build will populate this; create the dir here
-# as a no-op fallback for local contexts where dist wasn't prepopulated.
 RUN mkdir -p ./shared/dist/utils
 
 # Copy server package files

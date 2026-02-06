@@ -1,17 +1,11 @@
 # Multi-stage production Dockerfile
-FROM node:20-slim AS builder
 
+# Base stage for package definitions
+FROM node:20-slim AS base
 WORKDIR /app
-
-# Pass git commit hash from build args
 ARG GIT_COMMIT_HASH
 ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
-
-# Fix for react-scripts / typescript 5 peer dependency conflict
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
-
-# Install build dependencies for native modules (better-sqlite3)
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
@@ -19,19 +13,65 @@ COPY shared/package*.json ./shared/
 COPY server/package*.json ./server/
 COPY client/package*.json ./client/
 
-# Install dependencies for all packages
-# Use npm install to allow arch-specific optional deps
+# ----------------------------------------
+# Client Build Stage
+# Runs on the BUILDPLATFORM (e.g., amd64) to ensure fast Vite builds
+# even when targeting arm64.
+# ----------------------------------------
+FROM --platform=$BUILDPLATFORM node:20-slim AS client-builder
+WORKDIR /app
+# Re-declare ARG and ENV as they don't persist across stages automatically
+ARG GIT_COMMIT_HASH
+ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
+
+# Copy package definitions from base
+COPY --from=base /app /app
+
+# Install dependencies for client and shared
+# We install root deps too just in case
 RUN npm install
 RUN cd shared && npm install
-RUN cd server && npm install
 RUN cd client && npm install
 
-# Copy source code
+# Copy source code for client and shared
 COPY shared/ ./shared/
-COPY server/ ./server/
 COPY client/ ./client/
 
 # Build shared package first
+RUN cd shared && npm run build
+
+# Build client (React app)
+RUN cd client && npm run build
+
+# ----------------------------------------
+# Server Build Stage
+# Runs on the TARGETPLATFORM to ensure native modules (better-sqlite3)
+# are built for the correct architecture.
+# ----------------------------------------
+FROM node:20-slim AS server-builder
+WORKDIR /app
+# Re-declare ARG and ENV as they don't persist across stages automatically
+ARG GIT_COMMIT_HASH
+ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
+
+# Copy package definitions from base
+COPY --from=base /app /app
+
+# Install build dependencies for native modules (better-sqlite3)
+RUN apt-get update && apt-get install -y python3 make g++ openssl && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies for server and shared
+RUN npm install
+RUN cd shared && npm install
+RUN cd server && npm install
+
+# Copy source code for server and shared
+COPY shared/ ./shared/
+COPY server/ ./server/
+
+# Build shared package
 RUN cd shared && npm run build
 
 # Generate Prisma client
@@ -40,16 +80,15 @@ RUN cd server && npx prisma generate
 # Build server (TypeScript -> JS)
 RUN cd server && npm run build
 
-# Build client (React app)
-RUN cd client && npm run build
-
-# Production stage - Frontend (nginx)
+# ----------------------------------------
+# Production Stage - Frontend (nginx)
+# ----------------------------------------
 FROM nginx:alpine AS frontend-production
 
-# Copy client build (Vite builds to 'dist' directory, CRA used 'build')
-COPY --from=builder /app/client/dist /usr/share/nginx/html
+# Copy client build from client-builder
+# Since output is static files, it doesn't matter that builder was different arch
+COPY --from=client-builder /app/client/dist /usr/share/nginx/html
 
-# Copy custom nginx config
 # Copy custom nginx config template
 COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
 
@@ -64,18 +103,20 @@ EXPOSE 80
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
 
-# Production stage - Backend (Node.js)
+# ----------------------------------------
+# Production Stage - Backend (Node.js)
+# ----------------------------------------
 FROM node:20-slim AS backend-production
 
 WORKDIR /app
 
 # Install runtime dependencies for better-sqlite3 (Debian equivalent)
 # libstdc++ is usually included, but openssl might be needed for Prisma
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl wget && rm -rf /var/lib/apt/lists/*
 
-# Copy built server from builder
-COPY --from=builder /app/server /app/server
-COPY --from=builder /app/shared /app/shared
+# Copy built server from server-builder
+COPY --from=server-builder /app/server /app/server
+COPY --from=server-builder /app/shared /app/shared
 
 # Set working directory
 WORKDIR /app/server

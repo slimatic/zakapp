@@ -1,65 +1,116 @@
 services:
-  # Containerized npm environment - eliminates host OS npm issues
-  npm-env:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.dev
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/server/node_modules
-      - /app/client/node_modules
-      - ./server/prisma/data:/app/server/prisma/data
-    environment:
-      - NODE_ENV=development
-    working_dir: /app
-    profiles: ['npm-tools']
-    command: ['tail', '-f', '/dev/null'] # Keep container running
-    depends_on:
-      - backend  # Ensure shared is installed before running npm-env tasks
-
   frontend:
+    image: ghcr.io/slimatic/zakapp-frontend:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.frontend
+      target: development
+    profiles: ["dev"]
     ports:
       - '3000:3000'
     volumes:
       - ./client:/app/client
-      - ./shared:/app/shared
+      - ./shared/src:/app/shared/src
       - /app/client/node_modules
       - /app/shared/node_modules
+      - /app/shared/dist
       - ./docker/frontend-entrypoint.sh:/docker-entrypoint.sh
+    entrypoint: ["/docker-entrypoint.sh"]
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
-      - REACT_APP_API_URL=http://localhost:3001
+      - HOST=0.0.0.0
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - PORT=3000
+      - VITE_PORT=3000
+      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
+      - REACT_APP_FEEDBACK_ENABLED=${REACT_APP_FEEDBACK_ENABLED:-true}
+      - REACT_APP_FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
+      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+      couchdb:
+        condition: service_started
     command: npm start
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  couchdb:
+    image: apache/couchdb:3.5.1
+    ports:
+      - "5984:5984"
+      - "6984:6984"
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      - COUCHDB_BIND_ADDRESS=0.0.0.0
+      - COUCHDB_PORT=5984
+      - COUCHDB_ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+    volumes:
+      - couchdb-data:/opt/couchdb/data
+      - ./docker/couchdb/entrypoint-wrapper.sh:/usr/local/bin/entrypoint-wrapper.sh
+      - ./docker/couchdb/generate-cert.sh:/usr/local/bin/generate-cert.sh
+    entrypoint: ["/usr/local/bin/entrypoint-wrapper.sh"]
+    command: ["couchdb"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   backend:
+    image: ghcr.io/slimatic/zakapp-backend:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
+      target: development
+    profiles: ["dev"]
     ports:
       - '3001:3001'
     volumes:
       - ./server:/app/server
-      - ./shared:/app/shared
+      - ./shared/src:/app/shared/src
       - /app/server/node_modules
       - /app/shared/node_modules
-      - ./server/prisma/data:/app/server/prisma/data
+      - /app/shared/dist
+      - zakapp-db:/app/server/prisma/data
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
       - PORT=3001
-      - JWT_SECRET=your-jwt-secret-change-in-production
       - DATABASE_URL=file:./prisma/data/dev.db
-      - ENCRYPTION_KEY=your-encryption-key-change-in-production-dev-only
-      # Comma-separated list of previous encryption keys (base64 or hex) for fallback decryption
-      # Replace the placeholder values below with actual previous keys when available
-      - ENCRYPTION_PREVIOUS_KEYS=BASE64_PREVIOUS_KEY_1,BASE64_PREVIOUS_KEY_2
-    command: npm run dev
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - FEEDBACK_WEBHOOK_URL=${REACT_APP_FEEDBACK_WEBHOOK_URL:-}
+      - COUCHDB_JWT_SECRET=${COUCHDB_JWT_SECRET}
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+      - COUCHDB_URL=${COUCHDB_URL}
+      - GOLD_API_KEY=${GOLD_API_KEY}
+      - APP_URL=${APP_URL:-http://localhost:3000}
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:3001/api/auth/register || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    depends_on:
+      - couchdb
+
+volumes:
+  zakapp-db:
+    name: zakapp-database
+  couchdb-data:
+    name: couchdb-data
 
 networks:
   default:
     name: zakapp-dev
+
