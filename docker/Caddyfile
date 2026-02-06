@@ -23,17 +23,79 @@
         }
     }
     
-    # Handle CouchDB requests
+    # Handle CouchDB requests - support both /db and /couchdb paths
     handle /db/* {
+        uri strip_prefix /db
         reverse_proxy couchdb:5984 {
             header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
         }
     }
     
-    # Handle WebSocket for CouchDB sync
+    handle /couchdb/* {
+        uri strip_prefix /couchdb
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle CouchDB WebSocket and _changes feed
     handle /_changes {
         reverse_proxy couchdb:5984 {
             header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+            header_up Upgrade {http_upgrade}
+            header_up Connection {http_connection}
+        }
+    }
+    
+    # Handle all CouchDB system paths
+    handle /_users/* {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /_replicator/* {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /_session {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle all other CouchDB internal paths (WebSocket support)
+    handle /* {
+        # Check if it's a CouchDB WebSocket or feed request
+        @couchdb_websocket {
+            header Connection *Upgrade*
+            header Upgrade websocket
+        }
+        reverse_proxy @couchdb_websocket couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
             header_up Upgrade {http_upgrade}
             header_up Connection {http_connection}
         }
@@ -72,17 +134,79 @@
         }
     }
     
-    # Handle CouchDB requests
+    # Handle CouchDB requests - support both /db and /couchdb paths
     handle /db/* {
+        uri strip_prefix /db
         reverse_proxy couchdb:5984 {
             header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
         }
     }
     
-    # Handle WebSocket for CouchDB sync
+    handle /couchdb/* {
+        uri strip_prefix /couchdb
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle CouchDB WebSocket and _changes feed
     handle /_changes {
         reverse_proxy couchdb:5984 {
             header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+            header_up Upgrade {http_upgrade}
+            header_up Connection {http_connection}
+        }
+    }
+    
+    # Handle all CouchDB system paths
+    handle /_users/* {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /_replicator/* {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /_session {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle all other CouchDB internal paths (WebSocket support)
+    handle /* {
+        # Check if it's a CouchDB WebSocket or feed request
+        @couchdb_websocket {
+            header Connection *Upgrade*
+            header Upgrade websocket
+        }
+        reverse_proxy @couchdb_websocket couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
             header_up Upgrade {http_upgrade}
             header_up Connection {http_connection}
         }
