@@ -182,7 +182,7 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
               tickFormatter={formatCompactCurrency}
             />
             <Tooltip
-              formatter={(value: any, name: string) => [
+              formatter={(value: any, name: string | undefined) => [
                 formatCompactCurrency(value),
                 name === 'wealth' ? 'Total Wealth' : 'Zakat Due'
               ]}

@@ -1,0 +1,49 @@
+# Playwright Docker Test Configuration
+# Tests ZakApp in a headless browser environment
+
+services:
+  playwright-tests:
+    image: mcr.microsoft.com/playwright:v1.49.1-jammy
+    working_dir: /tests
+    volumes:
+      - ./e2e:/tests/e2e
+      - ./playwright-report:/tests/playwright-report
+      - ./test-results:/tests/test-results
+    environment:
+      - ZAKAPP_URL=http://host.docker.internal:3005
+      - CI=true
+    command: >
+      bash -c "
+        npm install @playwright/test@1.49.1 &&
+        npx playwright install chromium &&
+        npx playwright test e2e/ --reporter=list
+      "
+    # Alternative: Run tests against internal Docker network
+    # network_mode: host  # Linux only
+    
+  # Service to test from within Docker network
+  playwright-tests-internal:
+    image: mcr.microsoft.com/playwright:v1.49.1-jammy
+    working_dir: /tests
+    volumes:
+      - ./e2e:/tests/e2e
+      - ./playwright-report:/tests/playwright-report
+      - ./test-results:/tests/test-results
+    environment:
+      - ZAKAPP_URL=http://frontend:80
+      - API_URL=http://backend:3001
+      - CI=true
+    command: >
+      bash -c "
+        npm install @playwright/test@1.49.1 &&
+        npx playwright install chromium &&
+        npx playwright test e2e/ --reporter=list || true &&
+        echo 'Tests completed. Check test-results/ for details.'
+      "
+    profiles:
+      - test-internal
+    networks:
+      - zakapp-network
+    depends_on:
+      - frontend
+      - backend
