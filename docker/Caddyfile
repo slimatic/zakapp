@@ -2,9 +2,6 @@
 # Automatically handles HTTPS for localhost, IP addresses, and custom domains
 
 {
-    # Debug logging (disable in production)
-    # debug
-    
     # Auto HTTPS settings
     auto_https disable_redirects
     
@@ -12,7 +9,7 @@
     admin off
 }
 
-# Catch-all for automatic configuration
+# HTTP on port 80
 :80 {
     # Enable compression
     encode gzip
@@ -22,7 +19,6 @@
         reverse_proxy backend:3001 {
             header_up Host {host}
             header_up X-Real-IP {remote}
-            header_up X-Forwarded-For {remote}
             header_up X-Forwarded-Proto {scheme}
         }
     }
@@ -47,7 +43,6 @@
     reverse_proxy frontend:80 {
         header_up Host {host}
         header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
         header_up X-Forwarded-Proto {scheme}
     }
     
@@ -58,12 +53,12 @@
     }
 }
 
-# HTTPS configuration (used when accessing via HTTPS)
+# HTTPS on port 443 with automatic self-signed certificates
 :443 {
     # Enable compression
     encode gzip
     
-    # TLS configuration - auto-generate self-signed certs for IP addresses
+    # Auto-generate self-signed certs
     tls internal
     
     # Handle API requests
@@ -71,7 +66,6 @@
         reverse_proxy backend:3001 {
             header_up Host {host}
             header_up X-Real-IP {remote}
-            header_up X-Forwarded-For {remote}
             header_up X-Forwarded-Proto {scheme}
         }
     }
@@ -96,7 +90,6 @@
     reverse_proxy frontend:80 {
         header_up Host {host}
         header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
         header_up X-Forwarded-Proto {scheme}
     }
     
@@ -104,48 +97,5 @@
     log {
         output file /data/access.log
         format json
-    }
-}
-
-# Custom domain configuration (if ZAKAPP_DOMAIN is set)
-{$ZAKAPP_DOMAIN} {
-    # Enable compression
-    encode gzip
-    
-    # Use Let's Encrypt for custom domains
-    tls {$TLS_EMAIL:internal}
-    
-    # Handle API requests
-    handle_path /api/* {
-        reverse_proxy backend:3001 {
-            header_up Host {host}
-            header_up X-Real-IP {remote}
-            header_up X-Forwarded-For {remote}
-            header_up X-Forwarded-Proto {scheme}
-        }
-    }
-    
-    # Handle CouchDB requests
-    handle_path /db/* {
-        reverse_proxy couchdb:5984 {
-            header_up Host {host}
-        }
-    }
-    
-    # Handle WebSocket for CouchDB sync
-    handle /_changes {
-        reverse_proxy couchdb:5984 {
-            header_up Host {host}
-            header_up Upgrade {http_upgrade}
-            header_up Connection {http_connection}
-        }
-    }
-    
-    # Everything else goes to frontend
-    reverse_proxy frontend:80 {
-        header_up Host {host}
-        header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
-        header_up X-Forwarded-Proto {scheme}
     }
 }
