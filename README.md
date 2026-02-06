@@ -92,6 +92,9 @@ npm start
 | [SELF-HOSTING.md](SELF-HOSTING.md) | Production deployment with custom domains |
 | [QUICKSTART.md](QUICKSTART.md) | Alternative deployment methods |
 | [FAQs.md](FAQs.md) | Islamic finance questions answered |
+| [Deployment Guide](docs/deployment-guide.md) | Advanced deployment options |
+| [Troubleshooting](docs/troubleshooting-faq.md) | Common issues and solutions |
+| [API Reference](docs/api-specification.md) | REST API documentation |
 
 ## 🛠 Tech Stack
 
@@ -99,6 +102,8 @@ npm start
 - **Backend**: Node.js, Express, Prisma (SQLite)
 - **Sync**: CouchDB for multi-device sync
 - **Security**: Client-side AES-GCM (256-bit) powered by Web Crypto API
+
+Detailed technical details can be found in our [Architecture Guide](docs/ARCHITECTURE.md).
 
 ## 🤝 Contributing
 
