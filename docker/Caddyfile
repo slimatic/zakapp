@@ -15,7 +15,7 @@
     encode gzip
     
     # Handle API requests
-    handle_path /api/* {
+    handle /api/* {
         reverse_proxy backend:3001 {
             header_up Host {host}
             header_up X-Real-IP {remote}
@@ -24,7 +24,7 @@
     }
     
     # Handle CouchDB requests
-    handle_path /db/* {
+    handle /db/* {
         reverse_proxy couchdb:5984 {
             header_up Host {host}
         }
@@ -64,7 +64,7 @@
     }
     
     # Handle API requests
-    handle_path /api/* {
+    handle /api/* {
         reverse_proxy backend:3001 {
             header_up Host {host}
             header_up X-Real-IP {remote}
@@ -73,7 +73,7 @@
     }
     
     # Handle CouchDB requests
-    handle_path /db/* {
+    handle /db/* {
         reverse_proxy couchdb:5984 {
             header_up Host {host}
         }
