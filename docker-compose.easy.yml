@@ -36,7 +36,7 @@ services:
       - "80"
     environment:
       - REACT_APP_API_BASE_URL=/api
-      - REACT_APP_COUCHDB_URL=${REACT_APP_COUCHDB_URL:-/db}
+      - REACT_APP_COUCHDB_URL=/db
       - NODE_ENV=production
     networks:
       - zakapp-network
