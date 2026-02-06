@@ -20,6 +20,10 @@ COPY client/package*.json ./client/
 # ----------------------------------------
 FROM --platform=$BUILDPLATFORM node:20-slim AS client-builder
 WORKDIR /app
+# Re-declare ARG and ENV as they don't persist across stages automatically
+ARG GIT_COMMIT_HASH
+ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
 # Copy package definitions from base
 COPY --from=base /app /app
@@ -47,6 +51,10 @@ RUN cd client && npm run build
 # ----------------------------------------
 FROM node:20-slim AS server-builder
 WORKDIR /app
+# Re-declare ARG and ENV as they don't persist across stages automatically
+ARG GIT_COMMIT_HASH
+ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
 # Copy package definitions from base
 COPY --from=base /app /app
