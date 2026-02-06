@@ -150,7 +150,7 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records }) =
                     />
                     <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
                     <Tooltip
-                        formatter={(value: number) => [formatTooltip(value)]}
+                        formatter={(value: any) => [formatTooltip(Number(value) || 0)]}
                         contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                     />
                     <Area
