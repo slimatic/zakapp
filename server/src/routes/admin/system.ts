@@ -1,5 +1,6 @@
 import express from 'express';
 import { prisma } from '../../utils/prisma';
+import { checkSchemaStatus } from '../../utils/schemaCheck';
 import { authenticate, requireAdmin } from '../../middleware/AuthMiddleware';
 import packageJson from '../../../package.json';
 
@@ -11,6 +12,9 @@ router.get('/status', authenticate, requireAdmin, async (req, res) => {
     const dbStart = Date.now();
     await prisma.$queryRaw`SELECT 1`;
     const dbLatency = Date.now() - dbStart;
+
+    // Check schema status
+    const schemaStatus = await checkSchemaStatus();
 
     // Environment info (safe subset)
     const env = {
@@ -29,7 +33,9 @@ router.get('/status', authenticate, requireAdmin, async (req, res) => {
         uptime: process.uptime(),
         database: {
           connected: true,
-          latencyMs: dbLatency
+          latencyMs: dbLatency,
+          schemaUpToDate: schemaStatus.upToDate,
+          pendingMigrations: schemaStatus.pending.length,
         },
         memory: {
           rss: Math.round(memoryUsage.rss / 1024 / 1024),
@@ -54,6 +60,14 @@ router.get('/status', authenticate, requireAdmin, async (req, res) => {
       }
     });
   }
+});
+
+router.get('/status/schema', authenticate, requireAdmin, async (req, res) => {
+  const status = await checkSchemaStatus();
+  res.json({
+    success: !status.error,
+    data: status
+  });
 });
 
 export default router;
