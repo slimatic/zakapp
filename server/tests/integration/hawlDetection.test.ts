@@ -14,6 +14,7 @@ import { PrismaClient } from '@prisma/client';
 import { NisabCalculationService } from '../../src/services/nisabCalculationService';
 import { HawlTrackingService } from '../../src/services/hawlTrackingService';
 import { WealthAggregationService } from '../../src/services/wealthAggregationService';
+import { createAssetPayload } from '../helpers/testHelpers';
 
 const prisma = new PrismaClient();
 
@@ -56,12 +57,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings Account',
         category: 'cash',
-        currentValue: 4000,
-        isZakatable: true,
-      });
+        value: 4000,
+      }));
 
     // Step 2: Verify no Hawl is active yet
     const statusBefore = await request(app)
@@ -74,12 +74,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     const assetResponse = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Gold Holdings',
         category: 'gold',
-        currentValue: 3500, // Total now = 7500 (above gold Nisab ~5293)
-        isZakatable: true,
-      });
+        value: 3500, // Total now = 7500 (above gold Nisab ~5293)
+      }));
 
     expect(assetResponse.status).toBe(201);
 
@@ -111,12 +110,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings',
         category: 'cash',
-        currentValue: 8000,
-        isZakatable: true,
-      });
+        value: 8000,
+      }));
 
     // Step 2: Verify Hawl started
     const status1 = await request(app)
@@ -130,12 +128,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Investment Account',
         category: 'investment',
-        currentValue: 5000,
-        isZakatable: true,
-      });
+        value: 5000,
+      }));
 
     // Step 4: Verify same Hawl is still active (no duplicate)
     const status2 = await request(app)
@@ -162,12 +159,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash Savings',
         category: 'cash',
-        currentValue: 600, // Above silver Nisab, below gold Nisab
-        isZakatable: true,
-      });
+        value: 600, // Above silver Nisab, below gold Nisab
+      }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -184,12 +180,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash',
         category: 'cash',
-        currentValue: 10000,
-        isZakatable: true,
-      });
+        value: 10000,
+      }));
 
     // Step 2: Get active Hawl details
     const status = await request(app)
@@ -226,12 +221,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings',
         category: 'cash',
-        currentValue: 7000,
-        isZakatable: true,
-      });
+        value: 7000,
+      }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -252,12 +246,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash',
         category: 'cash',
-        currentValue: 6000,
-        isZakatable: true,
-      });
+        value: 6000,
+      }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
