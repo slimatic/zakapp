@@ -140,5 +140,33 @@ export const adminService = {
 
     verifyUser: async (userId: string): Promise<ApiResponse> => {
         return apiService.post(`/admin/settings/users/${userId}/verify`, {});
+    },
+
+    getSystemStatus: async (): Promise<ApiResponse<SystemStatus>> => {
+        return apiService.get('/admin/system/status');
     }
+}
+
+export interface SystemStatus {
+    status: string;
+    version: string;
+    uptime: number;
+    database: {
+        connected: boolean;
+        latencyMs: number;
+        schemaUpToDate: boolean;
+        pendingMigrations: number;
+    };
+    memory: {
+        rss: number;
+        heapTotal: number;
+        heapUsed: number;
+        external: number;
+    };
+    environment: {
+        NODE_ENV?: string;
+        PORT?: string;
+        TZ?: string;
+    };
+    timestamp: string;
 }
