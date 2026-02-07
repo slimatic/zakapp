@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { loadConfig, saveConfig, DEFAULT_CONFIG, UserConfig } from '../config';
+import { ZAKAT_METHODS } from '@zakapp/shared';
 
 export const setupCommand = new Command('setup')
   .description('Setup Zakapp configuration')
@@ -41,7 +42,10 @@ export const setupCommand = new Command('setup')
         type: 'list',
         name: 'zakatMethod',
         message: 'Select your Zakat calculation method:',
-        choices: ['standard', 'hanafi', 'shafii'],
+        choices: Object.values(ZAKAT_METHODS).map(method => ({
+          name: method.name,
+          value: method.id
+        })),
         default: defaults.zakatMethod,
         when: (answers) => answers.continue
       },
