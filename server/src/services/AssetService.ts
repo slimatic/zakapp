@@ -20,7 +20,7 @@ import { determineModifier } from '../utils/assetModifiers';
 // import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
 
 const PASSIVE_INVESTMENT_TYPES = [
-  'STOCK',
+  'STOCKS',
   'ETF',
   'MUTUAL_FUND',
   'ROTH_IRA',

@@ -1,6 +1,12 @@
 // Early test setup: ensure all Prisma clients use the TEST_DATABASE_URL when provided
 // Force the correct absolute path where migration ran
-process.env.DATABASE_URL = 'file:/home/agentx/github-repos/zakapp/server/prisma/test/test.db';
+import path from 'path';
+
+// Resolve database path relative to the server directory (assumed to be CWD)
+// Prisma CLI resolves relative paths in DATABASE_URL relative to the schema file location (prisma/schema.prisma)
+// So 'file:./test/test.db' in globalSetup becomes 'server/prisma/test/test.db'
+const dbPath = path.resolve(process.cwd(), 'prisma/test/test.db');
+process.env.DATABASE_URL = `file:${dbPath}`;
 process.env.TEST_DATABASE_URL = process.env.DATABASE_URL;
 
 /*
@@ -14,7 +20,7 @@ if (process.env.TEST_DATABASE_URL) {
 */
 
 // Ensure ENCRYPTION_KEY has a default during tests to avoid runtime errors
-process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'test-encryption-key-32-bytes!';
+process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'test-encryption-key-32-chars-!!!';
 process.env.JWT_SECRET = 'supersecret';
 
 // Polyfill File for environments where it's missing (needed by some undici/fetch versions)

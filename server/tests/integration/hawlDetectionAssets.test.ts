@@ -1,4 +1,4 @@
-import { vi, type Mock } from 'vitest';
+import { vi, type Mock, describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from 'vitest';
 /**
  * Integration Test: Automatic Asset Inclusion in Background Job
  * Purpose: Test that Hawl detection job automatically includes assets in DRAFT records
@@ -53,7 +53,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
     // Set up Nisab threshold (using gold: 87.48g * $70/g = $6,123.60)
     await prisma.preciousMetalPrice.create({
       data: {
-        metal: 'gold',
+        metalType: 'gold',
         pricePerGram: 70.0,
         currency: 'USD',
         fetchedAt: new Date(),
@@ -81,7 +81,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
           userId,
           {
             name: 'Savings Account',
-            category: 'cash',
+            category: 'CASH',
             value: 5000,
             isZakatable: true,
           },
@@ -91,7 +91,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
           userId,
           {
             name: 'Bitcoin',
-            category: 'crypto',
+            category: 'CRYPTO',
             value: 3000,
             isZakatable: true,
           },
@@ -101,7 +101,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
           userId,
           {
             name: 'Gold Jewelry',
-            category: 'gold',
+        category: 'gold',
             value: 2500,
             isZakatable: true,
           },
@@ -170,7 +170,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Test Gold Bar',
-          category: 'gold',
+          category: 'GOLD',
           value: 7500.50,
           isZakatable: true,
         },
@@ -213,7 +213,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Cash',
-          category: 'cash',
+          category: 'CASH',
           value: 5000,
           isZakatable: true,
         },
@@ -223,7 +223,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Primary Residence',
-          category: 'real_estate',
+          category: 'PROPERTY',
           value: 250000,
           isZakatable: false,
         },
@@ -233,7 +233,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Gold',
-          category: 'gold',
+          category: 'GOLD',
           value: 3000,
           isZakatable: true,
         },
@@ -273,7 +273,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Savings',
-          category: 'cash',
+          category: 'CASH',
           value: 10000,
           isZakatable: true,
         },
@@ -315,7 +315,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Small Savings',
-          category: 'cash',
+          category: 'CASH',
           value: 3000,
           isZakatable: true,
         },
@@ -339,7 +339,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Initial Asset',
-          category: 'cash',
+          category: 'CASH',
           value: 10000,
           isZakatable: true,
         },
@@ -383,7 +383,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Cash',
-          category: 'cash',
+          category: 'CASH',
           value: 10000,
           isZakatable: true,
         },
@@ -416,7 +416,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Active Account',
-          category: 'cash',
+          category: 'CASH',
           value: 7000,
           isZakatable: true,
         },
@@ -426,7 +426,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Empty Account',
-          category: 'cash',
+          category: 'CASH',
           value: 0,
           isZakatable: true,
         },
@@ -464,7 +464,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'First Asset',
-          category: 'cash',
+          category: 'CASH',
           value: 3000,
           isZakatable: true,
         },
@@ -478,7 +478,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Second Asset',
-          category: 'gold',
+          category: 'GOLD',
           value: 4000,
           isZakatable: true,
         },
@@ -515,7 +515,7 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         userId,
         {
           name: 'Test Asset',
-          category: 'cash',
+          category: 'CASH',
           value: 10000,
           isZakatable: true,
         },
