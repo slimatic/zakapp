@@ -17,6 +17,7 @@ import { vi, type Mock } from 'vitest';
  */
 
 /* global describe, it, expect, beforeAll, afterAll */
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { AuthenticatedRequest } from '../../types';
 

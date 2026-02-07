@@ -18,7 +18,7 @@ import { vi, type Mock } from 'vitest';
 
 import request from 'supertest';
 import { describe, it, expect, beforeAll } from 'vitest';
-import app from '@/app';
+import app from '../../app';
 
 describe('Analytics API Integration Tests', () => {
   let authToken: string;
@@ -41,8 +41,8 @@ describe('Analytics API Integration Tests', () => {
       throw new Error(`Registration Failed: ${JSON.stringify(registrationResponse.body, null, 2)}`);
     }
     expect(registrationResponse.status).toBe(201);
-    testUser = registrationResponse.body.user;
-    authToken = registrationResponse.body.accessToken;
+    testUser = registrationResponse.body.data.user;
+    authToken = registrationResponse.body.data.tokens.accessToken;
   });
 
   describe('GET /api/analytics/summary', () => {
