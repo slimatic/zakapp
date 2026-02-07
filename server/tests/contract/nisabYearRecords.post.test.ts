@@ -20,10 +20,11 @@ describe('POST /api/nisab-year-records - Contract Tests', () => {
 
   beforeAll(async () => {
     // Create test user
+    const timestamp = Date.now();
     const user = await prisma.user.create({
       data: {
-        email: 'test-post@example.com',
-        username: 'testpost',
+        email: `test-post-${timestamp}@example.com`,
+        username: `testpost-${timestamp}`,
         passwordHash: 'hashedpassword',
         isActive: true,
       },

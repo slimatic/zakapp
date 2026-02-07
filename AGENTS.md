@@ -12,29 +12,41 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+## Workflow Rules
+
+**1. STARTING WORK:**
+   - **Always** create a new branch for your task.
+   - **Naming Convention:** `feature/<issue-id>-<slug>` (e.g., `feature/zakapp-123-update-login`).
+   - **Never** commit directly to `main`.
+
+   ```bash
+   bd update <id> --status in_progress
+   git checkout -b feature/<id>-short-description
+   ```
+
 ## Landing the Plane (Session Completion)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+**When ending a work session**, you MUST complete ALL steps below.
 
 **MANDATORY WORKFLOW:**
 
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+3. **Update issue status** - Close finished work (only if PR is merged) or keep in_progress
+4. **PUSH & PR** - This is MANDATORY:
    ```bash
-   git pull --rebase
    bd sync
-   git push
-   git status  # MUST show "up to date with origin"
+   git add .
+   git commit -m "feat: description (zakapp-xxx)"
+   git push -u origin HEAD
+   gh pr create --fill  # Create PR
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+5. **Clean up** - Clear stashes
+6. **Verify** - PR is created and checks are running
 
 **CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+- **NO DIRECT PUSHES TO MAIN.** Always use a PR.
+- Work is NOT complete until the PR is created (or updated).
+- If you have permissions and the task is complete, merge the PR: `gh pr merge --squash --delete-branch`.
+
 

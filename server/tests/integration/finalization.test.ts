@@ -22,13 +22,15 @@ describe('Integration: Finalization Workflow', () => {
     const registerResponse = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'finalization@example.com',
+        email: `finalization-${Date.now()}@example.com`,
         password: 'TestPass123!',
-        name: 'Finalization Test User',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Finalization',
+        lastName: 'Test User',
       });
 
-    authToken = registerResponse.body.accessToken;
-    userId = registerResponse.body.user.id;
+    authToken = registerResponse.body.data.tokens.accessToken;
+    userId = registerResponse.body.data.user.id;
   });
 
   afterAll(async () => {
