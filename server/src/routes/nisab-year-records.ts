@@ -354,29 +354,31 @@ router.get(
         });
       }
 
-      // Validate record status - allow DRAFT and UNLOCKED
-      if (record.status !== 'DRAFT' && record.status !== 'UNLOCKED') {
+      // Validate record status - allow only DRAFT
+      if (record.status !== 'DRAFT') {
         return res.status(400).json({
           success: false,
           error: 'INVALID_STATUS',
-          message: 'Can only refresh assets for DRAFT or UNLOCKED records',
+          message: 'Can only refresh assets for DRAFT records',
         });
       }
 
       // Fetch current zakatable assets
       const wealthAggregationService = nisabYearRecordService['wealthAggregationService'];
-      const assets = await wealthAggregationService.getZakatableAssets(req.userId);
+      const allAssets = await wealthAggregationService.getZakatableAssets(req.userId);
+
+      // Filter to only return zakatable assets
+      const zakatableAssets = allAssets.filter(asset => asset.isZakatable);
 
       // Calculate totals (use per-asset zakatableValue when present)
-      const totalWealth = assets.reduce((sum, asset) => sum + (asset.value || 0), 0);
-      const zakatableWealth = assets
-        .filter(a => a.isZakatable)
+      const totalWealth = allAssets.reduce((sum, asset) => sum + (asset.value || 0), 0);
+      const zakatableWealth = zakatableAssets
         .reduce((sum, asset) => sum + (typeof (asset as any).zakatableValue === 'number' ? (asset as any).zakatableValue : (asset.value || 0)), 0);
 
       res.status(200).json({
         success: true,
         data: {
-          assets: assets.map(asset => ({
+          assets: zakatableAssets.map(asset => ({
             id: asset.id,
             name: asset.name,
             category: asset.category,

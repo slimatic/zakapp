@@ -29,5 +29,8 @@ const url = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL || 'file:.
 export const prisma = new PrismaClient({ datasources: { db: { url } } });
 
 export function getPrismaClient(options?: any) {
+  if (!options) {
+    return prisma;
+  }
   return new PrismaClient({ ...options, datasources: { db: { url } } });
 }
