@@ -247,23 +247,14 @@ export class HawlTrackingService {
                 userId: user.id,
                 status: 'DRAFT',
               },
-           });
-        } catch (userError) {
-          this.logger.error(`Failed to process user ${user.id}`, userError);
-          // Continue with next user
-        }
-      }
+            });
 
-      this.logger.info(`Nisab detection complete: ${recordsCreated} DRAFT records created`);
-      return recordsCreated;
-    } catch (error) {
-      this.logger.error('Nisab achievement detection failed', error);
-      throw error;
-    }
-  }
+            if (existingRecord) {
+              this.logger.debug(`User ${user.id} already has DRAFT record, skipping`);
+              return; // Skip this user
+            }
 
             // Calculate user's current wealth
-            // Note: calculation is outside transaction but acceptable here as we re-check existingRecord
             const wealthCalc = await this.wealthAggregationService.calculateTotalZakatableWealth(user.id);
             const currentWealth = wealthCalc.totalZakatableWealth;
 
