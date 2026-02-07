@@ -26,13 +26,28 @@ describe('Integration: Nisab Achievement Detection', () => {
     const registerResponse = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'nisabtest@example.com',
+        email: `nisabtest-${Date.now()}@example.com`,
         password: 'TestPass123!',
-        name: 'Nisab Test User',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Nisab',
+        lastName: 'Test',
       });
 
-    authToken = registerResponse.body.accessToken;
-    userId = registerResponse.body.user.id;
+    if (registerResponse.status !== 201) {
+      console.error('Registration failed:', registerResponse.status, registerResponse.body);
+      throw new Error(`Registration failed with status ${registerResponse.status}`);
+    }
+
+    // Login to get token
+    const loginResponse = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: registerResponse.body.data.user.email,
+        password: 'TestPass123!',
+      });
+
+    authToken = loginResponse.body.data.tokens.accessToken;
+    userId = loginResponse.body.data.user.id;
   });
 
   afterAll(async () => {
@@ -57,9 +72,10 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send({
         name: 'Savings Account',
         category: 'cash',
-        currentValue: 4000,
-        isZakatable: true,
-      });
+        value: 4000,
+        currency: 'USD',
+        acquisitionDate: new Date(),
+});
 
     // Step 2: Verify no Hawl is active yet
     const statusBefore = await request(app)
@@ -75,9 +91,10 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send({
         name: 'Gold Holdings',
         category: 'gold',
-        currentValue: 3500, // Total now = 7500 (above gold Nisab ~5293)
-        isZakatable: true,
-      });
+        value: 3500, // Total now = 7500 (above gold Nisab ~5293),
+        currency: 'USD',
+        acquisitionDate: new Date(),
+});
 
     expect(assetResponse.status).toBe(201);
 
@@ -112,9 +129,10 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send({
         name: 'Savings',
         category: 'cash',
-        currentValue: 8000,
-        isZakatable: true,
-      });
+        value: 8000,
+        currency: 'USD',
+        acquisitionDate: new Date(),
+});
 
     // Step 2: Verify Hawl started
     const status1 = await request(app)
@@ -131,9 +149,10 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send({
         name: 'Investment Account',
         category: 'investment',
-        currentValue: 5000,
-        isZakatable: true,
-      });
+        value: 5000,
+        currency: 'USD',
+        acquisitionDate: new Date(),
+});
 
     // Step 4: Verify same Hawl is still active (no duplicate)
     const status2 = await request(app)
@@ -163,9 +182,10 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send({
         name: 'Cash Savings',
         category: 'cash',
-        currentValue: 600, // Above silver Nisab, below gold Nisab
-        isZakatable: true,
-      });
+        value: 600, // Above silver Nisab, below gold Nisab,
+        currency: 'USD',
+        acquisitionDate: new Date(),
+});
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -185,9 +205,10 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send({
         name: 'Cash',
         category: 'cash',
-        currentValue: 10000,
-        isZakatable: true,
-      });
+        value: 10000,
+        currency: 'USD',
+        acquisitionDate: new Date(),
+});
 
     // Step 2: Get active Hawl details
     const status = await request(app)
@@ -227,9 +248,10 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send({
         name: 'Savings',
         category: 'cash',
-        currentValue: 7000,
-        isZakatable: true,
-      });
+        value: 7000,
+        currency: 'USD',
+        acquisitionDate: new Date(),
+});
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -253,9 +275,10 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send({
         name: 'Cash',
         category: 'cash',
-        currentValue: 6000,
-        isZakatable: true,
-      });
+        value: 6000,
+        currency: 'USD',
+        acquisitionDate: new Date(),
+});
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
