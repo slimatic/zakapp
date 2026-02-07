@@ -17,12 +17,15 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Hawl Detection Background Job (T046)
+ * Hawl Detection & Reconciliation Job (T046)
  * 
- * Hourly background task that scans all users for:
- * 1. Nisab achievement (wealth crosses threshold)
- * 2. Hawl interruptions (wealth drops below threshold)
- * 3. Hawl completions (354 days reached)
+ * Hourly background task that acts as a SAFETY NET and RECONCILIATION system.
+ * Primary responsibility for Hawl management lies with real-time triggers.
+ * 
+ * This job:
+ * 1. Reconciles DRAFT records (fixes drift between actual vs recorded wealth)
+ * 2. Detects missed Nisab crossings (backup mechanism)
+ * 3. Monitors and logs Hawl interruptions/completions
  */
 
 import { Logger } from '../utils/logger';
@@ -38,6 +41,7 @@ export interface HawlDetectionJobResult {
   endTime: Date;
   durationMs: number;
   usersProcessed: number;
+  reconciledRecords: number;
   nisabAchievements: number;
   hawlInterruptions: number;
   hawlCompletions: number;
@@ -46,21 +50,19 @@ export interface HawlDetectionJobResult {
 }
 
 /**
- * Run the Hawl detection job
- * Called hourly by job scheduler (see jobScheduler.ts)
+ * Run the Hawl detection & reconciliation job
+ * Called hourly by job scheduler
  * 
  * Flow:
  * 1. Iterate through all users
- * 2. Calculate current zakatble wealth
- * 3. Check previous Hawl state
- * 4. Detect state changes:
- *    - Nisab not achieved → Nisab achieved: Create DRAFT record
- *    - Hawl ACTIVE → INTERRUPTED: Update record, log interruption
- *    - Hawl complete (354 days): Ready for finalization
- * 5. Log all changes to audit trail
- * 6. Return summary statistics
- * 
- * @returns Job result with statistics
+ * 2. Calculate current zakatable wealth
+ * 3. RECONCILIATION: Check if active DRAFT record matches actual wealth
+ *    - If drift detected (> 1.0 unit), update record
+ * 4. SAFETY NET: Check for missed state changes
+ *    - Missed Nisab start
+ *    - Missed Interruption
+ *    - Missed Completion
+ * 5. Log all actions
  */
 export async function runHawlDetectionJob(
   prisma: PrismaClient,
@@ -77,6 +79,7 @@ export async function runHawlDetectionJob(
     endTime: new Date(),
     durationMs: 0,
     usersProcessed: 0,
+    reconciledRecords: 0,
     nisabAchievements: 0,
     hawlInterruptions: 0,
     hawlCompletions: 0,
@@ -85,7 +88,7 @@ export async function runHawlDetectionJob(
   };
 
   try {
-    logger.info('Starting Hawl detection job');
+    logger.info('Starting Hawl detection & reconciliation job');
 
     // Get all active users
     const users = await prisma.user.findMany({
@@ -104,10 +107,6 @@ export async function runHawlDetectionJob(
         
         // Parse the encrypted wealth data
         const zakatableAmount = wealthData.totalZakatableWealth;
-
-        if (zakatableAmount === 0 || !zakatableAmount) {
-          continue; // Skip users with no wealth
-        }
 
         // Check if user has a current DRAFT record
         const draftRecords = await prisma.yearlySnapshot.findMany({
@@ -128,12 +127,31 @@ export async function runHawlDetectionJob(
         );
 
         const nisabAmount = nisabData.selectedNisab;
-
         const isAboveNisab = zakatableAmount >= nisabAmount;
 
+        // --- RECONCILIATION LOGIC ---
+        if (currentRecord) {
+          const recordedWealth = Number(currentRecord.zakatableWealth);
+          // Check for drift > 1.0 (to avoid floating point noise)
+          if (Math.abs(recordedWealth - zakatableAmount) > 1.0) {
+            await prisma.yearlySnapshot.update({
+              where: { id: currentRecord.id },
+              data: {
+                zakatableWealth: zakatableAmount.toString(),
+                totalWealth: wealthData.totalWealth?.toString() || zakatableAmount.toString(), // Estimate total if not available
+              } as any,
+            });
+            
+            result.reconciledRecords++;
+            logger.debug(`Reconciled wealth for user ${user.id}: ${recordedWealth} -> ${zakatableAmount}`);
+            
+            // We don't continue here, we proceed to check state transitions based on NEW wealth
+          }
+        }
+
         /**
-         * Case 1: No active record AND wealth >= Nisab
-         * → Create new DRAFT record (Nisab achievement)
+         * SAFETY NET: Case 1: No active record AND wealth >= Nisab
+         * → Missed Nisab achievement detection
          */
         if (!currentRecord && isAboveNisab) {
           // Create new record directly
@@ -142,6 +160,8 @@ export async function runHawlDetectionJob(
               userId: user.id,
               status: 'DRAFT',
               nisabBasis: 'GOLD',
+              nisabType: 'gold',
+              nisabThreshold: nisabAmount.toString(),
               calculationDate: new Date(),
               gregorianYear: new Date().getFullYear(),
               gregorianMonth: new Date().getMonth() + 1,
@@ -149,22 +169,24 @@ export async function runHawlDetectionJob(
               hijriYear: 0,
               hijriMonth: 0,
               hijriDay: 0,
-              totalWealth: '0',
+              totalWealth: (wealthData.totalWealth || zakatableAmount).toString(),
               totalLiabilities: '0',
-              zakatableWealth: wealthData.totalZakatableWealth.toString(),
+              zakatableWealth: zakatableAmount.toString(),
               zakatAmount: '0',
               methodologyUsed: 'standard',
+              assetBreakdown: '{}',
+              calculationDetails: '{}',
             } as any,
           });
 
           result.nisabAchievements++;
-          logger.debug(`Nisab achieved for user ${user.id}`);
+          logger.info(`SAFETY NET: Detected missed Nisab achievement for user ${user.id}`);
           continue;
         }
 
         /**
-         * Case 2: Active record exists
-         * Check for state transitions
+         * SAFETY NET: Case 2: Active record exists
+         * Check for missed state transitions
          */
         if (currentRecord) {
           // Check if Hawl not started yet
@@ -189,11 +211,12 @@ export async function runHawlDetectionJob(
                   hawlStartDate: new Date(),
                   status: 'DRAFT',
                 },
+                reason: 'SAFETY NET: Triggered by reconciliation job'
               }
             );
 
             result.nisabAchievements++;
-            logger.debug(`Hawl started for user ${user.id}`);
+            logger.info(`SAFETY NET: Started missed Hawl for user ${user.id}`);
             continue;
           }
 
@@ -217,11 +240,12 @@ export async function runHawlDetectionJob(
                   nisabThreshold: nisabData.selectedNisab,
                   interruptionDate: new Date(),
                 },
+                reason: 'SAFETY NET: Triggered by reconciliation job'
               }
             );
 
             result.hawlInterruptions++;
-            logger.debug(`Hawl interrupted for user ${user.id}`);
+            logger.info(`SAFETY NET: Detected missed Hawl interruption for user ${user.id}`);
             continue;
           }
 
@@ -231,7 +255,7 @@ export async function runHawlDetectionJob(
               currentRecord.hawlStartDate
             );
 
-            if (isComplete) {
+            if (isComplete && !currentRecord.hawlCompletionDate) {
               // Mark hawl completion date but keep as DRAFT
               await prisma.yearlySnapshot.update({
                 where: { id: currentRecord.id },
@@ -242,32 +266,8 @@ export async function runHawlDetectionJob(
               });
 
               result.hawlCompletions++;
-              logger.debug(`Hawl completed for user ${user.id}`);
+              logger.info(`SAFETY NET: Detected missed Hawl completion for user ${user.id}`);
             }
-          }
-
-          // If Hawl was interrupted and wealth is above Nisab again, resume it
-          if (hawlNotStarted && isAboveNisab) {
-            // Restart Hawl from now
-            await prisma.yearlySnapshot.update({
-              where: { id: currentRecord.id },
-              data: {
-                hawlStartDate: new Date(),
-              } as any,
-            });
-
-            await auditTrailService.recordEvent(
-              user.id,
-              'NISAB_ACHIEVED',
-              currentRecord.id,
-              {
-                afterState: {
-                  hawlStartDate: new Date(),
-                },
-              }
-            );
-
-            logger.debug(`Hawl resumed for user ${user.id}`);
           }
         }
       } catch (userError) {
@@ -287,6 +287,7 @@ export async function runHawlDetectionJob(
     logger.info(
       `Hawl detection job complete: ` +
       `${result.usersProcessed} users, ` +
+      `${result.reconciledRecords} reconciled, ` +
       `${result.nisabAchievements} achievements, ` +
       `${result.hawlInterruptions} interruptions, ` +
       `${result.hawlCompletions} completions, ` +
