@@ -270,6 +270,7 @@ export class NisabYearRecordService {
     filters?: {
       status?: RecordStatus[];
       hijriYear?: string;
+      gregorianYear?: number;
       startDate?: Date;
       endDate?: Date;
     },
@@ -290,6 +291,9 @@ export class NisabYearRecordService {
       }
       if (filters?.hijriYear) {
         where.hijriYear = parseInt(filters.hijriYear, 10);
+      }
+      if (filters?.gregorianYear) {
+        where.gregorianYear = filters.gregorianYear;
       }
       if (filters?.startDate || filters?.endDate) {
         where.calculationDate = {};
@@ -476,7 +480,10 @@ export class NisabYearRecordService {
 
       const isHawlComplete = await this.hawlTrackingService.isHawlComplete(record.hawlStartDate as Date);
       if (!isHawlComplete) {
-        throw new Error('Cannot finalize: Hawl period not complete (354 days required)');
+        const hasOverride = (dto as any).override === true && (dto as any).acknowledgePremature === true;
+        if (!hasOverride) {
+          throw new Error('Cannot finalize: Hawl period not complete (354 days required)');
+        }
       }
 
       // Calculate final Zakat using all current active assets

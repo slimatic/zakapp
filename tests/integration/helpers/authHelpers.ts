@@ -16,7 +16,7 @@ export const authHelpers = {
     lastName?: string;
   }) {
     const defaultData = {
-      email: `test-${Date.now()}@example.com`,
+      email: `test-${Date.now()}-${Math.floor(Math.random() * 10000)}@example.com`,
       password: 'Test123!@#',
       firstName: 'Test',
       lastName: 'User',
