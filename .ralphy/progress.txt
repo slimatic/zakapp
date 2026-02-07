@@ -1,3 +1,5 @@
 # Ralphy Progress Log
 
 - [✓] 2026-02-06 23:35 - Fix all failing tests in the server directory. Currently there are around 33 failures. Ensure client tests continue to pass.
+- [✓] 2026-02-07 03:03 - Implement Configuration Writing & Secrets Generation
+- [✓] 2026-02-07 12:31 - Ensure Docker tags sync with code tags and releases
