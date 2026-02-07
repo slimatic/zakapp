@@ -85,6 +85,7 @@ const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage').then(m
 // Help and documentation
 const GettingStarted = lazy(() => import('./components/help/GettingStarted').then(m => ({ default: m.GettingStarted })));
 const KnowledgeHub = lazy(() => import('./pages/knowledge/KnowledgeHub').then(m => ({ default: m.KnowledgeHub })));
+const DiagnosticsPage = lazy(() => import('./pages/DiagnosticsPage'));
 
 // Tracking & Analytics pages - lazy loaded for optimal performance
 // const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
@@ -261,6 +262,18 @@ function App() {
                         <Layout>
                           <Suspense fallback={<PageLoadingFallback />}>
                             <KnowledgeHub />
+                          </Suspense>
+                        </Layout>
+                      }
+                    />
+
+                    {/* System Diagnostics */}
+                    <Route
+                      path="/diagnostics"
+                      element={
+                        <Layout>
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <DiagnosticsPage />
                           </Suspense>
                         </Layout>
                       }
