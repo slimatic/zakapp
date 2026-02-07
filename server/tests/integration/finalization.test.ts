@@ -1,4 +1,4 @@
-import { vi, type Mock } from 'vitest';
+import { vi, type Mock, describe, it, expect, beforeAll, afterAll } from 'vitest';
 /**
  * T029: Integration Test - Finalization Workflow
  * 
@@ -47,8 +47,10 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 10000,
         zakatableWealth: 10000,
         zakatAmount: 250,
@@ -82,8 +84,10 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(),
+        hawlStartDateHijri: '1446-01-01',
         hawlCompletionDate: new Date(Date.now() + 300 * 24 * 60 * 60 * 1000), // 300 days from now
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1447-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 8000,
         zakatableWealth: 8000,
         zakatAmount: 200,
@@ -107,8 +111,10 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 300 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-02-01',
         hawlCompletionDate: new Date(Date.now() + 50 * 24 * 60 * 60 * 1000), // 50 days future
-        nisabBasis: 'silver',
+        hawlCompletionDateHijri: '1446-02-01',
+        nisabBasis: 'SILVER',
         totalWealth: 7000,
         zakatableWealth: 7000,
         zakatAmount: 175,
@@ -133,8 +139,10 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 12000,
         zakatableWealth: 12000,
         zakatAmount: 300,
@@ -170,8 +178,10 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 9000,
         zakatableWealth: 9000,
         zakatAmount: 225,
@@ -199,8 +209,10 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 11000,
         zakatableWealth: 11000,
         zakatAmount: 275,
@@ -232,8 +244,10 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 10000,
         zakatableWealth: 10000,
         zakatAmount: 250,
@@ -261,8 +275,10 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 8500,
         zakatableWealth: 8500,
         zakatAmount: 212.5,

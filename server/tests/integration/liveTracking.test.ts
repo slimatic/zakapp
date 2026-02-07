@@ -68,7 +68,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const wealthBefore = parseFloat(before.body.totalWealth);
+    const wealthBefore = parseFloat(before.body.data.totalWealth);
 
     // Step 2: Add new asset
     const newAssetResponse = await request(app)
@@ -88,7 +88,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const wealthAfter = parseFloat(after.body.totalWealth);
+    const wealthAfter = parseFloat(after.body.data.totalWealth);
 
     expect(wealthAfter).toBe(wealthBefore + 2000);
   });
@@ -112,7 +112,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const wealthBefore = parseFloat(before.body.totalWealth);
+    const wealthBefore = parseFloat(before.body.data.totalWealth);
 
     // Step 3: Update asset value
     await request(app)
@@ -127,7 +127,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const wealthAfter = parseFloat(after.body.totalWealth);
+    const wealthAfter = parseFloat(after.body.data.totalWealth);
 
     expect(wealthAfter).toBe(wealthBefore + 2000);
   });
@@ -151,7 +151,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const wealthBefore = parseFloat(before.body.totalWealth);
+    const wealthBefore = parseFloat(before.body.data.totalWealth);
 
     // Step 3: Delete asset
     await request(app)
@@ -163,7 +163,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const wealthAfter = parseFloat(after.body.totalWealth);
+    const wealthAfter = parseFloat(after.body.data.totalWealth);
 
     expect(wealthAfter).toBe(wealthBefore - 1500);
   });
@@ -174,8 +174,8 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const zakatBefore = parseFloat(before.body.zakatAmount);
-    const wealthBefore = parseFloat(before.body.zakatableWealth);
+    const zakatBefore = parseFloat(before.body.data.zakatAmount);
+    const wealthBefore = parseFloat(before.body.data.zakatableWealth);
 
     // Step 2: Add asset
     await request(app)
@@ -193,8 +193,8 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const zakatAfter = parseFloat(after.body.zakatAmount);
-    const wealthAfter = parseFloat(after.body.zakatableWealth);
+    const zakatAfter = parseFloat(after.body.data.zakatAmount);
+    const wealthAfter = parseFloat(after.body.data.zakatableWealth);
 
     expect(wealthAfter).toBe(wealthBefore + 4000);
     expect(zakatAfter).toBeCloseTo(wealthAfter * 0.025, 2);
@@ -207,7 +207,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const wealthBefore = parseFloat(before.body.totalWealth);
+    const wealthBefore = parseFloat(before.body.data.totalWealth);
 
     // Step 2: Add non-zakatable asset
     await request(app)
@@ -225,7 +225,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const wealthAfter = parseFloat(after.body.totalWealth);
+    const wealthAfter = parseFloat(after.body.data.totalWealth);
 
     expect(wealthAfter).toBe(wealthBefore); // Should not include non-zakatable
   });
@@ -265,15 +265,15 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(response.body.assetBreakdown).toBeDefined();
-    expect(response.body.assetBreakdown).toHaveProperty('cash');
-    expect(response.body.assetBreakdown).toHaveProperty('gold');
+    expect(response.body.data.assetBreakdown).toBeDefined();
+    expect(response.body.data.assetBreakdown).toHaveProperty('cash');
+    expect(response.body.data.assetBreakdown).toHaveProperty('gold');
     
     // Verify total matches sum of categories
-    const breakdownTotal = Object.values(response.body.assetBreakdown as Record<string, number>)
+    const breakdownTotal = Object.values(response.body.data.assetBreakdown as Record<string, number>)
       .reduce((sum, val) => sum + val, 0);
     
-    const recordTotal = parseFloat(response.body.totalWealth);
+    const recordTotal = parseFloat(response.body.data.totalWealth);
     
     expect(breakdownTotal).toBeCloseTo(recordTotal, 2);
   });
@@ -284,7 +284,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const updatedAtBefore = new Date(before.body.updatedAt);
+    const updatedAtBefore = new Date(before.body.data.updatedAt);
 
     // Wait a moment to ensure timestamp difference
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -305,7 +305,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .get(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    const updatedAtAfter = new Date(after.body.updatedAt);
+    const updatedAtAfter = new Date(after.body.data.updatedAt);
 
     expect(updatedAtAfter.getTime()).toBeGreaterThan(updatedAtBefore.getTime());
   });

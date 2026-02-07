@@ -249,7 +249,7 @@ describe('Integration: Status Transition Validation', () => {
         .send({ status: 'FINALIZED' });
 
       expect(updateAttempt.status).toBe(400);
-      expect(updateAttempt.body.error).toContain('Status can only be changed via finalize/unlock endpoints');
+      expect(updateAttempt.body.message).toContain('Status can only be changed via finalize/unlock endpoints');
     });
   });
 
