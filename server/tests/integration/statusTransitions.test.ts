@@ -22,13 +22,15 @@ describe('Integration: Status Transition Validation', () => {
     const registerResponse = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'transitions@example.com',
+        email: `transitions-${Date.now()}@example.com`,
         password: 'TestPass123!',
-        name: 'Transitions Test User',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Transitions',
+        lastName: 'Test User',
       });
 
-    authToken = registerResponse.body.accessToken;
-    userId = registerResponse.body.user.id;
+    authToken = registerResponse.body.data.tokens.accessToken;
+    userId = registerResponse.body.data.user.id;
   });
 
   afterAll(async () => {
