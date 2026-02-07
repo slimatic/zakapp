@@ -54,7 +54,7 @@ bd sync               # Sync with git
 
 **MANDATORY QUALITY GATES:**
 - All PRs to `main` **MUST** pass CI checks before merging
-- Required status checks: `Test` and `Build and Push Docker Images to Docker Hub`
+- Required status checks: `Test` and `GitGuardian Security Checks`
 - Direct pushes to `main` are **BLOCKED** - all changes must go through PRs
 
 **ENFORCEMENT:**
