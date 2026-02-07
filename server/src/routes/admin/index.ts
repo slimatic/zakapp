@@ -4,6 +4,7 @@ import encryptionRoutes from './encryption';
 import usersRoutes from './users';
 import statsRoutes from './stats';
 import settingsRoutes from './settings';
+import systemRoutes from './system';
 
 const router = express.Router();
 
@@ -11,5 +12,6 @@ router.use('/encryption', encryptionRoutes);
 router.use('/users', usersRoutes);
 router.use('/stats', statsRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/system', systemRoutes);
 
 export default router;
