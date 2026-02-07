@@ -150,7 +150,7 @@ describe('NisabYearRecordService', () => {
       const result = await service.getRecord('user1', 'record1');
 
       expect(result.id).toBe('record1');
-      expect(result.totalWealth).toBe('10000');
+      expect(result.totalWealth).toBe(10000);
     });
   });
 

@@ -24,15 +24,19 @@ describe('Integration: Finalization Workflow', () => {
       .send({
         email: 'finalization@example.com',
         password: 'TestPass123!',
-        name: 'Finalization Test User',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Finalization',
+        lastName: 'Test User',
       });
 
-    authToken = registerResponse.body.accessToken;
-    userId = registerResponse.body.user.id;
+    authToken = registerResponse.body.data.tokens.accessToken;
+    userId = registerResponse.body.data.user.id;
   });
 
   afterAll(async () => {
-    await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    if (userId) {
+      await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    }
     await prisma.$disconnect();
   });
 

@@ -1,4 +1,4 @@
-import { vi, type Mock } from 'vitest';
+import { vi, type Mock, describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 /**
  * Contract Test: GET /api/nisab-year-records
  * 
@@ -9,7 +9,7 @@ import { vi, type Mock } from 'vitest';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app';
-import { generateAccessToken } from '../../src/utils/jwt';
+import { jwtService } from '../../src/services/JWTService';
 import { createNisabYearRecordData, createFinalizedRecord } from '../helpers/nisabYearRecordFactory';
 
 const prisma = new PrismaClient();
@@ -24,13 +24,15 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
       data: {
         email: 'test-get@example.com',
         username: 'testget',
-      passwordHash: 'hashedpassword',
-      isActive: true,
-    },
+        passwordHash: 'hashedpassword',
+        isActive: true,
+      },
+    });
+    userId = user.id;
+    authToken = jwtService.createAccessToken({ userId: user.id, email: user.email });
   });
-  userId = user.id;
-  authToken = generateAccessToken(user.id);
-});  afterAll(async () => {
+
+  afterAll(async () => {
     // Cleanup
     await prisma.yearlySnapshot.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
@@ -46,8 +48,8 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
 
       // Validate response structure
       expect(response.body).toHaveProperty('success', true);
-      expect(response.body).toHaveProperty('records');
-      expect(Array.isArray(response.body.records)).toBe(true);
+      expect(response.body.data).toHaveProperty('records');
+      expect(Array.isArray(response.body.data.records)).toBe(true);
     });
 
     it('should return records with correct properties when data exists', async () => {
@@ -61,9 +63,9 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.records.length).toBeGreaterThan(0);
+      expect(response.body.data.records.length).toBeGreaterThan(0);
       
-      const returnedRecord = response.body.records[0];
+      const returnedRecord = response.body.data.records[0];
       expect(returnedRecord).toHaveProperty('id');
       expect(returnedRecord).toHaveProperty('userId', userId);
       expect(returnedRecord).toHaveProperty('status');
@@ -109,8 +111,8 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.records.length).toBe(1);
-      expect(response.body.records[0].status).toBe('DRAFT');
+      expect(response.body.data.records.length).toBe(1);
+      expect(response.body.data.records[0].status).toBe('DRAFT');
     });
 
     it('should filter by status=FINALIZED', async () => {
@@ -119,8 +121,8 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.records.length).toBe(1);
-      expect(response.body.records[0].status).toBe('FINALIZED');
+      expect(response.body.data.records.length).toBe(1);
+      expect(response.body.data.records[0].status).toBe('FINALIZED');
     });
 
     it('should filter by year=2025', async () => {
@@ -129,8 +131,8 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.records.length).toBe(1);
-      expect(response.body.records[0].gregorianYear).toBe(2025);
+      expect(response.body.data.records.length).toBe(1);
+      expect(response.body.data.records[0].gregorianYear).toBe(2025);
     });
 
     it('should return all records with status=ALL', async () => {
@@ -139,7 +141,7 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.records.length).toBe(2);
+      expect(response.body.data.records.length).toBe(2);
     });
   });
 
@@ -150,7 +152,7 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('UNAUTHORIZED');
+      expect(response.body.error.code).toBe('UNAUTHORIZED');
     });
 
     it('should return 401 with invalid token', async () => {
@@ -184,7 +186,7 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
         .expect(200);
 
       // Should not see other user's records
-      const allRecordsAreOwnedByUser = response.body.records.every(
+      const allRecordsAreOwnedByUser = response.body.data.records.every(
         (record: any) => record.userId === userId
       );
       expect(allRecordsAreOwnedByUser).toBe(true);
@@ -210,7 +212,7 @@ describe('GET /api/nisab-year-records - Contract Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      const draftRecord = response.body.records.find((r: any) => r.status === 'DRAFT');
+      const draftRecord = response.body.data.records.find((r: any) => r.status === 'DRAFT');
       expect(draftRecord).toBeDefined();
       
       // Live tracking fields should be present

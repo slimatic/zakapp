@@ -25,7 +25,9 @@ describe('Integration: Invalid Operations and Error Handling', () => {
       .send({
         email: 'errors1@example.com',
         password: 'TestPass123!',
-        name: 'Errors User 1',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Errors',
+        lastName: 'User 1',
       });
 
     const user2 = await request(app)
@@ -33,13 +35,15 @@ describe('Integration: Invalid Operations and Error Handling', () => {
       .send({
         email: 'errors2@example.com',
         password: 'TestPass123!',
-        name: 'Errors User 2',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Errors',
+        lastName: 'User 2',
       });
 
-    authToken1 = user1.body.accessToken;
-    userId1 = user1.body.user.id;
-    authToken2 = user2.body.accessToken;
-    userId2 = user2.body.user.id;
+    authToken1 = user1.body.data.tokens.accessToken;
+    userId1 = user1.body.data.user.id;
+    authToken2 = user2.body.data.tokens.accessToken;
+    userId2 = user2.body.data.user.id;
   });
 
   afterAll(async () => {

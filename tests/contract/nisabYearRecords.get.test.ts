@@ -8,8 +8,9 @@
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import app from '../../../src/app';
+// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import app from '../../server/src/app';
+import { jwtService } from '../../server/src/services/JWTService';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -29,8 +30,11 @@ describe('GET /api/nisab-year-records', () => {
     });
     userId = user.id;
 
-    // Mock authentication - this would be replaced with actual JWT generation
-    authToken = 'mock-jwt-token';
+    // Generate valid JWT token
+    authToken = jwtService.createAccessToken({
+      userId: user.id,
+      email: user.email,
+    });
 
     // Create test records
     const record = await prisma.yearlySnapshot.create({
@@ -76,6 +80,15 @@ describe('GET /api/nisab-year-records', () => {
     expect(res.body).toHaveProperty('success', true);
     expect(res.body).toHaveProperty('records');
     expect(Array.isArray(res.body.records)).toBe(true);
+    
+    // Verify wealth fields are numeric
+    if (res.body.records.length > 0) {
+      const record = res.body.records[0];
+      expect(typeof record.totalWealth).toBe('number');
+      expect(typeof record.totalLiabilities).toBe('number');
+      expect(typeof record.zakatableWealth).toBe('number');
+      expect(typeof record.zakatAmount).toBe('number');
+    }
   });
 
   it('should filter records by status=DRAFT', async () => {

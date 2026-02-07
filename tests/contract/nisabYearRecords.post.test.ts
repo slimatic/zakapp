@@ -7,8 +7,8 @@
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import app from '../../../src/app';
+// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import app from '../../server/src/app';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -54,7 +54,7 @@ describe('POST /api/nisab-year-records', () => {
       status: 'DRAFT',
       nisabBasis: 'gold',
       hawlStartDate: expect.any(String),
-      nisabThresholdAtStart: expect.any(String),
+      nisabThresholdAtStart: expect.any(Number),
     });
   });
 
