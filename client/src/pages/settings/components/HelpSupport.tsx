@@ -17,11 +17,30 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/Card';
-import { ShieldCheck, Wifi, Smartphone, KeyRound } from 'lucide-react';
+import { ShieldCheck, Wifi, Smartphone, KeyRound, Activity } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const HelpSupport = () => {
     return (
         <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>System Health</CardTitle>
+                    <CardDescription>
+                        Troubleshoot issues with browser support or server connectivity.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Link
+                        to="/diagnostics"
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary-600 text-white hover:bg-primary-700 h-10 px-4 py-2"
+                    >
+                        <Activity className="mr-2 h-4 w-4" />
+                        Run System Diagnostics
+                    </Link>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Frequently Asked Questions</CardTitle>
