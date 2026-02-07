@@ -18,7 +18,8 @@
     "commander": "^11.1.0",
     "inquirer": "^8.2.6",
     "ora": "^5.4.1",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@zakapp/shared": "file:../shared"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.7",
