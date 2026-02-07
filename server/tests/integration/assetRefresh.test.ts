@@ -26,9 +26,9 @@ describe('Asset Refresh Workflow Integration Test', () => {
 
   afterEach(async () => {
     if (userId) {
-      await prisma.user.delete({
-        where: { id: userId },
-      });
+      await prisma.yearlySnapshot.deleteMany({ where: { userId } });
+      await prisma.asset.deleteMany({ where: { userId } });
+      await prisma.user.deleteMany({ where: { id: userId } });
     }
   });
 

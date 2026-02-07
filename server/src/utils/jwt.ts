@@ -34,7 +34,12 @@ export function generateAccessToken(userId: string): string {
   return jwt.sign(
     { userId, type: 'access', jti: Math.random().toString(36) },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    { 
+      expiresIn: JWT_EXPIRES_IN,
+      issuer: 'zakapp',
+      audience: 'zakapp-users',
+      subject: userId
+    }
   );
 }
 
@@ -42,7 +47,12 @@ export function generateRefreshToken(userId: string): string {
   const token = jwt.sign(
     { userId, type: 'refresh', jti: Math.random().toString(36) },
     JWT_SECRET,
-    { expiresIn: REFRESH_EXPIRES_IN }
+    { 
+      expiresIn: REFRESH_EXPIRES_IN,
+      issuer: 'zakapp',
+      audience: 'zakapp-refresh',
+      subject: userId
+    }
   );
 
   // Track token for this user

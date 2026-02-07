@@ -23,7 +23,7 @@ describe('Integration: Invalid Operations and Error Handling', () => {
     const user1 = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'errors1@example.com',
+        email: `errors1-${Date.now()}@example.com`,
         password: 'TestPass123!',
         confirmPassword: 'TestPass123!',
         firstName: 'Errors',
@@ -33,7 +33,7 @@ describe('Integration: Invalid Operations and Error Handling', () => {
     const user2 = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'errors2@example.com',
+        email: `errors2-${Date.now()}@example.com`,
         password: 'TestPass123!',
         confirmPassword: 'TestPass123!',
         firstName: 'Errors',
