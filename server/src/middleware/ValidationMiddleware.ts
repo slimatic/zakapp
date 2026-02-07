@@ -82,8 +82,10 @@ export const validateSchema = (schema: z.ZodSchema) => {
       req.body = validatedData; // Replace with validated data
       next();
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const validationErrors = error.issues.map(err => ({
+      // Check for ZodError via instanceof OR duck typing (handling multiple zod versions)
+      if (error instanceof z.ZodError || (error && typeof error === 'object' && 'issues' in error && Array.isArray((error as any).issues))) {
+        const issues = (error as any).issues || (error as z.ZodError).issues;
+        const validationErrors = issues.map((err: any) => ({
           field: err.path.join('.'),
           message: err.message,
           value: (err as any).received
@@ -98,6 +100,8 @@ export const validateSchema = (schema: z.ZodSchema) => {
           }
         });
       }
+
+      console.error('Validation error:', error); // Log the actual error for debugging
 
       return res.status(500).json({
         success: false,

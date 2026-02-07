@@ -24,11 +24,11 @@ import { describe, it, expect, vi, beforeAll } from 'vitest';
  */
 
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { resolve } from 'path';
 
 describe('User Documentation for Methodologies - T156', () => {
 
-  const docsPath = '/home/agentx/github-repos/zakapp/client/public/docs/methodology-guide.md';
+  const docsPath = resolve(__dirname, '../../../client/public/docs/methodology-guide.md');
   let documentationContent: string;
 
   beforeAll(() => {

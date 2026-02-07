@@ -7,8 +7,8 @@
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import app from '../../../src/app';
+// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import app from '../../server/src/app';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -94,8 +94,13 @@ describe('POST /api/nisab-year-records/:id/finalize', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('success', true);
-    expect(res.body.record.status).toBe('FINALIZED');
-    expect(res.body.record.finalizedAt).toBeDefined();
+    expect(res.body.data.status).toBe('FINALIZED');
+    expect(res.body.data.finalizedAt).toBeDefined();
+
+    // Verify wealth fields are numeric
+    expect(typeof res.body.data.totalWealth).toBe('number');
+    expect(typeof res.body.data.zakatableWealth).toBe('number');
+    expect(typeof res.body.data.zakatAmount).toBe('number');
   });
 
   it('should not finalize when Hawl is incomplete', async () => {
@@ -119,7 +124,7 @@ describe('POST /api/nisab-year-records/:id/finalize', () => {
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.record.status).toBe('FINALIZED');
+    expect(res.body.data.status).toBe('FINALIZED');
   });
 
   it('should return 404 for non-existent record', async () => {

@@ -18,7 +18,7 @@ import { vi, type Mock } from 'vitest';
 
 import request from 'supertest';
 import { describe, it, expect, beforeAll } from 'vitest';
-import app from '@/app';
+import app from '../../app';
 
 describe('Analytics API Integration Tests', () => {
   let authToken: string;

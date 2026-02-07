@@ -20,9 +20,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../types';
 import { authenticate } from '../middleware/AuthMiddleware';
 import { SimpleValidation } from '../utils/SimpleValidation';
-import { EncryptionService } from '../services/EncryptionService';
 import { AssetService, UpdateAssetDto } from '../services/AssetService';
-import crypto from 'crypto';
 
 // Simple UUID v4 implementation to avoid Jest ES module issues
 function generateUUID(): string {
@@ -412,36 +410,86 @@ router.put('/:id',
   }
 );
 
-/**
- * DELETE /api/assets/:id
- * Delete existing asset with comprehensive validation and features
- */
-router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.userId!;
-    const assetId = req.params.id as string;
+  /**
+   * DELETE /api/assets/:id
+   * Delete existing asset with comprehensive validation and features
+   */
+  router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.userId!;
+      const assetId = req.params.id as string;
+      const forceDelete = req.query.force === 'true';
 
-    // Use AssetService to delete the asset
-    const assetService = new AssetService();
-    await assetService.deleteAsset(userId, assetId);
+      // Validate ID format (UUID or CUID)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const cuidRegex = /^c[a-z0-9]{20,30}$/; // Standard CUID format
 
-    // Return response with soft delete information
-    const response = createResponse(true, {
-      deletedAssetId: assetId,
-      recoverable: true,
-      recoveryDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
-      message: 'Asset deleted successfully'
-    });
-    res.status(200).json(response);
-  } catch (error) {
-    const response = createResponse(false, undefined, {
-      code: 'ASSET_DELETE_ERROR',
-      message: 'Failed to delete asset',
-      details: [error instanceof Error ? error.message : 'Unknown error']
-    });
-    res.status(500).json(response);
-  }
-});
+      if (!uuidRegex.test(assetId) && !cuidRegex.test(assetId)) {
+        const response = createResponse(false, undefined, {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid asset ID format',
+          details: ['Invalid asset ID format', 'Asset ID must be a valid UUID or CUID']
+        });
+        return res.status(400).json(response);
+      }
+
+      // Use AssetService to delete the asset
+      const assetService = new AssetService();
+      let deletedAsset;
+      
+      if (forceDelete) {
+        deletedAsset = await assetService.forceDeleteAsset(userId, assetId);
+      } else {
+        deletedAsset = await assetService.deleteAsset(userId, assetId);
+      }
+
+      // Generate a mock audit log ID (since we don't have a generic AssetAudit table yet)
+      const auditLogId = generateUUID();
+
+      // Destructure to exclude sensitive fields
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { value, encryptedValue, ...safeAssetData } = deletedAsset;
+
+      // Return response with deletion information
+      const responseData: any = {
+        deletedAssetId: assetId,
+        deletedAsset: {
+          ...safeAssetData,
+          id: deletedAsset.assetId, // Map assetId to id for API contract
+          type: deletedAsset.category, // Map category to type for API contract
+          deletedAt: new Date().toISOString() // Add deletedAt timestamp
+        },
+        auditLogId: auditLogId,
+        recoverable: !forceDelete,
+        message: forceDelete ? 'Asset permanently deleted' : 'Asset deleted successfully'
+      };
+
+      // Only include recoveryDeadline if not force deleted
+      if (!forceDelete) {
+        responseData.recoveryDeadline = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      }
+
+      const response = createResponse(true, responseData);
+      res.status(200).json(response);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (errMsg === 'Asset not found') {
+        const response = createResponse(false, undefined, {
+          code: 'ASSET_NOT_FOUND',
+          message: 'Asset not found'
+        });
+        return res.status(404).json(response);
+      }
+
+      const response = createResponse(false, undefined, {
+        code: 'ASSET_DELETE_ERROR',
+        message: 'Failed to delete asset',
+        details: [errMsg]
+      });
+      res.status(500).json(response);
+    }
+  });
 
 /**
  * POST /api/assets/:id/recover

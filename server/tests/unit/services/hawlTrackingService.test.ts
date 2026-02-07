@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { HawlTrackingService } from '../../../src/services/hawlTrackingService';
 import { PrismaClient } from '@prisma/client';
 import moment from 'moment-hijri';
@@ -33,6 +33,7 @@ describe('HawlTrackingService', () => {
         findFirst: vi.fn(),
         create: vi.fn(),
         update: vi.fn(),
+        delete: vi.fn(),
       },
       user: {
         findMany: vi.fn().mockResolvedValue([]),
@@ -100,6 +101,59 @@ describe('HawlTrackingService', () => {
     it('should return false if 354 days have not passed', () => {
       const recently = new Date(Date.now() - 100 * 24 * 60 * 60 * 1000);
       expect(service.isHawlComplete(recently)).toBe(false);
+    });
+  });
+
+  describe('handleWealthChange', () => {
+    it('should start Hawl if wealth >= Nisab and no active Hawl', async () => {
+      mockPrisma.yearlySnapshot.findFirst.mockResolvedValue(null);
+      mockWealthAgg.calculateTotalZakatableWealth.mockResolvedValue({ totalZakatableWealth: 6000 });
+      mockNisabCalc.calculateNisabThreshold.mockResolvedValue({ selectedNisab: 5000 });
+
+      await service.handleWealthChange('user1');
+
+      expect(mockPrisma.yearlySnapshot.create).toHaveBeenCalled();
+    });
+
+    it('should interrupt Hawl if wealth < Nisab and active Hawl exists', async () => {
+      mockPrisma.yearlySnapshot.findFirst.mockResolvedValue({
+        id: 'record1',
+        nisabThresholdAtStart: '5000',
+        nisabBasis: 'GOLD'
+      });
+      mockWealthAgg.calculateTotalZakatableWealth.mockResolvedValue({ totalZakatableWealth: 4000 });
+      mockNisabCalc.calculateNisabThreshold.mockResolvedValue({ selectedNisab: 5000 });
+
+      await service.handleWealthChange('user1');
+
+      expect(mockPrisma.yearlySnapshot.delete).toHaveBeenCalledWith({
+        where: { id: 'record1' }
+      });
+    });
+
+    it('should do nothing if wealth < Nisab and no active Hawl', async () => {
+      mockPrisma.yearlySnapshot.findFirst.mockResolvedValue(null);
+      mockWealthAgg.calculateTotalZakatableWealth.mockResolvedValue({ totalZakatableWealth: 4000 });
+      mockNisabCalc.calculateNisabThreshold.mockResolvedValue({ selectedNisab: 5000 });
+
+      await service.handleWealthChange('user1');
+
+      expect(mockPrisma.yearlySnapshot.create).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if wealth >= Nisab and active Hawl exists', async () => {
+       mockPrisma.yearlySnapshot.findFirst.mockResolvedValue({
+        id: 'record1',
+        nisabThresholdAtStart: '5000',
+        nisabBasis: 'GOLD'
+      });
+      mockWealthAgg.calculateTotalZakatableWealth.mockResolvedValue({ totalZakatableWealth: 6000 });
+      mockNisabCalc.calculateNisabThreshold.mockResolvedValue({ selectedNisab: 5000 });
+
+      await service.handleWealthChange('user1');
+
+      expect(mockPrisma.yearlySnapshot.delete).not.toHaveBeenCalled();
+      expect(mockPrisma.yearlySnapshot.create).not.toHaveBeenCalled();
     });
   });
 });

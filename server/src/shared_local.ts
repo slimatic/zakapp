@@ -654,7 +654,7 @@ export type CalculationSnapshotDetail = any;
 export type CreateCalculationSnapshotRequest = any;
 export type NisabInfo = any;
 export type NisabYearRecord = any;
-export type RecordStatus = 'draft' | 'active' | 'finalized' | 'archived';
+export type RecordStatus = 'DRAFT' | 'FINALIZED' | 'UNLOCKED';
 export type NisabBasis = 'GOLD' | 'SILVER';
 export type HawlStatus = 'ACTIVE' | 'COMPLETE' | 'INTERRUPTED' | 'TERMINATED';
 

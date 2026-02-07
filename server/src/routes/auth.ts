@@ -38,6 +38,7 @@ import crypto from 'crypto';
 import { EncryptionService } from '../services/EncryptionService';
 import { emailService } from '../services/EmailService';
 import { SettingsService } from '../services/SettingsService';
+import { prisma } from '../utils/prisma';
 
 import { getEncryptionKey } from '../config/security';
 import { DEFAULT_LIMITS } from '../config/limits';
@@ -46,11 +47,8 @@ const ENCRYPTION_KEY = getEncryptionKey();
 
 // Lazy initialization of Prisma client
 function getPrismaClient() {
-  // Use a runtime-instantiated client backed by the TEST_DATABASE_URL when present
-  // so tests and other processes share the same DB instance.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  // const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
-  return new PrismaClient({ datasources: { db: { url: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL } } });
+  // Use the shared singleton instance
+  return prisma;
 }
 
 // Simple in-memory token revocation tracking
@@ -194,10 +192,25 @@ router.post('/login',
       }
 
       // Update last login
-      await getPrismaClient().user.update({
-        where: { id: user.id },
-        data: { lastLoginAt: new Date() }
-      });
+      try {
+        await getPrismaClient().user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() }
+        });
+      } catch (error: any) {
+        // Handle P2025 (Record to update not found) - user deleted concurrently
+        if (error.code === 'P2025') {
+          res.status(401).json({
+            success: false,
+            error: {
+              code: 'INVALID_CREDENTIALS',
+              message: 'Invalid email or password'
+            }
+          });
+          return;
+        }
+        throw error;
+      }
 
       // Generate tokens
       const accessToken = jwtService.createAccessToken({
