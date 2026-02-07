@@ -161,37 +161,46 @@ export class HawlTrackingService {
             hawlStartDate.toDate().getDate()
           );
           
-          await this.prisma.yearlySnapshot.create({
-            data: {
-              userId: user.id,
-              status: 'DRAFT',
-              nisabBasis,
-              nisabType: nisabBasis, // Deprecated but still required
-              nisabThreshold: nisabData.selectedNisab.toString(),
-              nisabThresholdAtStart: nisabData.selectedNisab.toString(),
-              totalWealth: currentWealth.toString(),
-              totalLiabilities: '0', // Initialize as 0
-              zakatableWealth: currentWealth.toString(),
-              zakatAmount: this.nisabCalculationService.calculateZakat(currentWealth).toString(),
-              methodologyUsed: 'Standard', // Default methodology
-              calculationDate: hawlStartDate.toDate(),
-              gregorianYear: hawlStartDate.year(),
-              gregorianMonth: hawlStartDate.month() + 1,
-              gregorianDay: hawlStartDate.date(),
-              hijriYear: hijri.hy,
-              hijriMonth: hijri.hm,
-              hijriDay: hijri.hd,
-              calculationDetails: '{}', // Empty JSON
-              hawlStartDate: hawlStartDate.toDate(),
-              hawlStartDateHijri: this.toHijriDate(hawlStartDate.toDate()),
-              hawlCompletionDate: hawlCompletionDate.toDate(),
-              hawlCompletionDateHijri: this.toHijriDate(hawlCompletionDate.toDate()),
-              assetBreakdown, // Encrypted asset snapshot
-            },
-          });
+          try {
+            await this.prisma.yearlySnapshot.create({
+              data: {
+                userId: user.id,
+                status: 'DRAFT',
+                nisabBasis,
+                nisabType: nisabBasis, // Deprecated but still required
+                nisabThreshold: nisabData.selectedNisab.toString(),
+                nisabThresholdAtStart: nisabData.selectedNisab.toString(),
+                totalWealth: currentWealth.toString(),
+                totalLiabilities: '0', // Initialize as 0
+                zakatableWealth: currentWealth.toString(),
+                zakatAmount: this.nisabCalculationService.calculateZakat(currentWealth).toString(),
+                methodologyUsed: 'Standard', // Default methodology
+                calculationDate: hawlStartDate.toDate(),
+                gregorianYear: hawlStartDate.year(),
+                gregorianMonth: hawlStartDate.month() + 1,
+                gregorianDay: hawlStartDate.date(),
+                hijriYear: hijri.hy,
+                hijriMonth: hijri.hm,
+                hijriDay: hijri.hd,
+                calculationDetails: '{}', // Empty JSON
+                hawlStartDate: hawlStartDate.toDate(),
+                hawlStartDateHijri: this.toHijriDate(hawlStartDate.toDate()),
+                hawlCompletionDate: hawlCompletionDate.toDate(),
+                hawlCompletionDateHijri: this.toHijriDate(hawlCompletionDate.toDate()),
+                assetBreakdown, // Encrypted asset snapshot
+              },
+            });
 
-          recordsCreated++;
-          this.logger.info(`Created DRAFT record for user ${user.id}, wealth: ${currentWealth}, Nisab: ${nisabData.selectedNisab}`);
+            recordsCreated++;
+            this.logger.info(`Created DRAFT record for user ${user.id}, wealth: ${currentWealth}, Nisab: ${nisabData.selectedNisab}`);
+          } catch (createError: any) {
+            // Handle race condition where user might be deleted during processing
+            if (createError.code === 'P2003') {
+              this.logger.warn(`User ${user.id} no longer exists, skipping snapshot creation.`);
+              continue;
+            }
+            throw createError;
+          }
         } catch (userError) {
           this.logger.error(`Failed to process user ${user.id}`, userError);
           // Continue with next user

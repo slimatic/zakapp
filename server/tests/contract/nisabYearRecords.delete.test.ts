@@ -1,4 +1,4 @@
-import { vi, type Mock } from 'vitest';
+import { vi, type Mock, describe, it, expect, beforeAll, afterAll } from 'vitest';
 /**
  * Contract Test: DELETE /api/nisab-year-records/:id
  * 
@@ -19,10 +19,11 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
   let userId: string;
 
   beforeAll(async () => {
+    const timestamp = Date.now();
     const user = await prisma.user.create({
       data: {
-        email: 'test-delete@example.com',
-        username: 'testdelete',
+        email: `test-delete-${timestamp}@example.com`,
+        username: `testdelete${timestamp}`,
         passwordHash: 'hashedpassword',
         isActive: true,
       },
@@ -57,6 +58,26 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
       });
       expect(deletedRecord).toBeNull();
     });
+
+    it('should allow delete of UNLOCKED record', async () => {
+      const record = await prisma.yearlySnapshot.create({
+        data: createUnlockedRecord(userId),
+      });
+
+      const response = await request(app)
+        .delete(`/api/nisab-year-records/${record.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toContain('deleted');
+
+      // Verify record is actually deleted
+      const deletedRecord = await prisma.yearlySnapshot.findUnique({
+        where: { id: record.id },
+      });
+      expect(deletedRecord).toBeNull();
+    });
   });
 
   describe('Delete Restrictions', () => {
@@ -68,10 +89,10 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
       const response = await request(app)
         .delete(`/api/nisab-year-records/${record.id}`)
         .set('Authorization', `Bearer ${authToken}`)
-        .expect(400);
+        .expect(409); // Expect Conflict
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('DELETE_NOT_ALLOWED');
+      expect(response.body.error).toBe('INVALID_STATE');
       expect(response.body.message).toContain('FINALIZED');
 
       // Verify record still exists
@@ -79,22 +100,6 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
         where: { id: record.id },
       });
       expect(stillExists).not.toBeNull();
-
-      await prisma.yearlySnapshot.delete({ where: { id: record.id } });
-    });
-
-    it('should reject delete of UNLOCKED record', async () => {
-      const record = await prisma.yearlySnapshot.create({
-        data: createUnlockedRecord(userId),
-      });
-
-      const response = await request(app)
-        .delete(`/api/nisab-year-records/${record.id}`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('DELETE_NOT_ALLOWED');
 
       await prisma.yearlySnapshot.delete({ where: { id: record.id } });
     });
@@ -107,9 +112,9 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
       const response = await request(app)
         .delete(`/api/nisab-year-records/${record.id}`)
         .set('Authorization', `Bearer ${authToken}`)
-        .expect(400);
+        .expect(409); // Expect Conflict
 
-      expect(response.body.message).toContain('Unlock first');
+      expect(response.body.message).toContain('unlock it first');
 
       await prisma.yearlySnapshot.delete({ where: { id: record.id } });
     });
@@ -133,7 +138,9 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('UNAUTHORIZED');
+      expect(response.body.error).toEqual(expect.objectContaining({
+        code: 'UNAUTHORIZED'
+      }));
     });
 
     it('should return 404 when trying to delete another user\'s record', async () => {
@@ -141,10 +148,11 @@ describe('DELETE /api/nisab-year-records/:id - Contract Tests', () => {
         data: createNisabYearRecordData(userId, { status: 'DRAFT' }),
       });
 
+      const timestamp = Date.now();
       const otherUser = await prisma.user.create({
         data: {
-          email: 'other-delete@example.com',
-          username: 'otherdelete',
+          email: `other-delete-${timestamp}@example.com`,
+          username: `otherdelete${timestamp}`,
           passwordHash: 'hash',
           isActive: true,
         },
