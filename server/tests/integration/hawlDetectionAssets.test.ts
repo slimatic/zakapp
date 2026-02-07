@@ -60,6 +60,20 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       },
     });
+    
+    // Set Silver price high enough so Silver Nisab is NOT lower than Gold Nisab
+    // Silver Nisab = 612.36g. If price is $10/g -> $6,123.60.
+    // This forces the system to treat ~$6,123 as the effective threshold, 
+    // ensuring 3000 or 5000 doesn't trigger "low nisab" creation.
+    await prisma.preciousMetalPrice.create({
+      data: {
+        metalType: 'silver',
+        pricePerGram: 10.0,
+        currency: 'USD',
+        fetchedAt: new Date(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      },
+    });
   });
 
   afterEach(async () => {

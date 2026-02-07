@@ -110,14 +110,17 @@ export class HawlTrackingService {
    * @param currentWealth - Current total zakatable wealth
    * @param nisabData - Nisab threshold data
    * @param nisabBasis - Nisab basis (GOLD/SILVER)
+   * @param tx - Optional transaction client
    * @private
    */
   private async createHawlRecord(
     userId: string, 
     currentWealth: number, 
     nisabData: any, 
-    nisabBasis: 'GOLD' | 'SILVER'
+    nisabBasis: 'GOLD' | 'SILVER',
+    tx?: any
   ): Promise<void> {
+    const prisma = tx || this.prisma;
     const hawlStartDate = moment();
     const hawlCompletionDate = moment().add(this.HAWL_DURATION_DAYS, 'days');
     const assetBreakdown = await this.buildAssetSnapshot(userId);
@@ -129,7 +132,7 @@ export class HawlTrackingService {
       hawlStartDate.toDate().getDate()
     );
     
-    await this.prisma.yearlySnapshot.create({
+    await prisma.yearlySnapshot.create({
       data: {
         userId: userId,
         status: 'DRAFT',
@@ -174,58 +177,61 @@ export class HawlTrackingService {
       const wealthCalc = await this.wealthAggregationService.calculateTotalZakatableWealth(userId);
       const currentWealth = wealthCalc.totalZakatableWealth;
 
-      // 2. Get active DRAFT record
-      const existingRecord = await this.prisma.yearlySnapshot.findFirst({
-        where: {
-          userId,
-          status: 'DRAFT',
-        },
-      });
+      // Use transaction to prevent race conditions
+      await this.prisma.$transaction(async (tx) => {
+        // 2. Get active DRAFT record (within transaction)
+        const existingRecord = await tx.yearlySnapshot.findFirst({
+          where: {
+            userId,
+            status: 'DRAFT',
+          },
+        });
 
-      // 3. Determine Nisab basis
-      let nisabBasis: 'GOLD' | 'SILVER' = 'GOLD';
-      let nisabData: { selectedNisab: number; [key: string]: any };
+        // 3. Determine Nisab basis
+        let nisabBasis: 'GOLD' | 'SILVER' = 'GOLD';
+        let nisabData: { selectedNisab: number; [key: string]: any };
 
-      // 4. Check existing record for interruption or create new record
-      if (existingRecord) {
-        // If record exists, preserve its basis
-        if (existingRecord.nisabBasis === 'SILVER' || existingRecord.nisabType === 'silver') {
-          nisabBasis = 'SILVER';
-        }
-        nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', nisabBasis);
-      } else {
-        // For new records, check both gold and silver, use the lower threshold (more lenient)
-        const goldNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'GOLD');
-        const silverNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'SILVER');
-        
-        if (silverNisab.selectedNisab < goldNisab.selectedNisab) {
-          nisabBasis = 'SILVER';
-          nisabData = silverNisab;
+        // 4. Check existing record for interruption or create new record
+        if (existingRecord) {
+          // If record exists, preserve its basis
+          if (existingRecord.nisabBasis === 'SILVER' || existingRecord.nisabType === 'silver') {
+            nisabBasis = 'SILVER';
+          }
+          nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', nisabBasis);
         } else {
-          nisabBasis = 'GOLD';
-          nisabData = goldNisab;
+          // For new records, check both gold and silver, use the lower threshold (more lenient)
+          const goldNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'GOLD');
+          const silverNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'SILVER');
+          
+          if (silverNisab.selectedNisab < goldNisab.selectedNisab) {
+            nisabBasis = 'SILVER';
+            nisabData = silverNisab;
+          } else {
+            nisabBasis = 'GOLD';
+            nisabData = goldNisab;
+          }
         }
-      }
 
-      if (existingRecord) {
-        // Check for interruption
-        const nisabThresholdAtStart = parseFloat(existingRecord.nisabThresholdAtStart || existingRecord.nisabThreshold);
+        if (existingRecord) {
+          // Check for interruption
+          const nisabThresholdAtStart = parseFloat(existingRecord.nisabThresholdAtStart || existingRecord.nisabThreshold);
 
-        if (currentWealth < nisabThresholdAtStart) {
-          this.logger.info(`User ${userId} wealth ${currentWealth} dropped below Nisab ${nisabThresholdAtStart}. Interrupting Hawl.`);
+          if (currentWealth < nisabThresholdAtStart) {
+            this.logger.info(`User ${userId} wealth ${currentWealth} dropped below Nisab ${nisabThresholdAtStart}. Interrupting Hawl.`);
 
-          // Delete the DRAFT record (Hawl interrupted)
-          await this.prisma.yearlySnapshot.delete({
-            where: { id: existingRecord.id },
-          });
+            // Delete the DRAFT record (Hawl interrupted)
+            await tx.yearlySnapshot.delete({
+              where: { id: existingRecord.id },
+            });
+          }
+        } else {
+          // No active Hawl, check if we should start one
+          if (currentWealth >= nisabData.selectedNisab) {
+               this.logger.info(`User ${userId} reached Nisab ${nisabData.selectedNisab}. Starting Hawl.`);
+               await this.createHawlRecord(userId, currentWealth, nisabData, nisabBasis, tx);
+          }
         }
-      } else {
-        // No active Hawl, check if we should start one
-        if (currentWealth >= nisabData.selectedNisab) {
-             this.logger.info(`User ${userId} reached Nisab ${nisabData.selectedNisab}. Starting Hawl.`);
-             await this.createHawlRecord(userId, currentWealth, nisabData, nisabBasis);
-        }
-      }
+      });
 
     } catch (error) {
       this.logger.error(`Failed to handle wealth change for user ${userId}`, error);
@@ -254,36 +260,40 @@ export class HawlTrackingService {
       for (const user of users) {
         try {
           // Check if user already has an active DRAFT record
-          const existingRecord = await this.prisma.yearlySnapshot.findFirst({
-            where: {
-              userId: user.id,
-              status: 'DRAFT',
-            },
+          // Use transaction to prevent race conditions with real-time tracking
+          await this.prisma.$transaction(async (tx) => {
+            const existingRecord = await tx.yearlySnapshot.findFirst({
+              where: {
+                userId: user.id,
+                status: 'DRAFT',
+              },
+            });
+
+            if (existingRecord) {
+              this.logger.debug(`User ${user.id} already has DRAFT record, skipping`);
+              return; // Skip this user
+            }
+
+            // Calculate user's current wealth
+            // Note: calculation is outside transaction but acceptable here as we re-check existingRecord
+            const wealthCalc = await this.wealthAggregationService.calculateTotalZakatableWealth(user.id);
+            const currentWealth = wealthCalc.totalZakatableWealth;
+
+            // Get current Nisab threshold
+            const nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', nisabBasis);
+
+            // Check if wealth has reached Nisab
+            if (currentWealth < nisabData.selectedNisab) {
+              this.logger.debug(`User ${user.id} wealth ${currentWealth} below Nisab ${nisabData.selectedNisab}`);
+              return; // Skip this user
+            }
+
+            // Nisab reached - create DRAFT record with asset snapshot
+            await this.createHawlRecord(user.id, currentWealth, nisabData, nisabBasis, tx);
+
+            recordsCreated++;
+            this.logger.info(`Created DRAFT record for user ${user.id}, wealth: ${currentWealth}, Nisab: ${nisabData.selectedNisab}`);
           });
-
-          if (existingRecord) {
-            this.logger.debug(`User ${user.id} already has DRAFT record, skipping`);
-            continue;
-          }
-
-          // Calculate user's current wealth
-          const wealthCalc = await this.wealthAggregationService.calculateTotalZakatableWealth(user.id);
-          const currentWealth = wealthCalc.totalZakatableWealth;
-
-          // Get current Nisab threshold
-          const nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', nisabBasis);
-
-          // Check if wealth has reached Nisab
-          if (currentWealth < nisabData.selectedNisab) {
-            this.logger.debug(`User ${user.id} wealth ${currentWealth} below Nisab ${nisabData.selectedNisab}`);
-            continue;
-          }
-
-          // Nisab reached - create DRAFT record with asset snapshot
-          await this.createHawlRecord(user.id, currentWealth, nisabData, nisabBasis);
-
-          recordsCreated++;
-          this.logger.info(`Created DRAFT record for user ${user.id}, wealth: ${currentWealth}, Nisab: ${nisabData.selectedNisab}`);
         } catch (userError) {
           this.logger.error(`Failed to process user ${user.id}`, userError);
           // Continue with next user
