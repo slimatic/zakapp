@@ -464,16 +464,59 @@ export class AssetService {
       throw new Error('Asset not found');
     }
 
-    // Soft delete
-    await prisma.asset.update({
-      where: { id: assetId },
+    // Atomic soft delete: Update only if currently active
+    // We use updateMany to include the isActive: true condition in the write operation
+    const result = await prisma.asset.updateMany({
+      where: { 
+        id: assetId,
+        userId: userId,
+        isActive: true
+      },
       data: { isActive: false }
+    });
+
+    if (result.count === 0) {
+      // Race condition occurred: asset was deactivated between findFirst and updateMany
+      throw new Error('Asset not found');
+    }
+
+    // Since updateMany doesn't return the record, we use the one we found earlier
+    // (We know it was the one updated because of the atomic lock implied or the race check)
+    // Actually, to be perfectly safe, we return the 'asset' object we fetched, 
+    // but update its status for the return value.
+    const updatedAsset = { ...asset, isActive: false };
+    
+    // Trigger Hawl tracking (non-blocking)
+    await this.triggerWealthRecalculation(userId);
+
+    return this.decryptAsset(updatedAsset);
+  }
+
+  /**
+   * Force delete asset (hard delete)
+   */
+  async forceDeleteAsset(userId: string, assetId: string) {
+    // Check if asset exists and belongs to user (active or inactive)
+    const asset = await prisma.asset.findFirst({
+      where: {
+        id: assetId,
+        userId
+      }
+    });
+
+    if (!asset) {
+      throw new Error('Asset not found');
+    }
+
+    // Hard delete
+    const deletedAsset = await prisma.asset.delete({
+      where: { id: assetId }
     });
 
     // Trigger Hawl tracking (non-blocking)
     await this.triggerWealthRecalculation(userId);
 
-    return { success: true, deletedAssetId: assetId };
+    return this.decryptAsset(deletedAsset);
   }
 
   /**
