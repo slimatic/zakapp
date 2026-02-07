@@ -7,6 +7,10 @@ export interface UserConfig {
   language: string;
   zakatMethod: string;
   calendarType: 'lunar' | 'solar';
+  securityKeys?: {
+    encryptionKey: string;
+    jwtSecret: string;
+  };
 }
 
 const CONFIG_DIR = path.join(os.homedir(), '.zakapp');
