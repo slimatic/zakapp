@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
+import crypto from 'crypto';
 import { loadConfig, saveConfig, DEFAULT_CONFIG, UserConfig } from '../config';
 import { ZAKAT_METHODS } from '@zakapp/shared';
 
@@ -60,15 +61,22 @@ export const setupCommand = new Command('setup')
     ]);
 
     if (answers.continue) {
+      const securityKeys = defaults.securityKeys || {
+        encryptionKey: crypto.randomBytes(32).toString('hex'),
+        jwtSecret: crypto.randomBytes(32).toString('hex')
+      };
+
       const newConfig: UserConfig = {
         currency: answers.currency,
         language: answers.language,
         zakatMethod: answers.zakatMethod,
-        calendarType: answers.calendarType
+        calendarType: answers.calendarType,
+        securityKeys
       };
 
       saveConfig(newConfig);
       console.log(chalk.green('Configuration saved successfully!'));
+      console.log(chalk.green('Security keys generated.'));
       console.log(chalk.gray(JSON.stringify(newConfig, null, 2)));
     } else {
       console.log(chalk.yellow('Setup cancelled.'));
