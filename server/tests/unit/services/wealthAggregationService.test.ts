@@ -3,7 +3,16 @@ import { WealthAggregationService } from '../../../src/services/wealthAggregatio
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from '../../../src/services/EncryptionService';
 
-vi.mock('@prisma/client');
+vi.mock('@prisma/client', () => ({
+  PrismaClient: vi.fn().mockImplementation(() => ({
+    asset: {
+      findMany: vi.fn(),
+    },
+    liability: {
+      findMany: vi.fn(),
+    },
+  })),
+}));
 vi.mock('../../../src/services/EncryptionService');
 
 describe('WealthAggregationService', () => {

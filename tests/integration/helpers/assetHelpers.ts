@@ -15,19 +15,31 @@ export const assetHelpers = {
       name: string;
       category: string;
       value: number;
+      currency?: string;
       isZakatable: boolean;
       isPassiveInvestment?: boolean;
       notes?: string;
     },
     authToken: string
   ) {
+    const payload = {
+      currency: 'USD',
+      ...assetData
+    };
+
     const response = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send(assetData)
-      .expect(201);
+      .send(payload);
 
-    return response.body.asset;
+    if (response.status !== 201) {
+      console.error('Create Asset failed:', response.status, JSON.stringify(response.body, null, 2));
+      throw new Error(`Expected 201, got ${response.status}`);
+    }
+
+    const asset = response.body.data.asset;
+    // Map assetId to id for test compatibility
+    return { ...asset, id: asset.assetId };
   },
 
   /**
@@ -51,7 +63,8 @@ export const assetHelpers = {
       .send(updateData)
       .expect(200);
 
-    return response.body.asset;
+    const asset = response.body.data.asset;
+    return { ...asset, id: asset.assetId };
   },
 
   /**
@@ -73,6 +86,6 @@ export const assetHelpers = {
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200);
 
-    return response.body.assets;
+    return response.body.data.assets.map((asset: any) => ({ ...asset, id: asset.assetId }));
   },
 };
