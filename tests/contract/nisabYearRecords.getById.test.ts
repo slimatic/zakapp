@@ -7,8 +7,8 @@
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import app from '../../../src/app';
+// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import app from '../../server/src/app';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -71,6 +71,12 @@ describe('GET /api/nisab-year-records/:id', () => {
     expect(res.body).toHaveProperty('success', true);
     expect(res.body).toHaveProperty('record');
     expect(res.body.record.id).toBe(recordId);
+
+    // Verify wealth fields are numeric
+    expect(typeof res.body.record.totalWealth).toBe('number');
+    expect(typeof res.body.record.totalLiabilities).toBe('number');
+    expect(typeof res.body.record.zakatableWealth).toBe('number');
+    expect(typeof res.body.record.zakatAmount).toBe('number');
   });
 
   it('should include audit trail in response', async () => {

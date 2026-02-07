@@ -18,6 +18,7 @@ yarn-error.log*
 .env.temp
 .env.test
 .env.bak
+.env.backup*
 **/.env.staging*
 **/.env.production*
 **/.env.temp

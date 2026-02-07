@@ -25,17 +25,21 @@ describe('Integration: Hawl Interruption', () => {
       .send({
         email: 'interruption@example.com',
         password: 'TestPass123!',
-        name: 'Interruption Test User',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Interruption',
+        lastName: 'Test User',
       });
 
-    authToken = registerResponse.body.accessToken;
-    userId = registerResponse.body.user.id;
+    authToken = registerResponse.body.data.tokens.accessToken;
+    userId = registerResponse.body.data.user.id;
   });
 
   afterAll(async () => {
-    await prisma.yearlySnapshot.deleteMany({ where: { userId } });
-    await prisma.asset.deleteMany({ where: { userId } });
-    await prisma.user.delete({ where: { id: userId } });
+    if (userId) {
+      await prisma.yearlySnapshot.deleteMany({ where: { userId } });
+      await prisma.asset.deleteMany({ where: { userId } });
+      await prisma.user.delete({ where: { id: userId } });
+    }
     await prisma.$disconnect();
   });
 

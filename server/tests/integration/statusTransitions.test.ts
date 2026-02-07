@@ -24,15 +24,19 @@ describe('Integration: Status Transition Validation', () => {
       .send({
         email: 'transitions@example.com',
         password: 'TestPass123!',
-        name: 'Transitions Test User',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Transitions',
+        lastName: 'Test User',
       });
 
-    authToken = registerResponse.body.accessToken;
-    userId = registerResponse.body.user.id;
+    authToken = registerResponse.body.data.tokens.accessToken;
+    userId = registerResponse.body.data.user.id;
   });
 
   afterAll(async () => {
-    await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    if (userId) {
+      await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    }
     await prisma.$disconnect();
   });
 
