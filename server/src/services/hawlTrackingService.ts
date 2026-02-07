@@ -27,7 +27,7 @@
  */
 
 import moment from 'moment';
-import 'moment-hijri';
+import * as HijriConverter from 'hijri-converter';
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
 import { EncryptionService } from './EncryptionService';
@@ -79,7 +79,7 @@ export class HawlTrackingService {
 
       // Build asset breakdown JSON
       const assetBreakdown = {
-        assets: assets.map(asset => ({
+        assets: assets.filter(asset => asset.isZakatable).map(asset => ({
           id: asset.id,
           name: asset.name,
           category: asset.category,
@@ -155,7 +155,11 @@ export class HawlTrackingService {
           const assetBreakdown = await this.buildAssetSnapshot(user.id);
 
           // Get Hijri date components
-          const hijriDate = (moment(hawlStartDate.toDate()) as any).hijri();
+          const hijri = HijriConverter.toHijri(
+            hawlStartDate.toDate().getFullYear(),
+            hawlStartDate.toDate().getMonth() + 1,
+            hawlStartDate.toDate().getDate()
+          );
           
           await this.prisma.yearlySnapshot.create({
             data: {
@@ -174,9 +178,9 @@ export class HawlTrackingService {
               gregorianYear: hawlStartDate.year(),
               gregorianMonth: hawlStartDate.month() + 1,
               gregorianDay: hawlStartDate.date(),
-              hijriYear: hijriDate.iYear(),
-              hijriMonth: hijriDate.iMonth() + 1,
-              hijriDay: hijriDate.iDate(),
+              hijriYear: hijri.hy,
+              hijriMonth: hijri.hm,
+              hijriDay: hijri.hd,
               calculationDetails: '{}', // Empty JSON
               hawlStartDate: hawlStartDate.toDate(),
               hawlStartDateHijri: this.toHijriDate(hawlStartDate.toDate()),
@@ -360,8 +364,8 @@ export class HawlTrackingService {
    * @returns Hijri date string (YYYY-MM-DD format)
    */
   toHijriDate(date: Date): string {
-    const hijri = (moment(date) as any).hijri();
-    return `${hijri.iYear()}-${String(hijri.iMonth() + 1).padStart(2, '0')}-${String(hijri.iDate()).padStart(2, '0')}`;
+    const hijri = HijriConverter.toHijri(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    return `${hijri.hy}-${String(hijri.hm).padStart(2, '0')}-${String(hijri.hd).padStart(2, '0')}`;
   }
 
   /**
@@ -372,7 +376,8 @@ export class HawlTrackingService {
    */
   fromHijriDate(hijriDateString: string): Date {
     const [year, month, day] = hijriDateString.split('-').map(Number);
-    return (moment() as any).iHijri(year, month - 1, day).toDate();
+    const gregorian = HijriConverter.toGregorian(year, month, day);
+    return new Date(gregorian.gy, gregorian.gm - 1, gregorian.gd);
   }
 
   /**

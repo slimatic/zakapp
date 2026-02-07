@@ -43,7 +43,7 @@ export class SimpleValidation {
     if (!isPartial || data.category !== undefined) {
       if (!data.category || typeof data.category !== 'string') {
         errors.push('Category is required and must be a string');
-      } else if (!VALID_ASSET_CATEGORY_VALUES.includes(data.category as any)) {
+      } else if (!VALID_ASSET_CATEGORY_VALUES.includes(data.category.toLowerCase() as any)) {
         errors.push(`Category must be one of: ${VALID_ASSET_CATEGORY_VALUES.join(', ')}`);
       } else {
         validatedData.category = data.category;
@@ -130,6 +130,22 @@ export class SimpleValidation {
       }
     }
 
+    if (data.zakatEligible !== undefined) {
+      if (typeof data.zakatEligible !== 'boolean') {
+        errors.push('zakatEligible must be a boolean');
+      } else {
+        validatedData.zakatEligible = data.zakatEligible;
+      }
+    }
+
+    if (data.isZakatable !== undefined) {
+        if (typeof data.isZakatable !== 'boolean') {
+          errors.push('isZakatable must be a boolean');
+        } else {
+          validatedData.zakatEligible = data.isZakatable;
+        }
+    }
+
     return {
       isValid: errors.length === 0,
       errors,
@@ -150,7 +166,7 @@ export class SimpleValidation {
     if (!currency) errors.push('Currency is required');
 
     // Validate asset type using shared constant
-    if (type && !VALID_ASSET_CATEGORY_VALUES.includes(type)) {
+    if (type && !VALID_ASSET_CATEGORY_VALUES.includes(type.toLowerCase() as any)) {
       errors.push(`Invalid asset type. Must be one of: ${VALID_ASSET_CATEGORY_VALUES.join(', ')}`);
     }
 
