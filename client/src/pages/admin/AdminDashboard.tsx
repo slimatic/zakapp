@@ -4,12 +4,13 @@ import { PageLoadingFallback } from '../../components/common/LoadingFallback';
 import { ErrorDisplay } from '../../components/common/ErrorDisplay';
 import { UserManagement } from '../../components/admin/UserManagement';
 import { SystemSettings } from '../../components/admin/SystemSettings';
+import { SystemHealth } from '../../components/admin/SystemHealth';
 
 export const AdminDashboard: React.FC = () => {
     const [stats, setStats] = useState<AdminStats | null>(null);
     const [loadingStats, setLoadingStats] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'settings'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'settings' | 'health'>('overview');
 
     const loadStats = async () => {
         setLoadingStats(true);
@@ -82,6 +83,17 @@ export const AdminDashboard: React.FC = () => {
                     >
                         System Settings
                     </button>
+                    <button
+                        onClick={() => setActiveTab('health')}
+                        className={`
+                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                            ${activeTab === 'health'
+                                ? 'border-emerald-500 text-emerald-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                        `}
+                    >
+                        System Health
+                    </button>
                 </nav>
             </div>
 
@@ -116,6 +128,12 @@ export const AdminDashboard: React.FC = () => {
                 {activeTab === 'settings' && (
                     <div className="animate-in fade-in slide-in-from-left-4 duration-300">
                         <SystemSettings />
+                    </div>
+                )}
+
+                {activeTab === 'health' && (
+                    <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                        <SystemHealth />
                     </div>
                 )}
             </div>
