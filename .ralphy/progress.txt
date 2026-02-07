@@ -1,0 +1,3 @@
+# Ralphy Progress Log
+
+- [✓] 2026-02-06 23:35 - Fix all failing tests in the server directory. Currently there are around 33 failures. Ensure client tests continue to pass.

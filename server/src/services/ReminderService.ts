@@ -346,8 +346,16 @@ export class ReminderService {
     const now = new Date();
 
     // Get all snapshots for the user
-    const snapshots = await YearlySnapshotModel.findByUser(userId, { limit: 100 });
+    const snapshots = await YearlySnapshotModel.findByUser(userId, { 
+      limit: 100,
+      status: 'finalized' as any // Use finalized snapshots for anniversaries
+    });
     
+    // Get existing pending reminders to avoid duplicates
+    const existingReminders = await ReminderEventModel.findByUser(userId, {
+      status: 'pending'
+    });
+
     for (const snapshot of snapshots.data) {
       // Check if it's time for anniversary reminder (1 year after calculation)
       const anniversaryDate = new Date(snapshot.createdAt);
@@ -357,19 +365,26 @@ export class ReminderService {
       const daysUntilAnniversary = Math.ceil((anniversaryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       
       if (daysUntilAnniversary >= 0 && daysUntilAnniversary <= 7) {
-        const reminder = await this.createReminder(userId, {
-          eventType: 'zakat_anniversary_approaching',
-          triggerDate: anniversaryDate,
-          title: 'Zakat Anniversary Reminder',
-          message: `Your Zakat calculation from ${snapshot.gregorianYear} is approaching its one-year anniversary.`,
-          priority: 'high',
-          relatedSnapshotId: snapshot.id,
-          metadata: { 
-            year: snapshot.gregorianYear,
-            anniversaryDate: anniversaryDate.toISOString()
-          }
-        });
-        createdReminders.push(reminder);
+        // Check if reminder already exists for this snapshot
+        const alreadyExists = existingReminders.data.some(
+          r => r.eventType === 'zakat_anniversary_approaching' && r.relatedSnapshotId === snapshot.id
+        );
+
+        if (!alreadyExists) {
+          const reminder = await this.createReminder(userId, {
+            eventType: 'zakat_anniversary_approaching',
+            triggerDate: anniversaryDate,
+            title: 'Zakat Anniversary Reminder',
+            message: `Your Zakat calculation from ${snapshot.gregorianYear} is approaching its one-year anniversary.`,
+            priority: 'high',
+            relatedSnapshotId: snapshot.id,
+            metadata: { 
+              year: snapshot.gregorianYear,
+              anniversaryDate: anniversaryDate.toISOString()
+            }
+          });
+          createdReminders.push(reminder);
+        }
       }
     }
 

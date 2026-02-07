@@ -3,7 +3,17 @@ import { AuditTrailService } from '../../../src/services/auditTrailService';
 import { PrismaClient } from '@prisma/client';
 import { EncryptionService } from '../../../src/services/EncryptionService';
 
-vi.mock('@prisma/client');
+vi.mock('@prisma/client', () => {
+  return {
+    PrismaClient: vi.fn().mockImplementation(() => ({
+      auditTrailEntry: {
+        create: vi.fn(),
+        findMany: vi.fn(),
+        count: vi.fn(),
+      },
+    })),
+  };
+});
 vi.mock('../../../src/services/EncryptionService');
 
 describe('AuditTrailService', () => {

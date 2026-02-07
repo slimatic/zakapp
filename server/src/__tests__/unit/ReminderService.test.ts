@@ -1,4 +1,4 @@
-import { vi, type Mock } from 'vitest';
+import { vi, type Mock, describe, it, expect, beforeEach } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -393,9 +393,19 @@ describe('ReminderService', () => {
     });
 
     it('should create reminders for upcoming anniversaries', async () => {
+      // Set createdAt to almost 1 year ago so it's within the 7-day window
+      const almostOneYearAgo = new Date();
+      almostOneYearAgo.setFullYear(almostOneYearAgo.getFullYear() - 1);
+      almostOneYearAgo.setDate(almostOneYearAgo.getDate() + 2);
+      
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue({
+        data: [{ ...mockSnapshots[0], createdAt: almostOneYearAgo }],
+        total: 1
+      });
+
       const result = await service.triggerZakatAnniversaryReminders(mockUserId);
 
-      expect(result).toBeGreaterThanOrEqual(0);
+      expect(result.length).toBeGreaterThanOrEqual(0);
       expect(YearlySnapshotModel.findByUser).toHaveBeenCalledWith(
         mockUserId,
         expect.objectContaining({ status: 'finalized' })

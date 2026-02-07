@@ -14,7 +14,13 @@ export default defineConfig({
     include: ['**/*.{test,spec}.ts'],
     exclude: ['test/setupEnv.ts', '**/node_modules/**', '**/dist/**'],
     setupFiles: ['./test/setupEnv.ts'],
+    globalSetup: ['./test/globalSetup.ts'],
     pool: 'forks', // Use forks for better isolation in node environment
+    server: {
+      deps: {
+        inline: ['@prisma/client']
+      }
+    }
   },
   // plugins: [
   //   swc.vite(),

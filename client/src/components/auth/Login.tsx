@@ -64,7 +64,7 @@ export const Login: React.FC = () => {
                 {error === 'Failed to fetch'
                   ? 'Unable to connect to server. Please check your network connection.'
                   : error}
-                {/* Show reset button for vault/encryption/sync related errors */}
+                {/* Show instructions for vault/encryption/sync related errors */}
                 {(error.includes('vault') ||
                   error.includes('local data') ||
                   error.includes('encryption') ||
@@ -73,34 +73,17 @@ export const Login: React.FC = () => {
                   error.includes('DB8') ||
                   error.includes('password') ||
                   error.includes('salt')) && (
-                    <div className="mt-2">
-                      <p className="text-xs text-red-600 mb-2">
-                        If this persists, you can reset your local data. Your cloud data is safe and will sync again after login.
+                    <div className="mt-4 p-3 bg-white/50 border border-red-100 rounded text-xs">
+                      <p className="font-bold text-red-800 mb-1">How to fix this:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-red-700">
+                        <li>Open your browser settings</li>
+                        <li>Search for <strong>"Clear browsing data"</strong></li>
+                        <li>Select <strong>"Cookies and other site data"</strong></li>
+                        <li>Click <strong>"Clear data"</strong> and refresh this page</li>
+                      </ol>
+                      <p className="mt-2 text-[10px] text-red-600 italic">
+                        Note: Your cloud data is safe and will sync again after you log in.
                       </p>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="w-full text-xs"
-                        onClick={async () => {
-                          if (window.confirm('This will clear your local browser data for this app. Your cloud data is safe. Continue?')) {
-                            try {
-                              const { forceResetDatabase } = await import('../../db');
-                              await forceResetDatabase();
-                              // Also clear auth tokens
-                              localStorage.removeItem('accessToken');
-                              localStorage.removeItem('refreshToken');
-                              sessionStorage.clear();
-                              window.location.reload();
-                            } catch (e) {
-                              console.error(e);
-                              alert('Failed to reset. Try clearing site data manually in browser settings.');
-                            }
-                          }
-                        }}
-                      >
-                        Clear Local Data & Retry
-                      </Button>
                     </div>
                   )}
               </div>

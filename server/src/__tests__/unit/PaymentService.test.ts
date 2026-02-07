@@ -1,4 +1,4 @@
-import { vi, type Mock } from 'vitest';
+import { vi, type Mock, describe, it, expect, beforeEach, afterEach } from 'vitest';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -17,37 +17,34 @@ import { vi, type Mock } from 'vitest';
  */
 
 import { EncryptionService } from '../../services/EncryptionService';
+import { PaymentService } from '../../services/PaymentService';
 
 // Mock EncryptionService
 vi.mock('../../services/EncryptionService');
 
-// Mock PrismaClient
-const mockPrisma = {
-  zakatCalculation: { findFirst: vi.fn() },
-  zakatPayment: {
-    create: vi.fn(),
-    findFirst: vi.fn(),
-    findMany: vi.fn(),
-    count: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
+// Mock Prisma
+vi.mock('../../utils/prisma', () => ({
+  prisma: {
+    zakatCalculation: { findFirst: vi.fn() },
+    zakatPayment: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      count: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    $transaction: vi.fn(),
   },
-  $transaction: vi.fn((callback) => callback(mockPrisma)),
-};
+}));
 
-vi.mock('@prisma/client', () => {
-  return {
-    PrismaClient: vi.fn(() => mockPrisma),
-  };
-});
-
-// Import PaymentService after mocks
-const { PaymentService } = require('../../services/PaymentService');
+import { prisma } from '../../utils/prisma';
 
 describe('PaymentService', () => {
   let service: any;
   const mockUserId = 'test-user-123';
   const mockCalculationId = 'calc-123';
+  const mockPrisma = prisma as any;
 
   beforeEach(() => {
     process.env.ENCRYPTION_KEY = 'test-encryption-key-32-characters!!';
@@ -57,6 +54,9 @@ describe('PaymentService', () => {
     // Setup default EncryptionService mocks
     (EncryptionService.encryptObject as Mock).mockImplementation((data) => Promise.resolve(data));
     (EncryptionService.decryptObject as Mock).mockImplementation((data) => Promise.resolve(data));
+
+    // Setup transaction mock
+    mockPrisma.$transaction.mockImplementation((callback: any) => callback(mockPrisma));
   });
 
   afterEach(() => {

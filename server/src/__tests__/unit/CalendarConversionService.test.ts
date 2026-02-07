@@ -21,6 +21,7 @@ import { vi, type Mock } from 'vitest';
  * Tests Hijri-Gregorian date conversions and formatting
  */
 
+import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarConversionService } from '../../services/CalendarConversionService';
 
 describe('CalendarConversionService', () => {
@@ -53,8 +54,8 @@ describe('CalendarConversionService', () => {
     });
 
     it('should handle edge case dates', () => {
-      // Test a very old date
-      const oldDate = new Date(1900, 0, 1);
+      // Test a relatively old date (hijri-converter supports back to approx 1937)
+      const oldDate = new Date(1940, 0, 1);
       const result = service.gregorianToHijri(oldDate);
 
       expect(result.year).toBeGreaterThan(0);

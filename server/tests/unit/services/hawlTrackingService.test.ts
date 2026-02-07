@@ -3,7 +3,20 @@ import { HawlTrackingService } from '../../../src/services/hawlTrackingService';
 import { PrismaClient } from '@prisma/client';
 import moment from 'moment-hijri';
 
-vi.mock('@prisma/client');
+vi.mock('@prisma/client', () => {
+  return {
+    PrismaClient: vi.fn().mockImplementation(() => ({
+      yearlySnapshot: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+      },
+      user: {
+        findMany: vi.fn(),
+      },
+    })),
+  };
+});
 vi.mock('../../../src/services/wealthAggregationService');
 vi.mock('../../../src/services/nisabCalculationService');
 vi.mock('../../../src/services/EncryptionService');
