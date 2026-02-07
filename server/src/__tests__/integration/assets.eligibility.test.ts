@@ -17,12 +17,17 @@ import { vi, type Mock } from 'vitest';
  */
 
 import request from 'supertest';
+import { describe, it, expect } from 'vitest';
 
 // Mock @zakapp/shared to avoid consuming ESM build artifacts in Jest runtime
-vi.mock('@zakapp/shared', () => ({
-  VALID_ASSET_CATEGORY_VALUES: ['cash','gold','silver','business','property','stocks','crypto','debts','expenses'],
-  PASSIVE_INVESTMENT_TYPES: ['Stock','ETF','Mutual Fund','Roth IRA']
-}));
+vi.mock('@zakapp/shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@zakapp/shared')>();
+  return {
+    ...actual,
+    VALID_ASSET_CATEGORY_VALUES: ['cash','gold','silver','business','property','stocks','crypto','debts','expenses'],
+    PASSIVE_INVESTMENT_TYPES: ['Stock','ETF','Mutual Fund','Roth IRA']
+  };
+});
 
 import { app } from '../../app';
 
