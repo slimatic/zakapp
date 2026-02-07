@@ -103,6 +103,119 @@ export class HawlTrackingService {
   }
 
   /**
+   * Create a new Hawl record (DRAFT)
+   * 
+   * @param userId - User ID
+   * @param currentWealth - Current total zakatable wealth
+   * @param nisabData - Nisab threshold data
+   * @param nisabBasis - Nisab basis (GOLD/SILVER)
+   * @private
+   */
+  private async createHawlRecord(
+    userId: string, 
+    currentWealth: number, 
+    nisabData: any, 
+    nisabBasis: 'GOLD' | 'SILVER'
+  ): Promise<void> {
+    const hawlStartDate = moment();
+    const hawlCompletionDate = moment().add(this.HAWL_DURATION_DAYS, 'days');
+    const assetBreakdown = await this.buildAssetSnapshot(userId);
+
+    // Get Hijri date components
+    const hijri = HijriConverter.toHijri(
+      hawlStartDate.toDate().getFullYear(),
+      hawlStartDate.toDate().getMonth() + 1,
+      hawlStartDate.toDate().getDate()
+    );
+    
+    await this.prisma.yearlySnapshot.create({
+      data: {
+        userId: userId,
+        status: 'DRAFT',
+        nisabBasis,
+        nisabType: nisabBasis, // Deprecated but still required
+        nisabThreshold: nisabData.selectedNisab.toString(),
+        nisabThresholdAtStart: nisabData.selectedNisab.toString(),
+        totalWealth: currentWealth.toString(),
+        totalLiabilities: '0', // Initialize as 0
+        zakatableWealth: currentWealth.toString(),
+        zakatAmount: this.nisabCalculationService.calculateZakat(currentWealth).toString(),
+        methodologyUsed: 'Standard', // Default methodology
+        calculationDate: hawlStartDate.toDate(),
+        gregorianYear: hawlStartDate.year(),
+        gregorianMonth: hawlStartDate.month() + 1,
+        gregorianDay: hawlStartDate.date(),
+        hijriYear: hijri.hy,
+        hijriMonth: hijri.hm,
+        hijriDay: hijri.hd,
+        calculationDetails: '{}', // Empty JSON
+        hawlStartDate: hawlStartDate.toDate(),
+        hawlStartDateHijri: this.toHijriDate(hawlStartDate.toDate()),
+        hawlCompletionDate: hawlCompletionDate.toDate(),
+        hawlCompletionDateHijri: this.toHijriDate(hawlCompletionDate.toDate()),
+        assetBreakdown, // Encrypted asset snapshot
+      },
+    });
+  }
+
+  /**
+   * Handle real-time wealth change for a user
+   * Triggers Hawl detection logic immediately
+   *
+   * @param userId - User ID
+   * @returns void
+   */
+  async handleWealthChange(userId: string): Promise<void> {
+    try {
+      this.logger.info(`Handling wealth change for user ${userId}`);
+
+      // 1. Get current wealth
+      const wealthCalc = await this.wealthAggregationService.calculateTotalZakatableWealth(userId);
+      const currentWealth = wealthCalc.totalZakatableWealth;
+
+      // 2. Get active DRAFT record
+      const existingRecord = await this.prisma.yearlySnapshot.findFirst({
+        where: {
+          userId,
+          status: 'DRAFT',
+        },
+      });
+
+      // 3. Determine Nisab basis
+      let nisabBasis: 'GOLD' | 'SILVER' = 'GOLD';
+      if (existingRecord && (existingRecord.nisabBasis === 'SILVER' || existingRecord.nisabType === 'silver')) {
+         nisabBasis = 'SILVER';
+      }
+
+      // 4. Get current Nisab threshold
+      const nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', nisabBasis);
+
+      if (existingRecord) {
+        // Check for interruption
+        const nisabThresholdAtStart = parseFloat(existingRecord.nisabThresholdAtStart || existingRecord.nisabThreshold);
+
+        if (currentWealth < nisabThresholdAtStart) {
+          this.logger.info(`User ${userId} wealth ${currentWealth} dropped below Nisab ${nisabThresholdAtStart}. Interrupting Hawl.`);
+
+          // Delete the DRAFT record (Hawl interrupted)
+          await this.prisma.yearlySnapshot.delete({
+            where: { id: existingRecord.id },
+          });
+        }
+      } else {
+        // No active Hawl, check if we should start one
+        if (currentWealth >= nisabData.selectedNisab) {
+             this.logger.info(`User ${userId} reached Nisab ${nisabData.selectedNisab}. Starting Hawl.`);
+             await this.createHawlRecord(userId, currentWealth, nisabData, nisabBasis);
+        }
+      }
+
+    } catch (error) {
+      this.logger.error(`Failed to handle wealth change for user ${userId}`, error);
+    }
+  }
+
+  /**
    * Detect Nisab achievement for all users (background job mode)
    * Creates DRAFT Nisab Year Records for users who have reached Nisab
    * 
@@ -150,45 +263,7 @@ export class HawlTrackingService {
           }
 
           // Nisab reached - create DRAFT record with asset snapshot
-          const hawlStartDate = moment();
-          const hawlCompletionDate = moment().add(this.HAWL_DURATION_DAYS, 'days');
-          const assetBreakdown = await this.buildAssetSnapshot(user.id);
-
-          // Get Hijri date components
-          const hijri = HijriConverter.toHijri(
-            hawlStartDate.toDate().getFullYear(),
-            hawlStartDate.toDate().getMonth() + 1,
-            hawlStartDate.toDate().getDate()
-          );
-          
-          await this.prisma.yearlySnapshot.create({
-            data: {
-              userId: user.id,
-              status: 'DRAFT',
-              nisabBasis,
-              nisabType: nisabBasis, // Deprecated but still required
-              nisabThreshold: nisabData.selectedNisab.toString(),
-              nisabThresholdAtStart: nisabData.selectedNisab.toString(),
-              totalWealth: currentWealth.toString(),
-              totalLiabilities: '0', // Initialize as 0
-              zakatableWealth: currentWealth.toString(),
-              zakatAmount: this.nisabCalculationService.calculateZakat(currentWealth).toString(),
-              methodologyUsed: 'Standard', // Default methodology
-              calculationDate: hawlStartDate.toDate(),
-              gregorianYear: hawlStartDate.year(),
-              gregorianMonth: hawlStartDate.month() + 1,
-              gregorianDay: hawlStartDate.date(),
-              hijriYear: hijri.hy,
-              hijriMonth: hijri.hm,
-              hijriDay: hijri.hd,
-              calculationDetails: '{}', // Empty JSON
-              hawlStartDate: hawlStartDate.toDate(),
-              hawlStartDateHijri: this.toHijriDate(hawlStartDate.toDate()),
-              hawlCompletionDate: hawlCompletionDate.toDate(),
-              hawlCompletionDateHijri: this.toHijriDate(hawlCompletionDate.toDate()),
-              assetBreakdown, // Encrypted asset snapshot
-            },
-          });
+          await this.createHawlRecord(user.id, currentWealth, nisabData, nisabBasis);
 
           recordsCreated++;
           this.logger.info(`Created DRAFT record for user ${user.id}, wealth: ${currentWealth}, Nisab: ${nisabData.selectedNisab}`);
