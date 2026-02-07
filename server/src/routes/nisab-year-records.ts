@@ -78,11 +78,14 @@ router.get('/api/nisab-year-records', async (req: AuthenticatedRequest, res: Res
     const offset = parseInt(req.query.offset as string) || 0;
 
     const filters: Record<string, any> = {};
-    if (req.query.status) {
+    if (req.query.status && req.query.status !== 'ALL') {
       filters.status = (req.query.status as string).split(',');
     }
     if (req.query.hijriYear) {
       filters.hijriYear = req.query.hijriYear as string;
+    }
+    if (req.query.year) {
+      filters.gregorianYear = parseInt(req.query.year as string);
     }
     if (req.query.startDate) {
       filters.startDate = new Date(req.query.startDate as string);
@@ -151,6 +154,22 @@ router.post('/api/nisab-year-records', async (req: AuthenticatedRequest, res: Re
         success: false,
         error: 'VALIDATION_ERROR',
         message: 'hawlStartDateHijri is required',
+      });
+    }
+
+    if (new Date(dto.hawlStartDate).toString() === 'Invalid Date') {
+      return res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'hawlStartDate must be a valid date',
+      });
+    }
+
+    if (dto.hawlCompletionDate && new Date(dto.hawlCompletionDate).toString() === 'Invalid Date') {
+      return res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'hawlCompletionDate must be a valid date',
       });
     }
 
@@ -255,7 +274,7 @@ router.put('/api/nisab-year-records/:id', async (req: AuthenticatedRequest, res:
       });
     }
 
-    if (error.message.includes('Unauthorized')) {
+    if (error.message.includes('Unauthorized') || error.message.includes('Record not found')) {
       return res.status(404).json({
         success: false,
         error: 'NOT_FOUND',
@@ -298,7 +317,7 @@ router.delete('/api/nisab-year-records/:id', async (req: AuthenticatedRequest, r
       });
     }
 
-    if (error.message.includes('Unauthorized')) {
+    if (error.message.includes('Unauthorized') || error.message.includes('not found')) {
       return res.status(404).json({
         success: false,
         error: 'NOT_FOUND',
@@ -467,7 +486,7 @@ router.post(
         });
       }
 
-      if (error.message.includes('Unauthorized')) {
+      if (error.message.includes('Unauthorized') || error.message.includes('not found')) {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',
@@ -547,7 +566,7 @@ router.post(
         });
       }
 
-      if (error.message.includes('Unauthorized')) {
+      if (error.message.includes('Unauthorized') || error.message.includes('Record not found')) {
         return res.status(404).json({
           success: false,
           error: 'NOT_FOUND',

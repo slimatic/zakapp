@@ -39,12 +39,9 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
   });
 
   beforeEach(async () => {
-    // Clean database
-    await prisma.yearlySnapshot.deleteMany();
-    await prisma.asset.deleteMany();
+    // Clean specific tables that might conflict
     await prisma.preciousMetalPrice.deleteMany();
-    await prisma.user.deleteMany();
-
+    
     // Create test user
     const authResult = await authHelpers.createAuthenticatedUser();
     userId = authResult.userId;
@@ -63,10 +60,13 @@ describe('Automatic Asset Inclusion in Hawl Detection', () => {
   });
 
   afterEach(async () => {
-    await prisma.yearlySnapshot.deleteMany();
-    await prisma.asset.deleteMany();
+    // Clean up resources for this specific user
+    if (userId) {
+      await prisma.yearlySnapshot.deleteMany({ where: { userId } });
+      await prisma.asset.deleteMany({ where: { userId } });
+      await prisma.user.deleteMany({ where: { id: userId } });
+    }
     await prisma.preciousMetalPrice.deleteMany();
-    await prisma.user.deleteMany();
   });
 
   afterAll(async () => {
