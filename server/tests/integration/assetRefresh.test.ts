@@ -1,4 +1,4 @@
-import { vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, afterAll, vi, type Mock } from 'vitest';
 /**
  * Integration Test: Asset Refresh Workflow
  * Purpose: Test asset refresh functionality for DRAFT Nisab Year Records
@@ -85,7 +85,7 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hawlStartDateHijri: '1446-06-01',
           hawlCompletionDate: new Date('2025-12-20'),
           hawlCompletionDateHijri: '1447-06-01',
-          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
+          nisabThresholdAtStart: JSON.stringify(EncryptionService.encrypt('5000')),
           nisabBasis: 'gold',
           calculationDate: new Date('2025-01-01'),
           gregorianYear: 2025,
@@ -94,15 +94,17 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: EncryptionService.encrypt('8000').encryptedData,
-          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
-          zakatableWealth: EncryptionService.encrypt('8000').encryptedData,
-          zakatAmount: EncryptionService.encrypt('200').encryptedData,
+          totalWealth: JSON.stringify(EncryptionService.encrypt('8000')),
+          totalLiabilities: JSON.stringify(EncryptionService.encrypt('0')),
+          zakatableWealth: JSON.stringify(EncryptionService.encrypt('8000')),
+          zakatAmount: JSON.stringify(EncryptionService.encrypt('200')),
           methodologyUsed: 'standard',
           status: 'DRAFT',
-          assetBreakdown: EncryptionService.encrypt(JSON.stringify(initialSnapshot)).encryptedData,
-          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
+          assetBreakdown: JSON.stringify(EncryptionService.encrypt(JSON.stringify(initialSnapshot))),
+          calculationDetails: JSON.stringify(EncryptionService.encrypt(JSON.stringify({}))),
           isPrimary: false,
+          nisabThreshold: JSON.stringify(EncryptionService.encrypt('5000')),
+          nisabType: 'gold',
         },
       });
 
@@ -126,15 +128,15 @@ describe('Asset Refresh Workflow Integration Test', () => {
 
       // Step 5: Verify response includes NEW asset
       expect(response.body.success).toBe(true);
-      expect(response.body.assets).toHaveLength(3);
+      expect(response.body.data.assets).toHaveLength(3);
       
-      const assetNames = response.body.assets.map((a: any) => a.name);
+      const assetNames = response.body.data.assets.map((a: any) => a.name);
       expect(assetNames).toContain('Initial Cash');
       expect(assetNames).toContain('Initial Bitcoin');
       expect(assetNames).toContain('New Gold Investment');
 
       // Verify asset structure
-      const goldAsset = response.body.assets.find(
+      const goldAsset = response.body.data.assets.find(
         (a: any) => a.name === 'New Gold Investment'
       );
       expect(goldAsset).toMatchObject({
@@ -173,7 +175,7 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hawlStartDateHijri: '1445-06-01',
           hawlCompletionDate: new Date('2024-12-20'),
           hawlCompletionDateHijri: '1446-06-01',
-          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
+          nisabThresholdAtStart: JSON.stringify(EncryptionService.encrypt('5000')),
           nisabBasis: 'gold',
           calculationDate: new Date('2024-12-20'),
           gregorianYear: 2024,
@@ -182,16 +184,18 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: EncryptionService.encrypt('10000').encryptedData,
-          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
-          zakatableWealth: EncryptionService.encrypt('10000').encryptedData,
-          zakatAmount: EncryptionService.encrypt('250').encryptedData,
+          totalWealth: JSON.stringify(EncryptionService.encrypt('10000')),
+          totalLiabilities: JSON.stringify(EncryptionService.encrypt('0')),
+          zakatableWealth: JSON.stringify(EncryptionService.encrypt('10000')),
+          zakatAmount: JSON.stringify(EncryptionService.encrypt('250')),
           methodologyUsed: 'standard',
           status: 'FINALIZED',
           finalizedAt: new Date('2024-12-20'),
-          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
-          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
+          assetBreakdown: JSON.stringify(EncryptionService.encrypt(JSON.stringify({ assets: [] }))),
+          calculationDetails: JSON.stringify(EncryptionService.encrypt(JSON.stringify({}))),
           isPrimary: false,
+          nisabThreshold: JSON.stringify(EncryptionService.encrypt('5000')),
+          nisabType: 'gold',
         },
       });
 
@@ -202,8 +206,8 @@ describe('Asset Refresh Workflow Integration Test', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toContain('CANNOT_REFRESH_FINALIZED');
-      expect(response.body.message).toMatch(/cannot refresh.*finalized/i);
+      expect(response.body.error).toContain('INVALID_STATUS');
+      expect(response.body.message).toMatch(/Can only refresh assets for DRAFT records/i);
     });
 
     it('should return 400 for UNLOCKED record', async () => {
@@ -215,7 +219,7 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hawlStartDateHijri: '1445-06-01',
           hawlCompletionDate: new Date('2024-12-20'),
           hawlCompletionDateHijri: '1446-06-01',
-          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
+          nisabThresholdAtStart: JSON.stringify(EncryptionService.encrypt('5000')),
           nisabBasis: 'gold',
           calculationDate: new Date('2024-12-20'),
           gregorianYear: 2024,
@@ -224,16 +228,18 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: EncryptionService.encrypt('10000').encryptedData,
-          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
-          zakatableWealth: EncryptionService.encrypt('10000').encryptedData,
-          zakatAmount: EncryptionService.encrypt('250').encryptedData,
+          totalWealth: JSON.stringify(EncryptionService.encrypt('10000')),
+          totalLiabilities: JSON.stringify(EncryptionService.encrypt('0')),
+          zakatableWealth: JSON.stringify(EncryptionService.encrypt('10000')),
+          zakatAmount: JSON.stringify(EncryptionService.encrypt('250')),
           methodologyUsed: 'standard',
           status: 'UNLOCKED',
           finalizedAt: new Date('2024-12-20'),
-          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
-          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
+          assetBreakdown: JSON.stringify(EncryptionService.encrypt(JSON.stringify({ assets: [] }))),
+          calculationDetails: JSON.stringify(EncryptionService.encrypt(JSON.stringify({}))),
           isPrimary: false,
+          nisabThreshold: JSON.stringify(EncryptionService.encrypt('5000')),
+          nisabType: 'gold',
         },
       });
 
@@ -244,7 +250,7 @@ describe('Asset Refresh Workflow Integration Test', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toContain('DRAFT');
+      expect(response.body.error).toBe('INVALID_STATUS');
     });
 
     it('should return 404 for non-existent record', async () => {
@@ -268,7 +274,7 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hawlStartDateHijri: '1446-06-01',
           hawlCompletionDate: new Date('2025-12-20'),
           hawlCompletionDateHijri: '1447-06-01',
-          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
+          nisabThresholdAtStart: JSON.stringify(EncryptionService.encrypt('5000')),
           nisabBasis: 'gold',
           calculationDate: new Date('2025-01-01'),
           gregorianYear: 2025,
@@ -277,15 +283,17 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: EncryptionService.encrypt('10000').encryptedData,
-          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
-          zakatableWealth: EncryptionService.encrypt('10000').encryptedData,
-          zakatAmount: EncryptionService.encrypt('250').encryptedData,
+          totalWealth: JSON.stringify(EncryptionService.encrypt('10000')),
+          totalLiabilities: JSON.stringify(EncryptionService.encrypt('0')),
+          zakatableWealth: JSON.stringify(EncryptionService.encrypt('10000')),
+          zakatAmount: JSON.stringify(EncryptionService.encrypt('250')),
           methodologyUsed: 'standard',
           status: 'DRAFT',
-          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
-          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
+          assetBreakdown: JSON.stringify(EncryptionService.encrypt(JSON.stringify({ assets: [] }))),
+          calculationDetails: JSON.stringify(EncryptionService.encrypt(JSON.stringify({}))),
           isPrimary: false,
+          nisabThreshold: JSON.stringify(EncryptionService.encrypt('5000')),
+          nisabType: 'gold',
         },
       });
 
@@ -319,7 +327,7 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hawlStartDateHijri: '1446-06-01',
           hawlCompletionDate: new Date('2025-12-20'),
           hawlCompletionDateHijri: '1447-06-01',
-          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
+          nisabThresholdAtStart: JSON.stringify(EncryptionService.encrypt('5000')),
           nisabBasis: 'gold',
           calculationDate: new Date('2025-01-01'),
           gregorianYear: 2025,
@@ -328,15 +336,17 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: EncryptionService.encrypt('8000').encryptedData,
-          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
-          zakatableWealth: EncryptionService.encrypt('8000').encryptedData,
-          zakatAmount: EncryptionService.encrypt('200').encryptedData,
+          totalWealth: JSON.stringify(EncryptionService.encrypt('8000')),
+          totalLiabilities: JSON.stringify(EncryptionService.encrypt('0')),
+          zakatableWealth: JSON.stringify(EncryptionService.encrypt('8000')),
+          zakatAmount: JSON.stringify(EncryptionService.encrypt('200')),
           methodologyUsed: 'standard',
           status: 'DRAFT',
-          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
-          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
+          assetBreakdown: JSON.stringify(EncryptionService.encrypt(JSON.stringify({ assets: [] }))),
+          calculationDetails: JSON.stringify(EncryptionService.encrypt(JSON.stringify({}))),
           isPrimary: false,
+          nisabThreshold: JSON.stringify(EncryptionService.encrypt('5000')),
+          nisabType: 'gold',
         },
       });
 
@@ -349,8 +359,8 @@ describe('Asset Refresh Workflow Integration Test', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.assets).toHaveLength(1);
-      expect(response.body.assets[0].name).toBe('Asset 1');
+      expect(response.body.data.assets).toHaveLength(1);
+      expect(response.body.data.assets[0].name).toBe('Asset 1');
     });
 
     it('should only return zakatable assets', async () => {
@@ -368,7 +378,7 @@ describe('Asset Refresh Workflow Integration Test', () => {
       );
       await assetHelpers.createAsset(
         userId,
-        { name: 'House', category: 'real_estate', value: 250000, isZakatable: false },
+        { name: 'House', category: 'property', value: 250000, isZakatable: false },
         authToken
       );
       await assetHelpers.createAsset(
@@ -385,7 +395,7 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hawlStartDateHijri: '1446-06-01',
           hawlCompletionDate: new Date('2025-12-20'),
           hawlCompletionDateHijri: '1447-06-01',
-          nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
+          nisabThresholdAtStart: JSON.stringify(EncryptionService.encrypt('5000')),
           nisabBasis: 'gold',
           calculationDate: new Date('2025-01-01'),
           gregorianYear: 2025,
@@ -394,88 +404,19 @@ describe('Asset Refresh Workflow Integration Test', () => {
           hijriYear: 1446,
           hijriMonth: 6,
           hijriDay: 1,
-          totalWealth: EncryptionService.encrypt('8000').encryptedData,
-          totalLiabilities: EncryptionService.encrypt('0').encryptedData,
-          zakatableWealth: EncryptionService.encrypt('8000').encryptedData,
-          zakatAmount: EncryptionService.encrypt('200').encryptedData,
+          totalWealth: JSON.stringify(EncryptionService.encrypt('8000')),
+          totalLiabilities: JSON.stringify(EncryptionService.encrypt('0')),
+          zakatableWealth: JSON.stringify(EncryptionService.encrypt('8000')),
+          zakatAmount: JSON.stringify(EncryptionService.encrypt('200')),
           methodologyUsed: 'standard',
           status: 'DRAFT',
-          assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
-          calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
+          assetBreakdown: JSON.stringify(EncryptionService.encrypt(JSON.stringify({ assets: [] }))),
+          calculationDetails: JSON.stringify(EncryptionService.encrypt(JSON.stringify({}))),
           isPrimary: false,
+          nisabThreshold: JSON.stringify(EncryptionService.encrypt('5000')),
+          nisabType: 'gold',
         },
       });
-
-        it('should allow updating record with refreshed assets and persist zakatable wealth correctly', async () => {
-          // Create assets including a passive one
-          const a1 = await assetHelpers.createAsset(userId, { name: 'Cash', category: 'cash', value: 600, isZakatable: true }, authToken);
-          const a2 = await assetHelpers.createAsset(userId, { name: 'Passive Stock', category: 'stocks', value: 6000, isZakatable: true, isPassiveInvestment: true }, authToken);
-
-          // Create DRAFT record
-          const record = await prisma.yearlySnapshot.create({
-            data: {
-              userId,
-              hawlStartDate: new Date('2025-01-01'),
-              hawlStartDateHijri: '1446-06-01',
-              hawlCompletionDate: new Date('2025-12-20'),
-              hawlCompletionDateHijri: '1447-06-01',
-              nisabThresholdAtStart: EncryptionService.encrypt('5000').encryptedData,
-              nisabBasis: 'gold',
-              calculationDate: new Date('2025-01-01'),
-              gregorianYear: 2025,
-              gregorianMonth: 1,
-              gregorianDay: 1,
-              hijriYear: 1446,
-              hijriMonth: 6,
-              hijriDay: 1,
-              totalWealth: EncryptionService.encrypt('0').encryptedData,
-              totalLiabilities: EncryptionService.encrypt('0').encryptedData,
-              zakatableWealth: EncryptionService.encrypt('0').encryptedData,
-              zakatAmount: EncryptionService.encrypt('0').encryptedData,
-              methodologyUsed: 'standard',
-              status: 'DRAFT',
-              assetBreakdown: EncryptionService.encrypt(JSON.stringify({ assets: [] })).encryptedData,
-              calculationDetails: EncryptionService.encrypt(JSON.stringify({})).encryptedData,
-              isPrimary: false,
-            }
-          });
-
-          // Refresh to get current assets
-          const refreshRes = await request(app)
-            .get(`/api/nisab-year-records/${record.id}/assets/refresh`)
-            .set('Authorization', `Bearer ${authToken}`)
-            .expect(200);
-
-          const available = refreshRes.body.data.assets;
-          // Select all assets returned
-          const selected = available.map((a: any) => a);
-
-          const totalWealth = selected.reduce((s: number, a: any) => s + a.value, 0);
-          const zakatableWealth = selected.reduce((s: number, a: any) => s + (a.zakatableValue ?? a.value), 0);
-          const zakatAmount = zakatableWealth * 0.025;
-
-          // Update the record with assetBreakdown including zakatableValue
-          await request(app)
-            .put(`/api/nisab-year-records/${record.id}`)
-            .set('Authorization', `Bearer ${authToken}`)
-            .send({
-              assetBreakdown: {
-                assets: selected.map((a: any) => ({ id: a.id, name: a.name, category: a.category, value: a.value, isZakatable: a.isZakatable, zakatableValue: a.zakatableValue, calculationModifier: a.calculationModifier, addedAt: a.addedAt })),
-                capturedAt: new Date().toISOString(),
-                totalWealth,
-                zakatableWealth,
-              },
-              totalWealth: totalWealth.toString(),
-              zakatableWealth: zakatableWealth.toString(),
-              zakatAmount: zakatAmount.toString(),
-            })
-            .expect(200);
-
-          // Read the stored record and verify encrypted assetBreakdown was saved and contains correct zakatableWealth
-          const stored = await prisma.yearlySnapshot.findUnique({ where: { id: record.id } });
-          const decrypted = JSON.parse(EncryptionService.decrypt(stored!.assetBreakdown));
-          expect(Number(decrypted.zakatableWealth)).toBe(zakatableWealth);
-        });
 
       // Refresh should return only zakatable assets
       const response = await request(app)
@@ -500,6 +441,79 @@ describe('Asset Refresh Workflow Integration Test', () => {
       // Verify the returned zakatableWealth equals the sum of per-asset zakatableValue
       const expectedZakatable = response.body.data.assets.reduce((s: number, a: any) => s + (a.zakatableValue ?? a.value), 0);
       expect(response.body.data.zakatableWealth).toBe(expectedZakatable);
+    });
+
+    it('should allow updating record with refreshed assets and persist zakatable wealth correctly', async () => {
+      // Create assets including a passive one
+      const a1 = await assetHelpers.createAsset(userId, { name: 'Cash', category: 'cash', value: 600, isZakatable: true }, authToken);
+      const a2 = await assetHelpers.createAsset(userId, { name: 'Passive Stock', category: 'stocks', value: 6000, isZakatable: true, isPassiveInvestment: true }, authToken);
+
+      // Create DRAFT record
+      const record = await prisma.yearlySnapshot.create({
+        data: {
+          userId,
+          hawlStartDate: new Date('2025-01-01'),
+          hawlStartDateHijri: '1446-06-01',
+          hawlCompletionDate: new Date('2025-12-20'),
+          hawlCompletionDateHijri: '1447-06-01',
+          nisabThresholdAtStart: JSON.stringify(EncryptionService.encrypt('5000')),
+          nisabBasis: 'gold',
+          calculationDate: new Date('2025-01-01'),
+          gregorianYear: 2025,
+          gregorianMonth: 1,
+          gregorianDay: 1,
+          hijriYear: 1446,
+          hijriMonth: 6,
+          hijriDay: 1,
+          totalWealth: JSON.stringify(EncryptionService.encrypt('0')),
+          totalLiabilities: JSON.stringify(EncryptionService.encrypt('0')),
+          zakatableWealth: JSON.stringify(EncryptionService.encrypt('0')),
+          zakatAmount: JSON.stringify(EncryptionService.encrypt('0')),
+          methodologyUsed: 'standard',
+          status: 'DRAFT',
+          assetBreakdown: JSON.stringify(EncryptionService.encrypt(JSON.stringify({ assets: [] }))),
+          calculationDetails: JSON.stringify(EncryptionService.encrypt(JSON.stringify({}))),
+          isPrimary: false,
+          nisabThreshold: JSON.stringify(EncryptionService.encrypt('5000')),
+          nisabType: 'gold',
+        }
+      });
+
+      // Refresh to get current assets
+      const refreshRes = await request(app)
+        .get(`/api/nisab-year-records/${record.id}/assets/refresh`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+
+      const available = refreshRes.body.data.assets;
+      // Select all assets returned
+      const selected = available.map((a: any) => a);
+
+      const totalWealth = selected.reduce((s: number, a: any) => s + a.value, 0);
+      const zakatableWealth = selected.reduce((s: number, a: any) => s + (a.zakatableValue ?? a.value), 0);
+      const zakatAmount = zakatableWealth * 0.025;
+
+      // Update the record with assetBreakdown including zakatableValue
+      await request(app)
+        .put(`/api/nisab-year-records/${record.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          assetBreakdown: {
+            assets: selected.map((a: any) => ({ id: a.id, name: a.name, category: a.category, value: a.value, isZakatable: a.isZakatable, zakatableValue: a.zakatableValue, calculationModifier: a.calculationModifier, addedAt: a.addedAt })),
+            capturedAt: new Date().toISOString(),
+            totalWealth,
+            zakatableWealth,
+          },
+          totalWealth: totalWealth.toString(),
+          zakatableWealth: zakatableWealth.toString(),
+          zakatAmount: zakatAmount.toString(),
+        })
+        .expect(200);
+
+      // Read the stored record and verify encrypted assetBreakdown was saved and contains correct zakatableWealth
+      const stored = await prisma.yearlySnapshot.findUnique({ where: { id: record.id } });
+      const decrypted = JSON.parse(EncryptionService.decrypt(stored!.assetBreakdown));
+      expect(Number(decrypted.zakatableWealth)).toBe(zakatableWealth);
     });
 
     it('should require authentication', async () => {

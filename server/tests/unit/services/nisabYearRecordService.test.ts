@@ -4,7 +4,24 @@ import { PrismaClient } from '@prisma/client';
 import { AuditTrailService } from '../../../src/services/auditTrailService';
 import { EncryptionService } from '../../../src/services/EncryptionService';
 
-vi.mock('@prisma/client');
+vi.mock('@prisma/client', () => {
+  return {
+    PrismaClient: vi.fn().mockImplementation(() => ({
+      yearlySnapshot: {
+        create: vi.fn(),
+        findUnique: vi.fn(),
+        findMany: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+        count: vi.fn(),
+      },
+      user: {
+        findUnique: vi.fn(),
+      },
+      $executeRaw: vi.fn(),
+    })),
+  };
+});
 vi.mock('../../../src/services/EncryptionService');
 vi.mock('../../../src/services/auditTrailService');
 
