@@ -12,17 +12,21 @@
  */
 
 import request from 'supertest';
-import app from '../../src/app';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 describe('Calendar API Contract Tests', () => {
+  let app: any;
   let authToken: string;
   let testUserId: string;
 
   beforeAll(async () => {
+    const appModule = await import('../../server/src/app');
+    app = appModule.default || appModule;
+
     // Create test user
     const hashedPassword = await bcrypt.hash('testPassword123', 12);
     const user = await prisma.user.create({
@@ -43,7 +47,7 @@ describe('Calendar API Contract Tests', () => {
         password: 'testPassword123'
       });
     
-    authToken = loginResponse.body.token;
+    authToken = loginResponse.body.data.tokens.accessToken;
   });
 
   afterAll(async () => {
@@ -65,13 +69,13 @@ describe('Calendar API Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveProperty('convertedDate');
-      expect(response.body.data).toHaveProperty('originalDate');
-      expect(response.body.data.convertedDate).toHaveProperty('year');
-      expect(response.body.data.convertedDate).toHaveProperty('month');
-      expect(response.body.data.convertedDate).toHaveProperty('day');
-      expect(response.body.data.convertedDate).toHaveProperty('formatted');
-      expect(response.body.data.convertedDate.formatted).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(response.body).toHaveProperty('convertedDate');
+      expect(response.body).toHaveProperty('originalDate');
+      expect(response.body.convertedDate).toHaveProperty('year');
+      expect(response.body.convertedDate).toHaveProperty('month');
+      expect(response.body.convertedDate).toHaveProperty('day');
+      expect(response.body.convertedDate).toHaveProperty('formatted');
+      expect(response.body.convertedDate.formatted).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
 
     it('should convert Hijri date to Gregorian', async () => {
@@ -86,10 +90,10 @@ describe('Calendar API Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.convertedDate).toHaveProperty('year');
-      expect(response.body.data.convertedDate).toHaveProperty('month');
-      expect(response.body.data.convertedDate).toHaveProperty('day');
-      expect(response.body.data.convertedDate.formatted).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(response.body.convertedDate).toHaveProperty('year');
+      expect(response.body.convertedDate).toHaveProperty('month');
+      expect(response.body.convertedDate).toHaveProperty('day');
+      expect(response.body.convertedDate.formatted).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
 
     it('should reject missing date', async () => {
@@ -158,14 +162,14 @@ describe('Calendar API Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveProperty('startDate');
-      expect(response.body.data).toHaveProperty('endDate');
-      expect(response.body.data.calendarType).toBe('HIJRI');
-      expect(response.body.data.daysInYear).toBe(354);
-      expect(response.body.data).toHaveProperty('hijriStart');
-      expect(response.body.data).toHaveProperty('hijriEnd');
-      expect(response.body.data.hijriStart).toHaveProperty('formatted');
-      expect(response.body.data.hijriEnd).toHaveProperty('formatted');
+      expect(response.body.zakatYear).toHaveProperty('startDate');
+      expect(response.body.zakatYear).toHaveProperty('endDate');
+      expect(response.body.zakatYear.calendarType).toBe('HIJRI');
+      expect(response.body.zakatYear.daysInYear).toBe(354);
+      expect(response.body.zakatYear).toHaveProperty('hijriStart');
+      expect(response.body.zakatYear).toHaveProperty('hijriEnd');
+      expect(response.body.zakatYear.hijriStart).toHaveProperty('formatted');
+      expect(response.body.zakatYear.hijriEnd).toHaveProperty('formatted');
     });
 
     it('should calculate Gregorian Zakat year (365 days)', async () => {
@@ -179,14 +183,14 @@ describe('Calendar API Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.calendarType).toBe('GREGORIAN');
-      expect(response.body.data.daysInYear).toBe(365);
-      expect(response.body.data).toHaveProperty('startDate');
-      expect(response.body.data).toHaveProperty('endDate');
+      expect(response.body.zakatYear.calendarType).toBe('GREGORIAN');
+      expect(response.body.zakatYear.daysInYear).toBe(365);
+      expect(response.body.zakatYear).toHaveProperty('startDate');
+      expect(response.body.zakatYear).toHaveProperty('endDate');
       
       // Verify date difference is 365 days
-      const startDate = new Date(response.body.data.startDate);
-      const endDate = new Date(response.body.data.endDate);
+      const startDate = new Date(response.body.zakatYear.startDate);
+      const endDate = new Date(response.body.zakatYear.endDate);
       const daysDiff = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       expect(daysDiff).toBe(365);
     });
@@ -235,8 +239,8 @@ describe('Calendar API Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveProperty('calendarPreference');
-      expect(['GREGORIAN', 'HIJRI']).toContain(response.body.data.calendarPreference);
+      expect(response.body).toHaveProperty('calendarType');
+      expect(['GREGORIAN', 'HIJRI']).toContain(response.body.calendarType);
     });
 
     it('should require authentication', async () => {
@@ -252,19 +256,19 @@ describe('Calendar API Contract Tests', () => {
         .put('/api/calendar/preference')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          calendarPreference: 'HIJRI'
+          preferredCalendar: 'HIJRI'
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.calendarPreference).toBe('HIJRI');
+      expect(response.body.data.preferredCalendar).toBe('hijri');
 
       // Verify persistence
       const verifyResponse = await request(app)
         .get('/api/calendar/preference')
         .set('Authorization', `Bearer ${authToken}`);
       
-      expect(verifyResponse.body.data.calendarPreference).toBe('HIJRI');
+      expect(verifyResponse.body.calendarType).toBe('HIJRI');
     });
 
     it('should update calendar preference to GREGORIAN', async () => {
@@ -272,12 +276,12 @@ describe('Calendar API Contract Tests', () => {
         .put('/api/calendar/preference')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          calendarPreference: 'GREGORIAN'
+          preferredCalendar: 'GREGORIAN'
         })
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.calendarPreference).toBe('GREGORIAN');
+      expect(response.body.data.preferredCalendar).toBe('gregorian');
     });
 
     it('should reject invalid calendar preference', async () => {
@@ -285,7 +289,7 @@ describe('Calendar API Contract Tests', () => {
         .put('/api/calendar/preference')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          calendarPreference: 'INVALID'
+          preferredCalendar: 'INVALID'
         })
         .expect(400);
 
@@ -306,7 +310,7 @@ describe('Calendar API Contract Tests', () => {
       await request(app)
         .put('/api/calendar/preference')
         .send({
-          calendarPreference: 'HIJRI'
+          preferredCalendar: 'HIJRI'
         })
         .expect(401);
     });

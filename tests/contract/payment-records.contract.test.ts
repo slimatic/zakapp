@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../../src/app';
+import app from '../../server/src/app';
 
 describe('Payment Records Contract Tests', () => {
   let accessToken: string;
@@ -30,7 +30,7 @@ describe('Payment Records Contract Tests', () => {
       })
       .expect(200);
 
-    accessToken = loginResponse.body.accessToken;
+    accessToken = loginResponse.body.data.tokens.accessToken;
   });
 
   describe('POST /api/zakat/payments', () => {

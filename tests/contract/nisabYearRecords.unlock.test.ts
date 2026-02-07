@@ -7,8 +7,8 @@
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import app from '../../../src/app';
+// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import app from '../../server/src/app';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -69,7 +69,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('success', true);
-    expect(res.body.record.status).toBe('UNLOCKED');
+    expect(res.body.data.status).toBe('UNLOCKED');
   });
 
   it('should reject unlock reason shorter than 10 characters', async () => {

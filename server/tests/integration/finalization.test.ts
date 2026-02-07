@@ -1,4 +1,4 @@
-import { vi, type Mock } from 'vitest';
+import { vi, type Mock, describe, it, expect, beforeAll, afterAll } from 'vitest';
 /**
  * T029: Integration Test - Finalization Workflow
  * 
@@ -34,7 +34,9 @@ describe('Integration: Finalization Workflow', () => {
   });
 
   afterAll(async () => {
-    await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    if (userId) {
+      await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    }
     await prisma.$disconnect();
   });
 
@@ -45,14 +47,16 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 10000,
         zakatableWealth: 10000,
         zakatAmount: 250,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     // Step 2: Finalize the record
     const finalizeResponse = await request(app)
@@ -60,8 +64,8 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(finalizeResponse.status).toBe(200);
-    expect(finalizeResponse.body.record.status).toBe('FINALIZED');
-    expect(finalizeResponse.body.record.finalizedAt).toBeDefined();
+    expect(finalizeResponse.body.data.status).toBe('FINALIZED');
+    expect(finalizeResponse.body.data.finalizedAt).toBeDefined();
 
     // Step 3: Verify record is now read-only
     const updateAttempt = await request(app)
@@ -80,14 +84,16 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(),
+        hawlStartDateHijri: '1446-01-01',
         hawlCompletionDate: new Date(Date.now() + 300 * 24 * 60 * 60 * 1000), // 300 days from now
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1447-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 8000,
         zakatableWealth: 8000,
         zakatAmount: 200,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     // Step 2: Attempt to finalize
     const finalizeResponse = await request(app)
@@ -105,14 +111,16 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 300 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-02-01',
         hawlCompletionDate: new Date(Date.now() + 50 * 24 * 60 * 60 * 1000), // 50 days future
-        nisabBasis: 'silver',
+        hawlCompletionDateHijri: '1446-02-01',
+        nisabBasis: 'SILVER',
         totalWealth: 7000,
         zakatableWealth: 7000,
         zakatAmount: 175,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     // Step 2: Finalize with override
     const finalizeResponse = await request(app)
@@ -121,7 +129,7 @@ describe('Integration: Finalization Workflow', () => {
       .send({ override: true });
 
     expect(finalizeResponse.status).toBe(200);
-    expect(finalizeResponse.body.record.status).toBe('FINALIZED');
+    expect(finalizeResponse.body.data.status).toBe('FINALIZED');
   });
 
   it('should record FINALIZED event in audit trail', async () => {
@@ -131,14 +139,16 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 12000,
         zakatableWealth: 12000,
         zakatAmount: 300,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     await request(app)
       .post(`/api/nisab-year-records/${recordId}/finalize`)
@@ -168,14 +178,16 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 9000,
         zakatableWealth: 9000,
         zakatAmount: 225,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     await request(app)
       .post(`/api/nisab-year-records/${recordId}/finalize`)
@@ -197,16 +209,18 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 11000,
         zakatableWealth: 11000,
         zakatAmount: 275,
       });
 
-    const recordId = createResponse.body.record.id;
-    const beforeWealth = createResponse.body.record.totalWealth;
-    const beforeZakat = createResponse.body.record.zakatAmount;
+    const recordId = createResponse.body.data.id;
+    const beforeWealth = createResponse.body.data.totalWealth;
+    const beforeZakat = createResponse.body.data.zakatAmount;
 
     // Step 2: Finalize
     await request(app)
@@ -218,9 +232,9 @@ describe('Integration: Finalization Workflow', () => {
       .get(`/api/nisab-year-records/${recordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(afterResponse.body.totalWealth).toBe(beforeWealth);
-    expect(afterResponse.body.zakatAmount).toBe(beforeZakat);
-    expect(afterResponse.body.status).toBe('FINALIZED');
+    expect(afterResponse.body.data.totalWealth).toBe(beforeWealth);
+    expect(afterResponse.body.data.zakatAmount).toBe(beforeZakat);
+    expect(afterResponse.body.data.status).toBe('FINALIZED');
   });
 
   it('should NOT allow re-finalization of already FINALIZED record', async () => {
@@ -230,14 +244,16 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 10000,
         zakatableWealth: 10000,
         zakatAmount: 250,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     await request(app)
       .post(`/api/nisab-year-records/${recordId}/finalize`)
@@ -259,14 +275,16 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+        hawlStartDateHijri: '1445-01-01',
         hawlCompletionDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        nisabBasis: 'gold',
+        hawlCompletionDateHijri: '1446-01-01',
+        nisabBasis: 'GOLD',
         totalWealth: 8500,
         zakatableWealth: 8500,
         zakatAmount: 212.5,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     const beforeFinalize = Date.now();
 
@@ -276,7 +294,7 @@ describe('Integration: Finalization Workflow', () => {
 
     const afterFinalize = Date.now();
 
-    const finalizedAt = new Date(finalizeResponse.body.record.finalizedAt);
+    const finalizedAt = new Date(finalizeResponse.body.data.finalizedAt);
 
     expect(finalizedAt.getTime()).toBeGreaterThanOrEqual(beforeFinalize);
     expect(finalizedAt.getTime()).toBeLessThanOrEqual(afterFinalize);

@@ -1,5 +1,6 @@
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 
 // Test setup utilities
 const loadApp = async () => {

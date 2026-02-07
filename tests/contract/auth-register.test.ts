@@ -1,5 +1,6 @@
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+// import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 
 // Note: This test will fail until the implementation exists
 // This is intentional as per TDD methodology
@@ -7,13 +8,8 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from
 // Helper function to load app dynamically
 const loadApp = async () => {
   try {
-    try {
-      const appModule = require('../../server/dist/app');
-      return appModule.default || appModule;
-    } catch (e) {
-      const appModule = require('../../server/src/app');
-      return appModule.default || appModule;
-    }
+    const appModule = await import('../../server/src/app');
+    return appModule.default || appModule;
   } catch (error) {
     console.error('Failed to load app:', error);
     return null;

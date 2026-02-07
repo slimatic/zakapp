@@ -9,9 +9,10 @@ export default defineConfig({
     environment: 'node',
     alias: {
       '@': resolve(__dirname, './src'),
-      '@zakapp/shared': resolve(__dirname, '../shared/src/index.ts')
+      '@zakapp/shared': resolve(__dirname, '../shared/src/index.ts'),
+      '@prisma/client': resolve(__dirname, './node_modules/@prisma/client'),
     },
-    include: ['**/*.{test,spec}.ts'],
+    include: ['**/*.{test,spec}.ts', '../tests/**/*.test.ts'],
     exclude: ['test/setupEnv.ts', '**/node_modules/**', '**/dist/**'],
     setupFiles: ['./test/setupEnv.ts'],
     globalSetup: ['./test/globalSetup.ts'],
