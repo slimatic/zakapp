@@ -55,7 +55,6 @@ bd sync               # Sync with git
 **MANDATORY QUALITY GATES:**
 - All PRs to `main` **MUST** pass CI checks before merging
 - Required status checks: `Test` and `Build and Push Docker Images to Docker Hub`
-- At least 1 approving review required for PR merge
 - Direct pushes to `main` are **BLOCKED** - all changes must go through PRs
 
 **ENFORCEMENT:**
@@ -67,6 +66,5 @@ bd sync               # Sync with git
 1. Fix the failing tests/code
 2. Commit and push to your branch
 3. Wait for CI to pass
-4. Request re-review if needed
-5. Merge only after all checks pass
+4. Merge only after all checks pass
 
