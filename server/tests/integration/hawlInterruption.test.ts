@@ -11,6 +11,7 @@ import { vi, type Mock } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
 import { PrismaClient } from '@prisma/client';
+import { createAssetPayload } from '../helpers/testHelpers';
 
 const prisma = new PrismaClient();
 
@@ -23,7 +24,7 @@ describe('Integration: Hawl Interruption', () => {
     const registerResponse = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'interruption@example.com',
+        email: `interruption-${Date.now()}@example.com`,
         password: 'TestPass123!',
         confirmPassword: 'TestPass123!',
         firstName: 'Interruption',
@@ -35,11 +36,9 @@ describe('Integration: Hawl Interruption', () => {
   });
 
   afterAll(async () => {
-    if (userId) {
-      await prisma.yearlySnapshot.deleteMany({ where: { userId } });
-      await prisma.asset.deleteMany({ where: { userId } });
-      await prisma.user.delete({ where: { id: userId } });
-    }
+    await prisma.yearlySnapshot.deleteMany({ where: { userId } });
+    await prisma.asset.deleteMany({ where: { userId } });
+    await prisma.user.delete({ where: { id: userId } });
     await prisma.$disconnect();
   });
 
@@ -54,15 +53,13 @@ describe('Integration: Hawl Interruption', () => {
     const assetResponse = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings Account',
         category: 'cash',
         value: 8000, // Above Nisab
-        currency: 'USD',
-        isZakatable: true,
-      });
+      }));
 
-    assetId = assetResponse.body.data.asset.assetId;
+    assetId = assetResponse.body.asset.id;
 
     // Step 2: Verify Hawl is active
     const statusBefore = await request(app)
@@ -76,7 +73,7 @@ describe('Integration: Hawl Interruption', () => {
       .put(`/api/assets/${assetId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        value: 200, // Below Nisab threshold (~459)
+        value: 3000, // Below Nisab threshold (~5,293)
       });
 
     // Step 4: Verify Hawl status shows interruption
@@ -85,6 +82,8 @@ describe('Integration: Hawl Interruption', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(statusAfter.body.active).toBe(false);
+    expect(statusAfter.body.interrupted).toBe(true);
+    expect(statusAfter.body.reason).toContain('wealth dropped below Nisab');
   });
 
   it('should archive interrupted DRAFT record', async () => {
@@ -92,13 +91,11 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash',
         category: 'cash',
         value: 7000,
-        currency: 'USD',
-        isZakatable: true,
-      });
+      }));
 
     const status1 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -111,7 +108,7 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/assets')
       .set('Authorization', `Bearer ${authToken}`);
 
-    const assetId = assets.body.data.assets[0].assetId;
+    const assetId = assets.body.assets[0].id;
 
     await request(app)
       .delete(`/api/assets/${assetId}`)
@@ -126,7 +123,7 @@ describe('Integration: Hawl Interruption', () => {
     expect([404, 200]).toContain(record.status);
     
     if (record.status === 200) {
-      expect(record.body.data.status).toBe('INTERRUPTED');
+      expect(record.body.status).toBe('INTERRUPTED');
     }
   });
 
@@ -135,15 +132,13 @@ describe('Integration: Hawl Interruption', () => {
     const asset1 = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings',
         category: 'cash',
         value: 6000,
-        currency: 'USD',
-        isZakatable: true,
-      });
+      }));
 
-    const assetId1 = asset1.body.data.asset.assetId;
+    const assetId1 = asset1.body.asset.id;
 
     const status1 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -156,7 +151,7 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .put(`/api/assets/${assetId1}`)
       .set('Authorization', `Bearer ${authToken}`)
-      .send({ value: 200 });
+      .send({ value: 2000 });
 
     const status2 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -168,13 +163,11 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'New Income',
         category: 'cash',
         value: 8000,
-        currency: 'USD',
-        isZakatable: true,
-      });
+      }));
 
     const status3 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -190,24 +183,20 @@ describe('Integration: Hawl Interruption', () => {
     const asset1 = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash 1',
         category: 'cash',
         value: 4000,
-        currency: 'USD',
-        isZakatable: true,
-      });
+      }));
 
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash 2',
         category: 'cash',
         value: 3000,
-        currency: 'USD',
-        isZakatable: true,
-      });
+      }));
 
     const status1 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -217,11 +206,11 @@ describe('Integration: Hawl Interruption', () => {
     const recordId = status1.body.recordId;
 
     // Step 2: Reduce one asset (total still above Nisab)
-    const assetId1 = asset1.body.data.asset.assetId;
+    const assetId1 = asset1.body.asset.id;
     await request(app)
       .put(`/api/assets/${assetId1}`)
       .set('Authorization', `Bearer ${authToken}`)
-      .send({ value: 3500 }); // Total now 6500 (still above ~459)
+      .send({ value: 3500 }); // Total now 6500 (still above ~5293)
 
     // Step 3: Verify Hawl still active
     const status2 = await request(app)
@@ -237,13 +226,11 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash',
         category: 'cash',
         value: 7500,
-        currency: 'USD',
-        isZakatable: true,
-      });
+      }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -257,7 +244,7 @@ describe('Integration: Hawl Interruption', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     await request(app)
-      .delete(`/api/assets/${assets.body.data.assets[0].assetId}`)
+      .delete(`/api/assets/${assets.body.assets[0].id}`)
       .set('Authorization', `Bearer ${authToken}`);
 
     // Step 3: Check audit trail
@@ -266,7 +253,7 @@ describe('Integration: Hawl Interruption', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     if (auditResponse.status === 200) {
-      const auditEntries = auditResponse.body.data.entries;
+      const auditEntries = auditResponse.body.auditTrail;
       
       const interruptionEvent = auditEntries.find(
         (entry: { eventType: string }) => entry.eventType === 'INTERRUPTED'
@@ -282,13 +269,11 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings',
         category: 'cash',
         value: 6500,
-        currency: 'USD',
-        isZakatable: true,
-      });
+      }));
 
     const status1 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -302,9 +287,9 @@ describe('Integration: Hawl Interruption', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     await request(app)
-      .put(`/api/assets/${assets.body.data.assets[0].assetId}`)
+      .put(`/api/assets/${assets.body.assets[0].id}`)
       .set('Authorization', `Bearer ${authToken}`)
-      .send({ value: 200 });
+      .send({ value: 2500 });
 
     // Step 3: Verify no active Hawl with completion date
     const status2 = await request(app)

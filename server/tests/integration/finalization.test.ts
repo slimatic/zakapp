@@ -22,7 +22,7 @@ describe('Integration: Finalization Workflow', () => {
     const registerResponse = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'finalization@example.com',
+        email: `finalization-${Date.now()}@example.com`,
         password: 'TestPass123!',
         confirmPassword: 'TestPass123!',
         firstName: 'Finalization',

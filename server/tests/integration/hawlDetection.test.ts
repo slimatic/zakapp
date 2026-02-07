@@ -14,6 +14,7 @@ import { PrismaClient } from '@prisma/client';
 import { NisabCalculationService } from '../../src/services/nisabCalculationService';
 import { HawlTrackingService } from '../../src/services/hawlTrackingService';
 import { WealthAggregationService } from '../../src/services/wealthAggregationService';
+import { createAssetPayload } from '../helpers/testHelpers';
 
 const prisma = new PrismaClient();
 
@@ -30,24 +31,11 @@ describe('Integration: Nisab Achievement Detection', () => {
         password: 'TestPass123!',
         confirmPassword: 'TestPass123!',
         firstName: 'Nisab',
-        lastName: 'Test',
+        lastName: 'Test User',
       });
 
-    if (registerResponse.status !== 201) {
-      console.error('Registration failed:', registerResponse.status, registerResponse.body);
-      throw new Error(`Registration failed with status ${registerResponse.status}`);
-    }
-
-    // Login to get token
-    const loginResponse = await request(app)
-      .post('/api/auth/login')
-      .send({
-        email: registerResponse.body.data.user.email,
-        password: 'TestPass123!',
-      });
-
-    authToken = loginResponse.body.data.tokens.accessToken;
-    userId = loginResponse.body.data.user.id;
+    authToken = registerResponse.body.data.tokens.accessToken;
+    userId = registerResponse.body.data.user.id;
   });
 
   afterAll(async () => {
@@ -65,17 +53,15 @@ describe('Integration: Nisab Achievement Detection', () => {
   });
 
   it('should detect Nisab achievement and create DRAFT record', async () => {
-    // Step 1: User has assets below Nisab (below both gold ~$5686 and silver ~$459)
+    // Step 1: User has assets below Nisab
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings Account',
         category: 'cash',
-        value: 400, // Below silver Nisab (~$459)
-        currency: 'USD',
-        acquisitionDate: new Date(),
-});
+        value: 4000,
+      }));
 
     // Step 2: Verify no Hawl is active yet
     const statusBefore = await request(app)
@@ -88,13 +74,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     const assetResponse = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Gold Holdings',
         category: 'gold',
-        value: 6000, // Total now = $6400 (above gold Nisab ~$5686 and silver Nisab ~$459),
-        currency: 'USD',
-        acquisitionDate: new Date(),
-});
+        value: 3500, // Total now = 7500 (above gold Nisab ~5293)
+      }));
 
     expect(assetResponse.status).toBe(201);
 
@@ -107,7 +91,7 @@ describe('Integration: Nisab Achievement Detection', () => {
     expect(statusAfter.body.hawlStartDate).toBeDefined();
     expect(statusAfter.body.hawlCompletionDate).toBeDefined();
     expect(statusAfter.body.daysRemaining).toBeGreaterThan(350);
-    expect(statusAfter.body.nisabBasis).toBe('silver'); // Uses silver (lower threshold)
+    expect(statusAfter.body.nisabBasis).toBe('gold');
 
     // Step 5: Verify DRAFT record was created
     const recordsResponse = await request(app)
@@ -115,10 +99,10 @@ describe('Integration: Nisab Achievement Detection', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .query({ status: 'DRAFT' });
 
-    expect(recordsResponse.body.data.records).toHaveLength(1);
-    const draftRecord = recordsResponse.body.data.records[0];
+    expect(recordsResponse.body.records).toHaveLength(1);
+    const draftRecord = recordsResponse.body.records[0];
     expect(draftRecord.status).toBe('DRAFT');
-    expect(draftRecord.totalWealth).toBeGreaterThanOrEqual(6400); // $400 + $6000
+    expect(draftRecord.totalWealth).toBeGreaterThanOrEqual(7500);
   });
 
   it('should not create duplicate Hawl if active DRAFT exists', async () => {
@@ -126,13 +110,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings',
         category: 'cash',
         value: 8000,
-        currency: 'USD',
-        acquisitionDate: new Date(),
-});
+      }));
 
     // Step 2: Verify Hawl started
     const status1 = await request(app)
@@ -146,13 +128,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Investment Account',
         category: 'investment',
         value: 5000,
-        currency: 'USD',
-        acquisitionDate: new Date(),
-});
+      }));
 
     // Step 4: Verify same Hawl is still active (no duplicate)
     const status2 = await request(app)
@@ -168,7 +148,7 @@ describe('Integration: Nisab Achievement Detection', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .query({ status: 'DRAFT' });
 
-    expect(records.body.data.records).toHaveLength(1);
+    expect(records.body.records).toHaveLength(1);
   });
 
   it('should use gold-based Nisab if gold threshold is lower', async () => {
@@ -179,13 +159,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash Savings',
         category: 'cash',
-        value: 600, // Above silver Nisab, below gold Nisab,
-        currency: 'USD',
-        acquisitionDate: new Date(),
-});
+        value: 600, // Above silver Nisab, below gold Nisab
+      }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -202,13 +180,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash',
         category: 'cash',
         value: 10000,
-        currency: 'USD',
-        acquisitionDate: new Date(),
-});
+      }));
 
     // Step 2: Get active Hawl details
     const status = await request(app)
@@ -223,11 +199,11 @@ describe('Integration: Nisab Achievement Detection', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     // Step 4: Verify nisabThresholdAtStart is set and won't change
-    expect(recordResponse.body.data.nisabThresholdAtStart).toBeDefined();
-    expect(parseFloat(recordResponse.body.data.nisabThresholdAtStart)).toBeGreaterThan(0);
+    expect(recordResponse.body.nisabThresholdAtStart).toBeDefined();
+    expect(parseFloat(recordResponse.body.nisabThresholdAtStart)).toBeGreaterThan(0);
 
     // Store initial threshold
-    const initialThreshold = recordResponse.body.data.nisabThresholdAtStart;
+    const initialThreshold = recordResponse.body.nisabThresholdAtStart;
 
     // Step 5: Simulate time passage and price change
     // (In real implementation, prices would be fetched from API and cached)
@@ -237,7 +213,7 @@ describe('Integration: Nisab Achievement Detection', () => {
       .get(`/api/nisab-year-records/${recordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(recordResponseLater.body.data.nisabThresholdAtStart).toBe(initialThreshold);
+    expect(recordResponseLater.body.nisabThresholdAtStart).toBe(initialThreshold);
   });
 
   it('should calculate Hawl completion date as 354 days from start', async () => {
@@ -245,13 +221,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings',
         category: 'cash',
         value: 7000,
-        currency: 'USD',
-        acquisitionDate: new Date(),
-});
+      }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -272,13 +246,11 @@ describe('Integration: Nisab Achievement Detection', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash',
         category: 'cash',
         value: 6000,
-        currency: 'USD',
-        acquisitionDate: new Date(),
-});
+      }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -290,7 +262,7 @@ describe('Integration: Nisab Achievement Detection', () => {
       .get(`/api/nisab-year-records/${recordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(record.body.data.hawlStartDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(record.body.data.hawlCompletionDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(record.body.hawlStartDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(record.body.hawlCompletionDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
