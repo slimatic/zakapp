@@ -23,6 +23,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { prisma as prismaSingleton } from '../utils/prisma';
 import type { YearlySnapshot } from '@prisma/client';
 import { Logger } from '../utils/logger';
 import { EncryptionService } from './EncryptionService';
@@ -58,7 +59,7 @@ export class NisabYearRecordService {
     hawlTrackingService?: HawlTrackingService,
     wealthAggregationService?: WealthAggregationService
   ) {
-    this.prisma = prisma || new PrismaClient();
+    this.prisma = prisma || prismaSingleton;
     this.auditTrailService = auditTrailService || new AuditTrailService();
     this.nisabCalculationService = nisabCalculationService || new NisabCalculationService();
     this.hawlTrackingService = hawlTrackingService || new HawlTrackingService();

@@ -19,6 +19,7 @@ import { Request, Response, NextFunction } from 'express';
 import { jwtService } from '../services/JWTService';
 import { AuthenticatedRequest } from '../types';
 import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/prisma';
 
 /**
  * Authentication middleware for ZakApp API endpoints
@@ -228,14 +229,9 @@ export class AuthMiddleware {
 
     // Check user role from database
     try {
-      // Use require so tests and restricted environments do not fail when Prisma
-      // generated client is not writable.
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      // const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
-      const prisma = new PrismaClient({ datasources: { db: { url: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL } } });
+      // Use shared singleton
       // If userType was ever added in schema, check it; else this will gracefully fail
       const user = await prisma.user.findUnique({ where: { id: req.userId } as any });
-      await prisma.$disconnect();
 
       // Check process.env.ADMIN_EMAILS
       if (user && process.env.ADMIN_EMAILS) {

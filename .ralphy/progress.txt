@@ -6,3 +6,5 @@
 - [✓] 2026-02-07 16:11 - Fix auth/register response format in integration tests (Part 2)
 - [✓] 2026-02-07 16:25 - Fix contract test validation failures
 - [✓] 2026-02-07 16:27 - Fix methodology documentation test failures
+- [✓] 2026-02-07 16:46 - Fix remaining API response format issues in integration tests
+- [✓] 2026-02-07 17:09 - Fix remaining contract test failures
