@@ -113,6 +113,65 @@ router.get('/api/nisab-year-records', async (req: AuthenticatedRequest, res: Res
 });
 
 /**
+ * GET /api/nisab-year-records/status
+ * Get current Hawl tracking status for authenticated user
+ * 
+ * Returns active DRAFT record status if one exists
+ * 
+ * Response:
+ * {
+ *   active: boolean,
+ *   recordId?: string,
+ *   hawlStartDate?: Date,
+ *   hawlCompletionDate?: Date,
+ *   daysRemaining?: number,
+ *   nisabBasis?: 'gold' | 'silver',
+ *   currentWealth?: number,
+ *   nisabThreshold?: number
+ * }
+ */
+router.get('/api/nisab-year-records/status', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+
+    // Get active DRAFT record
+    const result = await nisabYearRecordService.getRecords(userId, { status: ['DRAFT'] }, 1, 0);
+
+    if (result.records.length === 0) {
+      // No active Hawl
+      res.status(200).json({
+        active: false,
+      });
+      return;
+    }
+
+    const record = result.records[0];
+    
+    // Calculate days remaining
+    const now = new Date();
+    const completionDate = new Date(record.hawlCompletionDate);
+    const daysRemaining = Math.ceil((completionDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    res.status(200).json({
+      active: true,
+      recordId: record.id,
+      hawlStartDate: record.hawlStartDate,
+      hawlCompletionDate: record.hawlCompletionDate,
+      daysRemaining: Math.max(0, daysRemaining),
+      nisabBasis: record.nisabBasis?.toLowerCase() || 'gold',
+      currentWealth: parseFloat(record.totalWealth),
+      nisabThreshold: parseFloat(record.nisabThresholdAtStart || '0'),
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: 'STATUS_FETCH_FAILED',
+      message: error.message,
+    });
+  }
+});
+
+/**
  * T051: POST /api/nisab-year-records
  * Create a new Nisab Year Record (starts in DRAFT status)
  * 

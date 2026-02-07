@@ -115,8 +115,8 @@ describe('Integration: Nisab Achievement Detection', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .query({ status: 'DRAFT' });
 
-    expect(recordsResponse.body.records).toHaveLength(1);
-    const draftRecord = recordsResponse.body.records[0];
+    expect(recordsResponse.body.data.records).toHaveLength(1);
+    const draftRecord = recordsResponse.body.data.records[0];
     expect(draftRecord.status).toBe('DRAFT');
     expect(draftRecord.totalWealth).toBeGreaterThanOrEqual(7500);
   });
@@ -168,7 +168,7 @@ describe('Integration: Nisab Achievement Detection', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .query({ status: 'DRAFT' });
 
-    expect(records.body.records).toHaveLength(1);
+    expect(records.body.data.records).toHaveLength(1);
   });
 
   it('should use gold-based Nisab if gold threshold is lower', async () => {
@@ -223,11 +223,11 @@ describe('Integration: Nisab Achievement Detection', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     // Step 4: Verify nisabThresholdAtStart is set and won't change
-    expect(recordResponse.body.nisabThresholdAtStart).toBeDefined();
-    expect(parseFloat(recordResponse.body.nisabThresholdAtStart)).toBeGreaterThan(0);
+    expect(recordResponse.body.data.nisabThresholdAtStart).toBeDefined();
+    expect(parseFloat(recordResponse.body.data.nisabThresholdAtStart)).toBeGreaterThan(0);
 
     // Store initial threshold
-    const initialThreshold = recordResponse.body.nisabThresholdAtStart;
+    const initialThreshold = recordResponse.body.data.nisabThresholdAtStart;
 
     // Step 5: Simulate time passage and price change
     // (In real implementation, prices would be fetched from API and cached)
@@ -290,7 +290,7 @@ describe('Integration: Nisab Achievement Detection', () => {
       .get(`/api/nisab-year-records/${recordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(record.body.hawlStartDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(record.body.hawlCompletionDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(record.body.data.hawlStartDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(record.body.data.hawlCompletionDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
