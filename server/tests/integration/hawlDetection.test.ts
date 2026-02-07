@@ -65,14 +65,14 @@ describe('Integration: Nisab Achievement Detection', () => {
   });
 
   it('should detect Nisab achievement and create DRAFT record', async () => {
-    // Step 1: User has assets below Nisab
+    // Step 1: User has assets below Nisab (below both gold ~$5686 and silver ~$459)
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         name: 'Savings Account',
         category: 'cash',
-        value: 4000,
+        value: 400, // Below silver Nisab (~$459)
         currency: 'USD',
         acquisitionDate: new Date(),
 });
@@ -91,7 +91,7 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send({
         name: 'Gold Holdings',
         category: 'gold',
-        value: 3500, // Total now = 7500 (above gold Nisab ~5293),
+        value: 6000, // Total now = $6400 (above gold Nisab ~$5686 and silver Nisab ~$459),
         currency: 'USD',
         acquisitionDate: new Date(),
 });
@@ -107,7 +107,7 @@ describe('Integration: Nisab Achievement Detection', () => {
     expect(statusAfter.body.hawlStartDate).toBeDefined();
     expect(statusAfter.body.hawlCompletionDate).toBeDefined();
     expect(statusAfter.body.daysRemaining).toBeGreaterThan(350);
-    expect(statusAfter.body.nisabBasis).toBe('gold');
+    expect(statusAfter.body.nisabBasis).toBe('silver'); // Uses silver (lower threshold)
 
     // Step 5: Verify DRAFT record was created
     const recordsResponse = await request(app)
@@ -118,7 +118,7 @@ describe('Integration: Nisab Achievement Detection', () => {
     expect(recordsResponse.body.data.records).toHaveLength(1);
     const draftRecord = recordsResponse.body.data.records[0];
     expect(draftRecord.status).toBe('DRAFT');
-    expect(draftRecord.totalWealth).toBeGreaterThanOrEqual(7500);
+    expect(draftRecord.totalWealth).toBeGreaterThanOrEqual(6400); // $400 + $6000
   });
 
   it('should not create duplicate Hawl if active DRAFT exists', async () => {
@@ -237,7 +237,7 @@ describe('Integration: Nisab Achievement Detection', () => {
       .get(`/api/nisab-year-records/${recordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(recordResponseLater.body.nisabThresholdAtStart).toBe(initialThreshold);
+    expect(recordResponseLater.body.data.nisabThresholdAtStart).toBe(initialThreshold);
   });
 
   it('should calculate Hawl completion date as 354 days from start', async () => {

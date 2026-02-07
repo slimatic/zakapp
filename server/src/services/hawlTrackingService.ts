@@ -183,12 +183,28 @@ export class HawlTrackingService {
 
       // 3. Determine Nisab basis
       let nisabBasis: 'GOLD' | 'SILVER' = 'GOLD';
-      if (existingRecord && (existingRecord.nisabBasis === 'SILVER' || existingRecord.nisabType === 'silver')) {
-         nisabBasis = 'SILVER';
-      }
+      let nisabData: { selectedNisab: number; [key: string]: any };
 
-      // 4. Get current Nisab threshold
-      const nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', nisabBasis);
+      // 4. Check existing record for interruption or create new record
+      if (existingRecord) {
+        // If record exists, preserve its basis
+        if (existingRecord.nisabBasis === 'SILVER' || existingRecord.nisabType === 'silver') {
+          nisabBasis = 'SILVER';
+        }
+        nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', nisabBasis);
+      } else {
+        // For new records, check both gold and silver, use the lower threshold (more lenient)
+        const goldNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'GOLD');
+        const silverNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'SILVER');
+        
+        if (silverNisab.selectedNisab < goldNisab.selectedNisab) {
+          nisabBasis = 'SILVER';
+          nisabData = silverNisab;
+        } else {
+          nisabBasis = 'GOLD';
+          nisabData = goldNisab;
+        }
+      }
 
       if (existingRecord) {
         // Check for interruption
