@@ -25,13 +25,15 @@ describe('Integration: Live Wealth Tracking', () => {
     const registerResponse = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'livetrack@example.com',
+        email: `livetrack-${Date.now()}@example.com`,
         password: 'TestPass123!',
-        name: 'Live Track User',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Live',
+        lastName: 'Track User',
       });
 
-    authToken = registerResponse.body.accessToken;
-    userId = registerResponse.body.user.id;
+    authToken = registerResponse.body.data.tokens.accessToken;
+    userId = registerResponse.body.data.user.id;
 
     // Create initial assets to trigger Hawl
     await request(app)

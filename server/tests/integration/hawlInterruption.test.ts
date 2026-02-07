@@ -23,13 +23,15 @@ describe('Integration: Hawl Interruption', () => {
     const registerResponse = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'interruption@example.com',
+        email: `interruption-${Date.now()}@example.com`,
         password: 'TestPass123!',
-        name: 'Interruption Test User',
+        confirmPassword: 'TestPass123!',
+        firstName: 'Interruption',
+        lastName: 'Test User',
       });
 
-    authToken = registerResponse.body.accessToken;
-    userId = registerResponse.body.user.id;
+    authToken = registerResponse.body.data.tokens.accessToken;
+    userId = registerResponse.body.data.user.id;
   });
 
   afterAll(async () => {
