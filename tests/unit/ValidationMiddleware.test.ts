@@ -1,3 +1,4 @@
+import { vi, describe, test, expect, beforeEach } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
 import {
   handleValidationErrors,
@@ -11,27 +12,27 @@ import {
 
 // Mock express-validator
 const mockValidationResult = {
-  isEmpty: jest.fn(),
-  array: jest.fn()
+  isEmpty: vi.fn(),
+  array: vi.fn()
 };
 
-jest.mock('express-validator', () => ({
-  validationResult: jest.fn(() => mockValidationResult),
-  body: jest.fn(() => jest.fn()),
-  param: jest.fn(() => jest.fn()),
-  query: jest.fn(() => jest.fn())
+vi.mock('express-validator', () => ({
+  validationResult: vi.fn(() => mockValidationResult),
+  body: vi.fn(() => vi.fn()),
+  param: vi.fn(() => vi.fn()),
+  query: vi.fn(() => vi.fn())
 }));
 
 describe('Implementation Task T025: Validation Middleware', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let mockNext: NextFunction;
-  let jsonSpy: jest.Mock;
-  let statusSpy: jest.Mock;
+  let jsonSpy: any;
+  let statusSpy: any;
 
   beforeEach(() => {
-    jsonSpy = jest.fn();
-    statusSpy = jest.fn(() => ({ json: jsonSpy }));
+    jsonSpy = vi.fn();
+    statusSpy = vi.fn(() => ({ json: jsonSpy }));
     
     mockReq = {
       body: {},
@@ -44,9 +45,9 @@ describe('Implementation Task T025: Validation Middleware', () => {
       json: jsonSpy
     };
     
-    mockNext = jest.fn();
+    mockNext = vi.fn();
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Validation Error Handling', () => {
@@ -340,7 +341,7 @@ describe('Implementation Task T025: Validation Middleware', () => {
         middleware(mockReq as Request, mockRes as Response, mockNext);
 
         expect(mockNext).toHaveBeenCalled();
-        jest.clearAllMocks();
+        vi.clearAllMocks();
       });
     });
 
@@ -364,7 +365,7 @@ describe('Implementation Task T025: Validation Middleware', () => {
         middleware(mockReq as Request, mockRes as Response, mockNext);
 
         expect(statusSpy).toHaveBeenCalledWith(400);
-        jest.clearAllMocks();
+        vi.clearAllMocks();
       });
     });
 
@@ -386,7 +387,7 @@ describe('Implementation Task T025: Validation Middleware', () => {
         middleware(mockReq as Request, mockRes as Response, mockNext);
 
         expect(mockNext).toHaveBeenCalled();
-        jest.clearAllMocks();
+        vi.clearAllMocks();
       });
 
       // Test invalid currencies
@@ -403,7 +404,7 @@ describe('Implementation Task T025: Validation Middleware', () => {
         middleware(mockReq as Request, mockRes as Response, mockNext);
 
         expect(statusSpy).toHaveBeenCalledWith(400);
-        jest.clearAllMocks();
+        vi.clearAllMocks();
       });
     });
   });

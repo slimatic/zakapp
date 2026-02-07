@@ -69,14 +69,14 @@ describe('GET /api/nisab-year-records/:id', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('success', true);
-    expect(res.body).toHaveProperty('record');
-    expect(res.body.record.id).toBe(recordId);
+    expect(res.body).toHaveProperty('data');
+    expect(res.body.data.id).toBe(recordId);
 
     // Verify wealth fields are numeric
-    expect(typeof res.body.record.totalWealth).toBe('number');
-    expect(typeof res.body.record.totalLiabilities).toBe('number');
-    expect(typeof res.body.record.zakatableWealth).toBe('number');
-    expect(typeof res.body.record.zakatAmount).toBe('number');
+    expect(typeof res.body.data.totalWealth).toBe('number');
+    expect(typeof res.body.data.totalLiabilities).toBe('number');
+    expect(typeof res.body.data.zakatableWealth).toBe('number');
+    expect(typeof res.body.data.zakatAmount).toBe('number');
   });
 
   it('should include audit trail in response', async () => {
@@ -95,10 +95,10 @@ describe('GET /api/nisab-year-records/:id', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.record).toHaveProperty('currentTotalWealth');
-    expect(res.body.record).toHaveProperty('daysRemaining');
-    expect(res.body.record).toHaveProperty('isHawlComplete');
-    expect(res.body.record).toHaveProperty('canFinalize');
+    expect(res.body.data).toHaveProperty('currentTotalWealth');
+    expect(res.body.data).toHaveProperty('daysRemaining');
+    expect(res.body.data).toHaveProperty('isHawlComplete');
+    expect(res.body.data).toHaveProperty('canFinalize');
   });
 
   it('should return 404 for non-existent record', async () => {

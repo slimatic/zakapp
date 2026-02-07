@@ -50,7 +50,7 @@ describe('POST /api/nisab-year-records', () => {
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('success', true);
-    expect(res.body.record).toMatchObject({
+    expect(res.body.data).toMatchObject({
       status: 'DRAFT',
       nisabBasis: 'gold',
       hawlStartDate: expect.any(String),
@@ -119,6 +119,6 @@ describe('POST /api/nisab-year-records', () => {
       });
 
     expect(res.status).toBe(201);
-    expect(res.body.record.nisabThresholdAtStart).toBeDefined();
+    expect(res.body.data.nisabThresholdAtStart).toBeDefined();
   });
 });

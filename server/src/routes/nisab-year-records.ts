@@ -299,6 +299,14 @@ router.put('/api/nisab-year-records/:id', async (req: AuthenticatedRequest, res:
   try {
     const dto: UpdateNisabYearRecordDto = req.body;
 
+    if (req.body.status) {
+      return res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Status can only be changed via finalize/unlock endpoints',
+      });
+    }
+
     const record = await nisabYearRecordService.updateRecord(req.userId, req.params.id as string, dto);
 
     res.status(200).json({

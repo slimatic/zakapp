@@ -50,7 +50,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.record.status).toBe('UNLOCKED');
+      expect(response.body.data.status).toBe('UNLOCKED');
       expect(response.body.auditEntry).toBeDefined();
       expect(response.body.auditEntry.eventType).toBe('UNLOCKED');
 
@@ -212,7 +212,7 @@ describe('POST /api/nisab-year-records/:id/unlock - Contract Tests', () => {
 
       // Top-level structure
       expect(response.body).toHaveProperty('success', true);
-      expect(response.body).toHaveProperty('record');
+      expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('auditEntry');
 
       // Audit entry structure

@@ -68,7 +68,7 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(statusBefore.body.active).toBe(true);
+    expect(statusBefore.body.data.active).toBe(true);
 
     // Step 3: Reduce asset value below Nisab
     await request(app)
@@ -83,9 +83,9 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(statusAfter.body.active).toBe(false);
-    expect(statusAfter.body.interrupted).toBe(true);
-    expect(statusAfter.body.reason).toContain('wealth dropped below Nisab');
+    expect(statusAfter.body.data.active).toBe(false);
+    expect(statusAfter.body.data.interrupted).toBe(true);
+    expect(statusAfter.body.data.reason).toContain('wealth dropped below Nisab');
   });
 
   it('should archive interrupted DRAFT record', async () => {
@@ -104,7 +104,7 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    const recordId = status1.body.recordId;
+    const recordId = status1.body.data.recordId;
 
     // Step 2: Delete asset to drop below Nisab
     const assets = await request(app)
@@ -126,7 +126,7 @@ describe('Integration: Hawl Interruption', () => {
     expect([404, 200]).toContain(record.status);
     
     if (record.status === 200) {
-      expect(record.body.status).toBe('INTERRUPTED');
+      expect(record.body.data.status).toBe('INTERRUPTED');
     }
   });
 
@@ -148,8 +148,8 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(status1.body.active).toBe(true);
-    const firstRecordId = status1.body.recordId;
+    expect(status1.body.data.active).toBe(true);
+    const firstRecordId = status1.body.data.recordId;
 
     // Step 2: Drop below Nisab (interrupt)
     await request(app)
@@ -161,7 +161,7 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(status2.body.active).toBe(false);
+    expect(status2.body.data.active).toBe(false);
 
     // Step 3: Rise above Nisab again (new Hawl should start)
     await request(app)
@@ -178,9 +178,9 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(status3.body.active).toBe(true);
-    expect(status3.body.recordId).not.toBe(firstRecordId); // New record
-    expect(status3.body.hawlStartDate).toBeDefined();
+    expect(status3.body.data.active).toBe(true);
+    expect(status3.body.data.recordId).not.toBe(firstRecordId); // New record
+    expect(status3.body.data.hawlStartDate).toBeDefined();
   });
 
   it('should not interrupt if wealth temporarily fluctuates but stays above Nisab', async () => {
@@ -209,8 +209,8 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(status1.body.active).toBe(true);
-    const recordId = status1.body.recordId;
+    expect(status1.body.data.active).toBe(true);
+    const recordId = status1.body.data.recordId;
 
     // Step 2: Reduce one asset (total still above Nisab)
     const assetId1 = asset1.body.asset.id;
@@ -224,8 +224,8 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(status2.body.active).toBe(true);
-    expect(status2.body.recordId).toBe(recordId); // Same Hawl
+    expect(status2.body.data.active).toBe(true);
+    expect(status2.body.data.recordId).toBe(recordId); // Same Hawl
   });
 
   it('should record interruption in audit trail', async () => {
@@ -244,7 +244,7 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    const recordId = status.body.recordId;
+    const recordId = status.body.data.recordId;
 
     // Step 2: Trigger interruption
     const assets = await request(app)
@@ -288,7 +288,7 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(status1.body.hawlCompletionDate).toBeDefined();
+    expect(status1.body.data.hawlCompletionDate).toBeDefined();
 
     // Step 2: Interrupt Hawl
     const assets = await request(app)
@@ -305,7 +305,7 @@ describe('Integration: Hawl Interruption', () => {
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(status2.body.active).toBe(false);
-    expect(status2.body.hawlCompletionDate).toBeUndefined();
+    expect(status2.body.data.active).toBe(false);
+    expect(status2.body.data.hawlCompletionDate).toBeUndefined();
   });
 });

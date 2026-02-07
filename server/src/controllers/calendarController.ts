@@ -102,6 +102,14 @@ export const convertDate = async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
+    if (getErrorMessage(error).includes('Source and target calendars must be different')) {
+      return res.status(400).json({
+        success: false,
+        error: 'INVALID_CALENDAR_COMBINATION',
+        message: 'Source and target calendars must be different'
+      });
+    }
+
     return res.status(500).json({
       success: false,
       error: 'INTERNAL_ERROR',

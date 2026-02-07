@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../../src/app';
+import app from '../../server/src/app';
 
 describe('Payment Records Contract Tests', () => {
   let accessToken: string;

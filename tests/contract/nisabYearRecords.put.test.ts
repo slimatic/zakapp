@@ -70,7 +70,7 @@ describe('PUT /api/nisab-year-records/:id', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('success', true);
-    expect(res.body.record.userNotes).toBe('Updated notes');
+    expect(res.body.data.userNotes).toBe('Updated notes');
   });
 
   it('should transition from DRAFT to FINALIZED', async () => {
@@ -82,7 +82,7 @@ describe('PUT /api/nisab-year-records/:id', () => {
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.record.status).toBe('FINALIZED');
+    expect(res.body.data.status).toBe('FINALIZED');
   });
 
   it('should require unlock reason when transitioning to UNLOCKED', async () => {
