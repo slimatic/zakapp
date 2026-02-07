@@ -192,10 +192,25 @@ router.post('/login',
       }
 
       // Update last login
-      await getPrismaClient().user.update({
-        where: { id: user.id },
-        data: { lastLoginAt: new Date() }
-      });
+      try {
+        await getPrismaClient().user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() }
+        });
+      } catch (error: any) {
+        // Handle P2025 (Record to update not found) - user deleted concurrently
+        if (error.code === 'P2025') {
+          res.status(401).json({
+            success: false,
+            error: {
+              code: 'INVALID_CREDENTIALS',
+              message: 'Invalid email or password'
+            }
+          });
+          return;
+        }
+        throw error;
+      }
 
       // Generate tokens
       const accessToken = jwtService.createAccessToken({

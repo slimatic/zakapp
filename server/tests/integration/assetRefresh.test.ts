@@ -18,11 +18,6 @@ describe('Asset Refresh Workflow Integration Test', () => {
   let userId: string;
 
   beforeEach(async () => {
-    // Clean database
-    await prisma.yearlySnapshot.deleteMany();
-    await prisma.asset.deleteMany();
-    await prisma.user.deleteMany();
-
     // Create test user and get auth token
     const authResult = await authHelpers.createAuthenticatedUser();
     authToken = authResult.token;
@@ -30,9 +25,11 @@ describe('Asset Refresh Workflow Integration Test', () => {
   });
 
   afterEach(async () => {
-    await prisma.yearlySnapshot.deleteMany();
-    await prisma.asset.deleteMany();
-    await prisma.user.deleteMany();
+    if (userId) {
+      await prisma.user.delete({
+        where: { id: userId },
+      });
+    }
   });
 
   afterAll(async () => {
