@@ -54,7 +54,7 @@ describe('Integration: Finalization Workflow', () => {
         zakatAmount: 250,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     // Step 2: Finalize the record
     const finalizeResponse = await request(app)
@@ -62,8 +62,8 @@ describe('Integration: Finalization Workflow', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(finalizeResponse.status).toBe(200);
-    expect(finalizeResponse.body.record.status).toBe('FINALIZED');
-    expect(finalizeResponse.body.record.finalizedAt).toBeDefined();
+    expect(finalizeResponse.body.data.status).toBe('FINALIZED');
+    expect(finalizeResponse.body.data.finalizedAt).toBeDefined();
 
     // Step 3: Verify record is now read-only
     const updateAttempt = await request(app)
@@ -89,7 +89,7 @@ describe('Integration: Finalization Workflow', () => {
         zakatAmount: 200,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     // Step 2: Attempt to finalize
     const finalizeResponse = await request(app)
@@ -114,7 +114,7 @@ describe('Integration: Finalization Workflow', () => {
         zakatAmount: 175,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     // Step 2: Finalize with override
     const finalizeResponse = await request(app)
@@ -123,7 +123,7 @@ describe('Integration: Finalization Workflow', () => {
       .send({ override: true });
 
     expect(finalizeResponse.status).toBe(200);
-    expect(finalizeResponse.body.record.status).toBe('FINALIZED');
+    expect(finalizeResponse.body.data.status).toBe('FINALIZED');
   });
 
   it('should record FINALIZED event in audit trail', async () => {
@@ -140,7 +140,7 @@ describe('Integration: Finalization Workflow', () => {
         zakatAmount: 300,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     await request(app)
       .post(`/api/nisab-year-records/${recordId}/finalize`)
@@ -177,7 +177,7 @@ describe('Integration: Finalization Workflow', () => {
         zakatAmount: 225,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     await request(app)
       .post(`/api/nisab-year-records/${recordId}/finalize`)
@@ -206,9 +206,9 @@ describe('Integration: Finalization Workflow', () => {
         zakatAmount: 275,
       });
 
-    const recordId = createResponse.body.record.id;
-    const beforeWealth = createResponse.body.record.totalWealth;
-    const beforeZakat = createResponse.body.record.zakatAmount;
+    const recordId = createResponse.body.data.id;
+    const beforeWealth = createResponse.body.data.totalWealth;
+    const beforeZakat = createResponse.body.data.zakatAmount;
 
     // Step 2: Finalize
     await request(app)
@@ -220,9 +220,9 @@ describe('Integration: Finalization Workflow', () => {
       .get(`/api/nisab-year-records/${recordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(afterResponse.body.totalWealth).toBe(beforeWealth);
-    expect(afterResponse.body.zakatAmount).toBe(beforeZakat);
-    expect(afterResponse.body.status).toBe('FINALIZED');
+    expect(afterResponse.body.data.totalWealth).toBe(beforeWealth);
+    expect(afterResponse.body.data.zakatAmount).toBe(beforeZakat);
+    expect(afterResponse.body.data.status).toBe('FINALIZED');
   });
 
   it('should NOT allow re-finalization of already FINALIZED record', async () => {
@@ -239,7 +239,7 @@ describe('Integration: Finalization Workflow', () => {
         zakatAmount: 250,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     await request(app)
       .post(`/api/nisab-year-records/${recordId}/finalize`)
@@ -268,7 +268,7 @@ describe('Integration: Finalization Workflow', () => {
         zakatAmount: 212.5,
       });
 
-    const recordId = createResponse.body.record.id;
+    const recordId = createResponse.body.data.id;
 
     const beforeFinalize = Date.now();
 
@@ -278,7 +278,7 @@ describe('Integration: Finalization Workflow', () => {
 
     const afterFinalize = Date.now();
 
-    const finalizedAt = new Date(finalizeResponse.body.record.finalizedAt);
+    const finalizedAt = new Date(finalizeResponse.body.data.finalizedAt);
 
     expect(finalizedAt.getTime()).toBeGreaterThanOrEqual(beforeFinalize);
     expect(finalizedAt.getTime()).toBeLessThanOrEqual(afterFinalize);

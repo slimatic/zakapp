@@ -96,7 +96,7 @@ describe('Integration: Invalid Operations and Error Handling', () => {
           zakatAmount: 250,
         });
 
-      const recordId = createResponse.body.record.id;
+      const recordId = createResponse.body.data.id;
 
       // User 2 attempts to access it
       const accessAttempt = await request(app)
@@ -120,7 +120,7 @@ describe('Integration: Invalid Operations and Error Handling', () => {
           zakatAmount: 200,
         });
 
-      const recordId = createResponse.body.record.id;
+      const recordId = createResponse.body.data.id;
 
       const updateAttempt = await request(app)
         .put(`/api/nisab-year-records/${recordId}`)
@@ -143,7 +143,7 @@ describe('Integration: Invalid Operations and Error Handling', () => {
           zakatAmount: 175,
         });
 
-      const recordId = createResponse.body.record.id;
+      const recordId = createResponse.body.data.id;
 
       const deleteAttempt = await request(app)
         .delete(`/api/nisab-year-records/${recordId}`)
@@ -277,7 +277,7 @@ describe('Integration: Invalid Operations and Error Handling', () => {
           zakatAmount: 250,
         });
 
-      const recordId = createResponse.body.record.id;
+      const recordId = createResponse.body.data.id;
 
       const finalizeResponse = await request(app)
         .post(`/api/nisab-year-records/${recordId}/finalize`)
@@ -300,7 +300,7 @@ describe('Integration: Invalid Operations and Error Handling', () => {
           zakatAmount: 250,
         });
 
-      const recordId = createResponse.body.record.id;
+      const recordId = createResponse.body.data.id;
 
       await request(app)
         .post(`/api/nisab-year-records/${recordId}/finalize`)
@@ -328,7 +328,7 @@ describe('Integration: Invalid Operations and Error Handling', () => {
           zakatAmount: 225,
         });
 
-      const recordId = createResponse.body.record.id;
+      const recordId = createResponse.body.data.id;
 
       await request(app)
         .post(`/api/nisab-year-records/${recordId}/finalize`)
@@ -375,7 +375,7 @@ describe('Integration: Invalid Operations and Error Handling', () => {
           zakatAmount: 250,
         });
 
-      const recordId = createResponse.body.record.id;
+      const recordId = createResponse.body.data.id;
 
       const update1 = request(app)
         .put(`/api/nisab-year-records/${recordId}`)

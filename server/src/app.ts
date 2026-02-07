@@ -36,6 +36,7 @@ import snapshotsRoutes from './routes/snapshots';
 import paymentsRoutes from './routes/payments';
 import userRoutes from './routes/user';
 import calendarRoutes from './routes/calendar';
+import methodologyRoutes from './routes/methodologies';
 import nisabYearRecordsRoutes from './routes/nisab-year-records';
 import feedbackRoutes from './routes/feedback';
 import adminEncryptionRoutes from './routes/admin/encryption';
@@ -173,6 +174,7 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/users', userRoutes); // Alias for consistency (hotfix for 404s)
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/methodologies', methodologyRoutes);
 app.use('/api/feedback', feedbackRoutes);
 // app.use('/api/admin/encryption', adminEncryptionRoutes); // Replaced by generic admin routes
 app.use('/api/admin', adminRoutes);

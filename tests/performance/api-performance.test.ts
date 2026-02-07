@@ -12,12 +12,14 @@ import app from '../../server/src/app';
 import { PrismaClient } from '@prisma/client';
 import { performance } from 'perf_hooks';
 
+import { vi } from 'vitest';
+
 // Mock Prisma for performance testing
-jest.mock('@prisma/client');
-const MockPrismaClient = PrismaClient as jest.MockedClass<typeof PrismaClient>;
+vi.mock('@prisma/client');
+const MockPrismaClient = PrismaClient as any;
 
 describe('API Performance Tests', () => {
-  let mockPrisma: jest.Mocked<PrismaClient>;
+  let mockPrisma: any;
   let authToken: string;
   
   beforeAll(async () => {

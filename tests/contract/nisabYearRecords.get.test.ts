@@ -78,12 +78,12 @@ describe('GET /api/nisab-year-records', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('success', true);
-    expect(res.body).toHaveProperty('records');
-    expect(Array.isArray(res.body.records)).toBe(true);
+    expect(res.body).toHaveProperty('data');
+    expect(Array.isArray(res.body.data)).toBe(true);
     
     // Verify wealth fields are numeric
-    if (res.body.records.length > 0) {
-      const record = res.body.records[0];
+    if (res.body.data.length > 0) {
+      const record = res.body.data[0];
       expect(typeof record.totalWealth).toBe('number');
       expect(typeof record.totalLiabilities).toBe('number');
       expect(typeof record.zakatableWealth).toBe('number');
@@ -97,7 +97,7 @@ describe('GET /api/nisab-year-records', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.records).toEqual(
+    expect(res.body.data).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: testRecordId,
@@ -113,8 +113,8 @@ describe('GET /api/nisab-year-records', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.records).toBeDefined();
-    expect(res.body.records.length).toBeGreaterThan(0);
+    expect(res.body.data).toBeDefined();
+    expect(res.body.data.length).toBeGreaterThan(0);
   });
 
   it('should return 401 for unauthenticated request', async () => {
@@ -131,6 +131,6 @@ describe('GET /api/nisab-year-records', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.records).toEqual([]);
+    expect(res.body.data).toEqual([]);
   });
 });

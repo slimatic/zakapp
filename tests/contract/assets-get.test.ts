@@ -1,5 +1,6 @@
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 
 // Note: This test will fail until the implementation exists
 // This is intentional as per TDD methodology
@@ -11,7 +12,7 @@ describe('Contract Test: GET /api/assets', () => {
   beforeAll(async () => {
     try {
       // Load compiled JavaScript version to avoid ts-node path resolution issues
-      const appModule = require('../../server/dist/app');
+      const appModule = await import('../../server/src/app');
       app = appModule.default || appModule;
       
       // Register and login to get auth token
@@ -53,7 +54,7 @@ describe('Contract Test: GET /api/assets', () => {
   describe('GET /api/assets', () => {
     it('should require authentication', async () => {
       if (!app) {
-        fail('App failed to load');
+        throw new Error('App failed to load');
         return;
       }
 
@@ -67,7 +68,7 @@ describe('Contract Test: GET /api/assets', () => {
 
     it('should return user assets with standardized response format', async () => {
       if (!app || !authToken) {
-        fail('App or auth token not available');
+        throw new Error('App or auth token not available');
         return;
       }
 
@@ -101,7 +102,7 @@ describe('Contract Test: GET /api/assets', () => {
 
     it('should return encrypted asset data with proper structure', async () => {
       if (!app || !authToken) {
-        fail('App or auth token not available');
+        throw new Error('App or auth token not available');
         return;
       }
 

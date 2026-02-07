@@ -1,18 +1,18 @@
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { resetRateLimitStore } from '../../server/src/middleware/RateLimitMiddleware';
 
 // Helper function to load app dynamically
 const loadApp = async () => {
   try {
-    // Try loading compiled version first, fall back to source if not available
-    let appModule;
+    // Try loading source version first (tests usually run against src)
     try {
-      appModule = require('../../server/dist/app');
-    } catch {
-      appModule = require('../../server/src/app');
+      const appModule = await import('../../server/src/app');
+      return appModule.default || appModule;
+    } catch (e) {
+      const appModule = await import('../../server/dist/app');
+      return appModule.default || appModule;
     }
-    return appModule.default || appModule;
   } catch (error) {
     console.error('Failed to load app:', error);
     return null;
