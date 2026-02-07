@@ -11,6 +11,7 @@ import { vi, type Mock } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
 import { PrismaClient } from '@prisma/client';
+import { createAssetPayload } from '../helpers/testHelpers';
 
 const prisma = new PrismaClient();
 
@@ -52,12 +53,11 @@ describe('Integration: Hawl Interruption', () => {
     const assetResponse = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings Account',
         category: 'cash',
-        currentValue: 8000, // Above Nisab
-        isZakatable: true,
-      });
+        value: 8000, // Above Nisab
+      }));
 
     assetId = assetResponse.body.asset.id;
 
@@ -73,7 +73,7 @@ describe('Integration: Hawl Interruption', () => {
       .put(`/api/assets/${assetId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        currentValue: 3000, // Below Nisab threshold (~5,293)
+        value: 3000, // Below Nisab threshold (~5,293)
       });
 
     // Step 4: Verify Hawl status shows interruption
@@ -91,12 +91,11 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash',
         category: 'cash',
-        currentValue: 7000,
-        isZakatable: true,
-      });
+        value: 7000,
+      }));
 
     const status1 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -133,12 +132,11 @@ describe('Integration: Hawl Interruption', () => {
     const asset1 = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings',
         category: 'cash',
-        currentValue: 6000,
-        isZakatable: true,
-      });
+        value: 6000,
+      }));
 
     const assetId1 = asset1.body.asset.id;
 
@@ -153,7 +151,7 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .put(`/api/assets/${assetId1}`)
       .set('Authorization', `Bearer ${authToken}`)
-      .send({ currentValue: 2000 });
+      .send({ value: 2000 });
 
     const status2 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -165,12 +163,11 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'New Income',
         category: 'cash',
-        currentValue: 8000,
-        isZakatable: true,
-      });
+        value: 8000,
+      }));
 
     const status3 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -186,22 +183,20 @@ describe('Integration: Hawl Interruption', () => {
     const asset1 = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash 1',
         category: 'cash',
-        currentValue: 4000,
-        isZakatable: true,
-      });
+        value: 4000,
+      }));
 
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash 2',
         category: 'cash',
-        currentValue: 3000,
-        isZakatable: true,
-      });
+        value: 3000,
+      }));
 
     const status1 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -215,7 +210,7 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .put(`/api/assets/${assetId1}`)
       .set('Authorization', `Bearer ${authToken}`)
-      .send({ currentValue: 3500 }); // Total now 6500 (still above ~5293)
+      .send({ value: 3500 }); // Total now 6500 (still above ~5293)
 
     // Step 3: Verify Hawl still active
     const status2 = await request(app)
@@ -231,12 +226,11 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Cash',
         category: 'cash',
-        currentValue: 7500,
-        isZakatable: true,
-      });
+        value: 7500,
+      }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -275,12 +269,11 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Savings',
         category: 'cash',
-        currentValue: 6500,
-        isZakatable: true,
-      });
+        value: 6500,
+      }));
 
     const status1 = await request(app)
       .get('/api/nisab-year-records/status')
@@ -296,7 +289,7 @@ describe('Integration: Hawl Interruption', () => {
     await request(app)
       .put(`/api/assets/${assets.body.assets[0].id}`)
       .set('Authorization', `Bearer ${authToken}`)
-      .send({ currentValue: 2500 });
+      .send({ value: 2500 });
 
     // Step 3: Verify no active Hawl with completion date
     const status2 = await request(app)

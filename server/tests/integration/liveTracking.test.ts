@@ -13,6 +13,7 @@ import request from 'supertest';
 import moment from 'moment';
 import app from '../../src/app';
 import { PrismaClient } from '@prisma/client';
+import { createAssetPayload } from '../helpers/testHelpers';
 
 const prisma = new PrismaClient();
 
@@ -39,12 +40,11 @@ describe('Integration: Live Wealth Tracking', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Initial Cash',
         category: 'cash',
-        currentValue: 7000,
-        isZakatable: true,
-      });
+        value: 7000,
+      }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
@@ -72,12 +72,11 @@ describe('Integration: Live Wealth Tracking', () => {
     const newAssetResponse = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Gold Jewelry',
         category: 'gold',
-        currentValue: 2000,
-        isZakatable: true,
-      });
+        value: 2000,
+      }));
 
     expect(newAssetResponse.status).toBe(201);
 
@@ -96,12 +95,11 @@ describe('Integration: Live Wealth Tracking', () => {
     const assetResponse = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Investment Portfolio',
         category: 'investment',
-        currentValue: 5000,
-        isZakatable: true,
-      });
+        value: 5000,
+      }));
 
     const assetId = assetResponse.body.asset.id;
 
@@ -117,7 +115,7 @@ describe('Integration: Live Wealth Tracking', () => {
       .put(`/api/assets/${assetId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        currentValue: 7000, // Increased by 2000
+        value: 7000, // Increased by 2000
       });
 
     // Step 4: Verify wealth increased
@@ -135,12 +133,11 @@ describe('Integration: Live Wealth Tracking', () => {
     const assetResponse = await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Temporary Asset',
         category: 'cash',
-        currentValue: 1500,
-        isZakatable: true,
-      });
+        value: 1500,
+      }));
 
     const assetId = assetResponse.body.asset.id;
 
@@ -179,12 +176,11 @@ describe('Integration: Live Wealth Tracking', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Additional Cash',
         category: 'cash',
-        currentValue: 4000,
-        isZakatable: true,
-      });
+        value: 4000,
+      }));
 
     // Step 3: Verify Zakat recalculated (2.5% of new wealth)
     const after = await request(app)
@@ -207,16 +203,16 @@ describe('Integration: Live Wealth Tracking', () => {
 
     const wealthBefore = parseFloat(before.body.totalWealth);
 
-    // Step 2: Add non-zakatable asset
+    // Step 2: Add non-zakatable asset (property category)
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'Personal Residence',
-        category: 'real_estate',
-        currentValue: 300000,
-        isZakatable: false, // NOT zakatable
-      });
+        category: 'property',
+        value: 300000,
+        // Note: Zakat calculation is based on category and modifiers, not a flag
+      }));
 
     // Step 3: Verify wealth unchanged
     const after = await request(app)
@@ -234,12 +230,11 @@ describe('Integration: Live Wealth Tracking', () => {
       request(app)
         .post('/api/assets')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({
+        .send(createAssetPayload({
           name: `Asset ${i}`,
           category: i % 2 === 0 ? 'cash' : 'gold',
-          currentValue: 100 + i,
-          isZakatable: true,
-        })
+          value: 100 + i,
+        }))
     );
 
     await Promise.all(assetPromises);
@@ -291,12 +286,11 @@ describe('Integration: Live Wealth Tracking', () => {
     await request(app)
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
+      .send(createAssetPayload({
         name: 'New Asset',
         category: 'cash',
-        currentValue: 500,
-        isZakatable: true,
-      });
+        value: 500,
+      }));
 
     // Step 3: Verify updatedAt changed
     const after = await request(app)
