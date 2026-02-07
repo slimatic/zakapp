@@ -72,6 +72,21 @@ describe('Admin System API', () => {
     expect(res.body.data.memory.heapUsed).toBeDefined();
     expect(res.body.data.environment).toHaveProperty('NODE_ENV');
     expect(res.body.data.timestamp).toBeDefined();
+    expect(res.body.data.database.schemaUpToDate).toBeDefined();
+    expect(res.body.data.database.pendingMigrations).toBeDefined();
+  });
+
+  test('GET /api/admin/system/status/schema returns detailed schema info', async () => {
+    const res = await request(app)
+      .get('/api/admin/system/status/schema')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .set('X-Test-Admin', '1');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.upToDate).toBeDefined();
+    expect(res.body.data.applied).toBeInstanceOf(Array);
+    expect(res.body.data.pending).toBeInstanceOf(Array);
   });
 
   test('GET /api/admin/system/status requires admin privileges', async () => {
