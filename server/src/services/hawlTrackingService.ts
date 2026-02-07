@@ -29,6 +29,7 @@
 import moment from 'moment';
 import * as HijriConverter from 'hijri-converter';
 import { PrismaClient } from '@prisma/client';
+import { prisma as prismaSingleton } from '../utils/prisma';
 import { Logger } from '../utils/logger';
 import { EncryptionService } from './EncryptionService';
 import { WealthAggregationService } from './wealthAggregationService';
@@ -54,7 +55,7 @@ export class HawlTrackingService {
     wealthAggregationService?: WealthAggregationService,
     nisabCalculationService?: NisabCalculationService
   ) {
-    this.prisma = prisma || new PrismaClient();
+    this.prisma = prisma || prismaSingleton;
     this.wealthAggregationService = wealthAggregationService || new WealthAggregationService();
     this.nisabCalculationService = nisabCalculationService || new NisabCalculationService();
   }
