@@ -119,6 +119,68 @@ generate_secret() {
     openssl rand -base64 32
 }
 
+# Validate email addresses (comma-separated)
+validate_emails() {
+    local emails=$1
+    local email_regex="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    
+    # Split by comma and validate each
+    IFS=',' read -ra EMAIL_ARRAY <<< "$emails"
+    for email in "${EMAIL_ARRAY[@]}"; do
+        # Trim whitespace
+        email=$(echo "$email" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+        
+        # Skip empty emails
+        if [ -z "$email" ]; then
+            continue
+        fi
+        
+        # Validate email format
+        if [[ ! $email =~ $email_regex ]]; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+# Collect admin email addresses from user
+collect_admin_emails() {
+    print_status "Configuring admin access"
+    echo ""
+    echo "Admin email addresses will have access to the ZakApp dashboard."
+    echo "You can enter multiple emails separated by commas."
+    echo "Example: admin@example.com, manager@company.com"
+    echo ""
+    
+    local admin_emails=""
+    while true; do
+        read -p "Enter admin email addresses (comma-separated): " admin_emails
+        
+        # Allow empty input (optional)
+        if [ -z "$admin_emails" ]; then
+            print_warning "No admin emails specified. You can add them later by editing the .env file."
+            return
+        fi
+        
+        # Validate email format
+        if validate_emails "$admin_emails"; then
+            break
+        else
+            print_error "Invalid email format. Please enter valid email addresses."
+            echo "Examples: admin@example.com or admin@example.com,manager@company.com"
+        fi
+    done
+    
+    # Set in .env file
+    if grep -q "^ADMIN_EMAILS=" "$ENV_FILE"; then
+        sed -i "s|^ADMIN_EMAILS=.*|ADMIN_EMAILS=$admin_emails|" "$ENV_FILE"
+    else
+        echo "ADMIN_EMAILS=$admin_emails" >> "$ENV_FILE"
+    fi
+    
+    print_success "Admin emails configured: $admin_emails"
+}
+
 # Setup environment file
 setup_environment() {
     print_header "Setting up Environment"
@@ -194,11 +256,14 @@ setup_environment() {
             sed -i "s|^ALLOWED_ORIGINS=.*|ALLOWED_ORIGINS=https://$domain|" "$ENV_FILE"
             sed -i "s|^ALLOWED_HOSTS=.*|ALLOWED_HOSTS=$domain|" "$ENV_FILE"
             sed -i "s|^# ZAKAPP_DOMAIN=.*|ZAKAPP_DOMAIN=$domain|" "$ENV_FILE"
-            print_success "Configured for domain: https://$domain"
-            ;;
-    esac
-    
-    # Check for port conflicts
+             print_success "Configured for domain: https://$domain"
+             ;;
+     esac
+     
+     # Collect admin email addresses
+     collect_admin_emails
+     
+     # Check for port conflicts
     local http_port=$(grep "^FRONTEND_PORT=" "$ENV_FILE" | cut -d'=' -f2 || echo "3000")
     local https_port=$(grep "^FRONTEND_PORT_SSL=" "$ENV_FILE" | cut -d'=' -f2 || echo "3443")
     
