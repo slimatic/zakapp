@@ -194,6 +194,15 @@ export class PaymentRecordsController {
       const response = createResponse(true, { payment });
       res.status(200).json(response);
     } catch (error) {
+      // Check if payment not found
+      if (error instanceof Error && error.message === 'Payment not found') {
+        const response = createResponse(false, undefined, {
+          code: 'PAYMENT_NOT_FOUND',
+          message: 'Payment record not found'
+        });
+        return res.status(404).json(response);
+      }
+
       const response = createResponse(false, undefined, {
         code: 'PAYMENT_UPDATE_ERROR',
         message: 'Failed to update payment record',
@@ -224,6 +233,15 @@ export class PaymentRecordsController {
       const response = createResponse(true, { message: 'Payment record deleted successfully' });
       res.status(200).json(response);
     } catch (error) {
+      // Check if payment not found
+      if (error instanceof Error && error.message === 'Payment not found') {
+        const response = createResponse(false, undefined, {
+          code: 'PAYMENT_NOT_FOUND',
+          message: 'Payment record not found'
+        });
+        return res.status(404).json(response);
+      }
+
       const response = createResponse(false, undefined, {
         code: 'PAYMENT_DELETION_ERROR',
         message: 'Failed to delete payment record',
