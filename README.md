@@ -18,9 +18,12 @@ ZakApp re-imagines the wealth purification experience by prioritizing user priva
 
 ## 🔒 Privacy First
 
-- **Zero-Knowledge Architecture**: Your financial data never leaves your device.
-- **Local Database**: Uses RxDB (IndexedDB/SQLite) for offline-first resilience.
-- **Client-Side Logic**: Usage of `window.crypto` for any sensitivity.
+- **Zero-Knowledge Encryption**: Your payment data is encrypted with YOUR password before sync. Server literally cannot read it.
+- **Local-First Storage**: Uses RxDB (IndexedDB/SQLite) for offline-first with optional encrypted sync.
+- **Client-Side Encryption**: AES-256-GCM encryption powered by Web Crypto API (PBKDF2, 600k iterations).
+- **Migration Available**: Existing users can upgrade historical data via in-app wizard.
+
+> **Note:** As of v0.10.0, payment recipients and notes are encrypted client-side. Even with full database access, the server cannot decrypt your data. [Learn more](docs/ZERO_KNOWLEDGE_ARCHITECTURE.md)
 
 ## ✨ Features
 

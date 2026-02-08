@@ -34,6 +34,9 @@ import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '../types';
 import { useBestAction } from '../hooks/useBestAction';
 import { GlossaryTerm } from '../components/common/GlossaryTerm';
+import { MigrationWizard } from '../components/migration/MigrationWizard';
+import { useMigration } from '../hooks/useMigration';
+import { Button } from '../components/ui/Button';
 
 /**
  * Educational Module Component
@@ -184,9 +187,11 @@ const EducationalModule: React.FC = () => {
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  // We keep completedSteps from useUserOnboarding or derive them dynamically?
-  // Let's rely on local derivation for "Smart" steps to be consistent.
   const maskedCurrency = useMaskedCurrency();
+  
+  // Migration wizard state
+  const { needsMigration } = useMigration();
+  const [showMigration, setShowMigration] = useState(false);
 
   // Local Data Repositories (RxDB) - moved before useEffect
   const { assets, isLoading: assetsLoading, error: assetsError } = useAssetRepository();
@@ -300,6 +305,32 @@ export const Dashboard: React.FC = () => {
         userName={user?.username}
         hasAssets={hasAssets}
         hasActiveRecord={hasActiveRecord}
+      />
+      
+      {/* Migration Banner */}
+      {needsMigration && !showMigration && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-2 border-blue-200 flex items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">Privacy Upgrade Available</p>
+              <p className="text-sm text-gray-700">Upgrade to zero-knowledge encryption for maximum privacy</p>
+            </div>
+          </div>
+          <Button onClick={() => setShowMigration(true)} size="sm" className="flex-shrink-0">
+            Learn More
+          </Button>
+        </div>
+      )}
+      
+      {/* Migration Wizard Modal */}
+      <MigrationWizard 
+        open={showMigration} 
+        onClose={() => setShowMigration(false)} 
       />
 
       {/* Primary: Smart Journey Card */}

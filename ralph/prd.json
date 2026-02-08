@@ -1,0 +1,208 @@
+{
+  "project": "ZakApp v0.9.2 Critical Fixes",
+  "branchName": "ralph/critical-fixes-v0.9.2",
+  "description": "Address critical security vulnerabilities, stability issues, and code quality problems identified in the pre-release code review",
+  "tasks": [
+    {
+      "id": "US-001",
+      "title": "Remove exposed .env.backup files from repository",
+      "description": "As a developer, I need to eliminate exposed production secrets from git tracking to prevent unauthorized access",
+      "acceptanceCriteria": [
+        "Remove all .env.backup.* files from git tracking",
+        "Update .gitignore to prevent future secret commits",
+        "Run 'git log --all --full-history -- .env*' and confirm no secrets exposed",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Rotate all production secrets",
+      "description": "As a developer, I need to generate new secrets to replace those that were exposed",
+      "acceptanceCriteria": [
+        "Generate new JWT access and refresh secrets",
+        "Generate new encryption key for server",
+        "Generate new client-side encryption salt",
+        "Update all .env files with new secrets",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Update server encryption to use AES-GCM",
+      "description": "As a developer, I need to standardize server encryption to use AES-GCM for better security",
+      "acceptanceCriteria": [
+        "Update server/src/services/EncryptionService.ts to use AES-256-GCM",
+        "Implement authentication tag handling for GCM mode",
+        "Update encrypt/decrypt methods to handle GCM specifics",
+        "Add unit tests for GCM encryption/decryption",
+        "Typecheck passes",
+        "Tests pass"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Implement password reset token generation",
+      "description": "As a developer, I need to create secure tokens for password reset functionality",
+      "acceptanceCriteria": [
+        "Add password reset token schema to database",
+        "Create secure token generation with expiration",
+        "Implement token storage with user association",
+        "Add token cleanup for expired tokens",
+        "Typecheck passes",
+        "Tests pass"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Implement password reset email service",
+      "description": "As a developer, I need to send secure password reset emails to users",
+      "acceptanceCriteria": [
+        "Configure email service integration",
+        "Create password reset email template",
+        "Implement secure reset link generation",
+        "Add rate limiting for reset requests",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Create password reset API endpoint",
+      "description": "As a developer, I need to expose password reset functionality via API",
+      "acceptanceCriteria": [
+        "Add POST /api/auth/forgot-password endpoint",
+        "Add POST /api/auth/reset-password endpoint",
+        "Implement token validation and expiration checks",
+        "Add proper error responses for invalid tokens",
+        "Typecheck passes",
+        "Tests pass"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Fix failing authentication tests",
+      "description": "As a developer, I need authentication tests to pass for reliable CI/CD",
+      "acceptanceCriteria": [
+        "Fix auth token generation issues in tests",
+        "Resolve JWT validation test failures",
+        "Update test data to match current auth schema",
+        "Ensure all auth-related tests pass",
+        "Tests pass"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Fix failing asset management tests",
+      "description": "As a developer, I need asset tests to pass for deployment confidence",
+      "acceptanceCriteria": [
+        "Fix asset creation test setup issues",
+        "Resolve asset validation failures",
+        "Update asset test data structures",
+        "Ensure asset POST/GET endpoints work in tests",
+        "Tests pass"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Fix failing payment record tests",
+      "description": "As a developer, I need payment tests to pass for financial data integrity",
+      "acceptanceCriteria": [
+        "Fix payment record validation errors",
+        "Resolve amount field type issues",
+        "Update payment test data fixtures",
+        "Ensure payment creation and retrieval works",
+        "Tests pass"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Refactor large nisab-year-records route file",
+      "description": "As a developer, I need maintainable code by breaking down large route files",
+      "acceptanceCriteria": [
+        "Extract middleware functions to separate files",
+        "Create NisabYearRecordController class",
+        "Split route handlers into logical groups",
+        "Ensure file size under 300 lines",
+        "Typecheck passes",
+        "Tests pass"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Resolve critical TODO items in AnnualSummaryService",
+      "description": "As a developer, I need complete functionality instead of placeholder comments",
+      "acceptanceCriteria": [
+        "Implement payment calculation logic",
+        "Add unique recipient counting",
+        "Complete average payment calculations",
+        "Resolve methodology handling TODOs",
+        "Typecheck passes",
+        "Tests pass"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Optimize database queries with eager loading",
+      "description": "As a developer, I need efficient queries to prevent N+1 problems",
+      "acceptanceCriteria": [
+        "Add Prisma include/select for relationships",
+        "Optimize summary calculation queries",
+        "Add database indexes for common queries",
+        "Verify query performance improvement",
+        "Typecheck passes",
+        "Tests pass"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Update vulnerable npm dependencies",
+      "description": "As a developer, I need secure dependencies to prevent vulnerability exploits",
+      "acceptanceCriteria": [
+        "Run npm audit to identify vulnerabilities",
+        "Update crypto-js and other vulnerable packages",
+        "Test compatibility after updates",
+        "Ensure no breaking changes in functionality",
+        "Typecheck passes",
+        "Tests pass"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
