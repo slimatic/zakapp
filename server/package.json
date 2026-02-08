@@ -18,6 +18,7 @@
     "db:generate": "npx prisma generate",
     "db:seed": "ts-node prisma/seed.ts",
     "db:seed:dev": "ts-node --transpile-only scripts/seed-dev-data.ts",
+    "db:backup": "ts-node --transpile-only scripts/backup-database.ts",
     "migrate:snapshots-to-nisab": "ts-node --transpile-only prisma/migrations/migrate-snapshots-to-nisab.ts"
   },
   "dependencies": {
@@ -54,6 +55,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/cheerio": "^0.22.35",
     "@types/cors": "^2.8.17",

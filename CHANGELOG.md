@@ -1,5 +1,78 @@
 # Changelog
 
+## [0.9.2] - 2026-02-08
+
+### 🔐 Security Enhancement - Encryption Upgrade (CRITICAL)
+
+**This is a critical security upgrade that automatically migrates all encrypted data from AES-256-CBC to AES-256-GCM with authenticated encryption.**
+
+#### Added
+- **Automatic Encryption Migration**: Backend now automatically detects and migrates CBC-encrypted data to GCM format on startup
+- **GCM Encryption Support**: Upgraded from AES-256-CBC to AES-256-GCM with authentication tags for all sensitive data
+- **Database Auto-Backup**: Migration process creates automatic backups before re-encrypting data
+- **Migration Documentation**: Comprehensive guide at `docs/MIGRATION.md` with rollback procedures
+- **Test Credentials in Environment Variables**: Test credentials moved from hardcoded values to `TEST_USER_EMAIL` and `TEST_USER_PASSWORD` env vars
+
+#### Changed
+- **EncryptionService**: Now uses GCM mode with authentication tags (format: `<iv>:<authTag>:<ciphertext>`)
+- **Payment Records**: All payment field encryption migrated to GCM (recipient, amount, notes, method, reference)
+- **User Profiles**: All profile encryption migrated to GCM (firstName, lastName, phone, address, etc.)
+- **Backward Compatibility**: System can read both CBC (old) and GCM (new) formats during migration period
+
+#### Security Improvements
+- **Authenticated Encryption**: GCM provides built-in authentication, preventing data tampering
+- **Padding Oracle Protection**: GCM eliminates padding oracle attack vectors present in CBC mode
+- **Industry Standard Compliance**: Aligns with TLS 1.3 and modern cryptographic best practices
+- **Data Integrity Verification**: Each encrypted field includes an authentication tag
+
+#### Fixed
+- **Payment Records Test Suite**: Fixed 17/17 contract tests
+  - Added `GET /api/zakat/payments/:id` endpoint for fetching individual payment records
+  - Implemented soft delete functionality (status: 'cancelled' instead of hard delete)
+  - Standardized error responses (400 for invalid operations vs 404 for not found)
+  - Fixed receipt URL generation (`/api/zakat/payments/:id/receipt`)
+  - Made `calculationId` optional in payment creation
+  - Improved error handling for invalid UUIDs and missing records
+
+#### Migration Notes
+- **Zero-Downtime Upgrade**: Docker Hub users get automatic migration on container restart
+- **First Startup Delay**: Migration may take 5-90 seconds depending on database size
+- **Backup Location**: Auto-backup created at `server/prisma/data/prod.db.backup-<timestamp>`
+- **Rollback Support**: Full rollback procedure documented in `docs/MIGRATION.md`
+- **Verification**: Run `npm run check-encryption` to verify migration status
+
+#### Breaking Changes
+- **None for end users**: Migration is transparent and automatic
+- **Developers**: Test suites now require `TEST_USER_PASSWORD` env var (defaults provided)
+
+#### Related Issues
+- Resolves: zakapp-8wa (Encryption Migration Implementation)
+- Resolves: zakapp-4os.1 (Payment Records Contract Tests)
+- Part of: zakapp-aer (v0.9.2 Release)
+
+#### Documentation
+- Added `docs/MIGRATION.md` - Comprehensive migration guide
+- Updated `.env.example` - Added test credential environment variables
+- Added `.git-blame-ignore-revs` - Excludes security cleanup commit from blame
+- Updated `scripts/check-secrets.js` - Now checks for new test password pattern
+
+#### Deployment
+```bash
+# Docker Hub users:
+docker compose pull
+docker compose down
+docker compose up -d
+
+# Self-hosted users:
+git pull
+npm install
+npm start
+```
+
+See `docs/MIGRATION.md` for detailed upgrade instructions and troubleshooting.
+
+---
+
 ## 2025-12-15
 - Fix: Robust decryption of payment record fields when storage used alternative separators (e.g., '.=' or '.') between IV and ciphertext. Added runtime normalization and one-off `server/scripts/normalize-payments.ts` to migrate stored records.
 
