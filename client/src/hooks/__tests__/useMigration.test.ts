@@ -28,16 +28,8 @@ vi.mock('../../services/api', () => ({
   },
 }));
 
-// Mock the PaymentEncryptionService
-vi.mock('../../services/PaymentEncryptionService', () => ({
-  PaymentEncryptionService: {
-    encryptPaymentData: vi.fn((payment) => Promise.resolve({
-      ...payment,
-      recipientName: 'ZK1:encrypted',
-      notes: 'ZK1:encrypted',
-    })),
-  },
-}));
+// Note: PaymentEncryptionService mock not needed as encryption is stubbed in the hook
+// This will be updated when the zero-knowledge encryption service is available
 
 describe('useMigration', () => {
   beforeEach(() => {

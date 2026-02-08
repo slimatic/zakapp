@@ -1,0 +1,168 @@
+{
+  "project": "ZakApp v0.9.2 - Safe Encryption Migration with Auto-Migration on Startup",
+  "branchName": "feature/v0.9.2-encryption-migration-safe",
+  "description": "Implement automatic CBC→GCM encryption migration on backend startup to ensure zero-downtime upgrades for Docker Hub users. All migration happens transparently without user intervention.",
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Security Audit: Remove Test Credentials from Codebase",
+      "description": "Audit all files to ensure no hardcoded test credentials exist in code, comments, or documentation. Replace with environment variables or placeholders. This is CRITICAL for security.",
+      "priority": 1,
+      "acceptanceCriteria": [
+        "Search entire codebase for test credentials (grep -r 'slimatic\\|SecurePass123' --exclude-dir=node_modules --exclude-dir=.git .) returns ZERO matches in code/docs/tests",
+        "All test files use environment variables: process.env.TEST_USER_EMAIL, process.env.TEST_USER_PASSWORD",
+        "README.md and all documentation use placeholders: <username>, <password>, or <your-credentials-here>",
+        "Verify .env files are in .gitignore and NOT staged for commit",
+        "Create .git-blame-ignore-revs file to exclude this audit commit from git blame",
+        "Run typecheck: npm run typecheck (must pass)",
+        "Run tests after changes to ensure nothing broke"
+      ],
+      "passes": false,
+      "notes": "",
+      "completed": true
+    },
+    {
+      "id": "TASK-002",
+      "title": "Create Comprehensive Migration Documentation",
+      "description": "Create docs/MIGRATION.md with complete encryption upgrade guide for users, and update CHANGELOG.md for v0.9.2 release with all changes.",
+      "priority": 1,
+      "acceptanceCriteria": [
+        "Create docs/MIGRATION.md with sections: Overview (CBC→GCM), Automatic Migration (how it works), What Happens During Migration (30-60s timeline), Rollback Procedure (step-by-step), Manual Migration (advanced), FAQ",
+        "Update CHANGELOG.md with v0.9.2 section including: Added (auto-migration, backup utility, status endpoint), Changed (encryption algorithm, soft delete), Fixed (payment tests, receipt URLs), Security (authenticated encryption), Breaking Changes (first startup delay)",
+        "Document Docker Hub upgrade process: docker compose pull && docker compose up -d",
+        "Include rollback instructions: restore backup from /app/server/prisma/data/prod.db.backup-*",
+        "NO test credentials or sensitive data in documentation",
+        "Clear, user-friendly language suitable for non-technical users",
+        "Run typecheck after changes"
+      ],
+      "passes": false,
+      "notes": "",
+      "completed": true
+    },
+    {
+      "id": "TASK-003",
+      "title": "Verify Payment Records Contract Tests (17/17 Passing)",
+      "description": "Verify that all 17 payment records contract tests are passing with the current uncommitted changes. Document what was fixed for the commit message.",
+      "priority": 1,
+      "acceptanceCriteria": [
+        "Run payment contract tests: npm run test:contract -- payment-records.contract.test.ts",
+        "All 17 tests MUST pass (100% pass rate) - if any fail, this task fails",
+        "Verify GET /api/zakat/payments/:id endpoint exists in server/src/routes/zakat.ts or payment-records route",
+        "Verify soft delete is implemented (payments set status='cancelled' instead of hard deletion)",
+        "Verify error responses return 400 (not 404) for invalid operations",
+        "Verify calculationId is optional in API responses",
+        "Document all fixes in task notes for inclusion in commit message",
+        "Run typecheck after verification"
+      ],
+      "passes": false,
+      "notes": "",
+      "completed": true
+    },
+    {
+      "id": "TASK-004",
+      "title": "Create Database Backup Utility for Production Safety",
+      "description": "Create server/scripts/backup-database.ts utility that creates timestamped database backups before migration. This will be called automatically during startup migration.",
+      "priority": 2,
+      "acceptanceCriteria": [
+        "Create server/scripts/backup-database.ts with TypeScript implementation",
+        "Export function: export async function backupDatabase(): Promise<string> that returns backup file path",
+        "Creates timestamped backup: /app/server/prisma/data/prod.db.backup-YYYYMMDD-HHMMSS format",
+        "Uses Node.js fs promises API (fs.copyFile) to copy database file",
+        "Verifies backup is readable after creation using fs.access with fs.constants.R_OK",
+        "Logs backup location and file size to console.log for user visibility",
+        "Handles errors gracefully: throws descriptive Error if backup fails (disk full, permissions, etc)",
+        "Includes comprehensive JSDoc documentation with @returns, @throws tags",
+        "Add unit tests in tests/unit/backup-database.test.ts testing success and error cases",
+        "Run typecheck: npm run typecheck (must pass)",
+        "Manual test: npx ts-node server/scripts/backup-database.ts (should create backup successfully)"
+      ],
+      "passes": false,
+      "notes": "",
+      "completed": true
+    },
+    {
+      "id": "TASK-005",
+      "title": "Create Encryption Status Admin Endpoint",
+      "description": "Add GET /api/admin/encryption/status endpoint that returns current encryption state (CBC/GCM/MIXED). Helpful for debugging and monitoring migration progress.",
+      "priority": 2,
+      "acceptanceCriteria": [
+        "Create GET /api/admin/encryption/status endpoint",
+        "Protected by admin authentication middleware (existing auth system)",
+        "Returns JSON: { format: 'CBC'|'GCM'|'MIXED'|'NONE', needsMigration: boolean, stats: { totalRecords: number, cbcRecords: number, gcmRecords: number, sampledRecords: number } }",
+        "Samples up to 100 random payment records and user profiles to determine encryption format (for performance)",
+        "Uses EncryptionService.isEncrypted() to detect if data is encrypted",
+        "Detects format by checking for 3-part (iv:encrypted:tag = GCM) vs 2-part (iv:encrypted = CBC) structure",
+        "Handles empty database gracefully: returns format='NONE', needsMigration=false",
+        "Add route to server/src/routes/admin.ts or create new admin route file",
+        "Create EncryptionStatusController.ts if following controller pattern",
+        "Add integration test in tests/integration/admin-encryption.test.ts",
+        "Run typecheck: npm run typecheck (must pass)",
+        "Run tests: npm test (integration tests must pass)"
+      ],
+      "passes": false,
+      "notes": "",
+      "completed": true
+    },
+    {
+      "id": "TASK-006",
+      "title": "Implement Automatic Migration on Backend Startup (CRITICAL)",
+      "description": "Modify server/src/index.ts to run encryption migration automatically on startup. This is the MOST CRITICAL task that makes Docker Hub upgrades seamless for users.",
+      "priority": 0,
+      "acceptanceCriteria": [
+        "Create server/src/startup/autoMigration.ts with runAutoMigration() function",
+        "Export function: export async function runAutoMigration(): Promise<void>",
+        "Call runAutoMigration() in server/src/index.ts BEFORE app.listen() - this ensures migration completes before server accepts requests",
+        "Migration logic flow: 1) Check encryption status using logic from TASK-005, 2) If format=GCM skip migration and log 'Encryption format up-to-date', 3) If format=CBC or MIXED: create backup using backupDatabase() from TASK-004, 4) Run normalize-payments logic (re-encrypt all payment records), 5) Run normalize-profiles logic (re-encrypt all user profiles), 6) Verify 0 undecryptable records remain, 7) Log 'Migration complete!'",
+        "Clear console logging at each step: 'Checking encryption status...', 'CBC detected, starting migration...', 'Database backup: <path>', 'Migrating payment records...', 'Migrating user profiles...', 'Verifying migration...', 'Migration complete!'",
+        "If migration fails: log detailed error, DO NOT start server, throw Error to prevent startup",
+        "Set environment variable MIGRATION_COMPLETED=true after successful migration",
+        "Import and integrate normalize-payments and normalize-profiles logic from existing server/scripts/ files",
+        "Add comprehensive error handling with try-catch and descriptive error messages",
+        "Create unit tests: tests/unit/autoMigration.test.ts testing all scenarios (skip, migrate, fail)",
+        "Create integration test: tests/integration/startup-migration.test.ts testing full server startup with CBC data",
+        "Run typecheck: npm run typecheck (must pass)",
+        "Run all tests: npm test (unit and integration tests must pass)"
+      ],
+      "passes": false,
+      "notes": "",
+      "completed": true
+    },
+    {
+      "id": "TASK-007",
+      "title": "Comprehensive Integration Testing & Docker Verification",
+      "description": "Run full integration test suite and verify Docker deployment works correctly for both fresh install and upgrade scenarios. This is the final validation before commit.",
+      "priority": 0,
+      "acceptanceCriteria": [
+        "Run full test suite: npm test (should match baseline, no new failures)",
+        "Run contract tests: npm run test:contract (17/17 payment tests MUST pass)",
+        "Run encryption unit tests: npm test tests/unit/encryption.test.ts (all MUST pass)",
+        "Docker build test: docker compose build backend --no-cache (must succeed without errors)",
+        "Docker startup test: docker compose up -d && sleep 60 (backend container must be healthy)",
+        "Check backend logs for migration messages: docker compose logs backend | grep -i migration",
+        "Test FRESH INSTALL scenario: Delete prod.db, restart backend, verify logs show 'No migration needed' or 'Encryption format up-to-date'",
+        "Test UPGRADE scenario: Restore CBC-formatted database backup, restart backend, verify logs show full migration process, verify migration completes successfully",
+        "Test encryption status endpoint: curl http://localhost:3001/api/admin/encryption/status (must return format=GCM after migration)",
+        "Manual UI test using environment variables (NO hardcoded credentials): Verify user can login, data displays correctly (not garbled), new data can be created",
+        "Generate comprehensive test report documenting all results in task notes",
+        "ALL checks must pass - if any fail, task fails and requires fix"
+      ],
+      "passes": false,
+      "notes": "",
+      "completed": true
+    }
+  ],
+  "verification": {
+    "preCommit": [
+      "npm run typecheck",
+      "npm run test:contract -- payment-records.contract.test.ts",
+      "npm test tests/unit/encryption.test.ts",
+      "grep -r 'slimatic\\|SecurePass123' --exclude-dir=node_modules --exclude-dir=.git . | wc -l",
+      "git check-ignore .env"
+    ],
+    "postCommit": [
+      "git log -1 --format='%B' | grep 'zakapp-8wa'",
+      "git diff main --name-only"
+    ]
+  },
+  "notes": "This PRD implements automatic encryption migration on startup to ensure zero-downtime upgrades for all Docker Hub users. Max parallel tasks: 2. Tests run after each task. Single database backup before Ralph starts. No timeout - Ralph runs to completion. Payment issue ID: zakapp-4os.1"
+}
