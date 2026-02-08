@@ -18,6 +18,8 @@
 import express from 'express';
 import { UserController } from '../controllers/UserController';
 import { authMiddleware } from '../middleware/auth';
+import { MigrationDetectionService } from '../services/MigrationDetectionService';
+import { AuthenticatedRequest } from '../types';
 
 const router = express.Router();
 const userController = new UserController();
@@ -47,5 +49,42 @@ router.get('/audit-log', userController.getAuditLog.bind(userController));
 // Backup and restore routes
 router.post('/backup', userController.backup.bind(userController));
 router.post('/restore', userController.restore.bind(userController));
+
+// Zero-Knowledge Encryption Migration Routes
+// GET /api/user/encryption-status - Check if user needs migration
+router.get('/encryption-status', async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.userId!;
+    const status = await MigrationDetectionService.getUserEncryptionStatus(userId);
+    res.json({ success: true, data: status });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, error: message });
+  }
+});
+
+// POST /api/user/prepare-migration - Get decrypted legacy data for client re-encryption
+router.post('/prepare-migration', async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.userId!;
+    const data = await MigrationDetectionService.prepareMigrationData(userId);
+    res.json({ success: true, data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, error: message });
+  }
+});
+
+// POST /api/user/mark-migrated - Mark user as fully migrated to ZK1
+router.post('/mark-migrated', async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.userId!;
+    await MigrationDetectionService.markUserMigrated(userId);
+    res.json({ success: true, message: 'User marked as migrated to zero-knowledge encryption' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, error: message });
+  }
+});
 
 export default router;
