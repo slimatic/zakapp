@@ -25,6 +25,139 @@ import { EncryptionService } from './EncryptionService';
 const prisma: any = new PrismaClient();
 
 export class EncryptionAdminService {
+  /**
+   * Get encryption status - determines if encrypted data uses CBC or GCM format
+   * Returns counts of CBC vs GCM encrypted records and undecryptable records
+   */
+  static async getEncryptionStatus(): Promise<{
+    encryptionFormat: 'CBC' | 'GCM' | 'MIXED' | 'UNKNOWN';
+    paymentRecords: { total: number; gcmEncrypted: number; cbcEncrypted: number; undecryptable: number };
+    userProfiles: { total: number; gcmEncrypted: number; cbcEncrypted: number; undecryptable: number };
+    migrationRequired: boolean;
+  }> {
+    const users = await prisma.user.findMany({ select: { id: true, profile: true } });
+    const payments = await prisma.paymentRecord.findMany({ select: { id: true, recipientName: true } });
+
+    let userGcm = 0;
+    let userCbc = 0;
+    let userUndecryptable = 0;
+    let paymentGcm = 0;
+    let paymentCbc = 0;
+    let paymentUndecryptable = 0;
+
+    // Helper to detect encryption format from encrypted string
+    const detectFormat = (encrypted: any): 'GCM' | 'CBC' | 'UNKNOWN' => {
+      if (!encrypted || typeof encrypted !== 'string') return 'UNKNOWN';
+      
+      // Parse the encrypted string format
+      const raw = encrypted.trim();
+      
+      // Check if it's a colon-separated format
+      const parts = raw.split(':');
+      if (parts.length === 3) {
+        // GCM format: iv:encrypted:tag (3 parts)
+        return 'GCM';
+      } else if (parts.length === 2) {
+        // CBC format: iv:encrypted (2 parts, no auth tag)
+        return 'CBC';
+      }
+      
+      // Check if it's an object format (legacy)
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && parsed.iv && parsed.encryptedData) {
+          // Legacy object format (typically CBC)
+          return 'CBC';
+        }
+      } catch (e) {
+        // Not JSON
+      }
+      
+      return 'UNKNOWN';
+    };
+
+    // Check user profiles
+    for (const u of users) {
+      if (!u.profile) continue;
+      
+      try {
+        // Try to decrypt to verify it's valid
+        await EncryptionService.decryptObject(u.profile as any, process.env.ENCRYPTION_KEY || '');
+        
+        // If decryption succeeds, detect format
+        const profileStr = typeof u.profile === 'string' ? u.profile : JSON.stringify(u.profile);
+        const format = detectFormat(profileStr);
+        
+        if (format === 'GCM') {
+          userGcm++;
+        } else if (format === 'CBC') {
+          userCbc++;
+        } else {
+          userUndecryptable++;
+        }
+      } catch (e) {
+        userUndecryptable++;
+      }
+    }
+
+    // Check payment records
+    for (const p of payments) {
+      if (!p.recipientName) continue;
+      
+      try {
+        // Try to decrypt to verify it's valid
+        await EncryptionService.decrypt(p.recipientName as any, process.env.ENCRYPTION_KEY || '');
+        
+        // If decryption succeeds, detect format
+        const format = detectFormat(p.recipientName);
+        
+        if (format === 'GCM') {
+          paymentGcm++;
+        } else if (format === 'CBC') {
+          paymentCbc++;
+        } else {
+          paymentUndecryptable++;
+        }
+      } catch (e) {
+        paymentUndecryptable++;
+      }
+    }
+
+    // Determine overall format
+    const totalGcm = userGcm + paymentGcm;
+    const totalCbc = userCbc + paymentCbc;
+    
+    let encryptionFormat: 'CBC' | 'GCM' | 'MIXED' | 'UNKNOWN';
+    if (totalGcm > 0 && totalCbc === 0) {
+      encryptionFormat = 'GCM';
+    } else if (totalCbc > 0 && totalGcm === 0) {
+      encryptionFormat = 'CBC';
+    } else if (totalGcm > 0 && totalCbc > 0) {
+      encryptionFormat = 'MIXED';
+    } else {
+      encryptionFormat = 'UNKNOWN';
+    }
+
+    const migrationRequired = totalCbc > 0 || (userUndecryptable + paymentUndecryptable) > 0;
+
+    return {
+      encryptionFormat,
+      paymentRecords: {
+        total: payments.length,
+        gcmEncrypted: paymentGcm,
+        cbcEncrypted: paymentCbc,
+        undecryptable: paymentUndecryptable
+      },
+      userProfiles: {
+        total: users.filter(u => u.profile).length,
+        gcmEncrypted: userGcm,
+        cbcEncrypted: userCbc,
+        undecryptable: userUndecryptable
+      },
+      migrationRequired
+    };
+  }
+
   static async scanForIssues(): Promise<{ created: number }> {
     const users = await prisma.user.findMany({ select: { id: true, profile: true, email: true } });
     const payments = await prisma.paymentRecord.findMany({ select: { id: true, recipientName: true, amount: true } });

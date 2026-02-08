@@ -57,8 +57,8 @@ describe('Integration Test: User Registration Flow', () => {
 
       const registrationData = {
         email: `integration-${Date.now()}@example.com`,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'Integration',
         lastName: 'Test'
       };
@@ -116,8 +116,8 @@ describe('Integration Test: User Registration Flow', () => {
 
       const registrationData = {
         email: `duplicate-${Date.now()}@example.com`,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'First',
         lastName: 'User'
       };
@@ -164,16 +164,16 @@ describe('Integration Test: User Registration Flow', () => {
       const baseEmail = `casesensitive-${Date.now()}@example.com`;
       const registrationData1 = {
         email: baseEmail.toLowerCase(),
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'Lower',
         lastName: 'Case'
       };
 
       const registrationData2 = {
         email: baseEmail.toUpperCase(),
-        password: 'SecurePass456!',
-        confirmPassword: 'SecurePass456!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass456!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass456!',
         firstName: 'Upper',
         lastName: 'Case'
       };
@@ -204,8 +204,8 @@ describe('Integration Test: User Registration Flow', () => {
 
       const registrationData = {
         email: `encryption-${Date.now()}@example.com`,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'Encryption',
         lastName: 'Test',
         phoneNumber: '+1234567890',
@@ -249,8 +249,8 @@ describe('Integration Test: User Registration Flow', () => {
 
       const registrationData = {
         email: `audit-${Date.now()}@example.com`,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'Audit',
         lastName: 'Trail'
       };
@@ -288,8 +288,8 @@ describe('Integration Test: User Registration Flow', () => {
 
       const registrationData = {
         email: `defaults-${Date.now()}@example.com`,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'Default',
         lastName: 'Settings'
       };
@@ -331,8 +331,8 @@ describe('Integration Test: User Registration Flow', () => {
 
       const registrationData = {
         email: `rollback-${Date.now()}@example.com`,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'Rollback',
         lastName: 'Test'
       };
@@ -366,8 +366,8 @@ describe('Integration Test: User Registration Flow', () => {
 
       const registrationData = {
         email: `performance-${Date.now()}@example.com`,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'Performance',
         lastName: 'Test'
       };
@@ -401,8 +401,8 @@ describe('Integration Test: User Registration Flow', () => {
 
       const registrationData = {
         email: `concurrent-${Date.now()}@example.com`,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'Concurrent',
         lastName: 'Test'
       };
