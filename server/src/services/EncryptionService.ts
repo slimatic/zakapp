@@ -18,9 +18,9 @@
 import * as crypto from 'crypto';
 
 export class EncryptionService {
-  private static readonly ALGORITHM = 'aes-256-cbc';
+  private static readonly ALGORITHM = 'aes-256-gcm';
   private static readonly KEY_LENGTH = 32;
-  private static readonly IV_LENGTH = 16;
+  private static readonly IV_LENGTH = 12; // 96-bit for GCM
 
   /**
    * Backwards-compatible constructor for tests that instantiate the class
@@ -38,13 +38,13 @@ export class EncryptionService {
   }
 
   // Overloads: sync legacy form (no key) returns object; async form (with key) returns Promise<string>
-  static encrypt(plaintext: string): { encryptedData: string; iv: string };
+  static encrypt(plaintext: string): { encryptedData: string; iv: string; tag: string };
   static encrypt(plaintext: string, key: string): Promise<string>;
   static encrypt(plaintext: string, key?: string): any {
     try {
       if (plaintext === null || plaintext === undefined) throw new Error('Plaintext cannot be empty');
 
-      // Async path: key provided -> return Promise<string> with base64 "iv:encrypted"
+      // Async path: key provided -> return Promise<string> with base64 "iv:encrypted:tag"
       if (key) {
         return (async () => {
           if (!key) throw new Error('Encryption key is required');
@@ -52,7 +52,8 @@ export class EncryptionService {
           const iv = crypto.randomBytes(this.IV_LENGTH);
           const cipher = crypto.createCipheriv(this.ALGORITHM, encryptionKey, iv);
           const encryptedBuf = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-          return iv.toString('base64') + ':' + encryptedBuf.toString('base64');
+          const tag = cipher.getAuthTag();
+          return iv.toString('base64') + ':' + encryptedBuf.toString('base64') + ':' + tag.toString('base64');
         })();
       }
 
@@ -63,10 +64,12 @@ export class EncryptionService {
       const iv = crypto.randomBytes(this.IV_LENGTH);
       const cipher = crypto.createCipheriv(this.ALGORITHM, encryptionKey, iv);
       const encryptedBuf = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+      const tag = cipher.getAuthTag();
 
       return {
         encryptedData: encryptedBuf.toString('hex'),
-        iv: iv.toString('hex')
+        iv: iv.toString('hex'),
+        tag: tag.toString('hex')
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -88,7 +91,8 @@ export class EncryptionService {
 
           const attemptDecrypt = async (attemptKey: string) => {
             // Support multiple stored formats:
-            // - "ivBase64:encryptedBase64" (current)
+            // - "ivBase64:encryptedBase64:tagBase64" (GCM current)
+            // - "ivBase64:encryptedBase64" (CBC legacy)
             // - "ivHex:encryptedHex" (older/legacy)
             // - object { iv: hex, encryptedData: hex }
             const decryptionKey = this.normalizeKey(attemptKey);
@@ -104,12 +108,21 @@ export class EncryptionService {
               ed = String(ed);
             }
 
-            const tryWithBuffers = (ivBuf: Buffer, cipherBuf: Buffer) => {
-              if (ivBuf.length !== this.IV_LENGTH) {
+            const tryWithBuffers = (ivBuf: Buffer, cipherBuf: Buffer, tagBuf?: Buffer) => {
+              if (ivBuf.length !== this.IV_LENGTH && ivBuf.length !== 16) {
                 throw new Error('Invalid IV length');
               }
 
-              const decipher = crypto.createDecipheriv(this.ALGORITHM, decryptionKey, ivBuf);
+              let decipher;
+              if (tagBuf) {
+                // GCM mode
+                decipher = crypto.createDecipheriv(this.ALGORITHM, decryptionKey, ivBuf);
+                decipher.setAuthTag(tagBuf);
+              } else {
+                // CBC mode (legacy)
+                decipher = crypto.createDecipheriv('aes-256-cbc', decryptionKey, ivBuf);
+              }
+
               // Wrap final in try/catch to convert OpenSSL errors into thrown errors we can handle
               const plaintextBuf = Buffer.concat([decipher.update(cipherBuf), (() => {
                 try {
@@ -168,23 +181,25 @@ export class EncryptionService {
               }
 
               // Support robust splitting on a variety of separators (':', '.=', '.', '|', ';')
-              const sepMatch = raw.match(/([A-Za-z0-9+/=]{12,})(?:[:.\|;]{1,2}=?)([A-Za-z0-9+/=]{12,})/);
+              const sepMatch = raw.match(/([A-Za-z0-9+/=]{12,})(?:[:.\|;]{1,2}=?)([A-Za-z0-9+/=]{12,})(?::([A-Za-z0-9+/=]{12,}))?/);
               if (!sepMatch) throw new Error('Invalid encrypted data format');
               const a = (sepMatch[1] || '').trim();
               const b = (sepMatch[2] || '').trim();
+              const c = sepMatch[3] ? (sepMatch[3] || '').trim() : null; // tag for GCM
 
               // Try base64 decode first (preferred)
               try {
                 const ivBuf = Buffer.from(a, 'base64');
                 const cipherBuf = Buffer.from(b, 'base64');
+                const tagBuf = c ? Buffer.from(c, 'base64') : undefined;
                 try {
-                  return tryWithBuffers(ivBuf, cipherBuf);
+                  return tryWithBuffers(ivBuf, cipherBuf, tagBuf);
                 } catch (ivErr) {
                   // If IV length was wrong, try swapping parts in case older data stored ciphertext:iv
                   try {
                     const altIvBuf = Buffer.from(b, 'base64');
                     const altCipherBuf = Buffer.from(a, 'base64');
-                    return tryWithBuffers(altIvBuf, altCipherBuf);
+                    return tryWithBuffers(altIvBuf, altCipherBuf, tagBuf);
                   } catch (swapErr) {
                     // fall through to hex attempt
                   }
@@ -197,14 +212,15 @@ export class EncryptionService {
               try {
                 const ivBuf = Buffer.from(a, 'hex');
                 const cipherBuf = Buffer.from(b, 'hex');
+                const tagBuf = c ? Buffer.from(c, 'hex') : undefined;
                 try {
-                  return tryWithBuffers(ivBuf, cipherBuf);
+                  return tryWithBuffers(ivBuf, cipherBuf, tagBuf);
                 } catch (ivErr) {
                   // try swapping parts for hex as well
                   try {
                     const altIvBuf = Buffer.from(b, 'hex');
                     const altCipherBuf = Buffer.from(a, 'hex');
-                    return tryWithBuffers(altIvBuf, altCipherBuf);
+                    return tryWithBuffers(altIvBuf, altCipherBuf, tagBuf);
                   } catch (swapErr) {
                     // will throw below
                   }
@@ -256,6 +272,7 @@ export class EncryptionService {
 
       let ivBuf: Buffer;
       let cipherBuf: Buffer;
+      let tagBuf: Buffer | undefined;
 
       if (typeof encryptedData === 'string') {
         const raw = encryptedData.trim();
@@ -266,6 +283,7 @@ export class EncryptionService {
             if (parsed && parsed.iv && parsed.encryptedData) {
               ivBuf = Buffer.from(parsed.iv, 'hex');
               cipherBuf = Buffer.from(parsed.encryptedData, 'hex');
+              tagBuf = parsed.tag ? Buffer.from(parsed.tag, 'hex') : undefined;
             } else {
               // Plain JSON stored without encryption — return as-is (synchronous path expects a string)
               return raw;
@@ -274,11 +292,21 @@ export class EncryptionService {
             throw new Error('Invalid encrypted data format');
           }
         } else {
-          // Could be "ivBase64:encryptedBase64" or hex-like; detect colon
+          // Could be "ivBase64:encryptedBase64:tagBase64" or "ivBase64:encryptedBase64" or hex-like; detect colon
           if (raw.includes(':')) {
-            const [ivBase64, encryptedBase64] = raw.split(':');
-            ivBuf = Buffer.from((ivBase64 || '').trim(), 'base64');
-            cipherBuf = Buffer.from((encryptedBase64 || '').trim(), 'base64');
+            const parts = raw.split(':');
+            if (parts.length === 3) {
+              // GCM format: iv:encrypted:tag
+              ivBuf = Buffer.from((parts[0] || '').trim(), 'base64');
+              cipherBuf = Buffer.from((parts[1] || '').trim(), 'base64');
+              tagBuf = Buffer.from((parts[2] || '').trim(), 'base64');
+            } else if (parts.length === 2) {
+              // CBC format: iv:encrypted
+              ivBuf = Buffer.from((parts[0] || '').trim(), 'base64');
+              cipherBuf = Buffer.from((parts[1] || '').trim(), 'base64');
+            } else {
+              throw new Error('Invalid encrypted data format');
+            }
           } else {
             // Treat whole string as hex ciphertext with missing iv (not expected)
             throw new Error('Invalid encrypted data format');
@@ -287,15 +315,24 @@ export class EncryptionService {
       } else if (encryptedData && encryptedData.encryptedData && encryptedData.iv) {
         ivBuf = Buffer.from(encryptedData.iv, 'hex');
         cipherBuf = Buffer.from(encryptedData.encryptedData, 'hex');
+        tagBuf = encryptedData.tag ? Buffer.from(encryptedData.tag, 'hex') : undefined;
       } else {
         // If encryptedData is not a string and not an encrypted object, return its
         // JSON representation so callers can parse it instead of failing outright.
         return JSON.stringify(encryptedData);
       }
 
-      if (ivBuf.length !== this.IV_LENGTH) throw new Error('Invalid IV length');
+      if (ivBuf.length !== this.IV_LENGTH && ivBuf.length !== 16) throw new Error('Invalid IV length');
 
-      const decipher = crypto.createDecipheriv(this.ALGORITHM, decryptionKey, ivBuf);
+      let decipher;
+      if (tagBuf) {
+        // GCM mode
+        decipher = crypto.createDecipheriv(this.ALGORITHM, decryptionKey, ivBuf);
+        decipher.setAuthTag(tagBuf);
+      } else {
+        // CBC mode (legacy)
+        decipher = crypto.createDecipheriv('aes-256-cbc', decryptionKey, ivBuf);
+      }
       const decrypted = Buffer.concat([decipher.update(cipherBuf), decipher.final()]).toString('utf8');
       return decrypted;
     } catch (error) {
@@ -306,7 +343,7 @@ export class EncryptionService {
 
   // Overloads for object encryption
   // Synchronous legacy form returns an object with hex fields; async form with key returns base64 string
-  static encryptObject<T>(data: T): { encryptedData: string; iv: string };
+  static encryptObject<T>(data: T): { encryptedData: string; iv: string; tag: string };
   static encryptObject<T>(data: T, key: string): Promise<string>;
   static encryptObject<T>(data: T, key?: string): any {
     try {
@@ -318,7 +355,7 @@ export class EncryptionService {
         return this.encrypt(jsonString, key) as Promise<string>;
       }
       // Synchronous legacy: return encrypted object with hex fields
-      return this.encrypt(jsonString) as { encryptedData: string; iv: string };
+      return this.encrypt(jsonString) as { encryptedData: string; iv: string; tag: string };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Object encryption failed: ${errorMessage}`);
@@ -467,20 +504,30 @@ export class EncryptionService {
     }
   }
 
+  /**
+   * Detects if data is in ZK1 format (client-encrypted)
+   * @param data - String to check
+   * @returns true if starts with 'ZK1:', false otherwise
+   */
+  static isZeroKnowledgeFormat(data: string | null | undefined): boolean {
+    return typeof data === 'string' && data.startsWith('ZK1:');
+  }
+
   static isEncrypted(data: string): boolean {
     try {
       if (!data || typeof data !== 'string') return false;
 
       // Support multiple separators observed in stored data due to legacy/transformations:
-      // Examples: "ivBase64:encryptedBase64" (canonical), "ivBase64.=encryptedBase64", "ivBase64.encryptedBase64"
-      // Use a regex to extract two base64-like groups separated by 1-2 non-base64 separator chars
-      const match = data.match(/([A-Za-z0-9+/=]{12,})(?:[:.\|;]{1,2}=?)([A-Za-z0-9+/=]{12,})/);
+      // Examples: "ivBase64:encryptedBase64:tagBase64" (GCM), "ivBase64:encryptedBase64" (CBC), "ivBase64.=encryptedBase64", "ivBase64.encryptedBase64"
+      // Use a regex to extract two or three base64-like groups separated by 1-2 non-base64 separator chars
+      const match = data.match(/([A-Za-z0-9+/=]{12,})(?:[:.\|;]{1,2}=?)([A-Za-z0-9+/=]{12,})(?::([A-Za-z0-9+/=]{12,}))?/);
       if (!match) return false;
 
       try {
         const iv = Buffer.from(match[1], 'base64');
         Buffer.from(match[2], 'base64');
-        return iv.length === this.IV_LENGTH;
+        if (match[3]) Buffer.from(match[3], 'base64'); // tag if present
+        return iv.length === this.IV_LENGTH || iv.length === 16; // GCM (12) or CBC (16)
       } catch {
         return false;
       }
@@ -563,7 +610,14 @@ export class EncryptionService {
       
       const cipher = crypto.createCipheriv(this.ALGORITHM, testKeyBuffer, iv);
       cipher.update(testData, 'utf8');
-      cipher.final('base64');
+      const encrypted = cipher.final();
+      const tag = cipher.getAuthTag();
+      
+      // Try to decrypt
+      const decipher = crypto.createDecipheriv(this.ALGORITHM, testKeyBuffer, iv);
+      decipher.setAuthTag(tag);
+      decipher.update(encrypted);
+      decipher.final();
       
       return true;
     } catch (error) {

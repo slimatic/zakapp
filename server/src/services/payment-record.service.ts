@@ -96,11 +96,30 @@ export class PaymentRecordService {
       throw new Error('Payment date cannot be in the future');
     }
 
-    // Encrypt sensitive data
-    const encryptedRecipient = data.recipient ?
-      await EncryptionService.encrypt(data.recipient, ENCRYPTION_KEY) : null;
-    const encryptedNotes = data.notes ?
-      await EncryptionService.encrypt(data.notes, ENCRYPTION_KEY) : null;
+    // DUAL-MODE ENCRYPTION DETECTION
+    // If data is already in ZK1 format, store as-is (client-encrypted)
+    // Otherwise, encrypt with server key (legacy mode)
+    const isZK1Recipient = EncryptionService.isZeroKnowledgeFormat(data.recipient);
+    const isZK1Notes = EncryptionService.isZeroKnowledgeFormat(data.notes);
+
+    const encryptedRecipient = data.recipient ? (
+      isZK1Recipient 
+        ? data.recipient // Already encrypted by client, store as-is
+        : await EncryptionService.encrypt(data.recipient, ENCRYPTION_KEY)
+    ) : null;
+
+    const encryptedNotes = data.notes ? (
+      isZK1Notes
+        ? data.notes // Already encrypted by client, store as-is
+        : await EncryptionService.encrypt(data.notes, ENCRYPTION_KEY)
+    ) : null;
+
+    // Store format metadata for proper decryption later
+    const verificationDetails = {
+      recipient: encryptedRecipient,
+      encryptionFormat: isZK1Recipient ? 'ZK1' : 'SERVER_GCM',
+      encryptedAt: new Date().toISOString()
+    };
 
     // Create payment record
     const payment = await prisma.zakatPayment.create({
@@ -115,10 +134,7 @@ export class PaymentRecordService {
         islamicYear: this.getIslamicYear(paymentDate),
         notes: encryptedNotes,
         status: 'completed',
-        verificationDetails: JSON.stringify({
-          recipient: encryptedRecipient,
-          originalRecipient: data.recipient
-        })
+        verificationDetails: JSON.stringify(verificationDetails)
       }
     });
 
@@ -174,10 +190,30 @@ export class PaymentRecordService {
     const formattedPayments: PaymentRecord[] = [];
     for (const payment of payments) {
       const verificationDetails = JSON.parse(payment.verificationDetails || '{}');
-      const recipient = verificationDetails.recipient ?
-        await EncryptionService.decrypt(verificationDetails.recipient, ENCRYPTION_KEY) : undefined;
-      const notes = payment.notes ?
-        await EncryptionService.decrypt(payment.notes, ENCRYPTION_KEY) : undefined;
+      
+      // DUAL-MODE DECRYPTION
+      let recipient: string | undefined;
+      if (verificationDetails.recipient) {
+        if (verificationDetails.encryptionFormat === 'ZK1') {
+          // Client-encrypted: Return as-is (client will decrypt)
+          recipient = verificationDetails.recipient;
+        } else {
+          // Server-encrypted legacy format: Decrypt before returning
+          recipient = await EncryptionService.decrypt(verificationDetails.recipient, ENCRYPTION_KEY);
+        }
+      }
+
+      // Handle notes decryption (notes might not have format metadata in old records)
+      let notes: string | undefined;
+      if (payment.notes) {
+        if (EncryptionService.isZeroKnowledgeFormat(payment.notes)) {
+          // ZK1 format: Return as-is
+          notes = payment.notes;
+        } else {
+          // Legacy format: Decrypt
+          notes = await EncryptionService.decrypt(payment.notes, ENCRYPTION_KEY);
+        }
+      }
 
       // Generate receipt URL
       const receiptToken = sign(
@@ -220,10 +256,30 @@ export class PaymentRecordService {
     }
 
     const verificationDetails = JSON.parse(payment.verificationDetails || '{}');
-    const recipient = verificationDetails.recipient ?
-      await EncryptionService.decrypt(verificationDetails.recipient, ENCRYPTION_KEY) : undefined;
-    const notes = payment.notes ?
-      await EncryptionService.decrypt(payment.notes, ENCRYPTION_KEY) : undefined;
+    
+    // DUAL-MODE DECRYPTION
+    let recipient: string | undefined;
+    if (verificationDetails.recipient) {
+      if (verificationDetails.encryptionFormat === 'ZK1') {
+        // Client-encrypted: Return as-is (client will decrypt)
+        recipient = verificationDetails.recipient;
+      } else {
+        // Server-encrypted legacy format: Decrypt before returning
+        recipient = await EncryptionService.decrypt(verificationDetails.recipient, ENCRYPTION_KEY);
+      }
+    }
+
+    // Handle notes decryption
+    let notes: string | undefined;
+    if (payment.notes) {
+      if (EncryptionService.isZeroKnowledgeFormat(payment.notes)) {
+        // ZK1 format: Return as-is
+        notes = payment.notes;
+      } else {
+        // Legacy format: Decrypt
+        notes = await EncryptionService.decrypt(payment.notes, ENCRYPTION_KEY);
+      }
+    }
 
     // Generate receipt URL
     const receiptToken = sign(
@@ -292,15 +348,28 @@ export class PaymentRecordService {
     // Encrypt sensitive data
     if (data.recipient !== undefined) {
       const verificationDetails = JSON.parse(existingPayment.verificationDetails || '{}');
-      verificationDetails.recipient = data.recipient ?
-        await EncryptionService.encrypt(data.recipient, ENCRYPTION_KEY) : null;
+      
+      // Check if client is sending ZK1 format
+      const isZK1 = EncryptionService.isZeroKnowledgeFormat(data.recipient);
+      
+      verificationDetails.recipient = data.recipient ? (
+        isZK1
+          ? data.recipient // Already encrypted by client
+          : await EncryptionService.encrypt(data.recipient, ENCRYPTION_KEY)
+      ) : null;
+      
+      verificationDetails.encryptionFormat = isZK1 ? 'ZK1' : 'SERVER_GCM';
       verificationDetails.originalRecipient = data.recipient;
       updateData.verificationDetails = JSON.stringify(verificationDetails);
     }
 
     if (data.notes !== undefined) {
-      updateData.notes = data.notes ?
-        await EncryptionService.encrypt(data.notes, ENCRYPTION_KEY) : null;
+      const isZK1 = EncryptionService.isZeroKnowledgeFormat(data.notes);
+      updateData.notes = data.notes ? (
+        isZK1
+          ? data.notes // Already encrypted by client
+          : await EncryptionService.encrypt(data.notes, ENCRYPTION_KEY)
+      ) : null;
     }
 
     // Update payment
