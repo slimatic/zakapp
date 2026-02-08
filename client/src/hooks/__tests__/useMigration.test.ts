@@ -108,7 +108,11 @@ describe('useMigration', () => {
     const migrationResult = await result.current.startMigration();
 
     expect(migrationResult.success).toBe(true);
-    expect(result.current.migrationProgress).toBe(100);
+    
+    // Wait for state updates to complete
+    await waitFor(() => {
+      expect(result.current.migrationProgress).toBe(100);
+    });
   });
 
   it('should handle migration errors', async () => {
@@ -138,6 +142,10 @@ describe('useMigration', () => {
 
     expect(migrationResult.success).toBe(false);
     expect(migrationResult.error).toBe('Network error');
-    expect(result.current.error).toBe('Network error');
+    
+    // Wait for state updates to complete
+    await waitFor(() => {
+      expect(result.current.error).toBe('Network error');
+    });
   });
 });
