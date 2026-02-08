@@ -226,6 +226,93 @@ export class EmailService {
 
         return this.sendEmail(to, subject, html);
     }
+
+    /**
+     * Send password reset email
+     */
+    async sendPasswordResetEmail(to: string, resetToken: string): Promise<boolean> {
+        // Determine base URL (could be from env or settings)
+        const baseUrl = process.env.APP_URL || 'http://localhost:5173';
+        const link = `${baseUrl}/reset-password?token=${resetToken}`;
+
+        const currentYear = new Date().getFullYear();
+        const logoUrl = `${baseUrl}/images/logo.png`;
+
+        const subject = 'Reset your password for ZakApp';
+
+        const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset your password</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 0; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="padding: 40px 0 30px 0; background-color: #ffffff; border-bottom: 1px solid #f3f4f6;">
+                            <img src="${logoUrl}" alt="ZakApp Logo" width="64" height="64" style="display: block; width: 64px; height: 64px; border-radius: 12px;">
+                            <h1 style="margin: 16px 0 0 0; color: #059669; font-size: 24px; font-weight: 700;">ZakApp</h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 20px; font-weight: 600;">Reset your password</h2>
+                            <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 16px; line-height: 24px;">
+                                We received a request to reset your password. Click the button below to set a new password.
+                            </p>
+                            
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 32px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="${link}" style="display: inline-block; padding: 14px 32px; background-color: #10B981; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);">
+                                            Reset Password
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 14px; line-height: 20px;">
+                                If the button above doesn't work, reset your password by copying and pasting this link into your browser:
+                            </p>
+                            <p style="margin: 0; word-break: break-all; color: #10B981; font-size: 14px;">
+                                <a href="${link}" style="color: #10B981; text-decoration: none;">${link}</a>
+                            </p>
+                            
+                            <p style="margin: 24px 0 0 0; color: #dc2626; font-size: 14px; font-weight: 500;">
+                                ⚠️ This link will expire in 1 hour for security reasons.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px 40px; background-color: #f9fafb; border-top: 1px solid #f3f4f6;">
+                            <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 12px; text-align: center;">
+                                © ${currentYear} ZakApp. All rights reserved.
+                            </p>
+                            <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center;">
+                                If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    `;
+
+        return this.sendEmail(to, subject, html);
+    }
 }
 
 export const emailService = EmailService.getInstance();
