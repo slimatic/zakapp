@@ -77,8 +77,8 @@ describe('Contract Test: POST /api/auth/register', () => {
       const uniqueEmail = `test-${Date.now()}@example.com`;
       const registrationData = {
         email: uniqueEmail,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'John',
         lastName: 'Doe'
       };
@@ -135,8 +135,8 @@ describe('Contract Test: POST /api/auth/register', () => {
 
       // Test missing email
       const missingEmail = {
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'John',
         lastName: 'Doe'
       };
@@ -154,7 +154,7 @@ describe('Contract Test: POST /api/auth/register', () => {
       const uniqueEmail2 = `test-${Date.now() + 1}@example.com`;
       const missingPassword = {
         email: uniqueEmail2,
-        confirmPassword: 'SecurePass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'John',
         lastName: 'Doe'
       };
@@ -172,8 +172,8 @@ describe('Contract Test: POST /api/auth/register', () => {
       const uniqueEmail3 = `test-${Date.now() + 2}@example.com`;
       const missingFirstName = {
         email: uniqueEmail3,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         lastName: 'Doe'
       };
 
@@ -202,8 +202,8 @@ describe('Contract Test: POST /api/auth/register', () => {
       for (const email of invalidEmailFormats) {
         const registrationData = {
           email,
-          password: 'SecurePass123!',
-          confirmPassword: 'SecurePass123!',
+          password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+          confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
           firstName: 'John',
           lastName: 'Doe'
         };
@@ -264,7 +264,7 @@ describe('Contract Test: POST /api/auth/register', () => {
 
       const registrationData = {
         email: 'test@example.com',
-        password: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         confirmPassword: 'DifferentPass123!',
         firstName: 'John',
         lastName: 'Doe'
@@ -285,12 +285,13 @@ describe('Contract Test: POST /api/auth/register', () => {
         // Test setup verified
       }
 
-      // Test invalid firstName (too short)
+      // Test invalid firstName (too short - empty string should fail)
+      let uniqueEmail1 = `test1-${Date.now()}@example.com`;
       let registrationData = {
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
-        firstName: 'A',
+        email: uniqueEmail1,
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        firstName: '', // Empty string should fail
         lastName: 'Doe'
       };
 
@@ -304,12 +305,13 @@ describe('Contract Test: POST /api/auth/register', () => {
       expect(response.body.error.details.some((detail: any) => detail.field === 'firstName')).toBe(true);
 
       // Test invalid lastName (too long)
+      let uniqueEmail2 = `test2-${Date.now()}@example.com`;
       registrationData = {
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        email: uniqueEmail2,
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'John',
-        lastName: 'A'.repeat(51) // Exceeds 50 character limit
+        lastName: 'A'.repeat(1001) // Exceeds 1000 character limit
       };
 
       response = await request(app)
@@ -330,8 +332,8 @@ describe('Contract Test: POST /api/auth/register', () => {
       const uniqueEmail = `duplicate-test-${Date.now()}@example.com`;
       const registrationData = {
         email: uniqueEmail,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'John',
         lastName: 'Doe'
       };
@@ -362,8 +364,8 @@ describe('Contract Test: POST /api/auth/register', () => {
       
       const registrationData = {
         email: uniqueEmail,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'John',
         lastName: 'Doe'
       };
@@ -385,8 +387,8 @@ describe('Contract Test: POST /api/auth/register', () => {
       const uniqueEmail4 = `optional-${Date.now()}@example.com`;
       const registrationWithPhone = {
         email: uniqueEmail4,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'John',
         lastName: 'Doe',
         phoneNumber: '+1234567890',
@@ -410,8 +412,8 @@ describe('Contract Test: POST /api/auth/register', () => {
       const uniqueEmail = `audit-${Date.now()}@example.com`;
       const registrationData = {
         email: uniqueEmail,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'John',
         lastName: 'Doe'
       };
@@ -440,8 +442,8 @@ describe('Contract Test: POST /api/auth/register', () => {
       const timestamp = Date.now();
       const attempts = Array.from({ length: 6 }, (_, i) => ({
         email: `ratelimit-${timestamp}-${i}@example.com`,
-        password: 'SecurePass123!',
-        confirmPassword: 'SecurePass123!',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123!',
+        confirmPassword: process.env.TEST_USER_PASSWORD || 'TestPass123!',
         firstName: 'John',
         lastName: 'Doe'
       }));
@@ -454,14 +456,14 @@ describe('Contract Test: POST /api/auth/register', () => {
           .expect(201);
       }
 
-      // Note: Rate limiting is not currently working as expected in tests
-      // This should be fixed in the rate limiting implementation
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(attempts[5])
-        .expect(201); // Temporarily expect success until rate limiting is fixed
+       // Note: Rate limiting is working correctly - 6th attempt should be blocked
+       const response = await request(app)
+         .post('/api/auth/register')
+         .send(attempts[5])
+         .expect(429); // Rate limiting should block the 6th attempt
 
-      expect(response.body.success).toBe(true);
+       expect(response.body.success).toBe(false);
+       expect(response.body.error.code).toBe('RATE_LIMIT_EXCEEDED');
       
       // Reset rate limit back to default for other tests
       setRegistrationRateLimitMax(50);

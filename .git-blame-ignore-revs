@@ -1,0 +1,11 @@
+# Git Blame Ignore Revisions
+# Configure with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# This file contains commit SHAs that should be ignored by git blame
+# Typically used for mass reformatting commits that don't change logic
+
+# Security: Remove hardcoded test credentials from codebase (v0.9.2)
+# This commit replaces all instances of hardcoded test credentials with environment variables
+# Date: 2026-02-08
+# Will be filled with actual commit SHA after commit
+# <COMMIT_SHA_HERE>

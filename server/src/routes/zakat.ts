@@ -31,6 +31,7 @@ import { PaymentRecordsController } from '../controllers/payment-records.control
 import { z } from 'zod';
 import * as jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
+import { getJwtSecret } from '../config/security';
 
 const router = express.Router();
 
@@ -76,6 +77,33 @@ const createResponse = <T>(success: boolean, data?: T, error?: { code: string; m
       version: '1.0.0'
     }
   };
+};
+
+/**
+ * Helper function to group assets by category
+ */
+const groupAssetsByCategory = (assets: any[]): any[] => {
+  const categoryGroups = new Map<string, { category: string; totalValue: number; assets: any[] }>();
+
+  for (const asset of assets) {
+    const category = asset.category || 'uncategorized';
+    const existing = categoryGroups.get(category) || {
+      category,
+      totalValue: 0,
+      assets: []
+    };
+
+    existing.totalValue += asset.zakatValue || asset.value || 0;
+    existing.assets.push(asset);
+    categoryGroups.set(category, existing);
+  }
+
+  return Array.from(categoryGroups.values()).map(group => ({
+    category: group.category,
+    totalValue: group.totalValue,
+    assetCount: group.assets.length,
+    assets: group.assets
+  }));
 };
 
 // Initialize services
@@ -194,15 +222,15 @@ router.post('/calculate',
             zakatAmount: result.result.totals.totalZakatDue,
             zakatRate: result.methodology.zakatRate
           },
-          breakdown: {
-            assetsByCategory: [], // TODO: Group assets by category
-            liabilities: [], // TODO: Implement liabilities
-            methodologyRules: {
-              nisabCalculation: result.result.nisab,
-              assetTreatment: result.methodology.businessAssetTreatment,
-              liabilityDeduction: result.methodology.debtDeduction
-            }
-          },
+           breakdown: {
+             assetsByCategory: groupAssetsByCategory(result.result.assets),
+             liabilities: [], // TODO: Implement liabilities
+             methodologyRules: {
+               nisabCalculation: result.result.nisab,
+               assetTreatment: result.methodology.businessAssetTreatment,
+               liabilityDeduction: result.methodology.debtDeduction
+             }
+           },
           educationalContent: {
             nisabExplanation: `Nisab threshold of ${result.result.nisab.effectiveNisab} based on ${result.result.nisab.nisabBasis}`,
             methodologyExplanation: result.methodology.explanation,
@@ -308,7 +336,7 @@ router.get('/methodologies', async (req, res: Response) => {
 router.post('/payments',
   authenticate,
   validateSchema(z.object({
-    calculationId: z.string(),
+    calculationId: z.string().optional(),
     amount: z.number().positive(),
     paymentDate: z.string(),
     recipient: z.string().optional(),
@@ -324,6 +352,15 @@ router.post('/payments',
 router.get('/payments',
   authenticate,
   paymentRecordsController.getPayments
+);
+
+/**
+ * GET /api/zakat/payments/:id
+ * Get a specific payment record
+ */
+router.get('/payments/:id',
+  authenticate,
+  paymentRecordsController.getPayment
 );
 
 /**
@@ -371,7 +408,7 @@ router.get('/receipts/:token',
       const tokenStr = token as string;
 
       // Verify token
-      const decoded = jwt.verify(tokenStr, process.env.JWT_SECRET || 'default-jwt-secret-for-development') as unknown as { paymentId: string; userId: string };
+      const decoded = jwt.verify(tokenStr, getJwtSecret()) as unknown as { paymentId: string; userId: string };
 
       const payment = await paymentService.getPayment(decoded.userId, decoded.paymentId);
 
@@ -384,13 +421,14 @@ router.get('/receipts/:token',
       }
 
       const response = createResponse(true, {
-        payment: {
-          id: payment.id,
+        receipt: {
+          paymentId: payment.id,
           amount: payment.amount,
           paymentDate: payment.paymentDate,
           recipient: payment.recipient,
           notes: payment.notes,
-          calculationId: payment.calculationId
+          calculationId: payment.calculationId,
+          generatedAt: new Date().toISOString()
         }
       });
       res.status(200).json(response);

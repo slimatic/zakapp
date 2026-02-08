@@ -36,7 +36,6 @@ describe('Payment Records Contract Tests', () => {
   describe('POST /api/zakat/payments', () => {
     it('should create new payment record with valid data', async () => {
       const paymentData = {
-        calculationId: 'calc-123',
         amount: 250.50,
         paymentDate: '2024-03-15',
         recipient: 'Local Mosque',
@@ -50,21 +49,20 @@ describe('Payment Records Contract Tests', () => {
         .expect(201);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.payment).toMatchObject({
+      expect(response.body.data.payment).toMatchObject({
         amount: 250.50,
         paymentDate: '2024-03-15',
         recipient: 'Local Mosque',
         notes: 'Ramadan Zakat payment'
       });
-      expect(response.body.payment).toHaveProperty('id');
-      expect(response.body.payment).toHaveProperty('receiptUrl');
+      expect(response.body.data.payment).toHaveProperty('id');
+      expect(response.body.data.payment).toHaveProperty('receiptUrl');
 
-      paymentId = response.body.payment.id;
+      paymentId = response.body.data.payment.id;
     });
 
     it('should create payment record with minimal data', async () => {
       const paymentData = {
-        calculationId: 'calc-456',
         amount: 100.00,
         paymentDate: '2024-04-01'
       };
@@ -76,7 +74,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(201);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.payment).toMatchObject({
+      expect(response.body.data.payment).toMatchObject({
         amount: 100.00,
         paymentDate: '2024-04-01'
       });
@@ -84,7 +82,6 @@ describe('Payment Records Contract Tests', () => {
 
     it('should return 400 for invalid amount', async () => {
       const paymentData = {
-        calculationId: 'calc-123',
         amount: -50,
         paymentDate: '2024-03-15'
       };
@@ -96,7 +93,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('VALIDATION_ERROR');
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     it('should return 400 for missing required fields', async () => {
@@ -112,12 +109,11 @@ describe('Payment Records Contract Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('VALIDATION_ERROR');
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     it('should return 401 for unauthorized request', async () => {
       const paymentData = {
-        calculationId: 'calc-123',
         amount: 100.00,
         paymentDate: '2024-03-15'
       };
@@ -128,7 +124,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('UNAUTHORIZED');
+      expect(response.body.error.code).toBe('UNAUTHORIZED');
     });
   });
 
@@ -137,19 +133,16 @@ describe('Payment Records Contract Tests', () => {
       // Create test payments
       const payments = [
         {
-          calculationId: 'calc-2024-01',
           amount: 150.00,
           paymentDate: '2024-01-15',
           recipient: 'Mosque A'
         },
         {
-          calculationId: 'calc-2024-02',
           amount: 200.00,
           paymentDate: '2024-02-20',
           recipient: 'Mosque B'
         },
         {
-          calculationId: 'calc-2023-01',
           amount: 175.00,
           paymentDate: '2023-12-01',
           recipient: 'Mosque C'
@@ -171,10 +164,10 @@ describe('Payment Records Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(Array.isArray(response.body.payments)).toBe(true);
-      expect(response.body.payments.length).toBeGreaterThan(0);
+      expect(Array.isArray(response.body.data.payments)).toBe(true);
+      expect(response.body.data.payments.length).toBeGreaterThan(0);
 
-      const payment = response.body.payments[0];
+      const payment = response.body.data.payments[0];
       expect(payment).toHaveProperty('id');
       expect(payment).toHaveProperty('amount');
       expect(payment).toHaveProperty('paymentDate');
@@ -188,10 +181,10 @@ describe('Payment Records Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(Array.isArray(response.body.payments)).toBe(true);
+      expect(Array.isArray(response.body.data.payments)).toBe(true);
 
       // Should only return 2024 payments
-      response.body.payments.forEach((payment: any) => {
+      response.body.data.payments.forEach((payment: any) => {
         expect(payment.paymentDate.startsWith('2024')).toBe(true);
       });
     });
@@ -203,9 +196,9 @@ describe('Payment Records Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(Array.isArray(response.body.payments)).toBe(true);
-      expect(response.body.payments.length).toBeLessThanOrEqual(2);
-      expect(response.body).toHaveProperty('pagination');
+      expect(Array.isArray(response.body.data.payments)).toBe(true);
+      expect(response.body.data.payments.length).toBeLessThanOrEqual(2);
+      expect(response.body.data).toHaveProperty('pagination');
     });
 
     it('should return 401 for unauthorized request', async () => {
@@ -214,7 +207,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('UNAUTHORIZED');
+      expect(response.body.error.code).toBe('UNAUTHORIZED');
     });
   });
 
@@ -222,7 +215,6 @@ describe('Payment Records Contract Tests', () => {
     beforeEach(async () => {
       // Create a test payment
       const paymentData = {
-        calculationId: 'calc-update-test',
         amount: 100.00,
         paymentDate: '2024-01-01',
         recipient: 'Original Mosque'
@@ -234,7 +226,7 @@ describe('Payment Records Contract Tests', () => {
         .send(paymentData)
         .expect(201);
 
-      paymentId = createResponse.body.payment.id;
+      paymentId = createResponse.body.data.payment.id;
     });
 
     it('should update payment record', async () => {
@@ -251,7 +243,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.payment).toMatchObject({
+      expect(response.body.data.payment).toMatchObject({
         id: paymentId,
         amount: 125.00,
         recipient: 'Updated Mosque',
@@ -269,7 +261,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('PAYMENT_NOT_FOUND');
+      expect(response.body.error.code).toBe('PAYMENT_NOT_FOUND');
     });
 
     it('should return 401 for unauthorized request', async () => {
@@ -281,7 +273,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('UNAUTHORIZED');
+      expect(response.body.error.code).toBe('UNAUTHORIZED');
     });
   });
 
@@ -289,7 +281,6 @@ describe('Payment Records Contract Tests', () => {
     beforeEach(async () => {
       // Create a test payment
       const paymentData = {
-        calculationId: 'calc-delete-test',
         amount: 75.00,
         paymentDate: '2024-01-01'
       };
@@ -300,7 +291,7 @@ describe('Payment Records Contract Tests', () => {
         .send(paymentData)
         .expect(201);
 
-      paymentId = createResponse.body.payment.id;
+      paymentId = createResponse.body.data.payment.id;
     });
 
     it('should soft delete payment record', async () => {
@@ -318,7 +309,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(404);
 
       expect(getResponse.body.success).toBe(false);
-      expect(getResponse.body.error).toBe('PAYMENT_NOT_FOUND');
+      expect(getResponse.body.error.code).toBe('PAYMENT_NOT_FOUND');
     });
 
     it('should return 404 for non-existent payment', async () => {
@@ -328,7 +319,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('PAYMENT_NOT_FOUND');
+      expect(response.body.error.code).toBe('PAYMENT_NOT_FOUND');
     });
 
     it('should return 401 for unauthorized request', async () => {
@@ -337,7 +328,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('UNAUTHORIZED');
+      expect(response.body.error.code).toBe('UNAUTHORIZED');
     });
   });
 
@@ -345,7 +336,6 @@ describe('Payment Records Contract Tests', () => {
     beforeEach(async () => {
       // Create a test payment
       const paymentData = {
-        calculationId: 'calc-receipt-test',
         amount: 300.00,
         paymentDate: '2024-03-01',
         recipient: 'Receipt Test Mosque'
@@ -357,7 +347,7 @@ describe('Payment Records Contract Tests', () => {
         .send(paymentData)
         .expect(201);
 
-      paymentId = createResponse.body.payment.id;
+      paymentId = createResponse.body.data.payment.id;
     });
 
     it('should generate valid receipt URL', async () => {
@@ -365,15 +355,14 @@ describe('Payment Records Contract Tests', () => {
         .post('/api/zakat/payments')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
-          calculationId: 'calc-receipt-test-2',
           amount: 200.00,
           paymentDate: '2024-04-01'
         })
         .expect(201);
 
-      expect(createResponse.body.payment).toHaveProperty('receiptUrl');
-      expect(typeof createResponse.body.payment.receiptUrl).toBe('string');
-      expect(createResponse.body.payment.receiptUrl).toMatch(/^\/api\/receipts\//);
+      expect(createResponse.body.data.payment).toHaveProperty('receiptUrl');
+      expect(typeof createResponse.body.data.payment.receiptUrl).toBe('string');
+      expect(createResponse.body.data.payment.receiptUrl).toMatch(/^\/api\/zakat\/receipts\//);
     });
 
     it('should allow access to receipt via generated URL', async () => {
@@ -381,21 +370,20 @@ describe('Payment Records Contract Tests', () => {
         .post('/api/zakat/payments')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
-          calculationId: 'calc-receipt-access-test',
           amount: 150.00,
           paymentDate: '2024-05-01'
         })
         .expect(201);
 
-      const receiptUrl = createResponse.body.payment.receiptUrl;
+      const receiptUrl = createResponse.body.data.payment.receiptUrl;
 
       // Access receipt without authentication (public access)
       const receiptResponse = await request(app)
         .get(receiptUrl)
         .expect(200);
 
-      expect(receiptResponse.body).toHaveProperty('payment');
-      expect(receiptResponse.body.payment.amount).toBe(150.00);
+      expect(receiptResponse.body).toHaveProperty('data');
+      expect(receiptResponse.body.data.receipt.amount).toBe(150.00);
     });
   });
 });

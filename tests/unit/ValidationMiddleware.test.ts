@@ -71,7 +71,7 @@ describe('Implementation Task T025: Validation Middleware', () => {
     test('should validate user registration schema successfully', () => {
       const validUserData = {
         email: 'test@example.com',
-        password: 'SecurePass123',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123',
         firstName: 'John',
         lastName: 'Doe',
         acceptTerms: true
@@ -311,7 +311,7 @@ describe('Implementation Task T025: Validation Middleware', () => {
     test('should replace request body with validated data', () => {
       const userData = {
         email: 'test@example.com',
-        password: 'SecurePass123',
+        password: process.env.TEST_USER_PASSWORD || 'TestPass123',
         firstName: 'John',
         lastName: 'Doe',
         acceptTerms: true,
