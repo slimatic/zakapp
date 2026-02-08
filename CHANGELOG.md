@@ -1,5 +1,57 @@
 # Changelog
 
+## [0.10.0] - 2026-02-08
+
+### 🔒 Security - Zero-Knowledge Encryption
+
+**BREAKING CHANGE:** Architectural shift to client-side encryption (fully backward compatible)
+
+**Added:**
+- True zero-knowledge encryption for payment recipients and notes
+- Client-side AES-256-GCM encryption using Web Crypto API
+- PBKDF2 key derivation (600k iterations) from user password
+- ZK1 encryption format with version prefix
+- Optional migration wizard for upgrading historical data
+- Migration endpoints: `/api/user/encryption-status`, `/api/user/prepare-migration`, `/api/user/mark-migrated`
+
+**Changed:**
+- Payment data now encrypted client-side before transmission
+- Server stores encrypted blobs it cannot decrypt
+- Encryption key derived from user password (not stored on server)
+- Privacy model: Server cannot access payment recipients/notes
+
+**Security:**
+- Addresses threat model: malicious server admin, database breach, government data request
+- Forward secrecy: Server breach doesn't expose ZK1-encrypted data
+- Trade-off: Lost password = unrecoverable data (by design)
+
+**Migration:**
+- Users on v0.9.x can opt-in to upgrade historical data
+- Migration is one-time, user-initiated, and transparent
+- Mixed encryption formats supported during transition period
+
+**Documentation:**
+- Added `docs/ZERO_KNOWLEDGE_ARCHITECTURE.md`
+- Added `docs/MIGRATION_GUIDE.md`
+- Updated `README.md` and `SECURITY.md`
+- Created comprehensive API specification
+
+**Developer:**
+- New types in `shared/src/types/zk-contracts.ts`
+- New service: `MigrationDetectionService`
+- Updated: `EncryptionService`, `PaymentRecordService`
+- 51 new tests added (100% coverage for ZK code)
+
+**Technical Details:**
+- Format: `ZK1:<iv_base64>:<ciphertext_base64>`
+- Backward compatible with legacy format
+- No database schema changes required
+- Server-side dual-mode encryption handling
+
+For full technical specification, see `docs/ZK_API_SPECIFICATION.md`.
+
+---
+
 ## [0.9.2] - 2026-02-08
 
 ### 🔐 Security Enhancement - Encryption Upgrade (CRITICAL)
