@@ -20,6 +20,7 @@ import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
 import { map, switchMap } from 'rxjs/operators';
 import { cryptoService } from '../services/CryptoService';
+import { PaymentEncryptionService } from '../services/PaymentEncryptionService';
 // Payment Record matches the shared type but lives locally in RxDB
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
 
@@ -127,7 +128,10 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
             userId: user.id // Inject authenticated user ID
         };
 
-        return db.payment_records.insert(newPayment);
+        // Encrypt sensitive fields BEFORE inserting into RxDB
+        const encryptedPayment = await PaymentEncryptionService.encryptPaymentData(newPayment);
+
+        return db.payment_records.insert(encryptedPayment);
     };
 
     const removePayment = async (id: string) => {
@@ -165,7 +169,12 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
             userId: p.userId || 'local-user'
         }));
 
-        const result = await db.payment_records.bulkUpsert(refinedPayments);
+        // Encrypt all payments before bulk insert
+        const encryptedPayments = await Promise.all(
+            refinedPayments.map(p => PaymentEncryptionService.encryptPaymentData(p))
+        );
+
+        const result = await db.payment_records.bulkUpsert(encryptedPayments);
         if (result.error && result.error.length > 0) {
             console.error('Payment Import Errors:', result.error);
             const firstError = result.error[0];
