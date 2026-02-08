@@ -536,3 +536,30 @@ export const validateRequest = (validations: any[]) => {
     handleValidationErrors
   ];
 };
+
+/**
+ * Password reset confirmation validation
+ */
+export const validatePasswordResetConfirm = [
+  body('token')
+    .exists({ checkFalsy: true })
+    .isString()
+    .isLength({ min: 32, max: 256 })
+    .withMessage('Valid reset token is required'),
+
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/)
+    .withMessage('Password must contain uppercase, lowercase, number, and special character'),
+
+  body('confirmPassword')
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Password confirmation does not match');
+      }
+      return true;
+    }),
+
+  handleValidationErrors
+];
