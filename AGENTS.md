@@ -50,3 +50,21 @@ bd sync               # Sync with git
 - If you have permissions and the task is complete, merge the PR: `gh pr merge --squash --delete-branch`.
 
 
+## Quality Assurance and Branch Protection
+
+**MANDATORY QUALITY GATES:**
+- All PRs to `main` **MUST** pass CI checks before merging
+- Required status checks: `test (20.x)` and `GitGuardian Security Checks`
+- Direct pushes to `main` are **BLOCKED** - all changes must go through PRs
+
+**ENFORCEMENT:**
+- GitHub branch protection rules are configured to prevent merging failing PRs
+- Automated checks will block merges if tests fail or builds break
+- This prevents issues like the v0.9.2 release where LSP failures were merged
+
+**IF TESTS FAIL:**
+1. Fix the failing tests/code
+2. Commit and push to your branch
+3. Wait for CI to pass
+4. Merge only after all checks pass
+
