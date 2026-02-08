@@ -21,6 +21,16 @@ import { requireAdmin, authenticate } from '../../middleware/AuthMiddleware';
 
 const router = express.Router();
 
+// Get encryption status - shows CBC vs GCM counts and migration status
+router.get('/status', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const result = await EncryptionAdminService.getEncryptionStatus();
+    res.json({ success: true, data: result });
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'STATUS_CHECK_FAILED', message: e instanceof Error ? e.message : String(e) });
+  }
+});
+
 // Trigger a scan for undecryptable records and create remediation entries
 router.post('/scan', authenticate, requireAdmin, async (req, res) => {
   try {

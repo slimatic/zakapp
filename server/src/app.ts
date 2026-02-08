@@ -43,6 +43,7 @@ import adminEncryptionRoutes from './routes/admin/encryption';
 import adminRoutes from './routes/admin';
 import debugRoutes from './routes/debug';
 import { Logger } from './utils/logger';
+import { initAutoMigration } from './startup/autoMigration';
 
 const logger = new Logger('App');
 
@@ -204,43 +205,52 @@ export default app;
 // Start server if this file is run directly
 if (require.main === module) {
   const PORT = process.env.PORT || 3001;
-  const server = app.listen(PORT, () => {
-    logger.info(`ZakApp Server running on port ${PORT}`);
-    logger.info(`Health check: http://localhost:${PORT}/health`);
-    logger.info(`API Base URL: http://localhost:${PORT}/api`);
+  
+  // Run auto-migration before starting server
+  initAutoMigration()
+    .then(() => {
+      const server = app.listen(PORT, () => {
+        logger.info(`ZakApp Server running on port ${PORT}`);
+        logger.info(`Health check: http://localhost:${PORT}/health`);
+        logger.info(`API Base URL: http://localhost:${PORT}/api`);
 
-    // Initialize database connection
-    // const dbManager = DatabaseManager.getInstance();
+        // Initialize database connection
+        // const dbManager = DatabaseManager.getInstance();
 
-    // Initialize background jobs
-    logger.info('Initializing background jobs...');
-    // initializeJobs();
-  });
+        // Initialize background jobs
+        logger.info('Initializing background jobs...');
+        // initializeJobs();
+      });
 
 
-  // Graceful shutdown handler
-  // const gracefulShutdown = (signal: string) => {
-  //   console.log(`\n${signal} received. Starting graceful shutdown...`);
+      // Graceful shutdown handler
+      // const gracefulShutdown = (signal: string) => {
+      //   console.log(`\n${signal} received. Starting graceful shutdown...`);
 
-  //   // Stop accepting new requests
-  //   server.close(() => {
-  //     console.log('✅ HTTP server closed');
+      //   // Stop accepting new requests
+      //   server.close(() => {
+      //     console.log('✅ HTTP server closed');
 
-  //     // Stop all background jobs
-  //     // stopAll jobs();
+      //     // Stop all background jobs
+      //     // stopAll jobs();
 
-  //     console.log('✅ Graceful shutdown complete');
-  //     process.exit(0);
-  //   });
+      //     console.log('✅ Graceful shutdown complete');
+      //     process.exit(0);
+      //   });
 
-  //   // Force shutdown after 30 seconds
-  //   setTimeout(() => {
-  //     console.error('⚠️  Forced shutdown after timeout');
-  //     process.exit(1);
-  //   }, 30000);
-  // };
+      //   // Force shutdown after 30 seconds
+      //   setTimeout(() => {
+      //     console.error('⚠️  Forced shutdown after timeout');
+      //     process.exit(1);
+      //   }, 30000);
+      // };
 
-  // Register shutdown handlers
-  // process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  // process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+      // Register shutdown handlers
+      // process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+      // process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    })
+    .catch((error) => {
+      logger.error(`Failed to start server: ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(1);
+    });
 }
