@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import { PrismaClient } from '@prisma/client';
 
 /**
  * Jest globalSetup: ensures the test database schema is up-to-date by running
@@ -27,6 +28,44 @@ export default async function globalSetup() {
     }
 
     console.log('[globalSetup] Database schema is ready for tests.');
+    try {
+      // If using a SQLite file URL (file:./test/test.db), enable WAL mode to reduce
+      // writer contention during concurrent test runs. This is a best-effort step —
+      // if the sqlite3 binary is not available we silently continue.
+      let dbFile = testDb;
+      if (dbFile.startsWith('file:')) dbFile = dbFile.replace('file:', '');
+      // Remove any query params (e.g. file:./test/test.db?cache=shared)
+      dbFile = dbFile.split('?')[0];
+
+      console.log(`[globalSetup] Enabling SQLite WAL mode for test DB: ${dbFile}`);
+      try {
+        // Prefer to set WAL mode using Prisma (no external sqlite3 binary required).
+        // Prisma will execute the pragma against the same datasource URL used for tests.
+        // Temporarily set DATABASE_URL so PrismaClient connects to the test DB.
+        const prevDbUrl = process.env.DATABASE_URL;
+        process.env.DATABASE_URL = testDb;
+        const prisma = new PrismaClient();
+        try {
+          // Use a raw query to set WAL mode. This works for SQLite datasources.
+          // $executeRawUnsafe is used because Prisma's parameterized form isn't needed for PRAGMA.
+          // If Prisma/engine does not allow PRAGMA, this will throw and we fall back silently.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (prisma as any).$executeRawUnsafe('PRAGMA journal_mode=WAL;');
+          console.log('[globalSetup] Enabled WAL mode for test DB via Prisma');
+        } finally {
+          await prisma.$disconnect();
+          // restore previous env
+          if (prevDbUrl !== undefined) process.env.DATABASE_URL = prevDbUrl;
+          else delete process.env.DATABASE_URL;
+        }
+      } catch (pragmaErr) {
+        // Non-fatal — continue tests even if enabling WAL fails
+        console.warn('[globalSetup] Could not enable WAL mode (Prisma or PRAGMA unsupported):', pragmaErr?.message || pragmaErr);
+      }
+    } catch (err) {
+      // Non-fatal — continue tests even if enabling WAL fails
+      console.warn('[globalSetup] Skipping WAL setup due to error', err);
+    }
   } catch (err) {
     console.error('[globalSetup] Failed to prepare test database schema', err);
     throw err;
