@@ -435,6 +435,7 @@ router.post('/register',
             lastName: profileData.lastName || '',
             isActive: user.isActive,
             isVerified: user.isVerified,
+            createdAt: user.createdAt.toISOString(),
             profile: profileData,
             preferences: {
               calendar: user.preferredCalendar,
