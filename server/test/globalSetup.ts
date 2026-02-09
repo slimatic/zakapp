@@ -46,12 +46,11 @@ export default async function globalSetup() {
         process.env.DATABASE_URL = testDb;
         const prisma = new PrismaClient();
         try {
-          // Use a raw query to set WAL mode. This works for SQLite datasources.
-          // $executeRawUnsafe is used because Prisma's parameterized form isn't needed for PRAGMA.
-          // If Prisma/engine does not allow PRAGMA, this will throw and we fall back silently.
+          // Use a raw query to set WAL mode. SQLite returns the selected journal mode
+          // so use $queryRawUnsafe which allows a returned result. We ignore the result.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (prisma as any).$executeRawUnsafe('PRAGMA journal_mode=WAL;');
-          console.log('[globalSetup] Enabled WAL mode for test DB via Prisma');
+          await (prisma as any).$queryRawUnsafe('PRAGMA journal_mode=WAL;');
+          console.log('[globalSetup] Enabled WAL mode for test DB via Prisma (or no-op)');
         } finally {
           await prisma.$disconnect();
           // restore previous env
