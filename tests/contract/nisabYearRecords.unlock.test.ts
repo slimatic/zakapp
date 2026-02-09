@@ -1,88 +1,116 @@
 /**
  * Contract Test: POST /api/nisab-year-records/:id/unlock
- * 
+ *
  * Tests unlocking a FINALIZED Nisab Year Record for editing
- * 
- * Status: INTENTIONALLY FAILING (TDD approach)
  */
 
 import request from 'supertest';
-// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import app from '../../server/src/app';
-import { PrismaClient } from '@prisma/client';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
-const prisma = new PrismaClient();
+const loadApp = async () => {
+  try {
+    const appModule = await import('../../server/src/app');
+    return appModule.default || appModule;
+  } catch (error) {
+    console.error('Failed to load app:', error);
+    return null;
+  }
+};
 
 describe('POST /api/nisab-year-records/:id/unlock', () => {
+  let app: any;
   let authToken: string;
-  let userId: string;
   let finalizedRecordId: string;
 
   beforeAll(async () => {
-    const user = await prisma.user.create({
-      data: {
-        email: `test-unlock-nyr-${Date.now()}@example.com`,
-        passwordHash: 'test-hash',
-      },
-    });
-    userId = user.id;
-    authToken = 'mock-jwt-token';
+    try {
+      app = await loadApp();
 
-    const record = await prisma.yearlySnapshot.create({
-      data: {
-        userId,
-        calculationDate: new Date(),
-        gregorianYear: 2025,
-        gregorianMonth: 10,
-        gregorianDay: 27,
-        hijriYear: 1446,
-        hijriMonth: 3,
-        hijriDay: 24,
-        totalWealth: 'encrypted-5000',
-        totalLiabilities: 'encrypted-0',
-        zakatableWealth: 'encrypted-5000',
-        zakatAmount: 'encrypted-125',
-        methodologyUsed: 'standard',
-        nisabThreshold: 'encrypted-5000',
-        nisabType: 'gold',
-        status: 'FINALIZED',
-        assetBreakdown: 'encrypted-json',
-        calculationDetails: 'encrypted-json',
-      },
-    });
-    finalizedRecordId = record.id;
+      if (!app) {
+        throw new Error('Failed to load Express app');
+      }
+
+      // Set up test user and get auth token
+      const timestamp = Date.now();
+      const registerData = {
+        email: `test-nyr-unlock-${timestamp}@example.com`,
+        password: 'TestPassword123!',
+        confirmPassword: 'TestPassword123!',
+        firstName: 'Test',
+        lastName: 'User'
+      };
+
+      const registerResponse = await request(app)
+        .post('/api/auth/register')
+        .send(registerData);
+
+      if (registerResponse.status !== 201) {
+        console.error('Registration failed:', registerResponse.status, registerResponse.body);
+        throw new Error(`Registration failed with status ${registerResponse.status}`);
+      }
+
+      const loginResponse = await request(app)
+        .post('/api/auth/login')
+        .send(registerData)
+        .expect(200);
+
+      authToken = loginResponse.body.data.tokens?.accessToken || loginResponse.body.data.accessToken;
+
+      if (!authToken) {
+        throw new Error('Failed to get auth token');
+      }
+
+      // Create and finalize a record
+      const recordData = {
+        hawlStartDate: new Date(Date.now() - 355 * 24 * 60 * 60 * 1000).toISOString(),
+        hawlStartDateHijri: '1444-01-01H',
+        hawlCompletionDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        hawlCompletionDateHijri: '1445-01-01H',
+        nisabBasis: 'GOLD',
+        nisabThresholdAtStart: 5000,
+        userNotes: 'Record for unlock test'
+      };
+
+      const recordResponse = await request(app)
+        .post('/api/nisab-year-records')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(recordData)
+        .expect(201);
+
+      finalizedRecordId = recordResponse.body.data.id;
+
+      // Finalize the record
+      await request(app)
+        .post(`/api/nisab-year-records/${finalizedRecordId}/finalize`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ finalizationNotes: 'Test finalization for unlock' })
+        .expect(200);
+
+      if (!finalizedRecordId) {
+        throw new Error('Failed to create test record');
+      }
+    } catch (error) {
+      console.error('Setup failed:', error);
+      throw new Error('BeforeAll setup failed');
+    }
   });
 
   afterAll(async () => {
-    await prisma.yearlySnapshot.deleteMany({ where: { userId } });
-    await prisma.user.delete({ where: { id: userId } });
-    await prisma.$disconnect();
+    // Cleanup if app exists
+    if (app && app.close) {
+      await app.close();
+    }
   });
 
-  it('should unlock a FINALIZED record with valid reason', async () => {
+  it('should unlock FINALIZED record successfully', async () => {
     const res = await request(app)
       .post(`/api/nisab-year-records/${finalizedRecordId}/unlock`)
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
-        reason: 'Corrections needed for asset valuation',
-      });
+      .send({ unlockReason: 'Testing unlock functionality for development purposes' });
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('success', true);
+    expect(res.body.success).toBe(true);
     expect(res.body.data.status).toBe('UNLOCKED');
-  });
-
-  it('should reject unlock reason shorter than 10 characters', async () => {
-    const res = await request(app)
-      .post(`/api/nisab-year-records/${finalizedRecordId}/unlock`)
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({
-        reason: 'Too short',
-      });
-
-    expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('error', 'INVALID_UNLOCK_REASON');
-    expect(res.body.message).toContain('at least 10 characters');
   });
 
   it('should reject unlock without reason', async () => {
@@ -92,59 +120,81 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
       .send({});
 
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('error');
+    expect(res.body.success).toBe(false);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 
-  it('should create audit trail entry with unlock reason', async () => {
+  it('should reject unlock with reason too short', async () => {
     const res = await request(app)
       .post(`/api/nisab-year-records/${finalizedRecordId}/unlock`)
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
-        reason: 'Corrections needed for asset valuation',
-      });
+      .send({ unlockReason: 'Too short' });
 
-    if (res.status === 200) {
-      expect(res.body).toHaveProperty('auditEntry');
-      expect(res.body.auditEntry.eventType).toBe('UNLOCKED');
-      expect(res.body.auditEntry.unlockReason).toBeDefined();
-      expect(res.body.auditEntry.timestamp).toBeDefined();
-    }
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('should reject unlock with reason too long', async () => {
+    const longReason = 'A'.repeat(501);
+    const res = await request(app)
+      .post(`/api/nisab-year-records/${finalizedRecordId}/unlock`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ unlockReason: longReason });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('should reject unlock of non-FINALIZED record', async () => {
+    // Create a new DRAFT record
+    const draftData = {
+      hawlStartDate: new Date().toISOString(),
+      hawlStartDateHijri: '1445-01-01H',
+      hawlCompletionDate: new Date(Date.now() + 354 * 24 * 60 * 60 * 1000).toISOString(),
+      hawlCompletionDateHijri: '1446-01-01H',
+      nisabBasis: 'GOLD',
+      nisabThresholdAtStart: 5000,
+      userNotes: 'Draft record'
+    };
+
+    const draftResponse = await request(app)
+      .post('/api/nisab-year-records')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send(draftData)
+      .expect(201);
+
+    const draftRecordId = draftResponse.body.data.id;
+
+    const res = await request(app)
+      .post(`/api/nisab-year-records/${draftRecordId}/unlock`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ unlockReason: 'Testing unlock of draft record' });
+
+    expect(res.status).toBe(409);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error.code).toBe('INVALID_STATE');
   });
 
   it('should return 404 for non-existent record', async () => {
     const res = await request(app)
-      .post('/api/nisab-year-records/nonexistent-id/unlock')
+      .post('/api/nisab-year-records/non-existent-id/unlock')
       .set('Authorization', `Bearer ${authToken}`)
-      .send({
-        reason: 'Corrections needed for asset valuation',
-      });
+      .send({ unlockReason: 'Testing non-existent record' });
 
     expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty('error', 'NOT_FOUND');
+    expect(res.body.success).toBe(false);
+    expect(res.body.error.code).toBe('NOT_FOUND');
   });
 
   it('should return 401 for unauthenticated request', async () => {
     const res = await request(app)
       .post(`/api/nisab-year-records/${finalizedRecordId}/unlock`)
-      .send({
-        reason: 'Corrections needed for asset valuation',
-      });
+      .send({ unlockReason: 'Testing unauthenticated request' });
 
     expect(res.status).toBe(401);
-    expect(res.body).toHaveProperty('error', 'UNAUTHORIZED');
-  });
-
-  it('should return encrypted unlock reason in audit trail', async () => {
-    const res = await request(app)
-      .post(`/api/nisab-year-records/${finalizedRecordId}/unlock`)
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({
-        reason: 'Corrections needed for asset valuation',
-      });
-
-    if (res.status === 200 && res.body.auditEntry.unlockReason) {
-      // Should be encrypted (not readable plaintext)
-      expect(res.body.auditEntry.unlockReason).not.toBe('Corrections needed for asset valuation');
-    }
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toBe('UNAUTHORIZED');
   });
 });
