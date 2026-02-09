@@ -60,15 +60,13 @@ export class SimpleValidation {
       }
     }
 
-     if (!isPartial || data.value !== undefined) {
-       if (data.value === undefined || typeof data.value !== 'number') {
-         errors.push('Value is required and must be a number');
-       } else if (data.value < 0) {
-         errors.push('Value is required and must be a non-negative number');
-       } else {
-         validatedData.value = data.value;
-       }
-     }
+    if (!isPartial || data.value !== undefined) {
+      if (data.value === undefined || typeof data.value !== 'number') {
+        errors.push('Value is required and must be a number');
+      } else {
+        validatedData.value = data.value;
+      }
+    }
 
     if (!isPartial || data.currency !== undefined) {
       if (!data.currency || typeof data.currency !== 'string') {
