@@ -1,0 +1,33 @@
+{
+  "tasks": [
+    {
+      "id": "zakapp-0q1.6",
+      "title": "Update hawlDetectionJob as Reconciliation Backup",
+      "description": "Transform the hawlDetectionJob from primary Hawl detection mechanism to a safety net/reconciliation system. The job should: (1) Reconcile existing DRAFT records by comparing actual wealth vs recorded wealth and fixing drift, (2) Detect missed Nisab crossings as backup, (3) Log metrics for monitoring, (4) Document new role as reconciliation backup.",
+      "files": [
+        "server/src/jobs/hawlDetectionJob.ts"
+      ],
+      "requirements": [
+        "Add reconcileExistingRecords() function that fetches all DRAFT records and compares actual wealth vs recorded wealth",
+        "If wealth drift > $0.01, log warning and update record with actual wealth",
+        "Add detectMissedNisabCrossings() function to catch users missed by real-time triggers",
+        "Add metrics collection: usersWithDrift, usersFixed, averageDrift, maxDrift, missedDetections",
+        "Log metrics at INFO level after job completes",
+        "Log warning if drift rate > 5% of users (indicates real-time system issue)",
+        "Update JSDoc comments to document new role as reconciliation backup",
+        "Preserve existing Nisab detection functionality as fallback",
+        "Ensure job runs successfully without errors",
+        "Test manually: (1) Run with no DRAFT records, (2) Create DRAFT with wrong wealth and verify fix, (3) Create user above Nisab without DRAFT and verify detection"
+      ],
+      "success_criteria": [
+        "Job runs successfully without errors",
+        "Reconciliation logic detects and fixes wealth drift",
+        "Backup detection catches users missed by real-time system",
+        "Metrics are logged for monitoring",
+        "Documentation updated to reflect new role",
+        "No regression in existing functionality"
+      ],
+      "completed": true
+    }
+  ]
+}

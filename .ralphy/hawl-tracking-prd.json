@@ -1,0 +1,219 @@
+{
+  "project": "ZakApp - Real-Time Hawl Tracking Event Integration",
+  "branchName": "feature/zakapp-0q1-real-time-hawl-tracking",
+  "description": "Implement real-time Hawl tracking that responds immediately to asset changes instead of relying on hourly batch jobs",
+  "context": {
+    "problem": "Integration tests reveal that asset CRUD operations don't trigger Hawl tracking. The application relies on hourly batch jobs (hawlDetectionJob) instead of real-time event-driven architecture.",
+    "currentArchitecture": {
+      "assetManagement": "Real-time via AssetService (works correctly)",
+      "hawlTracking": "Batch-only via hawlDetectionJob (runs hourly)",
+      "integration": "None - the two systems are disconnected"
+    },
+    "expectedBehavior": "Asset change → Save to DB → Trigger wealth recalculation → Check Nisab threshold → Update Hawl state (create DRAFT / update / interrupt)",
+    "actualBehavior": "Asset change → Save to DB → STOP → Wait 1 hour for batch job",
+    "bdIssues": {
+      "epic": "zakapp-0q1",
+      "tasks": ["zakapp-0q1.1", "zakapp-0q1.2", "zakapp-0q1.4", "zakapp-0q1.5"]
+    },
+    "relatedPR": "PR #272 - Test payload fixes (already complete)"
+  },
+  "technicalDetails": {
+    "files": {
+      "core": [
+        "server/src/services/AssetService.ts",
+        "server/src/services/hawlTrackingService.ts",
+        "server/src/services/wealthAggregationService.ts"
+      ],
+      "tests": [
+        "server/tests/integration/hawlDetection.test.ts",
+        "server/tests/integration/liveTracking.test.ts",
+        "server/tests/integration/hawlInterruption.test.ts"
+      ]
+    },
+    "existingServices": {
+      "AssetService": "Handles asset CRUD (create/update/delete)",
+      "HawlTrackingService": "Manages Hawl lifecycle (exists but missing real-time handler)",
+      "WealthAggregationService": "Calculates total zakatable wealth",
+      "NisabCalculationService": "Checks if wealth exceeds Nisab threshold",
+      "NisabYearRecordService": "CRUD for Nisab year records (DRAFT/ACTIVE/COMPLETED/INTERRUPTED)"
+    },
+    "stateTransitions": {
+      "NULL_to_DRAFT": "User's wealth crosses Nisab threshold for first time",
+      "DRAFT_to_DRAFT": "Wealth fluctuates while above Nisab (update totals)",
+      "DRAFT_to_INTERRUPTED": "Wealth drops below Nisab during Hawl",
+      "INTERRUPTED_to_DRAFT": "Wealth rises above Nisab again (new Hawl starts)"
+    }
+  },
+  "tasks": [
+    {
+      "id": "zakapp-0q1.2",
+      "title": "Implement HawlTrackingService.handleWealthChange() method",
+      "description": "Add real-time wealth change handler to HawlTrackingService that manages Hawl lifecycle based on Nisab status",
+      "acceptanceCriteria": [
+        "Add handleWealthChange(userId, nisabStatus) method to HawlTrackingService",
+        "Method signature: async handleWealthChange(userId: string, nisabStatus: { aboveNisab: boolean; nisabBasis: 'gold' | 'silver'; threshold: number; currentWealth: number }): Promise<void>",
+        "Logic: Query for active DRAFT record for user",
+        "IF wealth above Nisab AND no active record: Call startHawl() to create DRAFT",
+        "IF wealth above Nisab AND active record exists: Call updateHawlWealth() to recalculate",
+        "IF wealth below Nisab AND active record exists: Call interruptHawl() to mark INTERRUPTED",
+        "IF wealth below Nisab AND no active record: No action needed",
+        "Add private helper methods: getActiveDraftRecord(), startHawl(), updateHawlWealth(), interruptHawl()",
+        "Use NisabYearRecordService for record CRUD operations",
+        "Use AuditTrailService for logging state changes",
+        "Add error handling with logging (don't throw)",
+        "TypeScript compiles without errors",
+        "Unit tests pass for each state transition"
+      ],
+      "technicalNotes": {
+        "file": "server/src/services/hawlTrackingService.ts",
+        "dependencies": ["NisabYearRecordService", "AuditTrailService", "Logger"],
+        "existingMethods": ["Service already exists, we're adding a new public method"],
+        "testLocation": "server/src/services/__tests__/hawlTrackingService.test.ts (if exists, or create)"
+      },
+      "priority": 1,
+      "passes": false,
+      "completed": false
+    },
+    {
+      "id": "zakapp-0q1.1",
+      "title": "Add event triggers to AssetService for wealth recalculation",
+      "description": "Modify AssetService to trigger wealth recalculation after every asset create/update/delete operation",
+      "acceptanceCriteria": [
+        "Add private method triggerWealthRecalculation(userId: string): Promise<void> to AssetService",
+        "Method logic: Instantiate WealthAggregationService and calculate total wealth",
+        "Method logic: Instantiate NisabCalculationService and check Nisab threshold",
+        "Method logic: Instantiate HawlTrackingService and call handleWealthChange()",
+        "Wrap in try-catch: Log errors but don't throw (asset operations should succeed even if tracking fails)",
+        "Modify createAsset() method: Add await this.triggerWealthRecalculation(userId) after asset is saved (around line 322)",
+        "Modify updateAsset() method: Add await this.triggerWealthRecalculation(userId) after asset is updated (around line 391)",
+        "Modify deleteAsset() method: Add await this.triggerWealthRecalculation(userId) after asset is deleted (around line 426)",
+        "TypeScript compiles without errors",
+        "Unit tests pass with mocked services",
+        "Integration tests verify DRAFT records created after asset creation"
+      ],
+      "technicalNotes": {
+        "file": "server/src/services/AssetService.ts",
+        "dependencies": ["WealthAggregationService", "NisabCalculationService", "HawlTrackingService", "Logger"],
+        "existingMethods": ["createAsset()", "updateAsset()", "deleteAsset()"],
+        "errorHandling": "Use try-catch to ensure asset operations succeed even if tracking fails",
+        "testLocation": "server/src/services/__tests__/AssetService.test.ts"
+      },
+      "priority": 2,
+      "passes": false,
+      "completed": false,
+      "blockedBy": ["zakapp-0q1.2"]
+    },
+    {
+      "id": "zakapp-0q1.4",
+      "title": "Optimize WealthAggregationService for real-time calls",
+      "description": "Ensure WealthAggregationService.calculateTotalWealth() is performant enough for real-time triggering",
+      "acceptanceCriteria": [
+        "Profile current performance of calculateTotalWealth() with realistic data (1000+ assets)",
+        "Identify slow queries or N+1 problems using Prisma query logging",
+        "Add database indexes if needed: CREATE INDEX idx_asset_userid_active ON Asset (userId, isActive)",
+        "Consider using raw SQL aggregation if Prisma ORM is slow: SELECT SUM(value * calculationModifier) WHERE userId = ? AND isActive = true",
+        "Measure p50, p95, p99 response times with load testing",
+        "Ensure 95th percentile response time is <100ms (per T027 test requirement)",
+        "No database query timeout errors under load",
+        "TypeScript compiles without errors",
+        "Performance tests pass (add if they don't exist)"
+      ],
+      "technicalNotes": {
+        "file": "server/src/services/wealthAggregationService.ts",
+        "performanceTarget": "p95 < 100ms",
+        "optimizationStrategies": [
+          "Database indexes on (userId, isActive)",
+          "Raw SQL for aggregation queries",
+          "Query result caching (optional, 5 second TTL)",
+          "Debouncing for rapid successive calls (optional)"
+        ],
+        "testApproach": "Load test with 50+ concurrent users, 1000 assets per user",
+        "migrations": "server/prisma/migrations/ (for index creation)"
+      },
+      "priority": 3,
+      "passes": false,
+      "completed": false
+    },
+    {
+      "id": "zakapp-0q1.5",
+      "title": "Verify integration tests pass with real-time Hawl tracking",
+      "description": "Run integration tests to verify real-time Hawl tracking works correctly",
+      "acceptanceCriteria": [
+        "Run: npm test -- tests/integration/hawlDetection.test.ts",
+        "All 6 tests in hawlDetection.test.ts pass",
+        "Run: npm test -- tests/integration/liveTracking.test.ts",
+        "All 8 tests in liveTracking.test.ts pass",
+        "Run: npm test -- tests/integration/hawlInterruption.test.ts",
+        "All 6 tests in hawlInterruption.test.ts pass",
+        "No 404 errors on GET /api/nisab-year-records/status",
+        "DRAFT records appear within 1 second of asset creation",
+        "Wealth updates happen immediately after asset changes",
+        "Hawl interruptions detected immediately when wealth drops below Nisab",
+        "Add timing assertions to tests if not present",
+        "Add edge case tests: concurrent asset creation, Nisab boundary conditions"
+      ],
+      "technicalNotes": {
+        "files": [
+          "server/tests/integration/hawlDetection.test.ts",
+          "server/tests/integration/liveTracking.test.ts",
+          "server/tests/integration/hawlInterruption.test.ts"
+        ],
+        "testCommand": "npm test -- tests/integration/",
+        "currentState": "Tests are already correct but fail due to missing backend implementation",
+        "expectedResult": "All 57 integration tests pass (20 total across 3 files)",
+        "edgeCases": [
+          "Rapid successive asset creation (10 assets in <1s)",
+          "Wealth exactly at Nisab threshold",
+          "Concurrent asset updates from multiple users"
+        ]
+      },
+      "priority": 4,
+      "passes": false,
+      "completed": false,
+      "blockedBy": ["zakapp-0q1.1", "zakapp-0q1.2", "zakapp-0q1.4"]
+    }
+  ],
+  "successCriteria": {
+    "functional": [
+      "Asset changes immediately trigger Hawl tracking (<1s latency)",
+      "DRAFT Nisab records auto-created when wealth exceeds threshold",
+      "Hawl auto-interrupted when wealth drops below Nisab",
+      "All state transitions work correctly (NULL→DRAFT, DRAFT→INTERRUPTED, etc.)",
+      "Asset operations succeed even if Hawl tracking fails (graceful degradation)"
+    ],
+    "performance": [
+      "Wealth recalculation completes in <100ms (p95)",
+      "No blocking of asset CRUD operations",
+      "No database timeout errors under normal load"
+    ],
+    "testing": [
+      "All 20+ integration tests pass",
+      "No 404 errors on Nisab status endpoints",
+      "Edge cases handled: concurrent operations, boundary conditions"
+    ],
+    "codeQuality": [
+      "TypeScript compiles without errors",
+      "No ESLint errors",
+      "Proper error handling and logging",
+      "Code follows existing patterns in codebase"
+    ]
+  },
+  "outOfScope": {
+    "async": "Asynchronous event queue (Bull/BullMQ) - deferred to zakapp-jis",
+    "eventSourcing": "Event sourcing and audit trail - deferred to zakapp-jis",
+    "prismaMiddleware": "Prisma middleware approach - optional enhancement (zakapp-0q1.3)",
+    "batchJobRefactor": "Converting hawlDetectionJob to reconciliation role - separate task (zakapp-0q1.6)",
+    "postgresql": "PostgreSQL migration and database triggers - future work"
+  },
+  "testingStrategy": {
+    "unit": "Mock all service dependencies, test each method in isolation",
+    "integration": "Run existing integration tests (hawlDetection, liveTracking, hawlInterruption)",
+    "performance": "Load test with 50+ users, 1000 assets per user",
+    "manual": "Create test user, add assets above/below Nisab, verify DRAFT record behavior"
+  },
+  "rollback": {
+    "strategy": "Changes are additive (new method calls), easy to remove",
+    "safetyNet": "hawlDetectionJob continues to run hourly as backup",
+    "monitoring": "Compare batch job findings vs real-time system (should have <1% drift)"
+  }
+}

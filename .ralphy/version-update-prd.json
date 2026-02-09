@@ -1,0 +1,55 @@
+{
+  "project": "ZakApp",
+  "branchName": "ralph/version-bump-0.9.2",
+  "description": "Update version numbers from 0.9.1 to 0.9.2 across all package.json files",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Update root package.json version",
+      "description": "Update version in root package.json from 0.9.1 to 0.9.2",
+      "acceptanceCriteria": [
+        "Root package.json version changed to 0.9.2",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Update server package.json version",
+      "description": "Update version in server/package.json from 0.9.1 to 0.9.2",
+      "acceptanceCriteria": [
+        "Server package.json version changed to 0.9.2",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Update client package.json version",
+      "description": "Update version in client/package.json from 0.9.1 to 0.9.2",
+      "acceptanceCriteria": [
+        "Client package.json version changed to 0.9.2",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Update shared package.json version",
+      "description": "Update version in shared/package.json from 0.9.1 to 0.9.2",
+      "acceptanceCriteria": [
+        "Shared package.json version changed to 0.9.2",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
