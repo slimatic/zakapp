@@ -363,17 +363,6 @@ router.put('/:id',
         return res.status(400).json(response);
       }
 
-      // Validate request data (partial update)
-      const validation = SimpleValidation.validateAsset(req.body, true);
-      if (!validation.isValid) {
-        const response = createResponse(false, undefined, {
-          code: 'VALIDATION_ERROR',
-          message: 'Input validation failed',
-          details: validation.errors
-        });
-        return res.status(400).json(response);
-      }
-
       // Transform request data to match UpdateAssetDto
       const { description, subCategory, zakatEligible, ...otherData } = req.body;
       const updateData: Partial<UpdateAssetDto> = { ...otherData };
@@ -403,13 +392,6 @@ router.put('/:id',
       res.status(200).json(response);
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Unknown error';
-      if (errMsg === 'Asset not found') {
-        const response = createResponse(false, undefined, {
-          code: 'ASSET_NOT_FOUND',
-          message: 'Asset not found'
-        });
-        return res.status(404).json(response);
-      }
       if (errMsg.includes('Passive investment') || errMsg.includes('Restricted account') || errMsg.includes('cannot be both')) {
         const response = createResponse(false, undefined, {
           code: 'VALIDATION_ERROR',
