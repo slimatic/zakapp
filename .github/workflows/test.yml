@@ -37,11 +37,12 @@ jobs:
       env:
         CI: true
 
-    # Server tests require database setup, skip in CI for now
-    # - name: Run server tests
-    #   run: cd server && npm test
-    #   env:
-    #     CI: true
+    # Server tests require database setup - using SQLite for isolated testing
+    - name: Run server tests
+      run: cd server && npm test
+      env:
+        CI: true
+        TEST_DATABASE_URL: file:./test.db
 
     - name: Build client
       run: cd client && npm run build
