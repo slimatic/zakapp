@@ -36,7 +36,7 @@ describe('Contract Test: GET /api/assets', () => {
           password: 'SecurePassword123!'
         });
 
-      authToken = loginResponse.body.data.tokens?.accessToken || loginResponse.body.data.accessToken;
+      authToken = loginResponse.body.data.accessToken;
     } catch (error) {
       console.error('Failed to setup assets test:', error);
       app = null;
@@ -89,16 +89,15 @@ describe('Contract Test: GET /api/assets', () => {
 
       // Validate standardized response format
       expect(response.body).toHaveProperty('success', true);
-      expect(response.body).toHaveProperty('data');
-      expect(response.body.data).toHaveProperty('assets');
-      expect(response.body.data).toHaveProperty('summary');
-      expect(Array.isArray(response.body.data.assets)).toBe(true);
-
+      expect(response.body).toHaveProperty('assets');
+      expect(response.body).toHaveProperty('summary');
+      expect(Array.isArray(response.body.assets)).toBe(true);
+      
       // Validate summary structure
-      expect(response.body.data.summary).toHaveProperty('totalAssets');
-      expect(response.body.data.summary).toHaveProperty('totalValue');
-      expect(response.body.data.summary).toHaveProperty('baseCurrency');
-      expect(response.body.data.summary).toHaveProperty('categoryCounts');
+      expect(response.body.summary).toHaveProperty('totalAssets');
+      expect(response.body.summary).toHaveProperty('totalValue');
+      expect(response.body.summary).toHaveProperty('baseCurrency');
+      expect(response.body.summary).toHaveProperty('categoryCounts');
     });
 
     it('should return encrypted asset data with proper structure', async () => {
@@ -112,26 +111,29 @@ describe('Contract Test: GET /api/assets', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      const assets = response.body.data.assets;
-
+      const assets = response.body.assets;
+      
       if (assets.length > 0) {
         const asset = assets[0];
-
-        // Validate Asset schema compliance (not encrypted in this implementation)
-        expect(asset).toHaveProperty('assetId');
-        expect(asset).toHaveProperty('category');
-        expect(asset).toHaveProperty('value');
+        
+        // Validate EncryptedAsset schema compliance
+        expect(asset).toHaveProperty('id');
+        expect(asset).toHaveProperty('type');
+        expect(asset).toHaveProperty('encryptedValue');
         expect(asset).toHaveProperty('currency');
-        expect(asset).toHaveProperty('createdAt');
-
+        expect(asset).toHaveProperty('lastUpdated');
+        
         // Validate field types
-        expect(typeof asset.assetId).toBe('string');
-        expect(['cash', 'gold', 'silver', 'crypto', 'business', 'stocks', 'property']).toContain(asset.category);
-        expect(typeof asset.value).toBe('number');
+        expect(typeof asset.id).toBe('string');
+        expect(['cash', 'gold', 'silver', 'crypto', 'business', 'investment']).toContain(asset.type);
+        expect(typeof asset.encryptedValue).toBe('string');
         expect(typeof asset.currency).toBe('string');
         expect(asset.currency).toMatch(/^[A-Z]{3}$/); // ISO 4217 format
-        expect(typeof asset.createdAt).toBe('string');
-
+        expect(typeof asset.lastUpdated).toBe('string');
+        
+        // Validate encrypted value is not plaintext
+        expect(asset.encryptedValue).not.toMatch(/^\d+(\.\d+)?$/); // Should not be plain number
+        
         // Optional fields
         if (asset.description) {
           expect(typeof asset.description).toBe('string');
@@ -153,7 +155,7 @@ describe('Contract Test: GET /api/assets', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.assets).toEqual([]);
+      expect(response.body.assets).toEqual([]);
     });
 
     it('should reject invalid JWT tokens', async () => {
