@@ -38,7 +38,7 @@ import crypto from 'crypto';
 import { EncryptionService } from '../services/EncryptionService';
 import { emailService } from '../services/EmailService';
 import { SettingsService } from '../services/SettingsService';
-const { prisma } = require('../utils/prisma');
+import { prisma } from '../utils/prisma';
 import { getEncryptionKey } from '../config/security';
 import { DEFAULT_LIMITS } from '../config/limits';
 
