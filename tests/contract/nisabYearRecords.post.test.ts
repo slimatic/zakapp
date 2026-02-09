@@ -7,71 +7,31 @@
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 // import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import app from '../../server/src/app';
+import { PrismaClient } from '@prisma/client';
 
-const loadApp = async () => {
-  try {
-    const appModule = await import('../../server/src/app');
-    return appModule.default || appModule;
-  } catch (error) {
-    console.error('Failed to load app:', error);
-    return null;
-  }
-};
+const prisma = new PrismaClient();
 
 describe('POST /api/nisab-year-records', () => {
-  let app: any;
   let authToken: string;
+  let userId: string;
 
   beforeAll(async () => {
-    try {
-      app = await loadApp();
-
-      if (!app) {
-        throw new Error('Failed to load Express app');
-      }
-
-      // Set up test user and get auth token
-      const timestamp = Date.now();
-      const registerData = {
-        email: `test-nyr-post-${timestamp}@example.com`,
-        password: 'TestPassword123!',
-        confirmPassword: 'TestPassword123!',
-        firstName: 'Test',
-        lastName: 'User'
-      };
-
-      const registerResponse = await request(app)
-        .post('/api/auth/register')
-        .send(registerData);
-
-      if (registerResponse.status !== 201) {
-        console.error('Registration failed:', registerResponse.status, registerResponse.body);
-        throw new Error(`Registration failed with status ${registerResponse.status}`);
-      }
-
-      const loginResponse = await request(app)
-        .post('/api/auth/login')
-        .send(registerData)
-        .expect(200);
-
-      authToken = loginResponse.body.data.tokens?.accessToken || loginResponse.body.data.accessToken;
-
-      if (!authToken) {
-        throw new Error('Failed to get auth token');
-      }
-    } catch (error) {
-      console.error('Setup failed:', error);
-      throw new Error('BeforeAll setup failed');
-    }
+    const user = await prisma.user.create({
+      data: {
+        email: `test-post-nyr-${Date.now()}@example.com`,
+        passwordHash: 'test-hash',
+      },
+    });
+    userId = user.id;
+    authToken = 'mock-jwt-token';
   });
 
   afterAll(async () => {
-    // Cleanup if app exists
-    if (app && app.close) {
-      await app.close();
-    }
+    await prisma.yearlySnapshot.deleteMany({ where: { userId } });
+    await prisma.user.delete({ where: { id: userId } });
+    await prisma.$disconnect();
   });
 
   it('should create a new DRAFT record with valid data', async () => {
@@ -83,10 +43,7 @@ describe('POST /api/nisab-year-records', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: hawlStartDate.toISOString(),
-        hawlStartDateHijri: '1445-01-01H', // Required Hijri date
-        hawlCompletionDate: hawlCompletionDate.toISOString(),
-        hawlCompletionDateHijri: '1446-01-01H', // Required Hijri completion date
-        nisabBasis: 'GOLD', // Must be uppercase
+        nisabBasis: 'gold',
         nisabThresholdAtStart: 5000,
         userNotes: 'Test record creation',
       });
@@ -95,7 +52,7 @@ describe('POST /api/nisab-year-records', () => {
     expect(res.body).toHaveProperty('success', true);
     expect(res.body.data).toMatchObject({
       status: 'DRAFT',
-      nisabBasis: 'GOLD',
+      nisabBasis: 'gold',
       hawlStartDate: expect.any(String),
       nisabThresholdAtStart: expect.any(Number),
     });
@@ -106,10 +63,7 @@ describe('POST /api/nisab-year-records', () => {
       .post('/api/nisab-year-records')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
-        hawlStartDateHijri: '1445-01-01H',
-        hawlCompletionDate: new Date().toISOString(),
-        hawlCompletionDateHijri: '1446-01-01H',
-        nisabBasis: 'GOLD',
+        nisabBasis: 'gold',
       });
 
     expect(res.status).toBe(400);
@@ -123,9 +77,6 @@ describe('POST /api/nisab-year-records', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date().toISOString(),
-        hawlStartDateHijri: '1445-01-01H',
-        hawlCompletionDate: new Date().toISOString(),
-        hawlCompletionDateHijri: '1446-01-01H',
       });
 
     expect(res.status).toBe(400);
@@ -138,9 +89,6 @@ describe('POST /api/nisab-year-records', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date().toISOString(),
-        hawlStartDateHijri: '1445-01-01H',
-        hawlCompletionDate: new Date().toISOString(),
-        hawlCompletionDateHijri: '1446-01-01H',
         nisabBasis: 'platinum', // Invalid
       });
 
@@ -166,10 +114,7 @@ describe('POST /api/nisab-year-records', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         hawlStartDate: new Date().toISOString(),
-        hawlStartDateHijri: '1445-01-01H',
-        hawlCompletionDate: new Date().toISOString(),
-        hawlCompletionDateHijri: '1446-01-01H',
-        nisabBasis: 'GOLD',
+        nisabBasis: 'gold',
         // Note: No nisabThresholdAtStart provided
       });
 
