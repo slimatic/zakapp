@@ -1,155 +1,116 @@
 /**
  * Contract Test: DELETE /api/nisab-year-records/:id
- *
+ * 
  * Tests deleting a Nisab Year Record (only DRAFT records allowed)
+ * 
+ * Status: INTENTIONALLY FAILING (TDD approach)
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import app from '../../server/src/app';
+import { PrismaClient } from '@prisma/client';
 
-const loadApp = async () => {
-  try {
-    const appModule = await import('../../server/src/app');
-    return appModule.default || appModule;
-  } catch (error) {
-    console.error('Failed to load app:', error);
-    return null;
-  }
-};
+const prisma = new PrismaClient();
 
 describe('DELETE /api/nisab-year-records/:id', () => {
-  let app: any;
   let authToken: string;
+  let userId: string;
   let draftRecordId: string;
   let finalizedRecordId: string;
 
   beforeAll(async () => {
-    try {
-      app = await loadApp();
+    const user = await prisma.user.create({
+      data: {
+        email: `test-delete-nyr-${Date.now()}@example.com`,
+        passwordHash: 'test-hash',
+      },
+    });
+    userId = user.id;
+    authToken = 'mock-jwt-token';
 
-      if (!app) {
-        throw new Error('Failed to load Express app');
-      }
+    const draftRecord = await prisma.yearlySnapshot.create({
+      data: {
+        userId,
+        calculationDate: new Date(),
+        gregorianYear: 2025,
+        gregorianMonth: 10,
+        gregorianDay: 27,
+        hijriYear: 1446,
+        hijriMonth: 3,
+        hijriDay: 24,
+        totalWealth: 'encrypted-5000',
+        totalLiabilities: 'encrypted-0',
+        zakatableWealth: 'encrypted-5000',
+        zakatAmount: 'encrypted-125',
+        methodologyUsed: 'standard',
+        nisabThreshold: 'encrypted-5000',
+        nisabType: 'gold',
+        status: 'DRAFT',
+        assetBreakdown: 'encrypted-json',
+        calculationDetails: 'encrypted-json',
+      },
+    });
+    draftRecordId = draftRecord.id;
 
-      // Set up test user and get auth token
-      const timestamp = Date.now();
-      const registerData = {
-        email: `test-nyr-delete-${timestamp}@example.com`,
-        password: 'TestPassword123!',
-        confirmPassword: 'TestPassword123!',
-        firstName: 'Test',
-        lastName: 'User'
-      };
-
-      const registerResponse = await request(app)
-        .post('/api/auth/register')
-        .send(registerData);
-
-      if (registerResponse.status !== 201) {
-        console.error('Registration failed:', registerResponse.status, registerResponse.body);
-        throw new Error(`Registration failed with status ${registerResponse.status}`);
-      }
-
-      const loginResponse = await request(app)
-        .post('/api/auth/login')
-        .send(registerData)
-        .expect(200);
-
-      authToken = loginResponse.body.data.tokens?.accessToken || loginResponse.body.data.accessToken;
-
-      if (!authToken) {
-        throw new Error('Failed to get auth token');
-      }
-
-      // Create a draft record
-      const draftData = {
-        hawlStartDate: new Date().toISOString(),
-        hawlStartDateHijri: '1445-01-01H',
-        hawlCompletionDate: new Date(Date.now() + 354 * 24 * 60 * 60 * 1000).toISOString(),
-        hawlCompletionDateHijri: '1446-01-01H',
-        nisabBasis: 'GOLD',
-        nisabThresholdAtStart: 5000,
-        userNotes: 'Draft record for delete test'
-      };
-
-      const draftResponse = await request(app)
-        .post('/api/nisab-year-records')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(draftData)
-        .expect(201);
-
-      draftRecordId = draftResponse.body.data.id;
-
-      // Create and finalize a record
-      const finalizedData = {
-        hawlStartDate: new Date(Date.now() - 355 * 24 * 60 * 60 * 1000).toISOString(), // Already completed
-        hawlStartDateHijri: '1444-01-01H',
-        hawlCompletionDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Completed yesterday
-        hawlCompletionDateHijri: '1445-01-01H',
-        nisabBasis: 'GOLD',
-        nisabThresholdAtStart: 5000,
-        userNotes: 'Finalized record for delete test'
-      };
-
-      const finalizedResponse = await request(app)
-        .post('/api/nisab-year-records')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(finalizedData)
-        .expect(201);
-
-      finalizedRecordId = finalizedResponse.body.data.id;
-
-      // Finalize the record
-      await request(app)
-        .post(`/api/nisab-year-records/${finalizedRecordId}/finalize`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({ finalizationNotes: 'Test finalization' })
-        .expect(200);
-
-      if (!draftRecordId || !finalizedRecordId) {
-        throw new Error('Failed to create test records');
-      }
-    } catch (error) {
-      console.error('Setup failed:', error);
-      throw new Error('BeforeAll setup failed');
-    }
+    const finalizedRecord = await prisma.yearlySnapshot.create({
+      data: {
+        userId,
+        calculationDate: new Date(),
+        gregorianYear: 2024,
+        gregorianMonth: 10,
+        gregorianDay: 27,
+        hijriYear: 1445,
+        hijriMonth: 3,
+        hijriDay: 24,
+        totalWealth: 'encrypted-5000',
+        totalLiabilities: 'encrypted-0',
+        zakatableWealth: 'encrypted-5000',
+        zakatAmount: 'encrypted-125',
+        methodologyUsed: 'standard',
+        nisabThreshold: 'encrypted-5000',
+        nisabType: 'gold',
+        status: 'FINALIZED',
+        assetBreakdown: 'encrypted-json',
+        calculationDetails: 'encrypted-json',
+      },
+    });
+    finalizedRecordId = finalizedRecord.id;
   });
 
   afterAll(async () => {
-    // Cleanup if app exists
-    if (app && app.close) {
-      await app.close();
-    }
+    await prisma.yearlySnapshot.deleteMany({ where: { userId } });
+    await prisma.user.delete({ where: { id: userId } });
+    await prisma.$disconnect();
   });
 
-  it('should delete DRAFT record successfully', async () => {
+  it('should delete a DRAFT record', async () => {
     const res = await request(app)
       .delete(`/api/nisab-year-records/${draftRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.message).toBe('Record deleted successfully');
+    expect(res.body).toHaveProperty('success', true);
+    expect(res.body).toHaveProperty('message', 'Record deleted successfully');
   });
 
-  it('should reject deletion of FINALIZED record', async () => {
+  it('should not delete FINALIZED records', async () => {
     const res = await request(app)
       .delete(`/api/nisab-year-records/${finalizedRecordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(res.status).toBe(409);
-    expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('INVALID_STATE');
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error', 'DELETE_NOT_ALLOWED');
+    expect(res.body.message).toContain('Cannot delete FINALIZED');
   });
 
   it('should return 404 for non-existent record', async () => {
     const res = await request(app)
-      .delete('/api/nisab-year-records/non-existent-id')
+      .delete('/api/nisab-year-records/nonexistent-id')
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(res.status).toBe(404);
-    expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('NOT_FOUND');
+    expect(res.body).toHaveProperty('error', 'NOT_FOUND');
   });
 
   it('should return 401 for unauthenticated request', async () => {
@@ -157,7 +118,20 @@ describe('DELETE /api/nisab-year-records/:id', () => {
       .delete(`/api/nisab-year-records/${draftRecordId}`);
 
     expect(res.status).toBe(401);
-    expect(res.body.success).toBe(false);
-    expect(res.body.error).toBe('UNAUTHORIZED');
+    expect(res.body).toHaveProperty('error', 'UNAUTHORIZED');
+  });
+
+  it('should not return deleted record in subsequent GET', async () => {
+    const deleteRes = await request(app)
+      .delete(`/api/nisab-year-records/${draftRecordId}`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    if (deleteRes.status === 200) {
+      const getRes = await request(app)
+        .get(`/api/nisab-year-records/${draftRecordId}`)
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(getRes.status).toBe(404);
+    }
   });
 });

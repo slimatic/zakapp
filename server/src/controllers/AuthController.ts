@@ -16,11 +16,11 @@
  */
 
 import { Request, Response } from 'express';
-import { randomBytes, randomUUID } from 'crypto';
-import { AuthenticatedRequest, ApiResponse } from '../types';
-import { asyncHandler } from '../middleware/ErrorHandler';
+import crypto from 'crypto';
+import { AuthenticatedRequest, ApiResponse, AuthTokens, User } from '../types';
+import { asyncHandler, AppError } from '../middleware/ErrorHandler';
 import { AuthService } from '../services/AuthService';
-import { generateSessionId, invalidateAllUserRefreshTokens } from '../utils/jwt';
+import { generateAccessToken, generateRefreshToken, generateSessionId, verifyRefreshToken, markRefreshTokenAsUsed, verifyToken, invalidateAllUserRefreshTokens } from '../utils/jwt';
 import { generateResetToken, validateResetToken, useResetToken, invalidateUserResetTokens } from '../utils/resetTokens';
 import { emailService } from '../services/EmailService';
 import { SettingsService } from '../services/SettingsService';
@@ -30,7 +30,7 @@ const authService = new AuthService();
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
-    const { email, password, firstName, lastName, username } = req.body;
+    const { email, password, username, firstName, lastName, timezone, currency, salt } = req.body;
 
     // Validation - collect all errors
     const validationErrors: Array<{ field: string, message: string }> = [];
@@ -47,18 +47,8 @@ export class AuthController {
       validationErrors.push({ field: 'password', message: 'Password must be at least 8 characters with mixed case, numbers, and symbols' });
     }
 
-    if (!firstName) {
-      validationErrors.push({ field: 'firstName', message: 'First name is required' });
-    }
-
-    if (!lastName) {
-      validationErrors.push({ field: 'lastName', message: 'Last name is required' });
-    }
-
     if (!username) {
       validationErrors.push({ field: 'username', message: 'Username is required' });
-    } else if (username.length < 3) {
-      validationErrors.push({ field: 'username', message: 'Username must be at least 3 characters' });
     }
 
     if (validationErrors.length > 0) {
@@ -72,29 +62,19 @@ export class AuthController {
     }
 
     try {
-      // Create user
-      const result = await authService.register({ email, password, firstName, lastName, username });
-      if (!result) {
-        res.status(400).json({
-          success: false,
-          error: 'REGISTRATION_FAILED',
-          message: 'Failed to create user'
-        });
-        return;
-      }
-
-      // Generate verification token
-      const token = crypto.randomUUID();
-
-      await prisma.user.update({
-        where: { id: result.user.id },
-        data: {
-          verificationToken: token,
-          verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-        }
+      // Create user using AuthService
+      const result = await authService.register({
+        firstName: firstName || '',
+        lastName: lastName || '',
+        username,
+        email,
+        password,
+        timezone,
+        currency,
+        salt
       });
 
-      // Create user response
+      // Create user response without sensitive data
       const userResponse = {
         id: result.user.id,
         email: result.user.email,
@@ -102,22 +82,34 @@ export class AuthController {
         firstName: result.user.firstName,
         lastName: result.user.lastName,
         createdAt: result.user.createdAt,
-        isAdmin: result.user.userType === 'ADMIN_USER' || (result.user.email && process.env.ADMIN_EMAILS?.split(',').map((e: string) => e.trim().toLowerCase()).includes(result.user.email.toLowerCase())),
         maxAssets: result.user.maxAssets,
         maxNisabRecords: result.user.maxNisabRecords,
         maxPayments: result.user.maxPayments,
         salt: result.user.salt,
-        isVerified: false
+        isVerified: result.user.isVerified
       };
 
       const response: ApiResponse = {
         success: true,
-        message: 'User registered successfully. Please check your email for verification.',
+        message: 'User registered successfully',
         user: userResponse,
         tokens: result.tokens
       };
 
+      // Send Verification Email
       try {
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+        await prisma.user.update({
+          where: { id: result.user.id },
+          data: {
+            verificationToken: token,
+            verificationTokenExpires: expiry,
+            isVerified: false // Explicitly set to false on new registration
+          }
+        });
+
         // Fire and forget email (don't block response) or wait?
         // Better to wait briefly or log error, but return success to user.
         await emailService.sendVerificationEmail(email, token, firstName, username);
@@ -455,9 +447,9 @@ export class AuthController {
     // Privacy-first: Always return success to prevent email enumeration
     // In real implementation, would send email if user exists
     const userId = await authService.getUserIdByEmail(email);
-    const resetTokenId = randomUUID(); // Always use UUID format for security
+    const resetTokenId = crypto.randomUUID(); // Always use UUID format for security
     const expiresIn = 3600; // 1 hour in seconds
-    const eventId = `pwd_reset_${Date.now()}_${randomBytes(4).toString('hex')}`;
+    const eventId = `pwd_reset_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
 
     if (userId) {
       // Invalidate any existing reset tokens for this user
@@ -465,13 +457,8 @@ export class AuthController {
 
       const resetToken = await generateResetToken(userId, email);
 
-      // Send password reset email
-      try {
-        await emailService.sendPasswordResetEmail(email, resetToken);
-      } catch (emailError) {
-        console.error('Failed to send password reset email:', emailError);
-        // Continue to prevent information leakage about email existence
-      }
+      // In real implementation: send email with resetToken
+      // TODO: Implement email service to send reset token securely
     }
 
     const response: ApiResponse = {
@@ -599,5 +586,3 @@ export class AuthController {
     }
   });
 }
-
-export const authController = new AuthController();

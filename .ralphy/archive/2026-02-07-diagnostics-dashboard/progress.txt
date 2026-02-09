@@ -1,0 +1,8 @@
+# Ralphy Progress Log
+- [✗] 2026-02-07 00:11 - Create Backend Health Service & Basic Endpoint
+- [✗] 2026-02-07 00:11 - Add Migration Status Check
+- [✗] 2026-02-07 00:11 - Create Diagnostics Dashboard UI
+- [✓] 2026-02-07 00:18 - Create Backend Health Service & Basic Endpoint
+- [✓] 2026-02-07 00:22 - Add Migration Status Check
+- [✓] 2026-02-07 00:28 - Create Diagnostics Dashboard UI
+- [✓] 2026-02-07 00:32 - Add Client-Side Checks and Troubleshooting Advice
