@@ -5,13 +5,8 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 // Test setup utilities
 const loadApp = async () => {
   try {
-    try {
-      const appModule = require('../../server/dist/app');
-      return appModule.default || appModule;
-    } catch (e) {
-      const appModule = require('../../server/src/app');
-      return appModule.default || appModule;
-    }
+    const appModule = await import('../../server/src/app');
+    return appModule.default || appModule;
   } catch (error) {
     console.error('Failed to load app:', error);
     return null;
@@ -58,7 +53,7 @@ describe('Contract Test: PUT /api/assets/:id', () => {
         .send(registerData)
         .expect(200);
 
-      authToken = loginResponse.body.data.accessToken;
+      authToken = loginResponse.body.data.tokens?.accessToken || loginResponse.body.data.accessToken;
       
       if (!authToken) {
         throw new Error('Failed to get auth token');
@@ -66,9 +61,11 @@ describe('Contract Test: PUT /api/assets/:id', () => {
 
       // Create a test asset to use in PUT tests
       const assetData = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test Cash Asset',
         value: 1000,
         currency: 'USD',
+        acquisitionDate: new Date().toISOString(),
         description: 'Test asset for PUT operations'
       };
 
@@ -78,10 +75,10 @@ describe('Contract Test: PUT /api/assets/:id', () => {
         .send(assetData)
         .expect(201);
 
-      testAssetId = assetResponse.body.data.asset.id;
-      
+      testAssetId = assetResponse.body?.data?.asset?.assetId || assetResponse.body?.data?.asset?.id;
+
       if (!testAssetId) {
-        throw new Error('Failed to create test asset');
+        throw new Error('Failed to create test asset - no ID found');
       }
     } catch (error) {
       console.error('Setup failed:', error);
