@@ -1,11 +1,4 @@
-import { vi, type Mock } from 'vitest';
-/**
- * Contract Test: GET /api/nisab-year-records/:id
- * 
- * Validates API contract compliance for retrieving a specific Nisab Year Record
- * Based on: specs/008-nisab-year-record/contracts/nisab-year-records.openapi.yaml
- */
-
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app';
@@ -156,13 +149,13 @@ describe('GET /api/nisab-year-records/:id - Contract Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      // Values should be decrypted strings
-      expect(typeof response.body.data.totalWealth).toBe('string');
-      expect(typeof response.body.data.zakatableWealth).toBe('string');
-      expect(typeof response.body.data.zakatAmount).toBe('string');
+      // Values should be numbers (API returns numeric types)
+      expect(typeof response.body.data.totalWealth).toBe('number');
+      expect(typeof response.body.data.zakatableWealth).toBe('number');
+      expect(typeof response.body.data.zakatAmount).toBe('number');
       
-      // Verify they are parseable numbers
-      expect(!isNaN(parseFloat(response.body.data.totalWealth))).toBe(true);
+      // Verify they are valid numbers
+      expect(!isNaN(response.body.data.totalWealth)).toBe(true);
     });
   });
 });

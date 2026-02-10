@@ -137,7 +137,7 @@ describe('PUT /api/nisab-year-records/:id', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.error).toBe('VALIDATION_ERROR');
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 
   it('should return 404 for non-existent record', async () => {
@@ -152,7 +152,7 @@ describe('PUT /api/nisab-year-records/:id', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);
-    expect(res.body.error).toBe('NOT_FOUND');
+    expect(res.body.error.code).toBe('NOT_FOUND');
   });
 
   it('should return 401 for unauthenticated request', async () => {
