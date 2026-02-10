@@ -51,6 +51,12 @@ export default async function globalSetup() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await (prisma as any).$queryRawUnsafe('PRAGMA journal_mode=WAL;');
           console.log('[globalSetup] Enabled WAL mode for test DB via Prisma (or no-op)');
+
+          // Set a busy timeout to handle SQLite contention during parallel test runs.
+          // Default SQLite busy timeout is very low; 5000ms gives enough headroom.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (prisma as any).$queryRawUnsafe('PRAGMA busy_timeout=5000;');
+          console.log('[globalSetup] Set SQLite busy timeout to 5000ms');
         } finally {
           await prisma.$disconnect();
           // restore previous env
