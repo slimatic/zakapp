@@ -1,6 +1,5 @@
 import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-// import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 // Test setup utilities
 const loadApp = async () => {
@@ -52,7 +51,8 @@ describe('Contract Test: POST /api/assets', () => {
         .send(registerData)
         .expect(200);
 
-      authToken = loginResponse.body.data.accessToken;
+      // Tokens are nested under data.tokens
+      authToken = loginResponse.body.data?.tokens?.accessToken || loginResponse.body.data?.accessToken;
       
       if (!authToken) {
         throw new Error('Failed to get auth token');
