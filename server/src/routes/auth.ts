@@ -423,6 +423,11 @@ router.post('/register',
       }
 
       // Respond with standard format matching contract expectations
+      // Ensure createdAt is a string for JSON serialization
+      const userCreatedAt = user.createdAt instanceof Date 
+        ? user.createdAt.toISOString() 
+        : String(user.createdAt || new Date().toISOString());
+      
       res.status(201).json({
         success: true,
         data: {
@@ -432,6 +437,7 @@ router.post('/register',
             username: user.username,
             firstName: profileData.firstName || '',
             lastName: profileData.lastName || '',
+            createdAt: userCreatedAt,
             isActive: user.isActive,
             isVerified: user.isVerified,
             profile: profileData,

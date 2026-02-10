@@ -79,17 +79,18 @@ export class AuthController {
         ? result.user.createdAt.toISOString() 
         : String(result.user.createdAt || new Date().toISOString());
       
+      // Build user response - explicitly include all needed fields
       const userResponse = {
-        id: result.user.id,
-        email: result.user.email,
-        username: result.user.username,
-        firstName: result.user.firstName,
-        lastName: result.user.lastName,
+        id: String(result.user.id || ''),
+        email: String(result.user.email || ''),
+        username: result.user.username ? String(result.user.username) : null,
+        firstName: String(result.user.firstName || result.user.firstName || ''),
+        lastName: String(result.user.lastName || result.user.lastName || ''),
         createdAt: createdAtValue,
-        maxAssets: result.user.maxAssets,
-        maxNisabRecords: result.user.maxNisabRecords,
-        maxPayments: result.user.maxPayments,
-        isVerified: result.user.isVerified
+        maxAssets: Number(result.user.maxAssets || 0),
+        maxNisabRecords: Number(result.user.maxNisabRecords || 0),
+        maxPayments: Number(result.user.maxPayments || 0),
+        isVerified: Boolean(result.user.isVerified)
       };
 
       const response: ApiResponse<{ user: typeof userResponse; tokens: typeof result.tokens }> = {
