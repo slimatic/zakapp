@@ -57,6 +57,12 @@ export default async function globalSetup() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await (prisma as any).$queryRawUnsafe('PRAGMA busy_timeout=5000;');
           console.log('[globalSetup] Set SQLite busy timeout to 5000ms');
+
+          // Set a statement timeout to allow longer-running queries in test environments.
+          // This helps with complex queries and reduces false timeout errors.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (prisma as any).$queryRawUnsafe('PRAGMA statement_timeout=60000;');
+          console.log('[globalSetup] Set SQLite statement timeout to 60000ms');
         } finally {
           await prisma.$disconnect();
           // restore previous env
