@@ -225,19 +225,17 @@ describe('Integration: Live Wealth Tracking', () => {
   });
 
   it('should meet performance requirement (<100ms for aggregation)', async () => {
-    // Create 50 zakatable assets to test performance
-    const assetPromises = Array.from({ length: 50 }, (_, i) =>
-      request(app)
+    // Create 50 assets sequentially to avoid SQLite contention during parallel test runs
+    for (let i = 0; i < 50; i++) {
+      await request(app)
         .post('/api/assets')
         .set('Authorization', `Bearer ${authToken}`)
         .send(createAssetPayload({
           name: `Asset ${i}`,
           category: i % 2 === 0 ? 'cash' : 'gold',
           value: 100 + i,
-        }))
-    );
-
-    await Promise.all(assetPromises);
+        }));
+    }
 
     // Measure aggregation time
     const startTime = Date.now();
