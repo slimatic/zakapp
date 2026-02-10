@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-// import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
+// import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 
 // Note: This test will fail until the implementation exists
 // This is intentional as per TDD methodology
