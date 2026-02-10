@@ -81,19 +81,19 @@ export class AuthController {
         username: result.user.username,
         firstName: result.user.firstName,
         lastName: result.user.lastName,
-        createdAt: result.user.createdAt,
+        createdAt: result.user.createdAt?.toISOString?.() || result.user.createdAt,
         maxAssets: result.user.maxAssets,
         maxNisabRecords: result.user.maxNisabRecords,
         maxPayments: result.user.maxPayments,
-        salt: result.user.salt,
         isVerified: result.user.isVerified
       };
 
-      const response: ApiResponse = {
+      const response: ApiResponse<{ user: typeof userResponse; tokens: typeof result.tokens }> = {
         success: true,
-        message: 'User registered successfully',
-        user: userResponse,
-        tokens: result.tokens
+        data: {
+          user: userResponse,
+          tokens: result.tokens
+        }
       };
 
       // Send Verification Email
@@ -121,11 +121,13 @@ export class AuthController {
       res.status(201).json(response);
     } catch (error: any) {
       if (error.message === 'User with this email or username already exists') {
-        res.status(409).json({
-          success: false,
-          error: 'EMAIL_ALREADY_EXISTS',
+      res.status(409).json({
+        success: false,
+        error: {
+          code: 'EMAIL_ALREADY_EXISTS',
           message: 'Email address is already registered'
-        });
+        }
+      });
         return;
       }
       throw error;
