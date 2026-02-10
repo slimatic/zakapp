@@ -75,13 +75,17 @@ export class AuthController {
       });
 
       // Create user response without sensitive data
+      const createdAtValue = result.user.createdAt instanceof Date 
+        ? result.user.createdAt.toISOString() 
+        : String(result.user.createdAt || new Date().toISOString());
+      
       const userResponse = {
         id: result.user.id,
         email: result.user.email,
         username: result.user.username,
         firstName: result.user.firstName,
         lastName: result.user.lastName,
-        createdAt: result.user.createdAt ? result.user.createdAt.toISOString() : new Date().toISOString(),
+        createdAt: createdAtValue,
         maxAssets: result.user.maxAssets,
         maxNisabRecords: result.user.maxNisabRecords,
         maxPayments: result.user.maxPayments,
