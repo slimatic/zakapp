@@ -81,7 +81,7 @@ export class AuthController {
         username: result.user.username,
         firstName: result.user.firstName,
         lastName: result.user.lastName,
-        createdAt: result.user.createdAt?.toISOString?.() || result.user.createdAt,
+        createdAt: result.user.createdAt ? result.user.createdAt.toISOString() : new Date().toISOString(),
         maxAssets: result.user.maxAssets,
         maxNisabRecords: result.user.maxNisabRecords,
         maxPayments: result.user.maxPayments,
