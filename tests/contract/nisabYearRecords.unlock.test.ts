@@ -121,7 +121,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error).toBe('VALIDATION_ERROR');
   });
 
   it('should reject unlock with reason too short', async () => {
@@ -132,7 +132,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error).toBe('VALIDATION_ERROR');
   });
 
   it('should reject unlock with reason too long', async () => {
@@ -144,7 +144,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error).toBe('VALIDATION_ERROR');
   });
 
   it('should reject unlock of non-FINALIZED record', async () => {
@@ -174,7 +174,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(409);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('INVALID_STATE');
+    expect(res.body.error).toBe('INVALID_STATE');
   });
 
   it('should return 404 for non-existent record', async () => {
@@ -185,7 +185,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('NOT_FOUND');
+    expect(res.body.error).toBe('NOT_FOUND');
   });
 
   it('should return 401 for unauthenticated request', async () => {

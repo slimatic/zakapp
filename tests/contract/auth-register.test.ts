@@ -103,7 +103,7 @@ describe('Contract Test: POST /api/auth/register', () => {
       expect(user).toHaveProperty('firstName', registrationData.firstName);
       expect(user).toHaveProperty('lastName', registrationData.lastName);
       expect(user).toHaveProperty('isActive', true);
-      expect(user).toHaveProperty('createdAt');
+      expect('createdAt' in user).toBe(true);
 
       // Validate field types
       expect(typeof user.id).toBe('string');

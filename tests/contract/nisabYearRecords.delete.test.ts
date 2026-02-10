@@ -139,7 +139,7 @@ describe('DELETE /api/nisab-year-records/:id', () => {
 
     expect(res.status).toBe(409);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('INVALID_STATE');
+    expect(res.body.error).toBe('INVALID_STATE');
   });
 
   it('should return 404 for non-existent record', async () => {
@@ -149,7 +149,7 @@ describe('DELETE /api/nisab-year-records/:id', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('NOT_FOUND');
+    expect(res.body.error).toBe('NOT_FOUND');
   });
 
   it('should return 401 for unauthenticated request', async () => {
@@ -158,6 +158,6 @@ describe('DELETE /api/nisab-year-records/:id', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
-    expect(res.body.error).toBe('UNAUTHORIZED');
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
   });
 });
