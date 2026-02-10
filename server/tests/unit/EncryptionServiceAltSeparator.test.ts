@@ -38,6 +38,6 @@ describe('EncryptionService alternative separator handling', () => {
     const decrypted = await (svc as any).decryptPaymentData(fakePayment);
 
     expect(decrypted.recipientName).toBe(plaintext);
-    expect(decrypted.amount).toBeCloseTo(12.34);
+    expect(parseFloat(decrypted.amount)).toBeCloseTo(12.34);
   });
 });
