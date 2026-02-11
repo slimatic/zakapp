@@ -119,7 +119,7 @@ describe('GET /api/nisab-year-records', () => {
 
     expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('success', false);
-    expect(res.body).toHaveProperty('error', 'UNAUTHORIZED');
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
   });
 
   it('should return empty array when no records match filter', async () => {

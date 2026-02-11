@@ -174,7 +174,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(409);
     expect(res.body.success).toBe(false);
-    expect(res.body.error).toBe('INVALID_STATE');
+    expect(res.body.error.code).toBe('INVALID_STATE');
   });
 
   it('should return 404 for non-existent record', async () => {
