@@ -29,6 +29,13 @@ describe('HawlTrackingService', () => {
 
   beforeEach(() => {
     mockPrisma = {
+      $transaction: vi.fn(async (callback) => {
+        // When transaction is called with a callback, execute it with mockPrisma as tx
+        if (typeof callback === 'function') {
+          return await callback(mockPrisma);
+        }
+        return callback;
+      }),
       yearlySnapshot: {
         findFirst: vi.fn(),
         create: vi.fn(),

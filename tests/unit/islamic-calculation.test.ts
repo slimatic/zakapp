@@ -7,6 +7,7 @@
  * - Quality & Reliability: Comprehensive testing of financial calculations
  */
 
+import { describe, it, expect, beforeEach } from 'vitest';
 import { IslamicCalculationService } from '../../server/src/services/IslamicCalculationService';
 import { ZakatMethodology, AssetCategory, ZakatCalculationResult } from '../../shared/src/types';
 

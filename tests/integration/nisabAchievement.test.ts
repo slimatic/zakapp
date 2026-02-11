@@ -6,7 +6,7 @@
  * Status: INTENTIONALLY FAILING (TDD approach)
  */
 
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 
 describe('Integration: Nisab Achievement Scenario', () => {
   it('should create record in DRAFT when assets below Nisab', () => {

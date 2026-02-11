@@ -59,6 +59,23 @@ check_prerequisites() {
         exit 1
     fi
     
+    # Check if Docker daemon is running
+    if ! docker info > /dev/null 2>&1; then
+        print_error "Docker daemon is not running"
+        echo "Please start Docker and try again:"
+        echo "  Ubuntu: sudo systemctl start docker"
+        echo "  macOS: Start Docker Desktop from Applications"
+        exit 1
+    fi
+    
+    # Check if user has Docker permissions
+    if ! docker ps > /dev/null 2>&1; then
+        print_warning "You may need sudo privileges to run Docker commands"
+        print_status "Consider adding your user to the docker group:"
+        echo "  sudo usermod -aG docker \$USER"
+        echo ""
+    fi
+    
     print_success "Docker and Docker Compose are installed"
 }
 
@@ -77,6 +94,27 @@ detect_ip() {
     fi
     
     echo "$ip"
+}
+
+# Verify network accessibility
+verify_network() {
+    local ip=$1
+    print_status "Checking network configuration..."
+    
+    if [ -z "$ip" ]; then
+        print_warning "Could not detect server IP automatically"
+        return 1
+    fi
+    
+    # Check if IP is localhost
+    if [[ "$ip" == 127.* ]]; then
+        print_warning "Detected IP is localhost ($ip)"
+        print_status "Network access will only work if you configure a real IP"
+        return 1
+    fi
+    
+    print_success "Network IP detected: $ip"
+    return 0
 }
 
 # Check if a port is in use
@@ -188,15 +226,49 @@ setup_environment() {
     # Check if .env exists
     if [ -f "$ENV_FILE" ]; then
         print_warning ".env file already exists"
-        read -p "Do you want to keep existing configuration? (Y/n): " -n 1 -r
+        echo ""
+        echo "Options:"
+        echo "  1) Keep existing configuration (recommended)"
+        echo "  2) Regenerate configuration (will backup and preserve secrets)"
+        echo "  3) Update access settings only (recommended after IP change)"
+        read -p "Select option (1-3): " -n 1 -r
         echo
-        if [[ $REPLY =~ ^[Nn]$ ]]; then
-            cp "$ENV_FILE" ".env.backup.$(date +%Y%m%d_%H%M%S)"
-            print_status "Backup created: .env.backup.*"
-        else
-            print_status "Using existing .env configuration"
-            return
-        fi
+        
+        case $REPLY in
+            1)
+                print_status "Using existing .env configuration"
+                # Still verify network configuration
+                local server_ip=$(detect_ip)
+                verify_network "$server_ip" || true
+                return
+                ;;
+            2)
+                cp "$ENV_FILE" ".env.backup.$(date +%Y%m%d_%H%M%S)"
+                print_status "Backup created: .env.backup.*"
+                # Extract and preserve secrets
+                local secrets_backup=""
+                for secret in JWT_SECRET JWT_REFRESH_SECRET REFRESH_SECRET ENCRYPTION_KEY APP_SECRET COUCHDB_JWT_SECRET COUCHDB_PASSWORD; do
+                    local value=$(grep "^$secret=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2-)
+                    if [ -n "$value" ]; then
+                        secrets_backup="$secrets_backupexport $secret='$value'\n"
+                    fi
+                done
+                print_status "Preserved existing secrets"
+                ;;
+            3)
+                print_status "Updating access settings only..."
+                # Just update access-related vars, keep everything else
+                configure_access_mode
+                configure_ports
+                generate_missing_secrets
+                print_success "Environment configured"
+                return
+                ;;
+            *)
+                print_warning "Invalid option, keeping existing configuration"
+                return
+                ;;
+        esac
     fi
     
     # Create .env from example if it doesn't exist
@@ -208,9 +280,18 @@ setup_environment() {
         fi
     fi
     
-    # Detect environment type
+    # Detect environment type and configure
+    configure_access_mode
+    configure_ports
+    generate_missing_secrets
+    
+    print_success "Environment configured"
+}
+
+# Configure access mode (IP/domain/localhost)
+configure_access_mode() {
     local server_ip=$(detect_ip)
-    local access_mode=""
+    verify_network "$server_ip" || true
     
     print_status "Detected server IP: $server_ip"
     echo ""
@@ -220,6 +301,7 @@ setup_environment() {
     echo "3) Custom domain"
     read -p "Select option (1-3): " access_option
     
+    local access_mode=""
     case $access_option in
         1)
             access_mode="localhost"
@@ -256,14 +338,16 @@ setup_environment() {
             sed -i "s|^ALLOWED_ORIGINS=.*|ALLOWED_ORIGINS=https://$domain|" "$ENV_FILE"
             sed -i "s|^ALLOWED_HOSTS=.*|ALLOWED_HOSTS=$domain|" "$ENV_FILE"
             sed -i "s|^# ZAKAPP_DOMAIN=.*|ZAKAPP_DOMAIN=$domain|" "$ENV_FILE"
-             print_success "Configured for domain: https://$domain"
-             ;;
-     esac
-     
-     # Collect admin email addresses
-     collect_admin_emails
-     
-     # Check for port conflicts
+            print_success "Configured for domain: https://$domain"
+            ;;
+    esac
+    
+    # Collect admin email addresses
+    collect_admin_emails
+}
+
+# Configure ports
+configure_ports() {
     local http_port=$(grep "^FRONTEND_PORT=" "$ENV_FILE" | cut -d'=' -f2 || echo "3000")
     local https_port=$(grep "^FRONTEND_PORT_SSL=" "$ENV_FILE" | cut -d'=' -f2 || echo "3443")
     
@@ -280,8 +364,10 @@ setup_environment() {
         print_status "Using alternative SSL port: $new_ssl_port"
         sed -i "s|^FRONTEND_PORT_SSL=.*|FRONTEND_PORT_SSL=$new_ssl_port|" "$ENV_FILE"
     fi
-    
-    # Generate secrets if not present
+}
+
+# Generate missing secrets
+generate_missing_secrets() {
     print_status "Generating secure secrets..."
     
     local secrets=(
@@ -309,8 +395,6 @@ setup_environment() {
             fi
         fi
     done
-    
-    print_success "Environment configured"
 }
 
 # Deploy the application
@@ -331,7 +415,7 @@ deploy() {
     local max_retries=30
     
     while [ $retries -lt $max_retries ]; do
-        if docker compose -f "$COMPOSE_FILE" ps backend | grep -q "healthy"; then
+        if docker compose -f "$COMPOSE_FILE" ps backend 2>/dev/null | grep -q "healthy"; then
             print_success "Backend is ready"
             break
         fi
@@ -348,6 +432,79 @@ deploy() {
     # Run migrations
     print_status "Running database migrations..."
     docker compose -f "$COMPOSE_FILE" run --rm migrations || print_warning "Migration step completed"
+    
+    # Verify all services
+    verify_deployment
+}
+
+# Verify deployment is successful
+verify_deployment() {
+    print_header "Verifying Deployment"
+    
+    local http_port=$(grep "^FRONTEND_PORT=" "$ENV_FILE" | cut -d'=' -f2 || echo "3000")
+    local https_port=$(grep "^FRONTEND_PORT_SSL=" "$ENV_FILE" | cut -d'=' -f2 || echo "3443")
+    local server_ip=$(detect_ip)
+    local all_healthy=true
+    
+    # Check CouchDB
+    print_status "Checking CouchDB..."
+    if docker compose -f "$COMPOSE_FILE" ps couchdb 2>/dev/null | grep -q "healthy"; then
+        print_success "CouchDB is healthy"
+    else
+        print_warning "CouchDB may not be ready yet"
+        all_healthy=false
+    fi
+    
+    # Check Backend
+    print_status "Checking Backend..."
+    if docker compose -f "$COMPOSE_FILE" ps backend 2>/dev/null | grep -q "healthy"; then
+        print_success "Backend is healthy"
+    else
+        print_warning "Backend may not be ready yet"
+        all_healthy=false
+    fi
+    
+    # Check Frontend via HTTP
+    print_status "Checking Frontend HTTP..."
+    local frontend_retries=0
+    while [ $frontend_retries -lt 10 ]; do
+        if curl -sf "http://localhost:$http_port" > /dev/null 2>&1; then
+            print_success "Frontend is responding on HTTP"
+            break
+        fi
+        frontend_retries=$((frontend_retries + 1))
+        sleep 2
+    done
+    if [ $frontend_retries -eq 10 ]; then
+        print_warning "Frontend may need more time to start"
+        all_healthy=false
+    fi
+    
+    # Check API accessibility through proxy
+    print_status "Checking API accessibility..."
+    local api_retries=0
+    while [ $api_retries -lt 10 ]; do
+        # Try both possible API endpoints
+        if curl -sf "http://localhost:$http_port/api/health" > /dev/null 2>&1 || \
+           curl -sf "http://localhost:$http_port/api/auth/test" > /dev/null 2>&1; then
+            print_success "API is accessible through proxy"
+            break
+        fi
+        api_retries=$((api_retries + 1))
+        sleep 2
+    done
+    if [ $api_retries -eq 10 ]; then
+        print_warning "API may need more time or check CORS settings"
+        all_healthy=false
+    fi
+    
+    # Summary
+    echo ""
+    if [ "$all_healthy" = true ]; then
+        print_success "All services are healthy and responding!"
+    else
+        print_warning "Some services may still be starting. Check logs with: docker compose logs -f"
+    fi
 }
 
 # Display access information
@@ -355,8 +512,8 @@ show_access_info() {
     print_header "ZakApp is Ready!"
     
     local app_url=$(grep "^APP_URL=" "$ENV_FILE" | cut -d'=' -f2)
-    local http_port=$(grep "^FRONTEND_PORT=" "$ENV_FILE" | cut -d'=' -f2)
-    local https_port=$(grep "^FRONTEND_PORT_SSL=" "$ENV_FILE" | cut -d'=' -f2)
+    local http_port=$(grep "^FRONTEND_PORT=" "$ENV_FILE" | cut -d'=' -f2 || echo "3000")
+    local https_port=$(grep "^FRONTEND_PORT_SSL=" "$ENV_FILE" | cut -d'=' -f2 || echo "3443")
     local server_ip=$(detect_ip)
     
     echo -e "${GREEN}🎉 ZakApp has been successfully deployed!${NC}"
@@ -364,27 +521,37 @@ show_access_info() {
     echo "Access your application:"
     echo ""
     
-    if [ -n "$app_url" ]; then
-        echo -e "  ${GREEN}Primary URL:${NC} $app_url"
-    fi
+    # Show local access
+    echo -e "  ${GREEN}Local Access:${NC}  http://localhost:$http_port"
     
-    echo -e "  ${GREEN}HTTP:${NC}  http://localhost:$http_port"
-    
-    if [ -n "$server_ip" ]; then
-        echo -e "  ${GREEN}HTTPS (IP):${NC} https://$server_ip:$https_port"
+    # Show network access only if configured for IP
+    if [[ "$app_url" == https://*:* ]] && [ -n "$server_ip" ]; then
+        echo -e "  ${GREEN}Network Access:${NC} https://$server_ip:$https_port"
         echo ""
         echo -e "${YELLOW}⚠️  Note about HTTPS:${NC}"
         echo "   When accessing via IP address, your browser will show a"
         echo "   'Not Secure' warning. This is expected with self-signed certificates."
         echo "   Click 'Advanced' → 'Proceed' to continue. Your data is still encrypted."
+    elif [[ "$app_url" == https://* ]] && [ -z "$server_ip" ]; then
+        echo -e "  ${GREEN}Access URL:${NC}  $app_url"
     fi
     
     echo ""
-    echo "Useful commands:"
-    echo "  View logs:    docker compose -f $COMPOSE_FILE logs -f"
-    echo "  Stop:         docker compose -f $COMPOSE_FILE down"
-    echo "  Restart:      docker compose -f $COMPOSE_FILE restart"
-    echo "  Update:       docker compose -f $COMPOSE_FILE pull && docker compose -f $COMPOSE_FILE up -d"
+    echo -e "${BLUE}📋 Quick Verification:${NC}"
+    echo "  # Check service status"
+    echo "  docker compose ps"
+    echo ""
+    echo "  # View real-time logs"
+    echo "  docker compose logs -f"
+    echo ""
+    echo "  # Test API health"
+    echo "  curl http://localhost:$http_port/api/auth/test"
+    echo ""
+    echo -e "${BLUE}🔧 Common Commands:${NC}"
+    echo "  # Stop services:      docker compose down"
+    echo "  # Restart services:   docker compose restart"
+    echo "  # Update & restart:   docker compose pull && docker compose up -d"
+    echo "  # Full reset (DELETES DATA): docker compose down -v && docker compose up -d"
     echo ""
     echo -e "${GREEN}Happy Zakat calculating! 🧮✨${NC}"
 }

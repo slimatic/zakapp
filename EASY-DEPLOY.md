@@ -11,6 +11,48 @@ The new **Easy Deployment** system eliminates all friction points:
 ✅ **Auto-Migrations** - Database setup happens automatically  
 ✅ **One Command** - `./deploy-easy.sh` and you're done  
 
+## Prerequisites
+
+Before running the deployment script, ensure you have:
+
+### Required
+- **Docker** (version 20.10 or higher)
+- **Docker Compose** (V2 plugin)
+- A server with at least 1GB RAM
+
+### Installation Commands
+
+**Ubuntu/Debian:**
+```bash
+# Install Docker
+sudo apt-get update
+sudo apt-get install -y docker.io docker-compose-plugin
+
+# Start Docker daemon
+sudo systemctl start docker
+
+# Add user to docker group (optional, avoids sudo)
+sudo usermod -aG docker $USER
+```
+
+**macOS:**
+- Download and install [Docker Desktop](https://docs.docker.com/get-docker/)
+- Start Docker Desktop from Applications
+
+**Windows:**
+- Download and install [Docker Desktop](https://docs.docker.com/get-docker/)
+- Start Docker Desktop
+
+### Verify Docker is Running
+```bash
+docker info
+# Should show Docker version and active context
+
+# If you get "permission denied", either:
+# 1. Use sudo: sudo docker ps
+# 2. Add your user to docker group: sudo usermod -aG docker $USER
+```  
+
 ## Quick Start (3 Commands)
 
 ```bash
@@ -25,6 +67,53 @@ git clone https://github.com/slimatic/zakapp.git && cd zakapp
 ```
 
 That's it! 🎉
+
+## After Deployment
+
+### First Login
+
+1. **Access ZakApp** using the URL shown by the script:
+   - Localhost: `http://localhost:3000`
+   - Network: `https://your-ip:3443`
+
+2. **Accept the certificate warning** (if accessing via IP):
+   - Click "Advanced" → "Proceed to [IP]" (Chrome/Edge)
+   - Click "Show Details" → "Visit Website" (Safari)
+   - Click "Accept the Risk" (Firefox)
+
+3. **Create an account**:
+   - Click "Create Account" or "Register"
+   - Enter your email and password
+   - The server stores credentials securely
+
+### Verifying Your Deployment
+
+```bash
+# Check all services are running
+docker compose ps
+
+# EXPECTED OUTPUT:
+# NAME                STATUS
+# zakapp-backend-1   Up (healthy)
+# zakapp-couchdb-1   Up (healthy)  
+# zakapp-caddy-1     Up
+# zakapp-frontend-1  Up
+
+# All services should show "Up" status
+# Backend and CouchDB should show "(healthy)"
+```
+
+### Testing the API
+
+```bash
+# Test API health endpoint
+curl http://localhost:3000/api/auth/test
+
+# Or test registration
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!","confirmPassword":"Test123!","firstName":"Test","lastName":"User"}'
+```
 
 ## What the Script Does
 
@@ -76,45 +165,156 @@ That's it! 🎉
 ## Managing Your Deployment
 
 ```bash
-# View logs
+# View real-time logs (all services)
 docker compose logs -f
 
-# Stop
+# View logs for specific service
+docker compose logs -f backend     # API logs
+docker compose logs -f frontend     # Frontend logs
+docker compose logs -f couchdb      # Database logs
+
+# Stop all services (data preserved)
 docker compose down
 
-# Restart
+# Restart all services
 docker compose restart
+
+# Restart specific service
+docker compose restart backend
 
 # Update to latest version
 docker compose pull
 docker compose up -d
+
+# Full reset (DELETES ALL DATA - be careful!)
+docker compose down -v
+docker compose up -d
+```
+
+## Resetting Your Deployment
+
+### Option 1: Quick Reset (Keeps Configuration)
+```bash
+docker compose down
+docker compose up -d
+```
+
+### Option 2: Full Reset (Deletes All Data)
+```bash
+# WARNING: This will delete all users, assets, and transactions!
+docker compose down -v
+docker compose up -d
+```
+
+### Option 3: Fresh Start (New Configuration)
+```bash
+# Backup your .env file first!
+cp .env .env.backup
+
+# Remove and re-run deployment
+rm .env
+./deploy-easy.sh
 ```
 
 ## Troubleshooting
 
-### "Permission denied" on deploy-easy.sh
+### Common Issues
+
+#### "Docker daemon is not running"
+```
+❌ Docker daemon is not running
+```
+**Solution:**
 ```bash
-chmod +x deploy-easy.sh
+# Ubuntu/Debian
+sudo systemctl start docker
+
+# macOS/Windows
+# Start Docker Desktop from Applications
 ```
 
-### Port already in use
+#### "Permission denied" errors
+```
+permission denied while trying to connect to the Docker daemon
+```
+**Solution:**
+```bash
+# Option 1: Use sudo (temporary)
+sudo docker compose ps
+
+# Option 2: Add user to docker group (permanent)
+sudo usermod -aG docker $USER
+# Then log out and log back in
+```
+
+#### "Port already in use"
 The script automatically detects this and uses alternative ports. You'll see:
 ```
 ⚠️  Port 3000 is already in use
 ℹ️  Using alternative port: 3005
 ```
 
-### Browser shows "Not Secure" warning
-This is **expected and normal** when accessing via IP address. The connection is still encrypted, but the certificate is self-signed. Click "Advanced" → "Proceed" to continue.
+#### Browser shows "Not Secure" warning
+This is **expected and normal** when accessing via IP address. The connection is still encrypted, but the certificate is self-signed.
 
-To eliminate the warning, use:
-- localhost access, OR
-- a custom domain with Let's Encrypt
+**Solution:** Click "Advanced" → "Proceed" to continue
 
-### Database migration errors
+**To eliminate the warning:**
+- Use localhost access, OR
+- Use a custom domain with Let's Encrypt
+
+#### 500 Errors / CORS Issues
+If you see 500 errors or CORS warnings in the browser console:
+
+```bash
+# Check backend logs
+docker compose logs backend
+
+# Restart backend with correct CORS settings
+docker compose restart backend
+```
+
+#### Database migration errors
 These are handled automatically, but if you see issues:
 ```bash
+# Run migrations manually
 docker compose run --rm migrations
+
+# Check migration logs
+docker compose logs migrations
+```
+
+#### Services not starting
+```bash
+# Check all logs
+docker compose logs
+
+# Check specific service
+docker compose logs backend
+docker compose logs couchdb
+
+# Common issues:
+# - Port conflicts: Check if other services use port 3000/3443/5984
+# - Disk space: df -h
+# - Memory: free -m
+```
+
+#### Frontend returns 404
+The frontend is a SPA (Single Page Application). If you get 404 on direct routes:
+```bash
+# This is normal for SPA routing
+# Access http://localhost:3000 instead
+# The router handles navigation internally
+```
+
+### Getting Help
+
+```bash
+# Collect debug information
+echo "=== Docker Version ===" && docker --version
+echo "=== Docker Compose Version ===" && docker compose version
+echo "=== Running Services ===" && docker compose ps
+echo "=== Recent Logs ===" && docker compose logs --tail=20
 ```
 
 ## Comparison: Easy vs Traditional

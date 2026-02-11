@@ -6,7 +6,7 @@
  * Status: INTENTIONALLY FAILING (TDD approach)
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PreciousMetalsApiClient } from '../../../src/config/preciousMetalsApi';
 
 describe('NisabCalculationService', () => {

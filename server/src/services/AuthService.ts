@@ -134,13 +134,13 @@ export class AuthService {
     await this.createSession(user.id, tokens.refreshToken);
 
     // Return user without password and with decrypted data
+    // NOTE: createdAt must be set AFTER spreading profile/settings to avoid overwriting
     const { passwordHash: _, ...userWithoutPassword } = user;
     const decryptedUser = {
       id: user.id,
       email: user.email,
       username: user.username,
       isActive: user.isActive,
-      createdAt: user.createdAt,
       lastLoginAt: user.lastLoginAt,
       updatedAt: user.updatedAt,
       preferredCalendar: user.preferredCalendar,
@@ -148,7 +148,9 @@ export class AuthService {
       lastZakatDate: user.lastZakatDate,
       userType: user.userType,
       ...(user.profile ? JSON.parse(await EncryptionService.decrypt(user.profile, ENCRYPTION_KEY)) : {}),
-      ...(user.settings ? JSON.parse(await EncryptionService.decrypt(user.settings, ENCRYPTION_KEY)) : {})
+      ...(user.settings ? JSON.parse(await EncryptionService.decrypt(user.settings, ENCRYPTION_KEY)) : {}),
+      // Explicitly add createdAt LAST to ensure it's not overwritten
+      createdAt: user.createdAt instanceof Date ? user.createdAt.toISOString() : user.createdAt,
     };
 
     return { user: decryptedUser, tokens };

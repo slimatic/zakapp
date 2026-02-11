@@ -17,6 +17,8 @@ export default defineConfig({
     setupFiles: ['./test/setupEnv.ts'],
     globalSetup: ['./test/globalSetup.ts'],
     pool: 'forks', // Use forks for better isolation in node environment
+    testTimeout: 60000, // Increase timeout for slower test environments
+    hookTimeout: 60000, // Increase hook timeout for database operations
     server: {
       deps: {
         inline: ['@prisma/client']

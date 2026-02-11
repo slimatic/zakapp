@@ -13,7 +13,7 @@ import request from 'supertest';
 import moment from 'moment';
 import app from '../../src/app';
 import { PrismaClient } from '@prisma/client';
-import { createAssetPayload } from '../helpers/testHelpers';
+import { createAssetPayload, extractAssetId, extractAssetValue } from '../helpers/testHelpers';
 
 const prisma = new PrismaClient();
 
@@ -96,12 +96,12 @@ describe('Integration: Live Wealth Tracking', () => {
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
       .send(createAssetPayload({
-        name: 'Investment Portfolio',
-        category: 'investment',
-        value: 5000,
+        name: 'Gold Jewelry',
+        category: 'gold',
+        value: 2000,
       }));
 
-    const assetId = assetResponse.body.asset.id;
+    const assetId = extractAssetId(assetResponse);
 
     // Step 2: Get current wealth
     const before = await request(app)
@@ -134,12 +134,12 @@ describe('Integration: Live Wealth Tracking', () => {
       .post('/api/assets')
       .set('Authorization', `Bearer ${authToken}`)
       .send(createAssetPayload({
-        name: 'Temporary Asset',
+        name: 'Asset to Delete',
         category: 'cash',
         value: 1500,
       }));
 
-    const assetId = assetResponse.body.asset.id;
+    const assetId = extractAssetId(assetResponse);
 
     // Step 2: Get current wealth
     const before = await request(app)
@@ -225,19 +225,17 @@ describe('Integration: Live Wealth Tracking', () => {
   });
 
   it('should meet performance requirement (<100ms for aggregation)', async () => {
-    // Create 50 zakatable assets to test performance
-    const assetPromises = Array.from({ length: 50 }, (_, i) =>
-      request(app)
+    // Create 50 assets sequentially to avoid SQLite contention during parallel test runs
+    for (let i = 0; i < 50; i++) {
+      await request(app)
         .post('/api/assets')
         .set('Authorization', `Bearer ${authToken}`)
         .send(createAssetPayload({
           name: `Asset ${i}`,
           category: i % 2 === 0 ? 'cash' : 'gold',
           value: 100 + i,
-        }))
-    );
-
-    await Promise.all(assetPromises);
+        }));
+    }
 
     // Measure aggregation time
     const startTime = Date.now();

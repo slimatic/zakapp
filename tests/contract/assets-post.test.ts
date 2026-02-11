@@ -1,6 +1,5 @@
 import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 
 // Test setup utilities
 const loadApp = async () => {
@@ -52,7 +51,8 @@ describe('Contract Test: POST /api/assets', () => {
         .send(registerData)
         .expect(200);
 
-      authToken = loginResponse.body.data.accessToken;
+      // Tokens are nested under data.tokens
+      authToken = loginResponse.body.data?.tokens?.accessToken || loginResponse.body.data?.accessToken;
       
       if (!authToken) {
         throw new Error('Failed to get auth token');
@@ -162,7 +162,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('VALIDATION_ERROR');
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
 
       // Test missing value
       const missingValue = {
@@ -177,7 +177,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('VALIDATION_ERROR');
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
 
       // Test missing currency
       const missingCurrency = {
@@ -192,7 +192,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('VALIDATION_ERROR');
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     it('should validate asset type enum', async () => {
@@ -213,8 +213,8 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('VALIDATION_ERROR');
-      expect(response.body.details.some((detail: string) => detail.toLowerCase().includes('type'))).toBe(true);
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('type'))).toBe(true);
     });
 
     it('should validate currency format (ISO 4217)', async () => {
@@ -235,8 +235,8 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('VALIDATION_ERROR');
-      expect(response.body.details.some((detail: string) => detail.toLowerCase().includes('currency'))).toBe(true);
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('currency'))).toBe(true);
     });
 
     it('should validate minimum asset value', async () => {
@@ -257,8 +257,8 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('VALIDATION_ERROR');
-      expect(response.body.details.some((detail: string) => detail.toLowerCase().includes('value'))).toBe(true);
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('value'))).toBe(true);
     });
 
     it('should validate description length limit', async () => {
@@ -280,8 +280,8 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('VALIDATION_ERROR');
-      expect(response.body.details.some((detail: string) => detail.toLowerCase().includes('description'))).toBe(true);
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('description'))).toBe(true);
     });
 
     it('should handle all valid asset types', async () => {

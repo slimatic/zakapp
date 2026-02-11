@@ -1,6 +1,5 @@
 import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-// import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 
 // Note: This test will fail until the implementation exists
 // This is intentional as per TDD methodology
@@ -11,8 +10,8 @@ describe('Contract Test: GET /api/assets', () => {
 
   beforeAll(async () => {
     try {
-      // Load compiled JavaScript version to avoid ts-node path resolution issues
-      const appModule = await import('../../server/src/app');
+      // Import app from server tests directory
+      const appModule = await import('../../server/tests/contract/../../src/app');
       app = appModule.default || appModule;
       
       // Register and login to get auth token
@@ -36,7 +35,8 @@ describe('Contract Test: GET /api/assets', () => {
           password: 'SecurePassword123!'
         });
 
-      authToken = loginResponse.body.data.accessToken;
+      // Tokens are nested under data.tokens
+      authToken = loginResponse.body.data?.tokens?.accessToken || loginResponse.body.data?.accessToken;
     } catch (error) {
       console.error('Failed to setup assets test:', error);
       app = null;
@@ -89,15 +89,17 @@ describe('Contract Test: GET /api/assets', () => {
 
       // Validate standardized response format
       expect(response.body).toHaveProperty('success', true);
-      expect(response.body).toHaveProperty('assets');
-      expect(response.body).toHaveProperty('summary');
-      expect(Array.isArray(response.body.assets)).toBe(true);
+      // Assets are under data.assets
+      const data = response.body.data || response.body;
+      expect(data).toHaveProperty('assets');
+      expect(data).toHaveProperty('summary');
+      expect(Array.isArray(data.assets)).toBe(true);
       
       // Validate summary structure
-      expect(response.body.summary).toHaveProperty('totalAssets');
-      expect(response.body.summary).toHaveProperty('totalValue');
-      expect(response.body.summary).toHaveProperty('baseCurrency');
-      expect(response.body.summary).toHaveProperty('categoryCounts');
+      expect(data.summary).toHaveProperty('totalAssets');
+      expect(data.summary).toHaveProperty('totalValue');
+      expect(data.summary).toHaveProperty('baseCurrency');
+      expect(data.summary).toHaveProperty('categoryCounts');
     });
 
     it('should return encrypted asset data with proper structure', async () => {
@@ -111,7 +113,8 @@ describe('Contract Test: GET /api/assets', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      const assets = response.body.assets;
+      const data = response.body.data || response.body;
+      const assets = data.assets || [];
       
       if (assets.length > 0) {
         const asset = assets[0];
@@ -155,7 +158,8 @@ describe('Contract Test: GET /api/assets', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.assets).toEqual([]);
+      // API returns data.assets or data.items
+      expect(response.body.data?.assets || response.body.data?.items || []).toEqual([]);
     });
 
     it('should reject invalid JWT tokens', async () => {

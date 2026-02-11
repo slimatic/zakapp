@@ -6,7 +6,7 @@
  * Status: INTENTIONALLY FAILING (TDD approach)
  */
 
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 
 describe('NisabComparisonWidget Component', () => {
   it('should render comparison widget with wealth and threshold', () => {
