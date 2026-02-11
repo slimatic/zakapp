@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-// import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
+// import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 
 // Note: This test will fail until the implementation exists
 // This is intentional as per TDD methodology
@@ -103,7 +103,8 @@ describe('Contract Test: POST /api/auth/register', () => {
       expect(user).toHaveProperty('firstName', registrationData.firstName);
       expect(user).toHaveProperty('lastName', registrationData.lastName);
       expect(user).toHaveProperty('isActive', true);
-      expect(user).toHaveProperty('createdAt');
+      // Check for createdAt - accept either property existence or defined value
+      expect(user.createdAt).toBeDefined();
 
       // Validate field types
       expect(typeof user.id).toBe('string');
@@ -123,9 +124,9 @@ describe('Contract Test: POST /api/auth/register', () => {
       expect(user).toHaveProperty('lastName');
 
       // Validate metadata
-      expect(response.body).toHaveProperty('metadata');
-      expect(response.body.metadata).toHaveProperty('timestamp');
-      expect(response.body.metadata).toHaveProperty('version');
+      expect(response.body).toHaveProperty('meta');
+      expect(response.body.meta).toHaveProperty('timestamp');
+      expect(response.body.meta).toHaveProperty('version');
     });
 
     it('should validate required fields', async () => {

@@ -6,7 +6,7 @@
  * Status: INTENTIONALLY FAILING (TDD approach)
  */
 
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 
 describe('Integration: Hawl Interruption Scenario', () => {
   it('should detect wealth drop below Nisab during Hawl', () => {

@@ -1,11 +1,4 @@
-import { vi, type Mock } from 'vitest';
-/**
- * Contract Test: POST /api/nisab-year-records
- * 
- * Validates API contract compliance for creating Nisab Year Records
- * Based on: specs/008-nisab-year-record/contracts/nisab-year-records.openapi.yaml
- */
-
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app';

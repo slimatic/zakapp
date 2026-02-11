@@ -75,25 +75,30 @@ export class AuthController {
       });
 
       // Create user response without sensitive data
+      const createdAtValue = result.user.createdAt instanceof Date 
+        ? result.user.createdAt.toISOString() 
+        : String(result.user.createdAt || new Date().toISOString());
+      
+      // Build user response - explicitly include all needed fields
       const userResponse = {
-        id: result.user.id,
-        email: result.user.email,
-        username: result.user.username,
-        firstName: result.user.firstName,
-        lastName: result.user.lastName,
-        createdAt: result.user.createdAt,
-        maxAssets: result.user.maxAssets,
-        maxNisabRecords: result.user.maxNisabRecords,
-        maxPayments: result.user.maxPayments,
-        salt: result.user.salt,
-        isVerified: result.user.isVerified
+        id: String(result.user.id || ''),
+        email: String(result.user.email || ''),
+        username: result.user.username ? String(result.user.username) : null,
+        firstName: String(result.user.firstName || result.user.firstName || ''),
+        lastName: String(result.user.lastName || result.user.lastName || ''),
+        createdAt: createdAtValue,
+        maxAssets: Number(result.user.maxAssets || 0),
+        maxNisabRecords: Number(result.user.maxNisabRecords || 0),
+        maxPayments: Number(result.user.maxPayments || 0),
+        isVerified: Boolean(result.user.isVerified)
       };
 
-      const response: ApiResponse = {
+      const response: ApiResponse<{ user: typeof userResponse; tokens: typeof result.tokens }> = {
         success: true,
-        message: 'User registered successfully',
-        user: userResponse,
-        tokens: result.tokens
+        data: {
+          user: userResponse,
+          tokens: result.tokens
+        }
       };
 
       // Send Verification Email
@@ -121,11 +126,13 @@ export class AuthController {
       res.status(201).json(response);
     } catch (error: any) {
       if (error.message === 'User with this email or username already exists') {
-        res.status(409).json({
-          success: false,
-          error: 'EMAIL_ALREADY_EXISTS',
+      res.status(409).json({
+        success: false,
+        error: {
+          code: 'EMAIL_ALREADY_EXISTS',
           message: 'Email address is already registered'
-        });
+        }
+      });
         return;
       }
       throw error;

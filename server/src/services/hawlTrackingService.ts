@@ -118,7 +118,30 @@ export class HawlTrackingService {
       const currentWealth = wealthCalc.totalZakatableWealth;
 
       // Use transaction to prevent race conditions
-      await this.prisma.$transaction(async (tx) => {
+      // Wrap transactions with a small retry loop to mitigate transient SQLite/Prisma
+      // socket timeouts observed in CI when multiple tests run in parallel.
+      const runWithTransactionRetries = async (fn: (tx: any) => Promise<void>) => {
+        const maxAttempts = 3;
+        let attempt = 0;
+        let lastErr: any = null;
+
+        while (attempt < maxAttempts) {
+          try {
+            attempt++;
+            return await this.prisma.$transaction(fn);
+          } catch (txErr) {
+            lastErr = txErr;
+            this.logger.warn(`Transaction attempt ${attempt} failed, retrying...`, txErr?.message || txErr);
+            // brief exponential backoff
+            await new Promise((r) => setTimeout(r, 50 * Math.pow(3, attempt - 1)));
+          }
+        }
+
+        // Exhausted attempts
+        throw lastErr;
+      };
+
+      await runWithTransactionRetries(async (tx) => {
         // 2. Get active DRAFT record (within transaction)
         const existingRecord = await tx.yearlySnapshot.findFirst({
           where: {
