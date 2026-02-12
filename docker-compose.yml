@@ -71,6 +71,7 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - APP_URL=${APP_URL}
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
     volumes:
       - backend_data:/app/server/prisma/data
     networks:
