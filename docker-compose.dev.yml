@@ -95,6 +95,7 @@ services:
       - COUCHDB_URL=${COUCHDB_URL}
       - GOLD_API_KEY=${GOLD_API_KEY}
       - APP_URL=${APP_URL:-http://localhost:3000}
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
     healthcheck:
       test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:3001/api/auth/register || exit 0"]
       interval: 10s
