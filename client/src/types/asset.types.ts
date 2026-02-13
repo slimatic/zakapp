@@ -22,6 +22,22 @@
 
 import type { Asset } from './index';
 
+/**
+ * Retirement Zakat calculation methodology
+ * Based on scholarly analysis of US retirement plans
+ */
+export type RetirementMethodology = 
+  | 'collectible_value'  // Opinion A: Net after penalty/tax * 2.5%
+  | 'preserved_growth'   // Opinion B: 0.5% rule (Dr. Salah Al-Sawy)
+  | 'manual';            // User-defined or default 2.5% on full
+
+export interface RetirementConfig {
+  methodology: RetirementMethodology;
+  // For 'collectible_value' only
+  withdrawalPenalty: number; // Percentage (0-1), e.g., 0.10 = 10%
+  estimatedTaxRate: number;  // Percentage (0-1), e.g., 0.25 = 25%
+}
+
 export interface CreateAssetDto {
   name: string;
   category: string;
@@ -32,10 +48,7 @@ export interface CreateAssetDto {
   notes?: string;
   isPassiveInvestment?: boolean;
   isRestrictedAccount?: boolean;
-  retirementDetails?: {
-    withdrawalPenalty: number; // Percentage (0-1)
-    taxRate: number; // Percentage (0-1)
-  };
+  retirementConfig?: RetirementConfig;
 }
 
 export type UpdateAssetDto = Partial<CreateAssetDto>;
@@ -59,8 +72,5 @@ export interface AssetFormState {
   notes?: string;
   isPassiveInvestment: boolean;
   isRestrictedAccount: boolean;
-  retirementDetails?: {
-    withdrawalPenalty: number;
-    taxRate: number;
-  };
+  retirementConfig?: RetirementConfig;
 }

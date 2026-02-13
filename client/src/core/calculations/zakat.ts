@@ -17,10 +17,15 @@
 
 import { Asset, AssetType } from '../../types/index';
 import { MethodologyName, getMethodology } from './methodology';
+import type { RetirementMethodology, RetirementConfig } from '../../types/asset.types';
 
 import { Decimal } from 'decimal.js';
 
 export type ZakatMethodology = MethodologyName;
+
+// Retirement methodology constants
+const PRESERVED_GROWTH_RATE = 0.005; // 0.5% rule (Dr. Salah Al-Sawy)
+const STANDARD_ZAKAT_RATE = 0.025; // 2.5%
 
 export interface CalculationResult {
     totalAssets: number;
@@ -66,37 +71,100 @@ export function isAssetZakatable(asset: Asset, methodologyName: ZakatMethodology
     return true;
 }
 
-// Net Withdrawable Logic for Retirement
-function calculateNetWithdrawable(asset: Asset): number {
-    // Access metadata for retirement-specific settings
-    let penalty = new Decimal(0);
-    let tax = new Decimal(0);
-
-    // Try metadata string parse for retirement details
-    if (typeof asset.metadata === 'string' && asset.metadata.startsWith('{')) {
-        try {
-            const meta = JSON.parse(asset.metadata);
-            if (meta.retirementDetails) {
-                penalty = new Decimal(meta.retirementDetails.withdrawalPenalty || 0);
-                tax = new Decimal(meta.retirementDetails.taxRate || 0);
-            }
-        } catch (e) {
-            // ignore
-        }
-    } else if ((asset as any).retirementDetails) {
-        // Fallback: Check if retirementDetails is already on the object (pre-parsed)
-        const details = (asset as any).retirementDetails;
-        penalty = new Decimal(details.withdrawalPenalty || 0);
-        tax = new Decimal(details.taxRate || 0);
+// Parse retirement config from asset metadata
+function parseRetirementConfig(asset: Asset): RetirementConfig | null {
+  // Try metadata string parse
+  if (typeof asset.metadata === 'string' && asset.metadata.startsWith('{')) {
+    try {
+      const meta = JSON.parse(asset.metadata);
+      if (meta.retirementConfig) {
+        return meta.retirementConfig;
+      }
+      // Legacy support: check for retirementDetails
+      if (meta.retirementDetails) {
+        return {
+          methodology: 'collectible_value',
+          withdrawalPenalty: meta.retirementDetails.withdrawalPenalty || 0,
+          estimatedTaxRate: meta.retirementDetails.taxRate || 0,
+        };
+      }
+    } catch (e) {
+      // ignore
     }
+  }
 
-    // netFactor = 1 - penalty - tax
-    const one = new Decimal(1);
-    const netFactor = one.minus(penalty).minus(tax);
+  // Fallback: Check if retirementConfig is already on the object (pre-parsed)
+  const config = (asset as any).retirementConfig;
+  if (config) {
+    return config;
+  }
 
-    // asset.value * max(0, netFactor)
-    const factor = Decimal.max(0, netFactor);
-    return new Decimal(asset.value || 0).times(factor).toNumber();
+  // Legacy support: check for retirementDetails
+  const details = (asset as any).retirementDetails;
+  if (details) {
+    return {
+      methodology: 'collectible_value',
+      withdrawalPenalty: details.withdrawalPenalty || 0,
+      estimatedTaxRate: details.taxRate || 0,
+    };
+  }
+
+  return null;
+}
+
+// Calculate retirement Zakat based on methodology
+function calculateRetirementZakat(asset: Asset): number {
+  const config = parseRetirementConfig(asset);
+  const grossBalance = new Decimal(asset.value || 0);
+
+  // If no config, default to 'manual' (treat as regular asset)
+  if (!config || config.methodology === 'manual') {
+    // Fall back to standard 2.5% calculation (or use calculationModifier if set)
+    if (typeof asset.calculationModifier === 'number' && asset.calculationModifier !== 1.0) {
+      return grossBalance.times(asset.calculationModifier).times(STANDARD_ZAKAT_RATE).toNumber();
+    }
+    return grossBalance.times(STANDARD_ZAKAT_RATE).toNumber();
+  }
+
+  // Opinion B: Preserved Growth (0.5% Rule - Dr. Salah Al-Sawy)
+  if (config.methodology === 'preserved_growth') {
+    return grossBalance.times(PRESERVED_GROWTH_RATE).toNumber();
+  }
+
+  // Opinion A: Collectible Value (Withdrawal Method)
+  // Formula: (GrossBalance - (GrossBalance * (Penalty + Tax))) * 0.025
+  const penalty = new Decimal(config.withdrawalPenalty || 0);
+  const tax = new Decimal(config.estimatedTaxRate || 0);
+  const one = new Decimal(1);
+  const netFactor = one.minus(penalty).minus(tax);
+  const factor = Decimal.max(0, netFactor);
+  const netBalance = grossBalance.times(factor);
+  
+  return netBalance.times(STANDARD_ZAKAT_RATE).toNumber();
+}
+
+// Legacy function kept for backward compatibility
+function calculateNetWithdrawable(asset: Asset): number {
+  const config = parseRetirementConfig(asset);
+  const grossBalance = new Decimal(asset.value || 0);
+
+  // If no config or manual, return full value (will get 2.5% applied elsewhere)
+  if (!config || config.methodology === 'manual') {
+    return grossBalance.toNumber();
+  }
+
+  // If preserved growth, return 20% of value (equivalent to 0.5% vs 2.5%)
+  if (config.methodology === 'preserved_growth') {
+    return grossBalance.times(0.20).toNumber();
+  }
+
+  // Collectible value: apply penalty and tax
+  const penalty = new Decimal(config.withdrawalPenalty || 0);
+  const tax = new Decimal(config.estimatedTaxRate || 0);
+  const one = new Decimal(1);
+  const netFactor = one.minus(penalty).minus(tax);
+  const factor = Decimal.max(0, netFactor);
+  return grossBalance.times(factor).toNumber();
 }
 
 export function getAssetZakatableValue(asset: Asset, methodologyName: ZakatMethodology): number {

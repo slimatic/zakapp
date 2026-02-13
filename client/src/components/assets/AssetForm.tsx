@@ -22,6 +22,7 @@ import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { useAuth } from '../../contexts/AuthContext';
 import { METHODOLOGIES, MethodologyName } from '../../core/calculations/methodology';
 import type { Asset, AssetType } from '../../types';
+import type { RetirementConfig } from '../../types/asset.types';
 import { Button, Input } from '../ui';
 import { EncryptedBadge } from '../ui/EncryptedBadge';
 import {
@@ -76,23 +77,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     return map[assetType] || 'cash';
   };
 
-  // Parse initial retirement treatment from metadata
-  const getInitialRetirementTreatment = (asset: Asset | undefined): string => {
-    if (!asset || !asset.metadata) return 'net_value';
-    try {
-      const meta = typeof asset.metadata === 'string' ? JSON.parse(asset.metadata) : asset.metadata;
-      const details = meta.retirementDetails;
-      if (!details) return 'net_value';
-
-      if (details.withdrawalPenalty === 1.0) return 'deferred';
-      if (details.withdrawalPenalty === 0.7) return 'passive';
-      if (details.withdrawalPenalty === 0 && details.taxRate === 0) return 'full';
-      return 'net_value';
-    } catch (e) {
-      return 'net_value';
-    }
-  };
-
   const [formData, setFormData] = useState({
     name: asset?.name || '',
     category: getInitialCategory(asset?.type as unknown as string),
@@ -105,7 +89,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     isPassiveInvestment: (asset as any)?.isPassiveInvestment || false,
     isRestrictedAccount: (asset as any)?.isRestrictedAccount || false,
     isEligibilityManual: (asset as any)?.isEligibilityManual || false,
-    retirementTreatment: getInitialRetirementTreatment(asset),
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -113,6 +96,16 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
   const [calculationModifier, setCalculationModifier] = useState<number>(
     (asset as any)?.calculationModifier || 1.0
   );
+  const [retirementConfig, setRetirementConfig] = useState<RetirementConfig | undefined>(() => {
+    // Parse initial retirement config from asset metadata
+    if (!asset?.metadata) return undefined;
+    try {
+      const meta = typeof asset.metadata === 'string' ? JSON.parse(asset.metadata) : asset.metadata;
+      return meta.retirementConfig;
+    } catch {
+      return undefined;
+    }
+  });
 
   const { addAsset, updateAsset } = useAssetRepository();
 
@@ -141,12 +134,18 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
     let newModifier = 1.0;
 
-    if (isRetirement) {
-      switch (formData.retirementTreatment) {
-        case 'deferred': newModifier = 0.0; break;
-        case 'passive': newModifier = 0.3; break;
-        case 'net_value': newModifier = 0.7; break; // Approx
-        case 'full': default: newModifier = 1.0; break;
+    if (isRetirement && retirementConfig) {
+      // Use the methodology from retirementConfig to determine modifier
+      switch (retirementConfig.methodology) {
+        case 'preserved_growth': newModifier = 0.20; break; // 0.5% is equivalent to 2.5% on 20%
+        case 'collectible_value': {
+          // Calculate net factor: 1 - penalty - tax
+          const penalty = retirementConfig.withdrawalPenalty || 0;
+          const tax = retirementConfig.estimatedTaxRate || 0;
+          newModifier = Math.max(0, 1 - penalty - tax);
+          break;
+        }
+        case 'manual': default: newModifier = 1.0; break;
       }
     } else if (formData.isRestrictedAccount) {
       newModifier = 0.0;
@@ -168,7 +167,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
     if (!RESTRICTED_ACCOUNT_TYPES.includes(formData.category as any)) {
       setFormData(prev => ({ ...prev, isRestrictedAccount: false }));
     }
-  }, [formData.category, formData.subCategory, formData.isRestrictedAccount, formData.isPassiveInvestment, formData.retirementTreatment]);
+  }, [formData.category, formData.subCategory, formData.isRestrictedAccount, formData.isPassiveInvestment, retirementConfig]);
 
   const handleChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -254,17 +253,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         isEligibilityManual: formData.isEligibilityManual
       };
 
-      if (isRetirement) {
-        const treatment = formData.retirementTreatment || 'net_value';
-        if (treatment === 'net_value') {
-          metadataObj.retirementDetails = { withdrawalPenalty: 0.1, taxRate: 0.2 };
-        } else if (treatment === 'deferred') {
-          metadataObj.retirementDetails = { withdrawalPenalty: 1.0, taxRate: 0 };
-        } else if (treatment === 'passive') {
-          metadataObj.retirementDetails = { withdrawalPenalty: 0.7, taxRate: 0 };
-        } else { // Full
-          metadataObj.retirementDetails = { withdrawalPenalty: 0, taxRate: 0 };
-        }
+      // Include retirement config if present
+      if (isRetirement && retirementConfig) {
+        metadataObj.retirementConfig = retirementConfig;
       }
 
       const commonData = {
@@ -626,10 +617,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         {/* Modifier Section: Retirement Treatment (Radio Group) */}
         {formData.category === 'stocks' && formData.subCategory?.startsWith('retirement') && (
           <RetirementTreatmentSection
-            retirementTreatment={formData.retirementTreatment}
+            retirementConfig={retirementConfig}
             value={formData.value}
-            calculationModifier={calculationModifier}
-            onTreatmentChange={(treatment) => handleChange('retirementTreatment', treatment)}
+            onConfigChange={setRetirementConfig}
           />
         )}
 
