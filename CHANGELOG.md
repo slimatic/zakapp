@@ -1,6 +1,48 @@
 # Changelog
 
-## [0.10.0] - 2026-02-08
+## [0.10.0] - 2026-02-11
+
+### 🚀 Release: Test Infrastructure & Deployment Improvements
+
+This release focuses on stabilizing the test suite and improving the deployment experience.
+
+### 🔧 Test Infrastructure
+
+**Fixed:**
+- Migrated from Jest to Vitest across all test files (23+ files)
+- Fixed `@jest/globals` → `vitest` imports
+- Standardized error response format (`res.body.error.code`)
+- Fixed auth token extraction patterns
+- Added sequential asset creation to avoid SQLite contention
+
+**Performance:**
+- Enabled SQLite WAL mode via Prisma
+- Set busy_timeout=5000ms for reduced contention
+- Added transaction retries in HawlTrackingService
+- Increased vitest timeout to 60s for slower environments
+
+**Tests:**
+- Fixed 170+ failing contract tests
+- Added proper mocking for Prisma operations
+- Standardized error assertions across test suites
+
+### 🐳 Deployment Improvements
+
+**New Features:**
+- Added Docker daemon running check
+- Added permission warnings (no sudo requirement)
+- Added comprehensive health verification (frontend, API, CouchDB)
+- Added network IP verification step
+- Improved re-configuration options:
+  - Keep existing configuration
+  - Regenerate (preserves secrets)
+  - Update access settings only
+
+**Documentation:**
+- Added prerequisites section to EASY-DEPLOY.md
+- Added troubleshooting section with common issues
+- Added verification commands to deployment output
+- Added reset/rollback instructions
 
 ### 🔒 Security - Zero-Knowledge Encryption
 
