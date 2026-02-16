@@ -46,6 +46,9 @@ COPY --from=build /app/client ./client
 COPY docker/frontend-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Set working directory to client
 WORKDIR /app/client
 

@@ -1,0 +1,227 @@
+# Caddyfile for ZakApp Easy Deployment
+# Automatically handles HTTPS for localhost, IP addresses, and custom domains
+
+{
+    # Auto HTTPS settings - disable redirects since we handle them manually
+    auto_https disable_redirects
+    
+    # Admin API (optional)
+    admin off
+}
+
+# HTTP on port 80 - serves HTTP traffic
+:80 {
+    # Enable compression
+    encode gzip
+    
+    # Handle API requests
+    handle /api/* {
+        reverse_proxy backend:3001 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle CouchDB requests - support both /db and /couchdb paths
+    handle /db/* {
+        uri strip_prefix /db
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /couchdb/* {
+        uri strip_prefix /couchdb
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle CouchDB WebSocket and _changes feed
+    handle /_changes {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+            header_up Upgrade {http_upgrade}
+            header_up Connection {http_connection}
+        }
+    }
+    
+    # Handle all CouchDB system paths
+    handle /_users/* {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /_replicator/* {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /_session {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle all other CouchDB internal paths (WebSocket support)
+    handle /* {
+        # Check if it's a CouchDB WebSocket or feed request
+        @couchdb_websocket {
+            header Connection *Upgrade*
+            header Upgrade websocket
+        }
+        reverse_proxy @couchdb_websocket couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+            header_up Upgrade {http_upgrade}
+            header_up Connection {http_connection}
+        }
+    }
+    
+    # Everything else goes to frontend
+    reverse_proxy frontend:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # Logging
+    log {
+        output file /data/access.log
+        format json
+    }
+}
+
+# HTTPS on port 443 - serves HTTPS traffic with self-signed certs
+:443 {
+    # Enable compression
+    encode gzip
+    
+    # Generate self-signed certificates for any hostname
+    tls internal {
+        on_demand
+    }
+    
+    # Handle API requests
+    handle /api/* {
+        reverse_proxy backend:3001 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle CouchDB requests - support both /db and /couchdb paths
+    handle /db/* {
+        uri strip_prefix /db
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /couchdb/* {
+        uri strip_prefix /couchdb
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle CouchDB WebSocket and _changes feed
+    handle /_changes {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+            header_up Upgrade {http_upgrade}
+            header_up Connection {http_connection}
+        }
+    }
+    
+    # Handle all CouchDB system paths
+    handle /_users/* {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /_replicator/* {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle /_session {
+        reverse_proxy couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle all other CouchDB internal paths (WebSocket support)
+    handle /* {
+        # Check if it's a CouchDB WebSocket or feed request
+        @couchdb_websocket {
+            header Connection *Upgrade*
+            header Upgrade websocket
+        }
+        reverse_proxy @couchdb_websocket couchdb:5984 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+            header_up Upgrade {http_upgrade}
+            header_up Connection {http_connection}
+        }
+    }
+    
+    # Everything else goes to frontend
+    reverse_proxy frontend:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # Logging
+    log {
+        output file /data/access.log
+        format json
+    }
+}

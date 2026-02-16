@@ -39,6 +39,7 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
       __COMMIT_HASH__: JSON.stringify(commitHash),
+      'process.env.NODE_ENV': JSON.stringify(mode),
     },
     plugins: [
       react(),
