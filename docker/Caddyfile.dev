@@ -1,0 +1,64 @@
+# Caddyfile for ZakApp Development Build
+
+{
+    auto_https disable_redirects
+    admin off
+}
+
+:80 {
+    encode gzip
+    
+    # Health check
+    @health {
+        path /health
+    }
+    reverse_proxy @health backend:3001
+    
+    # API routes
+    @api {
+        path /api
+        path /api/*
+    }
+    reverse_proxy @api backend:3001
+    
+    # CouchDB routes
+    @db {
+        path /db
+        path /db/*
+    }
+    reverse_proxy @db couchdb:5984
+    
+    # Everything else to frontend
+    reverse_proxy frontend:80
+}
+
+:443 {
+    encode gzip
+    
+    tls internal {
+        on_demand
+    }
+    
+    # Health check
+    @health {
+        path /health
+    }
+    reverse_proxy @health backend:3001
+    
+    # API routes
+    @api {
+        path /api
+        path /api/*
+    }
+    reverse_proxy @api backend:3001
+    
+    # CouchDB routes
+    @db {
+        path /db
+        path /db/*
+    }
+    reverse_proxy @db couchdb:5984
+    
+    # Everything else to frontend
+    reverse_proxy frontend:80
+}
