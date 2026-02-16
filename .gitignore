@@ -81,9 +81,13 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+.tmp/
 
 # Package lock files (keep package-lock.json for server)
 # package-lock.json (uncomment if you want to exclude)
+
+# OpenCode context and sessions
+.opencode/
 
 # Testing
 jest.config.js

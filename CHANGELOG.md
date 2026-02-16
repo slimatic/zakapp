@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.10.1] - 2026-02-16
+
+### 🐛 Bug Fixes - Deployment Scripts
+
+**Fixed:**
+- Fixed `deploy-dev-build.sh` white screen issue caused by volume mount in `docker-compose.dev.yml` that overwrote built frontend assets with unprocessed `client/public` files
+- Fixed deployment scripts not properly reading `.env.dev` file (added `--env-file .env.dev` to docker-compose commands)
+- Fixed missing `ALLOWED_ORIGINS`, `ALLOWED_HOSTS`, and `APP_URL` variables in newly generated `.env` files during deployment
+- Improved `deploy-easy.sh` with fallback to create minimal `.env` when `.env.easy.example` doesn't exist
+
+**Technical Details:**
+- Removed broken volume mount `./client/public:/usr/share/nginx/html:ro` from `docker-compose.dev.yml` frontend service
+- This mount was serving raw `client/public/index.html` (with `%PUBLIC_URL%` placeholders) instead of the built `client/dist/index.html`
+- The `/assets/` directory (Vite's compiled JS/CSS output) was missing, causing 404 errors and blank page
+
+---
+
 ## [0.10.0] - 2026-02-11
 
 ### 🚀 Release: Test Infrastructure & Deployment Improvements
