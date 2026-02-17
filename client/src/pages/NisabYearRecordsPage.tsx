@@ -490,9 +490,10 @@ export const NisabYearRecordsPage: React.FC = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
+                                const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
                                 import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
                                   const generator = new ReportGenerator();
-                                  generator.generateHawlStatement(record as any, allAssets, 'User'); // TODO: Pass real user name
+                                  generator.generateHawlStatement(record as any, allAssets, 'User', totalLiabilities);
                                 });
                               }}
                               className="px-2 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded text-xs hover:bg-gray-200 flex items-center gap-1"

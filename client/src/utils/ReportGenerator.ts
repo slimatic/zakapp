@@ -87,7 +87,7 @@ export class ReportGenerator {
         }
     }
 
-    public generateHawlStatement(record: NisabYearRecord, assets: Asset[], username: string = 'User') {
+    public generateHawlStatement(record: NisabYearRecord, assets: Asset[], username: string = 'User', totalLiabilities: number = 0) {
         const doc = this.doc;
 
         // Header
@@ -101,11 +101,17 @@ export class ReportGenerator {
         doc.text('Summary', this.MARGIN, yPos);
         yPos += 10;
 
+        const totalAssets = assets.reduce((sum, a) => sum + Number(a.value || 0), 0);
+        const netWorth = totalAssets - totalLiabilities;
+
         const summaryData = [
             ['Beneficiary', username],
             ['Hawl Period', `${new Date(record.hawlStartDate!).toLocaleDateString()} - ${record.hawlCompletionDate ? new Date(record.hawlCompletionDate).toLocaleDateString() : 'Ongoing'}`],
             ['Nisab Threshold', formatCurrency(Number(record.nisabThreshold || 0))],
-            ['Status', record.status || 'DRAFT']
+            ['Status', record.status || 'DRAFT'],
+            ['Total Assets', formatCurrency(totalAssets)],
+            ['Total Liabilities', formatCurrency(totalLiabilities)],
+            ['Net Worth', formatCurrency(netWorth)]
         ];
 
         autoTable(doc, {
@@ -123,11 +129,13 @@ export class ReportGenerator {
         doc.setFontSize(14);
         doc.text('Calculation Details', this.MARGIN, financialsY);
 
+        const netZakatableWealth = Math.max(0, totalAssets - totalLiabilities);
+        
         const financialsData = [
-            ['Total Assets', formatCurrency(Number(record.totalWealth || 0))],
+            ['Total Assets', formatCurrency(totalAssets)],
             ['Zakatable Assets', formatCurrency(Number(record.zakatableWealth || 0))],
-            ['Total Liabilities', '(Deducted)'], // TODO: pass actual liability total if available
-            ['Net Zakatable Wealth', formatCurrency(Number(record.zakatableWealth || 0))], // Assuming net passed in record
+            ['Total Liabilities', formatCurrency(totalLiabilities)],
+            ['Net Zakatable Wealth', formatCurrency(netZakatableWealth)],
             ['Zakat Due (2.5%)', formatCurrency(Number(record.zakatAmount || 0))]
         ];
 
