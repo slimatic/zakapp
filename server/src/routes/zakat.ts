@@ -33,6 +33,20 @@ import * as jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
 import { getJwtSecret } from '../config/security';
 
+async function getUserActiveLiabilities(userId: string) {
+  const liabilities = await prisma.liability.findMany({
+    where: { userId, isActive: true },
+    select: { type: true, amount: true, name: true },
+  });
+  
+  const total = liabilities.reduce((sum, l) => sum + l.amount, 0);
+  
+  return {
+    total,
+    liabilities: liabilities.map(l => ({ type: l.type, amount: l.amount, name: l.name })),
+  };
+}
+
 const router = express.Router();
 
 /**
@@ -149,13 +163,15 @@ router.post('/calculate',
         customNisab
       };
 
-      // Perform calculation
+      const liabilityData = await getUserActiveLiabilities(req.userId!);
+
       const result = await zakatEngine.calculateZakat({
         ...calcRequest,
         userId: req.userId
       });
 
-      // Save calculation to database
+      const netWorth = result.result.totals.totalAssets - liabilityData.total;
+
       const savedCalculation = await prisma.zakatCalculation.create({
         data: {
           userId: req.userId!,
@@ -163,8 +179,8 @@ router.post('/calculate',
           methodology: result.methodology.id,
           calendarType: result.result.calendarType,
           totalAssets: result.result.totals.totalAssets,
-          totalLiabilities: 0, // TODO: Implement liabilities
-          netWorth: result.result.totals.totalAssets,
+          totalLiabilities: liabilityData.total,
+          netWorth,
           nisabThreshold: result.result.nisab.effectiveNisab,
           nisabSource: result.result.nisab.nisabBasis,
           isZakatObligatory: result.result.meetsNisab,
@@ -172,7 +188,7 @@ router.post('/calculate',
           zakatRate: result.methodology.zakatRate,
           breakdown: JSON.stringify(result.breakdown),
           assetsIncluded: JSON.stringify(result.result.assets),
-          liabilitiesIncluded: JSON.stringify([]), // TODO: Implement liabilities
+          liabilitiesIncluded: JSON.stringify(liabilityData.liabilities),
           regionalAdjustments: null
         }
       });
@@ -186,7 +202,7 @@ router.post('/calculate',
         await calculationHistoryService.saveCalculation(req.userId!, {
           methodology: result.methodology.id,
           calendarType: calcRequest.calendarType,
-          totalWealth: result.result.totals.totalAssets,
+          totalWealth: netWorth,
           nisabThreshold: result.result.nisab.effectiveNisab,
           zakatDue: result.result.totals.totalZakatDue,
           zakatRate: result.methodology.zakatRate,
@@ -195,7 +211,8 @@ router.post('/calculate',
           metadata: {
             calculationId: savedCalculation.id,
             meetsNisab: result.result.meetsNisab,
-            nisabBasis: result.result.nisab.nisabBasis
+            nisabBasis: result.result.nisab.nisabBasis,
+            totalLiabilities: liabilityData.total
           },
           zakatYearStart: zakatYear.startDate,
           zakatYearEnd: zakatYear.endDate
@@ -214,17 +231,17 @@ router.post('/calculate',
           calendarType: result.result.calendarType,
           summary: {
             totalAssets: result.result.totals.totalAssets,
-            totalLiabilities: 0, // TODO: Implement liabilities
-            netWorth: result.result.totals.totalAssets, // TODO: Subtract liabilities
+            totalLiabilities: liabilityData.total,
+            netWorth,
             nisabThreshold: result.result.nisab.effectiveNisab,
             nisabSource: result.result.nisab.nisabBasis,
             isZakatObligatory: result.result.meetsNisab,
-            zakatAmount: result.result.totals.totalZakatDue,
-            zakatRate: result.methodology.zakatRate
+            zirconYearAmount: result.result.totals.totalZakatDue,
+            zirconYearRate: result.methodology.zakatRate
           },
            breakdown: {
              assetsByCategory: groupAssetsByCategory(result.result.assets),
-             liabilities: [], // TODO: Implement liabilities
+             liabilities: liabilityData.liabilities,
              methodologyRules: {
                nisabCalculation: result.result.nisab,
                assetTreatment: result.methodology.businessAssetTreatment,
