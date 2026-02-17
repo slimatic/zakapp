@@ -17,13 +17,10 @@
 
 import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { PaymentEncryptionService } from '../services/PaymentEncryptionService';
 
-// TODO: Import PaymentEncryptionService once zero-knowledge encryption branch is merged
-// For now, use a stub encryption function
 const encryptPaymentData = async (payment: any) => {
-  // This will be replaced with PaymentEncryptionService.encryptPaymentData
-  // when the zero-knowledge encryption feature is available
-  return payment;
+  return PaymentEncryptionService.encryptPaymentData(payment);
 };
 
 export interface MigrationStatus {
