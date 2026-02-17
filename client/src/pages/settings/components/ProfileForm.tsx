@@ -91,6 +91,7 @@ export const ProfileForm: React.FC = () => {
         { code: 'INR', name: 'Indian Rupee' },
         { code: 'MYR', name: 'Malaysian Ringgit' },
         { code: 'IDR', name: 'Indonesian Rupiah' },
+        { code: 'TRY', name: 'Turkish Lira' },
     ];
 
     const zakatMethods = [
