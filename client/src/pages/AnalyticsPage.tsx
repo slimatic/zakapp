@@ -33,6 +33,7 @@ import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { formatCurrency } from '../utils/formatters';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
+import { useAuth } from '../contexts/AuthContext';
 import { isAssetZakatable, getAssetZakatableValue } from '../core/calculations/zakat';
 import type { NisabYearRecord } from '../types/nisabYearRecord';
 
@@ -40,8 +41,11 @@ type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
 
 export const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const maskedCurrency = useMaskedCurrency();
   const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('all_time');
+  
+  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
 
   // Fetch data from Local Repositories
   const { assets } = useAssetRepository();
@@ -129,19 +133,19 @@ export const AnalyticsPage: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
             <p className="text-sm font-medium text-gray-500">Total Wealth</p>
             <p className="text-2xl font-bold text-gray-900 mt-2">
-              {maskedCurrency(formatCurrency(totalWealth))}
+              {maskedCurrency(formatCurrency(totalWealth, userCurrency))}
             </p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
             <p className="text-sm font-medium text-gray-500">Zakatable Wealth</p>
             <p className="text-2xl font-bold text-gray-900 mt-2">
-              {maskedCurrency(formatCurrency(totalZakatableWealth))}
+              {maskedCurrency(formatCurrency(totalZakatableWealth, userCurrency))}
             </p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
             <p className="text-sm font-medium text-gray-500">Total Zakat Due</p>
             <p className="text-2xl font-bold text-gray-900 mt-2">
-              {maskedCurrency(formatCurrency(totalZakatDue))}
+              {maskedCurrency(formatCurrency(totalZakatDue, userCurrency))}
             </p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
@@ -150,7 +154,7 @@ export const AnalyticsPage: React.FC = () => {
               <div className="flex justify-between items-baseline">
                 <p className="text-2xl font-bold text-gray-900">{complianceRate.toFixed(1)}%</p>
                 <span className="text-xs text-gray-500">
-                  {maskedCurrency(formatCurrency(totalZakatPaid))} Paid
+                  {maskedCurrency(formatCurrency(totalZakatPaid, userCurrency))} Paid
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
