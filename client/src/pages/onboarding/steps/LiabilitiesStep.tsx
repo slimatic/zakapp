@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useOnboarding } from '../context/OnboardingContext';
+import { getCurrencySymbol } from '../../../utils/formatters';
 
 export const LiabilitiesStep: React.FC = () => {
     const { data, updateData, nextStep, prevStep } = useOnboarding();
+    const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as 'USD' | 'EUR' | 'GBP' | 'SAR' | 'AED' | 'PKR' | 'INR' | 'MYR' | 'IDR' | 'TRY' | 'EGP');
 
     // Ensure liabilities section exists in data (will be added to context later)
     // For now we assume the parent component or context initializes it, or we handle it safely here.
@@ -37,7 +39,7 @@ export const LiabilitiesStep: React.FC = () => {
                         <input
                             type="number"
                             className="block w-full rounded-lg border-red-300 focus:border-red-500 focus:ring-red-500 py-3"
-                            placeholder="Amount ($)"
+                            placeholder={`Amount (${currencySymbol})`}
                             value={data.liabilities?.immediate || ''}
                             onChange={(e) => handleValueChange('immediate', e.target.value)}
                         />
@@ -55,7 +57,7 @@ export const LiabilitiesStep: React.FC = () => {
                         <input
                             type="number"
                             className="block w-full rounded-lg border-orange-300 focus:border-orange-500 focus:ring-orange-500 py-3"
-                            placeholder="Amount ($)"
+                            placeholder={`Amount (${currencySymbol})`}
                             value={data.liabilities?.expenses || ''}
                             onChange={(e) => handleValueChange('expenses', e.target.value)}
                         />

@@ -9,6 +9,7 @@ import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
 import { calculateWealth } from '../../../core/calculations/wealthCalculator';
 import { gregorianToHijri } from '../../../utils/calendarConverter';
 import { useOnboarding } from '../context/OnboardingContext';
+import { getCurrencySymbol } from '../../../utils/formatters';
 import toast from 'react-hot-toast';
 
 export const ZakatSetupStep: React.FC = () => {
@@ -21,6 +22,7 @@ export const ZakatSetupStep: React.FC = () => {
     const nisabBasis = (data.nisab.standard || 'GOLD').toUpperCase() as 'GOLD' | 'SILVER';
     const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold('USD', nisabBasis);
     const navigate = useNavigate();
+    const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as any);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [zakatPaid, setZakatPaid] = useState<number>(0);
@@ -84,6 +86,7 @@ export const ZakatSetupStep: React.FC = () => {
                 zakatAmount: estimates.totalZakatDue,
                 nisabThresholdAtStart: (nisabAmount || 0).toString(),
                 userNotes: 'Initial record created from Onboarding Wizard',
+                currency: data.settings?.currency || 'USD',
                 calculationDetails: JSON.stringify({
                     method: 'onboarding_wizard_v2',
                     prices: { gold: goldPrice, silver: silverPrice }
@@ -191,7 +194,7 @@ export const ZakatSetupStep: React.FC = () => {
                 </label>
                 <div className="relative rounded-md shadow-sm max-w-md mx-auto">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
+                        <span className="text-gray-500 sm:text-sm">{currencySymbol}</span>
                     </div>
                     <input
                         type="number"

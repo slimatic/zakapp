@@ -40,8 +40,9 @@ export const IdentityStep: React.FC = () => {
         { code: 'PKR', name: 'Pakistani Rupee (Rs)' },
         { code: 'INR', name: 'Indian Rupee (₹)' },
         { code: 'MYR', name: 'Malaysian Ringgit (RM)' },
-        { code: 'CAD', name: 'Canadian Dollar (C$)' },
-        { code: 'AUD', name: 'Australian Dollar (A$)' }
+        { code: 'IDR', name: 'Indonesian Rupiah (Rp)' },
+        { code: 'TRY', name: 'Turkish Lira (₺)' },
+        { code: 'EGP', name: 'Egyptian Pound (E£)' }
     ];
 
     return (
