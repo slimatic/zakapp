@@ -29,6 +29,7 @@ import { useAuth } from '../../contexts/AuthContext';
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
 
   // Use Local-First hook instead of API
   const { assets, isLoading } = useAssetRepository();
@@ -44,10 +45,10 @@ export const Dashboard: React.FC = () => {
 
   const { totalAssetValue, zakatableAssets } = dashboardMetrics;
 
-  const formatCurrency = (amount: number, currency: string = 'USD'): string => {
+  const formatCurrency = (amount: number, currency?: string): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: currency || userCurrency,
     }).format(amount);
   };
 

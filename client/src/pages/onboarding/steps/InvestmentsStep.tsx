@@ -1,8 +1,10 @@
 import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
+import { getCurrencySymbol } from '../../../utils/formatters';
 
 export const InvestmentsStep: React.FC = () => {
     const { data, updateAsset, nextStep, prevStep } = useOnboarding();
+    const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as 'USD' | 'EUR' | 'GBP' | 'SAR' | 'AED' | 'PKR' | 'INR' | 'MYR' | 'IDR' | 'TRY' | 'EGP');
 
     const handleValueChange = (asset: 'stocks' | 'retirement' | 'crypto', valueStr: string) => {
         const value = parseFloat(valueStr) || 0;
@@ -37,7 +39,7 @@ export const InvestmentsStep: React.FC = () => {
                             <input
                                 type="number"
                                 className="block w-full rounded-lg border-blue-300 focus:border-blue-500 focus:ring-blue-500 py-3"
-                                placeholder="Total Market Value ($)"
+                                placeholder={`Total Market Value (${currencySymbol})`}
                                 value={data.assets.retirement.value || ''}
                                 onChange={(e) => handleValueChange('retirement', e.target.value)}
                             />
@@ -119,7 +121,7 @@ export const InvestmentsStep: React.FC = () => {
                             <input
                                 type="number"
                                 className="block w-full rounded-lg border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 py-3"
-                                placeholder="Total Market Value ($)"
+                                placeholder={`Total Market Value (${currencySymbol})`}
                                 value={data.assets.stocks.value || ''}
                                 onChange={(e) => handleValueChange('stocks', e.target.value)}
                             />
@@ -151,7 +153,7 @@ export const InvestmentsStep: React.FC = () => {
                         <input
                             type="number"
                             className="block w-full rounded-lg border-orange-300 focus:border-orange-500 focus:ring-orange-500 py-3"
-                            placeholder="Total Market Value ($)"
+                            placeholder={`Total Market Value (${currencySymbol})`}
                             value={data.assets.crypto.value || ''}
                             onChange={(e) => handleValueChange('crypto', e.target.value)}
                         />

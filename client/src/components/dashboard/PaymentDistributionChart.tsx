@@ -29,6 +29,7 @@ import { usePrivacy } from '../../contexts/PrivacyContext';
 
 interface PaymentDistributionChartProps {
     payments: any[];
+    currency?: string;
 }
 
 const COLORS = [
@@ -54,7 +55,7 @@ const RECIPIENT_LABELS: { [key: string]: string } = {
     'other': 'Other'
 };
 
-export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> = ({ payments }) => {
+export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> = ({ payments, currency = 'USD' }) => {
     const { privacyMode } = usePrivacy();
 
     // Group payments by category
@@ -84,7 +85,7 @@ export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> =
         if (privacyMode) return '****';
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: currency,
             maximumFractionDigits: 0
         }).format(value);
     };

@@ -784,6 +784,7 @@ class ApiService {
     calculationDetails?: Record<string, any>;
     userNotes?: string;
     selectedAssetIds?: string[];
+    currency?: string;
   }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/nisab-year-records`, {
       method: 'POST',

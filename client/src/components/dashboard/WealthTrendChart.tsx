@@ -31,9 +31,10 @@ import { NisabYearRecord } from '../../types/nisabYearRecord';
 
 interface WealthTrendChartProps {
     records: NisabYearRecord[];
+    currency?: string;
 }
 
-export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records }) => {
+export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, currency = 'USD' }) => {
     const { privacyMode } = usePrivacy();
     const [calendarFormat, setCalendarFormat] = React.useState<'hijri' | 'gregorian'>('hijri');
 
@@ -72,7 +73,7 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records }) =
             notation: "compact",
             compactDisplay: "short",
             style: 'currency',
-            currency: 'USD',
+            currency: currency,
         }).format(value);
     };
 
@@ -80,7 +81,7 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records }) =
         if (privacyMode) return '****';
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: currency,
             maximumFractionDigits: 0
         }).format(value);
     };
