@@ -1,8 +1,10 @@
 import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
+import { getCurrencySymbol } from '../../../utils/formatters';
 
 export const CashStep: React.FC = () => {
     const { data, updateAsset, nextStep, prevStep } = useOnboarding();
+    const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as any);
 
     const handleValueChange = (asset: 'cash_on_hand' | 'bank_accounts', valueStr: string) => {
         const value = parseFloat(valueStr) || 0;
@@ -28,7 +30,7 @@ export const CashStep: React.FC = () => {
                         </label>
                         <div className="relative rounded-md shadow-sm">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                <span className="text-gray-500 sm:text-sm">$</span>
+                                <span className="text-gray-500 sm:text-sm">{currencySymbol}</span>
                             </div>
                             <input
                                 type="number"
@@ -47,7 +49,7 @@ export const CashStep: React.FC = () => {
                         </label>
                         <div className="relative rounded-md shadow-sm">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                <span className="text-gray-500 sm:text-sm">$</span>
+                                <span className="text-gray-500 sm:text-sm">{currencySymbol}</span>
                             </div>
                             <input
                                 type="number"

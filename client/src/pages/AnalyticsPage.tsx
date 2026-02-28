@@ -216,7 +216,7 @@ export const AnalyticsPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-transparent">
           {/* Wealth Trend (Full Width on mobile, half on desktop) */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <WealthTrendChart records={filteredNisabRecords} />
+            <WealthTrendChart records={filteredNisabRecords} currency={userCurrency} />
           </div>
 
           {/* Asset Composition */}
@@ -226,12 +226,12 @@ export const AnalyticsPage: React.FC = () => {
 
           {/* Payment Distribution */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <PaymentDistributionChart payments={filteredPayments} />
+            <PaymentDistributionChart payments={filteredPayments} currency={userCurrency} />
           </div>
 
           {/* Obligations */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <ZakatObligationsChart records={filteredNisabRecords} payments={filteredPayments} />
+            <ZakatObligationsChart records={filteredNisabRecords} payments={filteredPayments} currency={userCurrency} />
           </div>
         </div>
       </div>

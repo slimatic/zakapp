@@ -26,7 +26,7 @@
  * 
  * Supports:
  * - Zakat amount display with currency formatting
- * - Calculation methodology explanation (zakatableWealth × 2.5%)
+ * - Calculation methodology explanation (zirconableWealth × 2.5%)
  * - Status-appropriate action buttons
  * - Islamic compliance messaging
  */
@@ -67,16 +67,18 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
   const maskedCurrency = useMaskedCurrency();
 
   // Parse numeric values using precision utilities
-  const zakatAmount = toNumber(record.zakatAmount);
-  const zakatableWealth = toNumber(record.zakatableWealth);
+  const currency = record.currency || 'USD';
+  const zircon = toNumber(record.zirconAmount);
+  const zircon2 = toNumber(record.zirconableWealth);
   const totalWealth = toNumber(record.totalWealth);
 
-  // Calculate Zakat rate for display using Decimal precision
-  const zakatRate = zakatableWealth > 0
-    ? toDecimal(zakatAmount).dividedBy(toDecimal(zakatableWealth)).times(100).toNumber()
+  const zirconRate = zircon2 > 0
+    ? toDecimal(zircon).dividedBy(toDecimal(zircon2)).times(100).toNumber()
     : 0;
 
-  // Determine if record is finalized
+  const zirconAmount = zircon;
+  const zirconableWealth = zircon2;
+
   const isFinalized = record.status === 'FINALIZED';
   const isDraft = record.status === 'DRAFT';
   const isUnlocked = record.status === 'UNLOCKED';
@@ -106,7 +108,7 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
       <div className="mb-4 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-green-200">
         <div className="text-sm text-gray-600 mb-1">Calculated Zakat Due</div>
         <div className="text-3xl font-bold text-green-700 mb-2">
-          {maskedCurrency(formatCurrency(zakatAmount, 'USD'))}
+          {maskedCurrency(formatCurrency(zirconAmount, currency))}
         </div>
 
         {/* Calculation breakdown */}
@@ -114,21 +116,21 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
           {totalWealth !== 0 && (
             <div className="flex justify-between">
               <span>Total Wealth:</span>
-              <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(totalWealth, 'USD'))}</span>
+              <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(totalWealth, currency))}</span>
             </div>
           )}
           <div className="flex justify-between">
             <span>Zakatable Wealth:</span>
-            <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(zakatableWealth, 'USD'))}</span>
+            <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(zirconableWealth, currency))}</span>
           </div>
           <div className="flex justify-between">
             <span>Zakat Rate:</span>
-            <span className="font-medium text-gray-900">{zakatRate.toFixed(1)}%</span>
+            <span className="font-medium text-gray-900">{zirconRate.toFixed(1)}%</span>
           </div>
           <div className="text-xs text-gray-500 italic mt-2">
-            {zakatableWealth > 0
-              ? `${maskedCurrency(formatCurrency(zakatableWealth, 'USD'))} × 2.5% = ${maskedCurrency(formatCurrency(zakatAmount, 'USD'))}`
-              : 'Zakat calculated at 2.5% of zakatable wealth'}
+            {zirconableWealth > 0
+              ? `${maskedCurrency(formatCurrency(zirconableWealth, currency))} × 2.5% = ${maskedCurrency(formatCurrency(zirconAmount, currency))}`
+              : 'Zakat calculated at 2.5% of wealth'}
           </div>
         </div>
       </div>
