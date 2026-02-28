@@ -31,7 +31,20 @@ export const ZakatSetupStep: React.FC = () => {
 
     // Calculate Estimates based on SAVED DB Data
     useEffect(() => {
-        if (!isLoadingAssets && !isLoadingLiabilities && dbAssets.length > 0) {
+        if (!isLoadingAssets && !isLoadingLiabilities) {
+            // Handle empty assets case - set default zero estimates
+            if (dbAssets.length === 0) {
+                setEstimates({
+                    totalWealth: 0,
+                    zakatableWealth: 0,
+                    totalLiabilities: 0,
+                    netZakatable: 0,
+                    totalZakatDue: 0
+                });
+                return;
+            }
+
+            // Original logic for when assets exist
             const activeAssets = dbAssets.filter(a => a.isActive);
             const wealthStats = calculateWealth(
                 activeAssets,
