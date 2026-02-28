@@ -70,6 +70,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const [selectedLiabilityIds, setSelectedLiabilityIds] = useState<string[]>([]);
 
   const { user } = useAuth();
+  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
   const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>((user?.settings?.preferredNisabStandard as 'GOLD' | 'SILVER') || 'GOLD');
   const [editingStartDateRecordId, setEditingStartDateRecordId] = useState<string | null>(null);
   const [newStartDate, setNewStartDate] = useState<string>('');
@@ -204,7 +205,7 @@ export const NisabYearRecordsPage: React.FC = () => {
         zakatableWealth: netZakatableWealth, // Use NET wealth after liabilities
         zakatAmount: zakatAmount,
         nisabThresholdAtStart: threshold.toString(), // Save the threshold snapshot as string per schema
-        currency: 'USD',
+        currency: userCurrency,
         status: 'DRAFT'
       });
 

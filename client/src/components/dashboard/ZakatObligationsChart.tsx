@@ -32,10 +32,11 @@ import { NisabYearRecord } from '../../types/nisabYearRecord';
 
 interface ZakatObligationsChartProps {
     records: NisabYearRecord[];
-    payments: any[]; // Full payment list to filter
+    payments: any[];
+    currency?: string;
 }
 
-export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ records, payments }) => {
+export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ records, payments, currency = 'USD' }) => {
     const { privacyMode } = usePrivacy();
     const [calendarFormat, setCalendarFormat] = React.useState<'hijri' | 'gregorian'>('hijri');
 
@@ -88,7 +89,7 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
             notation: "compact",
             compactDisplay: "short",
             style: 'currency',
-            currency: 'USD',
+            currency: currency,
         }).format(value);
     };
 
@@ -96,7 +97,7 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
         if (privacyMode) return '****';
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: currency,
             maximumFractionDigits: 0
         }).format(value);
     };
