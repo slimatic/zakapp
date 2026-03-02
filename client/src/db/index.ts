@@ -240,10 +240,11 @@ export const closeDb = async () => {
             logger.info("Closing DB connection...");
             const db = await window._zakapp_db_promise;
 
-
-            // Safety check: ensure db is valid and has destroy method
-            logger.warn("DB instance exists but missing destroy() method:", Object.keys(db));
-
+            // Properly destroy the DB instance to prevent duplicate database errors
+            if (db && typeof db.destroy === 'function' && !(db as any).destroyed) {
+                await db.destroy();
+                logger.info("DB instance destroyed.");
+            }
         } catch (e) {
             logger.error('Error closing DB:', e);
         }
@@ -251,7 +252,6 @@ export const closeDb = async () => {
         window._zakapp_db_password = undefined;
         notifyListeners(null);
     }
-
     // CRITICAL: Always wait for RxDB internal registry to update
     // This delay is needed in BOTH dev and production to prevent DB8 errors
     await new Promise(r => setTimeout(r, 200));
