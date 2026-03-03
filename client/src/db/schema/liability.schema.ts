@@ -35,7 +35,7 @@ export const LiabilitySchema = {
             type: 'string',
             maxLength: 50
         },
-        amount: {
+        deductibleAmount: {
             anyOf: [{ type: 'number' }, { type: 'string' }],
             encrypted: true
         },

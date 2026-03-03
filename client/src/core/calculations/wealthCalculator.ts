@@ -130,6 +130,12 @@ export const calculateDeductibleLiabilities = (liabilities: Liability[], referen
     liabilities.forEach(liability => {
         if (!liability.isActive) return;
 
+        const deductibleAmountValue = liability.deductibleAmount;
+        if (deductibleAmountValue !== null && deductibleAmountValue !== undefined && deductibleAmountValue > 0) {
+            totalDeductible = totalDeductible.plus(new Decimal(deductibleAmountValue));
+            return;
+        }
+
         const amount = new Decimal(liability.amount || 0);
         const dueDate = new Date(liability.dueDate);
 
@@ -145,4 +151,3 @@ export const calculateDeductibleLiabilities = (liabilities: Liability[], referen
 
     return totalDeductible.toNumber();
 };
-
