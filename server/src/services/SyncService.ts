@@ -20,6 +20,7 @@ export class SyncService {
     private couchPass: string;
     private jwtSecret: string;
     private authHeader: string;
+    private _initialized: boolean = false;
 
     constructor() {
         this.couchDbUrl = process.env.COUCHDB_URL || 'http://couchdb:5984';
@@ -76,6 +77,8 @@ export class SyncService {
         if (!this.isConfigured()) {
             throw new Error('Sync service not configured (missing COUCHDB_JWT_SECRET)');
         }
+
+        await this.ensureCouchDbInitialized();
 
         const safeUserId = this.getSafeUserId(userId);
         const couchUsername = `user_${safeUserId}`;
@@ -183,6 +186,33 @@ export class SyncService {
             password: couchPassword,
             databases: dbNames
         };
+    }
+
+    private async ensureCouchDbInitialized(): Promise<void> {
+        if (this._initialized) {
+            return;
+        }
+
+        const systemDatabases = ['_users', '_replicator', '_global_changes'];
+
+        for (const dbName of systemDatabases) {
+            try {
+                await axios.put(`${this.couchDbUrl}/${dbName}`, {}, {
+                    headers: { 'Authorization': this.authHeader }
+                });
+                logger.info(`System database created: ${dbName}`);
+            } catch (err: any) {
+                if (err.response?.status === 412) {
+                    logger.info(`System database already exists: ${dbName}`);
+                } else {
+                    logger.error(`Failed to ensure system database ${dbName}:`, err.response?.data || err.message);
+                    throw new Error(`CouchDB initialization failed: ${err.message}`);
+                }
+            }
+        }
+
+        this._initialized = true;
+        logger.info('CouchDB system databases initialized');
     }
 
     /**

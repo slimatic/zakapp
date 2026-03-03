@@ -241,8 +241,8 @@ export const closeDb = async () => {
             const db = await window._zakapp_db_promise;
 
             // Properly destroy the DB instance to prevent duplicate database errors
-            if (db && typeof db.destroy === 'function' && !(db as any).destroyed) {
-                await db.destroy();
+            if (db && typeof (db as any).destroy === 'function' && !(db as any).destroyed) {
+                await (db as any).destroy();
                 logger.info("DB instance destroyed.");
             }
         } catch (e) {
