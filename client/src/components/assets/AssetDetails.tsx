@@ -23,6 +23,7 @@ import { Asset } from '../../types';
 import { Button, LoadingSpinner, ErrorMessage } from '../ui';
 import { EncryptedBadge } from '../ui/EncryptedBadge';
 import { isAssetZakatable, getAssetZakatableValue } from '../../core/calculations/zakat';
+import { AssetAmountHistory } from '../AssetAmountHistory';
 
 /**
  * AssetDetails component for displaying comprehensive asset information
@@ -363,7 +364,12 @@ export const AssetDetails: React.FC = () => {
             * This is an estimate. Actual Zakat calculation depends on your total wealth,
             nisab threshold, and chosen calculation methodology.
           </p>
-        </div>
+      </div>
+      </div>
+
+      {/* Asset Amount History */}
+      <div className="mt-8">
+        <AssetAmountHistory assetId={safeAsset.id} />
       </div>
 
       {/* Action Buttons */}

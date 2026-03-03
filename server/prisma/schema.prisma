@@ -112,6 +112,7 @@ model Liability {
   type      String    // loan, mortgage, credit_card, business_debt, other
   name      String
   amount    Float
+  deductibleAmount Float? // Amount eligible for Zakat deduction (e.g., next month's payment). Full debt amount not deductible per scholarly guidelines.
   currency  String    @default("USD")
   creditor  String?
   dueDate   DateTime?

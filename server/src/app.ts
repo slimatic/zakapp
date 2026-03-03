@@ -42,6 +42,7 @@ import feedbackRoutes from './routes/feedback';
 import adminEncryptionRoutes from './routes/admin/encryption';
 import adminRoutes from './routes/admin';
 import debugRoutes from './routes/debug';
+import assetAmountEventRoutes from './routes/asset-amount-events';
 import { Logger } from './utils/logger';
 import { initAutoMigration } from './startup/autoMigration';
 
@@ -166,6 +167,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/assets', assetAmountEventRoutes);
 app.use('/api/calculations', calculationsRoutes);
 app.use('/api/zakat', zakatRoutes);
 app.use('/api/tracking', trackingRoutes);

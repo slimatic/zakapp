@@ -18,6 +18,7 @@
 import { EncryptionService } from './EncryptionService';
 import { determineModifier } from '../utils/assetModifiers';
 import { HawlTrackingService } from './hawlTrackingService';
+import { AssetAmountEventService } from './AssetAmountEventService';
 import { Logger } from '../utils/logger';
 // import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
 
@@ -206,6 +207,24 @@ export class AssetService {
         isActive: true
       }
     });
+
+    // NEW: Create initial asset amount event
+    try {
+      const eventService = new AssetAmountEventService();
+      await eventService.createEvent(userId, {
+        assetId: asset.id,
+        eventType: 'CREATED',
+        amount: assetData.value,
+        effectiveDate: assetData.acquisitionDate,
+        description: 'Asset created',
+        source: 'manual'
+      });
+    } catch (err) {
+      this.logger.error('Failed to create initial asset amount event', err);
+      // Don't throw - asset creation should succeed even if event creation fails
+    }
+
+    // Trigger Hawl tracking (non-blocking)
 
     // Trigger Hawl tracking (non-blocking)
     await this.triggerWealthRecalculation(userId);
@@ -440,6 +459,26 @@ export class AssetService {
       where: { id: assetId },
       data: updatePayload
     });
+
+    // NEW: Create asset amount event if value changed
+    if (updateData.value !== undefined && existingAsset && updateData.value !== existingAsset.value) {
+      try {
+        const eventService = new AssetAmountEventService();
+        await eventService.createEvent(userId, {
+          assetId: assetId,
+          eventType: 'UPDATED',
+          amount: updateData.value,
+          effectiveDate: new Date(),
+          description: 'Asset value updated',
+          source: 'manual'
+        });
+      } catch (err) {
+        this.logger.error('Failed to create asset amount event', err);
+        // Don't throw - asset update should succeed even if event creation fails
+      }
+    }
+
+    // Trigger Hawl tracking (non-blocking)
 
     // Trigger Hawl tracking (non-blocking)
     await this.triggerWealthRecalculation(userId);
