@@ -22,7 +22,6 @@
 
 import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 import type { ReminderEvent } from '@zakapp/shared/types/tracking';
-import { getApiBaseUrl } from '../config';
 
 const API_BASE_URL = getApiBaseUrl();
 

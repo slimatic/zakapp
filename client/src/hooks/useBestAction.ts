@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 
 interface BestAction {
     type: 'URGENT' | 'WARNING' | 'SETUP' | 'MAINTENANCE';

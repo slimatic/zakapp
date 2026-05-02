@@ -37,10 +37,8 @@ import { BehaviorSubject } from 'rxjs';
 import toast from 'react-hot-toast';
 import { getCouchDbUrl, getApiBaseUrl } from '../config';
 import { cryptoService } from './CryptoService';
-import { Logger } from '../utils/logger';
 
 const logger = new Logger('SyncService');
-
 
 // Collections to sync - only core user data that needs multi-device sync
 const SYNC_COLLECTIONS: (keyof ZakAppCollections)[] = [
@@ -217,7 +215,6 @@ export class SyncService {
 
             logger.warn(`Access to '${dbName}' denied. This may be temporary during provisioning.`);
 
-
             if (response.status === 404) {
                 logger.warn(`Database '${dbName}' not found. Backend provisioning may be in progress.`);
                 return false;
@@ -232,8 +229,6 @@ export class SyncService {
             return false;
         }
     }
-
-
 
     /**
      * Start "Smart Sync" for the given user.
@@ -264,7 +259,6 @@ export class SyncService {
 
         logger.info(`Starting LIVE sync for user: ${safeUserId}`);
 
-
         // Start Live Replication for all collections
         for (const colName of SYNC_COLLECTIONS) {
             await this.startCollectionSync(colName, safeUserId);
@@ -285,7 +279,6 @@ export class SyncService {
             if (!collection) return;
 
             logger.info(`Connecting Live Sync: ${collectionName}`);
-
 
             const replicationState = await replicateCouchDB({
                 replicationIdentifier: `zakapp-${safeUserId}-${collectionName}`,
@@ -405,7 +398,6 @@ export class SyncService {
 
         const apiUrl = getApiBaseUrl();
         logger.info('Initiating Remote Data Purge...');
-
 
         // Stop sync first to prevent immediate re-upload attempts or errors
         await this.stopSync();

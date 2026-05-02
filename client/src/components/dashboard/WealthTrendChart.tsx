@@ -28,6 +28,7 @@ import {
 } from 'recharts';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { NisabYearRecord } from '../../types/nisabYearRecord';
+import { parseDecimalNumber } from '../../utils/parseDecimal';
 
 interface WealthTrendChartProps {
     records: NisabYearRecord[];
@@ -59,8 +60,8 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
 
             return {
                 name: label,
-                totalWealth: typeof record.totalWealth === 'number' ? record.totalWealth : parseFloat(record.totalWealth as string || '0'),
-                zakatDue: typeof record.zakatAmount === 'number' ? record.zakatAmount : parseFloat(record.zakatAmount as string || '0'),
+                totalWealth: typeof record.totalWealth === 'number' ? record.totalWealth : parseDecimalNumber(record.totalWealth),
+                zakatDue: typeof record.zakatAmount === 'number' ? record.zakatAmount : parseDecimalNumber(record.zakatAmount),
             };
         });
     }, [records, calendarFormat]);

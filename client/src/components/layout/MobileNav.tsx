@@ -18,7 +18,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { NavigationItem } from './NavigationItem';
-import { NavigationItemType } from './Navigation';
 
 interface MobileNavProps {
   items: NavigationItemType[];

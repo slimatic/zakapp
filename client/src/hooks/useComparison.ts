@@ -22,7 +22,6 @@
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
-import { getApiBaseUrl } from '../config';
 
 const API_BASE_URL = getApiBaseUrl();
 

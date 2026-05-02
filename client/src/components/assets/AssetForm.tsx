@@ -25,7 +25,7 @@ import type { Asset, AssetType } from '../../types';
 import type { RetirementConfig } from '../../types/asset.types';
 import { Button, Input } from '../ui';
 import { EncryptedBadge } from '../ui/EncryptedBadge';
-import {
+import { shouldShowPassiveCheckbox, shouldShowRestrictedCheckbox, getPropertyGuidance } from '../../utils/assetModifiers';
   shouldShowPassiveCheckbox,
   shouldShowRestrictedCheckbox,
   getPassiveInvestmentGuidance,
@@ -600,9 +600,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           )}
         </div>
 
-
-
-
         {/* Modifier Section: Passive Investment (hidden for retirement since radio has this option) */}
         {shouldShowPassiveCheckbox(formData.category as string) && !formData.subCategory?.startsWith('retirement') && (
           <PassiveInvestmentSection
@@ -613,7 +610,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           />
         )}
 
-
         {/* Modifier Section: Retirement Treatment (Radio Group) */}
         {formData.category === 'stocks' && formData.subCategory?.startsWith('retirement') && (
           <RetirementTreatmentSection
@@ -622,7 +618,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             onConfigChange={setRetirementConfig}
           />
         )}
-
 
         {/* Modifier Section: Restricted Account (Legacy/Non-Retirement) */}
         {shouldShowRestrictedCheckbox(formData.category as string) && (!formData.subCategory?.startsWith('retirement')) && (
@@ -636,7 +631,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             }}
           />
         )}
-
 
         {/* Property Guidance Section */}
         {formData.category === 'property' && getPropertyGuidance(formData.subCategory) && (

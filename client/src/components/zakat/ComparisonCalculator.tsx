@@ -24,6 +24,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Tooltip, InfoIcon } from '../ui';
+import { parseDecimalNumber } from '../../utils/parseDecimal';
 
 export interface ComparisonCalculatorProps {
   initialAssets?: Record<string, number>;
@@ -110,7 +111,7 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
   }, [totalWealth]);
 
   const handleAssetChange = (assetType: keyof AssetInputs, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    const numValue = parseDecimalNumber(value);
     setAssets(prev => ({ ...prev, [assetType]: numValue }));
   };
 

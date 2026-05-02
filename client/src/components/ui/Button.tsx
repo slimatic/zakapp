@@ -18,7 +18,6 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "../../lib/utils"
 
 // Needs @radix-ui/react-slot, if not present we can use a simpler approach or install it.
 // Assuming we don't have radix installed yet from the command earlier (only lucide/tailwind).

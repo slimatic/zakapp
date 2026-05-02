@@ -16,7 +16,6 @@
  */
 
 import React from 'react';
-import { AssetList } from '../../components/assets/AssetList';
 
 export const AssetListPage: React.FC = () => {
   return (

@@ -20,7 +20,7 @@ import { Liability } from '../../types';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import { Button, Input } from '../ui';
 import clsx from 'clsx';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 
 interface LiabilitySelectionTableProps {
     liabilities: Liability[];

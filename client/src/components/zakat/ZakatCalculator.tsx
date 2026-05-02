@@ -32,7 +32,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Input } from '../ui/Input';
-import { ShieldCheck, ArrowRight, Wallet, TrendingUp, DollarSign, Calculator, Lock } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Wallet, TrendingUp, Calculator, Lock } from 'lucide-react';
 
 export const ZakatCalculator: React.FC = () => {
   // Local DB Hooks

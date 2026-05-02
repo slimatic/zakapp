@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { adminService, SystemSettings as ISystemSettings } from '../../services/adminService';
+import { adminService } from '../../services/adminService';
 
 export const SystemSettings: React.FC = () => {
     const [settings, setSettings] = useState<ISystemSettings | null>(null);

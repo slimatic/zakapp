@@ -23,10 +23,8 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Logger } from '../utils/logger';
 
 const logger = new Logger('PrivacyContext');
-
 
 interface PrivacyContextType {
   privacyMode: boolean;

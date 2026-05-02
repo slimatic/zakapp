@@ -23,7 +23,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import type { AnalyticsMetric } from '@zakapp/shared/types/tracking';
-import { getApiBaseUrl } from '../config';
 
 const API_BASE_URL = getApiBaseUrl();
 

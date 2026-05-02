@@ -29,6 +29,7 @@ import {
 } from 'recharts';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { NisabYearRecord } from '../../types/nisabYearRecord';
+import { parseDecimalNumber } from '../../utils/parseDecimal';
 
 interface ZakatObligationsChartProps {
     records: NisabYearRecord[];
@@ -71,7 +72,7 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
                 .filter(p => p.nisabYearId === recordId) // Direct link
                 .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
-            const due = typeof record.zakatAmount === 'number' ? record.zakatAmount : parseFloat(record.zakatAmount as string || '0');
+            const due = typeof record.zakatAmount === 'number' ? record.zakatAmount : parseDecimalNumber(record.zakatAmount);
 
             return {
                 name: label,

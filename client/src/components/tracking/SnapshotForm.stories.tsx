@@ -16,7 +16,6 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
-import { SnapshotForm } from './SnapshotForm';
 
 /**
  * SnapshotForm Component Stories

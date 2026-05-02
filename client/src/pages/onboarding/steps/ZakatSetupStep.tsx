@@ -11,6 +11,7 @@ import { gregorianToHijri } from '../../../utils/calendarConverter';
 import { useOnboarding } from '../context/OnboardingContext';
 import { getCurrencySymbol } from '../../../utils/formatters';
 import toast from 'react-hot-toast';
+import { parseDecimalNumber } from '../../../utils/parseDecimal';
 
 export const ZakatSetupStep: React.FC = () => {
     const { data } = useOnboarding();
@@ -214,7 +215,7 @@ export const ZakatSetupStep: React.FC = () => {
                         min="0"
                         step="0.01"
                         value={zakatPaid || ''}
-                        onChange={(e) => setZakatPaid(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => setZakatPaid(parseDecimalNumber(e.target.value))}
                         className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md py-3"
                         placeholder="0.00"
                     />

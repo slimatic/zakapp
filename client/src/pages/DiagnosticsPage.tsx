@@ -3,7 +3,6 @@ import { Layout } from '../components/layout/Layout';
 import { SystemDiagnostics } from '../components/common/SystemDiagnostics';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const DiagnosticsPage: React.FC = () => {
     const navigate = useNavigate();

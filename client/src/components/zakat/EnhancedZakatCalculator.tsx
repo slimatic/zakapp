@@ -27,6 +27,7 @@ import { CalculationBreakdown, AssetBreakdown } from './CalculationBreakdown';
 import { NisabIndicator } from './NisabIndicator';
 import { CalculationExplanation } from './CalculationExplanation';
 import { MethodologySelector } from './MethodologySelector';
+import { parseDecimalNumber } from '../../utils/parseDecimal';
 
 export interface EnhancedZakatCalculatorProps {
   initialMethodology?: 'standard' | 'hanafi' | 'shafii' | 'custom';
@@ -129,7 +130,7 @@ export const EnhancedZakatCalculator: React.FC<EnhancedZakatCalculatorProps> = (
 
   // Handle asset input change
   const handleAssetChange = (assetType: keyof typeof assets, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    const numValue = parseDecimalNumber(value);
     setAssets(prev => ({ ...prev, [assetType]: numValue }));
   };
 

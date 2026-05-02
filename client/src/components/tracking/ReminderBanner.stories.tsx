@@ -16,7 +16,6 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
-import { ReminderBanner } from './ReminderBanner';
 
 /**
  * ReminderBanner Component Stories

@@ -35,7 +35,7 @@ export const POTENTIAL_ZAKATABLE_TYPES = [
     'STOCKS'
 ];
 
-interface WealthCalculationResult {
+export interface WealthCalculationResult {
     totalWealth: number;
     zakatableWealth: number;
     deductibleLiabilities: number;

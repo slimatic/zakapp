@@ -17,7 +17,6 @@
 
 import React from 'react';
 import { PlusCircleIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
 
 /**
  * Empty state component for when user has no assets

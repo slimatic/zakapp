@@ -15,8 +15,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { getApiBaseUrl } from '../config';
-
 export const API_BASE_URL = getApiBaseUrl();
 
 // API configuration is handled via environment or runtime config
@@ -404,8 +402,6 @@ class ApiService {
     });
     return this.handleResponse(response);
   }
-
-
 
   async getNisab(): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/nisab`, {

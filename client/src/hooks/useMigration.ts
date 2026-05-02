@@ -17,7 +17,6 @@
 
 import { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
-import { PaymentEncryptionService } from '../services/PaymentEncryptionService';
 
 const encryptPaymentData = async (payment: any) => {
   return PaymentEncryptionService.encryptPaymentData(payment);

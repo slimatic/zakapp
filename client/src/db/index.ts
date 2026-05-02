@@ -32,10 +32,8 @@ import { UserSettingsSchema } from './schema/userSettings.schema';
 
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
-import { Logger } from '../utils/logger';
 
 const logger = new Logger('DatabaseService');
-
 
 addRxPlugin(RxDBUpdatePlugin);
 addRxPlugin(RxDBQueryBuilderPlugin);
@@ -201,7 +199,6 @@ export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
     logger.info('Starting database creation...');
     window._zakapp_db_password = password;
 
-
     _dbCreationInProgress = _createDb(password)
         .then(db => {
             window._zakapp_db_promise = Promise.resolve(db);
@@ -239,7 +236,6 @@ export const closeDb = async () => {
         try {
             logger.info("Closing DB connection...");
             const db = await window._zakapp_db_promise;
-
 
             // Safety check: ensure db is valid and has destroy method
             logger.warn("DB instance exists but missing destroy() method:", Object.keys(db));
@@ -295,7 +291,6 @@ export const resetDb = async () => {
 // Force Delete DB by Name (Used when we can't open it)
 export const forceResetDatabase = async () => {
     logger.warn("FORCING DB DELETION (forceResetDatabase)...");
-
 
     // CRITICAL: Close any lingering open instances first to prevent COL23 (Max Collections) leak
     await closeDb();

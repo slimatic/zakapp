@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useOnboarding } from '../context/OnboardingContext';
 import { getCurrencySymbol } from '../../../utils/formatters';
+import { parseDecimalNumber } from '../../../utils/parseDecimal';
 
 export const LiabilitiesStep: React.FC = () => {
     const { data, updateData, nextStep, prevStep } = useOnboarding();
@@ -11,7 +12,7 @@ export const LiabilitiesStep: React.FC = () => {
     // For now we assume the parent component or context initializes it, or we handle it safely here.
 
     const handleValueChange = (type: 'immediate' | 'expenses', valueStr: string) => {
-        const value = parseFloat(valueStr) || 0;
+        const value = parseDecimalNumber(valueStr);
         updateData('liabilities', {
             ...data.liabilities,
             [type]: value

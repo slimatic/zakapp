@@ -18,7 +18,6 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { ShieldCheck, Wifi, Smartphone, KeyRound, Activity } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export const HelpSupport = () => {
     return (

@@ -18,6 +18,7 @@
 import React, { useState, useEffect } from 'react';
 import { ZakatPayment } from '../../types';
 import { apiService } from '../../services/api';
+import { parseDecimalNumber } from '../../utils/parseDecimal';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -112,7 +113,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       const paymentData = {
         ...formData,
-        amount: parseFloat(formData.amount),
+        amount: parseDecimalNumber(formData.amount),
         methodology
       };
 

@@ -16,7 +16,6 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
-import { AnalyticsChart } from './AnalyticsChart';
 
 /**
  * AnalyticsChart Component Stories

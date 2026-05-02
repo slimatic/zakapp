@@ -1,5 +1,4 @@
 import React from 'react';
-import { useDonations } from '../../hooks/useDonations';
 
 export const DonationCTA: React.FC<{ className?: string, variant?: 'sidebar' | 'footer' | 'minimal' }> = ({ className = '', variant = 'minimal' }) => {
     const { isEnabled, donationUrl } = useDonations();

@@ -23,6 +23,7 @@ import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { Decimal } from 'decimal.js';
 
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
+import { parseDecimalNumber } from '../../utils/parseDecimal';
 
 interface ActiveRecordWidgetProps {
   record: NisabYearRecord | null;
@@ -102,7 +103,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
   // Get wealth values (support both API and legacy field names)
   // API returns totalWealth as string, need to parse it
   const currentWealth = record.currentWealth ||
-    (typeof record.totalWealth === 'string' ? parseFloat(record.totalWealth) : record.totalWealth) ||
+    (typeof record.totalWealth === 'string' ? parseDecimalNumber(record.totalWealth) : record.totalWealth) ||
     0;
 
   // Nisab threshold might be encrypted (string) or a number

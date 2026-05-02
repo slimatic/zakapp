@@ -17,10 +17,8 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
-import { Logger } from '../utils/logger';
 
 const logger = new Logger('QueryClient');
-
 
 // Create a client
 const queryClient = new QueryClient({

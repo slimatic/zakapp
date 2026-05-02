@@ -2,7 +2,6 @@ import React from 'react';
 import { Logo } from '../components/common/Logo';
 import { Link } from 'react-router-dom';
 import { GlossaryTerm } from '../components/common/GlossaryTerm';
-import { ExternalLink, Shield, Database, Lock, Eye } from 'lucide-react';
 
 export const PrivacyPolicyPage: React.FC = () => {
     return (

@@ -36,6 +36,7 @@ import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useAuth } from '../contexts/AuthContext';
 import { isAssetZakatable, getAssetZakatableValue } from '../core/calculations/zakat';
 import type { NisabYearRecord } from '../types/nisabYearRecord';
+import { parseDecimalNumber } from '../../utils/parseDecimal';
 
 type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
 
@@ -99,7 +100,7 @@ export const AnalyticsPage: React.FC = () => {
   const totalZakatDue = filteredNisabRecords.reduce((sum: number, record: NisabYearRecord) => {
     // Decrypt and parse zakatAmount if it's a string
     const amount = typeof record.zakatAmount === 'string'
-      ? parseFloat(record.zakatAmount)
+      ? parseDecimalNumber(record.zakatAmount)
       : (record.zakatAmount || 0);
     return sum + amount;
   }, 0) || 0;

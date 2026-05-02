@@ -21,7 +21,6 @@
  */
 
 import { useMutation, useQueryClient, UseMutationResult } from '@tanstack/react-query';
-import { getApiBaseUrl } from '../config';
 
 const API_BASE_URL = getApiBaseUrl();
 

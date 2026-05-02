@@ -17,7 +17,6 @@
 
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import { MotionGlobalConfig } from 'framer-motion';
 
 // Disable animations for tests
 MotionGlobalConfig.skipAnimations = true;

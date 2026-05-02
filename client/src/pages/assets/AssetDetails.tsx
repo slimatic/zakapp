@@ -16,7 +16,6 @@
  */
 
 import React from 'react';
-import { AssetDetails } from '../../components/assets/AssetDetails';
 
 export const AssetDetailsPage: React.FC = () => {
   return (

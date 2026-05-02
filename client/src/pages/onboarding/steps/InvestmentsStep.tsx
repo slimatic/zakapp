@@ -1,13 +1,14 @@
 import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { getCurrencySymbol } from '../../../utils/formatters';
+import { parseDecimalNumber } from '../../../utils/parseDecimal';
 
 export const InvestmentsStep: React.FC = () => {
     const { data, updateAsset, nextStep, prevStep } = useOnboarding();
     const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as 'USD' | 'EUR' | 'GBP' | 'SAR' | 'AED' | 'PKR' | 'INR' | 'MYR' | 'IDR' | 'TRY' | 'EGP');
 
     const handleValueChange = (asset: 'stocks' | 'retirement' | 'crypto', valueStr: string) => {
-        const value = parseFloat(valueStr) || 0;
+        const value = parseDecimalNumber(valueStr);
         updateAsset(asset, { value, enabled: value > 0 });
     };
 
