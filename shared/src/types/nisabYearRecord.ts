@@ -112,6 +112,9 @@ export interface CreateNisabYearRecordDto {
  * Used for updating record fields (allowed in DRAFT and UNLOCKED statuses)
  */
 export interface UpdateNisabYearRecordDto {
+  // Nisab basis update (optional)
+  nisabBasis?: 'GOLD' | 'SILVER';
+
   // Date updates (optional)
   hawlStartDate?: string | Date;
   hawlCompletionDate?: string | Date;

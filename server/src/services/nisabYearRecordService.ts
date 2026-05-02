@@ -353,6 +353,14 @@ export class NisabYearRecordService {
         methodologyUsed: dto.methodologyUsed || record.methodologyUsed,
       };
 
+      // Handle nisabBasis updates
+      if (dto.nisabBasis !== undefined) {
+        if (!['GOLD', 'SILVER'].includes(dto.nisabBasis)) {
+          throw new Error('Invalid nisabBasis: must be GOLD or SILVER');
+        }
+        updateData.nisabBasis = dto.nisabBasis;
+      }
+
       // Handle date updates
       if (dto.hawlStartDate !== undefined) {
         updateData.hawlStartDate = new Date(dto.hawlStartDate);
