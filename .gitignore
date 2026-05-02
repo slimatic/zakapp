@@ -11,6 +11,7 @@ yarn-error.log*
 .env.staging.*
 .env.production
 .env.production.*
+.env.dev
 .env.development.local
 .env.test.local
 .env.production.local
@@ -112,7 +113,9 @@ dist/
 # Docker environment secrets
 .env.docker
 
-# Local backups and build artifacts
+# SQLite transient files (auto-generated)
+*.db-shm
+*.db-wal
 backups/
 # Agent artifacts
 .agent/
