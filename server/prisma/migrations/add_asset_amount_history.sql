@@ -4,7 +4,7 @@
 
 -- Create AssetAmountEvent table
 CREATE TABLE IF NOT EXISTS "asset_amount_events" (
-    "id" TEXT NOT NULL PRIMARY KEY DEFAULT (uuid()),
+    "id" TEXT NOT NULL PRIMARY KEY,
     "assetId" TEXT NOT NULL,
     "eventType" TEXT NOT NULL,
     "amount" REAL NOT NULL,
@@ -20,24 +20,9 @@ CREATE TABLE IF NOT EXISTS "asset_amount_events" (
     FOREIGN KEY ("assetId") REFERENCES "assets" ("id") ON DELETE CASCADE
 );
 
--- Create index for assetId + effectiveDate
-CREATE INDEX IF NOT EXISTS "asset_amount_events_assetId_effectiveDate" ON "asset_amount_events" ("assetId", "effectiveDate");
-
--- Create index for assetId + recordedAt
-CREATE INDEX IF NOT EXISTS "asset_amount_events_assetId_recordedAt" ON "asset_amount_events" ("assetId", "recordedAt");
-
--- Create index for userId + effectiveDate
-CREATE INDEX IF NOT EXISTS "asset_amount_events_userId_effectiveDate" ON "asset_amount_events" ("userId", "effectiveDate");
-
--- Create index for eventType
-CREATE INDEX IF NOT EXISTS "asset_amount_events_eventType" ON "asset_amount_events" ("eventType");
-
--- Create index for isReversed
-CREATE INDEX IF NOT EXISTS "asset_amount_events_isReversed" ON "asset_amount_events" ("isReversed");
-
 -- Create AssetAmountSnapshot table
 CREATE TABLE IF NOT EXISTS "asset_amount_snapshots" (
-    "id" TEXT NOT NULL PRIMARY KEY DEFAULT (uuid()),
+    "id" TEXT NOT NULL PRIMARY KEY,
     "assetId" TEXT NOT NULL,
     "date" TEXT NOT NULL,
     "amount" REAL NOT NULL,
@@ -47,15 +32,16 @@ CREATE TABLE IF NOT EXISTS "asset_amount_snapshots" (
     UNIQUE ("assetId", "date")
 );
 
--- Create index for assetId
-CREATE INDEX IF NOT EXISTS "asset_amount_snapshots_assetId" ON "asset_amount_snapshots" ("assetId");
+-- Create indexes for asset_amount_events
+CREATE INDEX IF NOT EXISTS "asset_amount_events_assetId_effectiveDate" ON "asset_amount_events" ("assetId", "effectiveDate");
+CREATE INDEX IF NOT EXISTS "asset_amount_events_assetId_recordedAt" ON "asset_amount_events" ("assetId", "recordedAt");
+CREATE INDEX IF NOT EXISTS "asset_amount_events_userId_effectiveDate" ON "asset_amount_events" ("userId", "effectiveDate");
+CREATE INDEX IF NOT EXISTS "asset_amount_events_eventType" ON "asset_amount_events" ("eventType");
+CREATE INDEX IF NOT EXISTS "asset_amount_events_isReversed" ON "asset_amount_events" ("isReversed");
 
--- Create index for date
+-- Create indexes for asset_amount_snapshots
+CREATE INDEX IF NOT EXISTS "asset_amount_snapshots_assetId" ON "asset_amount_snapshots" ("assetId");
 CREATE INDEX IF NOT EXISTS "asset_amount_snapshots_date" ON "asset_amount_snapshots" ("date");
 
--- Add unique constraint column to audit_trail_entries for optional relation
-ALTER TABLE "audit_trail_entries" ADD COLUMN "assetAmountEventId" TEXT UNIQUE;
-
--- Add foreign key constraint (optional)
--- Note: This may fail if the column already has data that doesn't match, 
--- so we'll make it optional by not adding the FK constraint
+-- Add optional relation column to audit_trail_entries for asset events
+ALTER TABLE "audit_trail_entries" ADD COLUMN "assetAmountEventId" TEXT;

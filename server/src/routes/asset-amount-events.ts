@@ -112,7 +112,7 @@ router.post('/:assetId/backport', authenticate, async (req: AuthenticatedRequest
 
     // Validate entries
     for (const entry of entries) {
-      if (!entry.amount || typeof entry.amount !== 'number') {
+      if (entry.amount === undefined || entry.amount === null || typeof entry.amount !== 'number' || !Number.isFinite(entry.amount)) {
         throw new Error('Each entry must have a valid amount');
       }
       if (!entry.effectiveDate) {
@@ -120,8 +120,22 @@ router.post('/:assetId/backport', authenticate, async (req: AuthenticatedRequest
       }
     }
 
+    // Parse effectiveDates to Date objects
+    const parsedEntries = entries.map((entry: any) => ({
+      amount: entry.amount,
+      effectiveDate: new Date(entry.effectiveDate),
+      description: entry.description || ''
+    }));
+
+    // Validate all dates
+    for (const entry of parsedEntries) {
+      if (isNaN(entry.effectiveDate.getTime())) {
+        throw new Error(`Invalid effectiveDate: ${entry.effectiveDate}`);
+      }
+    }
+
     const eventService = new AssetAmountEventService();
-    const events = await eventService.backportHistoricalData(userId, assetId, entries);
+    const events = await eventService.backportHistoricalData(userId, assetId, parsedEntries);
 
     res.json({
       success: true,
@@ -151,7 +165,7 @@ router.post('/:assetId/events', authenticate, async (req: AuthenticatedRequest, 
     const { assetId } = req.params;
     const { eventType, amount, effectiveDate, description, source, metadata } = req.body;
 
-    if (!eventType || !amount || !effectiveDate) {
+    if (!eventType || amount === undefined || amount === null || !effectiveDate) {
       throw new Error('eventType, amount, and effectiveDate are required');
     }
 

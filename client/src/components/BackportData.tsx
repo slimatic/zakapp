@@ -88,11 +88,22 @@ export function BackportData({
     setSuccess(null);
 
     try {
+      const token =
+        typeof window !== 'undefined'
+          ? window.localStorage.getItem('accessToken') || window.localStorage.getItem('token')
+          : null;
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${apiBaseUrl}/assets/${assetId}/backport`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({ entries })
       });
 

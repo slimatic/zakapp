@@ -225,8 +225,6 @@ export class AssetService {
     }
 
     // Trigger Hawl tracking (non-blocking)
-
-    // Trigger Hawl tracking (non-blocking)
     await this.triggerWealthRecalculation(userId);
 
     return this.decryptAsset(asset);

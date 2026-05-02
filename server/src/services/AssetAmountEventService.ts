@@ -111,10 +111,10 @@ export class AssetAmountEventService {
         });
       }
 
-      // Create audit trail entry
+      // Create audit trail entry (asset-level, so nisabYearRecordId is null)
       await tx.auditTrailEntry.create({
         data: {
-          nisabYearRecordId: '', // Empty string since this is asset-level
+          nisabYearRecordId: null,
           userId,
           eventType: 'ASSET_AMOUNT_EVENT_CREATED',
           timestamp: new Date(),
@@ -169,8 +169,14 @@ export class AssetAmountEventService {
       where: {
         assetId,
         isReversed: false,
-        ...(options?.startDate && { effectiveDate: { gte: options.startDate } }),
-        ...(options?.endDate && { effectiveDate: { lte: options.endDate } }),
+        ...(options?.startDate || options?.endDate
+          ? {
+              effectiveDate: {
+                ...(options?.startDate && { gte: options.startDate }),
+                ...(options?.endDate && { lte: options.endDate })
+              }
+            }
+          : {}),
         ...(options?.eventType && { eventType: options.eventType })
       },
       orderBy: { effectiveDate: 'desc' },
@@ -302,12 +308,19 @@ export class AssetAmountEventService {
 
     const assetIds = userAssets.map((a) => a.id);
 
+    const effectiveDateFilter: { gte?: Date; lte?: Date } = {};
+    if (options?.startDate) {
+      effectiveDateFilter.gte = options.startDate;
+    }
+    if (options?.endDate) {
+      effectiveDateFilter.lte = options.endDate;
+    }
+
     return prisma.assetAmountEvent.findMany({
       where: {
         assetId: options?.assetId || { in: assetIds },
         isReversed: false,
-        ...(options?.startDate && { effectiveDate: { gte: options.startDate } }),
-        ...(options?.endDate && { effectiveDate: { lte: options.endDate } })
+        ...(Object.keys(effectiveDateFilter).length > 0 && { effectiveDate: effectiveDateFilter })
       },
       orderBy: { effectiveDate: 'desc' },
       ...(options?.limit && { take: options.limit }),

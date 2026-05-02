@@ -55,7 +55,7 @@ export class AssetAmountSnapshotService {
     }
 
     // For each date, create/update snapshot with latest event
-    for (const [dateStr, dayEvents] of eventsByDate) {
+    for (const [dateStr, dayEvents] of Array.from(eventsByDate.entries())) {
       // Get the latest event for this date (by recordedAt)
       const latestEvent = dayEvents.sort(
         (a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime()
@@ -246,8 +246,9 @@ export class AssetAmountSnapshotService {
     }
 
     // Iterate through each day in the range
-    const currentDate = new Date(range.startDate);
-    while (currentDate <= range.endDate) {
+    const currentDate = this.getStartOfDay(range.startDate);
+    const endDate = this.getStartOfDay(range.endDate);
+    while (currentDate <= endDate) {
       const dateKey = currentDate.toISOString();
 
       // If we don't have a snapshot for this date

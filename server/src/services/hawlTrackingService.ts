@@ -183,6 +183,15 @@ export class HawlTrackingService {
           if (currentWealth < nisabThresholdAtStart) {
             // According to 'Nurturing Mountains', the Hawl is only broken if wealth drops to absolute zero.
             // Fluctuations below Nisab during the year do not break the Hawl.
+            if (currentWealth < this.ABSOLUTE_ZERO_THRESHOLD) {
+              this.logger.info(
+                `User ${userId} wealth reached absolute zero (${currentWealth}). Interrupting Hawl.`
+              );
+              await tx.yearlySnapshot.delete({
+                where: { id: existingRecord.id }
+              });
+              return;
+            }
             this.logger.debug(
               `User ${userId} wealth ${currentWealth} dipped below Nisab ${nisabThresholdAtStart}. Hawl remains active unless wealth reaches absolute zero.`
             );
