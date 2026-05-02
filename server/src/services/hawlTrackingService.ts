@@ -163,17 +163,10 @@ export class HawlTrackingService {
           }
           nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', nisabBasis);
         } else {
-          // For new records, check both gold and silver, use the lower threshold (more lenient)
-          const goldNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'GOLD');
-          const silverNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'SILVER');
-          
-          if (silverNisab.selectedNisab < goldNisab.selectedNisab) {
-            nisabBasis = 'SILVER';
-            nisabData = silverNisab;
-          } else {
-            nisabBasis = 'GOLD';
-            nisabData = goldNisab;
-          }
+          // For new records, default to GOLD (standard fiqh default)
+          // Users can explicitly select SILVER when creating manually
+          nisabBasis = 'GOLD';
+          nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', 'GOLD');
         }
 
         if (existingRecord) {

@@ -99,8 +99,8 @@ describe('Integration: Nisab Achievement Detection', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .query({ status: 'DRAFT' });
 
-    expect(recordsResponse.body.records).toHaveLength(1);
-    const draftRecord = recordsResponse.body.records[0];
+    expect(recordsResponse.body.data.records).toHaveLength(1);
+    const draftRecord = recordsResponse.body.data.records[0];
     expect(draftRecord.status).toBe('DRAFT');
     expect(draftRecord.totalWealth).toBeGreaterThanOrEqual(7500);
   });
@@ -148,13 +148,12 @@ describe('Integration: Nisab Achievement Detection', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .query({ status: 'DRAFT' });
 
-    expect(records.body.records).toHaveLength(1);
+    expect(records.body.data.records).toHaveLength(1);
   });
 
-  it('should use gold-based Nisab if gold threshold is lower', async () => {
-    // Mock current precious metal prices
-    // Assume: Gold Nisab ~$5,293, Silver Nisab ~$520
-    // User will reach silver Nisab first at lower wealth amount
+  it('should use gold-based Nisab by default', async () => {
+    // Standard fiqh default: Gold Nisab ~$5,525
+    // User must exceed gold Nisab for auto-detection
 
     await request(app)
       .post('/api/assets')
@@ -162,17 +161,16 @@ describe('Integration: Nisab Achievement Detection', () => {
       .send(createAssetPayload({
         name: 'Cash Savings',
         category: 'cash',
-        value: 600, // Above silver Nisab, below gold Nisab
+        value: 6000, // Above gold Nisab
       }));
 
     const status = await request(app)
       .get('/api/nisab-year-records/status')
       .set('Authorization', `Bearer ${authToken}`);
 
-    // Should detect Nisab achievement based on lower threshold (silver)
-    // Note: Actual behavior depends on app's Nisab selection logic
+    // Should detect Nisab achievement with gold as default basis
     expect(status.body.active).toBe(true);
-    expect(['gold', 'silver']).toContain(status.body.nisabBasis);
+    expect(status.body.nisabBasis).toBe('gold');
   });
 
   it('should lock Nisab threshold value at Hawl start', async () => {
@@ -199,11 +197,11 @@ describe('Integration: Nisab Achievement Detection', () => {
       .set('Authorization', `Bearer ${authToken}`);
 
     // Step 4: Verify nisabThresholdAtStart is set and won't change
-    expect(recordResponse.body.nisabThresholdAtStart).toBeDefined();
-    expect(parseFloat(recordResponse.body.nisabThresholdAtStart)).toBeGreaterThan(0);
+    expect(recordResponse.body.data.nisabThresholdAtStart).toBeDefined();
+    expect(parseFloat(recordResponse.body.data.nisabThresholdAtStart)).toBeGreaterThan(0);
 
     // Store initial threshold
-    const initialThreshold = recordResponse.body.nisabThresholdAtStart;
+    const initialThreshold = recordResponse.body.data.nisabThresholdAtStart;
 
     // Step 5: Simulate time passage and price change
     // (In real implementation, prices would be fetched from API and cached)
@@ -213,7 +211,7 @@ describe('Integration: Nisab Achievement Detection', () => {
       .get(`/api/nisab-year-records/${recordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(recordResponseLater.body.nisabThresholdAtStart).toBe(initialThreshold);
+    expect(recordResponseLater.body.data.nisabThresholdAtStart).toBe(initialThreshold);
   });
 
   it('should calculate Hawl completion date as 354 days from start', async () => {
@@ -262,7 +260,7 @@ describe('Integration: Nisab Achievement Detection', () => {
       .get(`/api/nisab-year-records/${recordId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
-    expect(record.body.hawlStartDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(record.body.hawlCompletionDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(record.body.data.hawlStartDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(record.body.data.hawlCompletionDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
