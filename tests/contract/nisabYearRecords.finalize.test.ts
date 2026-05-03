@@ -171,6 +171,6 @@ describe('POST /api/nisab-year-records/:id/finalize', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
-    expect(res.body.error).toBe('UNAUTHORIZED');
+    expect(res.body.error).toEqual(expect.objectContaining({ code: 'UNAUTHORIZED' }));
   });
 });

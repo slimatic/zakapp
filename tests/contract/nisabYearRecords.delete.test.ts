@@ -158,6 +158,6 @@ describe('DELETE /api/nisab-year-records/:id', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
-    expect(res.body.error).toBe('UNAUTHORIZED');
+    expect(res.body.error).toEqual(expect.objectContaining({ code: 'UNAUTHORIZED' }));
   });
 });
