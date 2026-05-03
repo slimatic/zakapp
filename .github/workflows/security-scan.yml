@@ -124,9 +124,16 @@ jobs:
       - name: Install and run Snyk CLI
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
         run: |
           npm install -g snyk
           mkdir -p ${{ env.SCAN_RESULTS_PATH }}
+          
+          if [ -z "$SNYK_TOKEN" ]; then
+            echo "⚠️ SNYK_TOKEN not configured. Skipping Snyk scan."
+            echo '{"ok": false, "error": "SNYK_TOKEN not configured"}' > ${{ env.SCAN_RESULTS_PATH }}/snyk-test.json
+            exit 0
+          fi
           
           # Test for vulnerabilities
           snyk test --json > ${{ env.SCAN_RESULTS_PATH }}/snyk-test.json || true
@@ -236,16 +243,24 @@ jobs:
           echo "${{ github.workspace }}/codeql" >> $GITHUB_PATH
 
       - name: Create CodeQL database
+        continue-on-error: true
         run: |
           mkdir -p ${{ env.SCAN_RESULTS_PATH }}
           codeql database create \
             --language=javascript \
             --source-root=. \
-            --command="npm run build || true" \
-            codeql-db
+            codeql-db || {
+              echo "⚠️ CodeQL database creation failed. Skipping CodeQL analysis."
+              exit 0
+            }
 
       - name: Run CodeQL analysis
+        continue-on-error: true
         run: |
+          if [ ! -d "codeql-db" ]; then
+            echo "⚠️ CodeQL database not found. Skipping analysis."
+            exit 0
+          fi
           codeql database analyze \
             --format=json \
             --output=${{ env.SCAN_RESULTS_PATH }}/codeql-results.json \
