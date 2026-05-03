@@ -134,7 +134,7 @@ describe('POST /api/nisab-year-records/:id/finalize', () => {
 
     expect(res.status).toBe(409);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('INVALID_STATE');
+    expect(res.body.error).toBe('INVALID_STATE');
   });
 
   it('should allow premature finalization with override', async () => {
@@ -144,6 +144,7 @@ describe('POST /api/nisab-year-records/:id/finalize', () => {
       .send({
         finalizationNotes: 'Test finalization',
         acknowledgePremature: true,
+        override: true,
         overrideNote: 'Testing premature finalization'
       });
 
@@ -160,7 +161,7 @@ describe('POST /api/nisab-year-records/:id/finalize', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('NOT_FOUND');
+    expect(res.body.error).toBe('NOT_FOUND');
   });
 
   it('should return 401 for unauthenticated request', async () => {
@@ -170,6 +171,6 @@ describe('POST /api/nisab-year-records/:id/finalize', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('UNAUTHORIZED');
+    expect(res.body.error).toBe('UNAUTHORIZED');
   });
 });

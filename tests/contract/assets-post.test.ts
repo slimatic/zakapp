@@ -164,7 +164,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
 
       // Test missing value
       const missingValue = {
@@ -180,7 +180,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
 
       // Test missing currency
       const missingCurrency = {
@@ -196,7 +196,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
     });
 
     it('should validate asset category enum', async () => {
@@ -218,7 +218,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('type'))).toBe(true);
     });
 
@@ -241,7 +241,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('currency'))).toBe(true);
     });
 
@@ -264,7 +264,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('value'))).toBe(true);
     });
 
@@ -288,7 +288,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('description'))).toBe(true);
     });
 
@@ -297,14 +297,15 @@ describe('Contract Test: POST /api/assets', () => {
         throw new Error('App or auth token not available');
       }
 
-      const validTypes = ['cash', 'gold', 'silver', 'crypto', 'business', 'investment'];
+      const validTypes = ['cash', 'gold', 'silver', 'crypto', 'business', 'stocks'];
       
       for (const category of validTypes) {
         const assetData = {
-          category: type,
+          category,
+          name: `Test ${category} asset`,
           value: 1000,
           currency: 'USD',
-          description: `Test ${type} asset`
+          description: `Test ${category} asset`
         };
 
         const response = await request(app)
@@ -314,7 +315,7 @@ describe('Contract Test: POST /api/assets', () => {
           .expect(201);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data.asset.category).toBe(type);
+        expect(response.body.data.asset.category).toBe(category);
       }
     });
   });

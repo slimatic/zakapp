@@ -400,6 +400,14 @@ router.put('/:id',
         return res.status(400).json(response);
       }
 
+      if (errMsg.includes('Asset not found') || errMsg.includes('not found')) {
+        const response = createResponse(false, undefined, {
+          code: 'ASSET_NOT_FOUND',
+          message: errMsg
+        });
+        return res.status(404).json(response);
+      }
+
       const response = createResponse(false, undefined, {
         code: 'ASSET_UPDATE_ERROR',
         message: 'Failed to update asset',

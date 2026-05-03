@@ -296,7 +296,7 @@ describe('EncryptionService', () => {
   });
 
   describe('Islamic Compliance Data Protection', () => {
-    it('should properly encrypt Zakat calculation data', () => {
+    it('should properly encrypt Zakat calculation data', async () => {
       const zakatData = {
         methodology: 'hanafi',
         nisabThreshold: 4948.87, // Current gold nisab
