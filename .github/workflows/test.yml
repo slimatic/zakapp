@@ -53,7 +53,7 @@ jobs:
     - name: Secret Detection Scan
       run: |
         # Block if any .env* files (except .env.example) are present in tree
-        FORBIDDEN=$(find . -name ".env*" -not -name ".env.example" -not -name ".env.*.example" -not -path "*/node_modules/*" -not -path "*/.git/*" 2>/dev/null || true)
+        FORBIDDEN=$(find . -name ".env*" -not -name ".env.example" -not -name ".env.*.example" -not -name ".env.*.template" -not -path "*/node_modules/*" -not -path "*/.git/*" 2>/dev/null || true)
         if [ -n "$FORBIDDEN" ]; then
           echo "❌ Forbidden env files found in working tree:"
           echo "$FORBIDDEN"

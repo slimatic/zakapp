@@ -1,0 +1,49 @@
+# Gitleaks configuration for ZakApp
+# This file configures gitleaks to reduce false positives from
+# documentation, test fixtures, and example files.
+
+[allowlist]
+  description = "ZakApp allowlist for docs, tests, and templates"
+
+  # Allow test fixtures with test-* prefix secrets
+  regexTarget = "match"
+  regexes = [
+    '''test-[a-zA-Z0-9_-]{10,50}-(secret|key|token|password|jwt)''',
+    '''test-jwt-secret-for-ci-32-chars''',
+    '''test-metals-api-key''',
+    '''test-encryption-key-123456789012''',
+    '''12345678901234567890123456789012''',
+    # Allow example JWT tokens in docs
+    '''eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*''',
+    # Allow placeholder secrets in examples
+    '''YOUR_(SECRET|KEY|TOKEN|PASSWORD)_(HERE|GOES_HERE)''',
+    '''\*\*\*\*\*\*\*\*\*\*''',
+    '''\$\{?\w+_(SECRET|KEY|TOKEN|PASSWORD)\}?''',
+  ]
+
+  # Allow specific files/paths
+  paths = [
+    '''\.md$''',
+    '''\.MD$''',
+    '''DEVELOPMENT_SETUP\.md$''',
+    '''SELF-HOSTING\.md$''',
+    '''ROADMAP\.md$''',
+    '''docker\/README.*\.md$''',
+    '''docs\/''',
+    '''\.env\.example$''',
+    '''\.env\..*\.example$''',
+    '''\.env\..*\.template$''',
+    '''\.env\.docker$''',
+    '''server\/tests\/''',
+    '''client\/tests\/''',
+    '''shared\/tests\/''',
+    '''.*\.test\.(ts|js)$''',
+    '''.*\.spec\.(ts|js)$''',
+    '''.*_fixture\.(ts|js|json)$''',
+    '''CODEBASE_AUDIT_REPORT\.md$''',
+  ]
+
+  # Allow specific commit messages that contain example secrets
+  commits = [
+    # These are known historical commits that contain test/docs examples only
+  ]
