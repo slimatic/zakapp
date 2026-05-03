@@ -60,7 +60,8 @@ describe('Contract Test: PUT /api/assets/:id', () => {
 
       // Create a test asset to use in PUT tests
       const assetData = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test cash asset',
         value: 1000,
         currency: 'USD',
         description: 'Test asset for PUT operations'
@@ -76,7 +77,7 @@ describe('Contract Test: PUT /api/assets/:id', () => {
         console.warn('Asset creation failed during setup:', assetResponse.status, assetResponse.body);
         testAssetId = null;
       } else {
-        testAssetId = assetResponse.body.data?.asset?.id || assetResponse.body.data?.id;
+        testAssetId = assetResponse.body.data?.asset?.assetId || assetResponse.body.data?.id;
       }
     } catch (error) {
       console.error('Setup failed:', error);
@@ -323,7 +324,8 @@ describe('Contract Test: PUT /api/assets/:id', () => {
       }
 
       const changeType = {
-        type: 'gold' // Attempting to change type
+        category: 'gold',
+        name: 'Test gold asset' // Attempting to change type
       };
 
       const response = await request(app)
