@@ -70,12 +70,10 @@ jobs:
 
         echo "✅ No forbidden secret files detected in working tree."
 
-    # ── npm audit (dependency vulnerability check) ──
+    # ── npm audit (dependency vulnerability check, informational only) ──
     - name: Run npm audit (server)
-      run: cd server && npm audit --audit-level=high
-      continue-on-error: true
+      run: cd server && npm audit --audit-level=high || true
 
     - name: Run npm audit (client)
-      run: cd client && npm audit --audit-level=high
-      continue-on-error: true
+      run: cd client && npm audit --audit-level=high || true
 
