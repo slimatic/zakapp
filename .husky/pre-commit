@@ -1,4 +1,72 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# ──────────────────────────────────────────────────────────────
+# ZakApp Pre-Commit Security + Quality Hook
+# ──────────────────────────────────────────────────────────────
+
+# Exit immediately on error
+set -e
+
+# ── 1. SECRET SCANNING ────────────────────────────────────────
+# Block commits that contain .env files (except .env.*.example templates)
+# or files with high-entropy secret patterns.
+
+echo "🔒 Running secret scan..."
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# Check for forbidden .env* files (excluding .env.example and .env.*.example)
+ENV_VIOLATIONS=$(echo "$STAGED_FILES" | grep -E '\.env[^/]*$' | grep -v '\.env\.example$' | grep -v '\.env\.[^/]*\.example$' || true)
+
+if [ -n "$ENV_VIOLATIONS" ]; then
+    echo "❌ SECURITY VIOLATION: Forbidden env files detected in staged changes:"
+    echo "$ENV_VIOLATIONS"
+    echo ""
+    echo "Only .env.example and .env.*.example files are allowed in git."
+    echo "If you have a legitimate env template, rename it to .env.<env>.example"
+    exit 1
+fi
+
+# Check for key/credential files
+FORBIDDEN_FILES=$(echo "$STAGED_FILES" | grep -E '\.(pem|key|p12|pfx)$|(^|/)id_(rsa|ed25519)|(^|/)\.ssh/|(^|/)\.aws/|(^|/)credentials\.(json|ya?ml)$|(^|/)secrets\.(json|ya?ml)$|(^|/)token\.json$' || true)
+
+if [ -n "$FORBIDDEN_FILES" ]; then
+    echo "❌ SECURITY VIOLATION: Forbidden secret/key files detected:"
+    echo "$FORBIDDEN_FILES"
+    echo ""
+    echo "Never commit private keys, credentials, or token files."
+    echo "Add them to .gitignore if they're generated locally."
+    exit 1
+fi
+
+# Check for high-entropy strings (JWT secrets, API keys) in staged code
+# This is a lightweight regex-based check; gitleaks provides deeper scanning.
+SECRET_PATTERNS=$(git diff --cached -U0 | grep -E '^\+.*(API_KEY|SECRET|PASSWORD|TOKEN)\s*=\s*["\047][a-zA-Z0-9_\-]{20,}["\047]' || true)
+
+if [ -n "$SECRET_PATTERNS" ]; then
+    echo "⚠️  WARNING: Potential secrets detected in staged diff."
+    echo "$SECRET_PATTERNS"
+    echo ""
+    echo "Review the above lines carefully. If these are legitimate secrets,"
+    echo "rotate them immediately and do NOT commit. Use environment variables instead."
+    echo "To bypass this check in emergencies: git commit --no-verify"
+    exit 1
+fi
+
+# If gitleaks is available, run a deeper scan
+if command -v gitleaks >/dev/null 2>&1; then
+    echo "🔍 Running gitleaks scan..."
+    gitleaks protect --staged --verbose --source . || {
+        echo "❌ gitleaks detected secrets in staged changes."
+        echo "Run 'gitleaks protect --staged --verbose' for details."
+        exit 1
+    }
+fi
+
+# ── 2. LINT-STAGED (code quality) ─────────────────────────────
+echo "🧹 Running lint-staged..."
 npm run lint-staged
+
+# ── 3. SUCCESS ────────────────────────────────────────────────
+echo "✅ Pre-commit checks passed."

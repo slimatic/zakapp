@@ -110,12 +110,49 @@ dist/
 *.tsbuildinfo
 
 
-# Docker environment secrets
-.env.docker
+# .env.docker
+
+# Cryptographic keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.csr
+
+# AWS and cloud credentials
+.aws/
+.gcp/
+.azure/
+
+# SSH keys
+.ssh/
+*.pub
+id_rsa*
+id_ed25519*
+
+# Credentials and secrets files
+credentials.json
+credentials.yaml
+credentials.yml
+secrets.json
+secrets.yaml
+secrets.yml
+token.json
+
+# Database files (NEVER COMMIT)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.couch
 
 # SQLite transient files (auto-generated)
 *.db-shm
 *.db-wal
+
 backups/
 # Agent artifacts
 .agent/
