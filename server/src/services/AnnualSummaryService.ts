@@ -204,7 +204,7 @@ export class AnnualSummaryService {
     }
 
     // Get calculation details for nisab info
-    let nisabInfo: Record<string, any> = {
+    const nisabInfo: Record<string, any> = {
       threshold: snapshot.nisabThreshold,
       type: snapshot.nisabType,
       methodology: (snapshot as any).methodology || 'standard' // TODO: Add methodology to YearlySnapshot schema

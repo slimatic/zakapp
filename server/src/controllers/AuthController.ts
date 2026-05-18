@@ -292,7 +292,7 @@ export class AuthController {
 
       res.status(200).json(response);
     } catch (error: any) {
-      let statusCode = 401;
+      const statusCode = 401;
       let errorCode = 'INVALID_TOKEN';
       let message = 'Invalid refresh token';
 
