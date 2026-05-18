@@ -33,7 +33,7 @@ const store: RateLimitStore = {};
 
 // Rate limit configuration (can be overridden for testing)
 let registrationRateLimitMax = process.env.NODE_ENV === 'test' ? 50 : 100;
-let loginRateLimitMax = process.env.NODE_ENV === 'test' ? 50 : 10;
+const loginRateLimitMax = process.env.NODE_ENV === 'test' ? 50 : 10;
 
 /**
  * Reset rate limit store for testing

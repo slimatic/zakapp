@@ -18,21 +18,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { calculateWealth } from '../core/calculations/wealthCalculator';
-import { gregorianToHijri, formatHijriDate } from '../utils/calendarConverter';
+import { gregorianToHijri } from '../utils/calendarConverter';
 import HawlProgressIndicator from '../components/HawlProgressIndicator';
 import NisabComparisonWidget from '../components/NisabComparisonWidget';
 import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
 import { PaymentCard } from '../components/tracking/PaymentCard';
-import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
-import { useNisabThreshold } from '../hooks/useNisabThreshold';
-import { CreateRecordModal, RecordPaymentModal, EditDatePopover } from '../components/nisab';
-import { parseDecimalNumber } from '../utils/parseDecimal';
+import { CreateRecordModal, RecordPaymentModal, NisabRecordCard } from '../components/nisab';
 
 export const NisabYearRecordsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -56,8 +53,6 @@ export const NisabYearRecordsPage: React.FC = () => {
   const { user } = useAuth();
   const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
   const defaultNisabBasis = (user?.settings?.preferredNisabStandard as 'GOLD' | 'SILVER') || 'GOLD';
-  const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>(defaultNisabBasis);
-  const { nisabAmount } = useNisabThreshold('USD', nisabBasis);
 
   // Filter records locally
   const records = React.useMemo(() => {
@@ -93,13 +88,6 @@ export const NisabYearRecordsPage: React.FC = () => {
       setSelectedRecordId(records[0].id);
     }
   }, [records, selectedRecordId]);
-
-  // Status badges
-  const statusBadges: Record<string, { color: string; label: string }> = {
-    'DRAFT': { color: 'blue', label: 'Active' },
-    'FINALIZED': { color: 'green', label: 'Finalized' },
-    'UNLOCKED': { color: 'amber', label: 'Unlocked for Editing' },
-  };
 
   // Format currency
   const maskedCurrency = useMaskedCurrency();
@@ -153,8 +141,6 @@ export const NisabYearRecordsPage: React.FC = () => {
       if (allRecords.length === 0) {
         navigate('/dashboard');
       }
-
-      setNisabBasis(defaultNisabBasis);
     } catch (err: any) {
       console.error(err);
       const msg = err instanceof Error ? err.message : 'Failed to create record';
@@ -260,21 +246,24 @@ export const NisabYearRecordsPage: React.FC = () => {
 
             {/* Status tabs */}
             <div className={`flex gap-2 border-b border-gray-200 overflow-x-auto pb-px ${selectedRecordId ? 'hidden lg:flex' : ''}`}>
-              {(['all', 'DRAFT', 'FINALIZED', 'UNLOCKED'] as const).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => {
-                    setActiveStatusFilter(status);
-                    setSelectedRecordId(null);
-                  }}
-                  className={`px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base ${activeStatusFilter === status
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                    }`}
-                >
-                  {status === 'all' ? 'All' : statusBadges[status]?.label || status}
-                </button>
-              ))}
+              {(['all', 'DRAFT', 'FINALIZED', 'UNLOCKED'] as const).map((status) => {
+                const tabLabels: Record<string, string> = { all: 'All', DRAFT: 'Active', FINALIZED: 'Finalized', UNLOCKED: 'Unlocked for Editing' };
+                return (
+                  <button
+                    key={status}
+                    onClick={() => {
+                      setActiveStatusFilter(status);
+                      setSelectedRecordId(null);
+                    }}
+                    className={`px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base ${activeStatusFilter === status
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                      }`}
+                  >
+                    {tabLabels[status] || status}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Records list */}
@@ -294,135 +283,34 @@ export const NisabYearRecordsPage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {records.map((record) => {
-                  const badge = statusBadges[record.status || 'DRAFT'] || { color: 'gray', label: record.status || 'Unknown' };
-                  const isSelected = selectedRecordId === record.id;
-                  const startDate = new Date(record.hawlStartDate || new Date());
-                  const startDateFormatted = startDate.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  });
-                  const zakatAmount = parseDecimalNumber(String(record.zakatAmount || record.finalZakatAmount || '0'));
-                  const totalWealth = parseDecimalNumber(String(record.totalWealth || '0'));
-                  const zakatableWealth = parseDecimalNumber(String(record.zakatableWealth || '0'));
-
-                  const shouldHideOnMobile = selectedRecordId && !isSelected;
-
-                  return (
-                    <div
-                      key={record.id}
-                      onClick={() => setSelectedRecordId(record.id)}
-                      className={`border rounded-lg p-4 sm:p-5 cursor-pointer transition-all ${shouldHideOnMobile ? 'hidden lg:block' : ''
-                        } ${isSelected
-                          ? 'border-blue-500 bg-blue-50 shadow-md'
-                          : 'border-gray-200 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md'
-                        }`}
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-                              {Number(record.hijriYear || 0) > 0
-                                ? `${record.hijriYear} H  •  ${startDateFormatted.split(',')[1].trim()}`
-                                : startDateFormatted}
-                            </h3>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${badge.color === 'green' ? 'bg-green-100 text-green-800' :
-                              badge.color === 'blue' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
-                              }`}>
-                              {badge.label}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                          <div>
-                            <div className="text-xs text-gray-600 mb-1">Nisab Basis</div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {record.nisabBasis === 'GOLD' ? '🟡 Gold' : '⚪ Silver'}
-                            </div>
-                          </div>
-                          {totalWealth > 0 && (
-                            <div>
-                              <div className="text-xs text-gray-600 mb-1">Total Wealth</div>
-                              <div className="text-sm font-medium text-gray-900">{formatCurrency(totalWealth)}</div>
-                            </div>
-                          )}
-                          {zakatableWealth > 0 && (
-                            <div>
-                              <div className="text-xs text-gray-600 mb-1">Zakatable</div>
-                              <div className="text-sm font-medium text-green-700">{formatCurrency(zakatableWealth)}</div>
-                            </div>
-                          )}
-                          {zakatAmount > 0 && (
-                            <div>
-                              <div className="text-xs text-gray-600 mb-1">Zakat Obligation</div>
-                              <div className="text-sm font-bold text-blue-700">{formatCurrency(zakatAmount)}</div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex flex-col gap-1 text-xs text-gray-600">
-                          <div>
-                            Started: <span className="text-gray-900 font-medium">{startDateFormatted}</span>
-                            <span className="text-gray-500 ml-1">({formatHijriDate(gregorianToHijri(startDate))})</span>
-                          </div>
-                          {record.hawlCompletionDate && (
-                            <div>
-                              Ends: <span className="text-gray-900 font-medium">{new Date(record.hawlCompletionDate).toLocaleDateString()}</span>
-                              <span className="text-gray-500 ml-1">({formatHijriDate(gregorianToHijri(new Date(record.hawlCompletionDate)))})</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2 flex-wrap">
-                          {isSelected && record.status === 'DRAFT' && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setEditingStartDateRecordId(record.id); }}
-                              className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs border border-gray-300 hover:bg-gray-200"
-                            >
-                              Change Date
-                            </button>
-                          )}
-
-                          {editingStartDateRecordId === record.id && (
-                            <div className="absolute bg-white border p-4 shadow-xl z-20 rounded-lg w-72" onClick={e => e.stopPropagation()}>
-                              <EditDatePopover
-                                value={newStartDate}
-                                onChange={setNewStartDate}
-                                onSave={() => handleEditDate(record.id)}
-                                onCancel={() => setEditingStartDateRecordId(null)}
-                              />
-                            </div>
-                          )}
-
-                          {record.status === 'DRAFT' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleFinalize(record); }} className="px-2 py-1 bg-green-600 text-white rounded text-xs">Finalize</button>
-                          )}
-                          {record.status === 'FINALIZED' && (
-                            <button onClick={(e) => { e.stopPropagation(); handleUnlock(record); }} className="px-2 py-1 bg-amber-600 text-white rounded text-xs">Unlock</button>
-                          )}
-                          {record.status === 'FINALIZED' && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
-                                import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
-                                  const generator = new ReportGenerator();
-                                  generator.generateHawlStatement(record as any, allAssets, 'User', totalLiabilities);
-                                });
-                              }}
-                              className="px-2 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded text-xs hover:bg-gray-200 flex items-center gap-1"
-                            >
-                              📄 PDF
-                            </button>
-                          )}
-                          <button onClick={(e) => { e.stopPropagation(); handleDelete(record); }} className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs">Delete</button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {records.map((record) => (
+                  <NisabRecordCard
+                    key={record.id}
+                    record={record}
+                    isSelected={selectedRecordId === record.id}
+                    selectedRecordId={selectedRecordId}
+                    showEditPopover={editingStartDateRecordId === record.id}
+                    newStartDate={newStartDate}
+                    onSelect={() => setSelectedRecordId(record.id)}
+                    onFinalize={(e) => { e.stopPropagation(); handleFinalize(record); }}
+                    onUnlock={(e) => { e.stopPropagation(); handleUnlock(record); }}
+                    onDelete={(e) => { e.stopPropagation(); handleDelete(record); }}
+                    onEditDate={(e) => { e.stopPropagation(); setEditingStartDateRecordId(record.id); }}
+                    onSaveDate={() => handleEditDate(record.id)}
+                    onCancelDate={() => setEditingStartDateRecordId(null)}
+                    onDateChange={setNewStartDate}
+                    onGeneratePdf={(e) => {
+                      e.stopPropagation();
+                      const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
+                      import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
+                        const generator = new ReportGenerator();
+                        generator.generateHawlStatement(record as any, allAssets, 'User', totalLiabilities);
+                      });
+                    }}
+                    formatCurrency={formatCurrency}
+                    currency={userCurrency}
+                  />
+                ))}
               </div>
             )}
           </div>
