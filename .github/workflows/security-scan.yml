@@ -38,11 +38,51 @@ env:
   SCAN_RESULTS_PATH: 'security-reports'
 
 jobs:
-  # ── NEW: Secret Scanning Job ──
+  # ── Path detection: which jobs should actually run ──
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      docker: ${{ steps.filter.outputs.docker }}
+      code: ${{ steps.filter.outputs.code }}
+      deps: ${{ steps.filter.outputs.deps }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check changed paths
+        id: filter
+        run: |
+          BASE="${{ github.event.pull_request.base.sha || github.event.before || 'HEAD~1' }}"
+          HEAD="${{ github.event.pull_request.head.sha || github.sha }}"
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD" || echo '')
+          echo "Changed files:"
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -qE '^(docker/|\.dockerignore|Dockerfile)'; then
+            echo "docker=true" >> $GITHUB_OUTPUT
+          else
+            echo "docker=false" >> $GITHUB_OUTPUT
+          fi
+          if echo "$CHANGED" | grep -qE '\.(ts|js|tsx|jsx|py)$'; then
+            echo "code=true" >> $GITHUB_OUTPUT
+          else
+            echo "code=false" >> $GITHUB_OUTPUT
+          fi
+          if echo "$CHANGED" | grep -qE '^(package\.json|package-lock\.json|yarn\.lock|server/package\.json|client/package\.json|shared/package\.json)'; then
+            echo "deps=true" >> $GITHUB_OUTPUT
+          else
+            echo "deps=false" >> $GITHUB_OUTPUT
+          fi
+
+  # ── Secret Scanning Job ──
   secret-scan:
     name: Secret Detection Scan
     runs-on: ubuntu-latest
-    if: github.event.inputs.scan_type == 'full' || github.event_name != 'workflow_dispatch'
+    needs: changes
+    if: |
+      always() &&
+      (github.event.inputs.scan_type == 'full' || github.event_name != 'workflow_dispatch')
 
     steps:
       - name: Checkout code
@@ -76,7 +116,13 @@ jobs:
   dependency-scan:
     name: Dependency Vulnerability Scan
     runs-on: ubuntu-latest
-    if: github.event.inputs.scan_type == 'dependency' || github.event.inputs.scan_type == 'full' || github.event_name != 'workflow_dispatch'
+    needs: changes
+    if: |
+      always() &&
+      (
+        (github.event_name == 'workflow_dispatch' && (github.event.inputs.scan_type == 'dependency' || github.event.inputs.scan_type == 'full'))
+        || (github.event_name != 'workflow_dispatch' && needs.changes.outputs.deps == 'true')
+      )
     
     steps:
       - name: Checkout code
@@ -216,7 +262,13 @@ jobs:
   code-analysis:
     name: Static Code Analysis
     runs-on: ubuntu-latest
-    if: github.event.inputs.scan_type == 'code' || github.event.inputs.scan_type == 'full' || github.event_name != 'workflow_dispatch'
+    needs: changes
+    if: |
+      always() &&
+      (
+        (github.event_name == 'workflow_dispatch' && (github.event.inputs.scan_type == 'code' || github.event.inputs.scan_type == 'full'))
+        || (github.event_name != 'workflow_dispatch' && needs.changes.outputs.code == 'true')
+      )
     
     steps:
       - name: Checkout code
@@ -371,7 +423,13 @@ jobs:
   container-scan:
     name: Container Security Scan
     runs-on: ubuntu-latest
-    if: github.event.inputs.scan_type == 'container' || github.event.inputs.scan_type == 'full' || github.event_name != 'workflow_dispatch'
+    needs: changes
+    if: |
+      always() &&
+      (
+        (github.event_name == 'workflow_dispatch' && (github.event.inputs.scan_type == 'container' || github.event.inputs.scan_type == 'full'))
+        || (github.event_name != 'workflow_dispatch' && needs.changes.outputs.docker == 'true')
+      )
     
     steps:
       - name: Checkout code
@@ -475,7 +533,7 @@ jobs:
   security-report:
     name: Security Summary Report
     runs-on: ubuntu-latest
-    needs: [secret-scan, dependency-scan, code-analysis, container-scan]
+    needs: [changes, secret-scan, dependency-scan, code-analysis, container-scan]
     if: always()
     
     steps:
