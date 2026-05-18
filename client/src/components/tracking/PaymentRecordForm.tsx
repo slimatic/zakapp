@@ -32,6 +32,7 @@ import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { looksEncrypted } from '../../utils/encryption';
+import { parseDecimalNumber } from '../../utils/parseDecimal';
 
 // Redefine schema locally
 const paymentRecordFormSchema = z.object({
@@ -181,7 +182,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
 
     const paymentData = {
       ...data,
-      amount: parseFloat(data.amount),
+      amount: parseDecimalNumber(data.amount),
       paymentDate: isoDate,
       recipientType: 'individual' as const,
       status: 'recorded' as const,

@@ -28,6 +28,7 @@ import { vi } from 'vitest';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useAssetRepository } from '../hooks/useAssetRepository';
+import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 
 // Mock Repository Hooks
 vi.mock('../hooks/useNisabRecordRepository', () => ({
@@ -40,6 +41,10 @@ vi.mock('../hooks/usePaymentRepository', () => ({
 
 vi.mock('../hooks/useAssetRepository', () => ({
     useAssetRepository: vi.fn()
+}));
+
+vi.mock('../hooks/useLiabilityRepository', () => ({
+    useLiabilityRepository: vi.fn()
 }));
 
 // Mock AuthContext
@@ -114,6 +119,15 @@ describe('NisabYearRecordsPage Integration', () => {
             removeAsset: vi.fn(),
             getAsset: vi.fn(),
         } as any);
+
+        vi.mocked(useLiabilityRepository).mockReturnValue({
+            liabilities: [],
+            isLoading: false,
+            addLiability: vi.fn(),
+            updateLiability: vi.fn(),
+            removeLiability: vi.fn(),
+            getLiability: vi.fn(),
+        } as any);
     });
 
     it('renders without crashing', async () => {
@@ -162,17 +176,14 @@ describe('NisabYearRecordsPage Integration', () => {
         // Click on the record to select it
         screen.getByText(/1445 H/).click();
 
-        // Verify detail view appears (Payment Progress section)
+        // Verify detail view appears (Payment History section)
         await waitFor(() => {
-            // "Zakat Payments" header is visible in detail view
-            expect(screen.getByText('Zakat Payments')).toBeInTheDocument();
-            // Verify active record details are shown
-            expect(screen.getByText('Record ID')).toBeInTheDocument();
+            expect(screen.getByText('Payment History')).toBeInTheDocument();
+            expect(screen.getByText(/Obligation:/)).toBeInTheDocument();
         });
 
-        // Click "+ Add Payment" button (Note: Text might be "+ Add Payment" or "+ Payment", check component)
-        // Component says: "+ Add Payment" (line 414)
-        const addPaymentBtn = screen.getByText('+ Add Payment');
+        // Click "+ Record Payment" button
+        const addPaymentBtn = screen.getByText('+ Record Payment');
         fireEvent.click(addPaymentBtn);
 
         // Verify form appears

@@ -28,6 +28,7 @@ import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { Button } from '../components/ui/Button';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
+import { parseDecimalNumber } from '../utils/parseDecimal';
 
 export const PaymentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -118,7 +119,7 @@ export const PaymentsPage: React.FC = () => {
                 >
                   <option value="all">All Payments ({allPayments.length})</option>
                   {nisabRecords.map((record) => {
-                    const zakatAmount = parseFloat(String(record.zakatAmount || 0));
+                    const zakatAmount = parseDecimalNumber(String(record.zakatAmount || 0));
                     const displayAmount = zakatAmount > 0
                       ? ` (Zakat: $${zakatAmount.toFixed(2)})`
                       : '';
