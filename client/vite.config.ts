@@ -45,52 +45,127 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
+        injectRegister: 'auto',
+        includeAssets: [
+          'favicon.ico',
+          'apple-touch-icon.png',
+          'offline.html',
+          'config.js',
+          'logo.svg',
+        ],
         manifest: {
+          id: '/',
           name: 'ZakApp - Islamic Zakat Calculator',
           short_name: 'ZakApp',
           description: 'Privacy-first Zakat calculator and asset manager.',
           theme_color: '#10b981',
           background_color: '#ffffff',
           display: 'standalone',
+          orientation: 'portrait',
           start_url: '/',
+          scope: '/',
+          categories: ['finance', 'lifestyle', 'productivity'],
+          screenshots: [
+            {
+              src: 'screenshot-wide.png',
+              sizes: '1280x720',
+              type: 'image/png',
+              form_factor: 'wide',
+            },
+            {
+              src: 'screenshot-mobile.png',
+              sizes: '375x812',
+              type: 'image/png',
+              form_factor: 'narrow',
+            },
+          ],
+          lang: 'en',
+          dir: 'ltr',
           icons: [
-            {
-              src: 'pwa-192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-            },
+            { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+            { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+            { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff}'],
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+          navigateFallback: '/offline.html',
+          navigateFallbackDenylist: [/^\/api\//, /^\/_\//, /^\/health/],
+          cleanupOutdatedCaches: true,
+          sourcemap: true,
           runtimeCaching: [
+            // API network-first with 7-day cache
             {
-              urlPattern: /^https:\/\/api\./,
+              urlPattern: /^https:\/\/.+\/api\//,
               handler: 'NetworkFirst',
               options: {
-                cacheName: 'api-cache',
+                cacheName: 'zakapp-api',
                 expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24, // 24 hours
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+                },
+                networkTimeoutSeconds: 10,
+                cacheableResponse: {
+                  statuses: [0, 200],
                 },
               },
             },
+            // Google Fonts CSS — stale-while-revalidate
             {
-              urlPattern: /\.(?:png|gif|jpg|jpeg|svg)$/,
+              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: 'StaleWhileRevalidate',
               options: {
-                cacheName: 'images',
+                cacheName: 'google-fonts-css',
                 expiration: {
-                  maxEntries: 50,
+                  maxEntries: 5,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+              },
+            },
+            // Google Fonts files — cache-first (rarely change)
+            {
+              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts-webfonts',
+                expiration: {
+                  maxEntries: 20,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            // Images with 30-day stale-while-revalidate
+            {
+              urlPattern: /\.(?:png|gif|jpg|jpeg|svg|webp|avif)$/i,
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'zakapp-images',
+                expiration: {
+                  maxEntries: 100,
                   maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
                 },
               },
             },
+            // Self-hosted fonts — cache-first (versioned via hashes)
+            {
+              urlPattern: /\.woff2?$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'zakapp-fonts',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+
           ],
         },
       }),
