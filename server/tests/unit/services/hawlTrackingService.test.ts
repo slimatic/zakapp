@@ -122,13 +122,28 @@ describe('HawlTrackingService', () => {
       expect(mockPrisma.yearlySnapshot.create).toHaveBeenCalled();
     });
 
-    it('should interrupt Hawl if wealth < Nisab and active Hawl exists', async () => {
+    it('should NOT interrupt Hawl if wealth dips below Nisab (fluctuations do not break Hawl per Fiqh)', async () => {
       mockPrisma.yearlySnapshot.findFirst.mockResolvedValue({
         id: 'record1',
         nisabThresholdAtStart: '5000',
         nisabBasis: 'GOLD'
       });
       mockWealthAgg.calculateTotalZakatableWealth.mockResolvedValue({ totalZakatableWealth: 4000 });
+      mockNisabCalc.calculateNisabThreshold.mockResolvedValue({ selectedNisab: 5000 });
+
+      await service.handleWealthChange('user1');
+
+      // Per scholarly consensus, Hawl continues unless wealth reaches absolute zero
+      expect(mockPrisma.yearlySnapshot.delete).not.toHaveBeenCalled();
+    });
+
+    it('should interrupt Hawl if wealth reaches absolute zero', async () => {
+      mockPrisma.yearlySnapshot.findFirst.mockResolvedValue({
+        id: 'record1',
+        nisabThresholdAtStart: '5000',
+        nisabBasis: 'GOLD'
+      });
+      mockWealthAgg.calculateTotalZakatableWealth.mockResolvedValue({ totalZakatableWealth: 0 });
       mockNisabCalc.calculateNisabThreshold.mockResolvedValue({ selectedNisab: 5000 });
 
       await service.handleWealthChange('user1');

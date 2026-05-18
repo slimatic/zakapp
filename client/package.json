@@ -22,7 +22,8 @@
     "@types/react-router-dom": "^5.3.3",
     "@zakapp/shared": "file:../shared",
     "ajv": "^8.17.1",
-    "axios": "^1.12.2",
+    "axios": "^1.16.0",
+    "brace-expansion": "^2.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -47,7 +48,7 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.0.0",
-    "uuid": "^13.0.0",
+    "uuid": "^14.0.0",
     "web-vitals": "^2.1.4",
     "zod": "^3.22.4"
   },
@@ -91,8 +92,8 @@
     "@testing-library/react": "^16.3.1",
     "@types/axe-core": "^2.0.2",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.54.0",
-    "@typescript-eslint/parser": "^8.54.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.21",
     "axe-core": "^4.11.0",
@@ -134,5 +135,8 @@
     "transformIgnorePatterns": [
       "node_modules/(?!zod)"
     ]
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.5"
   }
 }

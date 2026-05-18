@@ -15,6 +15,14 @@ export const JewelryGuidance: React.FC<JewelryGuidanceProps> = ({
 }) => {
     return (
         <>
+            <div className="mt-2 ml-6 p-2 bg-amber-100 border border-amber-300 rounded text-amber-900 text-xs flex gap-2">
+                <span className="text-lg">⚠️</span>
+                <span>
+                    <strong>Warning:</strong> Do not include the value of precious stones (diamonds, rubies, pearls) in your calculation.
+                    <br />Only input the value or weight of the Gold and Silver content.
+                </span>
+            </div>
+
             {/* Smart Guidance for Jewelry */}
             {zakatEligible && isJewelryExemptMethodology && (
                 <div className="mt-2 ml-6 p-2 bg-amber-50 border border-amber-200 rounded text-amber-800 text-xs flex gap-2 animate-pulse">

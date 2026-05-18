@@ -57,6 +57,7 @@ export interface Liability {
   name: string;
   type: string; // 'short_term' | 'long_term' | 'business_payable'
   amount: number;
+  deductibleAmount?: number;
   currency: string;
   description?: string;
   metadata?: string;

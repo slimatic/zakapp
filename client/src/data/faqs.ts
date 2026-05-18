@@ -68,6 +68,21 @@ export const FAQS_DATA: FAQItem[] = [
         question: "How is Cryptocurrency treated?",
         answer: "Crypto is treated as currency or merchandise. Zakat is 2.5% of the total market value."
     },
+    {
+        category: "Assets & Calculation",
+        question: "What debts can I deduct from my Zakat calculation?",
+        answer: "According to scholarly guidelines, you can only deduct immediate upcoming debt payments, not the full balance of long-term debts. For example, on a $300,000 mortgage, you may only deduct the next monthly payment. This prevents individuals from being falsely exempt from Zakat for decades. ZakApp allows you to specify a 'deductible amount' for each liability."
+    },
+    {
+        category: "Assets & Calculation",
+        question: "What happens if my wealth drops below Nisab during the Zakat year (Hawl)?",
+        answer: "According to 'Nurturing Mountains' (Shaykh Husain Abdul Sattar), fluctuations during the year do not break the Hawl. Even if your wealth drops below Nisab mid-year, your Zakat anniversary remains the same. The Hawl is only interrupted if your wealth drops to absolute zero. ZakApp now respects this scholarly position - your Hawl continues even if wealth temporarily dips below Nisab."
+    },
+    {
+        category: "Assets & Calculation",
+        question: "Do I pay Zakat on diamonds and precious stones in my jewelry?",
+        answer: "No. According to the Hanafi school (and as clarified in Nurturing Mountains), only gold and silver are Zakatable. Precious stones like diamonds, rubies, pearls, and emeralds are NOT Zakatable unless held as business inventory. When entering jewelry in ZakApp, only include the value of the gold and silver content, not the stones."
+    },
 
     // 3. Deducting Expenses
     {

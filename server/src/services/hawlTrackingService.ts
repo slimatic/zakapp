@@ -43,6 +43,7 @@ import type {
 export class HawlTrackingService {
   private readonly HAWL_DURATION_DAYS = 354; // Lunar year
   private readonly HAWL_TOLERANCE_DAYS = 5; // ±5 days for calendar adjustment
+  private readonly ABSOLUTE_ZERO_THRESHOLD = 1; // $1 minimum to maintain Hawl
 
   private logger = new Logger('HawlTrackingService');
   private prisma: PrismaClient;
@@ -162,17 +163,10 @@ export class HawlTrackingService {
           }
           nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', nisabBasis);
         } else {
-          // For new records, check both gold and silver, use the lower threshold (more lenient)
-          const goldNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'GOLD');
-          const silverNisab = await this.nisabCalculationService.calculateNisabThreshold('USD', 'SILVER');
-          
-          if (silverNisab.selectedNisab < goldNisab.selectedNisab) {
-            nisabBasis = 'SILVER';
-            nisabData = silverNisab;
-          } else {
-            nisabBasis = 'GOLD';
-            nisabData = goldNisab;
-          }
+          // For new records, default to GOLD (standard fiqh default)
+          // Users can explicitly select SILVER when creating manually
+          nisabBasis = 'GOLD';
+          nisabData = await this.nisabCalculationService.calculateNisabThreshold('USD', 'GOLD');
         }
 
         if (existingRecord) {
@@ -180,12 +174,20 @@ export class HawlTrackingService {
           const nisabThresholdAtStart = parseFloat(existingRecord.nisabThresholdAtStart || existingRecord.nisabThreshold);
 
           if (currentWealth < nisabThresholdAtStart) {
-            this.logger.info(`User ${userId} wealth ${currentWealth} dropped below Nisab ${nisabThresholdAtStart}. Interrupting Hawl.`);
-
-            // Delete the DRAFT record (Hawl interrupted)
-            await tx.yearlySnapshot.delete({
-              where: { id: existingRecord.id },
-            });
+            // According to 'Nurturing Mountains', the Hawl is only broken if wealth drops to absolute zero.
+            // Fluctuations below Nisab during the year do not break the Hawl.
+            if (currentWealth < this.ABSOLUTE_ZERO_THRESHOLD) {
+              this.logger.info(
+                `User ${userId} wealth reached absolute zero (${currentWealth}). Interrupting Hawl.`
+              );
+              await tx.yearlySnapshot.delete({
+                where: { id: existingRecord.id }
+              });
+              return;
+            }
+            this.logger.debug(
+              `User ${userId} wealth ${currentWealth} dipped below Nisab ${nisabThresholdAtStart}. Hawl remains active unless wealth reaches absolute zero.`
+            );
           }
         } else {
           // No active Hawl, check if we should start one
@@ -371,7 +373,9 @@ export class HawlTrackingService {
     // Determine status
     let status: HawlStatus = 'ACTIVE';
     if (isComplete) status = 'COMPLETE';
-    if (currentWealth < parseFloat(recordData.nisabThresholdAtStart)) status = 'INTERRUPTED';
+    // According to 'Nurturing Mountains', the Hawl is only broken if wealth drops to absolute zero.
+    // Fluctuations below Nisab during the year do not break the Hawl.
+    if (currentWealth < this.ABSOLUTE_ZERO_THRESHOLD) status = 'INTERRUPTED';
 
     return {
       userId: recordData.userId,

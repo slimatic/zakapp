@@ -39,6 +39,10 @@ export const LiabilitySchema = {
             anyOf: [{ type: 'number' }, { type: 'string' }],
             encrypted: true
         },
+        deductibleAmount: {
+            anyOf: [{ type: 'number' }, { type: 'string' }],
+            encrypted: true
+        },
         currency: {
             type: 'string',
             default: 'USD',
@@ -78,6 +82,6 @@ export const LiabilitySchema = {
             encrypted: true
         }
     },
-    required: ['id', 'name', 'type', 'amount', 'isActive', 'dueDate'],
+    required: ['id', 'name', 'type', 'deductibleAmount', 'isActive', 'dueDate'],
     indexes: ['type', 'isActive', 'dueDate']
 };

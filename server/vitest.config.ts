@@ -1,6 +1,5 @@
 /// <reference types="vitest" />
 import { resolve } from 'path';
-// import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -12,20 +11,17 @@ export default defineConfig({
       '@zakapp/shared': resolve(__dirname, '../shared/src/index.ts'),
       '@prisma/client': resolve(__dirname, './node_modules/@prisma/client'),
     },
-    include: ['**/*.{test,spec}.ts', '../tests/**/*.test.ts'],
+    include: ['**/*.{test,spec}.ts'],
     exclude: ['test/setupEnv.ts', '**/node_modules/**', '**/dist/**'],
     setupFiles: ['./test/setupEnv.ts'],
     globalSetup: ['./test/globalSetup.ts'],
-    pool: 'forks', // Use forks for better isolation in node environment
-    testTimeout: 60000, // Increase timeout for slower test environments
-    hookTimeout: 60000, // Increase hook timeout for database operations
+    pool: 'forks',
+    testTimeout: 60000,
+    hookTimeout: 60000,
     server: {
       deps: {
         inline: ['@prisma/client']
       }
     }
   },
-  // plugins: [
-  //   swc.vite(),
-  // ],
 });

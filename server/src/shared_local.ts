@@ -753,6 +753,7 @@ export interface CreateNisabYearRecordDto {
 }
 export interface UpdateNisabYearRecordDto {
     status?: string;
+    nisabBasis?: 'GOLD' | 'SILVER';
     userNotes?: string;
     methodologyUsed?: any;
     hawlStartDate?: Date | string;

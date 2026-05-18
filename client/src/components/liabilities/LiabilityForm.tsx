@@ -34,6 +34,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
         name: liability?.name || '',
         type: liability?.type || 'short_term',
         amount: liability?.amount || 0,
+        deductibleAmount: liability?.deductibleAmount ?? '',
         currency: liability?.currency || 'USD',
         dueDate: liability?.dueDate ? new Date(liability.dueDate).toISOString().split('T')[0] : '',
         creditor: liability?.creditor || '',
@@ -77,6 +78,8 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                 name: formData.name,
                 type: formData.type,
                 amount: formData.amount,
+                deductibleAmount:
+                    formData.deductibleAmount === '' ? undefined : Number(formData.deductibleAmount),
                 currency: formData.currency,
                 dueDate: new Date(formData.dueDate).toISOString(),
                 creditor: formData.creditor,
@@ -188,6 +191,26 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                             <option value="SAR">SAR</option>
                             <option value="PKR">PKR</option>
                         </select>
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                        According to scholars, you cannot deduct your entire long-term debt. You may only deduct immediate upcoming payments (e.g., the next lunar month's installment).
+                    </div>
+                    <div>
+                        <div className="flex justify-between items-center mb-1">
+                            <label className="block text-sm font-medium text-gray-700">Deductible Amount (Optional)</label>
+                            <EncryptedBadge />
+                        </div>
+                        <Input
+                            type="number"
+                            step="0.01"
+                            value={formData.deductibleAmount}
+                            onChange={e => handleChange('deductibleAmount', e.target.value === '' ? '' : parseFloat(e.target.value))}
+                            onFocus={(e) => e.target.select()}
+                            placeholder="Amount eligible for Zakat deduction"
+                        />
                     </div>
                 </div>
 

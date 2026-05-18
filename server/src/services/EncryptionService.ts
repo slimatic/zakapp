@@ -181,7 +181,7 @@ export class EncryptionService {
               }
 
               // Support robust splitting on a variety of separators (':', '.=', '.', '|', ';')
-              const sepMatch = raw.match(/([A-Za-z0-9+/=]{12,})(?:[:.\|;]{1,2}=?)([A-Za-z0-9+/=]{12,})(?::([A-Za-z0-9+/=]{12,}))?/);
+              const sepMatch = raw.match(/([A-Za-z0-9+/=]{4,})(?:[:.\|;]{1,2}=?)([A-Za-z0-9+/=]{4,})(?::([A-Za-z0-9+/=]{4,}))?/);
               if (!sepMatch) throw new Error('Invalid encrypted data format');
               const a = (sepMatch[1] || '').trim();
               const b = (sepMatch[2] || '').trim();

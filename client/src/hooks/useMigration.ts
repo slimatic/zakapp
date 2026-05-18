@@ -40,7 +40,7 @@ export function useMigration() {
   useEffect(() => {
     async function checkStatus() {
       try {
-        const res = await apiService.get('/api/user/encryption-status');
+        const res = await apiService.get('/user/encryption-status');
         if (res.success && res.data) {
           setStatus(res.data);
         }
