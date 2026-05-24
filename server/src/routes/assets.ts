@@ -22,7 +22,7 @@ import { authenticate } from '../middleware/AuthMiddleware';
 import { SimpleValidation } from '../utils/SimpleValidation';
 import { AssetService, UpdateAssetDto } from '../services/AssetService';
 
-// Simple UUID v4 implementation to avoid Jest ES module issues
+// Simple UUID v4 implementation to avoid ESM module issues
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;

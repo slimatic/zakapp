@@ -244,7 +244,7 @@ export class DatabaseManager {
    * Initialize health check monitoring
    */
   private initializeHealthChecks(): void {
-    // Skip periodic health checks during tests to avoid open handles preventing Jest exit
+    // Skip periodic health checks during tests to avoid open handles preventing vitest exit
     if (process.env.NODE_ENV === 'test') return;
 
     this.healthCheckTimer = setInterval(async () => {

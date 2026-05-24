@@ -19,7 +19,7 @@ import { vi, type Mock } from 'vitest';
 import request from 'supertest';
 import { describe, it, expect } from 'vitest';
 
-// Mock @zakapp/shared to avoid consuming ESM build artifacts in Jest runtime
+// Mock @zakapp/shared to avoid consuming ESM build artifacts in vitest runtime
 vi.mock('@zakapp/shared', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@zakapp/shared')>();
   return {

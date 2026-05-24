@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 import { PrismaClient } from '@prisma/client';
 
 /**
- * Jest globalSetup: ensures the test database schema is up-to-date by running
+ * Vitest globalSetup: ensures the test database schema is up-to-date by running
  * Prisma migrations (or db push) against TEST_DATABASE_URL before tests run.
  */
 export default async function globalSetup() {

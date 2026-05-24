@@ -29,7 +29,7 @@ const logger = new Logger('AuthRoute');
 
 
 // Use runtime require for Prisma client in test environments where generated client files
-// may not be writable. This prevents compile-time errors during Jest runs.
+// may not be writable. This prevents compile-time errors during vitest runs.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // const { PrismaClient: _PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
 import { PrismaClient } from '@prisma/client';

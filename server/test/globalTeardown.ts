@@ -1,5 +1,5 @@
 /**
- * Jest globalTeardown. Currently a no-op but present for future cleanup needs
+ * Vitest globalTeardown. Currently a no-op but present for future cleanup needs
  * (e.g., removing ephemeral DB files).
  */
 export default async function globalTeardown() {

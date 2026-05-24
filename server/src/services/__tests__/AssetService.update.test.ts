@@ -16,7 +16,7 @@ import { vi, type Mock } from 'vitest';
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Mock @zakapp/shared to avoid ESM runtime in Jest
+// Mock @zakapp/shared to avoid ESM runtime in vitest
 vi.mock('@zakapp/shared', () => ({
   PASSIVE_INVESTMENT_TYPES: ['Stock', 'ETF', 'Mutual Fund', 'Roth IRA'],
   RESTRICTED_ACCOUNT_TYPES: ['401k', 'Traditional IRA', 'Pension', 'Roth IRA'],
