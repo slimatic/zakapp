@@ -148,7 +148,7 @@ export const PaymentsPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div>
-                  <h3 className="text-sm font-medium text-orange-800">Action Required: Payments Need Assignment</h3>
+                  <h2 className="text-sm font-medium text-orange-800">Action Required: Payments Need Assignment</h2>
                   <div className="mt-1 text-sm text-orange-700">
                     <p>
                       You have {allPayments.length} payments, but no Nisab Year Records.
@@ -234,9 +234,9 @@ export const PaymentsPage: React.FC = () => {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">
+              <h2 className="text-sm font-medium text-green-800">
                 About Zakat Payments & Recipients
-              </h3>
+              </h2>
               <div className="text-sm text-green-700 mt-2 space-y-2">
                 <p>
                   Islamic law specifies <strong>8 categories</strong> of eligible Zakat recipients as mentioned in Quran 9:60:

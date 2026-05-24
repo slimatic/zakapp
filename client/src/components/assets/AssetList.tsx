@@ -106,7 +106,7 @@ export const AssetList: React.FC = () => {
           </div>
 
           <div className="bg-slate-50 rounded-lg border border-slate-200 p-6 flex flex-col justify-center">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Summary</h3>
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">Summary</h2>
             <div className="space-y-4">
               <div className="flex justify-between items-center border-b border-slate-200 pb-2">
                 <span className="text-slate-600">Total Assets</span>
