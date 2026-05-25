@@ -24,6 +24,9 @@ import compression from 'compression';
 // Load environment variables
 import 'dotenv/config';
 
+// Rate limiters
+import { healthRateLimit, apiRateLimit, authRateLimit } from './middleware/RateLimitMiddleware';
+
 // Import route modules
 import authRoutes from './routes/auth';
 import syncRoutes from './routes/sync';
@@ -162,6 +165,12 @@ app.use(compression({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// General API rate limiting (all /api/* routes)
+app.use('/api', apiRateLimit);
+
+// Strict blanket auth rate limiting (all /api/auth/* routes)
+app.use('/api/auth', authRateLimit);
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/sync', syncRoutes);
@@ -187,7 +196,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/', nisabYearRecordsRoutes); // Feature 008: Nisab Year Records routes
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', healthRateLimit, (req, res) => {
   res.status(200).json({ success: true, status: 'OK', timestamp: new Date().toISOString() });
 });
 
