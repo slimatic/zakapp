@@ -29,7 +29,7 @@
     "eslint": "^8.57.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.8"
   },
   "overrides": {
     "vite": "8.0.10"
