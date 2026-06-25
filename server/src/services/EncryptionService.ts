@@ -42,18 +42,22 @@ export class EncryptionService {
   static encrypt(plaintext: string, key: string): Promise<string>;
   static encrypt(plaintext: string, key?: string): any {
     try {
-      if (plaintext === null || plaintext === undefined) throw new Error('Plaintext cannot be empty');
-
       // Async path: key provided -> return Promise<string> with base64 "iv:encrypted:tag"
-      if (key) {
+      if (key !== undefined && key !== null) {
         return (async () => {
-          if (!key) throw new Error('Encryption key is required');
-          const encryptionKey = this.normalizeKey(key);
-          const iv = crypto.randomBytes(this.IV_LENGTH);
-          const cipher = crypto.createCipheriv(this.ALGORITHM, encryptionKey, iv);
-          const encryptedBuf = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-          const tag = cipher.getAuthTag();
-          return iv.toString('base64') + ':' + encryptedBuf.toString('base64') + ':' + tag.toString('base64');
+          try {
+            if (!plaintext && plaintext !== '0') throw new Error('Plaintext cannot be empty');
+            if (!key) throw new Error('Encryption key is required');
+            const encryptionKey = this.normalizeKey(key);
+            const iv = crypto.randomBytes(this.IV_LENGTH);
+            const cipher = crypto.createCipheriv(this.ALGORITHM, encryptionKey, iv);
+            const encryptedBuf = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+            const tag = cipher.getAuthTag();
+            return iv.toString('base64') + ':' + encryptedBuf.toString('base64') + ':' + tag.toString('base64');
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            throw new Error(`Encryption failed: ${errorMessage}`);
+          }
         })();
       }
 
@@ -86,8 +90,9 @@ export class EncryptionService {
       // Async path when key provided and encryptedData is string -> return Promise
       if (key && typeof encryptedData === 'string') {
         return (async () => {
-          if (!encryptedData) throw new Error('Encrypted data cannot be empty');
-          if (!key) throw new Error('Decryption key is required');
+          try {
+            if (!encryptedData) throw new Error('Encrypted data cannot be empty');
+            if (!key) throw new Error('Decryption key is required');
 
           const attemptDecrypt = async (attemptKey: string) => {
             // Support multiple stored formats:
@@ -262,7 +267,11 @@ export class EncryptionService {
             // none succeeded
             throw primaryErr;
           }
-        })();
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          throw new Error(`Decryption failed: ${errorMessage}`);
+        }
+      })();
       }
 
       // Synchronous legacy path: encryptedData may be object with hex fields or a hex/string
@@ -348,7 +357,11 @@ export class EncryptionService {
   static encryptObject<T>(data: T, key?: string): any {
     try {
       if (data === null || data === undefined) {
-        throw new Error('Data cannot be null or undefined');
+        const msg = 'Data cannot be null or undefined';
+        if (key) {
+          return Promise.reject(new Error(`Object encryption failed: ${msg}`));
+        }
+        throw new Error(msg);
       }
       const jsonString = JSON.stringify(data);
       if (key) {
@@ -570,14 +583,15 @@ export class EncryptionService {
     encrypted_at: string;
   }> {
     try {
-      const decryptedData = await this.decryptObject<{
+      const jsonString = await this.decrypt(encryptedAssetData, key);
+      const decryptedData = JSON.parse(jsonString) as {
         type: string;
         value: number;
         currency: string;
         metadata?: Record<string, any>;
         encrypted_at: string;
         checksum: string;
-      }>(encryptedAssetData, key);
+      };
 
       const { checksum, ...assetData } = decryptedData;
       const expectedChecksum = this.hash(JSON.stringify({
@@ -609,15 +623,13 @@ export class EncryptionService {
       const iv = crypto.randomBytes(this.IV_LENGTH);
       
       const cipher = crypto.createCipheriv(this.ALGORITHM, testKeyBuffer, iv);
-      cipher.update(testData, 'utf8');
-      const encrypted = cipher.final();
+      const encrypted = Buffer.concat([cipher.update(testData, 'utf8'), cipher.final()]);
       const tag = cipher.getAuthTag();
       
       // Try to decrypt
       const decipher = crypto.createDecipheriv(this.ALGORITHM, testKeyBuffer, iv);
       decipher.setAuthTag(tag);
-      decipher.update(encrypted);
-      decipher.final();
+      Buffer.concat([decipher.update(encrypted), decipher.final()]);
       
       return true;
     } catch (error) {
