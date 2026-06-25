@@ -41,7 +41,8 @@ export const METHODOLOGIES: Record<MethodologyName, MethodologyConfig> = {
             AssetType.CRYPTOCURRENCY,
             AssetType.BUSINESS_ASSETS,
             AssetType.RETIREMENT,
-            AssetType.INVESTMENT_ACCOUNT
+            AssetType.INVESTMENT_ACCOUNT,
+            AssetType.AGRICULTURAL_PRODUCE
         ],
         deductibleLiabilities: ['LOAN', 'BUSINESS_DEBT'],
         description: "Standard view: Gold Nisab, basic debt deduction."
@@ -57,7 +58,8 @@ export const METHODOLOGIES: Record<MethodologyName, MethodologyConfig> = {
             AssetType.BUSINESS_ASSETS,
             AssetType.CRYPTOCURRENCY,
             AssetType.RETIREMENT,
-            AssetType.INVESTMENT_ACCOUNT
+            AssetType.INVESTMENT_ACCOUNT,
+            AssetType.AGRICULTURAL_PRODUCE
         ],
         deductibleLiabilities: ['LOAN', 'MORTGAGE', 'CREDIT_CARD', 'BUSINESS_DEBT'], // Broader deduction
         jewelryExempt: false,
@@ -73,7 +75,8 @@ export const METHODOLOGIES: Record<MethodologyName, MethodologyConfig> = {
             AssetType.SILVER,
             AssetType.CRYPTOCURRENCY,
             AssetType.RETIREMENT,
-            AssetType.INVESTMENT_ACCOUNT
+            AssetType.INVESTMENT_ACCOUNT,
+            AssetType.AGRICULTURAL_PRODUCE
         ],
         deductibleLiabilities: ['LOAN', 'BUSINESS_DEBT'], // Stricter deductions
         jewelryExempt: true,
@@ -89,7 +92,8 @@ export const METHODOLOGIES: Record<MethodologyName, MethodologyConfig> = {
             AssetType.SILVER,
             AssetType.CRYPTOCURRENCY,
             AssetType.RETIREMENT,
-            AssetType.INVESTMENT_ACCOUNT
+            AssetType.INVESTMENT_ACCOUNT,
+            AssetType.AGRICULTURAL_PRODUCE
         ],
         deductibleLiabilities: ['LOAN', 'BUSINESS_DEBT'],
         jewelryExempt: true,
@@ -105,7 +109,8 @@ export const METHODOLOGIES: Record<MethodologyName, MethodologyConfig> = {
             AssetType.SILVER,
             AssetType.CRYPTOCURRENCY,
             AssetType.RETIREMENT,
-            AssetType.INVESTMENT_ACCOUNT
+            AssetType.INVESTMENT_ACCOUNT,
+            AssetType.AGRICULTURAL_PRODUCE
         ],
         deductibleLiabilities: ['LOAN', 'BUSINESS_DEBT'],
         jewelryExempt: true,

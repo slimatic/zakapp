@@ -561,32 +561,30 @@ export class ZakatEngine {
    * Calculate zakatable amount for an asset
    */
   private calculateZakatableAmount(asset: Asset, methodology: MethodologyInfo): number {
-    // Methodology parameter available for future methodology-specific zakatable amount calculations
-    void methodology; // Explicitly mark as intentionally unused for now
-
     switch (asset.category) {
       case 'cash':
       case 'gold':
       case 'silver':
+        return asset.value;
+
       case 'crypto':
-        return asset.value; // Fully zakatable
-      
+        return asset.value; // Treated as 'mal' — market value at hawl anniversary
+
       case 'business':
-        // Apply business-specific rules
         return this.calculateBusinessZakatableAmount(asset);
-      
+
       case 'property':
-        // Investment property - use current market value
-        return asset.value;
-      
+        return asset.value; // Property zakat follows standard rules (default)
+
       case 'stocks':
-        // Apply stock-specific rules
-        return this.calculateStockZakatableAmount(asset);
-      
+        return this.calculateStockZakatableAmount(asset, methodology);
+
       case 'debts':
-        // Receivables - typically fully zakatable if collectible
         return asset.value;
-      
+
+      case 'agriculture':
+        return asset.value; // Agriculture follows standard zakat rules (default)
+
       default:
         return asset.value;
     }
@@ -603,11 +601,60 @@ export class ZakatEngine {
 
   /**
    * Calculate zakatable amount for stock assets
+   * Handles 401k/IRA (net withdrawable), ETFs (market vs liquid debate)
    */
-  private calculateStockZakatableAmount(asset: Asset): number {
-    // This would implement stock-specific rules
-    // Different methodologies may treat stocks differently
-    return asset.value;
+  private calculateStockZakatableAmount(asset: Asset, methodology: MethodologyInfo): number {
+    const subCat = (asset as any).subCategory as string;
+    const mod = asset.calculationModifier ?? 1.0;
+
+    // Retirement accounts (401k, IRA): net withdrawable, vested value
+    if (['retirement_401k', 'retirement_ira', 'retirement_other'].includes(subCat)) {
+      // Net withdrawable = current value minus early withdrawal penalties + taxes
+      // Vested calculation: only employer-matched portion that is vested
+      const vestingPct = (asset as any).vestingSchedule
+        ? this.parseVestingPercent((asset as any).vestingSchedule)
+        : 1.0;
+      const employerMatch = ((asset as any).employerMatch ?? 0) / 100;
+      const restrictedPortion = employerMatch * (1 - vestingPct);
+      const netValue = asset.value * (1 - restrictedPortion) * mod;
+      return Math.max(0, netValue);
+    }
+
+    // Passive investments (ETFs, mutual funds, index funds): 30% zakatable per AAOIFI
+    if (['etfs', 'mutual_funds', 'index_funds'].includes(subCat)) {
+      // Shafi'i / AAOIFI: market value; Hanafi: liquidating value
+      if (methodology.id === 'hanbali' || methodology.id === 'hanafi') {
+        return asset.value * mod; // Full market value for Hanbali/Hanafi
+      }
+      // Standard / Shafi'i: less liquid, partial
+      return asset.value * mod * 0.30;
+    }
+
+    // Individual stocks: full market value
+    return asset.value * mod;
+  }
+
+  /**
+   * Parse a vesting schedule string/list into a 0-1 decimal.
+   * Accepts: "25%" → 0.25, "100%" → 1.0, "0.5"/".5" → 0.5,
+   *          "4 years" → 1.0 (no hire date — safe default),
+   *          "cliff" → 0.0, numbers → treated as 0-1 fraction.
+   */
+  private parseVestingPercent(schedule: unknown): number {
+    const raw = typeof schedule === 'string' ? schedule.trim().toLowerCase() : '';
+    if (!raw || raw === 'fully_vested' || raw === 'vested') return 1.0;
+    // Percent syntax: "25%" or "75.5 %"
+    const pctMatch = raw.match(/(\d+(?:\.\d+)?)\s*%/);
+    if (pctMatch) return Math.min(1, Math.max(0, parseFloat(pctMatch[1]) / 100));
+    // Pure number (e.g. ".5", "0.75", "1")
+    const num = parseFloat(raw);
+    if (!Number.isNaN(num)) {
+      // If > 1, assume percent style without % sign (e.g. "50" → 0.50)
+      return num <= 1 ? Math.min(1, Math.max(0, num)) : Math.min(1, Math.max(0, num / 100));
+    }
+    // "cliff" or unknown → 0 (conservative — treat as unvested)
+    if (raw.includes('cliff')) return 0;
+    return 1.0; // safe fallback
   }
 
   /**

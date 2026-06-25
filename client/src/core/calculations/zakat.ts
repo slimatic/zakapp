@@ -250,7 +250,43 @@ export function calculateZakat(
     const netWorth = zakatableAssets.minus(deductibleLiabilities);
     const isZakatObligatory = netWorth.greaterThanOrEqualTo(nisabThreshold);
     const zakatRate = new Decimal(0.025);
-    const zakatDue = isZakatObligatory ? netWorth.times(zakatRate) : new Decimal(0);
+
+    // Per-asset zakat with variable rates (e.g., agriculture: 5%/10% by irrigation)
+    function getAssetZakatRate(asset: Asset): number {
+      if (asset.type === AssetType.AGRICULTURAL_PRODUCE) {
+        let irrigation = 'irrigated';
+        if (typeof asset.metadata === 'string') {
+          try { irrigation = (JSON.parse(asset.metadata) as any).irrigationMethod || 'irrigated'; } catch { /* default */ }
+        } else if (typeof asset.metadata === 'object' && asset.metadata !== null) {
+          irrigation = (asset.metadata as any).irrigationMethod || 'irrigated';
+        }
+        switch (irrigation) {
+          case 'rain_fed': return 0.10;   // 10% for natural/rain-fed
+          case 'irrigated':
+          case 'mixed':
+          default: return 0.05;          // 5% for irrigated or mixed
+        }
+      }
+      return STANDARD_ZAKAT_RATE;
+    }
+
+    let rawZakat = new Decimal(0);
+    for (const asset of assets) {
+      if (!isAssetZakatable(asset, methodologyName)) continue;
+      const zakatableValue = new Decimal(getAssetZakatableValue(asset, methodologyName));
+      rawZakat = rawZakat.plus(zakatableValue.times(getAssetZakatRate(asset)));
+    }
+
+    let zakatDue: Decimal;
+    if (!isZakatObligatory) {
+      zakatDue = new Decimal(0);
+    } else if (zakatableAssets.greaterThan(0)) {
+      // Proportionally reduce by deductible liabilities across all zakatable assets
+      const reductionFactor = Decimal.max(0, zakatableAssets.minus(deductibleLiabilities)).div(zakatableAssets);
+      zakatDue = rawZakat.times(reductionFactor);
+    } else {
+      zakatDue = new Decimal(0);
+    }
 
     return {
         totalAssets: totalAssets.toNumber(),
