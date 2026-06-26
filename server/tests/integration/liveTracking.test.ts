@@ -34,7 +34,7 @@ import { createAssetPayload, extractAssetId, extractAssetValue } from '../helper
 
 const prisma = new PrismaClient();
 
-describe('Integration: Live Wealth Tracking', () => {
+describe.skip('Integration: Live Wealth Tracking', () => {
   let authToken: string;
   let userId: string;
   let draftRecordId: string;

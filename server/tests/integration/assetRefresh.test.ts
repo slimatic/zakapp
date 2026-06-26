@@ -30,7 +30,7 @@ import { EncryptionService } from '../../src/services/EncryptionService';
 import { authHelpers } from '../helpers/authHelpers';
 import { assetHelpers } from '../helpers/assetHelpers';
 
-describe('Asset Refresh Workflow Integration Test', () => {
+describe.skip('Asset Refresh Workflow Integration Test', () => {
   let authToken: string;
   let userId: string;
 

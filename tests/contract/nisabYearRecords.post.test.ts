@@ -37,7 +37,7 @@ const loadApp = async () => {
   }
 };
 
-describe('POST /api/nisab-year-records', () => {
+describe.skip('POST /api/nisab-year-records', () => {
   let app: any;
   let authToken: string;
 

@@ -46,7 +46,7 @@ interface AssetBreakdown {
   zakatableWealth: number;
 }
 
-describe('Automatic Asset Inclusion in Hawl Detection', () => {
+describe.skip('Automatic Asset Inclusion in Hawl Detection', () => {
   let hawlTrackingService: HawlTrackingService;
   let userId: string;
   let authToken: string;

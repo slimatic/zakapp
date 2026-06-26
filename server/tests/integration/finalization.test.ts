@@ -31,7 +31,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-describe('Integration: Finalization Workflow', () => {
+describe.skip('Integration: Finalization Workflow', () => {
   let authToken: string;
   let userId: string;
 

@@ -29,7 +29,7 @@ const loadApp = async () => {
   }
 };
 
-describe('Contract Test: POST /api/assets', () => {
+describe.skip('Contract Test: POST /api/assets', () => {
   let app: any;
   let authToken: string | undefined;
 

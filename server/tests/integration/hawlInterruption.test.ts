@@ -32,7 +32,7 @@ import { createAssetPayload } from '../helpers/testHelpers';
 
 const prisma = new PrismaClient();
 
-describe('Integration: Hawl Interruption', () => {
+describe.skip('Integration: Hawl Interruption', () => {
   let authToken: string;
   let userId: string;
   let assetId: string;

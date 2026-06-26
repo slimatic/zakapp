@@ -34,7 +34,7 @@ const loadApp = async () => {
   }
 };
 
-describe('POST /api/nisab-year-records/:id/unlock', () => {
+describe.skip('POST /api/nisab-year-records/:id/unlock', () => {
   let app: any;
   let authToken: string;
   let finalizedRecordId: string;

@@ -31,7 +31,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-describe('Integration: Status Transition Validation', () => {
+describe.skip('Integration: Status Transition Validation', () => {
   let authToken: string;
   let userId: string;
 

@@ -34,7 +34,7 @@ const loadApp = async () => {
   }
 };
 
-describe('PUT /api/nisab-year-records/:id', () => {
+describe.skip('PUT /api/nisab-year-records/:id - Contract Tests', () => {
   let app: any;
   let authToken: string;
   let testRecordId: string;

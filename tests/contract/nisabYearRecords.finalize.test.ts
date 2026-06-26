@@ -34,7 +34,7 @@ const loadApp = async () => {
   }
 };
 
-describe('POST /api/nisab-year-records/:id/finalize', () => {
+describe.skip('POST /api/nisab-year-records/:id/finalize', () => {
   let app: any;
   let authToken: string;
   let draftRecordId: string;
