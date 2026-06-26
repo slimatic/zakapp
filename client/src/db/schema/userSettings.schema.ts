@@ -74,6 +74,14 @@ export const UserSettingsSchema = {
             type: 'string',
             format: 'date-time'
         },
+        reminderEnabled: {
+            type: 'boolean',
+            default: true
+        },
+        reminderChannel: {
+            type: 'string',
+            default: 'push' // 'push', 'email', 'both'
+        },
         isSetupCompleted: {
             type: 'boolean',
             default: false

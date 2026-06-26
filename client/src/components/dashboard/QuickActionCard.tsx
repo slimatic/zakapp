@@ -56,7 +56,7 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({
   variant = 'default',
 }) => {
   const baseClasses = `
-    flex flex-col items-start gap-3 p-6 rounded-lg shadow-md
+    flex flex-row items-center gap-4 p-4 rounded-lg shadow-md
     transition-shadow duration-200 hover:shadow-lg
     min-h-[88px] w-full
     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600

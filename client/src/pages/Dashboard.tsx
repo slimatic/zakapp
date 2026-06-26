@@ -1,4 +1,4 @@
-/**
+/** 
  * Copyright (c) 2024 ZakApp Contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,18 +25,16 @@ import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { ActiveRecordWidget } from '../components/dashboard/ActiveRecordWidget';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
-import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
+import { DashboardActionCards } from '../components/dashboard/DashboardActionCards';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
-import { useUserOnboarding } from '../hooks/useUserOnboarding';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '../types';
-import { useBestAction } from '../hooks/useBestAction';
-import { GlossaryTerm } from '../components/common/GlossaryTerm';
 import { MigrationWizard } from '../components/migration/MigrationWizard';
 import { useMigration } from '../hooks/useMigration';
 import { Button } from '../components/ui/Button';
+import { GlossaryTerm } from '../components/common/GlossaryTerm';
 
 /**
  * Educational Module Component
@@ -242,28 +240,6 @@ export const Dashboard: React.FC = () => {
 
   const isOnboardingComplete = completedSteps.includes(3);
 
-  // Use the new Smart Action hook
-  // Pass isOnboardingComplete to prevent premature "Maintenance" suggestions
-  const bestAction = useBestAction(
-    user,
-    assets,
-    activeRecord,
-    hasAssets,
-    hasActiveRecord,
-    totalWealth,
-    isOnboardingComplete
-  );
-
-  // Determine current onboarding step based on state
-  const currentStep = useMemo(() => {
-    if (!hasAssets) return 1;
-    if (!hasActiveRecord && totalWealth > 0) return 2;
-    // If Onboarding is "Complete", we default to 3 (Tracking Payments) 
-    // OR return to 1 if we want the "Keep Up Good Work" cycle. 
-    // Since OnboardingGuide handles `bestAction` overrides, setting 3 here is safe default.
-    return 3;
-  }, [hasAssets, hasActiveRecord, totalWealth]);
-
   // Get Nisab threshold (use live value for consistency with other pages)
   const nisabBasis = (activeRecord?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
   const { nisabAmount } = useNisabThreshold('USD', nisabBasis);
@@ -333,13 +309,14 @@ export const Dashboard: React.FC = () => {
         onClose={() => setShowMigration(false)} 
       />
 
-      {/* Primary: Smart Journey Card */}
-      {/* This replaces both "OnboardingGuide" and "NextActionCard" with a single unified component */}
-      <OnboardingGuide
-        currentStep={currentStep as 1 | 2 | 3}
-        completedSteps={completedSteps}
-        bestAction={bestAction || undefined}
-        isOnboardingComplete={isOnboardingComplete}
+      {/* Primary: Action Cards (replaces Smart Navigation / OnboardingGuide) */}
+      <DashboardActionCards
+        hasAssets={hasAssets}
+        hasActiveRecord={hasActiveRecord}
+        hasPayments={hasPayments}
+        isSetupComplete={isOnboardingComplete}
+        currency={(user as any)?.preferences?.currency || 'USD'}
+        userName={user?.username}
       />
 
       {/* Main Content Area */}
