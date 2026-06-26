@@ -37,36 +37,36 @@ if [ "$SECURITY_OK" = false ] && [ "$NODE_ENV" = "production" ]; then
     exit 1
 fi
 
-# Database initialization
+# Database initialization — schema migrations are handled by the dedicated
+# `migrations` service in docker-compose.yml. This section only checks
+# that the DB file exists for local development (non-Docker) usage.
 echo "📦 Checking database..."
 
 DB_PATH="/app/server/prisma/data/dev.db"
-MIGRATIONS_NEEDED=false
 
-if [ ! -f "$DB_PATH" ]; then
-    echo "📝 Database not found. Initializing..."
-    MIGRATIONS_NEEDED=true
-else
-    echo "✅ Database exists at $DB_PATH"
-    # Check if migrations are pending
-    if ! npx prisma migrate status 2>/dev/null | grep -q "Database schema is up to date"; then
-        echo "📝 Pending migrations detected..."
-        MIGRATIONS_NEEDED=true
+if [ -n "${DATABASE_URL:-}" ]; then
+    # Extract path from DATABASE_URL (may be file:./path or file:/absolute/path)
+    RAW_PATH="${DATABASE_URL#file:}"
+    if [ -f "$RAW_PATH" ]; then
+        DB_PATH="$RAW_PATH"
     fi
 fi
 
-if [ "$MIGRATIONS_NEEDED" = true ]; then
-    echo "🔄 Running database migrations..."
-    
-    # Create the database and run migrations
-    npx prisma migrate deploy 2>/dev/null || npx prisma db push --accept-data-loss
-    
-    if [ $? -eq 0 ]; then
-        echo "✅ Database migrations completed successfully"
+# In Docker: migrations service already ran `prisma migrate deploy`.
+# In local dev: run migrations only if not in test mode and DB doesn't look current.
+if [ "${NODE_ENV}" != "test" ] && [ "${SKIP_MIGRATION:-}" != "true" ]; then
+    if [ ! -f "$DB_PATH" ]; then
+        echo "📝 Local dev: Database not found. Running migrations..."
+        npx prisma migrate deploy
+        if [ $? -ne 0 ]; then
+            echo "❌ Migration failed! See logs above."
+            exit 1
+        fi
     else
-        echo "❌ Database migration failed!"
-        exit 1
+        echo "✅ Database exists at $DB_PATH"
     fi
+else
+    echo "✅ Skipping migration (test mode or SKIP_MIGRATION=true)"
 fi
 
 # Verify database is accessible

@@ -80,13 +80,15 @@ services:
     depends_on:
       couchdb:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Database migrations - runs once on startup
+  # Database migrations - runs once on startup (BEFORE backend)
   migrations:
     image: slimatic/zakapp-backend:latest
     restart: "no"
@@ -97,12 +99,21 @@ services:
     networks:
       - zakapp-network
     depends_on:
-      - backend
+      couchdb:
+        condition: service_healthy
     command: >
-      sh -c "echo 'Running database migrations...' &&
+      sh -c "echo 'Creating pre-migration backup...' &&
+             cd /app/server && mkdir -p /app/server/prisma/data/backups &&
+             DB_PATH=/app/server/prisma/data/prod.db &&
+             if [ -f '$$DB_PATH' ]; then
+               BACKUP_NAME=prod.db.backup-$$(date +%Y%m%d-%H%M%S) &&
+               sqlite3 '$$DB_PATH' \".backup '/app/server/prisma/data/backups/$$BACKUP_NAME'\" &&
+               echo \"✅ Backup created: $$BACKUP_NAME\" ||
+               echo '⚠️  Backup failed — proceeding with migration';
+             fi &&
+             echo 'Running database migrations...' &&
              cd /app/server &&
-             npx prisma migrate deploy ||
-             (echo 'Migration failed - database may already be up to date' && exit 0)"
+             npx prisma migrate deploy"
 
   # CouchDB for multi-device sync
   couchdb:
