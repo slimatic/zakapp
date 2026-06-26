@@ -112,7 +112,7 @@
     "vite": "^6.4.1",
     "vite-plugin-pwa": "^0.17.0",
     "vite-tsconfig-paths": "^6.0.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.6"
   },
   "jest": {
     "transform": {
@@ -137,6 +137,7 @@
     ]
   },
   "overrides": {
-    "serialize-javascript": "^7.0.5"
+    "dompurify": "3.4.11",
+    "protobufjs": "8.6.5"
   }
 }
