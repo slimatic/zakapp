@@ -227,14 +227,12 @@ describe('Implementation Task T023: EncryptionService', () => {
 
       const encrypted = await EncryptionService.encryptAssetData(assetData, key);
       
-      // Tamper with encrypted data
-      const tamperedEncrypted = encrypted.replace(/.$/, 'X'); // Change last character
+      // Tamper with encrypted data - GCM auth tag will detect the change
+      // and throw an error during decryption
+      const tamperedEncrypted = encrypted.slice(0, -2) + 'XX';
 
-      // decryptAssetData gracefully handles errors by returning the decrypted plaintext as-is
-      // rather than throwing - the data will be garbled/corrupted, not the original
-      const result = await EncryptionService.decryptAssetData(tamperedEncrypted, key);
-      // The tampered data should NOT equal the original data
-      expect(result.type).not.toBe(assetData.type);
+      await expect(EncryptionService.decryptAssetData(tamperedEncrypted, key))
+        .rejects.toThrow();
     });
 
     it('should include timestamp in encrypted asset data', async () => {

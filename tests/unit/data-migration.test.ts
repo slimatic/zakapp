@@ -24,16 +24,15 @@
  * - User-Centric Design: Ensure zero data loss and seamless migration experience
  */
 
-import { DataMigrationService } from '../../server/src/utils/DataMigration';
-import { IntegrityChecker } from '../../server/src/utils/IntegrityChecker';
-import { BackupService } from '../../server/src/utils/BackupService';
+// SKIP: uses jest.mock() incompatible with Vitest; imports non-existent services — imports commented out
+// import { DataMigrationService } from '../../server/src/utils/DataMigration';
+// import { IntegrityChecker } from '../../server/src/utils/IntegrityChecker';
+// import { BackupService } from '../../server/src/utils/BackupService';
 import fs from 'fs/promises';
 import path from 'path';
-import { PrismaClient } from '@prisma/client';
-
-// Mock Prisma client for testing
-jest.mock('@prisma/client');
-const MockPrismaClient = PrismaClient as jest.MockedClass<typeof PrismaClient>;
+// SKIP: jest.mock incompatible with vitest
+// jest.mock('@prisma/client');
+// const MockPrismaClient = PrismaClient as jest.MockedClass<typeof PrismaClient>;
 
 // SKIP: uses jest.mock() which is incompatible with Vitest; also imports non-existent services
 describe.skip('DataMigration', () => {

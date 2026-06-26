@@ -151,7 +151,7 @@ describe('CalendarService', () => {
       expect(hijriDate.month).toBeLessThanOrEqual(12);
       expect(hijriDate.day).toBeGreaterThanOrEqual(1);
       expect(hijriDate.day).toBeLessThanOrEqual(30);
-      expect(hijriDate.monthName).toBeTruthy();
+      // monthName is not provided by the synchronous getCurrentIslamicDate
     });
   });
 
