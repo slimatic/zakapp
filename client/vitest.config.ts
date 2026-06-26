@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 /**
  * Copyright (c) 2024-2026 ZakApp Contributors
  *
@@ -15,24 +16,22 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-1|/// <reference types="vitest" />
-2|import { defineConfig } from 'vite';
-3|import react from '@vitejs/plugin-react';
-4|import path from 'path';
-5|
-6|export default defineConfig({
-7|    plugins: [react()],
-8|    resolve: {
-9|        alias: {
-10|            '@': path.resolve(__dirname, './src'),
-11|        },
-12|    },
-13|    test: {
-14|        globals: true,
-15|        environment: 'jsdom',
-16|        setupFiles: ['./src/setupTests.ts'],
-17|        css: false,
-18|        exclude: ['**/e2e/**', '**/node_modules/**'],
-19|    },
-20|});
-21|
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+    plugins: [react()],
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './src'),
+        },
+    },
+    test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: ['./src/setupTests.ts'],
+        css: false,
+        exclude: ['**/e2e/**', '**/node_modules/**'],
+    },
+});

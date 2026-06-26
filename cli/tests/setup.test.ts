@@ -15,20 +15,19 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-1|import { describe, it, expect } from 'vitest';
-2|import { setupCommand } from '../src/commands/setup';
-3|
-4|describe('Setup Command', () => {
-5|  it('should be defined', () => {
-6|    expect(setupCommand).toBeDefined();
-7|  });
-8|
-9|  it('should have the correct name', () => {
-10|    expect(setupCommand.name()).toBe('setup');
-11|  });
-12|
-13|  it('should have the correct description', () => {
-14|    expect(setupCommand.description()).toBe('Setup Zakapp configuration');
-15|  });
-16|});
-17|
+import { describe, it, expect } from 'vitest';
+import { setupCommand } from '../src/commands/setup';
+
+describe('Setup Command', () => {
+  it('should be defined', () => {
+    expect(setupCommand).toBeDefined();
+  });
+
+  it('should have the correct name', () => {
+    expect(setupCommand.name()).toBe('setup');
+  });
+
+  it('should have the correct description', () => {
+    expect(setupCommand.description()).toBe('Setup Zakapp configuration');
+  });
+});

@@ -15,5 +15,4 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-1|export * from '../../../tests/integration/helpers/authHelpers';
-2|
+export * from '../../../tests/integration/helpers/authHelpers';

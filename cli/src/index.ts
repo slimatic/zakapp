@@ -15,22 +15,21 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-1|#!/usr/bin/env node
-2|import { Command } from 'commander';
-3|import { setupCommand } from './commands/setup';
-4|
-5|const program = new Command();
-6|
-7|program
-8|  .name('zakapp-cli')
-9|  .description('CLI wizard for Zakapp')
-10|  .version('0.1.0');
-11|
-12|program.addCommand(setupCommand);
-13|
-14|program.parse(process.argv);
-15|
-16|if (!process.argv.slice(2).length) {
-17|  program.outputHelp();
-18|}
-19|
+#!/usr/bin/env node
+import { Command } from 'commander';
+import { setupCommand } from './commands/setup';
+
+const program = new Command();
+
+program
+  .name('zakapp-cli')
+  .description('CLI wizard for Zakapp')
+  .version('0.1.0');
+
+program.addCommand(setupCommand);
+
+program.parse(process.argv);
+
+if (!process.argv.slice(2).length) {
+  program.outputHelp();
+}

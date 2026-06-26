@@ -15,89 +15,88 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-1|
-2|import { calculateZakat, isAssetZakatable } from '../src/core/calculations/zakat';
-3|import { Asset, AssetType } from '../src/types/index';
-4|
-5|// Mock Assets
-6|const assets: Asset[] = [
-7|    {
-8|        id: '1',
-9|        userId: 'u1',
-10|        type: AssetType.CASH,
-11|        value: 10000,
-12|        currency: 'USD',
-13|        name: 'Cash',
-14|        createdAt: new Date().toISOString(),
-15|        updatedAt: new Date().toISOString(),
-16|        isActive: true,
-17|        isPassiveInvestment: false,
-18|        isRestrictedAccount: false,
-19|        calculationModifier: 1
-20|    },
-21|    {
-22|        id: '2',
-23|        userId: 'u1',
-24|        type: AssetType.GOLD,
-25|        value: 5000,
-26|        currency: 'USD',
-27|        name: 'Gold',
-28|        createdAt: new Date().toISOString(),
-29|        updatedAt: new Date().toISOString(),
-30|        isActive: true,
-31|        isPassiveInvestment: false,
-32|        isRestrictedAccount: false,
-33|        calculationModifier: 1
-34|    }
-35|];
-36|
-37|// Liabilities
-38|const liabilities = [
-39|    { type: 'MORTGAGE', amount: 200000 }, // Deductible in Hanafi, not Shafi (usually)
-40|    { type: 'LOAN', amount: 5000 } // Deductible in both
-41|];
-42|
-43|// Nisab Values
-44|const nisabValues = {
-45|    gold: 4000, // $4,000 threshold
-46|    silver: 400 // $400 threshold
-47|};
-48|
-49|console.log('--- Verifying Zakat Logic Port ---');
-50|
-51|// Test 1: Standard
-52|console.log('\n[TEST 1] STANDARD Methodology');
-53|const resStandard = calculateZakat(assets, liabilities, nisabValues, 'STANDARD');
-54|console.log('Methodology:', resStandard.meta.methodology);
-55|console.log('Nisab Source:', resStandard.meta.nisabSource); // Should be GOLD
-56|console.log('Total Assets:', resStandard.totalAssets);
-57|console.log('Deductible Liabilities:', resStandard.deductibleLiabilities); // Should be 5000 (LOAN only)
-58|console.log('Net Worth:', resStandard.netWorth);
-59|console.log('Zakat Due:', resStandard.zakatDue);
-60|
-61|// Test 2: Hanafi
-62|console.log('\n[TEST 2] HANAFI Methodology');
-63|const resHanafi = calculateZakat(assets, liabilities, nisabValues, 'HANAFI');
-64|console.log('Methodology:', resHanafi.meta.methodology);
-65|console.log('Nisab Source:', resHanafi.meta.nisabSource); // Should be SILVER
-66|console.log('Deductible Liabilities:', resHanafi.deductibleLiabilities); // Should be 205000 (LOAN + MORTGAGE)
-67|console.log('Net Worth:', resHanafi.netWorth); // Likely negative
-68|console.log('Zakat Due:', resHanafi.zakatDue);
-69|
-70|// Test 3: Shafi
-71|console.log('\n[TEST 3] SHAFI Methodology');
-72|const resShafi = calculateZakat(assets, liabilities, nisabValues, 'SHAFI');
-73|console.log('Methodology:', resShafi.meta.methodology);
-74|console.log('Nisab Source:', resShafi.meta.nisabSource); // Should be GOLD
-75|console.log('Deductible Liabilities:', resShafi.deductibleLiabilities); // Should be 5000
-76|console.log('Zakat Due:', resShafi.zakatDue);
-77|
-78|if (resStandard.meta.nisabSource === 'GOLD' &&
-79|    resHanafi.meta.nisabSource === 'SILVER' &&
-80|    resHanafi.deductibleLiabilities > resStandard.deductibleLiabilities) {
-81|    console.log('\n✅ VERIFICATION SUCCESS: Methodology logic is correctly applied.');
-82|} else {
-83|    console.error('\n❌ VERIFICATION FAILED: Logic mismatch.');
-84|    process.exit(1);
-85|}
-86|
+
+import { calculateZakat, isAssetZakatable } from '../src/core/calculations/zakat';
+import { Asset, AssetType } from '../src/types/index';
+
+// Mock Assets
+const assets: Asset[] = [
+    {
+        id: '1',
+        userId: 'u1',
+        type: AssetType.CASH,
+        value: 10000,
+        currency: 'USD',
+        name: 'Cash',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isActive: true,
+        isPassiveInvestment: false,
+        isRestrictedAccount: false,
+        calculationModifier: 1
+    },
+    {
+        id: '2',
+        userId: 'u1',
+        type: AssetType.GOLD,
+        value: 5000,
+        currency: 'USD',
+        name: 'Gold',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isActive: true,
+        isPassiveInvestment: false,
+        isRestrictedAccount: false,
+        calculationModifier: 1
+    }
+];
+
+// Liabilities
+const liabilities = [
+    { type: 'MORTGAGE', amount: 200000 }, // Deductible in Hanafi, not Shafi (usually)
+    { type: 'LOAN', amount: 5000 } // Deductible in both
+];
+
+// Nisab Values
+const nisabValues = {
+    gold: 4000, // $4,000 threshold
+    silver: 400 // $400 threshold
+};
+
+console.log('--- Verifying Zakat Logic Port ---');
+
+// Test 1: Standard
+console.log('\n[TEST 1] STANDARD Methodology');
+const resStandard = calculateZakat(assets, liabilities, nisabValues, 'STANDARD');
+console.log('Methodology:', resStandard.meta.methodology);
+console.log('Nisab Source:', resStandard.meta.nisabSource); // Should be GOLD
+console.log('Total Assets:', resStandard.totalAssets);
+console.log('Deductible Liabilities:', resStandard.deductibleLiabilities); // Should be 5000 (LOAN only)
+console.log('Net Worth:', resStandard.netWorth);
+console.log('Zakat Due:', resStandard.zakatDue);
+
+// Test 2: Hanafi
+console.log('\n[TEST 2] HANAFI Methodology');
+const resHanafi = calculateZakat(assets, liabilities, nisabValues, 'HANAFI');
+console.log('Methodology:', resHanafi.meta.methodology);
+console.log('Nisab Source:', resHanafi.meta.nisabSource); // Should be SILVER
+console.log('Deductible Liabilities:', resHanafi.deductibleLiabilities); // Should be 205000 (LOAN + MORTGAGE)
+console.log('Net Worth:', resHanafi.netWorth); // Likely negative
+console.log('Zakat Due:', resHanafi.zakatDue);
+
+// Test 3: Shafi
+console.log('\n[TEST 3] SHAFI Methodology');
+const resShafi = calculateZakat(assets, liabilities, nisabValues, 'SHAFI');
+console.log('Methodology:', resShafi.meta.methodology);
+console.log('Nisab Source:', resShafi.meta.nisabSource); // Should be GOLD
+console.log('Deductible Liabilities:', resShafi.deductibleLiabilities); // Should be 5000
+console.log('Zakat Due:', resShafi.zakatDue);
+
+if (resStandard.meta.nisabSource === 'GOLD' &&
+    resHanafi.meta.nisabSource === 'SILVER' &&
+    resHanafi.deductibleLiabilities > resStandard.deductibleLiabilities) {
+    console.log('\n✅ VERIFICATION SUCCESS: Methodology logic is correctly applied.');
+} else {
+    console.error('\n❌ VERIFICATION FAILED: Logic mismatch.');
+    process.exit(1);
+}

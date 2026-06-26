@@ -15,47 +15,46 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-1|import fs from 'fs';
-2|import path from 'path';
-3|import os from 'os';
-4|
-5|export interface UserConfig {
-6|  currency: string;
-7|  language: string;
-8|  zakatMethod: string;
-9|  calendarType: 'lunar' | 'solar';
-10|  securityKeys?: {
-11|    encryptionKey: string;
-12|    jwtSecret: string;
-13|  };
-14|}
-15|
-16|const CONFIG_DIR = path.join(os.homedir(), '.zakapp');
-17|const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
-18|
-19|export const DEFAULT_CONFIG: UserConfig = {
-20|  currency: 'USD',
-21|  language: 'en',
-22|  zakatMethod: 'standard',
-23|  calendarType: 'lunar',
-24|};
-25|
-26|export function loadConfig(): UserConfig | null {
-27|  try {
-28|    if (!fs.existsSync(CONFIG_FILE)) {
-29|      return null;
-30|    }
-31|    const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
-32|    return JSON.parse(data) as UserConfig;
-33|  } catch (error) {
-34|    return null;
-35|  }
-36|}
-37|
-38|export function saveConfig(config: UserConfig): void {
-39|  if (!fs.existsSync(CONFIG_DIR)) {
-40|    fs.mkdirSync(CONFIG_DIR, { recursive: true });
-41|  }
-42|  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
-43|}
-44|
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+
+export interface UserConfig {
+  currency: string;
+  language: string;
+  zakatMethod: string;
+  calendarType: 'lunar' | 'solar';
+  securityKeys?: {
+    encryptionKey: string;
+    jwtSecret: string;
+  };
+}
+
+const CONFIG_DIR = path.join(os.homedir(), '.zakapp');
+const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+
+export const DEFAULT_CONFIG: UserConfig = {
+  currency: 'USD',
+  language: 'en',
+  zakatMethod: 'standard',
+  calendarType: 'lunar',
+};
+
+export function loadConfig(): UserConfig | null {
+  try {
+    if (!fs.existsSync(CONFIG_FILE)) {
+      return null;
+    }
+    const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    return JSON.parse(data) as UserConfig;
+  } catch (error) {
+    return null;
+  }
+}
+
+export function saveConfig(config: UserConfig): void {
+  if (!fs.existsSync(CONFIG_DIR)) {
+    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+  }
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
+}

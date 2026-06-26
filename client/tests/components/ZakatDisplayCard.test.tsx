@@ -15,31 +15,30 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-1|import React from 'react';
-2|import { render, screen } from '@testing-library/react';
-3|import '@testing-library/jest-dom';
-4|import ZakatDisplayCard from '../../src/components/tracking/ZakatDisplayCard';
-5|import { PrivacyProvider } from '../../src/contexts/PrivacyContext';
-6|
-7|const sampleRecord = {
-8|  id: 'r1',
-9|  status: 'DRAFT',
-10|  totalWealth: '8100',
-11|  zakatableWealth: '3900',
-12|  zakatAmount: '97.5',
-13|};
-14|
-15|describe('ZakatDisplayCard', () => {
-16|  it('shows total wealth and zakatable wealth and calculated zakat', () => {
-17|    render(
-18|      <PrivacyProvider>
-19|        <ZakatDisplayCard record={sampleRecord as any} />
-20|      </PrivacyProvider>
-21|    );
-22|
-23|    expect(screen.getByText(/Total Wealth:/)).toBeInTheDocument();
-24|    expect(screen.getByText(/Zakatable Wealth:/)).toBeInTheDocument();
-25|    expect(screen.getByText(/Zakat Amount/i)).toBeInTheDocument();
-26|  });
-27|});
-28|
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import ZakatDisplayCard from '../../src/components/tracking/ZakatDisplayCard';
+import { PrivacyProvider } from '../../src/contexts/PrivacyContext';
+
+const sampleRecord = {
+  id: 'r1',
+  status: 'DRAFT',
+  totalWealth: '8100',
+  zakatableWealth: '3900',
+  zakatAmount: '97.5',
+};
+
+describe('ZakatDisplayCard', () => {
+  it('shows total wealth and zakatable wealth and calculated zakat', () => {
+    render(
+      <PrivacyProvider>
+        <ZakatDisplayCard record={sampleRecord as any} />
+      </PrivacyProvider>
+    );
+
+    expect(screen.getByText(/Total Wealth:/)).toBeInTheDocument();
+    expect(screen.getByText(/Zakatable Wealth:/)).toBeInTheDocument();
+    expect(screen.getByText(/Zakat Amount/i)).toBeInTheDocument();
+  });
+});
