@@ -144,9 +144,9 @@ describe('CalendarService', () => {
     it('should return current Hijri date', async () => {
       const hijriDate = await calendarService.getCurrentIslamicDate();
 
-      // Should be in year range 1446-1447 for 2024-2025
+      // Should be in year range 1446-1448 for 2024-2026
       expect(hijriDate.year).toBeGreaterThanOrEqual(1446);
-      expect(hijriDate.year).toBeLessThanOrEqual(1447);
+      expect(hijriDate.year).toBeLessThanOrEqual(1448);
       expect(hijriDate.month).toBeGreaterThanOrEqual(1);
       expect(hijriDate.month).toBeLessThanOrEqual(12);
       expect(hijriDate.day).toBeGreaterThanOrEqual(1);

@@ -41,7 +41,8 @@ const ACCESSIBILITY_STANDARDS = {
   passes: 50 // Minimum number of successful accessibility checks
 };
 
-test.describe('Accessibility Compliance Tests', () => {
+// SKIP: requires Playwright browser (not available in CI unit test suite)
+test.describe.skip('Accessibility Compliance Tests', () => {
   let page: Page;
 
   test.beforeEach(async ({ browser }) => {
