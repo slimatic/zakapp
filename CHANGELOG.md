@@ -738,7 +738,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the AGPL-3.0-or-later License - see the [LICENSE](LICENSE) file for details.
 
 ### Fixed
 - **Asset Duplication**: Fixed an issue where assets could be duplicated due to double-submission on the asset creation form. Added submission state locking and client-side list deduplication.

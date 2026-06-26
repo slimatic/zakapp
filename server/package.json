@@ -87,6 +87,6 @@
     "test": "tests"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "zakapp contributors",
+  "license": "AGPL-3.0-or-later"
 }

@@ -116,3 +116,12 @@ dist/
 backups/
 # Agent artifacts
 .agent/
+
+# Test result artifacts (never commit)
+*-test-results.json
+*-test-result.json
+*.db.backup*
+test-results/.last-run.json
+auth-test-results.json
+payment-test-results*.json
+delete-test-result.json
