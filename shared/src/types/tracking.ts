@@ -287,6 +287,7 @@ export interface ComparativeAnalysis {
  */
 export type ReminderEventType =
   | 'zakat_anniversary_approaching'
+  | 'hawl_due'
   | 'calculation_overdue'
   | 'payment_incomplete'
   | 'yearly_comparison_available'

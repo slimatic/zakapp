@@ -81,7 +81,8 @@ export type AssetCategoryType =
   | 'stocks'
   | 'crypto'
   | 'debts'
-  | 'expenses';
+  | 'expenses'
+  | 'agriculture';
 
 // Base asset interface
 export interface Asset {
@@ -231,7 +232,26 @@ export type SpecificAsset =
   | StocksAsset
   | CryptoAsset
   | DebtAsset
-  | ExpensesAsset;
+  | ExpensesAsset
+  | AgriculturalAsset;
+
+export interface AgriculturalAsset extends Asset {
+  category: 'agriculture';
+  subCategory:
+    | 'rain_fed_grains'
+    | 'irrigated_grains'
+    | 'fruits'
+    | 'vegetables'
+    | 'livestock'
+    | 'timber'
+    | 'other_crops';
+  irrigationMethod?: 'rain_fed' | 'irrigated' | 'mixed';
+  harvestValue?: number; // total market value of harvested produce
+  landAreaAcres?: number;
+  cropType?: string;
+  nisabUnit?: 'saa' | 'wasq' | 'kilograms';
+  nisabThresholdQuantity?: number;
+}
 
 export interface AssetCategory {
   id: string;

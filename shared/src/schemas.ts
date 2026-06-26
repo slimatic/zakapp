@@ -148,6 +148,26 @@ export const expensesAssetSchema = baseAssetSchema.extend({
   liabilityType: z.string().max(100).optional(),
 });
 
+// Agriculture asset schema (v0.12.0: multi-asset zakat engine)
+export const agricultureAssetSchema = baseAssetSchema.extend({
+  category: z.literal('agriculture'),
+  subCategory: z.enum([
+    'rain_fed_grains',
+    'irrigated_grains',
+    'fruits',
+    'vegetables',
+    'livestock',
+    'timber',
+    'other_crops',
+  ]),
+  irrigationMethod: z.enum(['rain_fed', 'irrigated', 'mixed']).optional(),
+  harvestValue: z.number().min(0).optional(),
+  landAreaAcres: z.number().min(0).optional(),
+  cropType: z.string().max(100).optional(),
+  nisabUnit: z.enum(['saa', 'wasq', 'kilograms']).optional(),
+  nisabThresholdQuantity: z.number().min(0).optional(),
+});
+
 // Union schema for all asset types
 export const assetSchema = z.discriminatedUnion('category', [
   cashAssetSchema,
@@ -159,6 +179,7 @@ export const assetSchema = z.discriminatedUnion('category', [
   cryptoAssetSchema,
   debtsAssetSchema,
   expensesAssetSchema,
+  agricultureAssetSchema,
 ]);
 
 // Generic asset schema for creation/update operations
@@ -174,6 +195,7 @@ export const genericAssetSchema = z.object({
     'crypto',
     'debts',
     'expenses',
+    'agriculture',
   ]),
   subCategory: z.string().min(1).max(50),
   value: z.number().min(0).max(999999999999),
@@ -214,6 +236,13 @@ export const genericAssetSchema = z.object({
   dependentCount: z.number().min(0).optional(),
   supportType: z.string().max(100).optional(),
   liabilityType: z.string().max(100).optional(),
+  // Agriculture fields (v0.12.0)
+  irrigationMethod: z.enum(['rain_fed', 'irrigated', 'mixed']).optional(),
+  harvestValue: z.number().min(0).optional(),
+  landAreaAcres: z.number().min(0).optional(),
+  cropType: z.string().max(100).optional(),
+  nisabUnit: z.enum(['saa', 'wasq', 'kilograms']).optional(),
+  nisabThresholdQuantity: z.number().min(0).optional(),
 });
 
 // Asset category schema
@@ -252,6 +281,7 @@ export const assetFormSchema = z.object({
     'crypto',
     'debts',
     'expenses',
+    'agriculture',
   ]),
   subCategory: z
     .string()
@@ -349,6 +379,13 @@ export const assetFormSchema = z.object({
   dependentCount: z.number().min(0).optional(),
   supportType: z.string().max(100).optional(),
   liabilityType: z.string().max(100).optional(),
+  // Agriculture fields (v0.12.0)
+  irrigationMethod: z.enum(['rain_fed', 'irrigated', 'mixed']).optional(),
+  harvestValue: z.number().min(0, 'Harvest value must be non-negative').optional(),
+  landAreaAcres: z.number().min(0, 'Land area must be non-negative').optional(),
+  cropType: z.string().max(100).optional(),
+  nisabUnit: z.enum(['saa', 'wasq', 'kilograms']).optional(),
+  nisabThresholdQuantity: z.number().min(0).optional(),
 });
 
 // Request/response schemas for API operations
@@ -366,6 +403,7 @@ export type PropertyAssetZod = z.infer<typeof propertyAssetSchema>;
 export type StocksAssetZod = z.infer<typeof stocksAssetSchema>;
 export type CryptoAssetZod = z.infer<typeof cryptoAssetSchema>;
 export type DebtsAssetZod = z.infer<typeof debtsAssetSchema>;
+export type AgricultureAssetZod = z.infer<typeof agricultureAssetSchema>;
 export type AssetUnion = z.infer<typeof assetSchema>;
 export type GenericAsset = z.infer<typeof genericAssetSchema>;
 export type AssetFormData = z.infer<typeof assetFormSchema>;

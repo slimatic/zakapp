@@ -16,8 +16,8 @@ model User {
   username       String?  @unique // Optional username for login
   passwordHash   String   // bcrypt hash
   profile        String?  // Encrypted JSON blob (name, location, methodology preference)
-  settings       String?  // Encrypted JSON blob (currency, language, calendar type, reminders)
-  isActive       Boolean  @default(true)
+       settings       String?  // Encrypted JSON blob (currency, language, calendar type, reminders, reminderEnabled, reminderChannel)
+      isActive       Boolean  @default(true)
   userType       String   @default("USER") // USER, ADMIN_USER
   createdAt      DateTime @default(now())
   lastLoginAt    DateTime?
@@ -76,7 +76,7 @@ model User {
 model Asset {
   id              String   @id @default(cuid())
   userId          String
-  category        String   // cash, gold, silver, business, property, stocks, crypto
+  category        String   // cash, gold, silver, business, property, stocks, crypto, agriculture
   name            String
   value           Float
   currency        String   @default("USD")
