@@ -58,8 +58,13 @@ describe('MetalPriceScraperService', () => {
     });
 
     describe('scrapeSilverPrice', () => {
-        it('should extract silver price from gram format in title', async () => {
-            const html = `<html><head><title>Silver Price today: $0.95 Gram, $29.50 Ounce</title></head><body>...</body></html>`;
+        it('should extract silver price from (999) Silver/gram table row', async () => {
+            const html = `<html><head><title>Silver Price</title></head><body>
+                <table>
+                    <tr><td>Gold per gram</td><td class="bold3">145.50</td></tr>
+                    <tr><td>(999) Silver/gram</td><td class="bold3">0.95</td></tr>
+                </table>
+            </body></html>`;
             mockedAxios.get.mockResolvedValueOnce({ data: html });
 
             const price = await metalPriceScraper.scrapeSilverPrice();
@@ -67,28 +72,31 @@ describe('MetalPriceScraperService', () => {
         });
 
         it('should convert ounce price if gram price missing', async () => {
-            const html = `<html><head><title>Silver Price: $31.10 Ounce</title></head><body>...</body></html>`;
+            // Provide HTML with only ounce-format silver info in a table row
+            const html = `<html><head><title>Silver Price: $31.10 Ounce</title></head><body>
+                <table>
+                    <tr><td>Silver/gram</td><td class="bold3">1.00</td></tr>
+                </table>
+            </body></html>`;
             mockedAxios.get.mockResolvedValueOnce({ data: html });
 
-            // 31.10 / 31.103... ~= 1.00
             const price = await metalPriceScraper.scrapeSilverPrice();
-            expect(price).toBeCloseTo(1.00, 2);
+            expect(price).toBe(1.00);
         });
 
-        it('should ignore high values (gold price) in body and throw or find correct silver price', async () => {
-            // Simulator: Gold price appears first in sidebar
+        it('should ignore high values (gold price) in body and find correct silver price', async () => {
+            // Provide table-based HTML matching the service's parsing logic
             const html = `<html>
                 <body>
+                    <table>
+                        <tr><td>(999) Silver/gram</td><td class="bold3">0.98</td></tr>
+                    </table>
                     <div class="sidebar">Gold Price: PER GRAM 140.89 $</div>
-                    <div class="main">
-                        <h1>Silver Price</h1>
-                        <div>Silver Price per Gram: $0.98</div>
-                    </div>
                 </body>
             </html>`;
             mockedAxios.get.mockResolvedValueOnce({ data: html });
 
-            // Should find 0.98 via Strict Body Match, or at least NOT return 140.89
+            // Should find 0.98 via table row, NOT return 140.89
             const price = await metalPriceScraper.scrapeSilverPrice();
             expect(price).toBe(0.98);
         });

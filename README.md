@@ -67,7 +67,7 @@ If you prefer manual control:
 git clone https://github.com/slimatic/zakapp.git && cd zakapp
 
 # Copy and configure environment
-cp .env.easy.example .env
+cp .env.example .env
 # Edit .env with your settings
 
 # Start services
