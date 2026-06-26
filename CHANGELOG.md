@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.11.0] - 1448-01 (Muharram) / 2026-06-26
+
+### 🔒 Data Retention & Safety
+- **Migration safety audit**: all 13 Prisma migrations reviewed for destructive patterns
+- **Backup script**: `scripts/backup-db.sh` — pre-migration database backup with checksums
+- **Docker hardening**: removed `--accept-data-loss` from entrypoint, restructured migrations service (single runner, pre-migration backup, `depends_on` fix)
+- **Docker healthcheck**: switched from `wget` to `curl` (matching installed packages in Docker image), added `start_period: 30s`
+
+### 📜 License Compliance (AGPL-3.0-or-later)
+- Fixed `server/package.json` license from `ISC` → `AGPL-3.0-or-later`
+- Added `license` field to `client/`, `shared/`, `cli/` `package.json`
+- Fixed stale MIT license reference in `CHANGELOG.md`
+
+### 🧹 Codebase Cleanup
+- Removed 6 dead services: `analytics-service.ts`, `SimpleEducationalContentService.ts`, `SimpleIslamicCalculationService.ts`, `SimpleNisabService.ts`, `export-service.ts`, empty `services/index.ts`
+- Removed unused middleware wrapper: `server/src/middleware/validation.ts`
+- Removed 6 committed artifacts from git root: `auth-test-results.json`, `delete-test-result.json`, `payment-test-results.json`, `payment-test-results-2.json`, `prod.db.backup-pre-ralph-20260208-143238`, `test-results/.last-run.json`
+- Removed duplicate `.env.docker.template` and `.env.staging.template` from project root (canonical copies in `config/env/`)
+- Archived 60+ stale report docs from `docs/reports/` → `docs/archive/reports-2026-06-pre-muharram/`
+- Removed obsolete `docs/archive/specs/008-nisab-year-record/SPECIFICATION_ANALYSIS_REPORT_OLD.md`
+
+### 🛡️ Validation & Schema
+- Added negative-value rejection to `SimpleValidation` (assets with negative values now return 400)
+- Schema alignment across shared types and Prisma indexes
+
+### 🔧 Infrastructure
+- **Backup script**: `scripts/backup-db.sh` (executable, idempotent, checksum-verified)
+- **Docker Compose**: restructured `migrations` service with pre-migration backup step
+- **Release cadence**: documented moon-cycle (Hijri) release process in `docs/MOON_CYCLE_RELEASES.md`
+- **Audit reports**: migration safety, deadcode, and license audits saved to `docs/audit/`
+
 ## [0.10.1] - 2026-02-16
 
 ### 🐛 Bug Fixes - Deployment Scripts
