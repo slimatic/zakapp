@@ -3,8 +3,8 @@ echo "Checking services..."
 echo ""
 
 # Check backend
-echo -n "Backend (http://localhost:5001): "
-if curl -s http://localhost:5001/health > /dev/null 2>&1; then
+echo -n "Backend (http://localhost:3001): "
+if curl -s http://localhost:3001/health > /dev/null 2>&1; then
     echo "✅ Running"
 else
     echo "❌ Not running"
