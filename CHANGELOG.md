@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.11.0] - 1448-01 Muharram / 2026-06-26
+
+### 🚀 Muharram 1448 Release — Stabilization & Hardening
+
+#### Data Safety & Migration
+- **Migration Safety Audit**: All 7 Prisma migrations verified safe (table-redefinition pattern preserves data)
+- **Backup Hardening**: Updated `scripts/backup-db.sh` with integrity checks, checksums, and manifest tracking
+- **Docker Migration Service**: Runs migrations before backend startup via `depends_on`; uses `prisma migrate deploy` (production-safe)
+
+#### Codebase Cleanup
+- **Dead Code Removal**: Removed committed `.bak` artifacts, stale `.env` variants, and redundant docs
+- **Branch Hygiene**: Deleted 5 remote + 3 local stale branches
+- **Documentation Audit**: Archived 11 outdated/superseded docs to `docs/archive/superseded/`
+
+#### Bug Fixes
+- **Fiqh Compliance**: Fixed Hanafi debt deduction, liability deduction wiring, currency consistency
+- **Onboarding**: Handle empty assets in ZakatSetupStep
+- **Client TODOs**: Resolve outstanding UI TODOs
+- **Contract Tests**: Fix missing vitest globals imports
+
+#### Security & Compliance
+- **AGPL-3.0 License**: Verified all sources package.json files have correct AGPL-3.0-or-later license
+- **GitHub Security Scanning**: GitGuardian checks enabled via CI
+
+#### Notable Feature Work
+- **Extract Modals + Decimal Enforcement** (#299): Replace floating-point calculations with safe decimal parsing
+- **NisabRecordCard Extraction** (#301): Extract 410-line component for reuse
+- **PWA Offline Caching** (#302): Network resilience and offline support
+- **Liability Deduction** (#290): Wire up liability calculations per methodology
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.10.1...v0.11.0
+
+---
+
 ## [0.10.1] - 2026-02-16
 
 ### 🐛 Bug Fixes - Deployment Scripts
