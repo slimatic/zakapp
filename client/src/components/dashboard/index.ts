@@ -15,11 +15,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-export * from './WelcomeStep';
-export * from './IdentityStep';
-export * from './MetalsStep';
-export * from './CashStep';
-export * from './InvestmentsStep';
-export * from './LiabilitiesStep';
-export * from './ReviewStep';
-export * from './ZakatSetupStep';
+export { DashboardActionCards, type DashboardActionCardsProps } from './DashboardActionCards';
+export { ActiveRecordWidget } from './ActiveRecordWidget';
+export { AssetsBreakdownChart } from './AssetsBreakdownChart';
+export { DashboardHeader } from './DashboardHeader';
+export { OnboardingGuide } from './OnboardingGuide';
+export { PaymentDistributionChart } from './PaymentDistributionChart';
+export { QuickActionCard } from './QuickActionCard';
+export { WealthSummaryCard } from './WealthSummaryCard';
+export { WealthTrendChart } from './WealthTrendChart';
+export { ZakatObligationsChart } from './ZakatObligationsChart';
+export { MonthlyDueVsPaidChart } from './MonthlyDueVsPaidChart';

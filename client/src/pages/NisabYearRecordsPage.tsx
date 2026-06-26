@@ -31,17 +31,14 @@ import HawlProgressIndicator from '../components/HawlProgressIndicator';
 import NisabComparisonWidget from '../components/NisabComparisonWidget';
 import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
 import { PaymentCard } from '../components/tracking/PaymentCard';
-import { PaymentRecordForm } from '../components/tracking/PaymentRecordForm';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
-import { Button } from '../components/ui/Button';
-import { AssetSelectionTable } from '../components/tracking/AssetSelectionTable';
-import { LiabilitySelectionTable } from '../components/tracking/LiabilitySelectionTable';
-import { Modal } from '../components/ui/Modal';
+import { CreateNisabRecordModal } from '../components/nisab/CreateNisabRecordModal';
+import { RecordPaymentModal } from '../components/nisab/RecordPaymentModal';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { DualCalendarDatePicker } from '../components/common/DualCalendarDatePicker';
 
@@ -286,13 +283,6 @@ export const NisabYearRecordsPage: React.FC = () => {
     setEditingStartDateRecordId(null);
     toast.success('Date updated');
   };
-
-  // Calculated Preview for Create Modal
-  const previewCalculation = React.useMemo(() => {
-    const assets = allAssets.filter(a => selectedAssetIds.includes(a.id));
-    const liabilities = allLiabilities.filter(l => selectedLiabilityIds.includes(l.id));
-    return calculateWealth(assets, liabilities);
-  }, [selectedAssetIds, selectedLiabilityIds, allAssets, allLiabilities]);
 
   // Calculate totals for active record
   const totalPaid = recordPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
@@ -606,148 +596,40 @@ export const NisabYearRecordsPage: React.FC = () => {
         </div>
       </div>
 
-      <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title={`Create Nisab Record - Step ${createStep} of 3`} size="lg">
-        {/* Step Indicator */}
-        <div className="mb-4">
-          <div className="text-sm text-gray-500 mb-2">
-            {createStep === 1 && "Confirm the assets to include in this Zakat year calculation."}
-            {createStep === 2 && "Deduct valid liabilities to determine your net Zakatable wealth."}
-            {createStep === 3 && "Review your configuration and set the Nisab Standard."}
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${(createStep / 3) * 100}%` }}></div>
-          </div>
-        </div>
-
-        <div className="space-y-6 pt-2 h-[60vh] overflow-y-auto">
-          {createStep === 1 && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-sm font-medium text-gray-900">Inclusive Assets</h3>
-                <span className="text-xs text-gray-500">{selectedAssetIds.length} selected</span>
-              </div>
-              {/* Using Imported AssetSelectionTable */}
-              <AssetSelectionTable
-                assets={allAssets}
-                initialSelection={selectedAssetIds}
-                onSelectionChange={setSelectedAssetIds}
-              />
-              <div className="bg-blue-50 p-3 rounded text-xs text-blue-700">
-                💰 Estimated Wealth: {formatCurrency(allAssets.filter(a => selectedAssetIds.includes(a.id)).reduce((sum, a) => sum + (Number(a.value) || 0), 0))}
-              </div>
-            </div>
-          )}
-
-          {createStep === 2 && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-sm font-medium text-gray-900">Deductible Liabilities</h3>
-                <span className="text-xs text-gray-500">{selectedLiabilityIds.length} selected</span>
-              </div>
-              <LiabilitySelectionTable
-                liabilities={allLiabilities}
-                selectedLiabilityIds={selectedLiabilityIds}
-                onSelectionChange={setSelectedLiabilityIds}
-              />
-              <div className="bg-amber-50 p-3 rounded text-xs text-amber-800 flex items-center gap-2">
-                <span className="text-xl">📉</span>
-                <div>
-                  <strong>Deductible Liabilities:</strong> {formatCurrency(allLiabilities.filter(l => selectedLiabilityIds.includes(l.id)).reduce((sum, l) => sum + (Number(l.amount) || 0), 0))}
-                  <br />
-                  <span className="opacity-75">Only debts due within the coming lunar year are deducted.</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {createStep === 3 && (
-            <div className="space-y-6">
-              {/* Summary */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded text-center">
-                  <span className="block text-xs text-gray-500 uppercase">Total Assets</span>
-                  <span className="block text-xl font-bold text-gray-900">{formatCurrency(previewCalculation.totalWealth)}</span>
-                </div>
-                <div className="bg-gray-50 p-4 rounded text-center border border-green-100 bg-green-50">
-                  <span className="block text-xs text-green-700 uppercase font-medium">Net Zakatable</span>
-                  <span className="block text-xl font-bold text-green-700">{formatCurrency(previewCalculation.netZakatableWealth)}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <DualCalendarDatePicker
-                  label="Hawl Start Date"
-                  value={creationDate}
-                  onChange={setCreationDate}
-                  className="border-blue-100 bg-blue-50/50"
-                />
-              </div>
-
-              {/* Nisab Selection */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Select Nisab Standard</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-gray-50 transition-colors ${nisabBasis === 'GOLD' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200'}`}>
-                    <div className="flex items-center">
-                      <input type="radio" name="nisab" checked={nisabBasis === 'GOLD'} onChange={() => setNisabBasis('GOLD')} className="mr-3 h-4 w-4 text-blue-600" />
-                      <div>
-                        <span className="block font-medium text-gray-900">Gold Standard</span>
-                        <span className="text-xs text-gray-500">For Wealthy/Safer</span>
-                      </div>
-                    </div>
-                    <span className="text-xs font-mono bg-yellow-100 text-yellow-800 px-2 py-1 rounded">87.48g</span>
-                  </label>
-                  <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-gray-50 transition-colors ${nisabBasis === 'SILVER' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200'}`}>
-                    <div className="flex items-center">
-                      <input type="radio" name="nisab" checked={nisabBasis === 'SILVER'} onChange={() => setNisabBasis('SILVER')} className="mr-3 h-4 w-4 text-blue-600" />
-                      <div>
-                        <span className="block font-medium text-gray-900">Silver Standard</span>
-                        <span className="text-xs text-gray-500">For Low Income</span>
-                      </div>
-                    </div>
-                    <span className="text-xs font-mono bg-gray-100 text-gray-800 px-2 py-1 rounded">612.36g</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-6 flex justify-between w-full pt-4 border-t border-gray-100">
-          {createStep > 1 ? (
-            <Button variant="outline" onClick={() => setCreateStep(s => (s - 1) as 1 | 2 | 3)}>
-              ← Back
-            </Button>
-          ) : (<div />)}
-
-          {createStep < 3 ? (
-            <Button onClick={() => setCreateStep(s => (s + 1) as 1 | 2 | 3)}>
-              Next Step →
-            </Button>
-          ) : (
-            <Button onClick={handleCreateSubmit} className="bg-green-600 hover:bg-green-700 text-white">
-              Start Hawl Tracking
-            </Button>
-          )}
-        </div>
-      </Modal>
+      <CreateNisabRecordModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        createStep={createStep}
+        onCreateStepChange={setCreateStep}
+        allAssets={allAssets}
+        allLiabilities={allLiabilities}
+        selectedAssetIds={selectedAssetIds}
+        onSelectedAssetIdsChange={setSelectedAssetIds}
+        selectedLiabilityIds={selectedLiabilityIds}
+        onSelectedLiabilityIdsChange={setSelectedLiabilityIds}
+        nisabBasis={nisabBasis}
+        onNisabBasisChange={setNisabBasis}
+        creationDate={creationDate}
+        onCreationDateChange={setCreationDate}
+        onSubmit={handleCreateSubmit}
+        formatCurrency={formatCurrency}
+      />
 
       {/* Payment Modal */}
-      <Modal isOpen={showPaymentModal} onClose={() => setShowPaymentModal(false)} title="Record Zakat Payment" size="md">
-        {activeRecord && (
-          <PaymentRecordForm
-            nisabRecordId={activeRecord.id}
-            onSuccess={() => {
-              setShowPaymentModal(false);
-              // If this was the first payment, redirect to Dashboard to show updated progress
-              if (allPayments.length === 0) {
-                navigate('/dashboard');
-              }
-            }}
-            onCancel={() => setShowPaymentModal(false)}
-          />
-        )}
-      </Modal>
+      <RecordPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        activeRecordId={activeRecord?.id ?? null}
+        onSuccess={(_payment) => {
+          void _payment;
+          setShowPaymentModal(false);
+          // If this was the first payment, redirect to Dashboard to show updated progress
+          if (allPayments.length === 0) {
+            navigate('/dashboard');
+          }
+        }}
+        onCancel={() => setShowPaymentModal(false)}
+      />
 
     </div>
   );
