@@ -136,6 +136,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Prepare scan output directory
+        run: mkdir -p ${{ env.SCAN_RESULTS_PATH }}
+
       - name: Install dependencies
         run: |
           npm install
