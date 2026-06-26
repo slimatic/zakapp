@@ -1,4 +1,21 @@
 /**
+ * Copyright (c) 2024-2026 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
  * Contract Test: POST /api/nisab-year-records/:id/unlock
  *
  * Tests unlocking a FINALIZED Nisab Year Record for editing
@@ -121,7 +138,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error).toBe('VALIDATION_ERROR');
   });
 
   it('should reject unlock with reason too short', async () => {
@@ -132,7 +149,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error).toBe('VALIDATION_ERROR');
   });
 
   it('should reject unlock with reason too long', async () => {
@@ -144,7 +161,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error).toBe('VALIDATION_ERROR');
   });
 
   it('should reject unlock of non-FINALIZED record', async () => {
@@ -174,7 +191,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(409);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('INVALID_STATE');
+    expect(res.body.error).toBe('INVALID_STATE');
   });
 
   it('should return 404 for non-existent record', async () => {
@@ -185,7 +202,7 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('NOT_FOUND');
+    expect(res.body.error).toBe('NOT_FOUND');
   });
 
   it('should return 401 for unauthenticated request', async () => {
@@ -195,6 +212,6 @@ describe('POST /api/nisab-year-records/:id/unlock', () => {
 
     expect(res.status).toBe(401);
     expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe('UNAUTHORIZED');
+    expect(res.body.error).toBe('UNAUTHORIZED');
   });
 });

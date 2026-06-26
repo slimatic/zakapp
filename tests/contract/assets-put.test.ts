@@ -1,3 +1,20 @@
+/**
+ * Copyright (c) 2024-2026 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
@@ -60,7 +77,8 @@ describe('Contract Test: PUT /api/assets/:id', () => {
 
       // Create a test asset to use in PUT tests
       const assetData = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test asset for PUT',
         value: 1000,
         currency: 'USD',
         description: 'Test asset for PUT operations'
@@ -323,7 +341,7 @@ describe('Contract Test: PUT /api/assets/:id', () => {
       }
 
       const changeType = {
-        type: 'gold' // Attempting to change type
+        category: 'gold' // Attempting to change category
       };
 
       const response = await request(app)

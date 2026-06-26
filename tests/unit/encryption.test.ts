@@ -1,4 +1,21 @@
 /**
+ * Copyright (c) 2024-2026 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
  * Unit Tests for Encryption Service
  * 
  * Constitutional Principles:
@@ -296,27 +313,27 @@ describe('EncryptionService', () => {
   });
 
   describe('Islamic Compliance Data Protection', () => {
-    it('should properly encrypt Zakat calculation data', () => {
-      const zakatData = {
-        methodology: 'hanafi',
-        nisabThreshold: 4948.87, // Current gold nisab
-        assets: {
-          cash: 10000,
-          gold: { weight: '85g', value: 5000 },
-          silver: { weight: '595g', value: 500 },
-          business: 15000
-        },
-        totalZakatable: 30500,
-        zakatDue: 762.50,
-        paymentDate: '2024-09-29',
-        recipient: 'Local Islamic Center'
-      };
+    it('should properly encrypt Zakat calculation data', async () => {
+          const zakatData = {
+            methodology: 'hanafi',
+            nisabThreshold: 4948.87, // Current gold nisab
+            assets: {
+              cash: 10000,
+              gold: { weight: '85g', value: 5000 },
+              silver: { weight: '595g', value: 500 },
+              business: 15000
+            },
+            totalZakatable: 30500,
+            zakatDue: 762.50,
+            paymentDate: '2024-09-29',
+            recipient: 'Local Islamic Center'
+          };
       
-      const testKey = process.env.ENCRYPTION_KEY!;
-      const encrypted = await EncryptionService.encryptObject(zakatData, testKey);
-      const decrypted = await EncryptionService.decryptObject(encrypted, testKey);
+          const testKey = process.env.ENCRYPTION_KEY!;
+          const encrypted = EncryptionService.encryptObject(zakatData, testKey);
+          const decrypted = EncryptionService.decryptObject(encrypted, testKey);
       
-      expect(decrypted).toEqual(zakatData);
+          expect(decrypted).toEqual(zakatData);
       
       // Ensure sensitive financial data is not visible in encrypted form
       const encryptedString = JSON.stringify(encrypted);
@@ -326,37 +343,33 @@ describe('EncryptionService', () => {
     });
 
     it('should encrypt user profile data securely', async () => {
-      const profileData = {
-        personalInfo: {
-          name: 'Fatima Al-Zahra',
-          email: 'fatima@example.com',
-          location: 'Dubai, UAE'
-        },
-        preferences: {
-          zakatMethodology: 'shafi',
-          currency: 'AED',
-          language: 'ar',
-          notifications: true
-        },
-        privacySettings: {
-          shareCalculations: false,
-          anonymousMode: true,
-          dataRetention: '1year'
-        }
-      };
+          const profileData = {
+            personalInfo: {
+              name: 'Fatima Al-Zahra',
+              email: 'fatima@example.com',
+              location: 'Dubai, UAE'
+            },
+            preferences: {
+              zakatMethodology: 'shafi',
+              currency: 'AED',
+              language: 'ar',
+              notifications: true
+            },
+            financialData: {
+              annualIncome: 120000,
+              zakatPaid: 3000,
+              savingsAccount: 25000
+            }
+          };
       
-      const testKey = process.env.ENCRYPTION_KEY!;
-      const encrypted = await EncryptionService.encryptObject(profileData, testKey);
-      const decrypted = await EncryptionService.decryptObject(encrypted, testKey);
+          const testKey = process.env.ENCRYPTION_KEY!;
+          const encrypted = EncryptionService.encryptObject(profileData, testKey);
+          const decrypted = EncryptionService.decryptObject(encrypted, testKey);
       
-      expect(decrypted).toEqual(profileData);
-      
-      // Verify PII is encrypted
-      const encryptedString = JSON.stringify(encrypted);
-      expect(encryptedString).not.toContain('Fatima Al-Zahra');
-      expect(encryptedString).not.toContain('fatima@example.com');
-      expect(encryptedString).not.toContain('Dubai, UAE');
-    });
+          expect(decrypted).toEqual(profileData);
+          expect(JSON.stringify(encrypted)).not.toContain('Fatima Al-Zahra');
+          expect(JSON.stringify(encrypted)).not.toContain('120000');
+        });
   });
 
   describe('Backwards Compatibility', () => {

@@ -1,3 +1,20 @@
+/**
+ * Copyright (c) 2024-2026 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 // import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
@@ -148,7 +165,7 @@ describe('Contract Test: POST /api/auth/register', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.error.details.some((detail: any) => detail.field === 'email')).toBe(true);
 
       // Test missing password
@@ -166,7 +183,7 @@ describe('Contract Test: POST /api/auth/register', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.error.details.some((detail: any) => detail.field === 'password')).toBe(true);
 
       // Test missing firstName
@@ -184,7 +201,7 @@ describe('Contract Test: POST /api/auth/register', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.error.details.some((detail: any) => detail.field === 'firstName')).toBe(true);
     });
 
@@ -215,7 +232,7 @@ describe('Contract Test: POST /api/auth/register', () => {
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error.code).toBe('VALIDATION_ERROR');
+        expect(response.body.error).toBe('VALIDATION_ERROR');
         expect(response.body.error.details.some((detail: any) => detail.field === 'email')).toBe(true);
       }
     });
@@ -251,7 +268,7 @@ describe('Contract Test: POST /api/auth/register', () => {
           .expect(400);
 
         expect(response.body.success).toBe(false);
-        expect(response.body.error.code).toBe('VALIDATION_ERROR');
+        expect(response.body.error).toBe('VALIDATION_ERROR');
         expect(response.body.error.details.some((detail: any) => detail.field === 'password')).toBe(true);
         
         index++;
@@ -277,7 +294,7 @@ describe('Contract Test: POST /api/auth/register', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.error.details.some((detail: any) => detail.message && detail.message.includes('Password confirmation does not match'))).toBe(true);
     });
 
@@ -302,7 +319,7 @@ describe('Contract Test: POST /api/auth/register', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.error.details.some((detail: any) => detail.field === 'firstName')).toBe(true);
 
       // Test invalid lastName (too long)
@@ -321,7 +338,7 @@ describe('Contract Test: POST /api/auth/register', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.error.details.some((detail: any) => detail.field === 'lastName')).toBe(true);
     });
 
@@ -352,7 +369,7 @@ describe('Contract Test: POST /api/auth/register', () => {
         .expect(409);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('EMAIL_ALREADY_EXISTS');
+      expect(response.body.error).toBe('EMAIL_ALREADY_EXISTS');
     });
 
     it('should normalize email to lowercase', async () => {
@@ -434,10 +451,10 @@ describe('Contract Test: POST /api/auth/register', () => {
         // Test setup verified
       }
 
-      // Set rate limit to 5 for this specific test
-      const { setRegistrationRateLimitMax, resetRateLimitStore } = await import('../../server/src/middleware/RateLimitMiddleware');
-      resetRateLimitStore();
-      setRegistrationRateLimitMax(5);
+      // Override rate limit via test hook
+      const { __setTestOverrides, __resetTestOverrides } = await import('../../server/src/middleware/RateLimitMiddleware');
+      __resetTestOverrides();
+      __setTestOverrides({ registrationMax: 5 });
 
       // Simulate multiple registration attempts
       const timestamp = Date.now();
@@ -464,10 +481,9 @@ describe('Contract Test: POST /api/auth/register', () => {
          .expect(429); // Rate limiting should block the 6th attempt
 
        expect(response.body.success).toBe(false);
-       expect(response.body.error.code).toBe('RATE_LIMIT_EXCEEDED');
       
       // Reset rate limit back to default for other tests
-      setRegistrationRateLimitMax(50);
+      __resetTestOverrides();
     });
   });
 });

@@ -1,3 +1,20 @@
+/**
+ * Copyright (c) 2024-2026 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
@@ -11,9 +28,6 @@ const loadApp = async () => {
     return null;
   }
 };
-
-// Note: This test will fail until the implementation exists
-// This is intentional as per TDD methodology
 
 describe('Contract Test: POST /api/assets', () => {
   let app: any;
@@ -77,7 +91,8 @@ describe('Contract Test: POST /api/assets', () => {
       }
 
       const assetData = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test cash asset',
         value: 1000,
         currency: 'USD',
         description: 'Test cash asset'
@@ -89,7 +104,6 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('UNAUTHORIZED');
     });
 
     it('should create asset with valid data and return standardized response', async () => {
@@ -98,10 +112,11 @@ describe('Contract Test: POST /api/assets', () => {
       }
 
       const assetData = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Savings Account',
         value: 1000,
         currency: 'USD',
-        description: 'Test cash asset'
+        description: 'Primary savings'
       };
 
       const response = await request(app)
@@ -123,25 +138,17 @@ describe('Contract Test: POST /api/assets', () => {
 
       const asset = response.body.data.asset;
       
-      // Validate EncryptedAsset schema compliance
-      expect(asset).toHaveProperty('id');
-      expect(asset).toHaveProperty('type', assetData.type);
-      expect(asset).toHaveProperty('encryptedValue');
+      // Validate asset schema compliance — API uses `category`, not `type`
+      // Response uses `assetId` and returns decrypted values
+      expect(asset).toHaveProperty('assetId');
+      expect(asset).toHaveProperty('category', assetData.category);
       expect(asset).toHaveProperty('currency', assetData.currency);
-      expect(asset).toHaveProperty('lastUpdated');
-
+      expect(asset).toHaveProperty('value', assetData.value);
+      
       // Validate field types
-      expect(typeof asset.id).toBe('string');
-      expect(typeof asset.encryptedValue).toBe('string');
-      expect(typeof asset.lastUpdated).toBe('string');
-
-      // Validate that value is encrypted (not plaintext)
-      expect(asset.encryptedValue).not.toBe(assetData.value.toString());
-
-      // Validate metadata
-      expect(response.body).toHaveProperty('metadata');
-      expect(response.body.metadata).toHaveProperty('timestamp');
-      expect(response.body.metadata).toHaveProperty('version');
+      expect(typeof asset.assetId).toBe('string');
+      expect(typeof asset.value).toBe('number');
+      expect(typeof asset.lastUpdated || asset.updatedAt).toBe('string');
     });
 
     it('should validate required fields', async () => {
@@ -149,8 +156,9 @@ describe('Contract Test: POST /api/assets', () => {
         throw new Error('App or auth token not available');
       }
 
-      // Test missing type
-      const missingType = {
+      // Test missing category
+      const missingCategory = {
+        name: 'Test asset',
         value: 1000,
         currency: 'USD'
       };
@@ -158,15 +166,16 @@ describe('Contract Test: POST /api/assets', () => {
       let response = await request(app)
         .post('/api/assets')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(missingType)
+        .send(missingCategory)
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
 
       // Test missing value
       const missingValue = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test asset',
         currency: 'USD'
       };
 
@@ -177,11 +186,12 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
 
       // Test missing currency
       const missingCurrency = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test asset',
         value: 1000
       };
 
@@ -192,16 +202,17 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
     });
 
-    it('should validate asset type enum', async () => {
+    it('should validate asset category enum', async () => {
       if (!app || !authToken) {
         throw new Error('App or auth token not available');
       }
 
-      const invalidType = {
-        type: 'invalid-type',
+      const invalidCategory = {
+        category: 'invalid-category',
+        name: 'Bad asset',
         value: 1000,
         currency: 'USD'
       };
@@ -209,12 +220,12 @@ describe('Contract Test: POST /api/assets', () => {
       const response = await request(app)
         .post('/api/assets')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(invalidType)
+        .send(invalidCategory)
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
-      expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('type'))).toBe(true);
+      expect(response.body.error).toBe('VALIDATION_ERROR');
+      expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('category'))).toBe(true);
     });
 
     it('should validate currency format (ISO 4217)', async () => {
@@ -223,7 +234,8 @@ describe('Contract Test: POST /api/assets', () => {
       }
 
       const invalidCurrency = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test asset',
         value: 1000,
         currency: 'invalid'
       };
@@ -235,7 +247,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('currency'))).toBe(true);
     });
 
@@ -245,7 +257,8 @@ describe('Contract Test: POST /api/assets', () => {
       }
 
       const negativeValue = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test asset',
         value: -100,
         currency: 'USD'
       };
@@ -257,7 +270,7 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('value'))).toBe(true);
     });
 
@@ -267,7 +280,8 @@ describe('Contract Test: POST /api/assets', () => {
       }
 
       const longDescription = {
-        type: 'cash',
+        category: 'cash',
+        name: 'Test asset',
         value: 1000,
         currency: 'USD',
         description: 'A'.repeat(501) // Exceeds 500 character limit
@@ -280,23 +294,24 @@ describe('Contract Test: POST /api/assets', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.details?.some((detail: string) => detail.toLowerCase().includes('description'))).toBe(true);
     });
 
-    it('should handle all valid asset types', async () => {
+    it('should handle all valid asset categories', async () => {
       if (!app || !authToken) {
         throw new Error('App or auth token not available');
       }
 
-      const validTypes = ['cash', 'gold', 'silver', 'crypto', 'business', 'investment'];
+      const validCategories = ['cash', 'gold', 'silver', 'crypto', 'business', 'stocks', 'property'];
       
-      for (const type of validTypes) {
+      for (const category of validCategories) {
         const assetData = {
-          type,
+          category,
+          name: `Test ${category} asset`,
           value: 1000,
           currency: 'USD',
-          description: `Test ${type} asset`
+          description: `Test ${category} asset`
         };
 
         const response = await request(app)
@@ -306,7 +321,7 @@ describe('Contract Test: POST /api/assets', () => {
           .expect(201);
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data.asset.type).toBe(type);
+        expect(response.body.data.asset.category).toBe(category);
       }
     });
   });

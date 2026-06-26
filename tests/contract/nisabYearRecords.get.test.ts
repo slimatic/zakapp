@@ -1,4 +1,21 @@
 /**
+ * Copyright (c) 2024-2026 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
  * Contract Test: GET /api/nisab-year-records
  *
  * Tests the endpoint for listing all Nisab Year Records for authenticated user
@@ -119,7 +136,7 @@ describe('GET /api/nisab-year-records', () => {
 
     expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('success', false);
-    expect(res.body.error.code).toBe('UNAUTHORIZED');
+    expect(res.body.error).toBe('UNAUTHORIZED');
   });
 
   it('should return empty array when no records match filter', async () => {

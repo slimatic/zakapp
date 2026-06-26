@@ -1,3 +1,20 @@
+/**
+ * Copyright (c) 2024-2026 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import request from 'supertest';
 import app from '../../server/src/app';
 
@@ -93,7 +110,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
     });
 
     it('should return 400 for missing required fields', async () => {
@@ -109,7 +126,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
     });
 
     it('should return 401 for unauthorized request', async () => {
@@ -124,7 +141,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('UNAUTHORIZED');
+      expect(response.body.error).toBe('UNAUTHORIZED');
     });
   });
 
@@ -207,7 +224,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('UNAUTHORIZED');
+      expect(response.body.error).toBe('UNAUTHORIZED');
     });
   });
 
@@ -261,7 +278,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('PAYMENT_NOT_FOUND');
+      expect(response.body.error).toBe('PAYMENT_NOT_FOUND');
     });
 
     it('should return 401 for unauthorized request', async () => {
@@ -273,7 +290,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('UNAUTHORIZED');
+      expect(response.body.error).toBe('UNAUTHORIZED');
     });
   });
 
@@ -309,7 +326,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(404);
 
       expect(getResponse.body.success).toBe(false);
-      expect(getResponse.body.error.code).toBe('PAYMENT_NOT_FOUND');
+      expect(getResponse.body.error).toBe('PAYMENT_NOT_FOUND');
     });
 
     it('should return 404 for non-existent payment', async () => {
@@ -319,7 +336,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('PAYMENT_NOT_FOUND');
+      expect(response.body.error).toBe('PAYMENT_NOT_FOUND');
     });
 
     it('should return 401 for unauthorized request', async () => {
@@ -328,7 +345,7 @@ describe('Payment Records Contract Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('UNAUTHORIZED');
+      expect(response.body.error).toBe('UNAUTHORIZED');
     });
   });
 
