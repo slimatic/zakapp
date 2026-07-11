@@ -16,21 +16,6 @@
  */
 export * from './constants/islamicConstants.js';
 
-// Legacy Zakat calculation constants (DEPRECATED - use islamicConstants instead)
-// @deprecated Use ZAKAT_RATES from islamicConstants.ts
-// export const ZAKAT_RATES = {
-//   STANDARD_RATE: 2.5, // 2.5% for most assets
-//   AGRICULTURAL_RAIN_FED: 10, // 10% for rain-fed crops
-//   AGRICULTURAL_IRRIGATED: 5, // 5% for irrigated crops
-// } as const;
-
-// Legacy Nisab thresholds (DEPRECATED - use islamicConstants instead)
-// @deprecated Use NISAB_THRESHOLDS from islamicConstants.ts
-// export const NISAB_THRESHOLDS = {
-//   GOLD_GRAMS: 87.48, // ~3 ounces of gold
-//   SILVER_GRAMS: 612.36, // ~21 ounces of silver
-// } as const;
-
 // Supported currencies
 export const CURRENCIES = [
   { code: 'USD', name: 'US Dollar', symbol: '$' },

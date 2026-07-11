@@ -331,7 +331,7 @@ export class AuthController {
 
     if (logoutFromAllDevices) {
       // Invalidate all sessions for this user
-      // TODO: Implement invalidateUserSession
+      // TODO(#312): Implement invalidateUserSession
       // invalidateUserSession(req.userId);
       invalidateAllUserRefreshTokens(req.userId);
 
@@ -342,7 +342,7 @@ export class AuthController {
     } else {
       // For regular logout, invalidate access token and all user's refresh tokens for security
       if (token) {
-        // TODO: Implement invalidateToken
+        // TODO(#312): Implement invalidateToken
         // invalidateToken(token);
       }
       invalidateAllUserRefreshTokens(req.userId);
@@ -465,7 +465,7 @@ export class AuthController {
       const resetToken = await generateResetToken(userId, email);
 
       // In real implementation: send email with resetToken
-      // TODO: Implement email service to send reset token securely
+      // TODO(#311): Implement email service to send reset token securely
     }
 
     const response: ApiResponse = {
@@ -573,7 +573,7 @@ export class AuthController {
       useResetToken(token);
 
       // Invalidate all user sessions for security
-      // TODO: Implement invalidateUserSession
+      // TODO(#312): Implement invalidateUserSession
       // invalidateUserSession(tokenData.userId);
       invalidateAllUserRefreshTokens(tokenData.userId);
 

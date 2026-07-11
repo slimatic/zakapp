@@ -1,6 +1,6 @@
 {
   "name": "zakapp",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "A user-friendly, self-hosted Zakat application with modern UI",
   "main": "server/index.js",
   "scripts": {

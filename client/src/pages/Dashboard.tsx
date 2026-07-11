@@ -26,6 +26,7 @@ import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { ActiveRecordWidget } from '../components/dashboard/ActiveRecordWidget';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
+import { DashboardActionCards } from '../components/dashboard/DashboardActionCards';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
 import { useUserOnboarding } from '../hooks/useUserOnboarding';
@@ -333,14 +334,22 @@ export const Dashboard: React.FC = () => {
         onClose={() => setShowMigration(false)} 
       />
 
-      {/* Primary: Smart Journey Card */}
-      {/* This replaces both "OnboardingGuide" and "NextActionCard" with a single unified component */}
-      <OnboardingGuide
-        currentStep={currentStep as 1 | 2 | 3}
-        completedSteps={completedSteps}
-        bestAction={bestAction || undefined}
-        isOnboardingComplete={isOnboardingComplete}
-      />
+      {/* Dashboard Action Cards - Show when dashboard is empty or needs action */}
+      {/* Replaces OnboardingGuide for simple "Next Best Action" prompts */}
+      {(!hasAssets || !hasActiveRecord || (activeRecord && payments.reduce((sum, p) => sum + (p.amount || 0), 0) < (assets.reduce((sum, a) => sum + (a.value || 0), 0) * 0.025))) ? (
+        <DashboardActionCards
+          assets={assets}
+          activeNisabRecord={activeRecord}
+          payments={payments}
+        />
+      ) : (
+        <OnboardingGuide
+          currentStep={currentStep as 1 | 2 | 3}
+          completedSteps={completedSteps}
+          bestAction={bestAction || undefined}
+          isOnboardingComplete={isOnboardingComplete}
+        />
+      )}
 
       {/* Main Content Area */}
       {hasAssets && (
