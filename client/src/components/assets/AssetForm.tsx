@@ -33,6 +33,7 @@ import {
   getPropertyGuidance,
   getModifierBadge
 } from '../../utils/assetModifiers';
+import { getSupportedCurrencies, getCurrencySymbol, type CurrencyCode } from '../../utils/formatters';
 import { RetirementTreatmentSection } from './form-sections/RetirementTreatmentSection';
 import { PassiveInvestmentSection } from './form-sections/PassiveInvestmentSection';
 import { RestrictedAccountSection } from './form-sections/RestrictedAccountSection';
@@ -491,14 +492,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               aria-invalid={!!errors.currency}
               aria-describedby={errors.currency ? 'currency-error' : 'currency-help'}
             >
-              <option value="USD">USD - US Dollar</option>
-              <option value="EUR">EUR - Euro</option>
-              <option value="GBP">GBP - British Pound</option>
-              <option value="SAR">SAR - Saudi Riyal</option>
-              <option value="AED">AED - UAE Dirham</option>
-              <option value="PKR">PKR - Pakistani Rupee</option>
-              <option value="INR">INR - Indian Rupee</option>
-              <option value="MYR">MYR - Malaysian Ringgit</option>
+              {getSupportedCurrencies().map((code: CurrencyCode) => (
+                <option key={code} value={code}>{code} - {getCurrencySymbol(code)}</option>
+              ))}
             </select>
             <p id="currency-help" className="mt-1 text-xs text-gray-500">
               Select the currency for this asset's value
