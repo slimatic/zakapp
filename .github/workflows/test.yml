@@ -32,12 +32,21 @@ jobs:
     - name: Install client dependencies
       run: cd client && npm install --legacy-peer-deps
 
+    - name: Run server tests
+      run: cd server && npm test
+      env:
+        CI: true
+        NODE_ENV: test
+        ENCRYPTION_KEY: 00000000000000000000000000000000
+        JWT_SECRET: ci-test-jwt-secret-do-not-use-in-production
+        DATABASE_URL: file:./test.db
+
     - name: Run client unit tests
       run: cd client && npm test -- --run
       env:
         CI: true
 
-    # Server tests require database setup, skip in CI for now
+    # Server tests are now enabled above.
     # - name: Run server tests
     #   run: cd server && npm test
     #   env:

@@ -156,3 +156,12 @@ token.json
 backups/
 # Agent artifacts
 .agent/
+
+# Test / backup artifacts
+*test-results*.json
+delete-test-result.json
+payment-test-results*.json
+auth-test-results.json
+*.backup-*
+*.db.backup-*
+backups/*.db.backup-*
