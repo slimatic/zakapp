@@ -55,31 +55,9 @@ jobs:
     - name: Build server
       run: cd server && npm run build
 
-    # ── Secret Scanning (blocks commits with secrets) ──
-    - name: Secret Detection Scan
-      run: |
-        # Block if any .env* files (except .env.example) are present in tree
-        FORBIDDEN=$(find . -name ".env*" -not -name ".env.example" -not -name ".env.*.example" -not -name ".env.*.template" -not -path "*/node_modules/*" -not -path "*/.git/*" 2>/dev/null || true)
-        if [ -n "$FORBIDDEN" ]; then
-          echo "❌ Forbidden env files found in working tree:"
-          echo "$FORBIDDEN"
-          exit 1
-        fi
-
-        # Block if any private keys or credential files exist
-        FORBIDDEN_KEYS=$(find . \( -name "*.pem" -o -name "*.key" -o -name "*.p12" -o -name "*.pfx" -o -name "credentials.json" -o -name "token.json" \) -not -path "*/node_modules/*" -not -path "*/.git/*" 2>/dev/null || true)
-        if [ -n "$FORBIDDEN_KEYS" ]; then
-          echo "❌ Forbidden key/credential files found:"
-          echo "$FORBIDDEN_KEYS"
-          exit 1
-        fi
-
-        echo "✅ No forbidden secret files detected in working tree."
-
-    # ── npm audit (dependency vulnerability check, informational only) ──
-    - name: Run npm audit (server)
-      run: cd server && npm audit --audit-level=high || true
-
-    - name: Run npm audit (client)
-      run: cd client && npm audit --audit-level=high || true
+    # Note: Secret scanning, dependency vulnerability scanning, static code
+    # analysis, and container security scanning are handled by the dedicated
+    # security-scan.yml workflow, which uses professional tools (gitleaks,
+    # Snyk, CodeQL, Semgrep, Trivy) and runs conditionally based on changed
+    # paths. No need to duplicate them here.
 
