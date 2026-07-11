@@ -22,6 +22,7 @@ import { Liability } from '../../types';
 import { Button, Input } from '../ui';
 import { EncryptedBadge } from '../ui/EncryptedBadge';
 import { calculateDeductibleLiabilities } from '../../core/calculations/wealthCalculator';
+import { getSupportedCurrencies, getCurrencySymbol, type CurrencyCode } from '../../utils/formatters';
 
 interface LiabilityFormProps {
     liability?: Liability;
@@ -185,11 +186,9 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                             onChange={e => handleChange('currency', e.target.value)}
                             className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                         >
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                            <option value="GBP">GBP</option>
-                            <option value="SAR">SAR</option>
-                            <option value="PKR">PKR</option>
+                            {getSupportedCurrencies().map((code: CurrencyCode) => (
+                                <option key={code} value={code}>{code} - {getCurrencySymbol(code)}</option>
+                            ))}
                         </select>
                     </div>
                 </div>
