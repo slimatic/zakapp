@@ -151,13 +151,39 @@ export class AnnualSummaryService {
         count: stats.count,
         totalAmount: stats.totalAmount
       })),
-      uniqueRecipients: 0, // TODO(#314): Implement proper unique recipient counting
-      averagePayment: 0 // TODO(#314): Implement proper average calculation
+      uniqueRecipients: new Set(payments.map(p => p.recipientName).filter(Boolean)).size,
+      averagePayment: payments.length > 0 ? totalPaid / payments.length : 0
     };
 
     // Get previous year's snapshot for comparison
     const previousYear = snapshot.gregorianYear - 1;
     const previousSnapshot = await YearlySnapshotModel.findPrimaryByYear(userId, previousYear);
+
+    // Query previous year payments for comparison
+    let previousYearPaid = 0;
+    let previousPaymentCount = 0;
+    if (previousSnapshot) {
+      const previousPayments = await PaymentRecordModel.findBySnapshot(previousSnapshot.id, userId);
+      previousPaymentCount = previousPayments.length;
+      previousYearPaid = previousPayments.reduce((sum, p) => sum + p.amount, 0);
+    }
+
+    // Determine payment consistency
+    let paymentConsistency: 'improved' | 'maintained' | 'declined' = 'maintained';
+    if (previousSnapshot) {
+      if (payments.length === 0 && previousPaymentCount > 0) {
+        paymentConsistency = 'declined';
+      } else if (payments.length > 0 && previousPaymentCount === 0) {
+        paymentConsistency = 'improved';
+      } else if (payments.length > 0 && previousPaymentCount > 0 && previousYearPaid > 0) {
+        const changeRatio = totalPaid / previousYearPaid;
+        if (changeRatio > 1.2) {
+          paymentConsistency = 'improved';
+        } else if (changeRatio < 0.8) {
+          paymentConsistency = 'declined';
+        }
+      }
+    }
 
     let comparativeAnalysis: ComparativeAnalysis | undefined = undefined;
     if (previousSnapshot) {
@@ -169,13 +195,13 @@ export class AnnualSummaryService {
           year: previousYear,
           wealth: previousSnapshot.totalWealth,
           zakat: previousSnapshot.zakatAmount,
-          paid: 0 // TODO(#314): Get actual paid amount from payments
+          paid: previousYearPaid
         },
         currentYear: {
           year: snapshot.gregorianYear,
           wealth: snapshot.totalWealth,
           zakat: snapshot.zakatAmount,
-          paid: 0 // TODO(#314): Get actual paid amount from payments
+          paid: totalPaid
         },
         changes: {
           wealthChange: wealthChange,
@@ -186,7 +212,7 @@ export class AnnualSummaryService {
           zakatChangePercent: previousSnapshot.zakatAmount > 0
             ? (zakatChange / previousSnapshot.zakatAmount) * 100
             : 0,
-          paymentConsistency: 'maintained' as const // TODO(#314): Calculate based on actual payments
+          paymentConsistency: paymentConsistency as any
         }
       };
     }
