@@ -17,9 +17,6 @@
 
 import { randomUUID } from 'crypto';
 import { userAssets } from '../controllers/AssetController';
-// TEMPORARILY DISABLED: import { ZakatEngine } from './zakatEngine';
-// TEMPORARILY DISABLED: import { CurrencyService } from './currencyService';
-// TEMPORARILY DISABLED: import { CalendarService } from './calendarService';
 import { NisabService } from './NisabService';
 import { AssetService } from './AssetService';
 import { 
@@ -144,19 +141,12 @@ interface TestZakatCalculationRequest {
 }
 
 export class ZakatService {
-  // TEMPORARILY DISABLED: private zakatEngine: ZakatEngine;
   private assetService: AssetService;
   private nisabService: NisabService;
 
   constructor() {
-    // Initialize services
-    // const currencyService = new CurrencyService();
-    // const calendarService = new CalendarService();
     this.nisabService = new NisabService();
     this.assetService = new AssetService();
-    
-    // TEMPORARILY DISABLED: Initialize zakat engine
-    // this.zakatEngine = new ZakatEngine(currencyService, calendarService, this.nisabService);
   }
 
   /**

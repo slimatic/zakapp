@@ -151,8 +151,8 @@ export class AnnualSummaryService {
         count: stats.count,
         totalAmount: stats.totalAmount
       })),
-      uniqueRecipients: 0, // TODO: Implement proper unique recipient counting
-      averagePayment: 0 // TODO: Implement proper average calculation
+      uniqueRecipients: 0, // TODO(#314): Implement proper unique recipient counting
+      averagePayment: 0 // TODO(#314): Implement proper average calculation
     };
 
     // Get previous year's snapshot for comparison
@@ -169,13 +169,13 @@ export class AnnualSummaryService {
           year: previousYear,
           wealth: previousSnapshot.totalWealth,
           zakat: previousSnapshot.zakatAmount,
-          paid: 0 // TODO: Get actual paid amount from payments
+          paid: 0 // TODO(#314): Get actual paid amount from payments
         },
         currentYear: {
           year: snapshot.gregorianYear,
           wealth: snapshot.totalWealth,
           zakat: snapshot.zakatAmount,
-          paid: 0 // TODO: Get actual paid amount from payments
+          paid: 0 // TODO(#314): Get actual paid amount from payments
         },
         changes: {
           wealthChange: wealthChange,
@@ -186,7 +186,7 @@ export class AnnualSummaryService {
           zakatChangePercent: previousSnapshot.zakatAmount > 0
             ? (zakatChange / previousSnapshot.zakatAmount) * 100
             : 0,
-          paymentConsistency: 'maintained' as const // TODO: Calculate based on actual payments
+          paymentConsistency: 'maintained' as const // TODO(#314): Calculate based on actual payments
         }
       };
     }
@@ -207,7 +207,7 @@ export class AnnualSummaryService {
     const nisabInfo: Record<string, any> = {
       threshold: snapshot.nisabThreshold,
       type: snapshot.nisabType,
-      methodology: (snapshot as any).methodology || 'standard' // TODO: Add methodology to YearlySnapshot schema
+      methodology: (snapshot as any).methodology || 'standard' // TODO(#314): Add methodology to YearlySnapshot schema
     };
 
     const totalZakatCalculated = snapshot.zakatAmount;
@@ -227,7 +227,7 @@ export class AnnualSummaryService {
       recipientSummary,
       assetBreakdown,
       comparativeAnalysis,
-      methodologyUsed: ((snapshot as any).methodologyUsed || (snapshot as any).methodology || 'standard') as ZakatMethodology, // TODO: Add methodology to YearlySnapshot schema
+      methodologyUsed: ((snapshot as any).methodologyUsed || (snapshot as any).methodology || 'standard') as ZakatMethodology, // TODO(#314): Add methodology to YearlySnapshot schema
       nisabInfo,
       userNotes: snapshot.userNotes
     };

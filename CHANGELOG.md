@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.12.0] - 2026-07-11
+
+### 🚀 Safar 1448 Polish Release — Trust, Cleanup & Next Best Action
+
+#### Infrastructure & Trust
+- **License consistency**: `server/package.json` now correctly lists `AGPL-3.0-or-later`
+- **Committed artifacts removed**: DB backup and test-result JSONs removed from git tracking; `.gitignore` hardened
+- **CI restored**: Server tests re-enabled in `.github/workflows/test.yml` with safe test env vars
+- **CLI repair**: `@zakapp/shared` symlink rebuilt; CLI TypeScript compiles and 3/4 test files pass (1 remaining test-isolation flake)
+
+#### Dead Code Cleanup
+- **Orphaned JS removed**: `server/models/`, `server/routes/`, `server/utils/dataStore.js`, `server/utils/zakatCalculator.js`
+- **Dead services removed**: `analytics-service.ts`, `export-service.ts`
+- **Stale `TEMPORARILY DISABLED` imports cleaned** from `ZakatService.ts`
+
+#### TODO Resolution
+- **Quick wins**: Removed commented legacy constants in `shared/src/constants.ts`, clarified History route comment
+- **Implemented**: `addHijriMonths` and `isNearHijriAnniversary` in `calendarConverter.ts` with passing tests
+- **Ticketed**: 4 real feature gaps moved to GitHub issues (#311 email reset, #312 session invalidation, #313 push notifications, #314 annual summary stats)
+
+#### Features
+- **Dashboard Action Cards**: New `DashboardActionCards.tsx` component shows contextual "Next Best Action" prompts (add assets, start nisab year, make payment, or summary view)
+- **Offline Caching**: Verified `vite-plugin-pwa` precaches 73 entries and generates `sw.js`; build passes
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.11.0...v0.12.0
+
+---
+
 ## [0.11.0] - 1448-01 Muharram / 2026-06-26
 
 ### 🚀 Muharram 1448 Release — Stabilization & Hardening

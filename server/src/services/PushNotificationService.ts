@@ -109,7 +109,7 @@ export async function sendPushToUser(
     logger.info(`📤 Sending push notification to user: ${userId}`);
     logger.info(`Notification: ${payload.title} - ${payload.body}`);
 
-    // TODO: Implement database schema for storing push subscriptions
+    // TODO(#313): Implement database schema for storing push subscriptions
     // const subscriptions = await prisma.pushSubscription.findMany({
     //   where: { userId }
     // });
@@ -195,8 +195,8 @@ export async function sendAssetUpdateReminder(
 export async function scheduleZakatReminders(): Promise<void> {
   try {
     logger.info('⏰ Scheduling Zakat reminders...');
-
-    // TODO: Implement logic to find users whose Zakat is due soon
+    // TODO(#313): Implement database schema for storing push subscriptions
+    // TODO(#313): Implement logic to find users whose Zakat is due soon
     // const usersWithUpcomingZakat = await prisma.user.findMany({
     //   where: {
     //     zakatDueDate: {

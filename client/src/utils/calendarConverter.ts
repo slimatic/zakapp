@@ -219,6 +219,52 @@ export function isValidHijriDate(
 }
 
 /**
+ * Adds or subtracts months to/from a Hijri date
+ * @param hijriDate - Starting Hijri date
+ * @param months - Number of months to add (can be negative)
+ * @returns New Hijri date
+ */
+export function addHijriMonths(
+  hijriDate: HijriDate,
+  months: number
+): HijriDate {
+  let { hy, hm, hd } = hijriDate;
+  const totalMonths = (hy - 1) * 12 + (hm - 1) + months;
+  const newYear = Math.floor(totalMonths / 12) + 1;
+  const newMonth = (totalMonths % 12) + 1;
+  const newDay = Math.min(hd, 29); // clamp to avoid invalid days; caller can adjust
+
+  return { hy: newYear, hm: newMonth, hd: newDay };
+}
+
+/**
+ * Checks if a Hijri date is within a given window before an anniversary
+ * of a target Hijri date (same month/day in a later year).
+ * @param targetDate - The anniversary target date
+ * @param checkDate - The date to check
+ * @param windowDays - Number of days before/after anniversary to include (default 30)
+ * @returns true if checkDate is within windowDays of the target anniversary
+ */
+export function isNearHijriAnniversary(
+  targetDate: HijriDate,
+  checkDate: HijriDate,
+  windowDays: number = 30
+): boolean {
+  // Consider the anniversary in checkDate's year and the previous year
+  const thisYear = { hy: checkDate.hy, hm: targetDate.hm, hd: targetDate.hd };
+  const lastYear = { hy: checkDate.hy - 1, hm: targetDate.hm, hd: targetDate.hd };
+
+  const checkTime = hijriToGregorian(checkDate.hy, checkDate.hm, checkDate.hd).getTime();
+  const thisYearTime = hijriToGregorian(thisYear.hy, thisYear.hm, thisYear.hd).getTime();
+  const lastYearTime = hijriToGregorian(lastYear.hy, lastYear.hm, lastYear.hd).getTime();
+
+  const diffThisYear = Math.abs((checkTime - thisYearTime) / (1000 * 60 * 60 * 24));
+  const diffLastYear = Math.abs((checkTime - lastYearTime) / (1000 * 60 * 60 * 24));
+
+  return Math.min(diffThisYear, diffLastYear) <= windowDays;
+}
+
+/**
  * Gets the start date of a Hijri year (1 Muharram)
  * @param hijriYear - Hijri year
  * @returns Gregorian Date object for 1 Muharram of that year

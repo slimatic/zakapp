@@ -229,7 +229,7 @@ function App() {
                       }
                     />
 
-                    {/* History - HIDDEN - TODO: Restore when History functionality implemented */}
+                    {/* History route hidden pending future implementation */}
                     {/* <Route 
                 path="/history" 
                 element={
