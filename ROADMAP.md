@@ -63,7 +63,7 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 
 - [x] **Realtime "Live" Sync**: Replace polling-based sync with RxDB Live Replication to ensure instant data availability and reduce network overhead on navigation.
 - [x] **Secure Remote Purge**: Implement authoritative deletion where "Clear Data" ensures removal from Cloud/CouchDB immediately.
-- [ ] **Offline Caching Strategy**: Optimize standard browser caching to prevent re-fetching static assets.
+- [x] **Offline Caching Strategy**: Optimize standard browser caching to prevent re-fetching static assets.
 
 ## Phase 7: V1.0 Launch Readiness (The "Onboarding" Engine)
 *Goal: Remove friction for non-expert users and ensure rock-solid privacy.*
@@ -71,7 +71,7 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [x] **Knowledge Hub**: "Zakat Encyclopedia" (Static & Offline-ready) accessible via Settings/Sidebar.
 - [x] **Onboarding Wizard**: Interactive first-run tutorial covering Assets, Liabilities, Nisab Records, and Payments.
 - [x] **Terminology Trust**: Add rich tooltips for 'Hawl', 'Nisab' with Arabic script and simple definitions.
-- [ ] **Dashboard Action Cards**: Replace "Smart Navigation" with simple "Next Best Action" cards (e.g., "Add Assets" if empty).
+- [x] **Dashboard Action Cards**: Replace "Smart Navigation" with simple "Next Best Action" cards (e.g., "Add Assets" if empty).
 - [x] **Date Localization**: Dual display (Gregorian/Hijri) with +/- 1 day moon adjustment settings.
 - [x] **Critical Hotfix**: Resolve Profile Update issue where updating the user information like Name username and email address does not persist (User Details Persistence). Improve this.
 

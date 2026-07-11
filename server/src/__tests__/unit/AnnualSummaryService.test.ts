@@ -72,9 +72,9 @@ describe('AnnualSummaryService', () => {
     };
 
     const mockPayments = [
-      { id: 'pay1', amount: 1000, recipientCategory: 'fakir', recipientType: 'individual' },
-      { id: 'pay2', amount: 1500, recipientCategory: 'miskin', recipientType: 'individual' },
-      { id: 'pay3', amount: 750, recipientCategory: 'fakir', recipientType: 'organization' }
+      { id: 'pay1', amount: 1000, recipientCategory: 'fakir', recipientType: 'individual', recipientName: 'Ahmad' },
+      { id: 'pay2', amount: 1500, recipientCategory: 'miskin', recipientType: 'individual', recipientName: 'Bilal' },
+      { id: 'pay3', amount: 750, recipientCategory: 'fakir', recipientType: 'organization', recipientName: 'Ahmad' }
     ];
 
     beforeEach(() => {
@@ -230,6 +230,98 @@ describe('AnnualSummaryService', () => {
 
       expect(analysis.wealthChangePercent).toBe(0);
       expect(analysis.zakatChangePercent).toBe(0);
+    });
+
+    it('should calculate unique recipients correctly', async () => {
+      await service.generateSummary(mockSnapshotId, mockUserId);
+
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
+      const recipientSummary = call.recipientSummary;
+
+      // 2 unique recipient names: 'Ahmad' (pay1+pay3) and 'Bilal' (pay2)
+      expect(recipientSummary.uniqueRecipients).toBe(2);
+    });
+
+    it('should calculate average payment correctly', async () => {
+      await service.generateSummary(mockSnapshotId, mockUserId);
+
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
+      const recipientSummary = call.recipientSummary;
+
+      // totalPaid = 3250, numberOfPayments = 3, average = 3250/3 ≈ 1083.33
+      expect(recipientSummary.averagePayment).toBeCloseTo(1083.33, 1);
+    });
+
+    it('should calculate paid amounts in comparative analysis', async () => {
+      const previousSnapshot = {
+        id: 'prev-snapshot',
+        userId: mockUserId,
+        gregorianYear: 2023,
+        totalWealth: 120000,
+        zakatAmount: 3000
+      };
+      const previousPayments = [
+        { id: 'prev-pay1', amount: 2000, recipientCategory: 'fakir', recipientType: 'individual', recipientName: 'Ahmad' }
+      ];
+
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(previousSnapshot);
+      // First call returns current payments, second call returns previous year payments
+      (PaymentRecordModel.findBySnapshot as Mock)
+        .mockResolvedValueOnce(mockPayments)
+        .mockResolvedValueOnce(previousPayments);
+
+      await service.generateSummary(mockSnapshotId, mockUserId);
+
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
+      expect(call.comparativeAnalysis).toBeDefined();
+      expect(call.comparativeAnalysis.previousYear.paid).toBe(2000);
+      expect(call.comparativeAnalysis.currentYear.paid).toBe(3250);
+    });
+
+    it('should determine payment consistency as improved when significantly higher', async () => {
+      const previousSnapshot = {
+        id: 'prev-snapshot',
+        userId: mockUserId,
+        gregorianYear: 2023,
+        totalWealth: 120000,
+        zakatAmount: 3000
+      };
+      const previousPayments = [
+        { id: 'prev-pay1', amount: 500, recipientCategory: 'fakir', recipientType: 'individual', recipientName: 'Ahmad' }
+      ];
+
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(previousSnapshot);
+      (PaymentRecordModel.findBySnapshot as Mock)
+        .mockResolvedValueOnce(mockPayments)  // current: 3250
+        .mockResolvedValueOnce(previousPayments); // previous: 500, ratio = 6.5 > 1.2
+
+      await service.generateSummary(mockSnapshotId, mockUserId);
+
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
+      expect(call.comparativeAnalysis.changes.paymentConsistency).toBe('improved');
+    });
+
+    it('should determine payment consistency as declined when no payments current year', async () => {
+      const previousSnapshot = {
+        id: 'prev-snapshot',
+        userId: mockUserId,
+        gregorianYear: 2023,
+        totalWealth: 120000,
+        zakatAmount: 3000
+      };
+      const previousPayments = [
+        { id: 'prev-pay1', amount: 1000, recipientCategory: 'fakir', recipientType: 'individual', recipientName: 'Ahmad' }
+      ];
+
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(previousSnapshot);
+      (PaymentRecordModel.findBySnapshot as Mock)
+        .mockResolvedValueOnce([])  // no current year payments
+        .mockResolvedValueOnce(previousPayments);
+
+      await service.generateSummary(mockSnapshotId, mockUserId);
+
+      const call = (AnnualSummaryModel.createOrUpdate as Mock).mock.calls[0][1];
+      expect(call.comparativeAnalysis.changes.paymentConsistency).toBe('declined');
     });
 
     it('should not include comparative analysis for first year', async () => {
