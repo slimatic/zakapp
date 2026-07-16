@@ -35,9 +35,11 @@ export class ReportGenerator {
     private doc: jsPDF;
     private readonly MARGIN = 15;
     private readonly BRAND_COLOR = '#0f766e'; // teal-700
+    private currency: string;
 
-    constructor() {
+    constructor(currency: string = 'USD') {
         this.doc = new jsPDF();
+        this.currency = currency;
     }
 
     private addHeader(title: string, subtitle?: string) {
@@ -107,11 +109,11 @@ export class ReportGenerator {
         const summaryData = [
             ['Beneficiary', username],
             ['Hawl Period', `${new Date(record.hawlStartDate!).toLocaleDateString()} - ${record.hawlCompletionDate ? new Date(record.hawlCompletionDate).toLocaleDateString() : 'Ongoing'}`],
-            ['Nisab Threshold', formatCurrency(Number(record.nisabThreshold || 0))],
+            ['Nisab Threshold', formatCurrency(Number(record.nisabThreshold || 0), this.currency)],
             ['Status', record.status || 'DRAFT'],
-            ['Total Assets', formatCurrency(totalAssets)],
-            ['Total Liabilities', formatCurrency(totalLiabilities)],
-            ['Net Worth', formatCurrency(netWorth)]
+            ['Total Assets', formatCurrency(totalAssets, this.currency)],
+            ['Total Liabilities', formatCurrency(totalLiabilities, this.currency)],
+            ['Net Worth', formatCurrency(netWorth, this.currency)]
         ];
 
         autoTable(doc, {
@@ -132,11 +134,11 @@ export class ReportGenerator {
         const netZakatableWealth = Math.max(0, totalAssets - totalLiabilities);
         
         const financialsData = [
-            ['Total Assets', formatCurrency(totalAssets)],
-            ['Zakatable Assets', formatCurrency(Number(record.zakatableWealth || 0))],
-            ['Total Liabilities', formatCurrency(totalLiabilities)],
-            ['Net Zakatable Wealth', formatCurrency(netZakatableWealth)],
-            ['Zakat Due (2.5%)', formatCurrency(Number(record.zakatAmount || 0))]
+            ['Total Assets', formatCurrency(totalAssets, this.currency)],
+            ['Zakatable Assets', formatCurrency(Number(record.zakatableWealth || 0), this.currency)],
+            ['Total Liabilities', formatCurrency(totalLiabilities, this.currency)],
+            ['Net Zakatable Wealth', formatCurrency(netZakatableWealth, this.currency)],
+            ['Zakat Due (2.5%)', formatCurrency(Number(record.zakatAmount || 0), this.currency)]
         ];
 
         autoTable(doc, {
@@ -168,13 +170,13 @@ export class ReportGenerator {
             new Date(p.paymentDate).toLocaleDateString(),
             p.recipientName || 'Unspecified',
             p.recipientCategory || 'General',
-            formatCurrency(Number(p.amount)),
+            formatCurrency(Number(p.amount), this.currency),
             p.notes || '-'
         ]);
 
         // Calculate Total
         const total = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-        tableData.push(['', '', 'TOTAL', formatCurrency(total), '']);
+        tableData.push(['', '', 'TOTAL', formatCurrency(total, this.currency), '']);
         autoTable(doc, {
             startY: 40,
             head: [['Date', 'Recipient', 'Category', 'Amount', 'Notes']],

@@ -36,6 +36,7 @@ export interface PDFOptions {
   includeAssetBreakdown?: boolean;
   includeComparison?: boolean;
   watermark?: string;
+  currency?: string;
 }
 
 /**
@@ -54,6 +55,7 @@ export function generateAnnualSummaryPDF(
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   let yPosition = 20;
+  const currency = options.currency || 'USD';
 
   // Title
   doc.setFontSize(20);
@@ -83,10 +85,10 @@ export function generateAnnualSummaryPDF(
   doc.setFont('helvetica', 'normal');
 
   const wealthData = [
-    ['Total Wealth', formatCurrency(snapshot.totalWealth)],
-    ['Total Liabilities', formatCurrency(snapshot.totalLiabilities)],
-    ['Zakatable Wealth', formatCurrency(snapshot.zakatableWealth)],
-    ['Nisab Threshold', formatCurrency(snapshot.nisabThreshold)],
+    ['Total Wealth', formatCurrency(snapshot.totalWealth, currency)],
+    ['Total Liabilities', formatCurrency(snapshot.totalLiabilities, currency)],
+    ['Zakatable Wealth', formatCurrency(snapshot.zakatableWealth, currency)],
+    ['Nisab Threshold', formatCurrency(snapshot.nisabThreshold, currency)],
     ['Methodology Used', snapshot.methodologyUsed]
   ];
 
@@ -115,9 +117,9 @@ export function generateAnnualSummaryPDF(
     : '0.0';
 
   const zakatData = [
-    ['Zakat Due', formatCurrency(snapshot.zakatAmount)],
-    ['Total Paid', formatCurrency(totalPaid)],
-    ['Outstanding', formatCurrency(outstanding)],
+    ['Zakat Due', formatCurrency(snapshot.zakatAmount, currency)],
+    ['Total Paid', formatCurrency(totalPaid, currency)],
+    ['Outstanding', formatCurrency(outstanding, currency)],
     ['Completion', `${completionPercentage}%`]
   ];
 
@@ -150,7 +152,7 @@ export function generateAnnualSummaryPDF(
       format(new Date(payment.paymentDate), 'MMM d, yyyy'),
       formatCategoryName(payment.recipientType),
       payment.recipientName || 'Anonymous',
-      formatCurrency(payment.amount),
+      formatCurrency(payment.amount, currency),
       payment.notes || '-'
     ]);
 
@@ -185,7 +187,7 @@ export function generateAnnualSummaryPDF(
 
     const assetData = Object.entries(snapshot.assetBreakdown).map(([type, value]) => [
       formatAssetType(type),
-      formatCurrency(value as number),
+      formatCurrency(value as number, currency),
       `${(((value as number) / snapshot.totalWealth) * 100).toFixed(1)}%`
     ]);
 
@@ -260,7 +262,8 @@ export function generateAnnualSummaryPDF(
  */
 export function generatePaymentReceiptPDF(
   payment: PaymentRecord,
-  snapshot: YearlySnapshot
+  snapshot: YearlySnapshot,
+  currency: string = 'USD'
 ): jsPDF {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -279,7 +282,7 @@ export function generatePaymentReceiptPDF(
   const details = [
     ['Receipt ID', payment.receiptReference || payment.id.slice(0, 8)],
     ['Payment Date', formatDualCalendar(payment.paymentDate)],
-    ['Amount', formatCurrency(payment.amount)],
+    ['Amount', formatCurrency(payment.amount, currency)],
     ['Category', formatCategoryName(payment.recipientType)],
     ['Recipient', payment.recipientName || 'Anonymous'],
     ['Payment Method', payment.paymentMethod || 'Unknown'],
@@ -322,7 +325,7 @@ export function generatePaymentReceiptPDF(
  * @param snapshots - Array of yearly snapshots to compare
  * @returns jsPDF instance
  */
-export function generateComparisonReportPDF(snapshots: YearlySnapshot[]): jsPDF {
+export function generateComparisonReportPDF(snapshots: YearlySnapshot[], currency: string = 'USD'): jsPDF {
   const doc = new jsPDF('landscape');
   const pageWidth = doc.internal.pageSize.getWidth();
   let yPosition = 20;
@@ -346,10 +349,10 @@ export function generateComparisonReportPDF(snapshots: YearlySnapshot[]): jsPDF 
   const headers = ['Metric', ...sortedSnapshots.map(s => `${s.gregorianYear}`)];
   
   const metrics = [
-    ['Total Wealth', ...sortedSnapshots.map(s => formatCurrency(s.totalWealth))],
-    ['Zakatable Wealth', ...sortedSnapshots.map(s => formatCurrency(s.zakatableWealth))],
-    ['Zakat Amount', ...sortedSnapshots.map(s => formatCurrency(s.zakatAmount))],
-    ['Nisab Threshold', ...sortedSnapshots.map(s => formatCurrency(s.nisabThreshold))],
+    ['Total Wealth', ...sortedSnapshots.map(s => formatCurrency(s.totalWealth, currency))],
+    ['Zakatable Wealth', ...sortedSnapshots.map(s => formatCurrency(s.zakatableWealth, currency))],
+    ['Zakat Amount', ...sortedSnapshots.map(s => formatCurrency(s.zakatAmount, currency))],
+    ['Nisab Threshold', ...sortedSnapshots.map(s => formatCurrency(s.nisabThreshold, currency))],
     ['Methodology', ...sortedSnapshots.map(s => s.methodologyUsed)]
   ];
 
@@ -403,14 +406,21 @@ export function previewPDF(doc: jsPDF): void {
 /**
  * Formats currency value with proper separators
  * @param amount - Numeric amount
- * @param currency - Currency symbol (default: '$')
- * @returns Formatted string like "$1,234.56"
+ * @param currency - Currency code (default: 'USD')
+ * @returns Formatted string like "$1,234.56" or "Rp1.234.567"
  */
-function formatCurrency(amount: number, currency: string = '$'): string {
-  return `${currency}${amount.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
+function formatCurrency(amount: number, currency: string = 'USD'): string {
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    // Fallback for invalid currency codes
+    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
 }
 
 /**

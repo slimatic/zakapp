@@ -3,6 +3,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
+import { getSupportedCurrencies, getCurrencySymbol } from '../../../utils/formatters';
 
 
 export const IdentityStep: React.FC = () => {
@@ -31,19 +32,10 @@ export const IdentityStep: React.FC = () => {
     const formatNisabUSD = (val: number) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
 
-    const currencies = [
-        { code: 'USD', name: 'US Dollar ($)' },
-        { code: 'EUR', name: 'Euro (€)' },
-        { code: 'GBP', name: 'British Pound (£)' },
-        { code: 'SAR', name: 'Saudi Riyal (SAR)' },
-        { code: 'AED', name: 'UAE Dirham (AED)' },
-        { code: 'PKR', name: 'Pakistani Rupee (Rs)' },
-        { code: 'INR', name: 'Indian Rupee (₹)' },
-        { code: 'MYR', name: 'Malaysian Ringgit (RM)' },
-        { code: 'IDR', name: 'Indonesian Rupiah (Rp)' },
-        { code: 'TRY', name: 'Turkish Lira (₺)' },
-        { code: 'EGP', name: 'Egyptian Pound (E£)' }
-    ];
+    const currencies = getSupportedCurrencies().map(code => ({
+        code,
+        name: `${code} (${getCurrencySymbol(code)})`
+    }));
 
     return (
         <div className="space-y-8 animate-fadeIn">

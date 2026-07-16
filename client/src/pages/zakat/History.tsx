@@ -19,6 +19,7 @@ import React, { useState } from 'react';
 import { useZakatHistory, useZakatPayments } from '../../services/apiHooks';
 import { Button, LoadingSpinner, ErrorMessage } from '../../components/ui';
 import { CalculationHistory } from '../../components/zakat/CalculationHistory';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ZakatCalculation {
   id: string;
@@ -62,6 +63,8 @@ interface YearlySnapshot {
  * and historical trend analysis with visualizations
  */
 export const History: React.FC = () => {
+  const { user } = useAuth();
+  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
   const [activeTab, setActiveTab] = useState<'calculations' | 'payments' | 'yearly' | 'reminders'>('calculations');
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [filterMethodology, setFilterMethodology] = useState<string>('all');
@@ -172,7 +175,7 @@ export const History: React.FC = () => {
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: userCurrency,
       minimumFractionDigits: 2
     }).format(amount);
   };

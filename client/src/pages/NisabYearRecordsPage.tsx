@@ -91,7 +91,7 @@ export const NisabYearRecordsPage: React.FC = () => {
 
   // Format currency
   const maskedCurrency = useMaskedCurrency();
-  const formatCurrency = (amount: number, currency: string = 'USD'): string => {
+  const formatCurrency = (amount: number, currency: string = userCurrency): string => {
     const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
@@ -303,7 +303,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                       e.stopPropagation();
                       const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
                       import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
-                        const generator = new ReportGenerator();
+                        const generator = new ReportGenerator(userCurrency);
                         generator.generateHawlStatement(record as any, allAssets, 'User', totalLiabilities);
                       });
                     }}
