@@ -29,9 +29,12 @@ import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { Button } from '../components/ui/Button';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { parseDecimalNumber } from '../utils/parseDecimal';
+import { useAuth } from '../contexts/AuthContext';
 
 export const PaymentsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
   const [searchParams, setSearchParams] = useSearchParams();
   const nisabRecordIdParam = searchParams.get('snapshot');
 
@@ -81,7 +84,7 @@ export const PaymentsPage: React.FC = () => {
                 variant="outline"
                 onClick={() => {
                   import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
-                    const generator = new ReportGenerator();
+                    const generator = new ReportGenerator(userCurrency);
                     // Use filtered payments if filter is active, else all
                     // Note: Logic to get accurate filtered list might need state access
                     // For safety, we export ALL currently viewable payments

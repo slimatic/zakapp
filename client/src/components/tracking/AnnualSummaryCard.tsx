@@ -28,6 +28,7 @@ import { formatCurrency, formatPercentage } from '../../utils/formatters';
 import { formatGregorianDate, formatHijriDate } from '../../utils/calendarConverter';
 import { generateAnnualSummaryPDF, downloadPDF } from '../../utils/pdfGenerator';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
+import { useAuth } from '../../contexts/AuthContext';
 import type { YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 interface AnnualSummaryCardProps {
@@ -42,6 +43,8 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
   showExportButtons = true
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const { user } = useAuth();
+  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
 
   // Fetch payment records for this snapshot
   const { payments } = usePaymentRepository({ snapshotId: snapshot.id });
@@ -74,7 +77,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
   const handleExportPDF = async () => {
     setIsExporting(true);
     try {
-      const pdf = generateAnnualSummaryPDF(snapshot, payments);
+      const pdf = generateAnnualSummaryPDF(snapshot, payments, { currency: userCurrency });
       downloadPDF(pdf, `zakat-summary-${snapshot.gregorianYear}.pdf`);
     } catch (error) {
       toast.error('Failed to generate PDF report. Please try again.');
@@ -86,7 +89,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
   const handleShare = () => {
     const shareData = {
       title: `Zakat Summary ${snapshot.gregorianYear}`,
-      text: `My Zakat calculation for ${snapshot.gregorianYear}: ${formatCurrency(snapshot.zakatAmount)} calculated on ${formatCurrency(snapshot.zakatableWealth)} zakatable wealth.`,
+      text: `My Zakat calculation for ${snapshot.gregorianYear}: ${formatCurrency(snapshot.zakatAmount, userCurrency as any)} calculated on ${formatCurrency(snapshot.zakatableWealth, userCurrency as any)} zakatable wealth.`,
       url: window.location.href
     };
 
@@ -135,7 +138,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
           <div className="text-sm font-medium text-green-800">Zakat Obligated</div>
           <div className="text-xl font-bold text-green-900">
-            {formatCurrency(snapshot.zakatAmount)}
+            {formatCurrency(snapshot.zakatAmount, userCurrency as any)}
           </div>
           <div className="text-xs text-green-700 mt-1">
             {formatPercentage(zakatRate)} of zakatable wealth
@@ -145,7 +148,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div className="text-sm font-medium text-blue-800">Amount Paid</div>
           <div className="text-xl font-bold text-blue-900">
-            {formatCurrency(totalPaid)}
+            {formatCurrency(totalPaid, userCurrency as any)}
           </div>
           <div className="text-xs text-blue-700 mt-1">
             {formatPercentage(paymentProgress)} complete
@@ -155,7 +158,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
           <div className="text-sm font-medium text-purple-800">Zakatable Wealth</div>
           <div className="text-xl font-bold text-purple-900">
-            {formatCurrency(snapshot.zakatableWealth)}
+            {formatCurrency(snapshot.zakatableWealth, userCurrency as any)}
           </div>
           <div className="text-xs text-purple-700 mt-1">
             {isAboveNisab ? '✅ Above nisab' : '❌ Below nisab'}
@@ -165,7 +168,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
           <div className="text-sm font-medium text-orange-800">Net Worth</div>
           <div className="text-xl font-bold text-orange-900">
-            {formatCurrency(netWorth)}
+            {formatCurrency(netWorth, userCurrency as any)}
           </div>
           <div className="text-xs text-orange-700 mt-1">
             After liabilities
@@ -179,7 +182,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-700">Payment Progress</span>
             <span className="text-sm text-gray-600">
-              {formatCurrency(remainingZakat)} remaining
+              {formatCurrency(remainingZakat, userCurrency as any)} remaining
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3">
@@ -211,7 +214,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-900 font-medium">
-                      {formatCurrency(amount)}
+                      {formatCurrency(amount, userCurrency as any)}
                     </span>
                     <span className="text-gray-500 text-xs">
                       ({formatPercentage(percentage)})
@@ -232,13 +235,13 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
             <div>
               <span className="text-gray-600">Total Wealth:</span>
               <span className="font-medium text-gray-900 ml-2">
-                {formatCurrency(snapshot.totalWealth)}
+                {formatCurrency(snapshot.totalWealth, userCurrency as any)}
               </span>
             </div>
             <div>
               <span className="text-gray-600">Total Liabilities:</span>
               <span className="font-medium text-gray-900 ml-2">
-                {formatCurrency(snapshot.totalLiabilities)}
+                {formatCurrency(snapshot.totalLiabilities, userCurrency as any)}
               </span>
             </div>
             <div>
@@ -250,7 +253,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
             <div>
               <span className="text-gray-600">Nisab ({snapshot.nisabType}):</span>
               <span className="font-medium text-gray-900 ml-2">
-                {formatCurrency(snapshot.nisabThreshold)}
+                {formatCurrency(snapshot.nisabThreshold, userCurrency as any)}
               </span>
             </div>
           </div>

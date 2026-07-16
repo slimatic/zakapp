@@ -63,6 +63,14 @@ vi.mock('../components/tracking/PaymentRecordForm', () => ({
   PaymentRecordForm: () => <div data-testid="payment-form">Payment Form</div>
 }));
 
+// Mock useAuth to provide a default user with USD currency
+vi.mock('../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { settings: { currency: 'USD' } },
+    updateLocalProfile: vi.fn(),
+  })
+}));
+
 
 // Wrapper for providers
 const createWrapper = () => {
