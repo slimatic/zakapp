@@ -1,0 +1,21 @@
+name: Brand & Secret-Sauce Guard
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  brand-safety:
+    name: Block client-facing brand/secret-sauce leaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run guard
+        run: |
+          python3 .hermes/brand_safety_guard/guard.py \
+            --root . \
+            --patterns .hermes/brand_safety_guard/patterns.json

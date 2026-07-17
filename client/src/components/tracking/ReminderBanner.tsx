@@ -39,7 +39,8 @@ const REMINDER_ICONS = {
   payment_incomplete: '🧮',
   yearly_comparison_available: '⚖️',
   data_backup_reminder: '📅',
-  methodology_review: '🔔'
+  methodology_review: '🔔',
+  hawl_end_approaching: '⏰'
 };
 
 const REMINDER_COLORS = {

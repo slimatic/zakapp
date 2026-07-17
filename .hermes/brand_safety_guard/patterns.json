@@ -1,0 +1,28 @@
+{
+  "patterns": {
+    "secret_sauce_public": {
+      "scopes": [],
+      "regexes": [
+        "AI[- ]?agent team",
+        "AI[- ]?augmented",
+        "autonomous AI agents?",
+        "secret sauce",
+        "small (human )?team",
+        "\\b3-person\\b",
+        "\\b30-person\\b",
+        "augmented by (our )?AI",
+        "we use AI agents"
+      ]
+    },
+    "slim_in_client_facing": {
+      "scopes": ["site/", "builds/", "dist/", "public/", "src/", "components/", "static/", "www/"],
+      "regexes": [
+        "(?i)\\bSlim\\b(?![A-Za-z_])"
+      ]
+    }
+  },
+  "skip_dirs": [
+    ".git", "node_modules", "build", "builds", ".next", ".svelte-kit", "__pycache__", ".hermes"
+  ],
+  "globs": ["*.md", "*.html", "*.tsx", "*.jsx", "*.vue", "*.svelte", "*.astro", "*.json"]
+}

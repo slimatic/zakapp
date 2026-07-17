@@ -97,6 +97,7 @@ const SeederPage = lazy(() => import('./pages/SeederPage').then(m => ({ default:
 
 
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const AnnualSummaryPage = lazy(() => import('./pages/summary/AnnualSummaryPage').then(m => ({ default: m.AnnualSummaryPage })));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
 // const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
 
@@ -393,6 +394,20 @@ function App() {
                           <Layout>
                             <Suspense fallback={<HistorySkeleton />}>
                               <AnalyticsPage />
+                            </Suspense>
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Admin Dashboard */}
+                    <Route
+                      path="/dashboard/summary/:year"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <Suspense fallback={<HistorySkeleton />}>
+                              <AnnualSummaryPage />
                             </Suspense>
                           </Layout>
                         </ProtectedRoute>
