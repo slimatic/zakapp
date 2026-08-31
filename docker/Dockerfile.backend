@@ -136,17 +136,16 @@ COPY --from=build /app/server/package*.json ./server/
 # Lockfile is REQUIRED: a bare 'npm install' with only package.json re-resolves
 # ranges (prisma ^6.1.0 resolved to 8.0.0-rc.12 once) and ignores pinned versions.
 COPY --from=build /app/server/package-lock.json ./server/
+# Prisma schema is REQUIRED for 'prisma generate' and 'migrate deploy' at runtime
+COPY --from=build /app/server/prisma ./server/prisma
 
-# Install production dependencies — use npm ci for lockfile-exact install.
-# prisma CLI is a devDependency but MUST be present in the runtime image:
-# prisma migrate deploy runs from this image (entrypoint + migrations service).
-# --omit=dev would drop it, so omit nothing here; image size cost is acceptable.
+# Install dependencies — npm ci (lockfile-exact). Prisma CLI (devDep) stays:
+# this image runs 'prisma migrate deploy' via entrypoint + migrations container.
 WORKDIR /app/server
 RUN npm ci
 
 # Generate Prisma client (npm no longer auto-generates it post-install)
 RUN npx prisma generate
-
 # Create data directory
 RUN mkdir -p /app/server/prisma/data && chmod 777 /app/server/prisma/data
 
