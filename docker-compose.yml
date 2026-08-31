@@ -98,11 +98,15 @@ services:
       - zakapp-network
     depends_on:
       - backend
+    # Fail loudly on migration errors — NEVER fall back to schema push.
+    # 'prisma db push --accept-data-loss' can silently drop columns/tables
+    # and destroy user data. A failed migration must block startup so the
+    # operator can restore from backup instead. See #P0 in release plan.
     command: >
       sh -c "echo 'Running database migrations...' &&
              cd /app/server &&
              npx prisma migrate deploy ||
-             (echo 'Migration failed - database may already be up to date' && exit 0)"
+             (echo 'FATAL: prisma migrate deploy failed — refusing to continue. Restore from backup and investigate. Do NOT use db push --accept-data-loss in production.' && exit 1)"
 
   # CouchDB for multi-device sync
   couchdb:
