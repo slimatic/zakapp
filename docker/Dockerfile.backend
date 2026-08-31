@@ -137,9 +137,12 @@ COPY --from=build /app/server/package*.json ./server/
 # ranges (prisma ^6.1.0 resolved to 8.0.0-rc.12 once) and ignores pinned versions.
 COPY --from=build /app/server/package-lock.json ./server/
 
-# Install production dependencies — use npm ci for lockfile-exact install
+# Install production dependencies — use npm ci for lockfile-exact install.
+# prisma CLI is a devDependency but MUST be present in the runtime image:
+# prisma migrate deploy runs from this image (entrypoint + migrations service).
+# --omit=dev would drop it, so omit nothing here; image size cost is acceptable.
 WORKDIR /app/server
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Generate Prisma client (npm no longer auto-generates it post-install)
 RUN npx prisma generate
