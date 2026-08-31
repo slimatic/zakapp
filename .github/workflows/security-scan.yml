@@ -440,8 +440,11 @@ jobs:
 
       - name: Build Docker images
         run: |
-          docker build -f docker/Dockerfile.backend -t zakapp-backend .
-          docker build -f docker/Dockerfile.frontend -t zakapp-frontend .
+          # --pull: always re-resolve base image tags to get patched library
+          # layers; without it, a locally cached node:XX-slim from a previous
+          # run can shadow an upstream security patch and produce stale scans.
+          docker build --pull -f docker/Dockerfile.backend -t zakapp-backend .
+          docker build --pull -f docker/Dockerfile.frontend -t zakapp-frontend .
 
       - name: Install Trivy
         run: |
