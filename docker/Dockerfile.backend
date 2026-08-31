@@ -42,6 +42,9 @@ RUN cd server && npm install
 # Copy server source code
 COPY server/ ./server/
 
+# Generate Prisma client (fresh --pull base ships npm that does not auto-generate it)
+RUN cd server && npx prisma generate
+
 # Build the server
 WORKDIR /app/server
 RUN npm run build
