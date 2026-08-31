@@ -29,6 +29,7 @@
     "date-fns": "^4.1.0",
     "decimal.js": "^10.6.0",
     "dexie": "^4.2.1",
+    "dompurify": "3.4.14",
     "framer-motion": "^12.23.26",
     "hijri-converter": "^1.1.1",
     "js-sha256": "^0.10.1",
@@ -137,7 +138,6 @@
     ]
   },
   "overrides": {
-    "dompurify": "3.4.11",
     "protobufjs": "8.6.6"
   }
 }
