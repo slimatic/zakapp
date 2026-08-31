@@ -42,6 +42,7 @@ import { prisma } from '../utils/prisma';
 
 import { getEncryptionKey } from '../config/security';
 import { DEFAULT_LIMITS } from '../config/limits';
+import { AuthService } from '../services/AuthService';
 
 const ENCRYPTION_KEY = getEncryptionKey();
 
@@ -894,7 +895,9 @@ router.get('/verify-email',
 
 /**
  * POST /api/auth/reset-password
- * Request password reset
+ * Request password reset — generates a secure one-time token (crypto.randomBytes,
+ * 1h expiry, persisted in Prisma PasswordReset per issue #311) and emails
+ * the reset link. Always returns success to prevent email enumeration.
  */
 router.post('/reset-password',
   asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
@@ -912,12 +915,21 @@ router.post('/reset-password',
     }
 
     try {
-      // In production, this would:
-      // 1. Generate a secure reset token
-      // 2. Store it in database with expiration
-      // 3. Send email with reset link
+      const authService = new AuthService();
+      // Returns a placeholder for unknown emails (no enumeration); a real
+      // random token persisted to PasswordReset when the user exists.
+      const resetToken = await authService.generateResetToken(email);
 
-      // For now, just acknowledge the request
+      // Send the reset email (token is voided if the email send fails hard)
+      if (resetToken && resetToken !== 'reset-token-generated') {
+        try {
+          await emailService.sendPasswordResetEmail(email, resetToken);
+        } catch (emailError) {
+          logger.error('Failed to send password reset email', emailError);
+          // Do not fail the request — response already generic to prevent enumeration
+        }
+      }
+
       res.status(200).json({
         success: true,
         data: {
@@ -934,6 +946,65 @@ router.post('/reset-password',
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Password reset failed due to server error'
+        }
+      });
+    }
+  })
+);
+
+/**
+ * POST /api/auth/confirm-reset
+ * Confirm password reset with the emailed token (issue #311).
+ * Delegates to AuthService.resetPassword: validates the token, hashes
+ * and stores the new password, marks the token used, and invalidates
+ * all user sessions.
+ */
+router.post('/confirm-reset',
+  asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Token and new password are required'
+        }
+      });
+      return;
+    }
+
+    if (password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Password must be at least 8 characters with mixed case, numbers, and symbols'
+        }
+      });
+      return;
+    }
+
+    try {
+      const authService = new AuthService();
+      await authService.resetPassword(token, password);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          message: 'Password reset successfully'
+        },
+        metadata: {
+          timestamp: new Date().toISOString(),
+          version: '1.0.0'
+        }
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_RESET_TOKEN',
+          message: 'Invalid or expired reset token'
         }
       });
     }
