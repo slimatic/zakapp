@@ -138,6 +138,7 @@
     ]
   },
   "overrides": {
-    "protobufjs": "8.6.6"
+    "protobufjs": "8.6.6",
+    "websocket-driver": "0.7.5"
   }
 }
