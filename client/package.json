@@ -138,6 +138,6 @@
   },
   "overrides": {
     "dompurify": "3.4.11",
-    "protobufjs": "8.6.5"
+    "protobufjs": "8.6.6"
   }
 }
