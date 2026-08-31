@@ -84,8 +84,16 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
   - [x] Split `AssetForm.tsx` (850 lines) into smaller components.
   - [ ] Extract modals from `NisabYearRecordsPage.tsx` (717 lines).
   - [x] Extract crypto/sync logic from `AuthContext.tsx` (669 lines) to `AuthService.ts`.
-- [ ] **Unused Imports**: Run ESLint auto-fix to remove unused imports across all files.
+- [ ] **Unused Imports**: Run ESLint auto-fix to remove unused imports across all files. *(deferred to v0.14 — needs `eslint-plugin-unused-imports`; see #320)*
 - [x] **TODO Resolution**: Address remaining `TODO-HASH-OF-KEY` placeholders in AuthContext.
+
+## Phase 8.5: v0.13.0 Stability Cycle (Muharram 1448 — Oct 2026)
+*Goal: Ship a stability release with zero data-loss risk on upgrade.*
+
+- [x] **Data Safety**: Remove `db push --accept-data-loss` fallback; migration-safety regression test gates every PR (#326).
+- [x] **Password Reset**: Real token flow (crypto-random, persisted, emailed) + confirm-reset endpoint (#311, #327).
+- [x] **Session Invalidation**: Durable `UserSession` persistence; restart-surviving refresh rejection; real logout (#312, #328).
+- [x] **Release Cadence**: Hijri moon-cycle release process documented (`docs/release-cycle.md`).
 
 ## Phase 9: Technical Debt & Stability (Post-Launch)
 *Goal: Harden the development environment and ensure long-term maintainability.*

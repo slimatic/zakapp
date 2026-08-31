@@ -1,6 +1,6 @@
 {
   "name": "client",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": true,
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -22,13 +22,14 @@
     "@types/react-router-dom": "^5.3.3",
     "@zakapp/shared": "file:../shared",
     "ajv": "^8.17.1",
-    "axios": "^1.16.0",
+    "axios": "^1.18.0",
     "brace-expansion": "^2.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "decimal.js": "^10.6.0",
     "dexie": "^4.2.1",
+    "dompurify": "3.4.14",
     "framer-motion": "^12.23.26",
     "hijri-converter": "^1.1.1",
     "js-sha256": "^0.10.1",
@@ -137,7 +138,7 @@
     ]
   },
   "overrides": {
-    "dompurify": "3.4.11",
-    "protobufjs": "8.6.5"
+    "protobufjs": "8.6.6",
+    "websocket-driver": "0.7.5"
   }
 }

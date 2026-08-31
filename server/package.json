@@ -1,6 +1,6 @@
 {
   "name": "zakapp-server",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "zakapp backend server",
   "main": "index.js",
   "scripts": {
@@ -27,7 +27,7 @@
     "@types/node-fetch": "^2.6.13",
     "@types/nodemailer": "^7.0.5",
     "@zakapp/shared": "file:../shared",
-    "axios": "^1.13.0",
+    "axios": "^1.18.0",
     "bcryptjs": "^3.0.2",
     "cheerio": "^1.0.0-rc.10",
     "compression": "^1.8.1",
