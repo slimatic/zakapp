@@ -1,5 +1,55 @@
 # Changelog
 
+## [0.13.0] - 2026-10-12 (Jumada al-Ula 1448 cycle)
+
+### 🚀 Muharram 1448 Stabilization Release — Data Safety, Auth Hardening, Repo Hygiene
+
+#### Data Safety (P0)
+- **Data-loss bomb removed**: `prisma db push --accept-data-loss` fallback eliminated from
+  `docker/entrypoint.sh` and the migrations container — a failed migration now blocks startup
+  loudly instead of silently reshaping the database (#326)
+- **Migration safety regression gate**: new CI test deploys the full migration chain to a fresh
+  DB and verifies seeded user data survives — the upgrade path is now regression-tested
+- **Pre-deploy backup helper**: `scripts/ops/backup-before-upgrade.sh` (SQLite + CouchDB volumes
+  + config, with size sanity check)
+
+#### Security hardening
+- **Container scan fixed at the root** (#326): the scan had been building the *development*
+  image (last-stage default); now targets `backend-production` explicitly. Production stage
+  installs from the lockfile (`npm ci`) — previously `npm install` re-resolved `prisma@^6` to
+  an 8.0.0-rc. Prisma schema is now copied into the runtime image (fixes `migrate deploy`).
+- **Trivy policy**: `--ignore-unfixed` (7 of the 11 critical CVEs have no upstream fix);
+  Docker Hub builds `pull: true` so base-image security patches are actually seen.
+- **Password reset flow enabled** (#311 → #327): the mounted router's reset endpoint was a stub
+  and `confirm-reset` didn't exist. Now: `crypto.randomBytes(32)` token → `PasswordReset` table
+  (1h expiry) → email via `EmailService`; enumeration-safe responses; `/confirm-reset` validates,
+  rotates the password, invalidates all sessions. Insecure in-memory `Math.random()` token code
+  deleted.
+- **Durable session invalidation** (#312 → #328): login/register persist a `UserSession` row;
+  `/refresh` rejects tokens whose session was terminated (survives restarts — the in-memory
+  blocklist did not); real logout terminates the row and reports `sessionsTerminated`;
+  rotation keeps the row tracking the current refresh token.
+
+#### Repository hygiene (#330)
+- Committed `.bak`/test-result artifacts removed; `.gitignore` extended
+- 11 stale branches pruned (local + remote); active feature branches kept
+- Hijri **moon-cycle release cadence** documented (`docs/release-cycle.md`) — releases tag at
+  the 1st of each Hijri month (next: **1 Jumada al-Ula 1448 ≈ 2026-10-12** for v0.13.0)
+
+#### Tests
+- Server suite: 461 passing (9 new: 2 migration-safety, 6 password-reset, 3 session-invalidation)
+- New upgrade-path guarantee: any migration that would lose seeded data fails CI
+
+#### Deferred (documented)
+- **#320** unused-imports sweep → v0.14 (needs `eslint-plugin-unused-imports`; mechanical)
+- **#313** push notifications → v0.14 feature work
+- **#321** vitest 4 migration → dedicated v0.14 PR
+- Env-file consolidation → v0.14 (onboarding docs actively reference the variants)
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.12.0...v0.13.0
+
+---
+
 ## [0.12.0] - 2026-07-11
 
 ### 🚀 Safar 1448 Polish Release — Trust, Cleanup & Next Best Action
