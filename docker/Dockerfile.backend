@@ -42,40 +42,12 @@ RUN cd server && npm install
 # Copy server source code
 COPY server/ ./server/
 
+# Generate Prisma client (fresh --pull base ships npm that does not auto-generate it)
+RUN cd server && npx prisma generate
+
 # Build the server
 WORKDIR /app/server
 RUN npm run build
-
-# Production stage
-FROM node:20-slim AS backend-production
-
-ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
-
-WORKDIR /app
-
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
-
-# Copy built shared and server
-COPY --from=build /app/shared ./shared
-COPY --from=build /app/server/dist ./server/dist
-COPY --from=build /app/server/package*.json ./server/
-
-# Install production dependencies
-WORKDIR /app/server
-RUN npm install --production
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Create data directory
-RUN mkdir -p /app/server/prisma/data && chmod 777 /app/server/prisma/data
-
-# Expose port
-EXPOSE 3001
-
-# Start the server
-CMD ["npm", "start"]
 
 # Development stage (original)
 FROM node:20-slim AS development
@@ -142,3 +114,44 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 # Default command - start development server
 CMD ["npm", "run", "dev"]
+# Production stage
+# node:24-slim: node 20-slim's Debian 12 base libraries had reached end of
+# life upstream, accumulating critical CVEs (gnutls, sqlite, perl, zlib, tar)
+# flagged by the container security scan (11 CRITICAL, blocking PRs).
+# node:24-slim tracks a newer Debian base with patched libraries.
+# NODE_VERSION=18 in security-scan.yml is display-only, no change needed there.
+FROM node:24-slim AS backend-production
+
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+# Copy built shared and server
+COPY --from=build /app/shared ./shared
+COPY --from=build /app/server/dist ./server/dist
+COPY --from=build /app/server/package*.json ./server/
+# Lockfile is REQUIRED: a bare 'npm install' with only package.json re-resolves
+# ranges (prisma ^6.1.0 resolved to 8.0.0-rc.12 once) and ignores pinned versions.
+COPY --from=build /app/server/package-lock.json ./server/
+# Prisma schema is REQUIRED for 'prisma generate' and 'migrate deploy' at runtime
+COPY --from=build /app/server/prisma ./server/prisma
+
+# Install dependencies — npm ci (lockfile-exact). Prisma CLI (devDep) stays:
+# this image runs 'prisma migrate deploy' via entrypoint + migrations container.
+WORKDIR /app/server
+RUN npm ci
+
+# Generate Prisma client (npm no longer auto-generates it post-install)
+RUN npx prisma generate
+# Create data directory
+RUN mkdir -p /app/server/prisma/data && chmod 777 /app/server/prisma/data
+
+# Expose port
+EXPOSE 3001
+
+# Start the server
+CMD ["npm", "start"]
+

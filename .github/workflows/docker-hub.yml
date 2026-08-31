@@ -52,6 +52,7 @@ jobs:
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
+          pull: true
           context: .
           file: ./docker/Dockerfile.production
           target: frontend-production
@@ -112,6 +113,7 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
+          pull: true
           context: .
           file: ./docker/Dockerfile.production
           target: backend-production

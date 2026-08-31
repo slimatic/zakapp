@@ -57,14 +57,17 @@ fi
 
 if [ "$MIGRATIONS_NEEDED" = true ]; then
     echo "🔄 Running database migrations..."
-    
-    # Create the database and run migrations
-    npx prisma migrate deploy 2>/dev/null || npx prisma db push --accept-data-loss
-    
-    if [ $? -eq 0 ]; then
+
+    # Create the database and run migrations.
+    # SECURITY/DATA-SAFETY: no fallback to `prisma db push --accept-data-loss`.
+    # That command can silently drop columns/tables and destroy user data.
+    # A failed migration must block startup so the operator can restore from
+    # backup instead of having the schema silently reshaped.
+    if npx prisma migrate deploy; then
         echo "✅ Database migrations completed successfully"
     else
-        echo "❌ Database migration failed!"
+        echo "❌ FATAL: Database migration failed — refusing to start."
+        echo "   Restore from backup and investigate. Do NOT use 'db push --accept-data-loss' in production."
         exit 1
     fi
 fi

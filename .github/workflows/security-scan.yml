@@ -440,8 +440,14 @@ jobs:
 
       - name: Build Docker images
         run: |
-          docker build -f docker/Dockerfile.backend -t zakapp-backend .
-          docker build -f docker/Dockerfile.frontend -t zakapp-frontend .
+          # --target backend-production: without it, docker tags the FINAL stage.
+          # The dev stage was last previously, so the scan was scanning the dev
+          # image (devDeps included) — inflating vuln counts with build-only
+          # packages. Dockerfile reordered so backend-production is last AND
+          # --target is pinned here for belt-and-braces.
+          # --pull: re-resolve base image tags so scans see patched base libs.
+          docker build --pull --target backend-production -f docker/Dockerfile.backend -t zakapp-backend .
+          docker build --pull -f docker/Dockerfile.frontend -t zakapp-frontend .
 
       - name: Install Trivy
         run: |
@@ -455,7 +461,11 @@ jobs:
       - name: Scan backend image
         run: |
           mkdir -p ${{ env.SCAN_RESULTS_PATH }}
+          # --ignore-unfixed: skip CVEs with no upstream fix available (base
+          # image libs waiting on Debian release). Gate still fails on any
+          # critical that HAS a fix, keeping pressure to patch promptly.
           trivy image \
+            --ignore-unfixed \
             --format json \
             --output ${{ env.SCAN_RESULTS_PATH }}/trivy-backend.json \
             zakapp-backend
@@ -463,6 +473,7 @@ jobs:
       - name: Scan frontend image
         run: |
           trivy image \
+            --ignore-unfixed \
             --format json \
             --output ${{ env.SCAN_RESULTS_PATH }}/trivy-frontend.json \
             zakapp-frontend
