@@ -46,42 +46,6 @@ COPY server/ ./server/
 WORKDIR /app/server
 RUN npm run build
 
-# Production stage
-# node:24-slim: node 20-slim's Debian 12 base libraries had reached end of
-# life upstream, accumulating critical CVEs (gnutls, sqlite, perl, zlib, tar)
-# flagged by the container security scan (11 CRITICAL, blocking PRs).
-# node:24-slim tracks a newer Debian base with patched libraries.
-# NODE_VERSION=18 in security-scan.yml is display-only, no change needed there.
-FROM node:24-slim AS backend-production
-
-ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
-
-WORKDIR /app
-
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
-
-# Copy built shared and server
-COPY --from=build /app/shared ./shared
-COPY --from=build /app/server/dist ./server/dist
-COPY --from=build /app/server/package*.json ./server/
-
-# Install production dependencies
-WORKDIR /app/server
-RUN npm install --production
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Create data directory
-RUN mkdir -p /app/server/prisma/data && chmod 777 /app/server/prisma/data
-
-# Expose port
-EXPOSE 3001
-
-# Start the server
-CMD ["npm", "start"]
-
 # Development stage (original)
 FROM node:20-slim AS development
 
@@ -147,3 +111,39 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 # Default command - start development server
 CMD ["npm", "run", "dev"]
+# Production stage
+# node:24-slim: node 20-slim's Debian 12 base libraries had reached end of
+# life upstream, accumulating critical CVEs (gnutls, sqlite, perl, zlib, tar)
+# flagged by the container security scan (11 CRITICAL, blocking PRs).
+# node:24-slim tracks a newer Debian base with patched libraries.
+# NODE_VERSION=18 in security-scan.yml is display-only, no change needed there.
+FROM node:24-slim AS backend-production
+
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+# Copy built shared and server
+COPY --from=build /app/shared ./shared
+COPY --from=build /app/server/dist ./server/dist
+COPY --from=build /app/server/package*.json ./server/
+
+# Install production dependencies
+WORKDIR /app/server
+RUN npm install --production
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Create data directory
+RUN mkdir -p /app/server/prisma/data && chmod 777 /app/server/prisma/data
+
+# Expose port
+EXPOSE 3001
+
+# Start the server
+CMD ["npm", "start"]
+
