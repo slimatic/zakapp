@@ -222,6 +222,24 @@ router.post('/login',
 
       const refreshToken = jwtService.createRefreshToken(user.id);
 
+      // Persist the session (#312): durable revocation anchor
+      try {
+        await getPrismaClient().userSession.create({
+          data: {
+            userId: user.id,
+            accessToken,
+            refreshToken,
+            ipAddress: req.ip || null,
+            userAgent: (req.headers['user-agent'] as string) || null,
+            issuedAt: new Date(),
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            isActive: true
+          }
+        });
+      } catch (sessionErr) {
+        logger.error('Failed to persist session on login (non-fatal):', sessionErr);
+      }
+
       // Decrypt profile data
       let profileData = {};
       if (user.profile) {
@@ -410,6 +428,24 @@ router.post('/register',
       });
 
       const refreshToken = jwtService.createRefreshToken(user.id);
+
+      // Persist the session (#312)
+      try {
+        await getPrismaClient().userSession.create({
+          data: {
+            userId: user.id,
+            accessToken,
+            refreshToken,
+            ipAddress: req.ip || null,
+            userAgent: (req.headers['user-agent'] as string) || null,
+            issuedAt: new Date(),
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            isActive: true
+          }
+        });
+      } catch (sessionErr) {
+        logger.error('Failed to persist session on register (non-fatal):', sessionErr);
+      }
 
       // Decrypt profile data
       if (user.profile) {
@@ -646,6 +682,24 @@ router.post('/refresh',
         return;
       }
 
+      // Durable session check (#312): if the session backing this refresh token
+      // was terminated (logout, password change, admin revocation), refuse refresh.
+      // This survives server restarts, unlike the in-memory revocation set.
+      const session = await getPrismaClient().userSession.findFirst({
+        where: { refreshToken, userId: decoded.userId }
+      });
+
+      if (session && !session.isActive) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'SESSION_REVOKED',
+            message: 'Session has been revoked'
+          }
+        });
+        return;
+      }
+
       // Generate new tokens
       const newAccessToken = jwtService.createAccessToken({
         userId: user.id,
@@ -654,6 +708,23 @@ router.post('/refresh',
       });
 
       const newRefreshToken = jwtService.createRefreshToken(user.id);
+
+      // Rotation: persist new tokens on the session row so revocation keeps
+      // tracking the CURRENT refresh token; retire the old value.
+      if (session) {
+        try {
+          await getPrismaClient().userSession.update({
+            where: { id: session.id },
+            data: {
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
+              refreshedAt: new Date()
+            }
+          });
+        } catch (sessionErr) {
+          logger.error('Failed to update session on refresh (non-fatal):', sessionErr);
+        }
+      }
 
       // Only revoke the old refresh token after successful generation of new tokens
       // Implement token rotation: each refresh token can only be used once
@@ -723,16 +794,32 @@ router.post('/logout',
   authenticate,
   asyncHandler(async (req: AuthenticatedRequest, res: ExpressResponse) => {
     try {
-      // In a production environment, you would:
-      // 1. Add the access token to a blacklist
-      // 2. Remove refresh tokens from database
-      // 3. Clear any user sessions
+      // Durable revocation (#312): terminate the session row(s) matching this
+      // user + access token so the refresh flow rejects post-logout token use,
+      // even after a server restart.
+      const authHeader = req.headers.authorization || '';
+      const accessToken = authHeader.replace(/^Bearer\s+/i, '');
 
-      // For now, we'll just acknowledge the logout
+      const result = await getPrismaClient().userSession.updateMany({
+        where: {
+          userId: req.userId,
+          accessToken: accessToken
+        },
+        data: {
+          isActive: false,
+          terminatedAt: new Date(),
+          terminationReason: 'logout'
+        }
+      });
+
+      // Also revoke the in-memory access-token blacklist (immediate effect)
+      revokeToken(accessToken);
+
       res.status(200).json({
         success: true,
         data: {
-          message: 'Logged out successfully'
+          message: 'Logged out successfully',
+          sessionsTerminated: result.count
         },
         metadata: {
           timestamp: new Date().toISOString(),
@@ -740,6 +827,7 @@ router.post('/logout',
         }
       });
     } catch (error) {
+      logger.error('Logout error:', error);
       res.status(500).json({
         success: false,
         error: {
