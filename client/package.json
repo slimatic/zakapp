@@ -22,7 +22,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@zakapp/shared": "file:../shared",
     "ajv": "^8.17.1",
-    "axios": "^1.16.0",
+    "axios": "^1.18.0",
     "brace-expansion": "^2.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
