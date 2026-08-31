@@ -133,12 +133,15 @@ RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt
 COPY --from=build /app/shared ./shared
 COPY --from=build /app/server/dist ./server/dist
 COPY --from=build /app/server/package*.json ./server/
+# Lockfile is REQUIRED: a bare 'npm install' with only package.json re-resolves
+# ranges (prisma ^6.1.0 resolved to 8.0.0-rc.12 once) and ignores pinned versions.
+COPY --from=build /app/server/package-lock.json ./server/
 
-# Install production dependencies
+# Install production dependencies — use npm ci for lockfile-exact install
 WORKDIR /app/server
-RUN npm install --production
+RUN npm ci --omit=dev
 
-# Generate Prisma client
+# Generate Prisma client (npm no longer auto-generates it post-install)
 RUN npx prisma generate
 
 # Create data directory
