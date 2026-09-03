@@ -15,7 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
 import { CalculationSnapshotService } from '../services/snapshot.service';

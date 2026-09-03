@@ -22,7 +22,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import { NisabYearRecordsPage } from './NisabYearRecordsPage';
-import { apiService } from '../services/api';
 
 import { vi } from 'vitest';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';

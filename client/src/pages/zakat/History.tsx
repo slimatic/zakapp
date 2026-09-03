@@ -17,7 +17,7 @@
 
 import React, { useState } from 'react';
 import { useZakatHistory, useZakatPayments } from '../../services/apiHooks';
-import { Button, LoadingSpinner, ErrorMessage } from '../../components/ui';
+import { Button } from '../../components/ui';
 import { CalculationHistory } from '../../components/zakat/CalculationHistory';
 import { useAuth } from '../../contexts/AuthContext';
 

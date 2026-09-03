@@ -10,7 +10,7 @@
  * - Handles "Finish" action and redirects
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // Due to the complex dependency chain of ZakatSetupStep (RxDB, hooks, etc.),
 // this test file validates the component's interface and expected behavior

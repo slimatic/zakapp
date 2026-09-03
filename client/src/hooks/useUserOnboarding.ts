@@ -15,7 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useAssetRepository } from './useAssetRepository';
 import { useNisabRecordRepository } from './useNisabRecordRepository';
 import { usePaymentRepository } from './usePaymentRepository';

@@ -324,13 +324,13 @@ describe('Service Worker Tests', () => {
         });
       } catch (err) {
         // Fallback: replace location object when property is non-configurable
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-ignore
         const originalLocation = window.location;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-ignore
         delete (window as any).location;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-ignore
         (window as any).location = { ...originalLocation, reload };
       }
@@ -383,13 +383,13 @@ describe('Service Worker Tests', () => {
         });
       } catch (err) {
         // Fallback: replace Notification object when properties are non-configurable
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-ignore
         const originalNotification = window.Notification;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-ignore
         delete (window as any).Notification;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-ignore
         (window as any).Notification = { ...originalNotification, permission: 'default', requestPermission: jest.fn().mockResolvedValue('granted') };
       }

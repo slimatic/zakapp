@@ -1,4 +1,4 @@
-import { RxPlugin, RxCollection, RxDocument } from 'rxdb';
+import { RxPlugin, RxCollection } from 'rxdb';
 import { cryptoService } from '../../services/CryptoService';
 
 export const RxDBZeroKnowledgePlugin: RxPlugin = {

@@ -87,7 +87,7 @@ export const CalculationDetailModal: React.FC<CalculationDetailModalProps> = ({
   };
 
   const handleDelete = () => {
-    // eslint-disable-next-line no-restricted-globals
+     
     if (confirm('Are you sure you want to delete this calculation? This action cannot be undone.')) {
       if (onDelete) {
         onDelete(calculation.id);

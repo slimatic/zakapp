@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useOnboarding, AssetData } from '../context/OnboardingContext';
+import { useOnboarding } from '../context/OnboardingContext';
 import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../../../contexts/PrivacyContext';
 

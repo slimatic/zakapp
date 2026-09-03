@@ -15,10 +15,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
-import { determineModifier, calculateAssetZakat } from '../utils/assetModifiers';
+import { determineModifier } from '../utils/assetModifiers';
 import { PASSIVE_INVESTMENT_TYPES, RESTRICTED_ACCOUNT_TYPES } from '@zakapp/shared';
 
 // Simple in-memory store for demo - in real app this would be database

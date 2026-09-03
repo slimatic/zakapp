@@ -22,7 +22,7 @@
  * Uses mocked web-vitals library for testing.
  */
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 
 // Mock web-vitals library
 jest.mock('web-vitals', () => ({

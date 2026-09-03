@@ -22,7 +22,6 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Wallet, Calculator, TrendingUp, History, ArrowRight } from 'lucide-react';
-import { Asset } from '../../types';
 import { isAssetZakatable } from '../../core/calculations/zakat';
 import { useAuth } from '../../contexts/AuthContext';
 

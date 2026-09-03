@@ -23,7 +23,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
 import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
 import { PaymentDistributionChart } from '../components/dashboard/PaymentDistributionChart';
 import { WealthTrendChart } from '../components/dashboard/WealthTrendChart';
@@ -34,7 +33,7 @@ import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { formatCurrency } from '../utils/formatters';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useAuth } from '../contexts/AuthContext';
-import { isAssetZakatable, getAssetZakatableValue } from '../core/calculations/zakat';
+import { getAssetZakatableValue } from '../core/calculations/zakat';
 import type { NisabYearRecord } from '../types/nisabYearRecord';
 import { parseDecimalNumber } from '../utils/parseDecimal';
 

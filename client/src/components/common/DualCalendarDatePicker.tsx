@@ -9,9 +9,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { formatDualCalendar, gregorianToHijri, hijriToGregorian, HijriDate } from '../../utils/calendarConverter';
+import { formatDualCalendar, gregorianToHijri, hijriToGregorian } from '../../utils/calendarConverter';
 import { cn } from '../../lib/utils'; // Assuming this utility exists based on Input/Button usage
 
 interface DualCalendarDatePickerProps {

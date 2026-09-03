@@ -65,7 +65,7 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({ children }) => {
 
     componentDidCatch(error: any) {
       // Log devtools render errors but do not rethrow so overlay won't appear
-      // eslint-disable-next-line no-console
+       
       logger.warn('React Query Devtools threw during render:', error?.message || error);
 
     }
@@ -95,7 +95,7 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({ children }) => {
         } catch (err) {
           // Swallow devtools import errors to prevent app overlay in dev server
           // Log for debugging locally
-          // eslint-disable-next-line no-console
+           
           logger.warn('React Query Devtools failed to load:', err && typeof err === 'object' && 'message' in err ? (err as any).message : err);
 
         }

@@ -16,9 +16,7 @@
  */
 
 import { 
-  Asset, 
-  ZakatCalculationRequest, 
-  ZakatCalculationResult,
+  Asset,
   AssetCalculation,
   NisabInfo,
   MethodologyInfo

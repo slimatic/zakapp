@@ -69,7 +69,7 @@ if (typeof window.matchMedia === 'undefined') {
 }
 
 // Mock jsPDF and autotable
-/* eslint-disable @typescript-eslint/no-var-requires */
+ 
 try {
 	vi.mock('jspdf', () => {
 		const mockJsPDF = vi.fn().mockImplementation(() => ({

@@ -16,7 +16,6 @@
  */
 
 import React, { useState } from 'react';
-import type { ZakatCalculationResult } from '@zakapp/shared';
 import { DonationSuccessModal } from '../donation/DonationSuccessModal';
 
 /**

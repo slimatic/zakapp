@@ -19,7 +19,7 @@ import { useState, useEffect } from 'react';
 import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
 import { Asset } from '../types';
-import { map, switchMap } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 import { cryptoService } from '../services/CryptoService';
 
 // Fields defined in asset.schema.ts

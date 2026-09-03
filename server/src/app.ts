@@ -39,7 +39,6 @@ import calendarRoutes from './routes/calendar';
 import methodologyRoutes from './routes/methodologies';
 import nisabYearRecordsRoutes from './routes/nisab-year-records';
 import feedbackRoutes from './routes/feedback';
-import adminEncryptionRoutes from './routes/admin/encryption';
 import adminRoutes from './routes/admin';
 import debugRoutes from './routes/debug';
 import assetAmountEventRoutes from './routes/asset-amount-events';

@@ -15,7 +15,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { PrismaClient } from '@prisma/client';
 import { getEncryptionKey } from '../../config/security';
 import { prisma } from '../../utils/prisma';
 

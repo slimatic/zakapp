@@ -348,13 +348,13 @@ describe('PWA Installation Tests', () => {
         });
       } catch (err) {
         // Fallback: replace location object when property is non-configurable
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-ignore
         const originalLocation = window.location;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-ignore
         delete (window as any).location;
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+         
         // @ts-ignore
         (window as any).location = { ...originalLocation, reload };
       }

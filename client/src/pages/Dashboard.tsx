@@ -29,7 +29,6 @@ import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
 import { DashboardActionCards } from '../components/dashboard/DashboardActionCards';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
-import { useUserOnboarding } from '../hooks/useUserOnboarding';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import type { Asset } from '../types';

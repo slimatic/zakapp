@@ -15,10 +15,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import express from 'express';
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { AuthenticatedRequest } from '../../types';
-import { authenticate } from '../../middleware/AuthMiddleware';
 import { asyncHandler } from '../../middleware/ErrorHandler';
 import { Logger } from '../../utils/logger';
 import { jwtService } from '../../services/JWTService';

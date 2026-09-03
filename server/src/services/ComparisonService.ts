@@ -17,7 +17,6 @@
 
 import { YearlySnapshotModel } from '../models/YearlySnapshot';
 import { PaymentRecordModel } from '../models/PaymentRecord';
-import { EncryptionService } from './EncryptionService';
 import { YearlySnapshot } from '@zakapp/shared';
 
 /**

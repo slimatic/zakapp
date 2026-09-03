@@ -65,7 +65,7 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
 
   useEffect(() => {
     loadCalculations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // (react-hooks/exhaustive-deps rule not installed in this minimal eslint config)
   }, [pagination.page, selectedMethodology, sortBy, sortOrder, startDate, endDate]);
 
   const loadCalculations = async () => {
@@ -121,7 +121,7 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
   };
 
   const deleteCalculation = async (id: string) => {
-    // eslint-disable-next-line no-restricted-globals
+     
     if (!confirm('Are you sure you want to delete this calculation?')) {
       return;
     }

@@ -1,5 +1,5 @@
 import { cryptoService, CryptoService } from '../CryptoService';
-import { getDb, resetDb, forceResetDatabase, closeDb } from '../../db';
+import { getDb, forceResetDatabase, closeDb } from '../../db';
 import { Logger } from '../../utils/logger';
 import { apiService as api } from '../api';
 import type { User } from '../../types';

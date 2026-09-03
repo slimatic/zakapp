@@ -44,7 +44,6 @@ import { EncryptionService } from '../services/EncryptionService';
 import { getEncryptionKey } from '../config/security';
 
 const ENCRYPTION_KEY = getEncryptionKey();
-import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 

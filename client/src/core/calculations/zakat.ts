@@ -17,7 +17,7 @@
 
 import { Asset, AssetType } from '../../types/index';
 import { MethodologyName, getMethodology } from './methodology';
-import type { RetirementMethodology, RetirementConfig } from '../../types/asset.types';
+import type { RetirementConfig } from '../../types/asset.types';
 
 import { Decimal } from 'decimal.js';
 

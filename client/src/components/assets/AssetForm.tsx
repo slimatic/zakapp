@@ -28,10 +28,7 @@ import { EncryptedBadge } from '../ui/EncryptedBadge';
 import {
   shouldShowPassiveCheckbox,
   shouldShowRestrictedCheckbox,
-  getPassiveInvestmentGuidance,
-  getRestrictedAccountGuidance,
-  getPropertyGuidance,
-  getModifierBadge
+  getPropertyGuidance
 } from '../../utils/assetModifiers';
 import { getSupportedCurrencies, getCurrencySymbol, type CurrencyCode } from '../../utils/formatters';
 import { RetirementTreatmentSection } from './form-sections/RetirementTreatmentSection';
