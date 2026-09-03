@@ -90,6 +90,7 @@
   "author": "",
   "license": "AGPL-3.0-or-later",
   "overrides": {
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.0",
+    "qs": "^6.16.0"
   }
 }
