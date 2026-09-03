@@ -40,7 +40,7 @@
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.63.0",
     "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^6.28.1",
+    "react-router-dom": "^6.30.6",
     "react-window": "^2.2.1",
     "react-window-infinite-loader": "^2.0.0",
     "recharts": "^3.2.1",
@@ -139,6 +139,10 @@
   },
   "overrides": {
     "protobufjs": "8.6.6",
-    "websocket-driver": "0.7.5"
+    "websocket-driver": "0.7.5",
+    "rxdb": {
+      "ws": "^8.21.3",
+      "ajv": "^8.20.0"
+    }
   }
 }
