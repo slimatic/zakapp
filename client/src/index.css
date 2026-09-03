@@ -37,6 +37,84 @@
 
     --radius: 0.75rem;
   }
+
+  /* ── Dark theme ("Ikhlas Night") — class strategy, additive & non-breaking ── */
+  .dark {
+    --background: 222 47% 7%;
+    /* deep navy-teal, slate-950 family */
+    --foreground: 210 40% 96%;
+
+    --card: 222 44% 11%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 44% 11%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 172 66% 50%;
+    /* brighter turquoise for contrast on dark */
+    --primary-foreground: 222 47% 7%;
+
+    --secondary: 45 93% 47%;
+    /* gold, slightly deeper */
+    --secondary-foreground: 222 47% 7%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 96%;
+
+    --destructive: 0 72% 56%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 27% 22%;
+    --input: 217 27% 22%;
+    --ring: 172 66% 50%;
+  }
+}
+
+/* ── Dark-mode retrofit for hardcoded light utilities ─────────────────────────
+   The app predates dark mode and uses raw slate/white utilities in ~415 places.
+   Rather than touching every component (regression risk), these overrides make
+   the common ones adapt when .dark is on the root. Semantic tokens
+   (bg-card, text-muted-foreground, etc.) remain the preferred going-forward API. */
+.dark {
+  color-scheme: dark;
+}
+.dark body {
+  background-color: hsl(222 47% 7%);
+  color: hsl(210 40% 96%);
+}
+.dark .bg-white { background-color: hsl(var(--card)); }
+.dark .bg-slate-50 { background-color: hsl(217 33% 14%); }
+.dark .bg-slate-100 { background-color: hsl(217 33% 17%); }
+.dark .bg-slate-200 { background-color: hsl(217 27% 22%); }
+.dark .text-slate-900 { color: hsl(210 40% 96%); }
+.dark .text-slate-800 { color: hsl(214 32% 91%); }
+.dark .text-slate-700 { color: hsl(215 25% 83%); }
+.dark .text-slate-600 { color: hsl(215 20% 74%); }
+.dark .text-slate-500 { color: hsl(215 20% 65%); }
+.dark .text-slate-400 { color: hsl(215 16% 55%); }
+.dark .border-slate-200 { border-color: hsl(var(--border)); }
+.dark .border-slate-100 { border-color: hsl(217 27% 18%); }
+.dark .border-slate-300 { border-color: hsl(217 27% 28%); }
+/* Glass panels: dark glass */
+.dark .glass-panel {
+  background-color: hsl(222 44% 11% / 0.8);
+  border-color: hsl(217 27% 22% / 0.5);
+  --tw-ring-color: hsl(0 0% 100% / 0.06);
+}
+.dark .glass-card {
+  background-color: hsl(222 44% 11% / 0.9);
+  border-color: hsl(217 27% 22%);
+}
+.dark .btn-secondary {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(172 66% 50%);
+}
+.dark .btn-secondary:hover {
+  background-color: hsl(217 33% 17%);
 }
 
 @layer components {
