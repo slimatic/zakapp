@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.14.0] - 2026-09-03 (interim release — ahead of the Jumada al-Thani cycle)
+
+### 🌙 Ikhlas Night & Security Sweep — Dark Mode, Dependency Hardening, Code Health
+
+#### Security (P1)
+- **Server production deps: 7 → 0 vulnerabilities**: undici (TLS-bypass/DoS family), deepmerge-ts,
+  body-parser (DoS), morgan (log forging) bumped via `npm audit fix`; `qs` pinned to `^6.16.0`
+  via overrides (3 DoS advisories under express/body-parser) (#332)
+- **Client production deps: 10 → 2**: brace-expansion (3 DoS), fast-uri (host confusion),
+  @grpc/grpc-js (crash DoS), rxdb's pinned ws (memory disclosure/DoS) & ajv (ReDoS) cleared;
+  react-router-dom patched to 6.30.6. The 2 remaining moderates are react-router 6.x — fix is
+  v7-only (breaking), both advisories SSR-specific and this is a plain SPA; tracked in #339 (#332)
+- Superseded conflicting Dependabot PR #325 (brace-expansion 5.0.9 covers all three advisories repo-wide)
+
+#### UX / Features
+- **Dark mode — "Ikhlas Night"**: class-strategy, fully additive. New `.dark` token set
+  (deep navy-teal + brighter turquoise/gold), retrofit overrides adapt the ~415 hardcoded
+  slate/white utilities without touching component markup; `useTheme` hook (localStorage +
+  system-preference) and header sun/moon toggle. Light mode is pixel-identical (#336)
+- **Hawl countdown milestones** on the dashboard ActiveRecordWidget: "Zakat due soon — N days
+  left" at ≤30 days, "Hawl complete — calculate and pay now" at 0 days. First deliverable of
+  the blue-ocean competitive-research workstream (automated Hawl/due-date tracking) (#337)
+
+#### Code health
+- **#320 closed**: 87 server + 58 client unused imports removed AST-safely via
+  `eslint-plugin-unused-imports` (server+client eslint configs added/extended); unused-variable
+  triage deferred to #340 (#335)
+- **WCAG 2.1 AA a11y suite revived** (5 jest-axe tests over Dashboard, AssetList,
+  NisabYearRecordsPage, PaymentsPage, Layout) + 2 heading-order violations fixed (#333)
+- Follow-up issues filed: #338 (i18n), #339 (react-router v7), #340 (unused-var triage),
+  #341 (NisabYearRecordsPage modal extraction)
+
+#### Tests
+- Server suite: 461 passing (unchanged — no server behavior touched)
+- Client suite: 458 passing, 15 skipped (up from 445: +5 a11y, +4 useTheme, +4 Hawl countdown)
+- Client PWA build verified (73-entry precache) on every PR
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.13.0...v0.14.0
+
 ## [0.13.0] - 2026-10-12 (Jumada al-Ula 1448 cycle)
 
 ### 🚀 Muharram 1448 Stabilization Release — Data Safety, Auth Hardening, Repo Hygiene
