@@ -82,9 +82,9 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [x] **Financial Precision**: Replace `parseFloat`/`parseInt` with Decimal.js in financial calculations.
 - [x] **Large File Refactors**:
   - [x] Split `AssetForm.tsx` (850 lines) into smaller components.
-  - [ ] Extract modals from `NisabYearRecordsPage.tsx` (717 lines).
+  - [ ] Extract modals from `NisabYearRecordsPage.tsx` (717 lines). *(tracked in #341)*
   - [x] Extract crypto/sync logic from `AuthContext.tsx` (669 lines) to `AuthService.ts`.
-- [ ] **Unused Imports**: Run ESLint auto-fix to remove unused imports across all files. *(deferred to v0.14 — needs `eslint-plugin-unused-imports`; see #320)*
+- [x] **Unused Imports**: Run ESLint auto-fix to remove unused imports across all files. *(completed in v0.14.0 — AST-safe via `eslint-plugin-unused-imports`, PR #335; unused-variable triage tracked in #340)*
 - [x] **TODO Resolution**: Address remaining `TODO-HASH-OF-KEY` placeholders in AuthContext.
 
 ## Phase 8.5: v0.13.0 Stability Cycle (Muharram 1448 — Oct 2026)
@@ -94,6 +94,17 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [x] **Password Reset**: Real token flow (crypto-random, persisted, emailed) + confirm-reset endpoint (#311, #327).
 - [x] **Session Invalidation**: Durable `UserSession` persistence; restart-surviving refresh rejection; real logout (#312, #328).
 - [x] **Release Cadence**: Hijri moon-cycle release process documented (`docs/release-cycle.md`).
+
+## Phase 8.6: v0.14.0 Cycle — Security Sweep, Dark Mode & Blue-Ocean Start (Sep 2026)
+*Goal: zero known prod-dependency vulnerabilities, dark mode, and the first competitive-research quick win.*
+
+- [x] **Security deps**: server prod 7→0 vulns, client prod 10→2 (residual = react-router v7-only, #339) (#332)
+- [x] **Dark mode "Ikhlas Night"**: additive class-strategy theme + header toggle, zero light-mode change (#336)
+- [x] **Hawl countdown milestones**: due-soon / hawl-complete urgency on the dashboard (#337)
+- [x] **#320 unused imports**: AST-safe removal, eslint configs established (#335)
+- [x] **A11y suite revived**: WCAG 2.1 AA jest-axe tests + heading-order fixes (#333)
+- [ ] **Blue-ocean follow-ons**: multi-madhab transparency engine, retirement-account method options, family pooling *(spec needed — see zakapp-competitive-research.md)*
+- [ ] **i18n foundation** (#338)
 
 ## Phase 9: Technical Debt & Stability (Post-Launch)
 *Goal: Harden the development environment and ensure long-term maintainability.*
