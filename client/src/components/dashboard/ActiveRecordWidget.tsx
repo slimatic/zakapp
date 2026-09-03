@@ -203,6 +203,21 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
         <p className="text-xs text-gray-500 mt-1">
           {progressPercentage.toFixed(1)}% complete
         </p>
+
+        {/* Hawl countdown milestones — surfaces urgency without any state change */}
+        {daysRemaining <= 30 && daysRemaining > 0 && (
+          <p
+            className="text-xs font-semibold text-amber-600 mt-1"
+            role="status"
+          >
+            ⏳ Zakat due soon — {daysRemaining} day{daysRemaining === 1 ? '' : 's'} left in this Hawl
+          </p>
+        )}
+        {daysRemaining === 0 && (
+          <p className="text-xs font-semibold text-red-600 mt-1" role="status">
+            🔔 Hawl complete — calculate and pay your Zakat now
+          </p>
+        )}
       </div>
 
       {/* Wealth Comparison */}
