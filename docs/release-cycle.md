@@ -14,12 +14,13 @@ Tabular Islamic calendar (hijridate Umm al-Qura approximation); actual dates may
 
 | Hijri month | Approx. Gregorian start | Planned version |
 |---|---|---|
-| Jumada al-Ula 1448 | 2026-10-12 | v0.13.0 — Muharram-cycle stabilization release |
-| Jumada al-Thani 1448 | 2026-11-11 | v0.14.0 |
-| Rajab 1448 | 2026-12-10 | v0.15.0 |
-| Sha'ban 1448 | 2027-01-09 | v0.16.0 |
+| Jumada al-Ula 1448 | 2026-10-12 | v0.13.0 — Muharram-cycle stabilization release ✅ shipped |
+| **Jumada al-Thani 1448** | **2026-11-11** | **v0.15.0** (v0.14.0 shipped early as an interim release on 2026-09-03 — see below) |
+| Rajab 1448 | 2026-12-10 | v0.16.0 |
+| Sha'ban 1448 | 2027-01-09 | v0.17.0 |
 
 > v0.13.0 was originally targeted to coincide with 1 Muharram 1448 (June 2026); it slipped and is now releasing in the Jumada al-Ula cycle. Naming convention preserved from the Muharram 1448 audit that started this stabilization effort.
+> **v0.14.0 — Ikhlas Night & Security Sweep** shipped 2026-09-03 as an interim release outside the lunar cycle: P1 security findings (server prod deps 7→0 vulns) were judged worth shipping immediately rather than holding until 2026-11-11. Includes dark mode (#336), Hawl countdown (#337), #320 closure (#335), a11y suite revival (#333). Next planned tag remains v0.15.0 at the Jumada al-Thani cycle.
 
 ## Per-Cycle Workflow
 
