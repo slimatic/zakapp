@@ -23,6 +23,7 @@ import { SkipLink } from '../common/SkipLink';
 import { MobileNav } from './MobileNav';
 import { BottomNav } from './BottomNav';
 import { SyncIndicator } from '../SyncIndicator';
+import { ThemeToggle } from './ThemeToggle';
 import { Logo } from '../common/Logo';
 import { Footer } from './Footer';
 
@@ -264,6 +265,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
 
             <div className="flex items-center gap-4">
+              {/* Theme Toggle (light/dark) */}
+              <ThemeToggle />
+
               {/* Sync Status Indicator */}
               <SyncIndicator />
 
