@@ -15,10 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { MemoryRouter } from 'react-router-dom';
 
 // Provide a stable useNavigate mock in tests to avoid Router context errors
 // Ensure useNavigate is a stable mock during this test run
@@ -32,7 +29,6 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-import { PrivacyProvider } from '../../../contexts/PrivacyContext';
 
 jest.mock('../../../services/apiHooks', () => ({
   useAssets: () => ({ data: { data: { assets: [

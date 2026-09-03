@@ -4,7 +4,6 @@ import { useOnboarding, OnboardingData } from '../context/OnboardingContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useAssetRepository } from '../../../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../../../hooks/useLiabilityRepository';
-import { isAssetZakatable, getAssetZakatableValue } from '../../../core/calculations/zakat';
 import { calculateWealth } from '../../../core/calculations/wealthCalculator';
 import toast from 'react-hot-toast';
 

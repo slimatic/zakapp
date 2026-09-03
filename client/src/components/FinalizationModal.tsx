@@ -30,7 +30,7 @@
 import React, { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
-import { toNumber, toDecimal, calculateZakat } from '../utils/precision';
+import { toNumber, calculateZakat } from '../utils/precision';
 
 export interface FinalizationModalProps {
   /**

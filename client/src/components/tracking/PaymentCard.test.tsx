@@ -21,7 +21,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PaymentCard } from './PaymentCard';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';

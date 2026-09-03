@@ -15,7 +15,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import express from 'express';
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { jwtService } from '../../services/JWTService';
 import { loginRateLimit } from '../../middleware/RateLimitMiddleware';
@@ -26,7 +25,7 @@ import bcrypt from 'bcryptjs';
 import { EncryptionService } from '../../services/EncryptionService';
 import { SettingsService } from '../../services/SettingsService';
 import { DEFAULT_LIMITS } from '../../config/limits';
-import { getPrismaClient, ENCRYPTION_KEY, loggedProfileDecryptionFailures } from './utils';
+import { getPrismaClient, ENCRYPTION_KEY } from './utils';
 
 const logger = new Logger('AuthLogin');
 

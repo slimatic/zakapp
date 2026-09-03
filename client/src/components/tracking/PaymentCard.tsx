@@ -27,7 +27,6 @@ import { formatGregorianDate } from '../../utils/calendarConverter';
 import { looksEncrypted } from '../../utils/encryption';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
-import { Button } from '../ui/Button';
 
 interface PaymentCardProps {
   payment: PaymentRecord;

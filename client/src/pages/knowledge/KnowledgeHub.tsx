@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Video, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { FAQS_DATA } from '../../data/faqs';
 import { GLOSSARY } from '../../data/glossary';
-import { Link } from 'react-router-dom';
 
 const VIDEO_PLAYLIST_ID = "PLXguldgkbZPffh6p4efOetXkTeJATAbcS";
 

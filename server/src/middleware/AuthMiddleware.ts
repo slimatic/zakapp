@@ -15,10 +15,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { jwtService } from '../services/JWTService';
 import { AuthenticatedRequest } from '../types';
-import { PrismaClient } from '@prisma/client';
 import { prisma } from '../utils/prisma';
 
 /**

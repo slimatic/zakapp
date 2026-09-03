@@ -28,7 +28,6 @@ import { EncryptionService } from './EncryptionService';
 import type {
   AuditTrailEntry,
   AuditEventType,
-  CreateAuditTrailEntryDto,
 } from '@zakapp/shared';
 
 export class AuditTrailService {

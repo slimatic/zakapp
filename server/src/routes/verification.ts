@@ -19,7 +19,6 @@ import * as express from 'express';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../types';
 import { authenticate } from '../middleware/AuthMiddleware';
-import { z } from 'zod';
 
 const router = express.Router();
 

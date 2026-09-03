@@ -16,7 +16,7 @@
  */
 
 import { cryptoService } from './CryptoService';
-import { EncryptedPaymentData, DecryptedPaymentData } from '@zakapp/shared/types/zk-contracts';
+import { EncryptedPaymentData } from '@zakapp/shared/types/zk-contracts';
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
 
 /**

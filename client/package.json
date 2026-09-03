@@ -101,6 +101,7 @@
     "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
     "fake-indexeddb": "^6.2.5",
     "fast-check": "^4.5.2",
     "jest-axe": "^10.0.0",

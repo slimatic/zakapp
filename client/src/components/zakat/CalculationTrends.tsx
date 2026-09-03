@@ -64,7 +64,7 @@ export const CalculationTrends: React.FC<CalculationTrendsProps> = ({ userId }) 
 
   useEffect(() => {
     loadTrends();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // (react-hooks/exhaustive-deps rule not installed in this minimal eslint config)
   }, [selectedPeriod]);
 
   const loadTrends = async () => {

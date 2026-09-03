@@ -24,7 +24,6 @@ import { MobileNav } from './MobileNav';
 import { BottomNav } from './BottomNav';
 import { SyncIndicator } from '../SyncIndicator';
 import { Logo } from '../common/Logo';
-import { DonationCTA } from '../donation/DonationCTA';
 import { Footer } from './Footer';
 
 interface LayoutProps {

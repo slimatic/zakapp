@@ -16,7 +16,7 @@
  */
 
 import * as HijriConverter from 'hijri-converter';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 
 /**
  * CalendarService - Handles Hijri/Gregorian date conversions

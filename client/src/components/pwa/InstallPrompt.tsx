@@ -16,7 +16,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Logo } from '../common/Logo';
 
 /**

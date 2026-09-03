@@ -23,7 +23,6 @@ import { AssetsBreakdownChart } from '../dashboard/AssetsBreakdownChart';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { useUserSettingsRepository } from '../../hooks/useUserSettingsRepository';
 import { getAssetZakatableValue, ZakatMethodology } from '../../core/calculations/zakat';
-import { Asset } from '../../types';
 import { Button, Card } from '../ui';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 

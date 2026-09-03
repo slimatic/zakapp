@@ -15,13 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import express from 'express';
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { asyncHandler } from '../../middleware/ErrorHandler';
 import { Logger } from '../../utils/logger';
 import { AuthService } from '../../services/AuthService';
 import { emailService } from '../../services/EmailService';
-import { validatePasswordResetConfirm } from '../../middleware/ValidationMiddleware';
 
 const logger = new Logger('AuthPassword');
 

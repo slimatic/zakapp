@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client';
 import { prisma } from '../utils/prisma';
 import { EncryptionService } from './EncryptionService';
 import { Logger } from '../utils/logger';

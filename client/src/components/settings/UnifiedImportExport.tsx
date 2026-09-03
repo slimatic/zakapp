@@ -17,8 +17,8 @@
 
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter, Button, LoadingSpinner } from '../ui';
-import { Upload, Download, FileJson, AlertTriangle, CheckCircle, Database, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, LoadingSpinner } from '../ui';
+import { Upload, Download, AlertTriangle, CheckCircle, Database, Trash2 } from 'lucide-react';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { useNisabRecordRepository } from '../../hooks/useNisabRecordRepository';

@@ -32,7 +32,6 @@ try {
   webpush = null;
 }
 
-import { prisma } from '../config/database';
 import { Logger } from '../utils/logger';
 
 const logger = new Logger('PushNotificationService');

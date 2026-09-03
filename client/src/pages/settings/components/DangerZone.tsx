@@ -16,7 +16,7 @@
  */
 
 
-import { forceResetDatabase, useDb } from '../../../db';
+import { forceResetDatabase } from '../../../db';
 import { useMutation } from '@tanstack/react-query';
 import { apiService } from '../../../services/api';
 import { Button } from '../../../components/ui/Button';

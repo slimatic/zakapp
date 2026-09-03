@@ -1,5 +1,6 @@
 const typescriptEslint = require('@typescript-eslint/eslint-plugin');
 const typescriptParser = require('@typescript-eslint/parser');
+const unusedImports = require('eslint-plugin-unused-imports');
 
 module.exports = [
   {
@@ -25,11 +26,14 @@ module.exports = [
     },
     plugins: {
       '@typescript-eslint': typescriptEslint,
+      'unused-imports': unusedImports,
     },
     rules: {
       ...typescriptEslint.configs['recommended'].rules,
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' }],
       'no-console': 'warn',
       'prefer-const': 'error',
       // Security: Ban unsafe Prisma raw query methods to prevent SQL injection
@@ -63,11 +67,14 @@ module.exports = [
     },
     plugins: {
       '@typescript-eslint': typescriptEslint,
+      'unused-imports': unusedImports,
     },
     rules: {
       ...typescriptEslint.configs['recommended'].rules,
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' }],
       'no-console': 'warn',
       'prefer-const': 'error',
       // Security: Ban unsafe Prisma raw query methods to prevent SQL injection

@@ -18,7 +18,7 @@
 import { useState, useEffect } from 'react';
 import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
-import { map, switchMap } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 import { NisabYearRecord } from '../types/nisabYearRecord';
 import { cryptoService } from '../services/CryptoService';
 

@@ -15,9 +15,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { PrismaClient, Asset, Liability } from '@prisma/client';
+import { PrismaClient, Asset } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
-import { getEncryptionKey } from '../config/security';
 import {
   CalculationSnapshot,
   CalculationSnapshotDetail,

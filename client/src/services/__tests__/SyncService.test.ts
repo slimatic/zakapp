@@ -16,8 +16,8 @@
  */
 
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getDb, resetDb, useDb } from '../../db';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { getDb, resetDb } from '../../db';
 import { syncService } from '../SyncService';
 import { AssetType } from '../../types';
 

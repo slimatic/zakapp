@@ -32,7 +32,6 @@ const logger = new Logger('AuthRoute');
 // may not be writable. This prevents compile-time errors during Jest runs.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // const { PrismaClient: _PrismaClient } = require('@prisma/client') as { PrismaClient: new (opts?: any) => any };
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { EncryptionService } from '../services/EncryptionService';

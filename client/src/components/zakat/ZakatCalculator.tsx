@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Asset, AssetType, ZakatCalculation, NisabInfo, ZakatPayment, ZakatMethodology } from '../../types';
+import { AssetType, NisabInfo } from '../../types';
 import { apiService } from '../../services/api';
 import { PaymentModal } from './PaymentModal';
 import { MethodologySelector } from './MethodologySelector';
@@ -25,14 +25,12 @@ import { MethodologySelector } from './MethodologySelector';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { calculateZakat } from '../../core/calculations/zakat';
 import { calculateNisabThreshold, DEFAULT_NISAB_DATA } from '../../core/calculations/nisab';
-import { useDb } from '../../db';
 
 // Premium UI Imports
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { Input } from '../ui/Input';
-import { ShieldCheck, ArrowRight, Wallet, TrendingUp, DollarSign, Calculator, Lock } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Wallet, TrendingUp, Calculator, Lock } from 'lucide-react';
 
 export const ZakatCalculator: React.FC = () => {
   // Local DB Hooks
