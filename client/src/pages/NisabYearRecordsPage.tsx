@@ -29,7 +29,7 @@ import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
-import { CreateRecordModal, RecordPaymentModal, NisabRecordCard } from '../components/nisab';
+import { CreateRecordModal, RecordPaymentModal, NisabRecordCard, RecordRulingsPanel } from '../components/nisab';
 
 export const NisabYearRecordsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -115,7 +115,8 @@ export const NisabYearRecordsPage: React.FC = () => {
       const selectedAssets = allAssets.filter(a => assetIds.includes(a.id));
       const selectedLiabilities = allLiabilities.filter(l => liabilityIds.includes(l.id));
 
-      const { totalWealth, netZakatableWealth } = calculateWealth(selectedAssets, selectedLiabilities);
+      const userMethodology = ((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase();
+      const { totalWealth, netZakatableWealth } = calculateWealth(selectedAssets, selectedLiabilities, new Date(), userMethodology as any);
       const zakatAmount = netZakatableWealth >= threshold ? netZakatableWealth * 0.025 : 0;
 
       const startDate = date;
@@ -151,7 +152,8 @@ export const NisabYearRecordsPage: React.FC = () => {
   // Actions
   const handleRefreshAssets = async (recordId: string) => {
     try {
-      const { totalWealth, netZakatableWealth } = calculateWealth(allAssets, allLiabilities);
+      const userMethodology = ((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase();
+      const { totalWealth, netZakatableWealth } = calculateWealth(allAssets, allLiabilities, new Date(), userMethodology as any);
       const zakatAmount = netZakatableWealth * 0.025;
 
       await updateRecord(recordId, {
@@ -320,6 +322,18 @@ export const NisabYearRecordsPage: React.FC = () => {
             {activeRecord ? (
               <div className={`${!selectedRecordId ? 'hidden lg:block' : ''} space-y-4`}>
                 <ZakatDisplayCard record={activeRecord} />
+                <RecordRulingsPanel
+                  assets={allAssets
+                    .filter(a => a.isActive)
+                    .map(a => ({
+                      id: a.id,
+                      name: a.name || 'Unnamed asset',
+                      category: (a as any).category,
+                      type: (a as any).type,
+                      zakatEligible: (a as any).zakatEligible,
+                    }))}
+                  methodologyName={((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase()}
+                />
                 <HawlProgressIndicator record={activeRecord as any} />
                 <NisabComparisonWidget record={activeRecord} showDetails={true} />
 
