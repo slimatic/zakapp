@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.15.0] - 2026-09-04
+
+### 🕌 Multi-Madhab Transparency Engine — Per-Asset Rulings with Scholarly Citations
+
+#### Features
+- **Per-asset madhab ruling explanations** in the Zakat Calculator review step: every asset
+  now shows WHY it is zakatable or exempt under the chosen methodology, with the ruling,
+  plain-language reasoning, and named scholarly citations inline (#344)
+- **`AssetRulingExplanation` component**: expandable "Why?" per asset — status badge
+  (Zakatable / Exempt / your override), madhab-default explanation, override explanation when
+  the user's explicit `zakatEligible` setting differs from the madhab default, citation links
+  (Quran.com, sunnah.com, AAOIFI, SeekersGuidance, AMJA, FCNA), and scholar-consultation
+  disclaimer (#344)
+- **55-ruling registry** (`client/src/data/rulings.ts`): 5 methodologies × 11 asset types,
+  each with ruling + reasoning + citations. Pure `getAssetRuling()` mirrors the exact
+  decision chain of the calculation engine's `isAssetZakatable` — including the jewelry
+  exemption and explicit-override precedence — so explanations can never contradict the
+  numbers (#344)
+- **CI-enforced registry sync**: new test iterates every madhab × asset-type pair and fails
+  on missing/uncited rulings and on any parity drift with `isAssetZakatable` — the ruling
+  layer cannot silently diverge from the math (#344)
+- **Maliki and Hanbali educational content added** to `data/methodologies.ts` (previously
+  missing — only standard/hanafi/shafii/custom existed): full overview, historical context,
+  nisab rules, asset treatment, practical examples, sources; comparison table extended to
+  all schools (#344)
+
+#### Out of scope (follow-ups)
+- PDF report integration of the rulings
+- Compare-all-5-madhabs-on-my-portfolio view
+
+#### Tests
+- Server suite: 461 passing (unchanged — no server behavior touched)
+- Client suite: **471 passing, 15 skipped** (up from 458: +7 rulings registry,
+  +4 AssetRulingExplanation, +2 calculator rulings wiring)
+- Client PWA build verified (73-entry precache) on every PR
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.14.0...v0.15.0
+
 ## [0.14.0] - 2026-09-03 (interim release — ahead of the Jumada al-Thani cycle)
 
 ### 🌙 Ikhlas Night & Security Sweep — Dark Mode, Dependency Hardening, Code Health
