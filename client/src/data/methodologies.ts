@@ -28,7 +28,7 @@
  */
 
 export interface Methodology {
-  id: 'standard' | 'hanafi' | 'shafii' | 'custom';
+  id: 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom';
   name: string;
   shortDescription: string;
   icon: string;
@@ -319,6 +319,139 @@ export const methodologies: Record<string, Methodology> = {
 
     commonRegions: ['Variable - based on individual circumstances'],
     scholarlyBasis: 'Specific scholarly opinion (Fatwa) or combination of approaches'
+  },
+
+  maliki: {
+    id: 'maliki',
+    name: 'Maliki Method',
+    shortDescription: 'Madhab of Imam Malik — gold nisab, personal jewelry exempt, notable strictness on property held for appreciation',
+    icon: '🕌',
+
+    overview: `The Maliki methodology follows the school of Imam Malik ibn Anas (711-795 CE), rooted in the practice of the people of Madinah.
+    It uses the gold-based nisab, exempts modest personal-use jewelry, and is distinguished by treating land or property held for price appreciation
+    as zakatable trade goods — a position with practical consequences for real-estate holders.`,
+
+    historicalContext: `Imam Malik compiled the Muwatta, one of the earliest surviving books of hadith and fiqh, drawing on the living practice
+    of Madinah. Maliki jurisprudence is the dominant school in North, West, and parts of Sahel Africa, and has a strong tradition of
+    public-interest (maslahah) reasoning that shapes its contemporary Zakat rulings.`,
+
+    nisabCalculation: {
+      description: 'Based on the gold standard',
+      method: 'Gold-based nisab threshold (85g)',
+      threshold: '85 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
+    },
+
+    assetTreatment: {
+      description: 'Madhah-based categorization with Maliki-specific positions',
+      rules: [
+        'Cash and bank savings: 2.5% Zakat against the gold nisab',
+        'Personal jewelry (modest use): Exempt; hoarded or investment gold/silver zakatable',
+        'Business inventory: 2.5% on current market value after hawl',
+        'Land/property held for appreciation: treated as trade goods and zakatable (distinctive Maliki view)',
+        'Rental income: zakatable once held for a lunar year',
+        'Cryptocurrency: contemporary Maliki-oriented scholarship applies currency rules at market value',
+        'Debts owed to you: include when collectible; doubtful debts wait until recovered',
+        'Personal residence and personal-use items: not subject to Zakat'
+      ]
+    },
+
+    whenToUse: [
+      'You follow the Maliki school of jurisprudence',
+      'You are in a region with Maliki tradition (North/West Africa, Gulf coastal communities)',
+      'You hold property for appreciation and want the Maliki treatment applied',
+      'You want gold-based nisab with the personal jewelry exemption',
+      'Your local scholars recommend the Maliki method'
+    ],
+
+    practicalExample: {
+      scenario: 'Yusuf has $20,000 cash, $10,000 in personal jewelry, and a plot of land bought for $50,000 that he holds purely for price appreciation.',
+      calculation: 'Cash: $20,000 zakatable\\nPersonal jewelry (modest use): exempt\\nLand held for appreciation: $50,000 zakatable (Maliki trade-goods view)\\nTotal zakatable: $70,000\\nNisab (85g gold): $5,500 — exceeded ✓\\nZakat Due: $70,000 × 0.025',
+      result: '$1,750 Zakat due'
+    },
+
+    sources: [
+      'Al-Mudawwana al-Kubra (Maliki compendium)',
+      'Muwatta Imam Malik',
+      'SeekersGuidance Maliki Zakat answers',
+      'Contemporary Maliki fiqh councils'
+    ],
+
+    characteristics: [
+      'Gold-based nisab (85g)',
+      'Personal jewelry exempt (modest use)',
+      'Property held for appreciation treated as zakatable trade goods',
+      'Strong maslahah (public interest) reasoning for modern assets'
+    ],
+
+    commonRegions: ['North Africa', 'West Africa', 'Upper Guinea Coast', 'Parts of the Gulf'],
+    scholarlyBasis: 'Maliki Madhab — practice of the people of Madinah and maslahah-based extension'
+  },
+
+  hanbali: {
+    id: 'hanbali',
+    name: 'Hanbali Method',
+    shortDescription: 'Madhab of Imam Ahmad — gold nisab, personal jewelry exempt, conservative textual approach',
+    icon: '📜',
+
+    overview: `The Hanbali methodology follows the school of Imam Ahmad ibn Hanbal (780-855 CE), known for strict adherence to textual
+    sources (Quran and authentic hadith). It uses the gold-based nisab and exempts modest personal-use jewelry. For modern instruments
+    such as retirement funds, contemporary Hanbali-oriented scholarship commonly zakatizes effectively accessible balances while
+    deferring locked portions — confirm specifics with your scholar.`,
+
+    historicalContext: `Imam Ahmad ibn Hanbal, the compiler of the Musnad, was celebrated for his steadfastness during the Mihna.
+    His school flourished in the central Arabian Peninsula and shaped the Hanbali tradition that underlies much of contemporary
+    Saudi fiqh discourse, including modern Zakat institutional practice.`,
+
+    nisabCalculation: {
+      description: 'Based on the gold standard',
+      method: 'Gold-based nisab threshold (85g)',
+      threshold: '85 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
+    },
+
+    assetTreatment: {
+      description: 'Textual-foundation categorization',
+      rules: [
+        'Cash and bank savings: 2.5% Zakat against the gold nisab',
+        'Personal jewelry (modest use): Exempt; savings/hoarded gold and silver zakatable',
+        'Business inventory: 2.5% on market value after hawl',
+        'Investment accounts: zakatable at 2.5% of value',
+        'Cryptocurrency: contemporary Hanbali-oriented scholarship applies currency rules at market value',
+        'Retirement funds: accessible funds commonly zakatable; locked portions deferred per scholarly opinion',
+        'Debts owed to you: zakatable when collectible; hopeless debts deferred',
+        'Personal residence: not subject to Zakat'
+      ]
+    },
+
+    whenToUse: [
+      'You follow the Hanbali school of jurisprudence',
+      'You are in a region with Hanbali tradition (Arabian Peninsula)',
+      'You prefer a textually conservative methodology',
+      'You want gold-based nisab with the personal jewelry exemption',
+      'Your local scholars recommend the Hanbali method'
+    ],
+
+    practicalExample: {
+      scenario: 'Noura has $25,000 in savings, $12,000 in personal gold jewelry, and $15,000 in gold she holds as an investment.',
+      calculation: 'Cash: $25,000 zakatable\\nPersonal jewelry: exempt\\nInvestment gold: $15,000 zakatable\\nTotal zakatable: $40,000\\nNisab (85g gold): $5,500 — exceeded ✓\\nZakat Due: $40,000 × 0.025',
+      result: '$1,000 Zakat due'
+    },
+
+    sources: [
+      "Ibn Qudamah's Al-Mughni",
+      'Kashf al-Qina by al-Bahuti',
+      'SeekersGuidance Hanbali Zakat answers',
+      'Contemporary Hanbali scholarship (e.g., Permanent Committee fatwas)'
+    ],
+
+    characteristics: [
+      'Gold-based nisab (85g)',
+      'Personal jewelry exempt (modest use)',
+      'Strict grounding in textual sources',
+      'Deferred treatment of inaccessible funds pending scholarly guidance'
+    ],
+
+    commonRegions: ['Arabian Peninsula', 'Saudi Arabia', 'Gulf states'],
+    scholarlyBasis: 'Hanbali Madhab — textual primacy (Quran and authentic Sunnah)'
   }
 };
 
@@ -344,6 +477,8 @@ export interface MethodologyComparison {
   standard: string;
   hanafi: string;
   shafii: string;
+  maliki: string;
+  hanbali: string;
   custom: string;
 }
 
@@ -353,13 +488,17 @@ export const methodologyComparison: MethodologyComparison[] = [
     standard: '85g gold (~$5,500)',
     hanafi: '595g silver OR 85g gold (lower value)',
     shafii: '85g gold (~$5,500)',
+    maliki: '85g gold (~$5,500)',
+    hanbali: '85g gold (~$5,500)',
     custom: 'User-defined'
   },
   {
     feature: 'Zakat Rate',
     standard: '2.5% on all assets',
     hanafi: '2.5% on qualifying assets',
-    shafii: '2.5-20% by category',
+    shafii: '2.5% on zakatable categories',
+    maliki: '2.5% on zakatable categories',
+    hanbali: '2.5% on zakatable categories',
     custom: 'Configurable'
   },
   {
@@ -367,6 +506,8 @@ export const methodologyComparison: MethodologyComparison[] = [
     standard: 'Exempt (personal use)',
     hanafi: 'Zakatable (even personal)',
     shafii: 'Exempt (personal use)',
+    maliki: 'Exempt (modest personal use)',
+    hanbali: 'Exempt (modest personal use)',
     custom: 'User choice'
   },
   {
@@ -374,6 +515,8 @@ export const methodologyComparison: MethodologyComparison[] = [
     standard: 'Clear rules provided',
     hanafi: 'Scholarly guidance needed',
     shafii: 'Detailed categorization',
+    maliki: 'Maslahah-based extension',
+    hanbali: 'Textual grounding + scholarly guidance',
     custom: 'User-defined rules'
   },
   {
@@ -381,13 +524,17 @@ export const methodologyComparison: MethodologyComparison[] = [
     standard: 'Modern diverse portfolio',
     hanafi: 'Maximum charity impact',
     shafii: 'Detailed categorization',
+    maliki: 'Property-for-appreciation holders',
+    hanbali: 'Textually conservative approach',
     custom: 'Unique circumstances'
   },
   {
     feature: 'Scholarly Basis',
     standard: 'AAOIFI/Contemporary',
     hanafi: 'Hanafi Madhab',
-    shafii: 'Shafi\'i Madhab',
+    shafii: "Shafi'i Madhab",
+    maliki: 'Maliki Madhab',
+    hanbali: 'Hanbali Madhab',
     custom: 'Specific fatwa'
   }
 ];

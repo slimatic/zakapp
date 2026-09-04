@@ -21,7 +21,7 @@ export interface MethodologyCardProps {
   /**
    * Methodology identifier
    */
-  id: 'standard' | 'hanafi' | 'shafii' | 'custom';
+  id: 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom';
 
   /**
    * Display name of the methodology

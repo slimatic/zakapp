@@ -25,6 +25,8 @@ import { MethodologySelector } from './MethodologySelector';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { calculateZakat } from '../../core/calculations/zakat';
 import { calculateNisabThreshold, DEFAULT_NISAB_DATA } from '../../core/calculations/nisab';
+import { getAssetRuling, type AssetRuling } from '../../data/rulings';
+import { AssetRulingExplanation } from './AssetRulingExplanation';
 
 // Premium UI Imports
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/Card';
@@ -86,6 +88,21 @@ export const ZakatCalculator: React.FC = () => {
       const assetsToCalc = assets.filter(a => selectedAssets.includes(a.id));
       const result = calculateZakat(assetsToCalc, [], { gold: goldPrice * 87.48, silver: silverPrice * 612.36 }, methodology);
 
+      // Per-asset madhab ruling explanations (transparency engine)
+      const assetRulings: Array<{
+        assetId: string;
+        name: string;
+        type: AssetType;
+        value: number;
+        ruling: AssetRuling;
+      }> = assetsToCalc.map(a => ({
+        assetId: a.id,
+        name: a.name,
+        type: a.type,
+        value: a.value,
+        ruling: getAssetRuling(a, methodology),
+      }));
+
       setCalculation({
         id: 'local-calc',
         methodology: { name: selectedMethodology },
@@ -102,6 +119,7 @@ export const ZakatCalculator: React.FC = () => {
           zakatableAmount: data.zakatable,
           count: 0
         })),
+        assetRulings,
         reason: result.isZakatObligatory ? null : 'Net worth is below Nisab threshold.'
       });
 
@@ -244,6 +262,22 @@ export const ZakatCalculator: React.FC = () => {
                 <span className="font-medium text-slate-700">{formatCurrency(item.zakatableAmount)} (Zakatable)</span>
               </div>
             ))}
+
+            {/* Per-asset madhab rulings — why each asset is zakatable/exempt */}
+            {calculation.assetRulings && calculation.assetRulings.length > 0 && (
+              <div className="pt-3 space-y-2 border-t border-slate-100">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  Why each asset counts the way it does
+                </p>
+                {calculation.assetRulings.map((item: any) => (
+                  <AssetRulingExplanation
+                    key={item.assetId}
+                    ruling={item.ruling}
+                    assetName={item.name}
+                  />
+                ))}
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-3">
             <Button variant="outline" className="w-full" onClick={() => setCurrentStep(1)}>Edit Assets</Button>
