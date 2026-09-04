@@ -69,7 +69,6 @@ type Registry = Record<MethodologyName, Partial<Record<AssetType, RulingExplanat
 
 const quran = (ref: string, url: string): Citation => ({ text: `Quran ${ref}`, url });
 const hadith = (ref: string, url: string): Citation => ({ text: `Hadith — ${ref}`, url });
-const text = (ref: string): Citation => ({ text: ref });
 
 // Frequently reused citations
 const CIT = {
