@@ -130,6 +130,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       items: [
         { name: 'Assets', href: '/assets' },
         { name: 'Liabilities', href: '/liabilities' },
+        { name: 'Quick Calculator', href: '/calculator' },
       ]
     },
     {
