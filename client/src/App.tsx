@@ -75,7 +75,7 @@ const AssetImportExport = lazy(() => import('./components/assets').then(m => ({ 
 const AssetDetails = lazy(() => import('./components/assets').then(m => ({ default: m.AssetDetails })));
 
 // Zakat calculation and history
-// const ZakatCalculator = lazy(() => import('./components/zakat/ZakatCalculator').then(m => ({ default: m.ZakatCalculator })));
+const ZakatCalculator = lazy(() => import('./components/zakat/ZakatCalculator').then(m => ({ default: m.ZakatCalculator })));
 // const History = lazy(() => import('./components/history/History').then(m => ({ default: m.History })));
 
 // Auth pages - lazy loaded as they're separate flows
@@ -229,9 +229,23 @@ function App() {
                       }
                     />
 
+                    {/* Standalone Zakat Calculator (quick-mode) */}
+                    <Route
+                      path="/calculator"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <Suspense fallback={<PageLoadingFallback />}>
+                              <ZakatCalculator />
+                            </Suspense>
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
+
                     {/* History route hidden pending future implementation */}
-                    {/* <Route 
-                path="/history" 
+                    {/* <Route
+                path="/history"
                 element={
                   <ProtectedRoute>
                     <Layout>
