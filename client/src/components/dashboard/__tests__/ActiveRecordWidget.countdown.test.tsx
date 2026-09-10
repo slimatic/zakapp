@@ -9,6 +9,13 @@ import { MemoryRouter } from 'react-router-dom';
 import { PrivacyProvider } from '../../../contexts/PrivacyContext';
 import { ActiveRecordWidget } from '../ActiveRecordWidget';
 
+vi.mock('../../../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { settings: { currency: 'USD' } },
+    updateLocalProfile: vi.fn(),
+  }),
+}));
+
 vi.mock('../../../hooks/useNisabThreshold', () => ({
   useNisabThreshold: () => ({ nisabAmount: 5000, isLoading: false }),
 }));

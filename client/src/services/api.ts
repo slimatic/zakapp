@@ -352,6 +352,9 @@ class ApiService {
     includeAssets?: string[];
     includeLiabilities?: string[];
     customNisab?: number;
+    // Issue #310: display currency for the returned summary. Omitted →
+    // server resolves from the user's saved currency preference.
+    currency?: string;
   }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/calculate`, {
       method: 'POST',

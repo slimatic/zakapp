@@ -25,6 +25,7 @@ import { useUserSettingsRepository } from '../../hooks/useUserSettingsRepository
 import { getAssetZakatableValue, ZakatMethodology } from '../../core/calculations/zakat';
 import { Button, Card } from '../ui';
 import { usePrivacy } from '../../contexts/PrivacyContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const AssetList: React.FC = () => {
   const navigate = useNavigate();
@@ -44,6 +45,9 @@ export const AssetList: React.FC = () => {
 
   const { settings } = useUserSettingsRepository();
   const methodology = (settings?.preferredMethodology?.toUpperCase() || 'STANDARD') as ZakatMethodology;
+  // Currency resolution (#310): settings repo first, then auth-context profile, then USD.
+  const { user } = useAuth();
+  const userCurrency = (settings as any)?.currency || (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
 
   const { totalAssets, estimatedZakat } = useMemo(() => {
     const total = assets.reduce((sum, asset) => sum + asset.value, 0);
@@ -57,11 +61,11 @@ export const AssetList: React.FC = () => {
     };
   }, [assets, methodology]);
 
-  const formatCurrency = (value: number, currency = 'USD') => {
+  const formatCurrency = (value: number, currency?: string) => {
     if (privacyMode) return '****';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: currency || userCurrency,
       maximumFractionDigits: 0
     }).format(value);
   };

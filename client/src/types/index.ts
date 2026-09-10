@@ -98,6 +98,7 @@ export interface ZakatCalculation {
   zakatDue: number;
   methodology: ZakatMethodology;
   currency: string;
+  fxRateFromUSD?: number;
   calculatedAt: string;
   assets: Asset[];
   nisabMethod: 'GOLD' | 'SILVER' | 'DUAL';

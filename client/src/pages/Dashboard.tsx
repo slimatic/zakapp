@@ -266,7 +266,8 @@ export const Dashboard: React.FC = () => {
 
   // Get Nisab threshold (use live value for consistency with other pages)
   const nisabBasis = (activeRecord?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
-  const { nisabAmount } = useNisabThreshold('USD', nisabBasis);
+  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
+  const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
   const nisabThreshold = nisabAmount || 5000; // Default fallback
 
   // Loading state
@@ -364,13 +365,13 @@ export const Dashboard: React.FC = () => {
             <WealthSummaryCard
               totalWealth={totalWealth}
               nisabThreshold={nisabThreshold}
-              currency={(user as any)?.preferences?.currency || 'USD'}
+              currency={(user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD'}
             />
 
             <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
               <AssetsBreakdownChart
                 assets={assets}
-                currency={(user as any)?.preferences?.currency || 'USD'}
+                currency={(user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD'}
               />
             </div>
           </div>

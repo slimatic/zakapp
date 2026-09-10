@@ -20,7 +20,10 @@ export const ZakatSetupStep: React.FC = () => {
     const { addRecord } = useNisabRecordRepository();
     const { addPayment } = usePaymentRepository();
     const nisabBasis = (data.nisab.standard || 'GOLD').toUpperCase() as 'GOLD' | 'SILVER';
-    const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold('USD', nisabBasis);
+    // Use the user's chosen currency for nisab (#310) — onboarding saves asset
+    // values in that currency, so the threshold must be in the same currency.
+    const onboardingCurrency = data.settings?.currency || 'USD';
+    const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold(onboardingCurrency, nisabBasis);
     const navigate = useNavigate();
     const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as any);
 

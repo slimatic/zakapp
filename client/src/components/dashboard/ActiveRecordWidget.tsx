@@ -17,6 +17,7 @@
 
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
@@ -47,10 +48,13 @@ interface ActiveRecordWidgetProps {
  */
 export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }) => {
   const maskedCurrency = useMaskedCurrency();
+  const { user } = useAuth();
+  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
 
-  // Get live Nisab threshold for consistency
+  // Get live Nisab threshold for consistency — in the USER's currency (#310),
+  // not hardcoded USD: an IDR user's hawl progress must be measured against an IDR nisab.
   const nisabBasis = (record?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
-  const { nisabAmount } = useNisabThreshold('USD', nisabBasis);
+  const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
 
   // Hooks must be called unconditionally. Prepare memoized values and queries
   // using safe accessors so they can be evaluated even if `record` is null.

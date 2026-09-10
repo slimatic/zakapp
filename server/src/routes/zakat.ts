@@ -25,9 +25,16 @@ import { ZakatEngine } from '../services/zakatEngine';
 import { CurrencyService } from '../services/currencyService';
 import { CalendarService } from '../services/calendarService';
 import { NisabService } from '../services/NisabService';
+import { UserService } from '../services/UserService';
 import { PaymentRecordService } from '../services/payment-record.service';
 import { CalculationHistoryService } from '../services/CalculationHistoryService';
 import { PaymentRecordsController } from '../controllers/payment-records.controller';
+import { Logger } from '../utils/logger';
+
+// Issue #310: currencies the platform supports for display/conversion.
+// Mirrors the client CURRENCY_CONFIG list in client/src/utils/formatters.ts.
+const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'SAR', 'AED', 'EGP', 'TRY', 'INR', 'PKR', 'BDT', 'MYR', 'IDR'];
+const logger = new Logger('ZakatRoutes');
 import { z } from 'zod';
 import * as jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
@@ -75,7 +82,11 @@ const ZakatCalculationRequestSchema = z.object({
   calculationDate: z.string().optional(), // ISO date, defaults to today
   includeAssets: z.array(z.string()).optional(), // Asset IDs to include
   includeLiabilities: z.array(z.string()).optional(), // Liability IDs to include
-  customNisab: z.number().optional() // Custom nisab threshold
+  customNisab: z.number().optional(), // Custom nisab threshold
+  // Issue #310: display currency for the calculation result. If omitted the
+  // server resolves it from the authenticated user's saved currency preference.
+  // The engine still computes in USD internally and converts the OUTPUT.
+  currency: z.string().length(3).optional()
 });
 
 /**
@@ -172,6 +183,46 @@ router.post('/calculate',
 
       const netWorth = result.result.totals.totalAssets - liabilityData.total;
 
+      // Issue #310: present results in the USER's currency. The engine computes
+      // in USD internally; convert the OUTPUT numbers so an IDR user sees IDR
+      // totals and an IDR nisab. Resolution order: explicit request currency →
+      // user's saved preference → USD.
+      let displayCurrency = typeof req.body.currency === 'string' ? req.body.currency.toUpperCase() : '';
+      if (!displayCurrency) {
+        try {
+          const settings = await new UserService().getSettings(req.userId!);
+          const saved = (settings as { currency?: string }).currency;
+          if (typeof saved === 'string' && saved.trim()) displayCurrency = saved.toUpperCase();
+        } catch {
+          // Settings unavailable — fall through to USD
+        }
+      }
+      if (!SUPPORTED_CURRENCIES.includes(displayCurrency)) displayCurrency = 'USD';
+
+      let presentation = {
+        totalAssets: result.result.totals.totalAssets,
+        totalZakatDue: result.result.totals.totalZakatDue,
+        netWorth,
+        nisabThreshold: result.result.nisab.effectiveNisab
+      };
+      let fxRate = 1.0;
+      if (displayCurrency !== 'USD') {
+        try {
+          fxRate = await currencyService.getExchangeRate('USD', displayCurrency);
+          presentation = {
+            totalAssets: presentation.totalAssets * fxRate,
+            totalZakatDue: presentation.totalZakatDue * fxRate,
+            netWorth: presentation.netWorth * fxRate,
+            nisabThreshold: presentation.nisabThreshold * fxRate
+          };
+        } catch (err) {
+          logger.warn(`FX conversion to ${displayCurrency} failed, presenting USD: ${err instanceof Error ? err.message : err}`);
+          displayCurrency = 'USD';
+          fxRate = 1.0;
+        }
+      }
+      const displayNetWorth = presentation.netWorth;
+
       const savedCalculation = await prisma.zakatCalculation.create({
         data: {
           userId: req.userId!,
@@ -230,14 +281,16 @@ router.post('/calculate',
           methodology: result.methodology.id,
           calendarType: result.result.calendarType,
           summary: {
-            totalAssets: result.result.totals.totalAssets,
-            totalLiabilities: liabilityData.total,
-            netWorth,
-            nisabThreshold: result.result.nisab.effectiveNisab,
-            nisabSource: result.result.nisab.nisabBasis,
-            isZakatObligatory: result.result.meetsNisab,
-            zirconYearAmount: result.result.totals.totalZakatDue,
-            zirconYearRate: result.methodology.zakatRate
+          totalAssets: presentation.totalAssets,
+          totalLiabilities: liabilityData.total,
+          netWorth: displayNetWorth,
+          nisabThreshold: presentation.nisabThreshold,
+          nisabSource: result.result.nisab.nisabBasis,
+          isZakatObligatory: result.result.meetsNisab,
+          zakatDue: presentation.totalZakatDue,
+          zakatRate: result.methodology.zakatRate,
+          currency: displayCurrency,
+          fxRateFromUSD: fxRate
           },
            breakdown: {
              assetsByCategory: groupAssetsByCategory(result.result.assets),
@@ -272,24 +325,46 @@ router.post('/calculate',
  * GET /api/zakat/nisab
  * Get current nisab thresholds (matches API contract)
  */
-router.get('/nisab', async (req, res: Response) => {
+router.get('/nisab', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const nisabService = new NisabService();
+    const userService = new UserService();
+    const logger = new Logger('ZakatRoutes');
 
-    // Get nisab information for standard methodology
-    const nisabInfo = await nisabService.calculateNisab('standard', 'USD');
+    // Currency resolution order (issue #310):
+    // 1. Explicit ?currency= query param (explicit user intent for this call)
+    // 2. Authenticated user's saved currency preference (settings.currency, encrypted blob)
+    // 3. USD fallback
+    // Never silently default to USD when the user has a preference — an IDR user
+    // must get an IDR nisab or their zakat due is mis-stated by the FX rate.
+    const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'SAR', 'AED', 'EGP', 'TRY', 'INR', 'PKR', 'BDT', 'MYR', 'IDR'];
+    let currency = typeof req.query.currency === 'string' ? req.query.currency.toUpperCase() : '';
+    if (!currency) {
+      try {
+        const settings = await userService.getSettings(req.userId!);
+        const saved = (settings as { currency?: string }).currency;
+        if (typeof saved === 'string' && saved.trim()) currency = saved.toUpperCase();
+      } catch (err) {
+        logger.warn(`Could not load user currency preference, falling back to USD: ${err instanceof Error ? err.message : err}`);
+      }
+    }
+    if (!SUPPORTED_CURRENCIES.includes(currency)) currency = 'USD';
+
+    const methodology = typeof req.query.methodology === 'string' ? req.query.methodology : 'standard';
+    const nisabInfo = await nisabService.calculateNisab(methodology, currency);
 
     const response = createResponse(true, {
       effectiveDate: new Date().toISOString(),
+      currency,
       goldPrice: {
         pricePerGram: nisabInfo.goldNisab / 87.48, // Approximate grams for gold nisab
-        currency: 'USD',
+        currency,
         nisabGrams: 87.48,
         nisabValue: nisabInfo.goldNisab
       },
       silverPrice: {
         pricePerGram: nisabInfo.silverNisab / 612.36, // Approximate grams for silver nisab
-        currency: 'USD',
+        currency,
         nisabGrams: 612.36,
         nisabValue: nisabInfo.silverNisab
       },
