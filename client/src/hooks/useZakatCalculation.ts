@@ -37,6 +37,8 @@ export const useCalculateZakat = () => {
       includeAssets?: string[];
       includeLiabilities?: string[];
       customNisab?: number;
+      // Issue #310: display currency for the returned summary.
+      currency?: string;
     }) => {
       const response = await apiService.calculateZakat(options);
 
@@ -94,6 +96,8 @@ export const useCalculateZakatOptimistic = () => {
       includeAssets?: string[];
       includeLiabilities?: string[];
       customNisab?: number;
+      // Issue #310: display currency for the returned summary.
+      currency?: string;
     }) => {
       const response = await apiService.calculateZakat(options);
 

@@ -32,6 +32,8 @@ interface ZakatCalculation {
     isZakatObligatory: boolean;
     zakatAmount: number;
     zakatRate: number;
+    currency?: string;
+    fxRateFromUSD?: number;
   };
   breakdown: {
     assetsByCategory: Array<{
@@ -87,7 +89,7 @@ export const ZakatResults: React.FC<ZakatResultsProps> = ({
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: calculation.summary?.currency || 'USD',
       minimumFractionDigits: 2
     }).format(amount);
   };

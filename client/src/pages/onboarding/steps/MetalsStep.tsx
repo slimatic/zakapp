@@ -5,7 +5,10 @@ import { useMaskedCurrency } from '../../../contexts/PrivacyContext';
 
 export const MetalsStep: React.FC = () => {
     const { data, updateAsset, nextStep, prevStep } = useOnboarding();
-    const { goldPrice, silverPrice, isLoading } = useNisabThreshold('USD', 'GOLD'); // Fetch both
+    // Fetch metal prices in the USER's chosen currency (#310) — values entered
+    // during onboarding are saved in that currency, so USD prices would misstate wealth.
+    const userCurrency = data.settings?.currency || 'USD';
+    const { goldPrice, silverPrice, isLoading } = useNisabThreshold(userCurrency, 'GOLD');
     const maskedCurrency = useMaskedCurrency();
 
     // Auto-calculate values when grams change
@@ -54,7 +57,7 @@ export const MetalsStep: React.FC = () => {
                                 Gold (24k)
                             </label>
                             <span className="text-xs font-mono bg-amber-100 text-amber-800 px-2 py-1 rounded">
-                                Live: {isLoading ? '...' : formatCurrency(goldPrice || 0)}/g
+                                Live: {isLoading ? '...' : formatCurrency(goldPrice || 0)}/g · {userCurrency}
                             </span>
                         </div>
                         <div className="flex gap-4">
