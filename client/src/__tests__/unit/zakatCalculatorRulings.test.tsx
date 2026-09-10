@@ -65,8 +65,17 @@ vi.mock('../../hooks/useAssetRepository', () => ({
 vi.mock('../../services/api', () => ({
   apiService: {
     getNisab: vi.fn().mockResolvedValue({ success: false, data: null }),
+    getFxRates: vi.fn().mockResolvedValue({ success: false, data: null }),
     recordPayment: vi.fn().mockResolvedValue({ success: true }),
   },
+}));
+
+// ZakatCalculator now reads the user's currency via useAuth (#310 round 4)
+vi.mock('../../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { settings: { currency: 'USD' } },
+    updateLocalProfile: vi.fn(),
+  }),
 }));
 
 // Mock react-router navigation if the component uses it

@@ -90,7 +90,12 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff}'],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
-          navigateFallback: '/offline.html',
+          // Issue #310 (round 4, PWA): the app shell (index.html) is precached,
+          // so navigations must fall back to IT — never to offline.html. With
+          // offline.html here, any transient index fetch failure served the
+          // offline page for normal in-app navigation and "Try Again" could
+          // never recover (the precached offline page kept being returned).
+          navigateFallback: '/index.html',
           navigateFallbackDenylist: [/^\/api\//, /^\/_\//, /^\/health/],
           cleanupOutdatedCaches: true,
           sourcemap: true,

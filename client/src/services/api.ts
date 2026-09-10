@@ -410,8 +410,25 @@ class ApiService {
 
 
 
-  async getNisab(): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/zakat/nisab`, {
+  async getNisab(currency?: string): Promise<ApiResponse> {
+    // Issue #310: always send the user's currency explicitly — the server-side
+    // settings store may not be populated for pre-fix users, and the nisab MUST
+    // come back in the currency the UI is displaying.
+    const url = currency
+      ? `${API_BASE_URL}/zakat/nisab?currency=${encodeURIComponent(currency.toUpperCase())}`
+      : `${API_BASE_URL}/zakat/nisab`;
+    const response = await fetch(url, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  /**
+   * Exchange rates with USD as base (rates[code] = 1 USD in code).
+   * Used to normalize mixed-currency assets before summing (#310 round 4).
+   */
+  async getFxRates(): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/zakat/fx-rates`, {
       headers: this.getAuthHeaders()
     });
     return this.handleResponse(response);

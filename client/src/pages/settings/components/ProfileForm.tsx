@@ -107,7 +107,24 @@ export const ProfileForm: React.FC = () => {
     const profileMutation = useMutation({
         mutationFn: async (data: ProfileFormData & { hijriAdjustment: number }) => {
             // Update general profile
+            // Issue #310 (round 4): the profile blob (preferences.currency) and the
+            // encrypted settings blob (settings.currency) are TWO stores. The server's
+            // currency resolver (PR #348) reads settings.currency, so a Settings save
+            // MUST write both or /api/zakat/nisab keeps returning the old currency.
             const profileResult = await apiService.updateProfile(data);
+
+            // Keep the server-side settings store in sync with the chosen currency.
+            try {
+                const currentSettings = await apiService.getSettings();
+                await apiService.updateSettings({
+                    ...(currentSettings?.success && currentSettings.data ? currentSettings.data : {}),
+                    currency: data.preferences.currency
+                });
+            } catch (settingsError) {
+                // Non-fatal: profile store still updated; refreshUser() below will
+                // surface the divergence and the resolver falls back to USD safely.
+                console.error('Failed to sync currency into user settings', settingsError);
+            }
 
             // Update calendar preferences separately via new calendar API
             const calendarPrefs = {

@@ -19,6 +19,7 @@ import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { AssetType, NisabInfo } from '../../types';
 import { apiService } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import { PaymentModal } from './PaymentModal';
 import { MethodologySelector } from './MethodologySelector';
 // Local-First Imports
@@ -37,6 +38,8 @@ import { ShieldCheck, ArrowRight, Wallet, TrendingUp, Calculator, Lock } from 'l
 export const ZakatCalculator: React.FC = () => {
   // Local DB Hooks
   const { assets, isLoading: isLoadingAssets, error: assetsError } = useAssetRepository();
+  const { user } = useAuth();
+  const userCurrency = ((user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD').toUpperCase();
 
   const [nisabInfo, setNisabInfo] = useState<NisabInfo | null>(null);
   const [selectedMethodology, setSelectedMethodology] = useState<string>('standard');
@@ -48,7 +51,7 @@ export const ZakatCalculator: React.FC = () => {
 
   useEffect(() => {
     loadNisabData();
-  }, []);
+  }, [userCurrency]);
 
   // Auto-select new assets when they load
   useEffect(() => {
@@ -59,7 +62,9 @@ export const ZakatCalculator: React.FC = () => {
 
   const loadNisabData = async () => {
     try {
-      const nisabResponse = await apiService.getNisab();
+      // Issue #310: pass the user's currency explicitly so the nisab comes
+      // back in the currency this page displays.
+      const nisabResponse = await apiService.getNisab(userCurrency);
       if (nisabResponse.success && nisabResponse.data) {
         setNisabInfo(nisabResponse.data);
       } else {
@@ -339,7 +344,7 @@ export const ZakatCalculator: React.FC = () => {
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
           zakatAmount={calculation.zakatDue || 0}
-          currency="USD"
+          currency={userCurrency}
           onPaymentRecorded={() => toast.success("Payment Recorded!")}
         />
       )}

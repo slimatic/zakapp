@@ -385,6 +385,21 @@ router.get('/nisab', optionalAuthenticate, async (req: AuthenticatedRequest, res
         } catch (err) {
           logger.warn(`Could not load user currency preference, falling back to USD: ${err instanceof Error ? err.message : err}`);
         }
+        // Round 4 (#310): the Settings UI historically wrote only the profile
+        // blob (profile.preferences.currency). If the settings blob has no
+        // currency yet, fall back to the profile store so a user who picked a
+        // currency in Settings before this fix still gets their preference.
+        if (!currency) {
+          try {
+            const profile = await userService.getProfile(req.userId);
+            const profileSettings = (profile as { settings?: { currency?: string } }).settings || {};
+            const profilePrefs = (profile as { preferences?: { currency?: string } }).preferences;
+            const profileCurrency = profileSettings.currency || profilePrefs?.currency;
+            if (typeof profileCurrency === 'string' && profileCurrency.trim()) currency = profileCurrency.toUpperCase();
+          } catch (err) {
+            logger.warn(`Could not load profile currency fallback, using USD: ${err instanceof Error ? err.message : err}`);
+          }
+        }
       }
     }
     if (!SUPPORTED_CURRENCIES.includes(currency)) currency = 'USD';
@@ -420,6 +435,47 @@ router.get('/nisab', optionalAuthenticate, async (req: AuthenticatedRequest, res
       details: [error instanceof Error ? error.message : 'Unknown error']
     });
     res.status(500).json(response);
+  }
+});
+
+/**
+ * GET /api/zakat/fx-rates
+ * Exchange rates with USD as base (rates[X] = 1 USD in X).
+ * Used by the client to normalize mixed-currency asset lists into the
+ * user's display currency before summing (issue #310, round 4).
+ * Optional auth: onboarding and logged-out users still need conversion.
+ */
+router.get('/fx-rates', optionalAuthenticate, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const currencyService = new CurrencyService();
+    const SUPPORTED = ['USD', 'EUR', 'GBP', 'SAR', 'AED', 'EGP', 'TRY', 'INR', 'PKR', 'BDT', 'MYR', 'IDR'];
+
+    const ratesToUSD = await currencyService.getAllRatesToUSD();
+    // ratesToUSD[X].rate = X → USD. Invert to get USD → X (base USD = 1).
+    const rates: Record<string, number> = { USD: 1 };
+    for (const [code, info] of Object.entries(ratesToUSD)) {
+      if (typeof info?.rate === 'number' && info.rate > 0) {
+        rates[code] = 1 / info.rate;
+      }
+    }
+    // Guarantee every supported currency has an entry (fallback rates inside
+    // the service keep this from being 1:1 silently for common pairs).
+    for (const code of SUPPORTED) {
+      if (!(code in rates)) rates[code] = 1;
+    }
+
+    res.status(200).json(createResponse(true, {
+      base: 'USD',
+      rates,
+      lastUpdated: new Date().toISOString()
+    }));
+  } catch (error) {
+    const response = createResponse(false, undefined, {
+      code: 'FX_RATES_ERROR',
+      message: 'Failed to retrieve exchange rates',
+      details: [error instanceof Error ? error.message : 'Unknown error']
+    });
+    res.status(502).json(response);
   }
 });
 
