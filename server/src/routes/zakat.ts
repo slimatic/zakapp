@@ -18,7 +18,7 @@
 import * as express from 'express';
 import { Response, Request } from 'express';
 import { AuthenticatedRequest } from '../types';
-import { authenticate } from '../middleware/AuthMiddleware';
+import { authenticate, optionalAuthenticate } from '../middleware/AuthMiddleware';
 import { validateSchema } from '../middleware/ValidationMiddleware';
 import { asyncHandler } from '../middleware/ErrorHandler';
 import { ZakatEngine } from '../services/zakatEngine';
@@ -201,6 +201,7 @@ router.post('/calculate',
 
       let presentation = {
         totalAssets: result.result.totals.totalAssets,
+        totalLiabilities: liabilityData.total,
         totalZakatDue: result.result.totals.totalZakatDue,
         netWorth,
         nisabThreshold: result.result.nisab.effectiveNisab
@@ -211,6 +212,7 @@ router.post('/calculate',
           fxRate = await currencyService.getExchangeRate('USD', displayCurrency);
           presentation = {
             totalAssets: presentation.totalAssets * fxRate,
+            totalLiabilities: presentation.totalLiabilities * fxRate,
             totalZakatDue: presentation.totalZakatDue * fxRate,
             netWorth: presentation.netWorth * fxRate,
             nisabThreshold: presentation.nisabThreshold * fxRate
@@ -273,7 +275,48 @@ router.post('/calculate',
         // Note: Failed to save calculation to history
       }
 
-      // Transform result to match API contract format
+      // Issue #310 (review fix B2): convert breakdown money fields into the
+      // display currency so they match summary.totalAssets / summary.currency.
+      const convertBreakdown = (breakdown: typeof result.breakdown) => {
+        const scaleCategories = (categories: Array<{ category: string; totalValue: number; assetCount: number; assets: Array<Record<string, unknown>> }>) =>
+          categories.map(cat => ({
+            ...cat,
+            totalValue: cat.totalValue * fxRate,
+            assets: cat.assets.map(asset => ({
+              ...asset,
+              value: typeof asset.value === 'number' ? asset.value * fxRate : asset.value,
+              zakatableValue: typeof asset.zakatableValue === 'number' ? asset.zakatableValue * fxRate : asset.zakatableValue,
+              zakatAmount: typeof asset.zakatAmount === 'number' ? asset.zakatAmount * fxRate : asset.zakatAmount
+            }))
+          }));
+
+        return {
+          ...breakdown,
+          assetCalculations: Array.isArray((breakdown as Record<string, unknown>).assetCalculations)
+            ? (breakdown as { assetCalculations: Array<Record<string, unknown>> }).assetCalculations.map((calc: Record<string, unknown>) => ({
+                ...calc,
+                totalValue: typeof calc.totalValue === 'number' ? calc.totalValue * fxRate : calc.totalValue,
+                zakatableValue: typeof calc.zakatableValue === 'number' ? calc.zakatableValue * fxRate : calc.zakatableValue,
+                zakatAmount: typeof calc.zakatAmount === 'number' ? calc.zakatAmount * fxRate : calc.zakatAmount
+              }))
+            : (breakdown as Record<string, unknown>).assetCalculations,
+          assetsByCategory: scaleCategories(groupAssetsByCategory(result.result.assets)),
+          liabilities: liabilityData.liabilities.map(l => ({
+            ...l,
+            amount: l.amount * fxRate
+          })),
+          methodologyRules: {
+            nisabCalculation: {
+              ...result.result.nisab,
+              effectiveNisab: result.result.nisab.effectiveNisab * fxRate
+            },
+            assetTreatment: result.methodology.businessAssetTreatment,
+            liabilityDeduction: result.methodology.debtDeduction
+          }
+        };
+      };
+      const convertedBreakdown = convertBreakdown(result.breakdown);
+
       const response = createResponse(true, {
         calculation: {
           id: savedCalculation.id,
@@ -282,7 +325,7 @@ router.post('/calculate',
           calendarType: result.result.calendarType,
           summary: {
           totalAssets: presentation.totalAssets,
-          totalLiabilities: liabilityData.total,
+          totalLiabilities: presentation.totalLiabilities,
           netWorth: displayNetWorth,
           nisabThreshold: presentation.nisabThreshold,
           nisabSource: result.result.nisab.nisabBasis,
@@ -292,17 +335,9 @@ router.post('/calculate',
           currency: displayCurrency,
           fxRateFromUSD: fxRate
           },
-           breakdown: {
-             assetsByCategory: groupAssetsByCategory(result.result.assets),
-             liabilities: liabilityData.liabilities,
-             methodologyRules: {
-               nisabCalculation: result.result.nisab,
-               assetTreatment: result.methodology.businessAssetTreatment,
-               liabilityDeduction: result.methodology.debtDeduction
-             }
-           },
+           breakdown: convertedBreakdown,
           educationalContent: {
-            nisabExplanation: `Nisab threshold of ${result.result.nisab.effectiveNisab} based on ${result.result.nisab.nisabBasis}`,
+            nisabExplanation: `Nisab threshold of ${presentation.nisabThreshold} based on ${result.result.nisab.nisabBasis}`,
             methodologyExplanation: result.methodology.explanation,
             scholarlyReferences: result.methodology.scholarlyBasis
           }
@@ -325,7 +360,7 @@ router.post('/calculate',
  * GET /api/zakat/nisab
  * Get current nisab thresholds (matches API contract)
  */
-router.get('/nisab', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/nisab', optionalAuthenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const nisabService = new NisabService();
     const userService = new UserService();
@@ -340,12 +375,16 @@ router.get('/nisab', authenticate, async (req: AuthenticatedRequest, res: Respon
     const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'SAR', 'AED', 'EGP', 'TRY', 'INR', 'PKR', 'BDT', 'MYR', 'IDR'];
     let currency = typeof req.query.currency === 'string' ? req.query.currency.toUpperCase() : '';
     if (!currency) {
-      try {
-        const settings = await userService.getSettings(req.userId!);
-        const saved = (settings as { currency?: string }).currency;
-        if (typeof saved === 'string' && saved.trim()) currency = saved.toUpperCase();
-      } catch (err) {
-        logger.warn(`Could not load user currency preference, falling back to USD: ${err instanceof Error ? err.message : err}`);
+      // Only attempt preference lookup for authenticated callers (B3: route is
+      // optional-auth so pre-auth onboarding still works); anonymous → USD.
+      if (req.userId) {
+        try {
+          const settings = await userService.getSettings(req.userId);
+          const saved = (settings as { currency?: string }).currency;
+          if (typeof saved === 'string' && saved.trim()) currency = saved.toUpperCase();
+        } catch (err) {
+          logger.warn(`Could not load user currency preference, falling back to USD: ${err instanceof Error ? err.message : err}`);
+        }
       }
     }
     if (!SUPPORTED_CURRENCIES.includes(currency)) currency = 'USD';
