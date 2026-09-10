@@ -26,6 +26,8 @@ import { getAssetZakatableValue, ZakatMethodology } from '../../core/calculation
 import { Button, Card } from '../ui';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useFxRates } from '../../services/apiHooks';
+import { normalizeAssetsToCurrency, FxRates } from '../../utils/currencyNormalization';
 
 export const AssetList: React.FC = () => {
   const navigate = useNavigate();
@@ -48,10 +50,14 @@ export const AssetList: React.FC = () => {
   // Currency resolution (#310): settings repo first, then auth-context profile, then USD.
   const { user } = useAuth();
   const userCurrency = (settings as any)?.currency || (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
+  const fxRatesQuery = useFxRates();
+  const fxRates = fxRatesQuery?.data?.data?.rates as FxRates | undefined;
 
   const { totalAssets, estimatedZakat } = useMemo(() => {
-    const total = assets.reduce((sum, asset) => sum + asset.value, 0);
-    const zakatable = assets.reduce((sum, asset) => {
+    // Issue #310 (round 4): normalize mixed currencies before summing.
+    const normalized = normalizeAssetsToCurrency(assets, userCurrency, fxRates);
+    const total = normalized.reduce((sum, asset) => sum + (asset.value || 0), 0);
+    const zakatable = normalized.reduce((sum, asset) => {
       const zVal = getAssetZakatableValue(asset, methodology);
       return sum + zVal;
     }, 0);
@@ -59,7 +65,7 @@ export const AssetList: React.FC = () => {
       totalAssets: total,
       estimatedZakat: zakatable * 0.025
     };
-  }, [assets, methodology]);
+  }, [assets, methodology, userCurrency, fxRates]);
 
   const formatCurrency = (value: number, currency?: string) => {
     if (privacyMode) return '****';

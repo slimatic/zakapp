@@ -24,6 +24,8 @@ import { Badge } from '../ui/Badge';
 import { Wallet, Calculator, TrendingUp, History, ArrowRight } from 'lucide-react';
 import { isAssetZakatable } from '../../core/calculations/zakat';
 import { useAuth } from '../../contexts/AuthContext';
+import { useFxRates } from '../../services/apiHooks';
+import { sumAssetsInCurrency, FxRates } from '../../utils/currencyNormalization';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -32,17 +34,22 @@ export const Dashboard: React.FC = () => {
 
   // Use Local-First hook instead of API
   const { assets, isLoading } = useAssetRepository();
+  const fxRatesQuery = useFxRates();
+  const fxRates = fxRatesQuery?.data?.data?.rates as FxRates | undefined;
 
-  // Simple metrics calculation from local data
+  // Simple metrics calculation from local data.
+  // Issue #310 (round 4): normalize every asset into the user's display
+  // currency BEFORE summing — raw sums of mixed currencies were nonsense.
   const dashboardMetrics = useMemo(() => {
     const methodology = (user?.settings?.preferredMethodology || 'STANDARD').toUpperCase();
 
-    const totalAssetValue = assets.reduce((sum, asset) => sum + (asset.value || 0), 0);
+    const normalized = sumAssetsInCurrency(assets, userCurrency, fxRates);
+    const totalAssetValue = normalized.converted ? normalized.total : 0;
     const zakatableAssets = assets.filter(a => isAssetZakatable(a, methodology as any)).length;
-    return { totalAssetValue, zakatableAssets };
-  }, [assets, user]);
+    return { totalAssetValue, zakatableAssets, converted: normalized.converted };
+  }, [assets, user, userCurrency, fxRates]);
 
-  const { totalAssetValue, zakatableAssets } = dashboardMetrics;
+  const { totalAssetValue, zakatableAssets, converted } = dashboardMetrics;
 
   const formatCurrency = (amount: number, currency?: string): string => {
     return new Intl.NumberFormat('en-US', {
@@ -96,7 +103,9 @@ export const Dashboard: React.FC = () => {
               {formatCurrency(totalAssetValue)}
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Across {assets.length} tracked assets
+              {converted
+                ? `Across ${assets.length} tracked assets`
+                : 'Updating exchange rates…'}
             </p>
           </CardContent>
         </Card>

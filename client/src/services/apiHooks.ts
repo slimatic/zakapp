@@ -17,6 +17,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiService, UpdateProfileRequest, CreateAssetRequest, UpdateAssetRequest, AssetFilters } from './api';
+import { useAuth } from '../contexts/AuthContext';
 
 // Authentication hooks
 export const useLogin = () => {
@@ -145,6 +146,8 @@ export const useZakatCalculation = () => {
       includeAssets?: string[];
       includeLiabilities?: string[];
       customNisab?: number;
+      // Issue #310: display currency for the returned summary
+      currency?: string;
     }) => apiService.calculateZakat(calculationData),
   });
 };
@@ -166,10 +169,23 @@ export const useZakatMethodologies = () => {
 };
 
 export const useNisabThresholds = () => {
+  const { user } = useAuth();
+  const userCurrency = ((user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD').toUpperCase();
   return useQuery({
-    queryKey: ['zakat', 'nisab'],
-    queryFn: () => apiService.getNisab(),
+    queryKey: ['zakat', 'nisab', userCurrency],
+    queryFn: () => apiService.getNisab(userCurrency),
     staleTime: 60 * 60 * 1000, // 1 hour - nisab thresholds updated daily
+  });
+};
+
+// Issue #310 (round 4): USD-based FX rates for normalizing mixed-currency
+// asset/liability lists before summing (see utils/currencyNormalization.ts).
+export const useFxRates = () => {
+  return useQuery({
+    queryKey: ['zakat', 'fx-rates'],
+    queryFn: () => apiService.getFxRates(),
+    staleTime: 60 * 60 * 1000, // 1 hour - rates refresh hourly at most
+    retry: 1,
   });
 };
 

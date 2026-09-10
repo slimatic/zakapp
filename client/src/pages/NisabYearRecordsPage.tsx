@@ -29,6 +29,8 @@ import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
+import { useFxRates } from '../services/apiHooks';
+import { normalizeAssetsToCurrency, normalizeLiabilitiesToCurrency, FxRates } from '../utils/currencyNormalization';
 import { CreateRecordModal, RecordPaymentModal, NisabRecordCard, RecordRulingsPanel } from '../components/nisab';
 
 export const NisabYearRecordsPage: React.FC = () => {
@@ -53,6 +55,20 @@ export const NisabYearRecordsPage: React.FC = () => {
   const { user } = useAuth();
   const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
   const defaultNisabBasis = (user?.settings?.preferredNisabStandard as 'GOLD' | 'SILVER') || 'GOLD';
+
+  // Issue #310 (round 4): assets may be stored in mixed currencies (e.g. USD
+  // seed data + an IDR car). Normalize everything into the user's display
+  // currency BEFORE calculateWealth sums them, so totals are homogeneous.
+  const fxRatesQuery = useFxRates();
+  const fxRates = fxRatesQuery?.data?.data?.rates as FxRates | undefined;
+  const normalizedAssets = React.useMemo(
+    () => normalizeAssetsToCurrency(allAssets, userCurrency, fxRates),
+    [allAssets, userCurrency, fxRates]
+  );
+  const normalizedLiabilities = React.useMemo(
+    () => normalizeLiabilitiesToCurrency(allLiabilities, userCurrency, fxRates),
+    [allLiabilities, userCurrency, fxRates]
+  );
 
   // Filter records locally
   const records = React.useMemo(() => {
@@ -112,8 +128,8 @@ export const NisabYearRecordsPage: React.FC = () => {
     const { assetIds, liabilityIds, basis, date, nisabAmount: threshold } = payload;
 
     try {
-      const selectedAssets = allAssets.filter(a => assetIds.includes(a.id));
-      const selectedLiabilities = allLiabilities.filter(l => liabilityIds.includes(l.id));
+      const selectedAssets = normalizedAssets.filter(a => assetIds.includes(a.id));
+      const selectedLiabilities = normalizedLiabilities.filter(l => liabilityIds.includes(l.id));
 
       const userMethodology = ((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase();
       const { totalWealth, netZakatableWealth } = calculateWealth(selectedAssets, selectedLiabilities, new Date(), userMethodology as any);
@@ -153,7 +169,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const handleRefreshAssets = async (recordId: string) => {
     try {
       const userMethodology = ((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase();
-      const { totalWealth, netZakatableWealth } = calculateWealth(allAssets, allLiabilities, new Date(), userMethodology as any);
+      const { totalWealth, netZakatableWealth } = calculateWealth(normalizedAssets, normalizedLiabilities, new Date(), userMethodology as any);
       const zakatAmount = netZakatableWealth * 0.025;
 
       await updateRecord(recordId, {

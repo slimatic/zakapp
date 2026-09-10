@@ -134,3 +134,33 @@ describe('issue #310 — client call-sites use the user currency', () => {
     expect(src).not.toMatch(/formatCurrency = \(value: number,\s*currency = 'USD'/);
   });
 });
+
+describe('issue #310 round 4 — profile-store fallback + FX endpoint', () => {
+  const readRepo = (rel: string) =>
+    fs.readFileSync(path.join(__dirname, rel), 'utf-8');
+
+  it('/nisab falls back to the profile store when settings.currency is unset', () => {
+    const zakatRoutes = readRepo('../../src/routes/zakat.ts');
+    const nisabBlock = zakatRoutes.slice(
+      zakatRoutes.indexOf("router.get('/nisab'"),
+      zakatRoutes.indexOf("router.get('/fx-rates'")
+    );
+    // Pre-fix users have currency ONLY in profile.preferences.currency —
+    // the resolver must consult that store before defaulting to USD.
+    expect(nisabBlock).toMatch(/getProfile\(req\.userId\)/);
+    expect(nisabBlock).toMatch(/\?\.currency/);
+  });
+
+  it('exposes GET /fx-rates (USD base) for client-side normalization', () => {
+    const zakatRoutes = readRepo('../../src/routes/zakat.ts');
+    expect(zakatRoutes).toMatch(/router\.get\('\/fx-rates'/);
+    const fxBlock = zakatRoutes.slice(
+      zakatRoutes.indexOf("router.get('/fx-rates'"),
+      zakatRoutes.indexOf("router.get('/fx-rates'") + 2200
+    );
+    expect(fxBlock).toMatch(/base:\s*'USD'/);
+    expect(fxBlock).toMatch(/getAllRatesToUSD\(\)/);
+    // optional-auth: onboarding callers must not be blocked
+    expect(fxBlock).toMatch(/optionalAuthenticate/);
+  });
+});
