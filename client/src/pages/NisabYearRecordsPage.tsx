@@ -28,7 +28,7 @@ import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useFxRates } from '../services/apiHooks';
 import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
 import { normalizeAssetsToCurrency, normalizeLiabilitiesToCurrency, FxRates } from '../utils/currencyNormalization';
-import { CreateRecordModal, RecordPaymentModal, NisabRecordCard, RecordDetailPanel } from '../components/nisab';
+import { CreateRecordModal, RecordPaymentModal, RecordListPanel, RecordDetailPanel } from '../components/nisab';
 
 export const NisabYearRecordsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -240,85 +240,37 @@ export const NisabYearRecordsPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Back button for mobile when record is selected */}
-            {selectedRecordId && (
-              <button
-                onClick={() => setSelectedRecordId(null)}
-                className="lg:hidden flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
-              >
-                ← Back to list
-              </button>
-            )}
-
-            {/* Status tabs */}
-            <div className={`flex gap-2 border-b border-gray-200 overflow-x-auto pb-px ${selectedRecordId ? 'hidden lg:flex' : ''}`}>
-              {(['all', 'DRAFT', 'FINALIZED', 'UNLOCKED'] as const).map((status) => {
-                const tabLabels: Record<string, string> = { all: 'All', DRAFT: 'Active', FINALIZED: 'Finalized', UNLOCKED: 'Unlocked for Editing' };
-                return (
-                  <button
-                    key={status}
-                    onClick={() => {
-                      setActiveStatusFilter(status);
-                      setSelectedRecordId(null);
-                    }}
-                    className={`px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base ${activeStatusFilter === status
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-600 hover:text-gray-900'
-                      }`}
-                  >
-                    {tabLabels[status] || status}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Records list */}
-            {isLoading ? (
-              <div className="flex justify-center py-12">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-              </div>
-            ) : records.length === 0 ? (
-              <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-                <p className="text-gray-600">No {activeStatusFilter === 'all' ? '' : activeStatusFilter} records yet</p>
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Create your first record →
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {records.map((record) => (
-                  <NisabRecordCard
-                    key={record.id}
-                    record={record}
-                    isSelected={selectedRecordId === record.id}
-                    selectedRecordId={selectedRecordId}
-                    showEditPopover={editingStartDateRecordId === record.id}
-                    newStartDate={newStartDate}
-                    onSelect={() => setSelectedRecordId(record.id)}
-                    onFinalize={(e) => { e.stopPropagation(); handleFinalize(record); }}
-                    onUnlock={(e) => { e.stopPropagation(); handleUnlock(record); }}
-                    onDelete={(e) => { e.stopPropagation(); handleDelete(record); }}
-                    onEditDate={(e) => { e.stopPropagation(); setEditingStartDateRecordId(record.id); }}
-                    onSaveDate={() => handleEditDate(record.id)}
-                    onCancelDate={() => setEditingStartDateRecordId(null)}
-                    onDateChange={setNewStartDate}
-                    onGeneratePdf={(e) => {
-                      e.stopPropagation();
-                      const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
-                      import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
-                        const generator = new ReportGenerator(userCurrency);
-                        generator.generateHawlStatement(record as any, allAssets, 'User', totalLiabilities);
-                      });
-                    }}
-                    formatCurrency={formatCurrency}
-                    currency={userCurrency}
-                  />
-                ))}
-              </div>
-            )}
+            <RecordListPanel
+              records={records as never}
+              isLoading={isLoading}
+              activeStatusFilter={activeStatusFilter}
+              onStatusFilterChange={(status) => {
+                setActiveStatusFilter(status);
+                setSelectedRecordId(null);
+              }}
+              selectedRecordId={selectedRecordId}
+              onSelectRecord={setSelectedRecordId}
+              onClearSelection={() => setSelectedRecordId(null)}
+              editingStartDateRecordId={editingStartDateRecordId}
+              newStartDate={newStartDate}
+              onFinalize={handleFinalize}
+              onUnlock={handleUnlock}
+              onDelete={handleDelete}
+              onEditDate={(record) => setEditingStartDateRecordId(record.id)}
+              onSaveDate={handleEditDate}
+              onCancelDate={() => setEditingStartDateRecordId(null)}
+              onDateChange={setNewStartDate}
+              onGeneratePdf={(record) => {
+                const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
+                import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
+                  const generator = new ReportGenerator(userCurrency);
+                  generator.generateHawlStatement(record as any, allAssets, 'User', totalLiabilities);
+                });
+              }}
+              onCreateRecord={() => setShowCreateModal(true)}
+              formatCurrency={formatCurrency}
+              currency={userCurrency}
+            />
           </div>
 
           {/* Selected Record Details */}
