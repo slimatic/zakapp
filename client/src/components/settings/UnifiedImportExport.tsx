@@ -221,11 +221,11 @@ export const UnifiedImportExport: React.FC = () => {
 
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center gap-3">
-                            <Download className="w-8 h-8 text-gray-400" />
+                        <div className="p-4 border border-dashed border-border rounded-lg bg-muted flex flex-col items-center justify-center gap-3">
+                            <Download className="w-8 h-8 text-muted-foreground/70" />
                             <div className="text-center">
-                                <h3 className="font-medium text-gray-900">Backup Vault</h3>
-                                <p className="text-xs text-gray-500 mb-3">
+                                <h3 className="font-medium text-card-foreground">Backup Vault</h3>
+                                <p className="text-xs text-muted-foreground mb-3">
                                     Exports Assets, Liabilities, Payments, and Settings ({assets.length + liabilities.length + payments.length} records)
                                 </p>
                                 <Button onClick={handleExport} disabled={exporting} variant="outline" className="w-full">
@@ -234,11 +234,11 @@ export const UnifiedImportExport: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center gap-3">
-                            <Upload className="w-8 h-8 text-gray-400" />
+                        <div className="p-4 border border-dashed border-border rounded-lg bg-muted flex flex-col items-center justify-center gap-3">
+                            <Upload className="w-8 h-8 text-muted-foreground/70" />
                             <div className="text-center">
-                                <h3 className="font-medium text-gray-900">Restore / Import</h3>
-                                <p className="text-xs text-gray-500 mb-3">
+                                <h3 className="font-medium text-card-foreground">Restore / Import</h3>
+                                <p className="text-xs text-muted-foreground mb-3">
                                     Accepts legacy v1.0 and new v2.0 backups
                                 </p>
                                 <div className="relative">
@@ -265,7 +265,7 @@ export const UnifiedImportExport: React.FC = () => {
                                     <h4 className={`font-medium ${stats.errors.length > 0 ? 'text-yellow-800' : 'text-green-800'}`}>
                                         Import Report
                                     </h4>
-                                    <p className="text-sm text-gray-700 mt-1">
+                                    <p className="text-sm text-card-foreground mt-1">
                                         Imported <strong>{stats.assets}</strong> assets, <strong>{stats.liabilities}</strong> liabilities, <strong>{stats.payments}</strong> payments, <strong>{stats.calculations}</strong> calculations, and <strong>{stats.nisabRecords}</strong> records.
                                         {stats.settings && " User settings were also restored."}
                                     </p>
@@ -283,7 +283,7 @@ export const UnifiedImportExport: React.FC = () => {
                     )}
 
                     {/* Danger Zone */}
-                    <div className="border-t border-gray-200 pt-6">
+                    <div className="border-t border-border pt-6">
                         <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-red-100 rounded-full">
@@ -323,7 +323,7 @@ export const UnifiedImportExport: React.FC = () => {
                         </p>
                     </div>
 
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                         Please confirm you have downloaded a backup before proceeding.
                     </p>
 
