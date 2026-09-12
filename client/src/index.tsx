@@ -24,6 +24,20 @@ import reportWebVitals from './reportWebVitals';
 import { initPerformanceMonitoring } from './utils/performance';
 import { initializeBackgroundSync } from './utils/backgroundSync';
 
+// Apply the persisted theme BEFORE first paint. useTheme() consumers only
+// exist inside the authed Layout, so pre-auth screens (Login, Create Vault)
+// would otherwise never get the `dark` class (#360). Reading localStorage
+// here also prevents a light-mode flash on reload for dark-mode users.
+try {
+  const stored = window.localStorage.getItem('zakapp-theme');
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (stored === 'dark' || (stored === null && systemDark)) {
+    document.documentElement.classList.add('dark');
+  }
+} catch {
+  // storage/media-query unavailable — default light is fine
+}
+
 // Development helper to remove webpack-dev-server overlay which can block E2E interactions
 if (process.env.NODE_ENV === 'development') {
   // Initialize axe-core for accessibility testing
