@@ -4,6 +4,7 @@ import { Logger } from '../../utils/logger';
 import { apiService as api } from '../api';
 import type { User } from '../../types';
 import toast from 'react-hot-toast';
+import { setAuthToken } from '../../utils/auth';
 
 const logger = new Logger('AuthService');
 const SESSION_STORAGE_KEY = 'zakapp_session_v1';
@@ -128,6 +129,7 @@ export const authService = {
         // Store tokens
         if (apiResult.accessToken) localStorage.setItem('accessToken', apiResult.accessToken);
         if (apiResult.refreshToken) localStorage.setItem('refreshToken', apiResult.refreshToken);
+        setAuthToken(apiResult.accessToken ?? null);
 
         const backendUserId = apiResult.user.id;
         let userDoc = null;
@@ -276,6 +278,7 @@ export const authService = {
         // Store tokens
         if (apiResult.accessToken) localStorage.setItem('accessToken', apiResult.accessToken);
         if (apiResult.refreshToken) localStorage.setItem('refreshToken', apiResult.refreshToken);
+        setAuthToken(apiResult.accessToken ?? null);
 
         if (!apiResult.user || !apiResult.user.id) throw new Error('Registration successful but user ID missing');
 
@@ -326,6 +329,7 @@ export const authService = {
         sessionStorage.removeItem(SESSION_STORAGE_KEY);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        setAuthToken(null);
         await closeDb();
     },
 

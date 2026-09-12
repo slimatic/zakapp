@@ -68,8 +68,23 @@ initPerformanceMonitoring();
 // Initialize background sync for offline requests
 initializeBackgroundSync();
 
-// Service worker is auto-registered by vite-plugin-pwa in production
-// Use skipWaiting() or unregister() from serviceWorkerRegistration if needed
+// Register custom service worker (#383)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(() => console.log('[SW] Registered'))
+      .catch(err => console.warn('[SW] Registration failed:', err));
+  });
+}
+
+// Register custom service worker (#383)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(() => console.log('[SW] Registered'))
+      .catch(err => console.warn('[SW] Registration failed:', err));
+  });
+}
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

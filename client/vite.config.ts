@@ -45,13 +45,14 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        injectRegister: 'auto',
+        injectRegister: null,
         includeAssets: [
           'favicon.ico',
           'apple-touch-icon.png',
           'offline.html',
           'config.js',
           'logo.svg',
+          'sw.js',
         ],
         manifest: {
           id: '/',
