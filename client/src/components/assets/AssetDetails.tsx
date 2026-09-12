@@ -350,7 +350,7 @@ export const AssetDetails: React.FC = () => {
             <div className="text-sm text-gray-700">
               <p className="font-medium mb-1">🚫 Asset Excluded from Calculations</p>
               <p>
-                Calculated Zakat: $0.00
+                Calculated Zakat: {formatCurrency(0, safeAsset.currency)}
               </p>
               {safeAsset.subCategory === 'jewelry' && (
                 <p className="mt-2 text-xs text-gray-500 italic">

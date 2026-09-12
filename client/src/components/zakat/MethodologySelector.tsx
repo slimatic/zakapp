@@ -268,8 +268,8 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
             <div>
               <p className="font-medium text-blue-900">What's the difference between gold and silver nisab?</p>
               <p className="text-blue-800 mt-1">
-                Gold nisab (85g) typically results in a higher threshold (~$5,500), while silver nisab (595g) 
-                is lower (~$400). The Hanafi school uses the lower threshold to maximize benefit to those in need.
+                Gold nisab (~87g) results in a higher threshold because gold is more valuable per gram, while silver nisab (~612g) 
+                is lower in monetary terms. The live thresholds in your currency are shown above. The Hanafi school uses the lower (silver) threshold to maximize benefit to those in need.
               </p>
             </div>
             

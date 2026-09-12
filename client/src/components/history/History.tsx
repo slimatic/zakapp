@@ -122,7 +122,7 @@ export const History: React.FC = () => {
                   <dd className="text-lg font-medium text-gray-900">
                     {snapshots.length > 0 
                       ? formatCurrency(snapshots.reduce((sum, s) => sum + s.zakatOwed, 0))
-                      : '$0.00'
+                      : formatCurrency(0)
                     }
                   </dd>
                 </dl>

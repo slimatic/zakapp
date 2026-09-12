@@ -15,37 +15,69 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiService } from '../../services/api';
+import { formatCurrency } from '../../utils/formatters';
 
 /**
  * NisabExplainer Component - T026
  *
  * Explains nisab thresholds with visual graphics and Islamic references
  */
+interface LiveNisabData {
+  currency: string;
+  goldPrice: { pricePerGram: number; nisabGrams: number; nisabValue: number };
+  silverPrice: { pricePerGram: number; nisabGrams: number; nisabValue: number };
+}
+
 const NisabExplainer: React.FC = () => {
   const [selectedMetal, setSelectedMetal] = useState<'gold' | 'silver'>('gold');
+  const [live, setLive] = useState<LiveNisabData | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
-  // Current nisab values (approximate as of 2024 - these would be calculated dynamically)
-  const nisabValues = {
-    gold: {
-      name: 'Gold Nisab',
-      threshold: 87.48, // grams
-      value: 7500, // USD equivalent
-      description: 'Based on 87.48 grams of pure gold'
-    },
-    silver: {
-      name: 'Silver Nisab',
-      threshold: 612.36, // grams
-      value: 750, // USD equivalent
-      description: 'Based on 612.36 grams of pure silver'
-    }
-  };
+  useEffect(() => {
+    let cancelled = false;
+    apiService
+      .getNisab()
+      .then((res) => {
+        if (!cancelled && res?.data?.goldPrice && res?.data?.silverPrice) {
+          setLive(res.data as LiveNisabData);
+        } else if (!cancelled) {
+          setLoadFailed(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const currentNisab = nisabValues[selectedMetal];
+  // Fallback when the live endpoint is unavailable — no fake "current" figures.
+  const nisabValues = live
+    ? {
+        gold: {
+          name: 'Gold Nisab',
+          threshold: live.goldPrice.nisabGrams,
+          value: live.goldPrice.nisabValue,
+          description: `Based on ${live.goldPrice.nisabGrams.toFixed(2)} grams of pure gold`
+        },
+        silver: {
+          name: 'Silver Nisab',
+          threshold: live.silverPrice.nisabGrams,
+          value: live.silverPrice.nisabValue,
+          description: `Based on ${live.silverPrice.nisabGrams.toFixed(2)} grams of pure silver`
+        }
+      }
+    : null;
+
+  const currentNisab = nisabValues?.[selectedMetal];
+  const cur = (live?.currency ?? 'USD') as Parameters<typeof formatCurrency>[1];
 
   // Visual representation data
-  const goldBars = Math.ceil(currentNisab.threshold / 10); // Approximate 10g bars
-  const silverCoins = Math.ceil(currentNisab.threshold / 20); // Approximate 20g coins
+  const goldBars = currentNisab ? Math.ceil(currentNisab.threshold / 10) : 0; // Approximate 10g bars
+  const silverCoins = currentNisab ? Math.ceil(currentNisab.threshold / 20) : 0; // Approximate 20g coins
 
   return (
     <div className="space-y-6">
@@ -135,15 +167,15 @@ const NisabExplainer: React.FC = () => {
         {/* Threshold Display */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900">{currentNisab.threshold.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-gray-900">{currentNisab ? currentNisab.threshold.toFixed(2) : '—'}</div>
             <div className="text-sm text-gray-600">Grams of {selectedMetal}</div>
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">${currentNisab.value.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-600">{currentNisab ? formatCurrency(currentNisab.value, cur) : '—'}</div>
             <div className="text-sm text-gray-600">USD Equivalent</div>
           </div>
           <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{currentNisab.threshold * 2.5 / 1000}kg</div>
+            <div className="text-2xl font-bold text-blue-600">{currentNisab ? `${(currentNisab.threshold * 2.5 / 1000).toFixed(2)}kg` : '—'}</div>
             <div className="text-sm text-gray-600">Weight</div>
           </div>
         </div>
@@ -154,7 +186,7 @@ const NisabExplainer: React.FC = () => {
           <div className="bg-gray-50 p-6 rounded-lg">
             <div className="text-center mb-4">
               <p className="text-gray-600">
-                {currentNisab.description} (≈ ${currentNisab.value.toLocaleString()} USD)
+                {currentNisab ? `${currentNisab.description} (≈ ${formatCurrency(currentNisab.value, cur)})` : 'Live nisab figures unavailable right now.'}
               </p>
             </div>
 
@@ -188,22 +220,22 @@ const NisabExplainer: React.FC = () => {
             <h4 className="font-medium text-gray-900">Gold Price</h4>
             <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
               <span className="text-yellow-800">Per Gram</span>
-              <span className="font-bold text-yellow-900">$85.60</span>
+              <span className="font-bold text-yellow-900">{live ? formatCurrency(live.goldPrice.pricePerGram, cur) : '—'}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
               <span className="text-yellow-800">Per Ounce</span>
-              <span className="font-bold text-yellow-900">$2,662</span>
+              <span className="font-bold text-yellow-900">{live ? formatCurrency(live.goldPrice.pricePerGram * 31.1035, cur) : '—'}</span>
             </div>
           </div>
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">Silver Price</h4>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="text-gray-800">Per Gram</span>
-              <span className="font-bold text-gray-900">$1.23</span>
+              <span className="font-bold text-gray-900">{live ? formatCurrency(live.silverPrice.pricePerGram, cur) : '—'}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="text-gray-800">Per Ounce</span>
-              <span className="font-bold text-gray-900">$38.25</span>
+              <span className="font-bold text-gray-900">{live ? formatCurrency(live.silverPrice.pricePerGram * 31.1035, cur) : '—'}</span>
             </div>
           </div>
         </div>
