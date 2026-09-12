@@ -129,7 +129,7 @@ function App() {
         <AuthProvider>
           <PrivacyProvider>
             <SyncManager />
-            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <Router>
               <ErrorBoundary>
                 <div className="App">
                   <SkipLink />

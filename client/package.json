@@ -40,7 +40,7 @@
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.63.0",
     "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^6.30.6",
+    "react-router-dom": "^7.18.3",
     "react-window": "^2.2.1",
     "react-window-infinite-loader": "^2.0.0",
     "recharts": "^3.2.1",
