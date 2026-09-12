@@ -62,7 +62,7 @@ export const LiabilitiesPage: React.FC = () => {
     // and show an honest placeholder when FX rates are unavailable instead
     // of a raw apples+oranges total. Previously this page hardcoded USD.
     // Currency resolution now via useDisplayCurrency (#341).
-    const { currency: userCurrency, formatCurrency } = useDisplayCurrency();
+    const { currency: userCurrency } = useDisplayCurrency();
     const fxRatesQuery = useFxRates();
     const fxRates = fxRatesQuery?.data?.data?.rates as FxRates | undefined;
     const liabilityTotal = sumLiabilitiesInCurrency(liabilities, userCurrency, fxRates);

@@ -25,9 +25,6 @@ export const IdentityStep: React.FC = () => {
         updateData('settings', { currency });
     };
 
-    const formatCurrency = (val: number) =>
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: selectedCurrency }).format(val);
-
     // Nisab thresholds are always shown in USD for clarity during onboarding
     const formatNisabUSD = (val: number) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
@@ -46,7 +43,7 @@ export const IdentityStep: React.FC = () => {
                 </p>
                 <div className="w-full max-w-sm">
                     <Listbox value={selectedCurrency} onChange={handleCurrencyChange}>
-                        {({ open }) => (
+                        {({ open: _open }) => (
                             <div className="relative mt-1">
                                 <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-3 pl-4 pr-10 text-left border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm">
                                     <span className="block truncate">

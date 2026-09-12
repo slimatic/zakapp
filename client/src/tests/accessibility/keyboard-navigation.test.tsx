@@ -158,18 +158,15 @@ describe('Keyboard Navigation Accessibility', () => {
 
   describe('Modal Component', () => {
     it('should have no axe violations', async () => {
-      const onClose = jest.fn();
-      const { container } = render(<ModalMock isOpen={true} onClose={onClose} />);
+      const { container } = render(<ModalMock isOpen={true} />);
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
 
     it('should trap focus within modal', async () => {
       // Use userEvent directly (v13 API)
-      const onClose = jest.fn();
-      const { container } = render(<ModalMock isOpen={true} onClose={onClose} />);
+      render(<ModalMock isOpen={true} />);
       
-      const modal = container.querySelector('[role="dialog"]');
       const closeButton = screen.getByRole('button', { name: /close/i });
       const actionButton = screen.getByRole('button', { name: /action/i });
 

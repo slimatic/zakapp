@@ -86,7 +86,6 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
 
   // Get start and end dates (support both API and legacy field names)
   const startDateStr = record.hawlStartDate || record.startDate;
-  const endDateStr = record.hawlCompletionDate || record.endDate;
 
   // Calculate days elapsed and remaining from dates
   const totalDays = 354; // Lunar year

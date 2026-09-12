@@ -51,8 +51,8 @@ export interface UseHawlStatusResult {
 
 export const useHawlStatus = (
   recordId?: string,
-  pollInterval: number = 5000,
-  enabled: boolean = true
+  _pollInterval: number = 5000,
+  _enabled: boolean = true
 ): UseHawlStatusResult => {
   // 1. Get Data from Local Repositories
   const { records, isLoading: isRecordsLoading } = useNisabRecordRepository();

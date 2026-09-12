@@ -48,7 +48,7 @@ export const UnifiedImportExport: React.FC = () => {
     const { user } = useAuth();
     const { assets, addAsset } = useAssetRepository();
     const { payments, bulkAddPayments } = usePaymentRepository();
-    const { records: nisabRecords, addRecord, bulkAddRecords } = useNisabRecordRepository();
+    const { records: nisabRecords, bulkAddRecords } = useNisabRecordRepository();
     const { liabilities, bulkAddLiabilities } = useLiabilityRepository();
     const { settings, updateSettings } = useUserSettingsRepository();
 

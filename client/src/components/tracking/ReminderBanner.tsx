@@ -95,7 +95,7 @@ export const ReminderBanner: React.FC<ReminderBannerProps> = ({
     }
   };
 
-  const handleSnooze = async (reminderId: string, snoozeHours: number = 24) => {
+  const handleSnooze = async (reminderId: string, _snoozeHours: number = 24) => {
     // This would typically call a snooze mutation
     // For now, we'll just acknowledge the reminder
     try {

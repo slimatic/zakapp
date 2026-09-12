@@ -43,8 +43,7 @@ export class CryptoService {
 
         // Check for Secure Context immediately
         if (process.env.NODE_ENV !== 'test' && typeof window !== 'undefined' && (!window.crypto || !window.crypto.subtle)) {
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const protocol = window.location.protocol;
+                        const protocol = window.location.protocol;
 
             logger.error(`Fatal Error: Web Crypto API is unavailable.
             Context: ${window.isSecureContext ? 'Secure' : 'Insecure'}

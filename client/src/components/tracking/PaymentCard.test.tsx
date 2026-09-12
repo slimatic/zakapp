@@ -50,22 +50,6 @@ const mockPayment: PaymentRecord = {
   updatedAt: '2024-12-01T10:00:00.000Z'
 };
 
-const mockNisabYear = {
-  id: 'snapshot-1',
-  userId: 'user-1',
-  hawlStartDate: '2023-06-01T00:00:00.000Z',
-  hawlEndDate: '2024-06-01T00:00:00.000Z',
-  calculationDate: '2024-06-01T00:00:00.000Z',
-  nisabThreshold: 5000,
-  totalWealth: 20000,
-  zakatAmount: 500,
-  zakatPaid: 250,
-  zakatableAssets: [],
-  nisabBasis: 'GOLD' as const,
-  status: 'FINALIZED' as const,
-  createdAt: '2024-06-01T00:00:00.000Z',
-  updatedAt: '2024-12-01T10:00:00.000Z'
-};
 
 describe('Encrypted recipient masking', () => {
   it('shows masked placeholder when recipientName looks encrypted', () => {

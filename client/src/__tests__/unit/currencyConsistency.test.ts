@@ -72,7 +72,7 @@ vi.mock('jspdf-autotable', () => ({
 
 // Mock date-fns format to avoid locale issues in test env
 vi.mock('date-fns', () => ({
-  format: vi.fn((date: Date, _fmt: string) => '2024-06-15'),
+  format: vi.fn((_date: Date, _fmt: string) => '2024-06-15'),
 }));
 
 vi.mock('../../utils/chartFormatter', () => ({

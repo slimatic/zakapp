@@ -37,7 +37,7 @@ import { ShieldCheck, ArrowRight, Wallet, TrendingUp, Calculator, Lock } from 'l
 
 export const ZakatCalculator: React.FC = () => {
   // Local DB Hooks
-  const { assets, isLoading: isLoadingAssets, error: assetsError } = useAssetRepository();
+  const { assets } = useAssetRepository();
   const { user } = useAuth();
   const userCurrency = ((user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD').toUpperCase();
 

@@ -84,7 +84,7 @@ export interface MethodologyCardProps {
  * - Responsive design
  */
 export const MethodologyCard: React.FC<MethodologyCardProps> = ({
-  id,
+  id: _id,
   name,
   description,
   characteristics,

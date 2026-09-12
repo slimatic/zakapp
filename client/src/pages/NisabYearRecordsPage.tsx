@@ -22,7 +22,6 @@ import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 import { useNisabRecordActions } from '../hooks/useNisabRecordActions';
 import { useAuth } from '../contexts/AuthContext';
-import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useFxRates } from '../services/apiHooks';
 import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
 import { normalizeAssetsToCurrency, normalizeLiabilitiesToCurrency, FxRates } from '../utils/currencyNormalization';
@@ -101,7 +100,6 @@ export const NisabYearRecordsPage: React.FC = () => {
   }, [records, selectedRecordId]);
 
   // Format currency — consolidated into useDisplayCurrency (#341)
-  const maskedCurrency = useMaskedCurrency();
 
   // Record mutations — extracted into useNisabRecordActions (#341 slice 4)
   const userMethodology = ((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase();

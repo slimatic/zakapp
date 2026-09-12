@@ -106,7 +106,7 @@ export const useCreatePayment = () => {
       recipient: string;
       notes?: string;
     }) => apiService.recordPayment(paymentData),
-    onSuccess: (newPayment) => {
+    onSuccess: (_newPayment) => {
       // Invalidate payment queries to refetch
       queryClient.invalidateQueries({ queryKey: ['payments'] });
 

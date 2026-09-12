@@ -7,7 +7,7 @@ interface Props {
     onReset: () => void;
 }
 
-export const DataRecoveryFallback: React.FC<Props> = ({ onReset }) => {
+export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => {
     const { recoverData } = useAuth();
     const [password, setPassword] = useState('');
     const [isRecovering, setIsRecovering] = useState(false);
@@ -51,7 +51,7 @@ export const DataRecoveryFallback: React.FC<Props> = ({ onReset }) => {
             // Attempt to delete RxDB database from IndexedDB
             // Name usually 'zakapp_db_' + userId or similar.
             // We will try generic approach or ask user to clear site data if this fails.
-            const req = indexedDB.deleteDatabase('zakapp_db'); // Default name if not prefixed?
+            indexedDB.deleteDatabase('zakapp_db'); // fire-and-forget; default name if not prefixed
             // Inspecting db.ts would reveal the name. 
             // For now, let's try just clearing storage and reloading.
 

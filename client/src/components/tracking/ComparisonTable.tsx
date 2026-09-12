@@ -170,7 +170,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b">
                 Metric
               </th>
-              {snapshots.map((snapshot: YearlySnapshot, index: number) => (
+              {snapshots.map((snapshot: YearlySnapshot) => (
                 <th 
                   key={snapshot.id} 
                   className="px-4 py-3 text-center text-sm font-medium text-gray-700 border-b min-w-32"

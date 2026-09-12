@@ -67,19 +67,4 @@ describe('Zakat Calculation Logic', () => {
         expect(result.isZakatObligatory).toBe(false);
     });
 
-    it('should deduct liabilities from total assets', () => {
-        const assets: Asset[] = [
-            { id: '1', type: AssetType.CASH, name: 'Cash', value: 20000, currency: 'USD', isActive: true, createdAt: '', updatedAt: '' }
-        ];
-        // Assuming SHORT_TERM liabilities are deductible in STANDARD methodology
-        // We need to match liability type string that methodology.ts expects. 
-        // Let's assume 'SHORT_TERM_DEBT' or similar. 
-        // Need to check methodology for deductible types. Usually it checks strict strings.
-
-        // Actually, let's peek methodology.ts or guess widely used ones like 'DEBT'
-        // But for now, let's assume we can rely on standard behavior or inspect methodology.ts later.
-        // Let's defer liability test or make it generic if we aren't sure of keys.
-
-        // Let's try to stick to Asset math first.
-    });
 });

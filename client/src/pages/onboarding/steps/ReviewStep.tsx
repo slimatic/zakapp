@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useOnboarding, OnboardingData } from '../context/OnboardingContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useAssetRepository } from '../../../hooks/useAssetRepository';
@@ -9,17 +8,10 @@ import toast from 'react-hot-toast';
 
 export const ReviewStep: React.FC = () => {
     const { data, prevStep, nextStep } = useOnboarding();
-    const { updateLocalProfile, user } = useAuth();
+    const { updateLocalProfile } = useAuth();
     const { assets: dbAssets, addAsset } = useAssetRepository();
     const { addLiability } = useLiabilityRepository();
-    const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [zakatPaid, setZakatPaid] = useState<number>(0);
-    const [completed, setCompleted] = useState(false);
-    const [createdRecordId, setCreatedRecordId] = useState<string | null>(null);
-
-    // State to hold frozen estimates after completion to prevent double-counting
-    const [finalEstimates, setFinalEstimates] = useState<any>(null);
 
     // Calculate Estimated Zakat for Preview
     const calculateEstimates = () => {
@@ -44,21 +36,19 @@ export const ReviewStep: React.FC = () => {
             'Stock Portfolio', 'Retirement Fund', 'Crypto Holdings', 'Other Assets'
         ];
 
-        if (!completed) {
-            // Filter out assets that we are managing in the wizard
-            const nonOnboardingAssets = dbAssets.filter(a =>
-                a.isActive && !onboardingAssetNames.includes(a.name)
-            );
+        // Filter out assets that we are managing in the wizard
+        const nonOnboardingAssets = dbAssets.filter(a =>
+            a.isActive && !onboardingAssetNames.includes(a.name)
+        );
 
-            const dbStats = calculateWealth(
-                nonOnboardingAssets,
-                [],
-                new Date(),
-                selectedMethodologyName
-            );
-            // We will sum them up at the end for the Grand Total
-            existingAssetsValue = dbStats.totalWealth;
-        }
+        const dbStats = calculateWealth(
+            nonOnboardingAssets,
+            [],
+            new Date(),
+            selectedMethodologyName
+        );
+        // We will sum them up at the end for the Grand Total
+        existingAssetsValue = dbStats.totalWealth;
 
         // 2. Process Wizard Assets
         const addWizardAsset = (type: string, val: number | undefined, isPassive: boolean, retirementTreatment?: string) => {
@@ -109,9 +99,7 @@ export const ReviewStep: React.FC = () => {
         const totalLiabilities = (data.liabilities?.immediate || 0) + (data.liabilities?.expenses || 0);
 
         // combine
-        const existingZakatable = !completed
-            ? calculateWealth(dbAssets.filter(a => a.isActive && !onboardingAssetNames.includes(a.name)), [], new Date(), selectedMethodologyName).zakatableWealth
-            : 0;
+        const existingZakatable = calculateWealth(dbAssets.filter(a => a.isActive && !onboardingAssetNames.includes(a.name)), [], new Date(), selectedMethodologyName).zakatableWealth;
 
         const grandTotalWealth = totalWealth + existingAssetsValue;
         const grandTotalZakatable = zakatableWealth + existingZakatable;
@@ -120,7 +108,7 @@ export const ReviewStep: React.FC = () => {
 
         // Split Zakat Due: Gross (Obligation) vs Net (Remaining)
         const totalZakatDue = netZakatable * 0.025; // Gross Obligation
-        const remainingZakatDue = Math.max(0, totalZakatDue - zakatPaid);
+        const remainingZakatDue = totalZakatDue; // zakatPaid was always 0 (dead state, removed)
 
         return {
             totalWealth: grandTotalWealth, // Show GRAND TOTAL
@@ -135,9 +123,6 @@ export const ReviewStep: React.FC = () => {
     };
 
     const estimates = calculateEstimates();
-
-    // Use finalEstimates if completed, otherwise live estimates
-    const displayEstimates = completed ? finalEstimates : estimates;
 
     const saveData = async () => {
         setIsSubmitting(true);

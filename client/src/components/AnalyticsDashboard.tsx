@@ -40,8 +40,7 @@ interface AnalyticsDashboardProps {
  */
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(({
   data,
-  isLoading,
-  onExport
+  isLoading
 }) => {
   // Memoize expensive currency formatting function
   const formatCurrency = useMemo(() => {

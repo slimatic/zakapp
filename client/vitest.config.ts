@@ -13,6 +13,11 @@ export default defineConfig({
     test: {
         globals: true,
         environment: 'jsdom',
+        environmentOptions: {
+            jsdom: {
+                url: 'http://localhost:4173/',
+            },
+        },
         setupFiles: ['./src/setupTests.ts'],
         css: false,
         exclude: ['**/e2e/**', '**/node_modules/**'],

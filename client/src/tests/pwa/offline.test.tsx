@@ -215,32 +215,18 @@ describe('Offline Functionality', () => {
     });
 
     it('should pause mutations when offline', () => {
-      const queryClient = new QueryClient({
-        defaultOptions: {
-          mutations: {
-            networkMode: 'online',
-          },
-        },
-      });
 
       Object.defineProperty(navigator, 'onLine', {
         value: false,
         writable: true,
       });
 
-      // Mutations should be paused when offline
-      const mutation = queryClient.getMutationCache().build(queryClient, {
-        mutationFn: async () => {
-          throw new Error('Should not execute offline');
-        },
-      });
 
       // Mutation state should reflect offline status
       expect(navigator.onLine).toBe(false);
     });
 
     it('should resume mutations when back online', async () => {
-      const queryClient = new QueryClient();
       const mutationFn = jest.fn().mockResolvedValue({ success: true });
 
       Object.defineProperty(navigator, 'onLine', {

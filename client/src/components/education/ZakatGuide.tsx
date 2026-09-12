@@ -28,7 +28,6 @@
  */
 
 import React, { useState } from 'react';
-import { LoadingSpinner } from '../common/LoadingSpinner';
 
 interface ZakatGuideSection {
   id: string;
@@ -234,12 +233,11 @@ Technology has also enabled more efficient Zakat collection and distribution, al
  */
 export const ZakatGuide: React.FC<ZakatGuideProps> = ({
   initialSection = 'basics',
-  compact = false,
+  compact: _compact = false,
   className = ''
 }) => {
   const [activeSection, setActiveSection] = useState<string>(initialSection);
-  const [loading, setLoading] = useState(false);
-
+  
   const currentSection = ZAKAT_GUIDE_SECTIONS.find(section => section.id === activeSection) || ZAKAT_GUIDE_SECTIONS[0];
 
   return (
@@ -285,9 +283,6 @@ export const ZakatGuide: React.FC<ZakatGuideProps> = ({
 
         {/* Content Area */}
         <div className="md:w-2/3 p-6">
-          {loading ? (
-            <LoadingSpinner size="lg" text="Loading guide content..." />
-          ) : (
             <div className="space-y-6">
               {/* Section Header */}
               <div className="flex items-center mb-4">
@@ -321,8 +316,8 @@ export const ZakatGuide: React.FC<ZakatGuideProps> = ({
                     ))}
                   </ul>
                 </div>
-              )}
 
+              )}
               {/* Calculations */}
               {currentSection.calculations && (
                 <div className="space-y-4">
@@ -398,7 +393,6 @@ export const ZakatGuide: React.FC<ZakatGuideProps> = ({
                 </button>
               </div>
             </div>
-          )}
         </div>
       </div>
 

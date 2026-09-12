@@ -16,7 +16,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { AssetRulingExplanation } from '../../components/zakat/AssetRulingExplanation';
 import { getAssetRuling } from '../../data/rulings';
 import { AssetType } from '../../types/index';
@@ -63,7 +63,7 @@ describe('AssetRulingExplanation', () => {
 
   it('renders override block when user overrode the madhab default', () => {
     const ruling = getAssetRuling({ ...baseAsset, zakatEligible: true }, 'SHAFII');
-    const { getByRole, getByText, queryByText } = render(
+    const { getByRole, getByText } = render(
       <AssetRulingExplanation ruling={ruling} assetName="Wedding Gold Set" />
     );
     expect(getByText(/you marked/i)).toBeInTheDocument();

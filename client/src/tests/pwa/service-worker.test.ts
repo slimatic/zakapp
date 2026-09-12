@@ -180,10 +180,6 @@ describe('Service Worker Tests', () => {
     });
 
     it('should use cache-first strategy for static assets', async () => {
-      const mockCache = {
-        match: jest.fn().mockResolvedValue(new Response('cached')),
-        put: jest.fn(),
-      };
 
       const caches = {
         match: jest.fn().mockResolvedValue(new Response('cached')),

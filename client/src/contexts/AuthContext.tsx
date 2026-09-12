@@ -112,8 +112,6 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-const LOCAL_USER_ID = 'local-user-profile';
-
 const SESSION_STORAGE_KEY = 'zakapp_session_v1';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -311,8 +309,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // 4. Migrate Assets
       const assets = await db.assets.find().exec();
-      let recoveredCount = 0;
-      toast.loading(`Recovering ${assets.length} assets...`, { id: toastId });
+            toast.loading(`Recovering ${assets.length} assets...`, { id: toastId });
 
       for (const doc of assets) {
         try {
@@ -392,7 +389,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (Object.keys(updates).length > 0) {
             updates.updatedAt = new Date().toISOString();
             await doc.atomicPatch(updates);
-            recoveredCount++;
           }
 
         } catch (e) {

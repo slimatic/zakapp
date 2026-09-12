@@ -230,7 +230,7 @@ export const ValidatedTextarea: React.FC<ValidatedTextareaProps> = ({
   name,
   rules = [],
   helpText,
-  showValidation = true,
+  showValidation: _showValidation = true,
   onValidation,
   className = '',
   ...textareaProps
