@@ -1,0 +1,65 @@
+{
+  "welcome": {
+    "title": "مرحبًا بك في زك آب",
+    "subtitle": "رفيقك لتتبع الثروة الخاضعة للزكاة وأداء واجبك بثقة.",
+    "getStarted": "ابدأ الآن",
+    "body": "لنبدأ في إعداد محافظك. ليس مطلوبًا إدخال جميع معلوماتك دفعة واحدة. يمكنك البدء بإضافة بعض الأصول الآن والعودة إلى المعالج أو لوحتك لإضافة المزيد في أي وقت."
+  },
+  "nav": {
+    "next": "التالي",
+    "back": "رجوع",
+    "skip": "تخطي الإعداد",
+    "finish": "إنهاء",
+    "stepOf": "الخطوة {{current}} من {{total}}"
+  },
+  "steps": {
+    "identity": {
+      "title": "ملفك الشخصي",
+      "preferredCurrency": "العملة المفضلة",
+      "schoolOfThought": "المذهب الفقهي",
+      "nisabThreshold": "حد النصاب"
+    },
+    "cash": {
+      "title": "الأصول النقدية"
+    },
+    "metals": {
+      "title": "المعادن الثمينة",
+      "weightGrams": "الوزن (غرام)",
+      "value": "القيمة"
+    },
+    "investments": {
+      "title": "الاستثمارات",
+      "passiveInvestment": "استثمار سلبي؟",
+      "zakatTreatment": "معالجة الزكاة:",
+      "fullAssessment": "تقييم كامل (100%)",
+      "passive30": "استثمار سلبي (30%)",
+      "deferred": "مؤجل (معفى)",
+      "fullAssessmentHint": "يُحسب Zakat على نحو 70% من القيمة (بعد الضرائب والرسوم المقدرة).",
+      "passiveHint": "يعامل الأصول الأساسية كأصول سلبية/تجارية (الزكاة على 30%).",
+      "deferredHint": "لا توجد زكاة مستحقة حتى السحب.",
+      "usuallyRestricted": "مقيد عادةً",
+      "deductTaxes": "خصم الضرائب/الغرامات (القيمة الصافية)"
+    },
+    "liabilities": {
+      "title": "الالتزامات والمصروفات",
+      "learnMore": "اعرف المزيد عن الالتزامات"
+    },
+    "zakatSetup": {
+      "title": "نظرة عامة على الزكاة",
+      "portfolioSummary": "ملخص محفظتك",
+      "totalAssets": "إجمالي الأصول",
+      "liabilities": "الالتزامات",
+      "netZakatableWealth": "صافي الثروة الخاضعة للزكاة",
+      "estimatedZakatDue": "الزكاة التقديرية المستحقة",
+      "loadingAssets": "جارٍ تحميل أصولك...",
+      "sourceDatabase": "المصدر: قاعدة البيانات"
+    },
+    "review": {
+      "title": "راجع إدخالاتك",
+      "summaryOfEntries": "ملخص الإدخالات",
+      "totalNetAssets": "إجمالي صافي الأصول",
+      "immediateDebts": "الديون الفورية",
+      "livingExpenses": "مصروفات المعيشة"
+    }
+  }
+}

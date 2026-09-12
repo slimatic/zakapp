@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useAssetRepository } from '../../../hooks/useAssetRepository';
@@ -13,6 +14,7 @@ import { getCurrencySymbol } from '../../../utils/formatters';
 import toast from 'react-hot-toast';
 
 export const ZakatSetupStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
     const { data } = useOnboarding();
     const { user, updateLocalProfile } = useAuth();
     const { assets: dbAssets, isLoading: isLoadingAssets } = useAssetRepository();
@@ -155,7 +157,7 @@ export const ZakatSetupStep: React.FC = () => {
         new Intl.NumberFormat('en-US', { style: 'currency', currency: user?.settings?.currency || 'USD' }).format(val);
 
     if (isLoadingAssets || !estimates) {
-        return <div className="p-8 text-center text-gray-500">Loading your assets...</div>;
+        return <div className="p-8 text-center text-gray-500">{t('steps.zakatSetup.loadingAssets')}</div>;
     }
 
     return (
@@ -164,7 +166,7 @@ export const ZakatSetupStep: React.FC = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-6">
                     <span className="text-3xl">🧮</span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Zakat Overview</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('steps.zakatSetup.title')}</h2>
                 <p className="text-gray-500 max-w-lg mx-auto">
                     We've saved your assets. Now, let's initialize your Zakat Year (Hawl) and record any payments you've already made.
                 </p>
@@ -172,12 +174,12 @@ export const ZakatSetupStep: React.FC = () => {
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                    <h3 className="font-semibold text-gray-900">Your Portfolio Summary</h3>
-                    <span className="text-xs text-gray-400 uppercase tracking-wider">Source: Database</span>
+                    <h3 className="font-semibold text-gray-900">{t('steps.zakatSetup.portfolioSummary')}</h3>
+                    <span className="text-xs text-gray-400 uppercase tracking-wider">{t('steps.zakatSetup.sourceDatabase')}</span>
                 </div>
                 <div className="p-6 space-y-4">
                     <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total Assets</span>
+                        <span className="text-gray-600">{t('steps.zakatSetup.totalAssets')}</span>
                         <span className="font-medium text-gray-900">{formatCurrency(estimates.totalWealth)}</span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -185,14 +187,14 @@ export const ZakatSetupStep: React.FC = () => {
                         <span className="font-medium text-red-600">-{formatCurrency(estimates.totalLiabilities)}</span>
                     </div>
                     <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
-                        <span className="text-gray-900 font-medium">Net Zakatable Wealth</span>
+                        <span className="text-gray-900 font-medium">{t('steps.zakatSetup.netZakatableWealth')}</span>
                         <span className="font-bold text-emerald-700 text-lg">{formatCurrency(estimates.netZakatable)}</span>
                     </div>
                 </div>
             </div>
 
             <div className="bg-emerald-600 rounded-2xl p-8 text-center text-white shadow-xl shadow-emerald-200">
-                <p className="text-emerald-100 font-medium mb-1">Estimated Zakat Due</p>
+                <p className="text-emerald-100 font-medium mb-1">{t('steps.zakatSetup.estimatedZakatDue')}</p>
                 <div className="text-4xl font-bold mb-2">
                     {formatCurrency(estimates.totalZakatDue)}
                 </div>

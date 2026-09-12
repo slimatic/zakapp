@@ -20,6 +20,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import './styles/accessibility.css';
 import App from './App';
+import './i18n'; // i18n foundation (#338)
 import reportWebVitals from './reportWebVitals';
 import { initPerformanceMonitoring } from './utils/performance';
 import { initializeBackgroundSync } from './utils/backgroundSync';

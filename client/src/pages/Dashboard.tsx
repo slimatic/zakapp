@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
@@ -44,6 +45,7 @@ import { Button } from '../components/ui/Button';
  * Collapsible educational content about Zakat and Nisab
  */
 const EducationalModule: React.FC = () => {
+  const { t } = useTranslation('dashboard');
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
@@ -79,7 +81,7 @@ const EducationalModule: React.FC = () => {
               />
             </svg>
           </div>
-          <h2 className="text-lg font-bold text-gray-900">Understanding Zakat & Nisab</h2>
+          <h2 className="text-lg font-bold text-gray-900">{t('education.understandingZakat')}</h2>
         </div>
 
         <button
@@ -108,7 +110,9 @@ const EducationalModule: React.FC = () => {
       {isExpanded && (
         <div className="space-y-4">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">What is <GlossaryTerm term="zakat" />?</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">
+              <Trans i18nKey="education.whatIsZakat" components={{ glossary: <GlossaryTerm term="zakat" /> }} />
+            </h3>
             <p className="text-sm text-gray-700 leading-relaxed">
               <GlossaryTerm term="zakat" /> is one of the Five Pillars of Islam and is an obligatory act of charity. It requires Muslims
               who meet specific wealth criteria to donate 2.5% of their qualifying wealth annually to those in need.
@@ -117,7 +121,9 @@ const EducationalModule: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">What is <GlossaryTerm term="nisab" />?</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">
+              <Trans i18nKey="education.whatIsNisab" components={{ glossary: <GlossaryTerm term="nisab" /> }} />
+            </h3>
             <p className="text-sm text-gray-700 leading-relaxed">
               <GlossaryTerm term="nisab" /> is the minimum threshold of wealth a Muslim must possess for one lunar year (<GlossaryTerm term="hawl" />) before
               <GlossaryTerm term="zakat" /> becomes obligatory. The <GlossaryTerm term="nisab" /> can be calculated based on the value of gold (85 grams) or
@@ -126,7 +132,9 @@ const EducationalModule: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">The <GlossaryTerm term="hawl" /> Period</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">
+              <Trans i18nKey="education.hawlPeriod" components={{ glossary: <GlossaryTerm term="hawl" /> }} />
+            </h3>
             <p className="text-sm text-gray-700 leading-relaxed">
               The <GlossaryTerm term="hawl" /> is the Islamic lunar year period (354 days) during which your wealth must remain above
               the <GlossaryTerm term="nisab" /> threshold for <GlossaryTerm term="zakat" /> to be due. ZakApp's Nisab Year Record feature helps you track this
@@ -186,6 +194,7 @@ const EducationalModule: React.FC = () => {
  * - Educational Module
  */
 export const Dashboard: React.FC = () => {
+  const { t } = useTranslation('dashboard');
   const { user } = useAuth();
   const navigate = useNavigate();
   const maskedCurrency = useMaskedCurrency();
@@ -324,8 +333,8 @@ export const Dashboard: React.FC = () => {
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-gray-900">Privacy Upgrade Available</p>
-              <p className="text-sm text-gray-700">Upgrade to zero-knowledge encryption for maximum privacy</p>
+              <p className="font-semibold text-gray-900">{t('privacy.upgradeAvailable')}</p>
+              <p className="text-sm text-gray-700">{t('privacy.upgradeHint')}</p>
             </div>
           </div>
           <Button onClick={() => setShowMigration(true)} size="sm" className="flex-shrink-0">
@@ -385,7 +394,7 @@ export const Dashboard: React.FC = () => {
           {/* Recent Assets Summary */}
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Your Assets</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('assets.yourAssets')}</h2>
               <Link
                 to="/assets"
                 className="text-sm font-medium text-green-600 hover:text-green-700 hover:underline"
@@ -423,7 +432,7 @@ export const Dashboard: React.FC = () => {
                         maximumFractionDigits: 0,
                       }).format(asset.value || 0))}
                     </p>
-                    <span className="text-xs text-green-600 font-medium">Zakatable</span>
+                    <span className="text-xs text-green-600 font-medium">{t('assets.zakatable')}</span>
                   </div>
                 </div>
               ))}
