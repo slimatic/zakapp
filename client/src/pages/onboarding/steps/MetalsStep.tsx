@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../../../contexts/PrivacyContext';
 
 export const MetalsStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
     const { data, updateAsset, nextStep, prevStep } = useOnboarding();
     // Fetch metal prices in the USER's chosen currency (#310) — values entered
     // during onboarding are saved in that currency, so USD prices would misstate wealth.
@@ -43,7 +45,7 @@ export const MetalsStep: React.FC = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Precious Metals</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.metals.title')}</h3>
                 <p className="text-sm text-gray-500 mb-6">
                     Gold & Silver. Enter the weight you own. You don't need to be exact right now—you can always update this later in your Assets Dashboard.
                 </p>

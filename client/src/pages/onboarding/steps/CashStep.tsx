@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useOnboarding } from '../context/OnboardingContext';
 import { getCurrencySymbol } from '../../../utils/formatters';
 
 export const CashStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
     const { data, updateAsset, nextStep, prevStep } = useOnboarding();
     const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as any);
 
@@ -17,7 +19,7 @@ export const CashStep: React.FC = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Cash Assets</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.cash.title')}</h3>
                 <p className="text-sm text-gray-500 mb-6">
                     Enter your cash holdings. You don't have to add everything now—feel free to enter your main account and add others later via the Assets page.
                 </p>

@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useOnboarding } from '../context/OnboardingContext';
 import { Logo } from '../../../components/common/Logo';
 
 export const WelcomeStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
     const { nextStep } = useOnboarding();
 
     return (
@@ -30,22 +32,22 @@ export const WelcomeStep: React.FC = () => {
 
             <div className="space-y-2">
                 <h1 className="text-3xl font-bold text-gray-900">
-                    Welcome to ZakApp
+                    {t('welcome.title')}
                 </h1>
                 <p className="text-lg text-emerald-700 font-medium">
-                    Helping you to purify and increase entrusted wealth
+                    {t('welcome.subtitle')}
                 </p>
             </div>
 
             <p className="text-gray-600 max-w-md leading-relaxed">
-                Let's get your portfolios set up. You are not expected to enter all your information in one sitting. You can simply start by adding a few assets now and return to the wizard or your dashboard to add more anytime.
+                {t('welcome.body')}
             </p>
 
             <button
                 onClick={nextStep}
                 className="mt-6 px-12 py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-1"
             >
-                Get Started
+                {t('welcome.getStarted')}
             </button>
         </div>
     );

@@ -1,4 +1,5 @@
 import React, { Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { useOnboarding } from '../context/OnboardingContext';
@@ -7,6 +8,7 @@ import { getSupportedCurrencies, getCurrencySymbol } from '../../../utils/format
 
 
 export const IdentityStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
     const { data, updateData, nextStep } = useOnboarding();
     const selectedCurrency = data.settings?.currency || 'USD';
 
@@ -37,7 +39,7 @@ export const IdentityStep: React.FC = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Preferred Currency</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.identity.preferredCurrency')}</h3>
                 <p className="text-sm text-gray-500 mb-4">
                     Choose the currency for your assets and Zakat calculations.
                 </p>
@@ -92,7 +94,7 @@ export const IdentityStep: React.FC = () => {
             </div>
 
             <div className="border-t border-gray-100 pt-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">School of Thought (Madhab)</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.identity.schoolOfThought')}</h3>
                 <p className="text-sm text-gray-500 mb-4">
                     This determines which assets are Zakatable, especially jewelry.
                 </p>
@@ -123,7 +125,7 @@ export const IdentityStep: React.FC = () => {
             </div>
 
             <div className="border-t border-gray-100 pt-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Nisab Threshold</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.identity.nisabThreshold')}</h3>
                 <p className="text-sm text-gray-500 mb-4">
                     The minimum wealth required before Zakat is due. Updated automatically with live market prices.
                 </p>

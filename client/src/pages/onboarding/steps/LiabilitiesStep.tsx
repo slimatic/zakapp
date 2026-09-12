@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useOnboarding } from '../context/OnboardingContext';
 import { getCurrencySymbol } from '../../../utils/formatters';
 
 export const LiabilitiesStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
     const { data, updateData, nextStep, prevStep } = useOnboarding();
     const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as 'USD' | 'EUR' | 'GBP' | 'SAR' | 'AED' | 'PKR' | 'INR' | 'MYR' | 'IDR' | 'TRY' | 'EGP');
 
@@ -21,9 +23,9 @@ export const LiabilitiesStep: React.FC = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Liabilities & Expenses</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.liabilities.title')}</h3>
                 <p className="text-sm text-gray-500 mb-6">
-                    Deductible debts can lower your Zakat. <Link to="/learn" target="_blank" rel="noopener" className="text-emerald-600 underline">Learn more about liabilities</Link>.
+                    Deductible debts can lower your Zakat. <Link to="/learn" target="_blank" rel="noopener" className="text-emerald-600 underline">{t('steps.liabilities.learnMore')}</Link>.
                 </p>
 
                 <div className="space-y-6">

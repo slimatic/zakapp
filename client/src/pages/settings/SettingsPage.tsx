@@ -17,6 +17,7 @@
 
 
 import React, { useState } from 'react';
+import { LanguageSwitcher } from '../../components/settings/LanguageSwitcher';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ProfileForm } from './components/ProfileForm';
@@ -75,6 +76,16 @@ export const SettingsPage: React.FC = () => {
                                 </button>
                             );
                         })}
+
+                        {/* Language Selection (#338) */}
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                                Language
+                            </h3>
+                            <div className="px-3">
+                                <LanguageSwitcher className="w-full" />
+                            </div>
+                        </div>
 
                         {/* Admin Dashboard Link - Separated */}
                         {user?.isAdmin && (

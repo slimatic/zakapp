@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useOnboarding, OnboardingData } from '../context/OnboardingContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useAssetRepository } from '../../../hooks/useAssetRepository';
@@ -7,6 +8,7 @@ import { calculateWealth } from '../../../core/calculations/wealthCalculator';
 import toast from 'react-hot-toast';
 
 export const ReviewStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
     const { data, prevStep, nextStep } = useOnboarding();
     const { updateLocalProfile } = useAuth();
     const { assets: dbAssets, addAsset } = useAssetRepository();
@@ -258,14 +260,14 @@ export const ReviewStep: React.FC = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-6">
                     <span className="text-3xl">📝</span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Review Your Entries</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('steps.review.title')}</h2>
                 <p className="text-gray-500 max-w-sm mx-auto">
                     Please review your assets below. We will save these to your portfolio and then calculate your Zakat.
                 </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-4">Summary of Entries</h4>
+                <h4 className="font-medium text-gray-900 mb-4">{t('steps.review.summaryOfEntries')}</h4>
                 <div className="space-y-3 text-sm">
                     {Object.entries(data.assets).map(([key, asset]) => {
                         if (!asset.enabled || !asset.value) return null;
@@ -282,19 +284,19 @@ export const ReviewStep: React.FC = () => {
                     )}
                     {data.liabilities?.immediate > 0 && (
                         <div className="flex justify-between items-center text-red-700">
-                            <span>Immediate Debts</span>
+                            <span>{t('steps.review.immediateDebts')}</span>
                             <span className="font-medium">-{formatCurrency(data.liabilities.immediate)}</span>
                         </div>
                     )}
                     {data.liabilities?.expenses > 0 && (
                         <div className="flex justify-between items-center text-orange-700">
-                            <span>Living Expenses</span>
+                            <span>{t('steps.review.livingExpenses')}</span>
                             <span className="font-medium">-{formatCurrency(data.liabilities.expenses)}</span>
                         </div>
                     )}
                 </div>
                 <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
-                    <span className="text-base font-semibold text-gray-900">Total Net Assets</span>
+                    <span className="text-base font-semibold text-gray-900">{t('steps.review.totalNetAssets')}</span>
                     <span className="text-lg font-bold text-emerald-700">{formatCurrency(estimates.totalWealth - estimates.totalLiabilities)}</span>
                 </div>
             </div>

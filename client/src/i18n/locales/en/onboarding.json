@@ -1,0 +1,65 @@
+{
+  "welcome": {
+    "title": "Welcome to ZakApp",
+    "subtitle": "Your companion for tracking Zakat-eligible wealth and fulfilling your obligation with confidence.",
+    "getStarted": "Get Started",
+    "body": "Let's get your portfolios set up. You are not expected to enter all your information in one sitting. You can simply start by adding a few assets now and return to the wizard or your dashboard to add more anytime."
+  },
+  "nav": {
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip Setup",
+    "finish": "Finish",
+    "stepOf": "Step {{current}} of {{total}}"
+  },
+  "steps": {
+    "identity": {
+      "title": "Your Profile",
+      "preferredCurrency": "Preferred Currency",
+      "schoolOfThought": "School of Thought (Madhab)",
+      "nisabThreshold": "Nisab Threshold"
+    },
+    "cash": {
+      "title": "Cash Assets"
+    },
+    "metals": {
+      "title": "Precious Metals",
+      "weightGrams": "Weight (Grams)",
+      "value": "Value"
+    },
+    "investments": {
+      "title": "Investments",
+      "passiveInvestment": "Passive Investment?",
+      "zakatTreatment": "Zakat Treatment:",
+      "fullAssessment": "Full Assessment (100%)",
+      "passive30": "Passive Investment (30%)",
+      "deferred": "Deferred (Exempt)",
+      "fullAssessmentHint": "Calculates zakat on ~70% of the value (after estimated taxes/fees).",
+      "passiveHint": "Treats underlying assets as passive/business assets (Zakatable on 30%).",
+      "deferredHint": "No Zakat due until withdrawal (based on lack of complete ownership/access).",
+      "usuallyRestricted": "Usually Restricted",
+      "deductTaxes": "Deduct Taxes/Penalties (Net Value)"
+    },
+    "liabilities": {
+      "title": "Liabilities & Expenses",
+      "learnMore": "Learn more about liabilities"
+    },
+    "zakatSetup": {
+      "title": "Zakat Overview",
+      "portfolioSummary": "Your Portfolio Summary",
+      "totalAssets": "Total Assets",
+      "liabilities": "Liabilities",
+      "netZakatableWealth": "Net Zakatable Wealth",
+      "estimatedZakatDue": "Estimated Zakat Due",
+      "loadingAssets": "Loading your assets...",
+      "sourceDatabase": "Source: Database"
+    },
+    "review": {
+      "title": "Review Your Entries",
+      "summaryOfEntries": "Summary of Entries",
+      "totalNetAssets": "Total Net Assets",
+      "immediateDebts": "Immediate Debts",
+      "livingExpenses": "Living Expenses"
+    }
+  }
+}

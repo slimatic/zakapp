@@ -1,0 +1,17 @@
+{
+  "education": {
+    "understandingZakat": "Understanding Zakat & Nisab",
+    "whatIsZakat": "What is <glossary>zakat</glossary>?",
+    "whatIsNisab": "What is <glossary>nisab</glossary>?",
+    "hawlPeriod": "The <glossary>hawl</glossary> Period",
+    "learnMore": "Learn More"
+  },
+  "assets": {
+    "yourAssets": "Your Assets",
+    "zakatable": "Zakatable"
+  },
+  "privacy": {
+    "upgradeAvailable": "Privacy Upgrade Available",
+    "upgradeHint": "Upgrade to zero-knowledge encryption for maximum privacy"
+  }
+}

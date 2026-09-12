@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useOnboarding } from '../context/OnboardingContext';
 import { getCurrencySymbol } from '../../../utils/formatters';
 
 export const InvestmentsStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
     const { data, updateAsset, nextStep, prevStep } = useOnboarding();
     const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as 'USD' | 'EUR' | 'GBP' | 'SAR' | 'AED' | 'PKR' | 'INR' | 'MYR' | 'IDR' | 'TRY' | 'EGP');
 
@@ -19,7 +21,7 @@ export const InvestmentsStep: React.FC = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Investments</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.investments.title')}</h3>
                 <p className="text-sm text-gray-500 mb-6">
                     Enter market value for investments. You can start with your primary account and add more later.
                 </p>
@@ -32,7 +34,7 @@ export const InvestmentsStep: React.FC = () => {
                                 <span className="p-1.5 bg-blue-200 rounded text-blue-800">☂️</span>
                                 Retirement (401k, IRA)
                             </label>
-                            <span className="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full">Usually Restricted</span>
+                            <span className="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full">{t('steps.investments.usuallyRestricted')}</span>
                         </div>
 
                         <div className="mb-4">
@@ -48,7 +50,7 @@ export const InvestmentsStep: React.FC = () => {
                         {/* Collapsible Treatment Section */}
                         {(data.assets.retirement.value || 0) > 0 && (
                             <div className="bg-white/50 p-4 rounded-lg border border-blue-100/50 space-y-3 animate-fadeIn">
-                                <p className="text-sm font-medium text-blue-900">Zakat Treatment:</p>
+                                <p className="text-sm font-medium text-blue-900">{t('steps.investments.zakatTreatment')}</p>
 
                                 <label className="flex items-start gap-3 cursor-pointer">
                                     <input
@@ -59,7 +61,7 @@ export const InvestmentsStep: React.FC = () => {
                                         className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                     />
                                     <div>
-                                        <span className="block text-sm font-medium text-gray-900">Full Assessment (100%)</span>
+                                        <span className="block text-sm font-medium text-gray-900">{t('steps.investments.fullAssessment')}</span>
                                     </div>
                                 </label>
 
@@ -72,8 +74,8 @@ export const InvestmentsStep: React.FC = () => {
                                         className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                     />
                                     <div>
-                                        <span className="block text-sm font-medium text-gray-900">Deduct Taxes/Penalties (Net Value)</span>
-                                        <span className="block text-xs text-gray-500">Calculates zakat on ~70% of the value (after estimated taxes/fees).</span>
+                                        <span className="block text-sm font-medium text-gray-900">{t('steps.investments.deductTaxes')}</span>
+                                        <span className="block text-xs text-gray-500">{t('steps.investments.fullAssessmentHint')}</span>
                                     </div>
                                 </label>
 
@@ -86,8 +88,8 @@ export const InvestmentsStep: React.FC = () => {
                                         className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                     />
                                     <div>
-                                        <span className="block text-sm font-medium text-gray-900">Passive Investment (30%)</span>
-                                        <span className="block text-xs text-gray-500">Treats underlying assets as passive/business assets (Zakatable on 30%).</span>
+                                        <span className="block text-sm font-medium text-gray-900">{t('steps.investments.passive30')}</span>
+                                        <span className="block text-xs text-gray-500">{t('steps.investments.passiveHint')}</span>
                                     </div>
                                 </label>
 
@@ -100,8 +102,8 @@ export const InvestmentsStep: React.FC = () => {
                                         className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                     />
                                     <div>
-                                        <span className="block text-sm font-medium text-gray-900">Deferred (Exempt)</span>
-                                        <span className="block text-xs text-gray-500">No Zakat due until withdrawal (based on lack of complete ownership/access).</span>
+                                        <span className="block text-sm font-medium text-gray-900">{t('steps.investments.deferred')}</span>
+                                        <span className="block text-xs text-gray-500">{t('steps.investments.deferredHint')}</span>
                                     </div>
                                 </label>
                             </div>
@@ -136,7 +138,7 @@ export const InvestmentsStep: React.FC = () => {
                                 className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                             />
                             <label htmlFor="passive-check" className="text-sm text-indigo-900 cursor-pointer select-none">
-                                <strong>Passive Investment?</strong> (Buy & Hold)
+                                <strong>{t('steps.investments.passiveInvestment')}</strong> (Buy & Hold)
                                 <span className="block text-xs text-indigo-700 font-normal mt-0.5">
                                     Only 30% of value is zakatable (Proxy for underlying assets)
                                 </span>

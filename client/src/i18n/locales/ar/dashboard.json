@@ -1,0 +1,17 @@
+{
+  "education": {
+    "understandingZakat": "فهم الزكاة والنصاب",
+    "whatIsZakat": "ما هي <glossary>الزكاة</glossary>؟",
+    "whatIsNisab": "ما هو <glossary>النصاب</glossary>؟",
+    "hawlPeriod": "فترة <glossary>الحول</glossary>",
+    "learnMore": "اعرف المزيد"
+  },
+  "assets": {
+    "yourAssets": "أصولك",
+    "zakatable": "خاضعة للزكاة"
+  },
+  "privacy": {
+    "upgradeAvailable": "ترقية الخصوصية متاحة",
+    "upgradeHint": "قم بالترقية إلى تشفير المعرفة الصفرية لأقصى خصوصية"
+  }
+}
