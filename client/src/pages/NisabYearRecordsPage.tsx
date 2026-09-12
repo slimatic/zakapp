@@ -31,7 +31,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useFxRates } from '../services/apiHooks';
 import { normalizeAssetsToCurrency, normalizeLiabilitiesToCurrency, FxRates } from '../utils/currencyNormalization';
-import { CreateRecordModal, RecordPaymentModal, NisabRecordCard, RecordRulingsPanel } from '../components/nisab';
+import { CreateRecordModal, RecordPaymentModal, NisabRecordCard, RecordRulingsPanel, PaymentHistoryCard } from '../components/nisab';
 
 export const NisabYearRecordsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -354,47 +354,17 @@ export const NisabYearRecordsPage: React.FC = () => {
                 <NisabComparisonWidget record={activeRecord} showDetails={true} />
 
                 {/* Payment summary */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4 md:p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="font-semibold text-gray-900">Payment History</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${isFullyPaid ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
-                      {isFullyPaid ? 'Paid' : 'Pending'}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Obligation:</span>
-                      <span className="font-medium text-gray-900">{formatCurrency(totalObligation)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Paid:</span>
-                      <span className="font-medium text-green-600">{formatCurrency(totalPaid)}</span>
-                    </div>
-                    <div className="border-t border-gray-100 pt-2 flex justify-between text-sm">
-                      <span className="text-gray-900 font-medium">Remaining:</span>
-                      <span className={`font-bold ${remainingBalance === 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatCurrency(remainingBalance)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {!isFullyPaid && activeRecord.status === 'DRAFT' && (
-                    <button
-                      onClick={() => setShowPaymentModal(true)}
-                      className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                    >
-                      + Record Payment
-                    </button>
-                  )}
-                  <div className="mt-4 space-y-2">
-                    {recordPayments.map((payment) => (
-                      <PaymentCard key={payment.id} payment={payment} />
-                    ))}
-                    {recordPayments.length === 0 && (
-                      <p className="text-xs text-gray-400 text-center py-2">No payments recorded yet.</p>
-                    )}
-                  </div>
-                </div>
+                <PaymentHistoryCard
+                  totalObligation={totalObligation}
+                  totalPaid={totalPaid}
+                  remainingBalance={remainingBalance}
+                  isFullyPaid={isFullyPaid}
+                  recordStatus={activeRecord.status || 'DRAFT'}
+                  payments={recordPayments as unknown[]}
+                  canRecordPayment={!isFullyPaid && activeRecord.status === 'DRAFT'}
+                  onRecordPayment={() => setShowPaymentModal(true)}
+                  formatCurrency={formatCurrency}
+                />
 
                 <button
                   onClick={() => handleRefreshAssets(activeRecord.id)}
