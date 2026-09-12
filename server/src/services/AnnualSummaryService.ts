@@ -233,7 +233,7 @@ export class AnnualSummaryService {
     const nisabInfo: Record<string, any> = {
       threshold: snapshot.nisabThreshold,
       type: snapshot.nisabType,
-      methodology: (snapshot as any).methodology || 'standard' // TODO(#314): Add methodology to YearlySnapshot schema
+      methodology: snapshot.methodologyUsed // YearlySnapshot.methodologyUsed (added with the hawl-tracking schema)
     };
 
     const totalZakatCalculated = snapshot.zakatAmount;
@@ -253,7 +253,7 @@ export class AnnualSummaryService {
       recipientSummary,
       assetBreakdown,
       comparativeAnalysis,
-      methodologyUsed: ((snapshot as any).methodologyUsed || (snapshot as any).methodology || 'standard') as ZakatMethodology, // TODO(#314): Add methodology to YearlySnapshot schema
+      methodologyUsed: snapshot.methodologyUsed as ZakatMethodology, // YearlySnapshot.methodologyUsed — real schema field (TODO(#314) resolved)
       nisabInfo,
       userNotes: snapshot.userNotes
     };
