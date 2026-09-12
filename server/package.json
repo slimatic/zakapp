@@ -64,7 +64,7 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/moment-hijri": "^2.1.4",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^18.18.0",
+    "@types/node": "^22.20.2",
     "@types/node-cron": "^3.0.11",
     "@types/redis": "^4.0.11",
     "@types/supertest": "^6.0.2",
@@ -82,7 +82,7 @@
     "typescript": "^5.5.4",
     "unplugin-swc": "^1.5.1",
     "vite": "^6.4.1",
-    "vitest": "^3.2.6"
+    "vitest": "^4.1.11"
   },
   "directories": {
     "test": "tests"
