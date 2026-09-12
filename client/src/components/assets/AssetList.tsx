@@ -80,12 +80,12 @@ export const AssetList: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-slate-900">My Assets</h1>
+        <h1 className="text-3xl font-bold text-card-foreground">My Assets</h1>
         <div className="flex items-center space-x-3">
-          <div className="bg-white border border-slate-200 rounded-lg p-1 flex shadow-sm">
+          <div className="bg-card border-border rounded-lg p-1 flex shadow-sm">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-muted text-card-foreground' : 'text-muted-foreground hover:text-card-foreground'}`}
               aria-label="Grid View"
               title="Grid View"
             >
@@ -93,7 +93,7 @@ export const AssetList: React.FC = () => {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-muted text-card-foreground' : 'text-muted-foreground hover:text-card-foreground'}`}
               aria-label="List View"
               title="List View"
             >
@@ -109,27 +109,27 @@ export const AssetList: React.FC = () => {
       {/* Visualization Section - Only show if assets exist */}
       {assets.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-          <div className="lg:col-span-2 bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+          <div className="lg:col-span-2 bg-card rounded-lg border-border p-6 shadow-sm border">
             <div className="h-full">
               <AssetsBreakdownChart assets={assets} />
             </div>
           </div>
 
-          <div className="bg-slate-50 rounded-lg border border-slate-200 p-6 flex flex-col justify-center">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Summary</h2>
+          <div className="bg-muted rounded-lg border-border p-6 border flex flex-col justify-center">
+            <h2 className="text-lg font-semibold text-card-foreground mb-4">Summary</h2>
             <div className="space-y-4">
-              <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                <span className="text-slate-600">Total Assets</span>
-                <span className="font-bold text-lg text-slate-900">
+              <div className="flex justify-between items-center border-b border-border pb-2">
+                <span className="text-muted-foreground">Total Assets</span>
+                <span className="font-bold text-lg text-card-foreground">
                   {formatCurrency(totalAssets)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-medium text-slate-900">{assets.length} items</span>
+                <span className="font-medium text-card-foreground">{assets.length} items</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-slate-100 mt-2">
-                <span className="text-slate-600 font-medium">Estimated Zakat</span>
-                <span className="font-bold text-slate-900 text-blue-600">
+              <div className="flex justify-between items-center pt-2 border-t border-border mt-2">
+                <span className="text-muted-foreground font-medium">Estimated Zakat</span>
+                <span className="font-bold text-blue-600">
                   {formatCurrency(estimatedZakat)}
                 </span>
               </div>
@@ -151,9 +151,9 @@ export const AssetList: React.FC = () => {
         /* Loading state — prevents the "No assets yet" flash before RxDB resolves */
         <Card className="p-12 text-center">
           <div className="flex justify-center py-4" role="status" aria-live="polite">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-600"></div>
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-muted-foreground"></div>
           </div>
-          <p className="text-sm text-slate-500 mt-2">Loading your assets…</p>
+          <p className="text-sm text-muted-foreground mt-2">Loading your assets…</p>
         </Card>
       ) : error ? (
         /* Error state — honest failure, with a retry path */
@@ -161,19 +161,19 @@ export const AssetList: React.FC = () => {
           <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">⚠️</span>
           </div>
-          <h3 className="text-lg font-medium text-slate-900 mb-2">Couldn't load your assets</h3>
-          <p className="text-slate-500 mb-6">{error.message || 'Something went wrong reading your local data.'}</p>
+          <h3 className="text-lg font-medium text-card-foreground mb-2">Couldn't load your assets</h3>
+          <p className="text-muted-foreground mb-6">{error.message || 'Something went wrong reading your local data.'}</p>
           <Button onClick={() => window.location.reload()} variant="outline">
             Retry
           </Button>
         </Card>
       ) : assets.length === 0 ? (
         <Card className="p-12 text-center">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Plus className="h-8 w-8 text-slate-400" />
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <Plus className="h-8 w-8 text-muted-foreground/70" />
           </div>
-          <h3 className="text-lg font-medium text-slate-900 mb-2">No assets yet</h3>
-          <p className="text-slate-500 mb-6">Add your first asset to start tracking your wealth.</p>
+          <h3 className="text-lg font-medium text-card-foreground mb-2">No assets yet</h3>
+          <p className="text-muted-foreground mb-6">Add your first asset to start tracking your wealth.</p>
           <Button onClick={() => navigate('/assets/new')}>
             Add Your First Asset
           </Button>
@@ -203,21 +203,21 @@ export const AssetList: React.FC = () => {
                 <div
                   key={asset.id}
                   onClick={() => navigate(`/assets/${asset.id}`)}
-                  className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm active:bg-slate-50 transition-colors"
+                  className="bg-card p-4 rounded-lg border-border shadow-sm active:bg-accent transition-colors border"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="font-semibold text-slate-900">{asset.name}</h3>
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 uppercase tracking-wide">
+                      <h3 className="font-semibold text-card-foreground">{asset.name}</h3>
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground uppercase tracking-wide">
                         {asset.type.replace(/_/g, ' ')}
                       </span>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-slate-900">{formatCurrency(asset.value, asset.currency)}</div>
-                      <div className="text-xs text-slate-500">Zakatable: {formatCurrency(zakatableAmount, asset.currency)}</div>
+                      <div className="font-bold text-card-foreground">{formatCurrency(asset.value, asset.currency)}</div>
+                      <div className="text-xs text-muted-foreground">Zakatable: {formatCurrency(zakatableAmount, asset.currency)}</div>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-3 mt-3 pt-3 border-t border-slate-100">
+                  <div className="flex justify-end gap-3 mt-3 pt-3 border-t border-border">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
                       className="text-sm font-medium text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded"
@@ -237,19 +237,19 @@ export const AssetList: React.FC = () => {
           </div>
 
           {/* Desktop List View: Table */}
-          <div className="hidden md:block bg-white shadow-sm rounded-lg overflow-hidden border border-slate-200">
+          <div className="hidden md:block bg-card shadow-sm rounded-lg overflow-hidden border-border">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Asset Name</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Value</th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Zakatable</th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Asset Name</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Value</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Zakatable</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
+                <tbody className="bg-card divide-y divide-border">
                   {assets.map((asset) => {
                     const isEligible = asset.zakatEligible !== false;
                     const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
@@ -259,22 +259,22 @@ export const AssetList: React.FC = () => {
                       <tr
                         key={asset.id}
                         onClick={() => navigate(`/assets/${asset.id}`)}
-                        className="hover:bg-slate-50 cursor-pointer transition-colors"
+                        className="hover:bg-accent cursor-pointer transition-colors"
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="text-sm font-medium text-slate-900">{asset.name}</div>
+                            <div className="text-sm font-medium text-card-foreground">{asset.name}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 uppercase tracking-wide">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-card-foreground uppercase tracking-wide">
                             {asset.type.replace(/_/g, ' ')}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-slate-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-card-foreground">
                           {formatCurrency(asset.value, asset.currency)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-600">
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-muted-foreground">
                           {formatCurrency(zakatableAmount, asset.currency)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

@@ -71,8 +71,8 @@ export const Dashboard: React.FC = () => {
       {/* Dashboard Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-slate-500">
+          <h1 className="text-3xl font-bold text-card-foreground tracking-tight">Dashboard</h1>
+          <p className="mt-1 text-muted-foreground">
             Welcome to your secure, local-first Zakat vault.
           </p>
         </div>
@@ -93,16 +93,16 @@ export const Dashboard: React.FC = () => {
         {/* Total Assets */}
         <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-emerald-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Assets Value
             </CardTitle>
             <Wallet className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">
+            <div className="text-2xl font-bold text-card-foreground">
               {formatCurrency(totalAssetValue)}
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {converted
                 ? `Across ${assets.length} tracked assets`
                 : 'Updating exchange rates…'}
@@ -113,34 +113,34 @@ export const Dashboard: React.FC = () => {
         {/* Zakatable Assets */}
         <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-amber-400">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Zakatable Assets
             </CardTitle>
             <TrendingUp className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">
+            <div className="text-2xl font-bold text-card-foreground">
               {zakatableAssets}
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Assets eligible for Zakat
             </p>
           </CardContent>
         </Card>
 
         {/* Zakat Due (Placeholder/Estimated) */}
-        <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-slate-300">
+        <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Last Calculation
             </CardTitle>
-            <History className="h-4 w-4 text-slate-400" />
+            <History className="h-4 w-4 text-muted-foreground/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">
+            <div className="text-2xl font-bold text-card-foreground">
               --
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               <Link to="/history" className="text-emerald-600 hover:underline">View History</Link>
             </p>
           </CardContent>
@@ -156,7 +156,7 @@ export const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             {assets.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">
+              <div className="text-center py-8 text-muted-foreground">
                 <Wallet className="h-10 w-10 mx-auto mb-3 opacity-20" />
                 <p>No assets tracked yet.</p>
                 <Button variant="link" onClick={() => navigate('/assets/new')}>Add your first asset</Button>
@@ -164,18 +164,18 @@ export const Dashboard: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 {assets.slice(0, 3).map((asset) => (
-                  <div key={asset.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg group hover:bg-emerald-50/50 transition-colors">
+                  <div key={asset.id} className="flex items-center justify-between p-3 bg-muted rounded-lg group hover:bg-emerald-50/50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-lg shadow-sm">
+                      <div className="h-10 w-10 rounded-full bg-card border-border flex items-center justify-center text-lg shadow-sm">
                         {asset.type === 'CASH' ? '💵' : asset.type === 'GOLD' ? '🪙' : '📦'}
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900 group-hover:text-emerald-900">{asset.name}</p>
-                        <p className="text-xs text-slate-500 capitalize">{asset.type.toLowerCase().replace('_', ' ')}</p>
+                        <p className="font-medium text-card-foreground group-hover:text-emerald-900">{asset.name}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{asset.type.toLowerCase().replace('_', ' ')}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-slate-900">{formatCurrency(asset.value, asset.currency)}</p>
+                      <p className="font-semibold text-card-foreground">{formatCurrency(asset.value, asset.currency)}</p>
                       {isAssetZakatable(asset, 'STANDARD') && <Badge variant="secondary" className="text-[10px] h-5">Zakatable</Badge>}
                     </div>
                   </div>
@@ -184,7 +184,7 @@ export const Dashboard: React.FC = () => {
             )}
           </CardContent>
           {assets.length > 0 && (
-            <CardFooter className="bg-slate-50/50 border-t border-slate-100 p-3">
+            <CardFooter className="bg-muted/50 border-t border-border p-3">
               <Link to="/assets" className="w-full text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center justify-center gap-1">
                 View All Assets <ArrowRight className="h-3 w-3" />
               </Link>
