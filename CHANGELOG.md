@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.16.1] - 2026-09-12
+
+### Patch — PushSubscription migration fix (#313)
+
+Production-deploy verification caught that PR #382 added the `PushSubscription` Prisma model without a migration — `prisma migrate deploy` never created the `push_subscriptions` table in production (unit tests passed because the test setup falls back to `db push`).
+
+- **Fixed**: additive-only migration `20260912160000_add_push_subscriptions` (CREATE TABLE + unique endpoint index + userId index + cascade FK to users). No drops, renames, or data changes. Verified on a scratch DB and applied cleanly in production; all user data intact.
+
+No other changes. Version bump only so the release tag matches the deployed images exactly.
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.0...v0.16.1
+
 ## [0.16.0] - 2026-09-12 — Moon Phase Release
 
 User-facing summary: **Push notifications for Zakat due reminders. App now speaks Arabic (with full right-to-left support) and lays the groundwork for 7 more languages. Broken links show a friendly 404 instead of a blank page. Local installs without sync no longer throw errors. Security dependencies fully clean.**
