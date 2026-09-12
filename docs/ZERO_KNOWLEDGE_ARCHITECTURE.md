@@ -90,7 +90,7 @@ If you're upgrading from v0.9.x, you can **optionally** migrate your historical 
 3. Server stores the new encrypted blobs
 4. Server forgets the old encryption key
 
-See [Migration Guide](MIGRATION_GUIDE.md) for step-by-step instructions.
+See [Migration Guide](archive/superseded/MIGRATION_GUIDE.md) for step-by-step instructions (archived v0.10.0 guide — kept for operators upgrading very old deployments).
 
 ## Threat Model: What We Protect Against
 
@@ -135,7 +135,7 @@ A: ZakApp is open-source (AGPLv3). You can audit the code yourself:
 
 ## Learn More
 
-- [Migration Guide](MIGRATION_GUIDE.md) - How to upgrade from v0.9.x
+- [Migration Guide](archive/superseded/MIGRATION_GUIDE.md) - How to upgrade from v0.9.x (archived)
 - [ZK API Specification](ZK_API_SPECIFICATION.md) - Technical implementation details
 - [Security Policy](../SECURITY.md) - Complete security documentation
 

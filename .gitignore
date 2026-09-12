@@ -167,3 +167,4 @@ auth-test-results.json
 *.bak
 *.db.backup-*
 backups/*.db.backup-*
+docs/archive/specs/*/lighthouse-report.json

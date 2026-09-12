@@ -15,8 +15,8 @@ Tabular Islamic calendar (hijridate Umm al-Qura approximation); actual dates may
 | Hijri month | Approx. Gregorian start | Planned version |
 |---|---|---|
 | Jumada al-Ula 1448 | 2026-10-12 | v0.13.0 — Muharram-cycle stabilization release ✅ shipped |
-| **Jumada al-Thani 1448** | **2026-11-11** | **v0.15.0** (v0.14.0 shipped early as an interim release on 2026-09-03 — see below) |
-| Rajab 1448 | 2026-12-10 | v0.16.0 |
+| **Jumada al-Thani 1448** | **2026-11-11** | **v0.15.0** (v0.14.0 shipped early as an interim release on 2026-09-03 — see below; v0.15.1 + v0.15.2 shipped 2026-09-10 as currency-consistency completion) ✅ |
+| Rabiʿ al-Awwal 1448 | 2026-12-10 | **v0.16.0** — Muharram 1448 audit cycle (plan: `docs/plans/2026-09-11-muharram-1448-audit-v0160-plan.md`) |
 | Sha'ban 1448 | 2027-01-09 | v0.17.0 |
 
 > v0.13.0 was originally targeted to coincide with 1 Muharram 1448 (June 2026); it slipped and is now releasing in the Jumada al-Ula cycle. Naming convention preserved from the Muharram 1448 audit that started this stabilization effort.
