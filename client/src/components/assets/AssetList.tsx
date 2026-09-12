@@ -31,7 +31,7 @@ import { normalizeAssetsToCurrency, FxRates } from '../../utils/currencyNormaliz
 
 export const AssetList: React.FC = () => {
   const navigate = useNavigate();
-  const { assets, removeAsset } = useAssetRepository();
+  const { assets, isLoading, error, removeAsset } = useAssetRepository();
   const { privacyMode } = usePrivacy();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -47,9 +47,12 @@ export const AssetList: React.FC = () => {
 
   const { settings } = useUserSettingsRepository();
   const methodology = (settings?.preferredMethodology?.toUpperCase() || 'STANDARD') as ZakatMethodology;
-  // Currency resolution (#310): settings repo first, then auth-context profile, then USD.
+  // Currency resolution (#310 round 5): the local RxDB settings store stores
+  // the display currency as `baseCurrency` (there is no `currency` field on
+  // the user_settings schema), so read `baseCurrency` first, then the
+  // auth-context merged settings, then profile, then USD.
   const { user } = useAuth();
-  const userCurrency = (settings as any)?.currency || (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
+  const userCurrency = (settings as any)?.baseCurrency || (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
   const fxRatesQuery = useFxRates();
   const fxRates = fxRatesQuery?.data?.data?.rates as FxRates | undefined;
 
@@ -146,7 +149,27 @@ export const AssetList: React.FC = () => {
       )}
 
       {/* Assets List/Grid */}
-      {assets.length === 0 ? (
+      {isLoading ? (
+        /* Loading state — prevents the "No assets yet" flash before RxDB resolves */
+        <Card className="p-12 text-center">
+          <div className="flex justify-center py-4" role="status" aria-live="polite">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-600"></div>
+          </div>
+          <p className="text-sm text-slate-500 mt-2">Loading your assets…</p>
+        </Card>
+      ) : error ? (
+        /* Error state — honest failure, with a retry path */
+        <Card className="p-8 text-center">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h3 className="text-lg font-medium text-slate-900 mb-2">Couldn't load your assets</h3>
+          <p className="text-slate-500 mb-6">{error.message || 'Something went wrong reading your local data.'}</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Retry
+          </Button>
+        </Card>
+      ) : assets.length === 0 ? (
         <Card className="p-12 text-center">
           <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Plus className="h-8 w-8 text-slate-400" />

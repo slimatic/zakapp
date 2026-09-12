@@ -23,6 +23,10 @@ import { Button } from '../components/ui';
 import { Modal } from '../components/ui/Modal';
 import { Liability } from '../types';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useFxRates } from '../services/apiHooks';
+import { sumLiabilitiesInCurrency, FxRates } from '../utils/currencyNormalization';
+import { formatCurrency } from '../utils/formatters';
 
 export const LiabilitiesPage: React.FC = () => {
     const { liabilities, isLoading } = useLiabilityRepository();
@@ -53,8 +57,15 @@ export const LiabilitiesPage: React.FC = () => {
         );
     }
 
-    // Calculate totals
-    const totalLiabilities = liabilities.reduce((sum, l) => sum + l.amount, 0);
+    // Calculate totals — #310 round 5: liabilities may be stored in mixed
+    // currencies; sum through the shared normalizer (same rule as assets),
+    // and show an honest placeholder when FX rates are unavailable instead
+    // of a raw apples+oranges total. Previously this page hardcoded USD.
+    const { user } = useAuth();
+    const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
+    const fxRatesQuery = useFxRates();
+    const fxRates = fxRatesQuery?.data?.data?.rates as FxRates | undefined;
+    const liabilityTotal = sumLiabilitiesInCurrency(liabilities, userCurrency, fxRates);
 
     return (
         <div className="space-y-6">
@@ -79,8 +90,13 @@ export const LiabilitiesPage: React.FC = () => {
                 <div className="bg-white/80 backdrop-blur-sm shadow-sm rounded-xl border border-primary-100/50 p-6 transition-all hover:shadow-md">
                     <dt className="text-sm font-medium text-gray-500 truncate mb-1">Total Liabilities</dt>
                     <dd className="text-4xl font-heading font-bold text-primary-700">
-                        {maskedCurrency(new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalLiabilities))}
+                        {liabilityTotal.converted
+                            ? maskedCurrency(formatCurrency(liabilityTotal.total, userCurrency as never))
+                            : '—'}
                     </dd>
+                    {!liabilityTotal.converted && (
+                        <dd className="mt-1 text-xs text-gray-400">Updating exchange rates…</dd>
+                    )}
                 </div>
                 {/* We can add more stats here later like "Deductible Amount" */}
             </div>
