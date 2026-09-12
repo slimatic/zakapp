@@ -49,11 +49,15 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
     logger.info('Sync token requested');
     try {
         if (!syncService.isConfigured()) {
-            logger.error('Sync token request failed: server not configured');
+            logger.warn('Sync token request: sync disabled (not configured) — returning typed 503');
 
-            return res.status(500).json({
-                error: 'Sync not configured',
-                message: 'Server missing COUCHDB_JWT_SECRET environment variable'
+            // Typed disabled-state (issue #371): local/dev installs without
+            // CouchDB config get an honest 503 the client treats as
+            // "sync unavailable", not a hard 500 that breaks page flows.
+            return res.status(503).json({
+                error: 'Sync disabled',
+                code: 'SYNC_DISABLED',
+                message: 'Server sync is not configured (missing COUCHDB_JWT_SECRET). Local vault-only mode continues to work.'
             });
         }
         console.log('Secret configured.');

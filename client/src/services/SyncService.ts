@@ -91,12 +91,24 @@ export class SyncService {
         authMethod: 'none'
     });
 
+    /**
+     * True when the backend answered 503 SYNC_DISABLED (local/dev install
+     * without CouchDB). Sync stays off; vault-only mode continues (issue #371).
+     */
+    private syncDisabled = false;
+    private syncDisabledWarned = false;
+
     constructor() { }
 
     /**
      * Get valid CouchDB credentials, refreshing if needed.
      */
     private async getCredentials(): Promise<SyncCredentials> {
+        // Issue #371: sync permanently unavailable on this backend — fail fast
+        // so callers log once instead of hammering a dead endpoint.
+        if (this.syncDisabled) {
+            throw new Error('SYNC_DISABLED');
+        }
         // Return cached credentials if still valid (with buffer time)
         if (this.syncCredentials && new Date() < new Date(this.syncCredentials.expiresAt.getTime() - TOKEN_REFRESH_BUFFER_MS)) {
             return this.syncCredentials;
@@ -139,6 +151,17 @@ export class SyncService {
 
         if (!response.ok) {
             const body = await response.json().catch(() => ({ error: 'Unknown error' }));
+            // Typed disabled-state (issue #371): backend without CouchDB config
+            // returns 503 SYNC_DISABLED — treat as permanent 'vault-only mode',
+            // not a transient failure.
+            if (response.status === 503 && body?.code === 'SYNC_DISABLED') {
+                this.syncDisabled = true;
+                if (!this.syncDisabledWarned) {
+                    logger.warn('Sync is disabled on this server (not configured). Continuing in local vault-only mode.');
+                    this.syncDisabledWarned = true;
+                }
+                throw new Error('SYNC_DISABLED');
+            }
             // Support both shapes: { message: '...', ... } and { error: { message: '...' } }
             const errMsg = body?.error?.message || body?.message || body?.error || `Credential request failed: ${response.status}`;
             throw new Error(errMsg);
