@@ -39,7 +39,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
   const zakatableAmount = getAssetZakatableValue(asset, 'STANDARD');
   const effectiveModifier = asset.value > 0 ? zakatableAmount / asset.value : (isEligible ? 1.0 : 0);
 
-  const modifierBadge = isEligible ? getModifierBadge(effectiveModifier) : { icon: '🚫', text: 'Exempt', color: 'bg-gray-100 text-gray-600' };
+  const modifierBadge = isEligible ? getModifierBadge(effectiveModifier) : { icon: '🚫', text: 'Exempt', color: 'bg-muted text-muted-foreground' };
   const zakatOwed = zakatableAmount * 0.025; // Estimate at 2.5%
 
   const getCategoryIcon = (type: string): string => {
@@ -83,7 +83,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
 
   return (
     <div
-      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 cursor-pointer"
+      className="bg-card border-border rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 cursor-pointer"
       onClick={onClick}
       role="article"
       aria-label={`Asset: ${asset.name}`}
@@ -95,10 +95,10 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
             {getCategoryIcon(asset.type)}
           </span>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 text-sm md:text-base">
+            <h3 className="font-semibold text-card-foreground text-sm md:text-base">
               {asset.name}
             </h3>
-            <p className="text-xs text-gray-500 capitalize">
+            <p className="text-xs text-muted-foreground capitalize">
               {asset.subCategory ? (
                 <span>
                   {asset.subCategory.replace(/_/g, ' ')} • {asset.type.replace(/_/g, ' ').toLowerCase()}
@@ -112,7 +112,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
 
         {/* Modifier Badge */}
         <div
-          className={`px-2 py-1 rounded text-xs font-medium ${!isEligible ? 'bg-gray-100 text-gray-600' : modifierBadge.color
+          className={`px-2 py-1 rounded text-xs font-medium ${!isEligible ? 'bg-muted text-muted-foreground' : modifierBadge.color
             } whitespace-nowrap ml-2`}
           title={getModifierLabel(effectiveModifier)}
         >
@@ -124,30 +124,30 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
       </div>
 
       {/* Value Section */}
-      <div className="space-y-2 mb-4 border-t border-gray-100 pt-3">
+      <div className="space-y-2 mb-4 border-t border-border pt-3">
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Asset Value:</span>
-          <span className="font-semibold text-gray-900">{formatCurrency(asset.value)}</span>
+          <span className="text-muted-foreground">Asset Value:</span>
+          <span className="font-semibold text-card-foreground">{formatCurrency(asset.value)}</span>
         </div>
 
         {/* Zakatable Amount (only show if modifier applies) */}
         {effectiveModifier !== 1.0 && (
           <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-600">Zakatable:</span>
+            <span className="text-muted-foreground">Zakatable:</span>
             <span className="font-medium text-blue-600">{formatCurrency(zakatableAmount)}</span>
           </div>
         )}
 
         {/* Estimated Zakat */}
-        <div className="flex justify-between items-center text-sm border-t border-gray-100 pt-2 mt-2">
-          <span className="font-medium text-gray-900">Estimated Zakat:</span>
+        <div className="flex justify-between items-center text-sm border-t border-border pt-2 mt-2">
+          <span className="font-medium text-card-foreground">Estimated Zakat:</span>
           <span className="font-bold text-green-600">{formatCurrency(zakatOwed)}</span>
         </div>
       </div>
 
       {/* Modifier Info (if applicable) */}
       {effectiveModifier !== 1.0 && (
-        <div className="text-xs text-gray-600 bg-gray-50 rounded px-2 py-2 mb-3">
+        <div className="text-xs text-muted-foreground bg-muted rounded px-2 py-2 mb-3">
           <p className="font-medium mb-1">
             {effectiveModifier === 0.3 ? '📊 30% Rule Applied' : effectiveModifier === 0.0 ? '⏸️ Deferred' : `◐ ${(effectiveModifier * 100).toFixed(1)}% Applied`}
           </p>
@@ -159,14 +159,14 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
       )}
 
       {/* Actions */}
-      <div className="flex gap-2 pt-3 border-t border-gray-100">
+      <div className="flex gap-2 pt-3 border-t border-border">
         {onEdit && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onEdit();
             }}
-            className="flex-1 px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+            className="flex-1 px-3 py-2 text-xs font-medium text-muted-foreground bg-muted hover:bg-accent rounded transition-colors"
             aria-label={`Edit ${asset.name}`}
           >
             Edit
