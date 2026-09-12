@@ -86,6 +86,9 @@
    controls with no bg utility (class rules win on specificity). */
 .dark select:not([class*="bg-"]) { background-color: hsl(var(--card)); }
 .dark input:not([class*="bg-"]):not([type="checkbox"]):not([type="radio"]) { background-color: hsl(var(--card)); }
+.dark input[type="date"], .dark input[type="datetime-local"], .dark input[type="time"], .dark input[type="month"] {
+  color-scheme: dark;
+}
 .dark body {
   background-color: hsl(222 47% 7%);
   color: hsl(210 40% 96%);
