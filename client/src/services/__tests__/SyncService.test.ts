@@ -25,6 +25,12 @@ import { AssetType } from '../../types';
 // So we do NOT mock fetch globally for this test if possible.
 // However, vitest environment might mock it?
 // We will try running against real CouchDB (Integration Test).
+//
+// SKIPPED (documented, not silent — Muharram 1448 audit, test/skip-triage):
+// These are true integration tests that require a live CouchDB instance with the
+// test user/database provisioned; the unit suite has no CouchDB service available.
+// Follow-up: run behind a CI service container (couchdb:3.5.1) or rewrite against
+// an in-memory RxDB adapter. See docs/plans/2026-09-11-muharram-1448-audit-v0160-plan.md (Stream D).
 
 describe.skip('SyncService Integration', () => {
     beforeEach(async () => {
