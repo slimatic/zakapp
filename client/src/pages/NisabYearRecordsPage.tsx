@@ -16,13 +16,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import { calculateWealth } from '../core/calculations/wealthCalculator';
-import { gregorianToHijri } from '../utils/calendarConverter';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
+import { useNisabRecordActions } from '../hooks/useNisabRecordActions';
 import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useFxRates } from '../services/apiHooks';
@@ -105,108 +103,44 @@ export const NisabYearRecordsPage: React.FC = () => {
   // Format currency — consolidated into useDisplayCurrency (#341)
   const maskedCurrency = useMaskedCurrency();
 
-  // Create Record — now driven by modal
-  const handleCreateSubmit = async (payload: {
-    assetIds: string[];
-    liabilityIds: string[];
-    basis: 'GOLD' | 'SILVER';
-    date: Date;
-    nisabAmount: number;
-  }) => {
-    const { assetIds, liabilityIds, basis, date, nisabAmount: threshold } = payload;
-
-    try {
-      const selectedAssets = normalizedAssets.filter(a => assetIds.includes(a.id));
-      const selectedLiabilities = normalizedLiabilities.filter(l => liabilityIds.includes(l.id));
-
-      const userMethodology = ((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase();
-      const { totalWealth, netZakatableWealth } = calculateWealth(selectedAssets, selectedLiabilities, new Date(), userMethodology as any);
-      const zakatAmount = netZakatableWealth >= threshold ? netZakatableWealth * 0.025 : 0;
-
-      const startDate = date;
-      const completionDate = new Date(startDate.getTime() + 354 * 24 * 60 * 60 * 1000);
-      const startHijri = gregorianToHijri(startDate);
-
-      await addRecord({
-        hawlStartDate: startDate.toISOString(),
-        hawlCompletionDate: completionDate.toISOString(),
-        hijriYear: startHijri.hy,
-        nisabBasis: basis,
-        totalWealth,
-        zakatableWealth: netZakatableWealth,
-        zakatAmount,
-        nisabThresholdAtStart: threshold.toString(),
-        currency: userCurrency,
-        status: 'DRAFT'
-      });
-
-      toast.success('Nisab Year Record created');
+  // Record mutations — extracted into useNisabRecordActions (#341 slice 4)
+  const userMethodology = ((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase();
+  const {
+    createRecord,
+    refreshCalculations,
+    finalizeRecord,
+    unlockRecord,
+    deleteRecord,
+    saveStartDate,
+  } = useNisabRecordActions({
+    addRecord,
+    updateRecord,
+    removeRecord,
+    normalizedAssets: normalizedAssets as never,
+    normalizedLiabilities: normalizedLiabilities as never,
+    userCurrency,
+    userMethodology,
+    onCreated: () => {
       setShowCreateModal(false);
-
       if (allRecords.length === 0) {
         navigate('/dashboard');
       }
-    } catch (err: any) {
-      console.error(err);
-      const msg = err instanceof Error ? err.message : 'Failed to create record';
-      toast.error(msg);
-    }
+    },
+    onDeleted: (recordId) => {
+      if (selectedRecordId === recordId) setSelectedRecordId(null);
+    },
+    onDateSaved: () => setEditingStartDateRecordId(null),
+  });
+
+  const handleCreateSubmit = async (payload: Parameters<typeof createRecord>[0]): Promise<void> => {
+    await createRecord(payload);
   };
+  const handleRefreshAssets = (recordId: string) => refreshCalculations(recordId);
+  const handleFinalize = (record: { id: string }) => finalizeRecord(record);
+  const handleUnlock = (record: { id: string }) => unlockRecord(record);
+  const handleDelete = (record: { id: string }) => deleteRecord(record);
+  const handleEditDate = (recordId: string) => saveStartDate(recordId, newStartDate);
 
-  // Actions
-  const handleRefreshAssets = async (recordId: string) => {
-    try {
-      const userMethodology = ((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase();
-      const { totalWealth, netZakatableWealth } = calculateWealth(normalizedAssets, normalizedLiabilities, new Date(), userMethodology as any);
-      const zakatAmount = netZakatableWealth * 0.025;
-
-      await updateRecord(recordId, {
-        totalWealth,
-        zakatableWealth: netZakatableWealth,
-        zakatAmount,
-      });
-
-      toast.success('Assets refreshed and calculations updated');
-    } catch (error) {
-      console.error('Failed to refresh assets:', error);
-      toast.error('Failed to update calculations');
-    }
-  };
-
-  const handleFinalize = async (record: any) => {
-    if (window.confirm('Are you sure you want to finalize this record? This will lock it from edits.')) {
-      await updateRecord(record.id, { status: 'FINALIZED' });
-      toast.success('Record finalized');
-    }
-  };
-
-  const handleUnlock = async (record: any) => {
-    await updateRecord(record.id, { status: 'UNLOCKED' });
-    toast.success('Record unlocked');
-  };
-
-  const handleDelete = async (record: any) => {
-    if (window.confirm('Delete this record? This cannot be undone.')) {
-      await removeRecord(record.id);
-      if (selectedRecordId === record.id) setSelectedRecordId(null);
-      toast.success('Record deleted');
-    }
-  };
-
-  const handleEditDate = async (recordId: string) => {
-    if (!newStartDate) return;
-    const start = new Date(newStartDate);
-    const completion = new Date(start.getTime() + 354 * 24 * 60 * 60 * 1000);
-    const startHijri = gregorianToHijri(start);
-
-    await updateRecord(recordId, {
-      hawlStartDate: start.toISOString(),
-      hawlCompletionDate: completion.toISOString(),
-      hijriYear: startHijri.hy
-    });
-    setEditingStartDateRecordId(null);
-    toast.success('Date updated');
-  };
 
   // Calculate totals for active record
   const totalPaid = recordPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
