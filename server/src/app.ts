@@ -27,6 +27,7 @@ import 'dotenv/config';
 // Import route modules
 import authRoutes from './routes/auth';
 import syncRoutes from './routes/sync';
+import pushRoutes from './routes/push';
 import assetRoutes from './routes/assets';
 import calculationsRoutes from './routes/calculations';
 import zakatRoutes from './routes/zakat';
@@ -178,6 +179,7 @@ app.use('/api/users', userRoutes); // Alias for consistency (hotfix for 404s)
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/methodologies', methodologyRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/push', pushRoutes);
 // app.use('/api/admin/encryption', adminEncryptionRoutes); // Replaced by generic admin routes
 app.use('/api/admin', adminRoutes);
 
