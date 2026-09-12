@@ -42,4 +42,14 @@ fi
 
 echo "✅ Backups written to $BACKUP_DIR:"
 ls -lh "$BACKUP_DIR" | grep "$STAMP"
+# 5. Rotation — keep ONLY the latest backup set (rollback anchor).
+# Policy (Slim, 2026-09-12): one recent backup is enough for rollback; older
+# sets are pruned so $BACKUP_DIR never grows unbounded. Files written by THIS
+# run are kept; zakapp-* files from previous runs are removed.
+keep_n=3  # newest config + sqlite + couchdb from this run
+ls -t "$BACKUP_DIR"/zakapp-* 2>/dev/null | tail -n +$((keep_n + 1)) | while read -r f; do
+    rm -f "$f"
+    echo "   pruned old backup: $(basename "$f")"
+done
+
 echo "Deploy may proceed."
