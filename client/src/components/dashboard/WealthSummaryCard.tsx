@@ -52,6 +52,19 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
   const differencePercentage = ((totalWealth - nisabThreshold) / nisabThreshold) * 100;
   const maskedCurrency = useMaskedCurrency();
 
+  // Issue #310 (v0.15.2 regression): amounts were hardcoded to `$` while the
+  // currency label below showed the real preference (e.g. IDR) — an IDR user
+  // saw "$42,000,000.00 / IDR". Format with the actual currency code instead.
+  const fmt = (amount: number) =>
+    maskedCurrency(
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(amount)
+    );
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border border-gray-200">
       {/* Header */}
@@ -100,7 +113,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
       <div className="mb-4">
         <p className="text-sm text-gray-600 mb-1">Total Wealth</p>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-          {maskedCurrency(`$${totalWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
+          {fmt(totalWealth)}
         </p>
         <p className="text-xs text-gray-500 mt-1">{currency}</p>
       </div>
@@ -113,13 +126,13 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
               {isAboveNisab ? 'Above Nisab' : 'Below Nisab'}
             </p>
             <p className="text-xs text-gray-600 mt-1">
-              Nisab: {maskedCurrency(`$${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
+              Nisab: {fmt(nisabThreshold)}
             </p>
           </div>
 
           <div className="text-right">
             <p className={`text-lg font-bold ${isAboveNisab ? 'text-green-700' : 'text-red-700'}`}>
-              {maskedCurrency(`${isAboveNisab ? '+' : '-'}$${difference.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
+              {`${isAboveNisab ? '+' : '-'}${fmt(difference)}`}
             </p>
             <p className="text-xs text-gray-600">
               {isAboveNisab ? '+' : ''}{differencePercentage.toFixed(1)}%

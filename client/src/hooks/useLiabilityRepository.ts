@@ -65,6 +65,13 @@ export function useLiabilityRepository() {
                             }
                         }
 
+                        // Coerce amount/deductibleAmount to numbers — legacy
+                        // docs can carry string amounts (encrypted anyOf schema),
+                        // which would silently string-concat totals.
+                        data.amount = Number(data.amount) || 0;
+                        if (data.deductibleAmount !== undefined && data.deductibleAmount !== null) {
+                            data.deductibleAmount = Number(data.deductibleAmount) || 0;
+                        }
                         return data;
                     }));
                 })
