@@ -64,8 +64,6 @@ import { MaintenancePage } from './pages/MaintenancePage';
 // Core application pages - lazy loaded with context-aware skeletons
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const SettingsPage = lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
-// const Profile = lazy(() => import('./pages/user/Profile').then(m => ({ default: m.Profile }))); // Legacy
-// const Settings = lazy(() => import('./pages/user/Settings').then(m => ({ default: m.Settings }))); // Legacy
 
 // Asset management pages
 const AssetList = lazy(() => import('./components/assets').then(m => ({ default: m.AssetList })));
@@ -88,7 +86,6 @@ const KnowledgeHub = lazy(() => import('./pages/knowledge/KnowledgeHub').then(m 
 const DiagnosticsPage = lazy(() => import('./pages/DiagnosticsPage'));
 
 // Tracking & Analytics pages - lazy loaded for optimal performance
-// const TrackingDashboard = lazy(() => import('./pages/TrackingDashboard').then(m => ({ default: m.TrackingDashboard })));
 const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').then(m => ({ default: m.NisabYearRecordsPage })));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const PaymentImportExport = lazy(() => import('./components/payments/PaymentImportExport').then(m => ({ default: m.PaymentImportExport })));
