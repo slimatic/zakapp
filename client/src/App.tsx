@@ -87,6 +87,7 @@ const DiagnosticsPage = lazy(() => import('./pages/DiagnosticsPage'));
 
 // Tracking & Analytics pages - lazy loaded for optimal performance
 const NisabYearRecordsPage = lazy(() => import('./pages/NisabYearRecordsPage').then(m => ({ default: m.NisabYearRecordsPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage').then(m => ({ default: m.PaymentsPage })));
 const PaymentImportExport = lazy(() => import('./components/payments/PaymentImportExport').then(m => ({ default: m.PaymentImportExport })));
 const LiabilitiesPage = lazy(() => import('./pages/LiabilitiesPage').then(m => ({ default: m.LiabilitiesPage })));
@@ -450,6 +451,16 @@ function App() {
 
 
 
+
+                    {/* 404 catch-all — must stay last */}
+                    <Route
+                      path="*"
+                      element={
+                        <Suspense fallback={<PageLoadingFallback />}>
+                          <NotFoundPage />
+                        </Suspense>
+                      }
+                    />
 
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
