@@ -33,6 +33,12 @@ export const LiabilitiesPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLiability, setEditingLiability] = useState<Liability | undefined>(undefined);
     const maskedCurrency = useMaskedCurrency();
+    // Issue #310 round 5: currency resolution + FX rates must run BEFORE any
+    // conditional return — hooks called conditionally throw
+    // "Rendered more hooks than during the previous render" (the crash behind
+    // the user's "Liabilities keeps showing error" report).
+    const { currency: userCurrency } = useDisplayCurrency();
+    const fxRatesQuery = useFxRates();
 
     const handleAdd = () => {
         setEditingLiability(undefined);
@@ -76,9 +82,6 @@ export const LiabilitiesPage: React.FC = () => {
     // currencies; sum through the shared normalizer (same rule as assets),
     // and show an honest placeholder when FX rates are unavailable instead
     // of a raw apples+oranges total. Previously this page hardcoded USD.
-    // Currency resolution now via useDisplayCurrency (#341).
-    const { currency: userCurrency } = useDisplayCurrency();
-    const fxRatesQuery = useFxRates();
     const fxRates = fxRatesQuery?.data?.data?.rates as FxRates | undefined;
     const liabilityTotal = sumLiabilitiesInCurrency(liabilities, userCurrency, fxRates);
 
