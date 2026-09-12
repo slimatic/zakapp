@@ -17,6 +17,7 @@
 
 import React from 'react';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
+import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
 
 interface WealthSummaryCardProps {
   totalWealth: number;
@@ -55,15 +56,10 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
   // Issue #310 (v0.15.2 regression): amounts were hardcoded to `$` while the
   // currency label below showed the real preference (e.g. IDR) — an IDR user
   // saw "$42,000,000.00 / IDR". Format with the actual currency code instead.
-  const fmt = (amount: number) =>
-    maskedCurrency(
-      new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }).format(amount)
-    );
+  // Use the shared locale-aware formatter (#310 QA sweep): currency config
+  // defines locale + decimals per code (e.g. IDR → id-ID, 0 decimals) so the
+  // dashboard matches Analytics/Assets rendering exactly.
+  const fmt = (amount: number) => maskedCurrency(formatCurrency(amount, currency as CurrencyCode));
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border border-gray-200">
