@@ -192,12 +192,12 @@ export const History: React.FC = () => {
     const colors = {
       paid: 'bg-green-100 text-green-800',
       partial: 'bg-yellow-100 text-yellow-800',
-      saved: 'bg-gray-100 text-gray-800',
+      saved: 'bg-muted text-card-foreground',
       completed: 'bg-green-100 text-green-800',
       pending: 'bg-yellow-100 text-yellow-800',
       failed: 'bg-red-100 text-red-800'
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || 'bg-muted text-card-foreground';
   };
 
   const getStatusIcon = (status: string): string => {
@@ -244,14 +244,14 @@ export const History: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Zakat History & Tracking</h1>
-              <p className="mt-2 text-lg text-gray-600">
+              <h1 className="text-3xl font-bold text-card-foreground">Zakat History & Tracking</h1>
+              <p className="mt-2 text-lg text-muted-foreground">
                 Track your Zakat calculations, payments, and spiritual journey
               </p>
             </div>
@@ -270,38 +270,38 @@ export const History: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="text-sm font-medium text-gray-600">This Year's Obligation</div>
-            <div className="text-2xl font-bold text-gray-900 mt-1">
+          <div className="bg-card rounded-lg border-border p-6 border">
+            <div className="text-sm font-medium text-muted-foreground">This Year's Obligation</div>
+            <div className="text-2xl font-bold text-card-foreground mt-1">
               {formatCurrency(getTotalZakatThisYear())}
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="text-sm font-medium text-gray-600">Paid This Year</div>
+          <div className="bg-card rounded-lg border-border p-6 border">
+            <div className="text-sm font-medium text-muted-foreground">Paid This Year</div>
             <div className="text-2xl font-bold text-green-600 mt-1">
               {formatCurrency(getTotalPaidThisYear())}
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="text-sm font-medium text-gray-600">Remaining</div>
+          <div className="bg-card rounded-lg border-border p-6 border">
+            <div className="text-sm font-medium text-muted-foreground">Remaining</div>
             <div className="text-2xl font-bold text-orange-600 mt-1">
               {formatCurrency(getTotalZakatThisYear() - getTotalPaidThisYear())}
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="text-sm font-medium text-gray-600">Total Calculations</div>
-            <div className="text-2xl font-bold text-gray-900 mt-1">
+          <div className="bg-card rounded-lg border-border p-6 border">
+            <div className="text-sm font-medium text-muted-foreground">Total Calculations</div>
+            <div className="text-2xl font-bold text-card-foreground mt-1">
               {mockCalculations.length}
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8">
-          <div className="border-b border-gray-200">
+        <div className="bg-card rounded-lg border-border overflow-hidden border mb-8">
+          <div className="border-b border-border">
             <nav className="flex">
               {[
                 { id: 'calculations', label: 'Calculations', icon: '🧮' },
@@ -314,7 +314,7 @@ export const History: React.FC = () => {
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 ${activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      : 'border-transparent text-muted-foreground hover:text-card-foreground'
                     }`}
                 >
                   <span>{tab.icon}</span>
@@ -342,13 +342,13 @@ export const History: React.FC = () => {
                       placeholder="Search calculations..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border-border rounded-md shadow-sm border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                   <select
                     value={filterMethodology}
                     onChange={(e) => setFilterMethodology(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="px-3 py-2 border-border rounded-md shadow-sm border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="all">All Methodologies</option>
                     <option value="standard">Standard</option>
@@ -359,7 +359,7 @@ export const History: React.FC = () => {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="px-3 py-2 border-border rounded-md shadow-sm border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="all">All Statuses</option>
                     <option value="saved">Saved</option>
@@ -371,28 +371,28 @@ export const History: React.FC = () => {
                 {/* Calculations List */}
                 <div className="space-y-4">
                   {filteredCalculations.map((calculation) => (
-                    <div key={calculation.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow">
+                    <div key={calculation.id} className="border-border rounded-lg p-6 border hover:shadow-sm transition-shadow">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
                           <div className="text-2xl">{getMethodologyIcon(calculation.methodology)}</div>
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900">
+                            <h3 className="text-lg font-semibold text-card-foreground">
                               {calculation.name}
                             </h3>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               Calculated on {formatDate(calculation.calculationDate)}
                               using {calculation.methodology} methodology
                             </p>
 
                             <div className="flex items-center space-x-4 mt-3">
                               <div className="text-sm">
-                                <span className="font-medium text-gray-600">Total Assets:</span>
-                                <span className="ml-2 font-bold text-gray-900">
+                                <span className="font-medium text-muted-foreground">Total Assets:</span>
+                                <span className="ml-2 font-bold text-card-foreground">
                                   {formatCurrency(calculation.summary.totalAssets)}
                                 </span>
                               </div>
                               <div className="text-sm">
-                                <span className="font-medium text-gray-600">Zakat Amount:</span>
+                                <span className="font-medium text-muted-foreground">Zakat Amount:</span>
                                 <span className="ml-2 font-bold text-blue-600">
                                   {formatCurrency(calculation.summary.zakatAmount)}
                                 </span>
@@ -423,17 +423,17 @@ export const History: React.FC = () => {
             {activeTab === 'payments' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">Payment History</h3>
+                  <h3 className="text-lg font-semibold text-card-foreground">Payment History</h3>
                   <Button>Add Payment Record</Button>
                 </div>
 
                 <div className="space-y-4">
                   {mockPayments.map((payment) => (
-                    <div key={payment.id} className="border border-gray-200 rounded-lg p-6">
+                    <div key={payment.id} className="border-border rounded-lg p-6 border">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="text-lg font-semibold text-gray-900">
+                            <h4 className="text-lg font-semibold text-card-foreground">
                               {formatCurrency(payment.amount)}
                             </h4>
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
@@ -443,35 +443,35 @@ export const History: React.FC = () => {
 
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
-                              <span className="font-medium text-gray-600">Date:</span>
+                              <span className="font-medium text-muted-foreground">Date:</span>
                               <div>{formatDate(payment.paymentDate)}</div>
                             </div>
                             <div>
-                              <span className="font-medium text-gray-600">Recipient:</span>
+                              <span className="font-medium text-muted-foreground">Recipient:</span>
                               <div>{payment.recipient}</div>
                             </div>
                             <div>
-                              <span className="font-medium text-gray-600">Method:</span>
+                              <span className="font-medium text-muted-foreground">Method:</span>
                               <div>{payment.method}</div>
                             </div>
                             <div>
-                              <span className="font-medium text-gray-600">Receipt:</span>
+                              <span className="font-medium text-muted-foreground">Receipt:</span>
                               <div>
                                 {payment.receiptUrl ? (
                                   <a href={payment.receiptUrl} className="text-blue-600 hover:underline">
                                     View Receipt
                                   </a>
                                 ) : (
-                                  <span className="text-gray-400">No receipt</span>
+                                  <span className="text-muted-foreground/70">No receipt</span>
                                 )}
                               </div>
                             </div>
                           </div>
 
                           {payment.notes && (
-                            <div className="mt-3 p-3 bg-gray-50 rounded text-sm">
-                              <span className="font-medium text-gray-600">Notes:</span>
-                              <p className="text-gray-700 mt-1">{payment.notes}</p>
+                            <div className="mt-3 p-3 bg-muted rounded text-sm">
+                              <span className="font-medium text-muted-foreground">Notes:</span>
+                              <p className="text-card-foreground mt-1">{payment.notes}</p>
                             </div>
                           )}
                         </div>
@@ -497,11 +497,11 @@ export const History: React.FC = () => {
             {activeTab === 'yearly' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">Nisab Year Records</h3>
+                  <h3 className="text-lg font-semibold text-card-foreground">Nisab Year Records</h3>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                    className="px-3 py-2 border border-gray-300 rounded-md"
+                    className="px-3 py-2 border border-border rounded-md"
                   >
                     {[2024, 2023, 2022, 2021, 2020].map(year => (
                       <option key={year} value={year}>{year}</option>
@@ -510,11 +510,11 @@ export const History: React.FC = () => {
                 </div>
 
                 {/* Yearly trend visualization placeholder */}
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <h4 className="text-lg font-medium text-gray-900 mb-4">
+                <div className="bg-muted rounded-lg p-6">
+                  <h4 className="text-lg font-medium text-card-foreground mb-4">
                     📈 Wealth & Zakat Trend
                   </h4>
-                  <div className="h-64 flex items-center justify-center text-gray-500">
+                  <div className="h-64 flex items-center justify-center text-muted-foreground">
                     [Chart visualization would go here - showing wealth growth and Zakat payments over time]
                   </div>
                 </div>
@@ -523,16 +523,16 @@ export const History: React.FC = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Year</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Total Assets</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Zakat Amount</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Payment Status</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Calculations</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">Growth</th>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 font-medium text-card-foreground">Year</th>
+                        <th className="text-left py-3 px-4 font-medium text-card-foreground">Total Assets</th>
+                        <th className="text-left py-3 px-4 font-medium text-card-foreground">Zakat Amount</th>
+                        <th className="text-left py-3 px-4 font-medium text-card-foreground">Payment Status</th>
+                        <th className="text-left py-3 px-4 font-medium text-card-foreground">Calculations</th>
+                        <th className="text-left py-3 px-4 font-medium text-card-foreground">Growth</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-border">
                       {mockYearlySnapshots.map((snapshot, index) => {
                         const previousYear = mockYearlySnapshots[index + 1];
                         const growth = previousYear ?
@@ -540,7 +540,7 @@ export const History: React.FC = () => {
 
                         return (
                           <tr key={snapshot.year}>
-                            <td className="py-3 px-4 font-medium text-gray-900">
+                            <td className="py-3 px-4 font-medium text-card-foreground">
                               {snapshot.year}
                             </td>
                             <td className="py-3 px-4">
@@ -555,7 +555,7 @@ export const History: React.FC = () => {
                                 {snapshot.isPaid ? '✅ Paid' : '❌ Unpaid'}
                               </span>
                             </td>
-                            <td className="py-3 px-4 text-gray-600">
+                            <td className="py-3 px-4 text-muted-foreground">
                               {snapshot.calculationsCount} calculations
                             </td>
                             <td className="py-3 px-4">
@@ -578,7 +578,7 @@ export const History: React.FC = () => {
             {activeTab === 'reminders' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">Zakat Reminders & Schedule</h3>
+                  <h3 className="text-lg font-semibold text-card-foreground">Zakat Reminders & Schedule</h3>
                   <Button>Set New Reminder</Button>
                 </div>
 
