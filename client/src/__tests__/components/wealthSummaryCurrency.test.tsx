@@ -49,11 +49,11 @@ describe('WealthSummaryCard — issue #310 IDR regression', () => {
       <WealthSummaryCard totalWealth={42_000_000} nisabThreshold={230_000_000} currency="IDR" />
     );
 
-    // Total: Intl 'currency' style with IDR → "Rp42,000,000" style output
-    const total = screen.getByText(/42,000,000/);
+    // Shared formatter: id-ID locale → dot-grouped, Rp prefix, 0 decimals
+    const total = screen.getByText(/42\.000\.000/);
     expect(total).toBeTruthy();
     expect(total.textContent).not.toContain('$');
-    expect(total.textContent).toMatch(/IDR/);
+    expect(total.textContent).toMatch(/Rp/);
   });
 
   it('renders the nisab threshold in the display currency (no $ for IDR)', () => {
@@ -63,7 +63,7 @@ describe('WealthSummaryCard — issue #310 IDR regression', () => {
 
     const nisabLine = screen.getByText(/Nisab:/);
     expect(nisabLine.textContent).not.toContain('$');
-    expect(nisabLine.textContent).toMatch(/IDR/);
+    expect(nisabLine.textContent).toMatch(/Rp/);
   });
 
   it('formats USD amounts with $ as before (no regression for USD users)', () => {
@@ -81,7 +81,7 @@ describe('WealthSummaryCard — issue #310 IDR regression', () => {
     );
 
     // difference = 70,000,000 → rendered with Rp, no $
-    const diff = screen.getByText(/\+IDR/);
+    const diff = screen.getByText(/\+Rp/);
     expect(diff.textContent).not.toContain('$');
   });
 });
