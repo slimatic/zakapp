@@ -25,9 +25,10 @@ import { SecuritySettings } from './components/SecuritySettings';
 import { DataManagement } from './components/DataManagement';
 import { DangerZone } from './components/DangerZone';
 import { HelpSupport } from './components/HelpSupport';
-import { User, Lock, Database, AlertOctagon, LayoutDashboard } from 'lucide-react';
+import { NotificationSettings } from './components/NotificationSettings';
+import { User, Lock, Database, AlertOctagon, LayoutDashboard, Bell } from 'lucide-react';
 
-type SettingsTab = 'profile' | 'security' | 'data' | 'help' | 'danger';
+type SettingsTab = 'profile' | 'security' | 'notifications' | 'data' | 'help' | 'danger';
 
 export const SettingsPage: React.FC = () => {
     const { user } = useAuth();
@@ -37,6 +38,7 @@ export const SettingsPage: React.FC = () => {
     const navigation = [
         { id: 'profile', name: 'Profile Information', icon: User },
         { id: 'security', name: 'Security', icon: Lock },
+        { id: 'notifications', name: 'Notifications', icon: Bell },
         { id: 'data', name: 'Data Management', icon: Database },
         { id: 'help', name: 'Help & Support', icon: User },
         { id: 'danger', name: 'Danger Zone', icon: AlertOctagon },
@@ -117,6 +119,7 @@ export const SettingsPage: React.FC = () => {
                     <div className="p-6 md:p-8">
                         {activeTab === 'profile' && <ProfileForm />}
                         {activeTab === 'security' && <SecuritySettings />}
+                        {activeTab === 'notifications' && <NotificationSettings />}
                         {activeTab === 'data' && <DataManagement />}
                         {activeTab === 'help' && <HelpSupport />}
                         {activeTab === 'danger' && <DangerZone />}
