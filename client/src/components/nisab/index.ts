@@ -5,6 +5,8 @@ export { NisabRecordCard } from './NisabRecordCard';
 export { RecordRulingsPanel } from './RecordRulingsPanel';
 export { PaymentHistoryCard } from './PaymentHistoryCard';
 export { RecordDetailPanel } from './RecordDetailPanel';
+export { RecordListPanel } from './RecordListPanel';
+export type { RecordListPanelProps, RecordStatusFilter } from './RecordListPanel';
 export type { RecordRulingsPanelProps } from './RecordRulingsPanel';
 export type { CreateRecordModalProps } from './CreateRecordModal';
 export type { RecordPaymentModalProps } from './RecordPaymentModal';

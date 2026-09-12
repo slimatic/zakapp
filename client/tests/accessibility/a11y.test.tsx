@@ -205,6 +205,7 @@ vi.mock("../../src/components/nisab", () => ({
   RecordPaymentModal: () => <div data-testid="record-payment-modal">Payment Modal</div>,
   NisabRecordCard: () => <div>NisabRecordCard</div>,
   RecordDetailPanel: () => <div data-testid="record-detail-panel">Detail Panel</div>,
+  RecordListPanel: () => <div data-testid="record-list-panel">Record List</div>,
 }));
 
 vi.mock("../../src/components/HawlProgressIndicator", () => ({
