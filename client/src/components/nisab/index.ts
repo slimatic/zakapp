@@ -4,6 +4,7 @@ export { EditDatePopover } from './EditDatePopover';
 export { NisabRecordCard } from './NisabRecordCard';
 export { RecordRulingsPanel } from './RecordRulingsPanel';
 export { PaymentHistoryCard } from './PaymentHistoryCard';
+export { RecordDetailPanel } from './RecordDetailPanel';
 export type { RecordRulingsPanelProps } from './RecordRulingsPanel';
 export type { CreateRecordModalProps } from './CreateRecordModal';
 export type { RecordPaymentModalProps } from './RecordPaymentModal';

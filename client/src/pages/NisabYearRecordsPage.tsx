@@ -19,10 +19,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { calculateWealth } from '../core/calculations/wealthCalculator';
 import { gregorianToHijri } from '../utils/calendarConverter';
-import HawlProgressIndicator from '../components/HawlProgressIndicator';
-import NisabComparisonWidget from '../components/NisabComparisonWidget';
-import ZakatDisplayCard from '../components/tracking/ZakatDisplayCard';
-import { PaymentCard } from '../components/tracking/PaymentCard';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useAssetRepository } from '../hooks/useAssetRepository';
@@ -30,8 +26,9 @@ import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useFxRates } from '../services/apiHooks';
+import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
 import { normalizeAssetsToCurrency, normalizeLiabilitiesToCurrency, FxRates } from '../utils/currencyNormalization';
-import { CreateRecordModal, RecordPaymentModal, NisabRecordCard, RecordRulingsPanel, PaymentHistoryCard } from '../components/nisab';
+import { CreateRecordModal, RecordPaymentModal, NisabRecordCard, RecordDetailPanel } from '../components/nisab';
 
 export const NisabYearRecordsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -53,7 +50,7 @@ export const NisabYearRecordsPage: React.FC = () => {
   const [newStartDate, setNewStartDate] = useState<string>('');
 
   const { user } = useAuth();
-  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
+  const { currency: userCurrency, formatCurrency } = useDisplayCurrency();
   const defaultNisabBasis = (user?.settings?.preferredNisabStandard as 'GOLD' | 'SILVER') || 'GOLD';
 
   // Issue #310 (round 4): assets may be stored in mixed currencies (e.g. USD
@@ -105,17 +102,8 @@ export const NisabYearRecordsPage: React.FC = () => {
     }
   }, [records, selectedRecordId]);
 
-  // Format currency
+  // Format currency — consolidated into useDisplayCurrency (#341)
   const maskedCurrency = useMaskedCurrency();
-  const formatCurrency = (amount: number, currency: string = userCurrency): string => {
-    const formatted = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-    return maskedCurrency(formatted);
-  };
 
   // Create Record — now driven by modal
   const handleCreateSubmit = async (payload: {
@@ -336,42 +324,21 @@ export const NisabYearRecordsPage: React.FC = () => {
           {/* Selected Record Details */}
           <div className="lg:col-span-1">
             {activeRecord ? (
-              <div className={`${!selectedRecordId ? 'hidden lg:block' : ''} space-y-4`}>
-                <ZakatDisplayCard record={activeRecord} />
-                <RecordRulingsPanel
-                  assets={allAssets
-                    .filter(a => a.isActive)
-                    .map(a => ({
-                      id: a.id,
-                      name: a.name || 'Unnamed asset',
-                      category: (a as any).category,
-                      type: (a as any).type,
-                      zakatEligible: (a as any).zakatEligible,
-                    }))}
+              <div className={`${!selectedRecordId ? 'hidden lg:block' : ''}`}>
+                <RecordDetailPanel
+                  record={activeRecord as never}
+                  assets={allAssets.filter(a => a.isActive) as never}
                   methodologyName={((user as any)?.settings?.preferredMethodology || 'STANDARD').toUpperCase()}
-                />
-                <HawlProgressIndicator record={activeRecord as any} />
-                <NisabComparisonWidget record={activeRecord} showDetails={true} />
-
-                {/* Payment summary */}
-                <PaymentHistoryCard
                   totalObligation={totalObligation}
                   totalPaid={totalPaid}
                   remainingBalance={remainingBalance}
                   isFullyPaid={isFullyPaid}
-                  recordStatus={activeRecord.status || 'DRAFT'}
                   payments={recordPayments as unknown[]}
                   canRecordPayment={!isFullyPaid && activeRecord.status === 'DRAFT'}
                   onRecordPayment={() => setShowPaymentModal(true)}
+                  onRefreshCalculations={() => handleRefreshAssets(activeRecord.id)}
                   formatCurrency={formatCurrency}
                 />
-
-                <button
-                  onClick={() => handleRefreshAssets(activeRecord.id)}
-                  className="w-full py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                >
-                  🔄 Refresh Calculations
-                </button>
               </div>
             ) : (
               <div className="hidden lg:flex flex-col items-center justify-center h-full text-center text-gray-400">
