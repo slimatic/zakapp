@@ -182,6 +182,10 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
                     {/* Practical Example */}
                     <section className="bg-gray-50 rounded-lg p-4">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">Practical Example</h3>
+                      <p className="text-xs text-gray-500 italic mb-3">
+                        Illustrative figures only — the nisab amounts shown here are hypothetical.
+                        Your live nisab thresholds (in your currency) are shown in the cards above.
+                      </p>
                       <div className="space-y-3">
                         <div>
                           <p className="font-medium text-gray-700">Scenario:</p>
