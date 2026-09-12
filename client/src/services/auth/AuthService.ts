@@ -6,7 +6,6 @@ import type { User } from '../../types';
 import toast from 'react-hot-toast';
 
 const logger = new Logger('AuthService');
-const LOCAL_USER_ID = 'local-user-profile';
 const SESSION_STORAGE_KEY = 'zakapp_session_v1';
 
 export interface SessionData {

@@ -129,7 +129,6 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
   if (!isOpen) return null;
 
   // Parse numeric values safely using precision utilities
-  const totalWealth = toNumber(record.totalWealth);
   const zakatableWealth = toNumber(record.zakatableWealth);
   const zakatAmount = toNumber(record.zakatAmount || record.finalZakatAmount) ||
     toNumber(calculateZakat(zakatableWealth));

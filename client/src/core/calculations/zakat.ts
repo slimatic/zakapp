@@ -24,8 +24,6 @@ import { Decimal } from 'decimal.js';
 export type ZakatMethodology = MethodologyName;
 
 // Retirement methodology constants
-const PRESERVED_GROWTH_RATE = 0.005; // 0.5% rule (Dr. Salah Al-Sawy)
-const STANDARD_ZAKAT_RATE = 0.025; // 2.5%
 
 export interface CalculationResult {
     totalAssets: number;
@@ -110,37 +108,6 @@ function parseRetirementConfig(asset: Asset): RetirementConfig | null {
   }
 
   return null;
-}
-
-// Calculate retirement Zakat based on methodology
-function calculateRetirementZakat(asset: Asset): number {
-  const config = parseRetirementConfig(asset);
-  const grossBalance = new Decimal(asset.value || 0);
-
-  // If no config, default to 'manual' (treat as regular asset)
-  if (!config || config.methodology === 'manual') {
-    // Fall back to standard 2.5% calculation (or use calculationModifier if set)
-    if (typeof asset.calculationModifier === 'number' && asset.calculationModifier !== 1.0) {
-      return grossBalance.times(asset.calculationModifier).times(STANDARD_ZAKAT_RATE).toNumber();
-    }
-    return grossBalance.times(STANDARD_ZAKAT_RATE).toNumber();
-  }
-
-  // Opinion B: Preserved Growth (0.5% Rule - Dr. Salah Al-Sawy)
-  if (config.methodology === 'preserved_growth') {
-    return grossBalance.times(PRESERVED_GROWTH_RATE).toNumber();
-  }
-
-  // Opinion A: Collectible Value (Withdrawal Method)
-  // Formula: (GrossBalance - (GrossBalance * (Penalty + Tax))) * 0.025
-  const penalty = new Decimal(config.withdrawalPenalty || 0);
-  const tax = new Decimal(config.estimatedTaxRate || 0);
-  const one = new Decimal(1);
-  const netFactor = one.minus(penalty).minus(tax);
-  const factor = Decimal.max(0, netFactor);
-  const netBalance = grossBalance.times(factor);
-  
-  return netBalance.times(STANDARD_ZAKAT_RATE).toNumber();
 }
 
 // Legacy function kept for backward compatibility

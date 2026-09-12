@@ -34,7 +34,7 @@ export const PaymentHistoryCard: React.FC<PaymentHistoryCardProps> = ({
   totalPaid,
   remainingBalance,
   isFullyPaid,
-  recordStatus,
+  recordStatus: _recordStatus,
   payments,
   canRecordPayment,
   onRecordPayment,

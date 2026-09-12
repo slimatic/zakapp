@@ -16,7 +16,6 @@
  */
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatGregorianDate, gregorianToHijri, formatHijriDate } from '../../utils/calendarConverter';
 import { getFeedbackEmail } from '../../config';
@@ -51,7 +50,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   hasActiveRecord,
 }) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const hijriAdjustment = (user as any)?.settings?.hijriAdjustment || 0;
   const feedbackEmail = getFeedbackEmail();
 

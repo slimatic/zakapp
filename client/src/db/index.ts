@@ -53,11 +53,6 @@ export type ZakAppCollections = {
 export type ZakAppDatabase = RxDatabase<ZakAppCollections>;
 
 // Migration Strategies
-const migrationStrategiesV2 = {
-    1: (doc: any) => doc,
-    2: (doc: any) => doc
-};
-
 const migrationStrategiesV3 = {
     1: (doc: any) => doc,
     2: (doc: any) => doc,
@@ -307,31 +302,6 @@ export const forceResetDatabase = async () => {
         // since the exact storage state may vary.
         const dbName = process.env.NODE_ENV === 'test' ? 'testdb' : 'zakapp_db_v10';
 
-        // Approach 1: Try with the cached storage (if available)
-        if (window._zakapp_storage) {
-            try {
-                logger.info("DB Forced Removed via cached storage.");
-
-            } catch (e) {
-                logger.warn("Cached storage removal failed, trying base storage", e);
-            }
-        }
-
-        // Approach 2: Try with base storage (for IndexedDB cleanup)
-        // This ensures the underlying Dexie/IndexedDB tables are cleaned up
-        let baseStorage;
-        if (process.env.NODE_ENV === 'test') {
-            baseStorage = getRxStorageMemory();
-        } else {
-            baseStorage = getRxStorageDexie();
-        }
-
-        try {
-            logger.info("DB Forced Removed via base storage.");
-
-        } catch (e) {
-            logger.warn("Base storage removal failed (may be already deleted)", e);
-        }
 
         // Approach 3: Direct IndexedDB cleanup for Dexie-based storage
         // This is a nuclear option to ensure IndexedDB is truly clean

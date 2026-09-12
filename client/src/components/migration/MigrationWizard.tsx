@@ -27,7 +27,7 @@ export interface MigrationWizardProps {
 }
 
 export function MigrationWizard({ open, onClose }: MigrationWizardProps) {
-  const { status, migrationProgress, isLoading, error, startMigration } = useMigration();
+  const { status, migrationProgress, error, startMigration } = useMigration();
   const [step, setStep] = useState<'intro' | 'confirm' | 'progress' | 'success'>('intro');
   const [acknowledged, setAcknowledged] = useState(false);
   

@@ -295,7 +295,7 @@ class ApiService {
   }
 
   // Asset endpoints
-  async getAssets(filters?: AssetFilters): Promise<ApiResponse> {
+  async getAssets(_filters?: AssetFilters): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/assets`, {
       headers: this.getAuthHeaders()
     });

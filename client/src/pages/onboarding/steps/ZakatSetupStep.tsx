@@ -29,7 +29,6 @@ export const ZakatSetupStep: React.FC = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [zakatPaid, setZakatPaid] = useState<number>(0);
-    const [setupCompleted, setSetupCompleted] = useState(false);
     const [estimates, setEstimates] = useState<any>(null);
 
     // Calculate Estimates based on SAVED DB Data
@@ -142,7 +141,6 @@ export const ZakatSetupStep: React.FC = () => {
             }));
 
             toast.success('All Set!', { id: toastId });
-            setSetupCompleted(true);
 
             navigate('/dashboard');
 

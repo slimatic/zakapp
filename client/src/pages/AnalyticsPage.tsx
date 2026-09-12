@@ -22,7 +22,6 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
 import { PaymentDistributionChart } from '../components/dashboard/PaymentDistributionChart';
 import { WealthTrendChart } from '../components/dashboard/WealthTrendChart';
@@ -40,8 +39,7 @@ import { parseDecimalNumber } from '../utils/parseDecimal';
 type Timeframe = 'last_year' | 'last_3_years' | 'last_5_years' | 'all_time';
 
 export const AnalyticsPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+    const { user } = useAuth();
   const maskedCurrency = useMaskedCurrency();
   const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('all_time');
   
@@ -109,8 +107,7 @@ export const AnalyticsPage: React.FC = () => {
     return sum + (Number(payment.amount) || 0);
   }, 0) || 0;
 
-  const outstandingBalance = totalZakatDue - totalZakatPaid;
-  const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;
+    const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">

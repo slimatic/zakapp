@@ -34,8 +34,7 @@ const PaymentTracking: React.FC = () => {
   });
   const [sortField, setSortField] = useState<'date' | 'amount'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [showRecordModal, setShowRecordModal] = useState(false);
-
+  
   // Fetch payments with current filters
   const {
     data: paymentsData,
@@ -96,7 +95,7 @@ const PaymentTracking: React.FC = () => {
     }
   };
 
-  const handleDownloadReceipt = (payment: ZakatPayment) => {
+  const handleDownloadReceipt = (_payment: ZakatPayment) => {
     // This would typically call an API to generate/download a receipt
     toast.error('Receipt download functionality would be implemented here');
   };

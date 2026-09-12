@@ -4,9 +4,6 @@ describe('checkBrowserCapabilities', () => {
     // Mock navigator and window properties
     const originalNavigator = global.navigator;
     const originalWindow = global.window;
-    const originalLocalStorage = global.window.localStorage;
-    const originalIndexedDB = global.window.indexedDB;
-    const originalCrypto = global.window.crypto;
 
     beforeEach(() => {
         // Reset to original before each test

@@ -254,7 +254,7 @@ export const ZakatResults: React.FC<ZakatResultsProps> = ({
                 Asset Distribution by Category
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {calculation.breakdown.assetsByCategory.map((category, index) => (
+                {calculation.breakdown.assetsByCategory.map((category) => (
                   <div key={category.category} className="text-center">
                     <div className="text-3xl mb-2">{getCategoryIcon(category.category)}</div>
                     <div className="text-sm font-medium text-gray-900 capitalize">

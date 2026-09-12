@@ -3,7 +3,7 @@
  * Blue-ocean feature: automated Hawl tracking / due-date urgency (competitor gap #4).
  */
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { PrivacyProvider } from '../../../contexts/PrivacyContext';

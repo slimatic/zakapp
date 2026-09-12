@@ -133,7 +133,7 @@ export const useCalculateZakatOptimistic = () => {
 
       return { previousCalculation };
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, _variables, _context) => {
       // Update with actual result
       queryClient.setQueryData(['zakat', 'calculation'], {
         ...data,

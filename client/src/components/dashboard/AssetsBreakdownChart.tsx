@@ -145,7 +145,7 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
                             wrapperStyle={{
                                 paddingTop: '0.75rem'
                             }}
-                            formatter={(value, entry: any) => {
+                            formatter={(value, _entry: any) => {
                                 const item = chartData.find(d => d.name === value);
                                 const percent = item ? ((item.value / totalValue) * 100).toFixed(0) : 0;
                                 return <span className="text-xs sm:text-sm text-gray-600">{value} ({percent}%)</span>;

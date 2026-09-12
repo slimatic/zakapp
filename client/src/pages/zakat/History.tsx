@@ -16,7 +16,6 @@
  */
 
 import React, { useState } from 'react';
-import { useZakatHistory, useZakatPayments } from '../../services/apiHooks';
 import { Button } from '../../components/ui';
 import { CalculationHistory } from '../../components/zakat/CalculationHistory';
 import { useAuth } from '../../contexts/AuthContext';
@@ -72,8 +71,6 @@ export const History: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   // API hooks
-  const { data: historyData, isLoading: historyLoading, error: historyError } = useZakatHistory();
-  const { data: paymentsData, isLoading: paymentsLoading } = useZakatPayments();
 
   // Mock data for now - replace with actual API data
   const mockCalculations: ZakatCalculation[] = [

@@ -8,8 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, render, screen, cleanup, waitFor } from '@testing-library/react';
-import React from 'react';
+import { renderHook, cleanup } from '@testing-library/react';
 import { useDisplayCurrency } from '../useDisplayCurrency';
 
 // The hook composes three sources; stub each and verify the resolution

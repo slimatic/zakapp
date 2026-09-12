@@ -233,7 +233,7 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {results.map((result, index) => {
+          {results.map((result) => {
             const meetsNisab = totalWealth >= result.nisabThreshold;
             const isHighest = result.totalZakat === getHighestZakat() && result.totalZakat > 0;
             const isLowest = result.totalZakat === getLowestZakat() && result.totalZakat > 0;

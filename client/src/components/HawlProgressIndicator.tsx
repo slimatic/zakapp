@@ -72,7 +72,7 @@ export const HawlProgressIndicator: React.FC<HawlProgressIndicatorProps> = ({
   record,
   className = '',
   onHawlComplete,
-  progressColor = 'blue',
+  progressColor: _progressColor = 'blue',
 }) => {
   const { liveHawlData, isUpdating } = useHawlStatus(record.id, 5000);
 

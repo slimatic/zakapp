@@ -153,3 +153,23 @@ afterEach(async () => {
 	await resetDb();
 });
 
+
+// jsdom >=26 throws a SecurityError (opaque origin) when the localStorage
+// getter is touched in some vitest environments, leaving `window.localStorage`
+// undefined. Provide an in-memory fallback so tests relying on localStorage
+// (theme, session, RxDB prefs) behave deterministically.
+try {
+  if (typeof window.localStorage === 'undefined' || window.localStorage === null) throw new Error('missing');
+} catch {
+  const store = new Map<string, string>();
+  const shim: Storage = {
+    get length() { return store.size; },
+    clear() { store.clear(); },
+    getItem(k: string) { return store.has(k) ? store.get(k)! : null; },
+    key(i: number) { return Array.from(store.keys())[i] ?? null; },
+    removeItem(k: string) { store.delete(k); },
+    setItem(k: string, v: string) { store.set(k, String(v)); },
+  };
+  Object.defineProperty(window, 'localStorage', { value: shim, configurable: true, writable: true });
+  Object.defineProperty(globalThis, 'localStorage', { value: shim, configurable: true, writable: true });
+}

@@ -18,37 +18,6 @@
 import { Asset, AssetType } from '../types';
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
 
-interface LegacyAsset {
-    name: string;
-    category: string; // Legacy field
-    subCategory?: string;
-    value: number;
-    currency: string;
-    description?: string;
-    zakatEligible?: boolean;
-    createdAt?: string;
-    updatedAt?: string;
-    type?: string;
-    acquisitionDate?: string;
-}
-
-interface LegacyPayment {
-    id?: string;
-    paymentDate: string;
-    amount: number;
-    currency?: string;
-    snapshotId?: string; // Might be missing
-    snapshot?: string;   // Legacy alias
-    calculationId?: string;
-    recipientName: string;
-    recipientType?: string;
-    recipientCategory?: string;
-    paymentMethod?: string;
-    receiptReference?: string;
-    receiptNumber?: string; // Legacy alias
-    notes?: string;
-    status?: string;
-}
 
 export interface MigrationResult {
     assets: { success: number; failed: number; errors: string[] };
