@@ -53,6 +53,7 @@ model User {
   analyticsMetrics AnalyticsMetric[] @relation("UserAnalyticsMetrics")
   annualSummaries  AnnualSummary[]   @relation("UserAnnualSummaries")
   reminderEvents   ReminderEvent[]   @relation("UserReminderEvents")
+  pushSubscriptions PushSubscription[] @relation("UserPushSubscriptions")
 
   // Nisab Year Record Audit Trail (NEW - Feature 008)
   auditTrailEntries AuditTrailEntry[] @relation("UserAuditTrails")
@@ -940,4 +941,23 @@ model AssetAmountSnapshot {
   @@unique([assetId, date])
   @@index([assetId])
   @@index([date])
+}
+
+// ── Push Notifications (#313) ────────────────────────────────────────────────
+// Web Push subscriptions for Zakat due reminders. One user may register
+// several devices; `endpoint` is the browser-generated unique URL.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique // browser-generated subscription URL
+  p256dh    String   // client public key (Base64URL)
+  auth      String   // auth secret (Base64URL)
+  userAgent String?  // device hint for UX/debugging
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation("UserPushSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("push_subscriptions")
+  @@index([userId])
 }

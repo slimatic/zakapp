@@ -22,20 +22,37 @@
  * Uses Web Push protocol with VAPID authentication.
  */
 
-// Dynamically require optional dependency 'web-push' to avoid compile-time errors when it's not installed
-let webpush: any = null;
+// web-push is now a direct dependency (#313). Imported lazily via require to
+// keep the module resilient if the dependency is stripped in slim installs.
+import type * as WebPushTypes from 'web-push';
+let webpush: typeof WebPushTypes | null = null;
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   webpush = require('web-push');
 } catch (err) {
-  // web-push is optional in some environments (tests, CI). We'll handle absence gracefully.
+  // web-push absence is handled gracefully (push disabled).
   webpush = null;
+}
+
+/**
+ * Test seam (#313): override the web-push implementation (e.g. vi.mock in
+ * tests, where raw CJS require bypasses the ESM mock registry).
+ * @internal
+ */
+export function __setWebPushForTesting(impl: typeof WebPushTypes | null): void {
+  webpush = impl;
+  configureVapid();
 }
 
 import { Logger } from '../utils/logger';
 
 const logger = new Logger('PushNotificationService');
+import { prisma } from '../utils/prisma';
 
+
+// Reminder policy (#313): fire on these days-before-due within a 30-day window
+const REMINDER_DAYS = [30, 7, 1];
+const REMINDER_WINDOW_DAYS = 30;
 
 // VAPID keys for push notifications
 // In production, these should be environment variables
@@ -43,12 +60,12 @@ const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@zakapp.com';
 
-// Configure web-push
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-} else {
-  logger.warn('⚠️ VAPID keys not configured - push notifications will not work');
+function configureVapid(): void {
+  if (webpush && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  }
 }
+configureVapid();
 
 export interface PushSubscription {
   endpoint: string;
@@ -79,6 +96,10 @@ export async function sendPushNotification(
   payload: NotificationPayload
 ): Promise<boolean> {
   try {
+    if (!webpush) {
+      logger.warn('⚠️ web-push unavailable — notification skipped');
+      return false;
+    }
     await webpush.sendNotification(subscription, JSON.stringify(payload));
     logger.info('✅ Push notification sent successfully');
     return true;
@@ -102,27 +123,62 @@ export async function sendPushToUser(
   payload: NotificationPayload
 ): Promise<void> {
   try {
-    // In a real implementation, fetch user's push subscriptions from database
-    // For now, this is a placeholder
+    const subscriptions = await prisma.pushSubscription.findMany({
+      where: { userId }
+    });
 
-    logger.info(`📤 Sending push notification to user: ${userId}`);
-    logger.info(`Notification: ${payload.title} - ${payload.body}`);
+    logger.info(`📤 Sending push notification to user ${userId} (${subscriptions.length} subscription(s))`);
 
-    // TODO(#313): Implement database schema for storing push subscriptions
-    // const subscriptions = await prisma.pushSubscription.findMany({
-    //   where: { userId }
-    // });
-
-    // for (const sub of subscriptions) {
-    //   const success = await sendPushNotification(sub.subscription, payload);
-    //   if (!success) {
-    //     // Remove expired subscription
-    //     await prisma.pushSubscription.delete({ where: { id: sub.id } });
-    //   }
-    // }
+    for (const sub of subscriptions) {
+      const success = await sendPushNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        payload
+      );
+      if (!success) {
+        // Subscription expired (410) or send failed unrecoverably — prune it
+        await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => undefined);
+      }
+    }
   } catch (error) {
     logger.error('❌ Failed to send push notification to user:', error);
   }
+}
+
+/**
+ * Persist a new push subscription for a user (idempotent on endpoint).
+ */
+export async function subscribePush(
+  userId: string,
+  subscription: PushSubscription,
+  userAgent?: string
+): Promise<void> {
+  await prisma.pushSubscription.upsert({
+    where: { endpoint: subscription.endpoint },
+    update: {
+      userId,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      userAgent: userAgent ?? null
+    },
+    create: {
+      userId,
+      endpoint: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      userAgent: userAgent ?? null
+    }
+  });
+  logger.info(`✅ Push subscription stored for user ${userId}`);
+}
+
+/**
+ * Remove a push subscription (by endpoint, for the owning user).
+ */
+export async function unsubscribePush(userId: string, endpoint: string): Promise<void> {
+  await prisma.pushSubscription.deleteMany({
+    where: { userId, endpoint }
+  });
+  logger.info(`✅ Push subscription removed for user ${userId}`);
 }
 
 /**
@@ -194,26 +250,52 @@ export async function sendAssetUpdateReminder(
 export async function scheduleZakatReminders(): Promise<void> {
   try {
     logger.info('⏰ Scheduling Zakat reminders...');
-    // TODO(#313): Implement database schema for storing push subscriptions
-    // TODO(#313): Implement logic to find users whose Zakat is due soon
-    // const usersWithUpcomingZakat = await prisma.user.findMany({
-    //   where: {
-    //     zakatDueDate: {
-    //       gte: new Date(),
-    //       lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Next 30 days
-    //     },
-    //   },
-    // });
 
-    // for (const user of usersWithUpcomingZakat) {
-    //   const daysUntilDue = Math.ceil(
-    //     (user.zakatDueDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)
-    //   );
-    //   
-    //   if (daysUntilDue === 30 || daysUntilDue === 7 || daysUntilDue === 1) {
-    //     await sendZakatReminder(user.id, daysUntilDue);
-    //   }
-    // }
+    // Hawl windows ending within the next 30 days that are not yet finalized
+    const now = new Date();
+    const windowEnd = new Date(now.getTime() + REMINDER_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+
+    const snapshots = await prisma.yearlySnapshot.findMany({
+      where: {
+        hawlCompletionDate: { gte: now, lte: windowEnd },
+        status: { not: 'FINALIZED' }
+      },
+      select: { userId: true, hawlCompletionDate: true }
+    });
+
+    for (const snap of snapshots) {
+      if (!snap.hawlCompletionDate) continue;
+      const daysUntilDue = Math.ceil(
+        (snap.hawlCompletionDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)
+      );
+
+      // Only fire on the configured reminder days (30 / 7 / 1)
+      if (!REMINDER_DAYS.includes(daysUntilDue)) continue;
+
+      // Dedupe: one ReminderEvent per user/day-marker; skip if already sent
+      const dedupeKey = `push_zakat_due_${daysUntilDue}`;
+      const alreadySent = await prisma.reminderEvent.findFirst({
+        where: {
+          userId: snap.userId,
+          eventType: dedupeKey,
+          triggerDate: snap.hawlCompletionDate
+        }
+      });
+      if (alreadySent) continue;
+
+      await sendZakatReminder(snap.userId, daysUntilDue);
+      await prisma.reminderEvent.create({
+        data: {
+          userId: snap.userId,
+          eventType: dedupeKey,
+          triggerDate: snap.hawlCompletionDate,
+          title: 'Zakat Reminder',
+          message: `Your Zakat calculation is due in ${daysUntilDue} days.`,
+          priority: daysUntilDue <= 7 ? 'high' : 'medium',
+          status: 'pending'
+        }
+      }).catch(err => logger.warn('ReminderEvent dedupe row not stored:', err));
+    }
 
     logger.info('✅ Zakat reminders scheduled successfully');
   } catch (error) {
