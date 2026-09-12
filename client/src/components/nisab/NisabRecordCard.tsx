@@ -66,13 +66,13 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
   return (
     <div
       onClick={onSelect}
-      className={`border rounded-lg p-4 sm:p-5 cursor-pointer transition-all ${shouldHideOnMobile ? 'hidden lg:block' : ''} ${isSelected ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md'}`}
+      className={`border rounded-lg p-4 sm:p-5 cursor-pointer transition-all ${shouldHideOnMobile ? 'hidden lg:block' : ''} ${isSelected ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-border bg-card hover:bg-accent shadow-sm hover:shadow-md'}`}
     >
       <div className="space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+            <h3 className="text-base sm:text-lg font-semibold text-card-foreground truncate">
               {Number(record.hijriYear || 0) > 0
                 ? `${record.hijriYear} H • ${startDateFormatted.split(',')[1]?.trim() || startDateFormatted}`
                 : startDateFormatted}
@@ -87,41 +87,41 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <div className="text-xs text-gray-600 mb-1">Nisab Basis</div>
-            <div className="text-sm font-medium text-gray-900">
+            <div className="text-xs text-muted-foreground mb-1">Nisab Basis</div>
+            <div className="text-sm font-medium text-card-foreground">
               {record.nisabBasis === 'GOLD' ? '🟡 Gold' : '⚪ Silver'}
             </div>
           </div>
           {totalWealth > 0 && (
             <div>
-              <div className="text-xs text-gray-600 mb-1">Total Wealth</div>
-              <div className="text-sm font-medium text-gray-900">{formatCurrency(totalWealth, currency)}</div>
+              <div className="text-xs text-muted-foreground mb-1">Total Wealth</div>
+              <div className="text-sm font-medium text-card-foreground">{formatCurrency(totalWealth, currency)}</div>
             </div>
           )}
           {zakatableWealth > 0 && (
             <div>
-              <div className="text-xs text-gray-600 mb-1">Zakatable</div>
+              <div className="text-xs text-muted-foreground mb-1">Zakatable</div>
               <div className="text-sm font-medium text-green-700">{formatCurrency(zakatableWealth, currency)}</div>
             </div>
           )}
           {zakatAmount > 0 && (
             <div>
-              <div className="text-xs text-gray-600 mb-1">Zakat Obligation</div>
+              <div className="text-xs text-muted-foreground mb-1">Zakat Obligation</div>
               <div className="text-sm font-bold text-blue-700">{formatCurrency(zakatAmount, currency)}</div>
             </div>
           )}
         </div>
 
         {/* Dates */}
-        <div className="flex flex-col gap-1 text-xs text-gray-600">
+        <div className="flex flex-col gap-1 text-xs text-muted-foreground">
           <div>
-            Started: <span className="text-gray-900 font-medium">{startDateFormatted}</span>
-            <span className="text-gray-500 ml-1">({formatHijriDate(gregorianToHijri(startDate))})</span>
+            Started: <span className="text-card-foreground font-medium">{startDateFormatted}</span>
+            <span className="text-muted-foreground ml-1">({formatHijriDate(gregorianToHijri(startDate))})</span>
           </div>
           {record.hawlCompletionDate && (
             <div>
-              Ends: <span className="text-gray-900 font-medium">{new Date(record.hawlCompletionDate).toLocaleDateString()}</span>
-              <span className="text-gray-500 ml-1">({formatHijriDate(gregorianToHijri(new Date(record.hawlCompletionDate)))})</span>
+              Ends: <span className="text-card-foreground font-medium">{new Date(record.hawlCompletionDate).toLocaleDateString()}</span>
+              <span className="text-muted-foreground ml-1">({formatHijriDate(gregorianToHijri(new Date(record.hawlCompletionDate)))})</span>
             </div>
           )}
         </div>
@@ -129,11 +129,11 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
         {/* Actions */}
         <div className="flex gap-2 flex-wrap relative">
           {isSelected && record.status === 'DRAFT' && (
-            <button onClick={onEditDate} className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs border border-gray-300 hover:bg-gray-200">Change Date</button>
+            <button onClick={onEditDate} className="px-3 py-1 bg-muted text-muted-foreground rounded text-xs border border-border hover:bg-accent">Change Date</button>
           )}
 
           {showEditPopover && (
-            <div className="absolute bg-white border p-4 shadow-xl z-20 rounded-lg w-72" onClick={e => e.stopPropagation()}>
+            <div className="absolute bg-card border-border border p-4 shadow-xl z-20 rounded-lg w-72" onClick={e => e.stopPropagation()}>
               <EditDatePopover value={newStartDate} onChange={onDateChange} onSave={onSaveDate} onCancel={onCancelDate} />
             </div>
           )}
@@ -144,7 +144,7 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
           {record.status === 'FINALIZED' && (
             <>
               <button onClick={onUnlock} className="px-2 py-1 bg-amber-600 text-white rounded text-xs">Unlock</button>
-              <button onClick={onGeneratePdf} className="px-2 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded text-xs hover:bg-gray-200 flex items-center gap-1">📄 PDF</button>
+              <button onClick={onGeneratePdf} className="px-2 py-1 bg-muted text-muted-foreground border border-border rounded text-xs hover:bg-accent flex items-center gap-1">📄 PDF</button>
             </>
           )}
           <button onClick={onDelete} className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs">Delete</button>

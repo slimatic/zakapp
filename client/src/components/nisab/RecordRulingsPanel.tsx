@@ -88,12 +88,12 @@ export const RecordRulingsPanel: React.FC<RecordRulingsPanelProps> = ({
   }
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-4 ${className}`} data-testid="record-rulings-panel">
+    <div className={`bg-card border-border rounded-lg p-4 border ${className}`} data-testid="record-rulings-panel">
       <div className="flex items-center gap-2 mb-3">
-        <Scale className="h-4 w-4 text-gray-500" aria-hidden="true" />
-        <h3 className="font-semibold text-gray-900 text-sm">Why each asset counts the way it does</h3>
+        <Scale className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+        <h3 className="font-semibold text-card-foreground text-sm">Why each asset counts the way it does</h3>
       </div>
-      <p className="text-xs text-gray-500 mb-3">
+      <p className="text-xs text-muted-foreground mb-3">
         Rulings under your selected methodology, with sources. Expand any asset for details.
       </p>
       <div className="space-y-2">
@@ -108,7 +108,7 @@ export const RecordRulingsPanel: React.FC<RecordRulingsPanelProps> = ({
           );
         })}
       </div>
-      <p className="text-xs text-gray-400 italic mt-3">
+      <p className="text-xs text-muted-foreground/70 italic mt-3">
         Educational guidance only — for specific situations, consult a qualified scholar.
       </p>
     </div>

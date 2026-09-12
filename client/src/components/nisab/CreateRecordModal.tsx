@@ -124,12 +124,12 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
     <Modal isOpen={open} onClose={onClose} title={`Create Nisab Record - Step ${step} of 3`} size="lg">
       {/* Step Indicator */}
       <div className="mb-4">
-        <div className="text-sm text-gray-500 mb-2">
+        <div className="text-sm text-muted-foreground mb-2">
           {step === 1 && "Confirm the assets to include in this Zakat year calculation."}
           {step === 2 && "Deduct valid liabilities to determine your net Zakatable wealth."}
           {step === 3 && "Review your configuration and set the Nisab Standard."}
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-muted rounded-full h-2">
           <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
         </div>
       </div>
@@ -138,8 +138,8 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
         {step === 1 && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-sm font-medium text-gray-900">Inclusive Assets</h3>
-              <span className="text-xs text-gray-500">{selectedAssetIds.length} selected</span>
+              <h3 className="text-sm font-medium text-card-foreground">Inclusive Assets</h3>
+              <span className="text-xs text-muted-foreground">{selectedAssetIds.length} selected</span>
             </div>
             <AssetSelectionTable
               assets={allAssets}
@@ -157,8 +157,8 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
         {step === 2 && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-sm font-medium text-gray-900">Deductible Liabilities</h3>
-              <span className="text-xs text-gray-500">{selectedLiabilityIds.length} selected</span>
+              <h3 className="text-sm font-medium text-card-foreground">Deductible Liabilities</h3>
+              <span className="text-xs text-muted-foreground">{selectedLiabilityIds.length} selected</span>
             </div>
             <LiabilitySelectionTable
               liabilities={allLiabilities}
@@ -181,11 +181,11 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
         {step === 3 && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded text-center">
-                <span className="block text-xs text-gray-500 uppercase">Total Assets</span>
-                <span className="block text-xl font-bold text-gray-900">{new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(preview.totalWealth)}</span>
+              <div className="bg-muted p-4 rounded text-center">
+                <span className="block text-xs text-muted-foreground uppercase">Total Assets</span>
+                <span className="block text-xl font-bold text-card-foreground">{new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(preview.totalWealth)}</span>
               </div>
-              <div className="bg-gray-50 p-4 rounded text-center border border-green-100 bg-green-50">
+              <div className="bg-muted p-4 rounded text-center border border-green-100 bg-green-50">
                 <span className="block text-xs text-green-700 uppercase font-medium">Net Zakatable</span>
                 <span className="block text-xl font-bold text-green-700">{new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(preview.netZakatableWealth)}</span>
               </div>
@@ -201,32 +201,32 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Select Nisab Standard</label>
+              <label className="block text-sm font-medium text-card-foreground">Select Nisab Standard</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-gray-50 transition-colors ${nisabBasis === 'GOLD' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200'}`}>
+                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'GOLD' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-border'}`}>
                   <div className="flex items-center">
                     <input type="radio" name="nisab" checked={nisabBasis === 'GOLD'} onChange={() => setNisabBasis('GOLD')} className="mr-3 h-4 w-4 text-blue-600" />
                     <div>
-                      <span className="block font-medium text-gray-900">Gold Standard</span>
-                      <span className="text-xs text-gray-500">For Wealthy/Safer</span>
+                      <span className="block font-medium text-card-foreground">Gold Standard</span>
+                      <span className="text-xs text-muted-foreground">For Wealthy/Safer</span>
                     </div>
                   </div>
                   <span className="text-xs font-mono bg-yellow-100 text-yellow-800 px-2 py-1 rounded">87.48g</span>
                 </label>
-                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-gray-50 transition-colors ${nisabBasis === 'SILVER' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200'}`}>
+                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'SILVER' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-border'}`}>
                   <div className="flex items-center">
                     <input type="radio" name="nisab" checked={nisabBasis === 'SILVER'} onChange={() => setNisabBasis('SILVER')} className="mr-3 h-4 w-4 text-blue-600" />
                     <div>
-                      <span className="block font-medium text-gray-900">Silver Standard</span>
-                      <span className="text-xs text-gray-500">For Low Income</span>
+                      <span className="block font-medium text-card-foreground">Silver Standard</span>
+                      <span className="text-xs text-muted-foreground">For Low Income</span>
                     </div>
                   </div>
-                  <span className="text-xs font-mono bg-gray-100 text-gray-800 px-2 py-1 rounded">612.36g</span>
+                  <span className="text-xs font-mono bg-muted text-muted-foreground px-2 py-1 rounded">612.36g</span>
                 </label>
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded text-center border border-blue-100 bg-blue-50">
+            <div className="bg-muted p-4 rounded text-center border border-blue-100 bg-blue-50">
               <span className="block text-xs text-blue-700 uppercase font-medium">Zakat Amount ({nisabBasis === 'GOLD' ? 'Gold' : 'Silver'})</span>
               <span className="block text-xl font-bold text-blue-700">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(zakatAmount)}
@@ -236,7 +236,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
         )}
       </div>
 
-      <div className="mt-6 flex justify-between w-full pt-4 border-t border-gray-100">
+      <div className="mt-6 flex justify-between w-full pt-4 border-t border-border">
         {step > 1 ? (
           <Button variant="outline" onClick={handleBack}>
             ← Back
