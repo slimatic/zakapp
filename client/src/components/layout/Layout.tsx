@@ -333,7 +333,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </div>
 
                     {/* User Name - Hidden on Mobile, Visible on Desktop */}
-                    <span className="hidden md:inline text-gray-700 text-sm font-medium">
+                    <span className="hidden md:inline text-gray-700 text-sm font-medium max-w-[12rem] truncate align-middle">
                       {user?.firstName || user?.username || user?.email?.split('@')[0]}
                     </span>
 
