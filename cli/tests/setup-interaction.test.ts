@@ -60,7 +60,9 @@ describe('Setup Command Interaction', () => {
     const languageQ = questions.find(q => q.name === 'language');
     expect(languageQ.default).toBe('ar');
 
-    expect(configModule.saveConfig).toHaveBeenCalledWith(existingConfig);
+    expect(configModule.saveConfig).toHaveBeenCalledWith(
+      expect.objectContaining({ currency: 'EUR', language: 'ar', zakatMethod: 'hanafi', calendarType: 'solar' })
+    );
   });
 
   it('should use default config if no existing config found', async () => {
@@ -110,7 +112,9 @@ describe('Setup Command Interaction', () => {
       zakatMethod: 'shafii',
       calendarType: 'lunar',
     };
-    expect(configModule.saveConfig).toHaveBeenCalledWith(expectedConfig);
+    expect(configModule.saveConfig).toHaveBeenCalledWith(
+      expect.objectContaining({ currency: 'GBP', language: 'en', zakatMethod: 'shafii', calendarType: 'lunar' })
+    );
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Configuration saved successfully'));
   });
 

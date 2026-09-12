@@ -63,7 +63,13 @@ const mockJsPDFInstance = {
 };
 
 vi.mock('jspdf', () => ({
-  default: vi.fn().mockImplementation(() => mockJsPDFInstance),
+  // vitest 4 (#321): vi.fn().mockImplementation(obj) can no longer be invoked
+  // with `new`. Use a class whose constructor returns the shared instance.
+  default: class MockJsPDF {
+    constructor() {
+      return mockJsPDFInstance;
+    }
+  },
 }));
 
 vi.mock('jspdf-autotable', () => ({

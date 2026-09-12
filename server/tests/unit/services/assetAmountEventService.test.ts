@@ -21,11 +21,13 @@ vi.mock('../../../src/utils/prisma', () => {
   return { prisma: mockPrisma };
 });
 
+// vitest 4 (#321): vi.fn().mockImplementation(obj) can't be `new`ed anymore —
+// use a class whose constructor returns the mock instance.
 vi.mock('../../../src/services/AssetAmountSnapshotService', () => {
   return {
-    AssetAmountSnapshotService: vi.fn().mockImplementation(() => ({
-      regenerateForDateRange: vi.fn().mockResolvedValue(undefined),
-    })),
+    AssetAmountSnapshotService: class {
+      regenerateForDateRange = vi.fn().mockResolvedValue(undefined);
+    },
   };
 });
 
