@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.16.0] - 2026-09-12 — Moon Phase Release
+
+User-facing summary: **Push notifications for Zakat due reminders. App now speaks Arabic (with full right-to-left support) and lays the groundwork for 7 more languages. Broken links show a friendly 404 instead of a blank page. Local installs without sync no longer throw errors. Security dependencies fully clean.**
+
+#### Projects completed (all five from the v0.16.0 plan)
+
+- **#339 React Router v7** (PR #378): `react-router-dom` 6.30.6 → 7.18.3 across the client. SPA surface needed zero import changes; the `future={{...}}` router flags became defaults. **Clears both remaining production advisories — `npm audit --omit=dev` is now 0 vulnerabilities.**
+- **#313 Push notifications — server core** (PR #382): additive `PushSubscription` Prisma model (endpoint/p256dh/auth, cascade to user), idempotent subscribe/unsubscribe API (`/api/push/*`, zod-validated), `sendPushToUser` with automatic pruning of expired subscriptions, and a Zakat-reminder job that scans non-finalized Hawl windows ending within 30 days and fires on day 30/7/1 markers (deduped via `ReminderEvent`). Client subscription UI tracked in #383.
+- **#338 i18n foundation** (PR #384): `react-i18next` wired with browser-language detection and sticky persistence (`zakapp_lang`); 8 locales declared (en, ar, ms, ur, fr, tr, id, bn) with clean English fallback; **full RTL support** (document direction flips for Arabic/Urdu); complete English + Arabic bundles for the onboarding wizard (all 8 steps) and dashboard education/assets/privacy panels; language switcher in Settings.
+- **#321 Vitest 4 migration** (PR #374, closed with the suite green).
+- **#340 code hygiene** (PR #372).
+
+#### Fixed
+
+- **Liabilities page crash** (#310, PRs #373/#375): legacy string-typed amounts no longer crash reduction functions, and the fix's own early-return no longer violates React hook order.
+- **Dashboard currency format** (#310, PR #376): dashboard now uses the shared locale-aware `formatCurrency` — IDR displays `Rp 42.000.000` consistently across dashboard and analytics.
+- **Blank page on unknown URLs** (#377, PR #379): a catch-all `NotFoundPage` renders a friendly 404 with links to Dashboard / Nisab Records / Calculator instead of a silent empty page.
+- **Dark-mode date inputs** (#370, PR #380): native date/datetime/time/month pickers declare `color-scheme: dark` so UA chrome matches the dark surface.
+- **ZK account pill overflow** (#370, PR #380): the long zero-knowledge identifier in the header truncates with ellipsis (capped at 12rem) instead of overflowing narrow viewports.
+- **Local dev sync errors** (#371, PR #381): `POST /api/sync/token` returns a typed `503 SYNC_DISABLED` (honest disabled-state) instead of a raw 500 when CouchDB isn't configured; the client warns once and continues in local vault-only mode without error-chip spam; `.env.example` documents the optional CouchDB section.
+
+#### Tests
+- Server suite: **482 passing** (up from 474: +8 push-notification tests — subscription CRUD, expired-sub pruning, reminder day-marker firing, dedupe, no-subscriber no-op)
+- Client suite: **546 passing / 1 skipped** (up from 540: +6 i18n foundation tests — namespace loading, Arabic translation output, skeleton-locale fallback, persistence, RTL direction mapping, language list)
+- Both `tsc --noEmit` clean; production builds green; every fix verified live on the staged production build per the standing QA doctrine
+
+#### Dependencies
+- `react-router-dom` ^7.18.3 — clears GHSA open-redirect + SSR advisories
+- `web-push` added as a direct dependency (push notification delivery), with graceful no-config fallback
+- `npm audit --omit=dev`: **0 vulnerabilities**
+
+#### Known follow-ups (filed)
+- #383: client push subscription UI (service worker + settings toggle)
+- i18n: remaining string extraction (settings tabs, admin, learn hub) + community translation bundles
+- #360/#361 dark-mode/semantic-token sweeps → v0.17
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.15.2...v0.16.0
+
 ## [0.15.2] - 2026-09-10
 
 ### 💱 Currency Consistency — Final Round of Issue #310
