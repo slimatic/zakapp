@@ -137,7 +137,14 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
 
   // Format currency
   const formatCurrency = (amount: number): string => {
-    if (isNaN(amount)) return '$0.00';
+    if (isNaN(amount)) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: record.currency || 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(0);
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: record.currency || 'USD',
