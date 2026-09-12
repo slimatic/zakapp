@@ -81,6 +81,11 @@
 .dark {
   color-scheme: dark;
 }
+/* UA-default form controls in dark mode: selects without an explicit bg class
+   render as mid-gray Chrome chrome. Element-selector rule only affects
+   controls with no bg utility (class rules win on specificity). */
+.dark select:not([class*="bg-"]) { background-color: hsl(var(--card)); }
+.dark input:not([class*="bg-"]):not([type="checkbox"]):not([type="radio"]) { background-color: hsl(var(--card)); }
 .dark body {
   background-color: hsl(222 47% 7%);
   color: hsl(210 40% 96%);
@@ -130,8 +135,12 @@
 .dark .bg-gray-100 { background-color: hsl(217 33% 17%); }
 .dark .bg-gray-200 { background-color: hsl(217 27% 22%); }
 .dark .bg-gray-300 { background-color: hsl(217 27% 26%); }
-.dark .bg-gray-400 { background-color: hsl(215 20% 45%); }
-.dark .bg-gray-500 { background-color: hsl(215 20% 55%); }
+.dark .bg-gray-400 { background-color: #5c6f8a; }
+.dark .bg-gray-500 { background-color: #7588a3; }
+/* Opacity-variant surfaces (bg-slate-50/60 etc.) — same dark mapping */
+.dark .bg-slate-50\/60, .dark .bg-slate-50\/50 { background-color: hsl(217 33% 14% / 0.55); }
+.dark .bg-gray-50\/50 { background-color: hsl(217 33% 14% / 0.55); }
+.dark .border-gray-100\/50 { border-color: hsl(217 27% 18% / 0.5); }
 .dark .bg-gray-600 { background-color: hsl(215 25% 40%); }
 .dark .bg-gray-700 { background-color: hsl(217 27% 26%); }
 .dark .bg-gray-800 { background-color: hsl(217 30% 20%); }
@@ -184,6 +193,78 @@
 .dark .hover\:text-gray-200:hover { color: hsl(215 16% 35%); }
 .dark .hover\:border-gray-300:hover { border-color: hsl(217 27% 28%); }
 .dark .hover\:border-gray-400:hover { border-color: hsl(215 16% 35%); }
+
+/* ── Tinted pastel surfaces retrofit (#360 visual sweep) ──────────────────────
+   Action/status cards use bg-{hue}-50/100/200 with text-{hue}-800/900. On dark
+   those pastels stayed near-white while the built-in heading darkener flips
+   headings to slate-100 → light-on-light. Map pastel backgrounds to the navy
+   surface ramp and tinted text/borders to readable dark-mode equivalents,
+   preserving the semantic hue on text. */
+.dark .bg-blue-50, .dark .bg-sky-50 { background-color: hsl(217 33% 14%); }
+.dark .bg-amber-50, .dark .bg-orange-50, .dark .bg-yellow-50 { background-color: hsl(217 33% 14%); }
+.dark .bg-red-50, .dark .bg-rose-50, .dark .bg-pink-50 { background-color: hsl(217 33% 14%); }
+.dark .bg-green-50, .dark .bg-emerald-50, .dark .bg-teal-50, .dark .bg-cyan-50 { background-color: hsl(217 33% 14%); }
+.dark .bg-indigo-50, .dark .bg-purple-50, .dark .bg-violet-50 { background-color: hsl(217 33% 14%); }
+.dark .bg-primary-50, .dark .bg-secondary-50 { background-color: hsl(217 33% 14%); }
+.dark .bg-blue-100, .dark .bg-sky-100 { background-color: hsl(217 33% 17%); }
+.dark .bg-amber-100, .dark .bg-orange-100, .dark .bg-yellow-100 { background-color: hsl(217 33% 17%); }
+.dark .bg-red-100, .dark .bg-rose-100, .dark .bg-pink-100 { background-color: hsl(217 33% 17%); }
+.dark .bg-green-100, .dark .bg-emerald-100, .dark .bg-teal-100, .dark .bg-cyan-100 { background-color: hsl(217 33% 17%); }
+.dark .bg-indigo-100, .dark .bg-purple-100, .dark .bg-violet-100 { background-color: hsl(217 33% 17%); }
+.dark .bg-primary-100, .dark .bg-secondary-100 { background-color: hsl(217 33% 17%); }
+.dark .bg-blue-200 { background-color: hsl(217 33% 20%); }
+.dark .bg-green-200, .dark .bg-emerald-200 { background-color: hsl(217 33% 20%); }
+.dark .bg-amber-200, .dark .bg-yellow-200 { background-color: hsl(217 33% 20%); }
+.dark .bg-red-200 { background-color: hsl(217 33% 20%); }
+
+/* Tinted text — keep the hue, brighten for navy surfaces */
+.dark .text-blue-800 { color: hsl(213 94% 73%); }
+.dark .text-blue-900 { color: hsl(213 94% 78%); }
+.dark .text-green-800 { color: hsl(142 69% 58%); }
+.dark .text-green-900 { color: hsl(142 69% 66%); }
+.dark .text-emerald-800 { color: hsl(160 84% 50%); }
+.dark .text-emerald-900 { color: hsl(160 84% 60%); }
+.dark .text-amber-800 { color: hsl(38 92% 60%); }
+.dark .text-amber-900 { color: hsl(38 92% 68%); }
+.dark .text-yellow-800 { color: hsl(48 96% 62%); }
+.dark .text-yellow-900 { color: hsl(48 96% 70%); }
+.dark .text-orange-800 { color: hsl(21 90% 62%); }
+.dark .text-orange-900 { color: hsl(21 90% 70%); }
+.dark .text-red-800 { color: hsl(0 84% 70%); }
+.dark .text-red-900 { color: hsl(0 84% 76%); }
+.dark .text-purple-800 { color: hsl(271 81% 70%); }
+.dark .text-purple-900 { color: hsl(271 81% 78%); }
+.dark .text-indigo-800 { color: hsl(244 75% 72%); }
+.dark .text-indigo-900 { color: hsl(244 75% 80%); }
+.dark .text-teal-700 { color: hsl(173 80% 55%); }
+.dark .text-secondary-900 { color: hsl(45 93% 60%); }
+.dark .text-primary-900 { color: hsl(172 66% 60%); }
+
+/* Tinted borders + hover borders */
+.dark .border-blue-200, .dark .border-blue-300 { border-color: hsl(217 27% 26%); }
+.dark .border-green-200, .dark .border-green-300, .dark .border-emerald-100, .dark .border-emerald-500\/30 { border-color: hsl(217 27% 26%); }
+.dark .border-amber-200, .dark .border-yellow-200 { border-color: hsl(217 27% 26%); }
+.dark .border-red-200, .dark .border-red-300 { border-color: hsl(217 27% 26%); }
+.dark .border-orange-200 { border-color: hsl(217 27% 26%); }
+.dark .border-purple-200, .dark .border-indigo-200 { border-color: hsl(217 27% 26%); }
+.dark .border-secondary-200 { border-color: hsl(217 27% 26%); }
+
+/* Gradient endpoints used by banner/status cards */
+.dark .from-blue-50 { --tw-gradient-from: hsl(217 33% 14%) var(--tw-gradient-from-position); }
+.dark .to-blue-50 { --tw-gradient-to: hsl(217 33% 14%) var(--tw-gradient-to-position); }
+.dark .from-green-50, .dark .from-emerald-50, .dark .from-teal-50, .dark .from-primary-50 { --tw-gradient-from: hsl(217 33% 14%) var(--tw-gradient-from-position); }
+.dark .to-green-50, .dark .to-emerald-50, .dark .to-cyan-50, .dark .to-teal-50 { --tw-gradient-to: hsl(217 33% 14%) var(--tw-gradient-to-position); }
+.dark .from-red-50 { --tw-gradient-from: hsl(217 33% 14%) var(--tw-gradient-from-position); }
+.dark .to-red-50 { --tw-gradient-to: hsl(217 33% 14%) var(--tw-gradient-to-position); }
+.dark .from-amber-50, .dark .from-yellow-50 { --tw-gradient-from: hsl(217 33% 14%) var(--tw-gradient-from-position); }
+.dark .from-indigo-50 { --tw-gradient-from: hsl(217 33% 14%) var(--tw-gradient-from-position); }
+.dark .to-indigo-50 { --tw-gradient-to: hsl(217 33% 14%) var(--tw-gradient-to-position); }
+
+/* Tinted icon chips (p-3 bg-*-100 blocks inside cards) */
+.dark .bg-green-100.text-green-600, .dark .bg-emerald-100.text-emerald-600 { background-color: hsl(172 66% 16%); color: hsl(172 66% 55%); }
+.dark .bg-blue-100.text-blue-600 { background-color: hsl(217 66% 18%); color: hsl(213 94% 68%); }
+.dark .bg-amber-100.text-amber-600, .dark .bg-yellow-100.text-yellow-600 { background-color: hsl(38 66% 18%); color: hsl(38 92% 62%); }
+.dark .bg-red-100.text-red-600 { background-color: hsl(0 60% 20%); color: hsl(0 84% 68%); }
 
 @layer components {
 
