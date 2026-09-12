@@ -25,8 +25,8 @@ import { useUserSettingsRepository } from '../../hooks/useUserSettingsRepository
 import { getAssetZakatableValue, ZakatMethodology } from '../../core/calculations/zakat';
 import { Button, Card } from '../ui';
 import { usePrivacy } from '../../contexts/PrivacyContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { useFxRates } from '../../services/apiHooks';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 import { normalizeAssetsToCurrency, FxRates } from '../../utils/currencyNormalization';
 
 export const AssetList: React.FC = () => {
@@ -47,12 +47,10 @@ export const AssetList: React.FC = () => {
 
   const { settings } = useUserSettingsRepository();
   const methodology = (settings?.preferredMethodology?.toUpperCase() || 'STANDARD') as ZakatMethodology;
-  // Currency resolution (#310 round 5): the local RxDB settings store stores
-  // the display currency as `baseCurrency` (there is no `currency` field on
-  // the user_settings schema), so read `baseCurrency` first, then the
-  // auth-context merged settings, then profile, then USD.
-  const { user } = useAuth();
-  const userCurrency = (settings as any)?.baseCurrency || (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
+  // Currency resolution (#341): consolidated into useDisplayCurrency, which
+  // implements the #310 round 5 chain (local baseCurrency → auth settings →
+  // profile prefs → USD).
+  const { currency: userCurrency } = useDisplayCurrency();
   const fxRatesQuery = useFxRates();
   const fxRates = fxRatesQuery?.data?.data?.rates as FxRates | undefined;
 
