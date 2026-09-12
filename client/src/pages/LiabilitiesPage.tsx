@@ -29,7 +29,7 @@ import { sumLiabilitiesInCurrency, FxRates } from '../utils/currencyNormalizatio
 import { formatCurrency as formatInCurrency } from '../utils/formatters';
 
 export const LiabilitiesPage: React.FC = () => {
-    const { liabilities, isLoading } = useLiabilityRepository();
+    const { liabilities, isLoading, error } = useLiabilityRepository();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLiability, setEditingLiability] = useState<Liability | undefined>(undefined);
     const maskedCurrency = useMaskedCurrency();
@@ -48,6 +48,21 @@ export const LiabilitiesPage: React.FC = () => {
         setIsModalOpen(false);
         setEditingLiability(undefined);
     };
+
+    // Issue #310 (user report: Liabilities "keeps showing error"): the repo's
+    // error channel was never rendered, so a failure looped into a blank /
+    // broken page. Show an honest, retryable error state instead.
+    if (error) {
+        return (
+            <div className="space-y-6">
+                <h1 className="text-3xl font-heading font-bold text-gray-900 leading-tight">Liabilities</h1>
+                <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center" role="alert">
+                    <p className="text-red-800 font-medium">We couldn't load your liabilities.</p>
+                    <p className="text-sm text-red-700 mt-1">{error.message || 'An unexpected database error occurred.'} Your data stays safely on this device — try reloading the page.</p>
+                </div>
+            </div>
+        );
+    }
 
     if (isLoading) {
         return (

@@ -50,8 +50,13 @@ async function fetchNisabThreshold(
   currency: string = 'USD',
   nisabBasis: 'GOLD' | 'SILVER' = 'GOLD'
 ): Promise<NisabThresholdData> {
-  // Call the existing /api/zakat/nisab endpoint using full API_BASE_URL
-  const response = await fetch(`${API_BASE_URL}/zakat/nisab`, {
+  // Call the existing /api/zakat/nisab endpoint using full API_BASE_URL.
+  // Issue #310 (user regression report, v0.15.2): the currency param was in
+  // the query key but never sent — the server always resolved via auth prefs
+  // and non-synced clients got USD, breaking cross-currency comparison
+  // against locally-stored (IDR etc.) totals.
+  const params = new URLSearchParams({ currency });
+  const response = await fetch(`${API_BASE_URL}/zakat/nisab?${params.toString()}`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
     }

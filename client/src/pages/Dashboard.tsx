@@ -31,6 +31,7 @@ import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
+import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
 import type { Asset } from '../types';
 import { useBestAction } from '../hooks/useBestAction';
 import { GlossaryTerm } from '../components/common/GlossaryTerm';
@@ -266,7 +267,12 @@ export const Dashboard: React.FC = () => {
 
   // Get Nisab threshold (use live value for consistency with other pages)
   const nisabBasis = (activeRecord?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
-  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
+
+  // Issue #310 (v0.15.2 regression): resolve currency from the local RxDB
+  // settings store FIRST (baseCurrency) — the auth-context blob may lag or
+  // still say USD for users who set their currency locally.
+  const display = useDisplayCurrency();
+  const userCurrency = display.currency;
   const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
   const nisabThreshold = nisabAmount || 5000; // Default fallback
 
@@ -365,13 +371,13 @@ export const Dashboard: React.FC = () => {
             <WealthSummaryCard
               totalWealth={totalWealth}
               nisabThreshold={nisabThreshold}
-              currency={(user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD'}
+              currency={userCurrency}
             />
 
             <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
               <AssetsBreakdownChart
                 assets={assets}
-                currency={(user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD'}
+                currency={userCurrency}
               />
             </div>
           </div>
