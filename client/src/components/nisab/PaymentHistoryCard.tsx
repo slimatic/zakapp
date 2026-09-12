@@ -41,24 +41,24 @@ export const PaymentHistoryCard: React.FC<PaymentHistoryCardProps> = ({
   formatCurrency,
 }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 md:p-5 shadow-sm" data-testid="payment-history-card">
+    <div className="bg-card text-card-foreground border border-border rounded-lg p-4 md:p-5 shadow-sm" data-testid="payment-history-card">
       <div className="flex items-center justify-between mb-4">
-        <span className="font-semibold text-gray-900">Payment History</span>
+        <span className="font-semibold text-card-foreground">Payment History</span>
         <span className={`text-xs px-2 py-0.5 rounded-full ${isFullyPaid ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
           {isFullyPaid ? 'Paid' : 'Pending'}
         </span>
       </div>
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Obligation:</span>
-          <span className="font-medium text-gray-900">{formatCurrency(totalObligation)}</span>
+          <span className="text-muted-foreground">Obligation:</span>
+          <span className="font-medium text-card-foreground">{formatCurrency(totalObligation)}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Paid:</span>
+          <span className="text-muted-foreground">Paid:</span>
           <span className="font-medium text-green-600">{formatCurrency(totalPaid)}</span>
         </div>
-        <div className="border-t border-gray-100 pt-2 flex justify-between text-sm">
-          <span className="text-gray-900 font-medium">Remaining:</span>
+        <div className="border-t border-border pt-2 flex justify-between text-sm">
+          <span className="text-card-foreground font-medium">Remaining:</span>
           <span className={`font-bold ${remainingBalance === 0 ? 'text-green-600' : 'text-red-600'}`}>
             {formatCurrency(remainingBalance)}
           </span>
@@ -78,7 +78,7 @@ export const PaymentHistoryCard: React.FC<PaymentHistoryCardProps> = ({
           <PaymentCard key={(payment as { id: string }).id} payment={payment as never} />
         ))}
         {payments.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-2">No payments recorded yet.</p>
+          <p className="text-xs text-muted-foreground text-center py-2">No payments recorded yet.</p>
         )}
       </div>
     </div>
