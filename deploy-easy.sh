@@ -117,6 +117,67 @@ verify_network() {
     return 0
 }
 
+# Check if a persistent volume exists for backend data
+check_persistent_volume() {
+    print_status "Checking persistent volumes..."
+
+    # Check if named volumes exist
+    local backend_vol=$(docker volume ls -q --filter "name=backend_data" 2>/dev/null || true)
+    local couchdb_vol=$(docker volume ls -q --filter "name=couchdb_data" 2>/dev/null || true)
+
+    if [ -z "$backend_vol" ] || [ -z "$couchdb_vol" ]; then
+        print_warning "Persistent volumes not found — data will be lost on container recreation."
+        print_status "To fix: run 'docker compose down' then 'docker compose up -d' to create named volumes."
+        return 1
+    fi
+
+    print_success "Persistent volumes verified (backend_data, couchdb_data)"
+    return 0
+}
+
+# Check if .env has stable secrets (not regenerated)
+check_env_stability() {
+    print_status "Checking .env secret stability..."
+
+    if [ ! -f "$ENV_FILE" ]; then
+        print_warning "No .env file found — will be created with fresh secrets."
+        return 1
+    fi
+
+    # Check if .env.backup exists — if so, compare secrets
+    local backup=$(ls -t .env.backup.* 2>/dev/null | head -1)
+    if [ -n "$backup" ]; then
+        local backup_jwt=$(grep "^JWT_SECRET=" "$backup" 2>/dev/null | cut -d'=' -f2)
+        local current_jwt=$(grep "^JWT_SECRET=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2)
+
+        if [ -n "$backup_jwt" ] && [ "$backup_jwt" != "$current_jwt" ]; then
+            print_error "JWT_SECRET changed since last backup!"
+            print_error "This invalidates all existing user sessions and encrypted data."
+            print_error "To restore: cp $backup $ENV_FILE"
+            print_error "WARNING: Restoring from backup will invalidate NEW sessions since the backup."
+            return 1
+        fi
+    fi
+
+    # Check all required secrets are present and non-empty
+    local secrets_ok=true
+    for secret in JWT_SECRET JWT_REFRESH_SECRET ENCRYPTION_KEY; do
+        local val=$(grep "^$secret=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2)
+        if [ -z "$val" ]; then
+            print_error "$secret is empty or missing in .env"
+            secrets_ok=false
+        fi
+    done
+
+    if [ "$secrets_ok" = false ]; then
+        print_error "Missing or empty secrets will cause session loss on restart."
+        return 1
+    fi
+
+    print_success "Secrets appear stable and complete"
+    return 0
+}
+
 # Check if a port is in use
 check_port() {
     local port=$1
@@ -435,6 +496,7 @@ generate_missing_secrets() {
         "COUCHDB_PASSWORD"
     )
     
+    local regenerated=false
     for secret in "${secrets[@]}"; do
         if ! grep -q "^$secret=" "$ENV_FILE" || [ -z "$(grep "^$secret=" "$ENV_FILE" | cut -d'=' -f2)" ]; then
             local value=$(generate_secret)
@@ -448,8 +510,14 @@ generate_missing_secrets() {
             else
                 echo "$secret=$value" >> "$ENV_FILE"
             fi
+            regenerated=true
         fi
     done
+    
+    if [ "$regenerated" = true ]; then
+        print_warning "New secrets were generated. Existing user sessions will be invalidated."
+        print_warning "Users will need to log in again after the next restart."
+    fi
 }
 
 # Deploy the application
@@ -618,6 +686,11 @@ main() {
     echo ""
     
     check_prerequisites
+    
+    # Pre-flight checks: persistent volumes + env stability
+    check_persistent_volume || true
+    check_env_stability || true
+    
     setup_environment
     deploy
     show_access_info

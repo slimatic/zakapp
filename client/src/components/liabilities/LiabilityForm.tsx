@@ -28,15 +28,17 @@ interface LiabilityFormProps {
     liability?: Liability;
     onSuccess?: () => void;
     onCancel?: () => void;
+    /** Currency for new liabilities. Defaults to 'USD'. */
+    defaultCurrency?: string;
 }
 
-export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSuccess, onCancel }) => {
+export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSuccess, onCancel, defaultCurrency = 'USD' }) => {
     const [formData, setFormData] = useState({
         name: liability?.name || '',
         type: liability?.type || 'short_term',
         amount: liability?.amount || 0,
         deductibleAmount: liability?.deductibleAmount ?? '',
-        currency: liability?.currency || 'USD',
+        currency: liability?.currency || defaultCurrency,
         dueDate: liability?.dueDate ? new Date(liability.dueDate).toISOString().split('T')[0] : '',
         creditor: liability?.creditor || '',
         notes: liability?.notes || '',

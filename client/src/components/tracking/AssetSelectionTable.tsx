@@ -34,12 +34,15 @@ export interface AssetSelectionTableProps {
   assets: Asset[];
   onSelectionChange: (selectedIds: string[]) => void;
   initialSelection?: string[];
+  /** Currency for value display. Defaults to 'USD'. */
+  currency?: string;
 }
 
 export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
   assets,
   onSelectionChange,
   initialSelection,
+  currency = 'USD',
 }) => {
   // Initialize selection: use initialSelection or auto-select zakatable assets
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => {
@@ -90,11 +93,11 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
     }
   };
 
-  // Format currency
+  // Format currency — driven by the currency prop (defaults to 'USD')
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency,
     }).format(amount);
   };
 

@@ -27,13 +27,19 @@ if ! check_env "JWT_SECRET"; then
     SECURITY_OK=false
 fi
 
+if ! check_env "JWT_REFRESH_SECRET"; then
+    if ! check_env "REFRESH_SECRET"; then
+        SECURITY_OK=false
+    fi
+fi
+
 if ! check_env "ENCRYPTION_KEY"; then
     SECURITY_OK=false
 fi
 
 if [ "$SECURITY_OK" = false ] && [ "$NODE_ENV" = "production" ]; then
     echo "❌ FATAL: Missing required security environment variables in production!"
-    echo "   Please set JWT_SECRET and ENCRYPTION_KEY"
+    echo "   Please set JWT_SECRET, JWT_REFRESH_SECRET (or REFRESH_SECRET), and ENCRYPTION_KEY"
     exit 1
 fi
 

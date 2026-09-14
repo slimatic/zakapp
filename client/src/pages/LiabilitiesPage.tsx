@@ -132,6 +132,7 @@ export const LiabilitiesPage: React.FC = () => {
                         liability={editingLiability}
                         onSuccess={handleSuccess}
                         onCancel={() => setIsModalOpen(false)}
+                        defaultCurrency={userCurrency}
                     />
                 </div>
             </Modal>
