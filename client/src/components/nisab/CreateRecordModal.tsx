@@ -145,6 +145,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
               assets={allAssets}
               initialSelection={selectedAssetIds}
               onSelectionChange={setSelectedAssetIds}
+              currency={userCurrency}
             />
             <div className="bg-blue-50 p-3 rounded text-xs text-blue-700">
               💰 Estimated Wealth: {new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(
