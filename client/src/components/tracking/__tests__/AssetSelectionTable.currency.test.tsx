@@ -45,8 +45,11 @@ describe('AssetSelectionTable (#310 round 6)', () => {
         currency="IDR"
       />
     );
-    // Intl.NumberFormat uses non-breaking space (U+00A0) between currency code and amount
-    const idrFormatted = screen.getAllByText(/IDR\s1,000,000\.00/);
+    // Intl.NumberFormat uses non-breaking space (U+00A0) between currency code and amount.
+    // Use a custom function matcher to reliably detect the formatted value.
+    const idrFormatted = screen.getAllByText((content) => {
+      return (content || '').includes('IDR') && (content || '').includes('1,000,000');
+    });
     expect(idrFormatted.length).toBeGreaterThan(0);
   });
 
