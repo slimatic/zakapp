@@ -26,11 +26,12 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { getAuthToken } from '../utils/auth';
-
-const VAPID_KEY_URL = '/api/push/vapid-key';
-const SUBSCRIBE_URL = '/api/push/subscribe';
-const UNSUBSCRIBE_URL = '/api/push/unsubscribe';
+import {
+  getVapidPublicKey,
+  persistSubscription,
+  persistUnsubscribe,
+  subscribe,
+} from '../services/pushService';
 
 export interface PushState {
   supported: boolean;
@@ -39,56 +40,6 @@ export interface PushState {
   loading: boolean;
   error: string | null;
   subscription: PushSubscription | null;
-}
-
-function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = window.atob(base64);
-  const bytes = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-  return bytes.buffer as ArrayBuffer;
-}
-
-async function getVapidPublicKey(): Promise<string> {
-  const res = await fetch(VAPID_KEY_URL);
-  if (!res.ok) throw new Error(`VAPID key fetch failed: ${res.status}`);
-  const json = await res.json();
-  if (!json.publicKey) throw new Error('No publicKey in response');
-  return json.publicKey;
-}
-
-async function subscribe(vapidKey: string): Promise<PushSubscription> {
-  const reg = await navigator.serviceWorker.ready;
-  return reg.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidKey),
-  });
-}
-
-async function persistSubscription(sub: PushSubscription): Promise<void> {
-  const token = getAuthToken();
-  const res = await fetch(SUBSCRIBE_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(sub.toJSON()),
-  });
-  if (!res.ok) throw new Error(`Subscribe failed: ${res.status}`);
-}
-
-async function persistUnsubscribe(sub: PushSubscription): Promise<void> {
-  const token = getAuthToken();
-  await fetch(UNSUBSCRIBE_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify({ endpoint: sub.endpoint }),
-  });
 }
 
 export function usePush(): PushState & { enable: () => Promise<void>; disable: () => Promise<void> } {
