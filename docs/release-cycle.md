@@ -10,14 +10,21 @@
 
 ## Upcoming Cycle Starts
 
+New moon, new release. Prep begins a few days before the month turns.
+
 Tabular Islamic calendar (hijridate Umm al-Qura approximation); actual dates may shift ±1 day with moon sighting:
 
-| Hijri month | Approx. Gregorian start | Planned version |
-|---|---|---|
-| Jumada al-Ula 1448 | 2026-10-12 | v0.13.0 — Muharram-cycle stabilization release ✅ shipped |
-| **Jumada al-Thani 1448** | **2026-11-11** | **v0.15.0** (v0.14.0 shipped early as an interim release on 2026-09-03 — see below; v0.15.1 + v0.15.2 shipped 2026-09-10 as currency-consistency completion) ✅ |
-| Rabiʿ al-Awwal 1448 | 2026-12-10 | **v0.16.0** — Muharram 1448 audit cycle (plan: `docs/plans/2026-09-11-muharram-1448-audit-v0160-plan.md`) |
-| Sha'ban 1448 | 2027-01-09 | v0.17.0 |
+| Hijri month | 1st of month | New moon | Planned version |
+|---|---|---|---|
+| Rabi' al-Thani 1448 | 2026-09-12 | 2026-09-11 | v0.16.0–v0.16.2 shipped (Muharram 1448 audit cycle) ✅ |
+| **Jumada al-Ula 1448** | **2026-10-12** | **2026-10-10** | **v0.17.0 — next cycle (plan: `docs/plans/v0.17.0-shaaban-1448-release-plan.md`) |
+| Jumada al-Akhirah 1448 | 2026-11-11 | 2026-11-09 | v0.18.0 |
+| Rajab 1448 | 2026-12-10 | 2026-12-09 | v0.19.0 |
+| Sha'ban 1448 | 2027-01-09 | — | v0.20.0 |
+
+> **Correction (2026-09-17).** This table had each row one Hijri month behind reality: 2026-09-12 is **1 Rabi' al-Thani** (not Rabiʿ al-Awwal), and 2026-11-11 is **1 Jumada al-Akhirah** (not Jumada al-Thani). Dates re-derived from the Umm al-Qura calendar and cross-checked against astronomical new moons.
+
+> **On "end of September".** End of September 2026 is ~19 days past the 2026-09-11 new moon — mid Rabi' al-Thani, a waning crescent. **There is no Hijri month boundary at the end of September.** The next new moon / month start is **2026-10-10 / 2026-10-12**, which the v0.17.0 cycle targets.
 
 > v0.13.0 was originally targeted to coincide with 1 Muharram 1448 (June 2026); it slipped and is now releasing in the Jumada al-Ula cycle. Naming convention preserved from the Muharram 1448 audit that started this stabilization effort.
 > **v0.14.0 — Ikhlas Night & Security Sweep** shipped 2026-09-03 as an interim release outside the lunar cycle: P1 security findings (server prod deps 7→0 vulns) were judged worth shipping immediately rather than holding until 2026-11-11. Includes dark mode (#336), Hawl countdown (#337), #320 closure (#335), a11y suite revival (#333). Next planned tag remains v0.15.0 at the Jumada al-Thani cycle.
@@ -30,13 +37,13 @@ Tabular Islamic calendar (hijridate Umm al-Qura approximation); actual dates may
    - Merge release PR (CI green gate).
    - Tag: `git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z`
    - Docker Hub workflow builds + pushes on tag.
-   - Deploy: `scripts/ops/backup-before-upgrade.sh` on the server first, then pull new images and `docker compose up -d`.
+   - Deploy: `scripts/ops/upgrade.sh` (runs `backup-before-upgrade.sh` first) — see `docs/UPGRADING.md`.
    - Verify: 200 on `app.zakapp.org`, `api.zakapp.org/health`, `syncdb.zakapp.org`; migrations container ran `prisma migrate deploy` cleanly.
 4. **Post-release**: close the cycle's milestone, open next cycle's tracking issue.
 
 ## Release Naming
 
-Releases are named after the Hijri month they ship in (e.g., "v0.13.0 — Jumada al-Ula 1448")
+Releases are named after the Hijri month they ship in (e.g., "v0.17.0 — Jumada al-Ula 1448").
 
 ## Automation
 
