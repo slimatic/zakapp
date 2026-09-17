@@ -5,6 +5,7 @@ import { apiService as api } from '../api';
 import type { User } from '../../types';
 import toast from 'react-hot-toast';
 import { setAuthToken } from '../../utils/auth';
+import { unsubscribeCurrentDevice } from '../pushService';
 
 const logger = new Logger('AuthService');
 const SESSION_STORAGE_KEY = 'zakapp_session_v1';
@@ -325,6 +326,16 @@ export const authService = {
     },
 
     async logout() {
+        // Detach this device from push BEFORE clearing the token: the
+        // server-side unsubscribe is an authenticated request, so doing it
+        // after this point would leave the endpoint registered and the
+        // logged-out device would keep receiving notifications. See #383.
+        try {
+            await unsubscribeCurrentDevice();
+        } catch (e) {
+            logger.warn('Push unsubscribe on logout failed (non-fatal)', e);
+        }
+
         cryptoService.clearSession();
         sessionStorage.removeItem(SESSION_STORAGE_KEY);
         localStorage.removeItem('accessToken');
