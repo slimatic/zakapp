@@ -607,9 +607,11 @@ verify_deployment() {
     print_status "Checking API accessibility..."
     local api_retries=0
     while [ $api_retries -lt 10 ]; do
-        # Try both possible API endpoints
+        # Probe the endpoint that actually exists. The backend exposes /health
+        # (200); /api/health and /api/auth/test both return 404, so probing them
+        # made this check unable to ever pass. See #395.
         if curl -sf "http://localhost:$http_port/api/health" > /dev/null 2>&1 || \
-           curl -sf "http://localhost:$http_port/api/auth/test" > /dev/null 2>&1; then
+           curl -sf "http://localhost:$http_port/health" > /dev/null 2>&1; then
             print_success "API is accessible through proxy"
             break
         fi

@@ -95,7 +95,9 @@ jest.config.js
 coverage/
 
 # Docker
-.dockerignore
+# NOTE: .dockerignore is intentionally NOT ignored — it is build config
+# (like .gitignore itself) and must be committed for builds to honour it.
+# It was previously listed here, which silently disabled it. See #395.
 
 # CouchDB Data Files (NEVER COMMIT DATABASE FILES)
 couchdb-data/
