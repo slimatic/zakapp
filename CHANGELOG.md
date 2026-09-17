@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.16.3] - 2026-09-17
+
+### Patch — upgrade safety, currency correctness, session hygiene
+
+Ships the production defects found while triaging #267/#310 and the release-plan audit.
+
+**Docker: the startup guard now actually runs, and is safe to upgrade into (#395, #267)**
+- The published image never copied `docker/entrypoint.sh` and used the base Node `ENTRYPOINT`, so the secret-validation guard was dead code in every production container. It is now installed and wired up (`docker/Dockerfile.production`).
+- **P3005 upgrade lockout fixed.** Instances whose schema predates migration history would have hard-failed on `prisma migrate deploy` and never started. The entrypoint and the new `docker/migrate-only.sh` now auto-baseline such databases — but only after `prisma migrate diff` proves the live schema already matches, recording migrations as applied **without re-running their SQL**. On genuine schema drift both fail closed rather than guess.
+- Severity now matches the application: `ENCRYPTION_KEY` / `JWT_SECRET` are fatal (the app throws on them anyway); missing `JWT_REFRESH_SECRET` warns only, since the app boots with a random fallback.
+- `DB_PATH` is derived from `DATABASE_URL` (it was hardcoded to `dev.db` while production uses `prod.db`, so the pending-migration probe checked the wrong file).
+- Raw `JWT_SECRET` was being printed to the container log (`server/src/utils/jwt.ts`, `JWTService.ts`) — removed.
+- Added `.dockerignore` (build context ~1.64 GB → 27 MB, and prevents a local `dev.db` from being baked into images).
+
+**New: operator upgrade path**
+- `scripts/ops/upgrade.sh` — backup-gated upgrade with a preflight that classifies the instance as fresh / migrated / unmigrated before changing anything.
+- `docs/UPGRADING.md` — what P3005 means, the automatic path, manual baseline, rollback, and troubleshooting. Includes the `JWT_REFRESH_SECRET` logout loop (#267).
+
+**Currency: dashboard no longer hardcodes USD (#310)**
+- `ActiveRecordWidget` resolved the user's currency but still rendered six hardcoded `$` amounts, so an IDR user saw `$42,000,000.00` above `Rp 42.000.000` on one screen. `DashboardActionCards` and `ZakatDashboard` had the same flaw.
+- All three now format through the canonical `useDisplayCurrency` hook. Note: USD renders `$6,500` rather than `$6,500.00` — matching the app-wide formatter.
+
+**Push notifications (#383)**
+- Logging out now detaches the device: `logout()` clears the session but previously left the PushManager subscription registered, so logged-out devices kept receiving push.
+- The unsubscribe runs **before** the token is cleared (it is an authenticated request). If the server call fails, the browser subscription is still torn down and logout proceeds.
+
+**Release process**
+- `docs/release-cycle.md` corrected: every row was one Hijri month behind reality (2026-09-12 is 1 Rabi' al-Thani, not Rabiʿ al-Awwal). v0.17.0 retargeted to 1 Jumada al-Ula 1448 (2026-10-12).
+- Version parity repaired: `cli` and `shared` were stranded at 0.15.2 while the rest were at 0.16.1.
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.2...v0.16.3
+
+## [0.16.2] - 2026-09-14
+
+### Patch — push notification delivery
+
+Retroactively recorded: this release shipped without a CHANGELOG entry.
+
+- Push notification subscription + delivery work landed on top of 0.16.1 (PR #392, #386, #387).
+- Added the `push_subscriptions` migration and VAPID key handling.
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.1...v0.16.2
+
 ## [0.16.1] - 2026-09-12
 
 ### Patch — PushSubscription migration fix (#313)
