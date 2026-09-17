@@ -40,6 +40,22 @@ vi.mock('../../../hooks/usePaymentRepository', () => ({
   usePaymentRepository: () => ({ payments: [], isLoading: false, error: null }),
 }));
 
+// Money is rendered through the canonical useDisplayCurrency hook (#310 /
+// #341); mock it to the real contract (Intl formatting in the display
+// currency) so no provider plumbing is needed here.
+vi.mock('../../../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({
+    currency: 'USD',
+    formatCurrency: (amount: number) =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(amount),
+  }),
+}));
+
 // Mock DB just in case
 vi.mock('../../../db', () => ({
   useDb: () => null,
@@ -139,7 +155,7 @@ describe('Dashboard widgets', () => {
 
       // Check for key elements using more flexible matching
       expect(screen.getByText(/active hawl/i)).toBeInTheDocument();
-      expect(screen.getByText(/\$6,500\.00/)).toBeInTheDocument();
+      expect(screen.getByText(/\$6,500/)).toBeInTheDocument();
       expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow');
       expect(screen.getByRole('link', { name: /view detailed record/i })).toBeInTheDocument();
     });

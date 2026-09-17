@@ -19,6 +19,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePaymentRecords, usePaymentSummary } from '../../hooks/usePaymentRecords';
 import { useRecentSnapshots } from '../../hooks/useZakatSnapshots';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 
 /**
  * Zakat Dashboard Page - Main dashboard for Zakat management
@@ -42,6 +43,7 @@ const ZakatDashboard: React.FC = () => {
 
   // Calculate derived values (placeholder values since we don't have latest calculation)
   const totalPaid = paymentSummary?.data?.totalPaid || 0;
+  const { formatCurrency } = useDisplayCurrency();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,7 +87,7 @@ const ZakatDashboard: React.FC = () => {
                   {summaryLoading ? (
                     <div className="animate-pulse bg-gray-200 h-8 w-24 rounded"></div>
                   ) : (
-                    `$${totalPaid.toLocaleString()}`
+                    formatCurrency(totalPaid)
                   )}
                 </p>
               </div>
