@@ -15,10 +15,27 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { DashboardActionCards } from '../DashboardActionCards';
+
+// The component formats money via the canonical useDisplayCurrency hook
+// (#310 / #341). Mock it to the real contract — Intl currency formatting in
+// the display currency — so these tests need no provider plumbing. The
+// resolver chain itself is covered in hooks/__tests__/useDisplayCurrency.
+vi.mock('../../../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({
+    currency: 'USD',
+    formatCurrency: (amount: number) =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(amount),
+  }),
+}));
 import type { Asset } from '../../types';
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
@@ -154,7 +171,7 @@ describe('DashboardActionCards', () => {
       });
 
       expect(screen.getByText('Zakat Payment Due')).toBeInTheDocument();
-      expect(screen.getByText(/\$150\.00 remaining/i)).toBeInTheDocument();
+      expect(screen.getByText(/\$150 remaining/i)).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /Make Payment/i })).toHaveAttribute('href', '/payments');
     });
 
@@ -329,7 +346,7 @@ describe('DashboardActionCards', () => {
         payments,
       });
 
-      expect(screen.getByText(/\$300\.00 remaining/i)).toBeInTheDocument();
+      expect(screen.getByText(/\$300 remaining/i)).toBeInTheDocument();
     });
 
     it('does not show payment card when zakat is fully paid', () => {

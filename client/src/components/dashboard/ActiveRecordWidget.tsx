@@ -17,8 +17,7 @@
 
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useMaskedCurrency } from '../../contexts/PrivacyContext';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { Decimal } from 'decimal.js';
@@ -47,9 +46,9 @@ interface ActiveRecordWidgetProps {
  * @param record - Active Nisab Year Record (null if none exists)
  */
 export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }) => {
-  const maskedCurrency = useMaskedCurrency();
-  const { user } = useAuth();
-  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
+  // Single source of truth for the display currency + masked formatting
+  // (#310 / #341). Resolves local RxDB settings → auth settings → prefs → USD.
+  const { currency: userCurrency, formatCurrency } = useDisplayCurrency();
 
   // Get live Nisab threshold for consistency — in the USER's currency (#310),
   // not hardcoded USD: an IDR user's hawl progress must be measured against an IDR nisab.
@@ -228,14 +227,14 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-600">Current Wealth</span>
           <span className="text-lg font-bold text-gray-900">
-            {maskedCurrency(`$${currentWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
+            {formatCurrency(currentWealth)}
           </span>
         </div>
 
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-600">Nisab Threshold</span>
           <span className="text-sm font-medium text-gray-700">
-            {maskedCurrency(`$${nisabThreshold.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
+            {formatCurrency(nisabThreshold)}
           </span>
         </div>
 
@@ -243,7 +242,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Difference</span>
             <span className={`text-sm font-bold ${statusColors.text}`}>
-              {maskedCurrency(`${wealthDifference >= 0 ? '+' : ''}$${Math.abs(wealthDifference).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}
+              {formatCurrency(wealthDifference)}
               {' '}({differencePercentage >= 0 ? '+' : ''}{differencePercentage.toFixed(1)}%)
             </span>
           </div>
@@ -255,15 +254,15 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <div className="text-xs text-gray-600">Zakat Due</div>
-            <div className="text-lg font-bold text-green-800">{maskedCurrency(`$${zakatDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
+            <div className="text-lg font-bold text-green-800">{formatCurrency(zakatDue)}</div>
           </div>
           <div>
             <div className="text-xs text-gray-600">Payments Made</div>
-            <div className="text-lg font-bold text-gray-900">{maskedCurrency(`$${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
+            <div className="text-lg font-bold text-gray-900">{formatCurrency(totalPaid)}</div>
           </div>
           <div>
             <div className="text-xs text-gray-600">Payments Remaining</div>
-            <div className="text-lg font-bold text-red-700">{maskedCurrency(`$${zakatRemaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}</div>
+            <div className="text-lg font-bold text-red-700">{formatCurrency(zakatRemaining)}</div>
           </div>
         </div>
       </div>
