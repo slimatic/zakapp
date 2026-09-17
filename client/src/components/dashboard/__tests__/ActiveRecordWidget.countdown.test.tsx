@@ -16,6 +16,23 @@ vi.mock('../../../contexts/AuthContext', () => ({
   }),
 }));
 
+// Money is rendered through the canonical useDisplayCurrency hook
+// (#310 / #341). Mock it to the real contract so no provider plumbing is
+// needed here; the resolver chain is covered in
+// hooks/__tests__/useDisplayCurrency.
+vi.mock('../../../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({
+    currency: 'USD',
+    formatCurrency: (amount: number) =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(amount),
+  }),
+}));
+
 vi.mock('../../../hooks/useNisabThreshold', () => ({
   useNisabThreshold: () => ({ nisabAmount: 5000, isLoading: false }),
 }));

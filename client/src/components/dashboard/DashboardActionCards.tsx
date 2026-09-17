@@ -19,6 +19,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Asset, ZakatPayment } from '../../types';
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 
 export interface DashboardActionCardsProps {
   assets: Asset[];
@@ -44,6 +45,7 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
   activeNisabRecord,
   payments,
 }) => {
+  const { formatCurrency } = useDisplayCurrency();
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeNisabRecord !== null;
   
@@ -108,11 +110,12 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
     // Priority 3: Zakat payment due
     if (needsPayment && zakatOwed > zakatPaid) {
       const remaining = zakatOwed - zakatPaid;
+      const remainingText = formatCurrency(remaining);
       return (
         <ActionCard
           variant="urgent"
           title="Zakat Payment Due"
-          description={`You have Zakat owed: $${remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} remaining to complete your obligation.`}
+          description={`You have Zakat owed: ${remainingText} remaining to complete your obligation.`}
           icon={
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2.5S10.343 13 12 13s3 .895 3 2.5S13.657 18 12 18s-3-.895-3-2.5S10.343 13 12 13zm0-6a1 1 0 110 2 1 1 0 010-2z" />
