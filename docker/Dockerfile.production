@@ -119,6 +119,16 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y openssl wget && r
 COPY --from=server-builder /app/server /app/server
 COPY --from=server-builder /app/shared /app/shared
 
+# Copy the backend entrypoint so the startup guards actually run in the
+# published image. NOTE: the dev/CI-only docker/Dockerfile.backend already
+# wires this up, but Docker Hub images are built from THIS file
+# (see .github/workflows/docker-hub.yml, target: backend-production).
+# Without this, the secret validation and migration steps below never
+# execute and the container silently starts with generated JWT secrets.
+# See #395 / #267.
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Set working directory
 WORKDIR /app/server
 
@@ -128,5 +138,6 @@ RUN mkdir -p /app/server/prisma/data
 # Expose port
 EXPOSE 3001
 
-# Start server
+# Start via the entrypoint (validates secrets, then migrates, then runs CMD)
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "start"]

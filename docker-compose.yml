@@ -80,16 +80,26 @@ services:
     depends_on:
       couchdb:
         condition: service_healthy
+      # Wait for migrations to actually FINISH before starting. Previously this
+      # was a plain list entry (start order only), so the backend booted and ran
+      # its startup auto-migration against an unmigrated DB ("The table
+      # main.payment_records does not exist in the current database"). See #395.
+      migrations:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Database migrations - runs once on startup
+  # Database migrations - runs once on startup, BEFORE the backend.
   migrations:
     image: slimatic/zakapp-backend:latest
     restart: "no"
+    # The published image now declares ENTRYPOINT ["/entrypoint.sh"], which would
+    # run the full backend startup instead of just migrating. Override it so this
+    # service only migrates and then exits.
+    entrypoint: ["/bin/sh", "-c"]
     environment:
       - DATABASE_URL=file:/app/server/prisma/data/prod.db?connection_limit=1
     volumes:
@@ -97,16 +107,18 @@ services:
     networks:
       - zakapp-network
     depends_on:
-      - backend
+      couchdb:
+        condition: service_healthy
     # Fail loudly on migration errors — NEVER fall back to schema push.
     # 'prisma db push --accept-data-loss' can silently drop columns/tables
     # and destroy user data. A failed migration must block startup so the
     # operator can restore from backup instead. See #P0 in release plan.
-    command: >
-      sh -c "echo 'Running database migrations...' &&
-             cd /app/server &&
-             npx prisma migrate deploy ||
-             (echo 'FATAL: prisma migrate deploy failed — refusing to continue. Restore from backup and investigate. Do NOT use db push --accept-data-loss in production.' && exit 1)"
+    command:
+      - >-
+        echo 'Running database migrations...' &&
+        cd /app/server &&
+        (npx prisma migrate deploy ||
+        (echo 'FATAL: prisma migrate deploy failed — refusing to continue. Restore from backup and investigate. Do NOT use db push --accept-data-loss in production.' && exit 1))
 
   # CouchDB for multi-device sync
   couchdb:
