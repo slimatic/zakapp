@@ -418,8 +418,16 @@ function formatCurrency(amount: number, currency: string = 'USD'): string {
       maximumFractionDigits: 2,
     }).format(amount);
   } catch {
-    // Fallback for invalid currency codes
-    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    // Intl throws on an unrecognised ISO-4217 code. Do NOT fall back to a "$"
+    // prefix: that silently mislabels any non-USD amount as US dollars, which
+    // is exactly the #310 defect inside a generated PDF (harder to notice than
+    // on screen). Suffix the code instead so it stays truthful.
+    const n = Number.isFinite(amount) ? amount : 0;
+    const digits = n.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `${digits} ${(currency || '').toUpperCase()}`.trim();
   }
 }
 

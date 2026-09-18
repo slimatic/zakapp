@@ -16,6 +16,8 @@
  */
 
 import React from 'react';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
+import { getCurrencySymbol, type CurrencyCode } from '../../utils/formatters';
 import {
   LineChart,
   Line,
@@ -77,22 +79,23 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
   selectedPeriod,
   onPeriodChange
 }) => {
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  const { currency, formatCurrency: formatDisplayCurrency } = useDisplayCurrency();
 
+  const formatCurrency = (value: number): string => formatDisplayCurrency(value);
+
+  /**
+   * Compact notation for chart axis ticks and summary tiles (e.g. "1.2M").
+   * The magnitude suffix is language-neutral, but the symbol must follow the
+   * user's display currency rather than a hardcoded "$" (#310).
+   */
   const formatCompactCurrency = (value: number): string => {
+    const symbol = getCurrencySymbol(currency as CurrencyCode) || currency;
     if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(1)}M`;
+      return `${symbol}${(value / 1000000).toFixed(1)}M`;
     } else if (value >= 1000) {
-      return `$${(value / 1000).toFixed(1)}K`;
+      return `${symbol}${(value / 1000).toFixed(1)}K`;
     }
-    return `$${value.toFixed(0)}`;
+    return `${symbol}${value.toFixed(0)}`;
   };
 
   // Combine wealth and zakat trends for the line chart

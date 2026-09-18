@@ -29,12 +29,13 @@ import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { Button } from '../components/ui/Button';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { parseDecimalNumber } from '../utils/parseDecimal';
-import { useAuth } from '../contexts/AuthContext';
+import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
 
 export const PaymentsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
+  // Reuse the canonical resolver (includes local RxDB settings, which the
+  // hand-rolled chain here omitted) so exports match the rest of the UI (#310).
+  const { currency: userCurrency, formatCurrency } = useDisplayCurrency();
   const [searchParams, setSearchParams] = useSearchParams();
   const nisabRecordIdParam = searchParams.get('snapshot');
 
@@ -124,7 +125,7 @@ export const PaymentsPage: React.FC = () => {
                   {nisabRecords.map((record) => {
                     const zakatAmount = parseDecimalNumber(String(record.zakatAmount || 0));
                     const displayAmount = zakatAmount > 0
-                      ? ` (Zakat: $${zakatAmount.toFixed(2)})`
+                      ? ` (Zakat: ${formatCurrency(zakatAmount)})`
                       : '';
                     const recordPayments = allPayments.filter(p => p.snapshotId === record.id).length;
                     return (
