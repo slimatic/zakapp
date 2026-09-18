@@ -18,6 +18,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 
 interface Calculation {
   id: string;
@@ -38,6 +39,7 @@ interface HistoryExportProps {
 }
 
 export const HistoryExport: React.FC<HistoryExportProps> = ({ calculations, onExport }) => {
+  const { formatCurrency } = useDisplayCurrency();
   const [isExporting, setIsExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState<'json' | 'csv' | 'pdf'>('json');
 
@@ -193,7 +195,7 @@ export const HistoryExport: React.FC<HistoryExportProps> = ({ calculations, onEx
           <h2 style="margin-top: 0;">Summary</h2>
           <p><strong>Total Calculations:</strong> ${calculations.length}</p>
           <p><strong>Export Date:</strong> ${format(new Date(), 'PPPP')}</p>
-          <p><strong>Total Zakat:</strong> $${calculations.reduce((sum, c) => sum + c.zakatDue, 0).toFixed(2)}</p>
+          <p><strong>Total Zakat:</strong> ${formatCurrency(calculations.reduce((sum, c) => sum + c.zakatDue, 0))}</p>
         </div>
 
         <table>
@@ -215,9 +217,9 @@ export const HistoryExport: React.FC<HistoryExportProps> = ({ calculations, onEx
                     ${calc.methodology.charAt(0).toUpperCase() + calc.methodology.slice(1)}
                   </span>
                 </td>
-                <td>$${calc.totalWealth.toFixed(2)}</td>
-                <td>$${calc.nisabThreshold.toFixed(2)}</td>
-                <td class="amount">$${calc.zakatDue.toFixed(2)}</td>
+                <td>${formatCurrency(calc.totalWealth)}</td>
+                <td>${formatCurrency(calc.nisabThreshold)}</td>
+                <td class="amount">${formatCurrency(calc.zakatDue)}</td>
               </tr>
             `).join('')}
           </tbody>

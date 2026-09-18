@@ -71,6 +71,22 @@ vi.mock('../contexts/AuthContext', () => ({
   })
 }));
 
+// PaymentsPage formats money through the canonical useDisplayCurrency hook
+// (#310). Mock it to the real contract to avoid pulling in PrivacyProvider;
+// the resolver chain itself is covered in hooks/__tests__/useDisplayCurrency.
+vi.mock('../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({
+    currency: 'USD',
+    formatCurrency: (amount: number) =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(amount ?? 0),
+  }),
+}));
+
 
 // Wrapper for providers
 const createWrapper = () => {
