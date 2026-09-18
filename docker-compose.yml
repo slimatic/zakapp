@@ -23,7 +23,10 @@ services:
       - frontend
       - backend
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      # Probe IPv4 explicitly: inside this container `localhost` resolves to ::1
+      # first, but nginx binds 0.0.0.0 only, so a `localhost` probe always gets
+      # ECONNREFUSED and the service reports unhealthy forever. See #404.
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -44,7 +47,8 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      # IPv4 pinned — see #404 (localhost resolves to ::1, nginx binds IPv4 only).
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80"]
       interval: 30s
       timeout: 10s
       retries: 3
