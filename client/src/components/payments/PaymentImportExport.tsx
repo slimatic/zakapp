@@ -19,6 +19,7 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { Button, LoadingSpinner } from '../ui';
+import { parseAmountFromImport } from '../../utils/parseDecimal';
 
 interface ImportResult {
   success: number;
@@ -166,7 +167,9 @@ export const PaymentImportExport: React.FC = () => {
             payment.paymentDate = value;
             break;
           case 'amount':
-            payment.amount = parseFloat(value) || 0;
+            // Tolerant: see AssetImportExport — older exports wrote formatted
+            // strings, which parseFloat turned into 0.
+            payment.amount = parseAmountFromImport(value) || 0;
             break;
           case 'currency':
             payment.currency = value || 'USD';

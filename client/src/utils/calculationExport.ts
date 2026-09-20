@@ -65,7 +65,13 @@ export const exportAsJSON = (calculation: ZakatCalculation): void => {
 };
 
 /**
- * Export calculation as CSV
+ * Export calculation as CSV.
+ *
+ * Amounts are written as RAW numbers (1234567.89), not formatted strings. An
+ * earlier version wrote `formatCurrency(...)` output, which meant a user who
+ * exported and later re-imported their own file had every amount silently become
+ * 0 — `parseFloat('$1,234,567.89')` is NaN. The currency travels in its own
+ * column so nothing is lost by dropping the symbol.
  */
 export const exportAsCSV = (calculation: ZakatCalculation): void => {
   const currency = calculation.currency || 'USD';
@@ -74,23 +80,25 @@ export const exportAsCSV = (calculation: ZakatCalculation): void => {
   let csv = 'Zakat Calculation Export\n\n';
   csv += `Calculation Date,${calculation.calculationDate.toLocaleDateString()}\n`;
   csv += `Methodology,${calculation.methodologyName}\n`;
-  csv += `Total Wealth,${formatCurrency(calculation.totalWealth, currency)}\n`;
-  csv += `Nisab Threshold,${formatCurrency(calculation.nisabThreshold, currency)}\n`;
+  csv += `Currency,${currency}\n`;
+  csv += `Total Wealth,${calculation.totalWealth}\n`;
+  csv += `Nisab Threshold,${calculation.nisabThreshold}\n`;
   csv += `Meets Nisab,${calculation.meetsNisab ? 'Yes' : 'No'}\n`;
-  csv += `Total Zakat Due,${formatCurrency(calculation.totalZakat, currency)}\n`;
+  csv += `Total Zakat Due,${calculation.totalZakat}\n`;
 
   if (calculation.notes) {
     csv += `Notes,"${calculation.notes}"\n`;
   }
 
   csv += '\n\nAsset Breakdown\n';
-  csv += 'Category,Amount,Zakatable Amount,Zakat Due\n';
+  csv += `Category,Amount,Zakatable Amount,Zakat Due,Currency\n`;
 
   calculation.assets.forEach(asset => {
     csv += `${asset.category},`;
-    csv += `${formatCurrency(asset.amount, currency)},`;
-    csv += `${formatCurrency(asset.zakatableAmount, currency)},`;
-    csv += `${formatCurrency(asset.zakatDue, currency)}\n`;
+    csv += `${asset.amount},`;
+    csv += `${asset.zakatableAmount},`;
+    csv += `${asset.zakatDue},`;
+    csv += `${currency}\n`;
   });
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

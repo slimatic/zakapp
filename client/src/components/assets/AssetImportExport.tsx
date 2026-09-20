@@ -21,6 +21,7 @@ import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { Asset, AssetType } from '../../types';
 import { Button, LoadingSpinner } from '../ui';
 import { isAssetZakatable } from '../../core/calculations/zakat';
+import { parseAmountFromImport } from '../../utils/parseDecimal';
 
 interface ImportResult {
   success: number;
@@ -170,7 +171,10 @@ export const AssetImportExport: React.FC = () => {
             asset.subCategory = value;
             break;
           case 'value':
-            asset.value = parseFloat(value) || 0;
+            // Tolerant: accepts raw numbers AND formatted strings written by
+            // older exports ('$1,234.56', 'Rp 1.500.000'). parseFloat alone
+            // silently produced 0 for those.
+            asset.value = parseAmountFromImport(value) || 0;
             break;
           case 'currency':
             asset.currency = value || 'USD';
