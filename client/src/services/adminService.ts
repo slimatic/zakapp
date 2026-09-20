@@ -157,6 +157,24 @@ export interface SystemStatus {
         schemaUpToDate: boolean;
         pendingMigrations: number;
     };
+    /** Email delivery health. A misconfigured provider is otherwise invisible:
+     *  registration still succeeds and the failure only appears in server logs. */
+    email?: {
+        configured: boolean;
+        provider: string | null;
+        from: string | null;
+        host: string | null;
+        port: number | null;
+        secure: boolean | null;
+        issue: string | null;
+    };
+    /** Verification counts, so an operator can see accounts stuck unverified. */
+    users?: {
+        total: number;
+        verified: number;
+        unverified: number;
+        pendingVerificationTokens: number;
+    };
     memory: {
         rss: number;
         heapTotal: number;
