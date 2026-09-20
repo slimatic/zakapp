@@ -20,8 +20,30 @@ export default defineConfig({
     hookTimeout: 60000,
     server: {
       deps: {
-        inline: ['@prisma/client']
-      }
-    }
+        inline: ['@prisma/client'],
+      },
+    },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/__tests__/**',
+        'src/**/*.d.ts',
+        'src/types/**',
+      ],
+      // NO THRESHOLDS ON THIS BRANCH, deliberately.
+      //
+      // The coverage gate was introduced on main in #457 and is not part of the
+      // 0.16.x maintenance line — this branch predates it, and adding a gate to a
+      // patch release would turn an unrelated future test change into a blocked
+      // release. Patch releases carry fixes, not policy.
+      //
+      // For reference, main's current gate is 36/28/45/36, ratcheted upward from
+      // the measured baseline as tests land. Never ratchet downward, or the gate
+      // stops meaning anything.
+    },
   },
 });
