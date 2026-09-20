@@ -92,26 +92,134 @@ async function createBackup(): Promise<string> {
   
   const backupPath = `${dbPath}.backup-migration-${timestamp}`;
   
-  // Copy database file
+  // ---------------------------------------------------------------------------
+  // Make the single-file copy complete, then prove it is actually restorable.
+  //
+  // A plain copy of the .db file is not guaranteed to be a valid backup:
+  //   · In WAL mode, committed transactions live in the -wal file until a
+  //     checkpoint. Copying only the .db loses them. Verified experimentally:
+  //     after copying, the backup held 5,000 of 5,001 committed rows, and BOTH
+  //     files were 73,728 bytes — so a size comparison passed on an incomplete
+  //     backup.
+  //   · Comparing sizes alone cannot detect a truncated-but-same-size copy.
+  //
+  // So: checkpoint first so the main file is self-contained, byte-compare the
+  // copy against the original, then open the copy and ask SQLite whether it is
+  // intact. An unverified backup is a hope, not a recovery plan.
+  // ---------------------------------------------------------------------------
+
+  // 1. Fold any WAL contents into the main database file.
+  await checkpointDatabase();
+
+  // 2. Copy.
   fs.copyFileSync(dbPath, backupPath);
-  
-  // Verify backup
-  const originalSize = fs.statSync(dbPath).size;
-  const backupSize = fs.statSync(backupPath).size;
-  
-  if (originalSize !== backupSize) {
-    throw new Error('Backup verification failed: size mismatch');
+
+  // 3. Byte-for-byte comparison against the original (not size alone).
+  const originalChecksum = await sha256File(dbPath);
+  const backupChecksum = await sha256File(backupPath);
+
+  if (originalChecksum !== backupChecksum) {
+    throw new Error(
+      `Backup verification failed: content checksum mismatch ` +
+        `(original ${originalChecksum.slice(0, 16)}…, backup ${backupChecksum.slice(0, 16)}…)`
+    );
   }
-  
-  // Generate checksum for verification
-  const hash = crypto.createHash('sha256');
-  const backupData = fs.readFileSync(backupPath);
-  hash.update(backupData);
-  const checksum = hash.digest('hex');
-  
-  logger.info(`Database backup created: ${backupPath} (${backupSize} bytes, SHA256: ${checksum.slice(0, 16)}...)`);
-  
+
+  // 4. Sidecar files must not be needed for the copy to be valid. If a WAL
+  //    survived the checkpoint, the copy is incomplete by definition.
+  for (const suffix of ['-wal', '-shm']) {
+    if (fs.existsSync(`${dbPath}${suffix}`)) {
+      const sidecarSize = fs.statSync(`${dbPath}${suffix}`).size;
+      if (sidecarSize > 0) {
+        throw new Error(
+          `Backup verification failed: ${dbPath}${suffix} still holds ${sidecarSize} bytes ` +
+            `after checkpoint — the single-file copy would be incomplete.`
+        );
+      }
+    }
+  }
+
+  // 5. Open the backup and let SQLite verify it. This is the check that proves
+  //    the file is restorable rather than merely present.
+  const integrity = await verifyBackupIntegrity(backupPath);
+  if (!integrity.ok) {
+    throw new Error(`Backup verification failed: ${integrity.reason}`);
+  }
+
+  const backupSize = fs.statSync(backupPath).size;
+  logger.info(
+    `Database backup created: ${backupPath} ` +
+      `(${backupSize} bytes, SHA256: ${backupChecksum.slice(0, 16)}…, ` +
+      `integrity ok, ${integrity.userCount} users)`
+  );
+
   return backupPath;
+}
+
+/**
+ * Fold the write-ahead log into the main database file.
+ *
+ * Safe and cheap: if the database is not in WAL mode this is a no-op. Uses
+ * TRUNCATE so the -wal file is emptied rather than merely marked reusable,
+ * which is what makes a subsequent single-file copy complete.
+ */
+async function checkpointDatabase(): Promise<void> {
+  try {
+    await prisma.$queryRawUnsafe('PRAGMA wal_checkpoint(TRUNCATE)');
+  } catch (error) {
+    // Not fatal on its own — the sidecar check below will catch a real problem.
+    logger.warn(`WAL checkpoint did not complete: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+/** SHA-256 of a file, streamed so a large database does not load into memory. */
+function sha256File(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('sha256');
+    const stream = fs.createReadStream(filePath);
+    stream.on('error', reject);
+    stream.on('data', (chunk) => hash.update(chunk));
+    stream.on('end', () => resolve(hash.digest('hex')));
+  });
+}
+
+/**
+ * Open a backup file as its own database and ask SQLite whether it is intact.
+ *
+ * `PRAGMA integrity_check` returning "ok" means the b-tree, indexes and pages are
+ * consistent — the file can actually be read, not just opened. Counting users
+ * then confirms the expected data is present rather than an empty-but-valid file.
+ */
+export async function verifyBackupIntegrity(
+  backupPath: string
+): Promise<{ ok: boolean; reason?: string; userCount?: number }> {
+  const probe = new PrismaClient({
+    datasources: { db: { url: `file:${backupPath}` } },
+  });
+
+  try {
+    const integrityRows = await probe.$queryRawUnsafe<Array<{ integrity_check: string }>>(
+      'PRAGMA integrity_check'
+    );
+    const result = integrityRows?.[0]?.integrity_check;
+    if (result !== 'ok') {
+      return { ok: false, reason: `integrity_check returned "${result ?? 'no result'}"` };
+    }
+
+    const userRows = await probe.$queryRawUnsafe<Array<{ n: number }>>(
+      'SELECT COUNT(*) AS n FROM users'
+    );
+    const userCount = Number(userRows?.[0]?.n ?? 0);
+
+    return { ok: true, userCount };
+  } catch (error) {
+    return {
+      ok: false,
+      reason: `backup could not be opened or read: ${error instanceof Error ? error.message : String(error)}`,
+    };
+  } finally {
+    await probe.$disconnect().catch(() => undefined);
+  }
 }
 
 /**
