@@ -5,6 +5,7 @@ import { ErrorDisplay } from '../../components/common/ErrorDisplay';
 import { UserManagement } from '../../components/admin/UserManagement';
 import { SystemSettings } from '../../components/admin/SystemSettings';
 import { SystemHealth } from '../../components/admin/SystemHealth';
+import { logger } from '../../utils/logger';
 
 export const AdminDashboard: React.FC = () => {
     const [stats, setStats] = useState<AdminStats | null>(null);
@@ -14,14 +15,28 @@ export const AdminDashboard: React.FC = () => {
 
     const loadStats = async () => {
         setLoadingStats(true);
+        setError(null);
         try {
             const statsRes = await adminService.getStats();
             if (statsRes.success) {
-                setStats((statsRes as any).stats || statsRes.data?.stats);
+                // The declared contract is ApiResponse<{ stats: AdminStats }>, so the
+                // payload lives at data.stats. The previous code assigned
+                // `(statsRes as any).stats || statsRes.data?.stats` and, when that
+                // resolved to undefined, left `stats` null — the cards below then
+                // render `|| 0`, showing a confident "Total Users: 0". A missing
+                // payload now surfaces the retry UI instead of a false empty system.
+                const resolved = statsRes.data?.stats;
+                if (!resolved) {
+                    setError('Dashboard stats response did not contain a stats payload');
+                } else {
+                    setStats(resolved);
+                }
+            } else {
+                setError(statsRes.error || 'Failed to load dashboard stats');
             }
         } catch (err) {
             setError('Failed to load dashboard stats');
-            console.error(err);
+            logger.error('Failed to load admin dashboard stats', err);
         } finally {
             setLoadingStats(false);
         }

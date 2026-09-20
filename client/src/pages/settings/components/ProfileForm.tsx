@@ -25,6 +25,7 @@ import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
 import { useAssetRepository } from '../../../hooks/useAssetRepository';
 import { gregorianToHijri, formatHijriDate } from '../../../utils/calendarConverter';
+import { getSupportedCurrencies, getCurrencySymbol } from '../../../utils/formatters';
 
 // Types extracted locally since they aren't exported from types/index
 interface ProfileFormData {
@@ -80,19 +81,15 @@ export const ProfileForm: React.FC = () => {
         }
     }, [user]);
 
-    const currencies = [
-        { code: 'USD', name: 'US Dollar' },
-        { code: 'EUR', name: 'Euro' },
-        { code: 'GBP', name: 'British Pound' },
-        { code: 'SAR', name: 'Saudi Riyal' },
-        { code: 'AED', name: 'UAE Dirham' },
-        { code: 'EGP', name: 'Egyptian Pound' },
-        { code: 'PKR', name: 'Pakistani Rupee' },
-        { code: 'INR', name: 'Indian Rupee' },
-        { code: 'MYR', name: 'Malaysian Ringgit' },
-        { code: 'IDR', name: 'Indonesian Rupiah' },
-        { code: 'TRY', name: 'Turkish Lira' },
-    ];
+    // Derived from the canonical source (utils/formatters) rather than a local
+    // copy: this list previously duplicated CURRENCY_CONFIG's 11 codes by hand, so
+    // adding a currency anywhere else in the app would have silently omitted it
+    // from the only place a user can set their display currency. Same pattern as
+    // IdentityStep, AssetForm and LiabilityForm.
+    const currencies = getSupportedCurrencies().map((code) => ({
+        code,
+        name: `${code} (${getCurrencySymbol(code)})`,
+    }));
 
     const zakatMethods = [
         { value: 'standard', name: 'Standard (2.5%)' },
