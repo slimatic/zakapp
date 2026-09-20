@@ -61,7 +61,7 @@ export const LiabilitiesPage: React.FC = () => {
     if (error) {
         return (
             <div className="space-y-6">
-                <h1 className="text-3xl font-heading font-bold text-gray-900 leading-tight">Liabilities</h1>
+                <h1 className="text-3xl font-heading font-bold text-foreground leading-tight">Liabilities</h1>
                 <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center" role="alert">
                     <p className="text-red-800 font-medium">We couldn't load your liabilities.</p>
                     <p className="text-sm text-red-700 mt-1">{error.message || 'An unexpected database error occurred.'} Your data stays safely on this device — try reloading the page.</p>
@@ -89,10 +89,10 @@ export const LiabilitiesPage: React.FC = () => {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-heading font-bold text-gray-900 leading-tight">
+                    <h1 className="text-3xl font-heading font-bold text-foreground leading-tight">
                         Liabilities
                     </h1>
-                    <p className="mt-1 text-gray-500 max-w-2xl">
+                    <p className="mt-1 text-muted-foreground max-w-2xl">
                         Track your short-term and long-term debts. Deductible liabilities will be automatically calculated for Zakat.
                     </p>
                 </div>
@@ -106,14 +106,14 @@ export const LiabilitiesPage: React.FC = () => {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="bg-white/80 backdrop-blur-sm shadow-sm rounded-xl border border-primary-100/50 p-6 transition-all hover:shadow-md">
-                    <dt className="text-sm font-medium text-gray-500 truncate mb-1">Total Liabilities</dt>
+                    <dt className="text-sm font-medium text-muted-foreground truncate mb-1">Total Liabilities</dt>
                     <dd className="text-4xl font-heading font-bold text-primary-700">
                         {liabilityTotal.converted
                             ? maskedCurrency(formatInCurrency(liabilityTotal.total, userCurrency as never))
                             : '—'}
                     </dd>
                     {!liabilityTotal.converted && (
-                        <dd className="mt-1 text-xs text-gray-400">Updating exchange rates…</dd>
+                        <dd className="mt-1 text-xs text-muted-foreground">Updating exchange rates…</dd>
                     )}
                 </div>
                 {/* We can add more stats here later like "Deductible Amount" */}
