@@ -197,6 +197,25 @@
 .dark .hover\:border-gray-300:hover { border-color: hsl(217 27% 28%); }
 .dark .hover\:border-gray-400:hover { border-color: hsl(215 16% 35%); }
 
+/* ── Retrofit gaps closed (#426, follow-up to the #360 sweep) ─────────────────
+   The gray retrofit maps bg-/text-/border-/divide-/hover- gray utilities. Three
+   families are none of those and were missed, so they kept light-mode values on
+   dark surfaces:
+     · gradient stops  — Skeleton.tsx pulses from-gray-200 via-gray-300 to-gray-200,
+                         so every loading state flashed light gray (from-/via-/to-
+                         for pastels already had rules further down; gray did not)
+     · ring-gray-*     — focus/selection rings rendered invisible on dark
+     · border-gray-500 — the border ramp covers 50,100,200,300,400,600,700 and
+                         skips 500
+   Values mirror the existing ramp so these sit correctly beside their neighbours. */
+.dark .from-gray-200 { --tw-gradient-from: hsl(217 27% 22%) var(--tw-gradient-from-position); }
+.dark .via-gray-300 { --tw-gradient-via: hsl(217 27% 26%) var(--tw-gradient-via-position); }
+.dark .to-gray-200 { --tw-gradient-to: hsl(217 27% 22%) var(--tw-gradient-to-position); }
+.dark .border-gray-500 { border-color: hsl(215 18% 37%); }
+.dark .ring-gray-200 { --tw-ring-color: hsl(217 27% 22%); }
+.dark .ring-gray-300 { --tw-ring-color: hsl(217 27% 28%); }
+.dark .ring-gray-500 { --tw-ring-color: hsl(215 20% 40%); }
+
 /* ── Tinted pastel surfaces retrofit (#360 visual sweep) ──────────────────────
    Action/status cards use bg-{hue}-50/100/200 with text-{hue}-800/900. On dark
    those pastels stayed near-white while the built-in heading darkener flips
