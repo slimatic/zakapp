@@ -24,6 +24,7 @@
 import { Request, Response } from 'express';
 import { CalendarService } from '../services/calendarService';
 import { PrismaClient } from '@prisma/client';
+import { logger } from '../utils/logger';
 
 const calendarService = new CalendarService();
 const prisma = new PrismaClient();
@@ -242,7 +243,7 @@ export const updateCalendarPreference = async (req: AuthenticatedRequest, res: R
     const { calendarType, preferredCalendar, preferredMethodology } = req.body;
 
     // Log for debugging
-    console.log('Update Calendar/Methodology Request:', {
+    logger.info('Update Calendar/Methodology Request:', {
       userId,
       body: req.body
     });

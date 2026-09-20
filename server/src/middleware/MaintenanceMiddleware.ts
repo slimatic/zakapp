@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { logger } from '../utils/logger';
 import { Request, Response, NextFunction } from 'express';
 
 /**
@@ -41,7 +42,7 @@ export class MaintenanceMiddleware {
         this.isMaintenanceEnabled = process.env.MAINTENANCE_ENABLED === 'true';
 
         if (this.isMaintenanceEnabled) {
-            console.log('🚧 Maintenance Mode ENABLED - Application will be unavailable');
+            logger.debug('🚧 Maintenance Mode ENABLED - Application will be unavailable');
         }
     }
 

@@ -228,16 +228,16 @@ if (require.main === module) {
 
       // Graceful shutdown handler
       // const gracefulShutdown = (signal: string) => {
-      //   console.log(`\n${signal} received. Starting graceful shutdown...`);
+      //   logger.debug(`\n${signal} received. Starting graceful shutdown...`);
 
       //   // Stop accepting new requests
       //   server.close(() => {
-      //     console.log('✅ HTTP server closed');
+      //     logger.info('✅ HTTP server closed');
 
       //     // Stop all background jobs
       //     // stopAll jobs();
 
-      //     console.log('✅ Graceful shutdown complete');
+      //     logger.info('✅ Graceful shutdown complete');
       //     process.exit(0);
       //   });
 

@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { logger } from '../utils/logger';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest, ApiResponse } from '../types';
 import { asyncHandler, AppError, ErrorCode } from '../middleware/ErrorHandler';
@@ -44,7 +45,7 @@ export class ZakatController {
         userId
       );
 
-      console.log('ZakatController - Calculation result:', JSON.stringify(calculation, null, 2));
+      logger.debug('ZakatController - Calculation result:', JSON.stringify(calculation, null, 2));
 
       const response: ApiResponse = {
         success: true,
