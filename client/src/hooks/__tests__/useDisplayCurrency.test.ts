@@ -65,7 +65,7 @@ describe('useDisplayCurrency (#341 consolidation)', () => {
         expect(result.current.currency).toBe('USD');
     });
 
-    it('formats with Intl and applies the privacy mask', () => {
+    it('formats with strict per-currency decimals and applies the privacy mask', () => {
         mockSettingsRepo.mockReturnValue({ settings: { baseCurrency: 'USD' } });
         mockUseAuth.mockReturnValue({ user: null });
         // Simulate privacy mode: mask replaces digits
@@ -73,9 +73,10 @@ describe('useDisplayCurrency (#341 consolidation)', () => {
 
         const { result } = renderHook(() => useDisplayCurrency());
         const out = result.current.formatCurrency(1234.5);
-        // The mask must receive the formatted string and its return wins:
-        expect(mockMask).toHaveBeenCalledWith('$1,234.5');
-        expect(out).toBe('$•,•••.•');
+        // USD is strictly 2 decimals (#424): '$1,234.50', not '$1,234.5'.
+        // The mask must receive the fully formatted string and its return wins:
+        expect(mockMask).toHaveBeenCalledWith('$1,234.50');
+        expect(out).toBe('$•,•••.••');
         expect(out).not.toContain('1');
     });
 
@@ -84,8 +85,10 @@ describe('useDisplayCurrency (#341 consolidation)', () => {
         mockUseAuth.mockReturnValue({ user: null });
         const { result } = renderHook(() => useDisplayCurrency());
         result.current.formatCurrency(15750000, 'IDR');
-        // Node's ICU renders IDR as 'IDR 15,750,000' (code, not symbol)
-        expect(mockMask).toHaveBeenCalledWith(expect.stringContaining('IDR'));
+        // IDR keeps its own locale, so it renders the rupiah symbol and
+        // Indonesian grouping: 'Rp 15.750.000' — not 'IDR 15,750,000'.
+        expect(mockMask).toHaveBeenCalledWith(expect.stringContaining('Rp'));
+        expect(mockMask).toHaveBeenCalledWith(expect.stringContaining('15.750.000'));
     });
 });
 

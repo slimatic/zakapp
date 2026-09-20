@@ -29,6 +29,7 @@ import { useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useUserSettingsRepository } from './useUserSettingsRepository';
+import { formatCurrency as formatCanonical } from '../utils/formatters';
 
 export interface DisplayCurrency {
   /** Resolved ISO-4217 currency code, e.g. 'USD', 'IDR'. */
@@ -54,12 +55,7 @@ export function useDisplayCurrency(): DisplayCurrency {
 
   const formatCurrency = useCallback(
     (amount: number, fmtCurrency: string = currency): string => {
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: fmtCurrency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }).format(amount);
+      const formatted = formatCanonical(amount, fmtCurrency as never);
       return maskedCurrency(formatted);
     },
     [currency, maskedCurrency]

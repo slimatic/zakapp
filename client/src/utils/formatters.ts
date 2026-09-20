@@ -22,6 +22,16 @@
  */
 
 /**
+ * Locale used for numeric rendering.
+ *
+ * Deliberately fixed to en-US rather than per-currency. Formatting SAR with
+ * `ar-SA` produced Arabic-Indic digits (‏١٬٢٣٤٫٥٦ ر.س.‏) and EGP likewise —
+ * unreadable inside an English UI and inconsistent with every other currency.
+ * Currency identity comes from the symbol/code; digit style stays Latin.
+ */
+const FALLBACK_LOCALE = 'en-US';
+
+/**
  * Supported currency codes
  */
 export type CurrencyCode =  | 'USD'
@@ -54,7 +64,24 @@ const CURRENCY_CONFIG: Record<CurrencyCode, { symbol: string; locale: string; de
 };
 
 /**
- * Formats a numeric amount as currency
+ * Formats a numeric amount as currency — the single canonical implementation.
+ *
+ * Rules, in order:
+ *   1. Decimals are STRICT per currency, never a 0–2 range. The count comes from
+ *      CURRENCY_CONFIG; codes outside it resolve via Intl (0 for JPY, 3 for KWD);
+ *      codes Intl rejects fall back to 2.
+ *   2. Digits are always Latin (`numberingSystem: 'latn'`). The per-currency
+ *      locale is kept so symbols and grouping stay familiar — Indonesian renders
+ *      `Rp 1.500.000`, not `IDR 1,500,000` — but Arabic-Indic digits, which the
+ *      ar-* locales produced for SAR and EGP (١٬٢٣٤٫٥٦), are suppressed. Those
+ *      are unreadable inside an English UI.
+ *   3. An unknown or unusable code NEVER borrows another currency's symbol. The
+ *      code itself is shown (`USDT 1,000.00`); displaying `$` for non-dollars
+ *      would misstate the amount.
+ *
+ * Callers that need the privacy mask (useDisplayCurrency) delegate here so both
+ * paths cannot drift apart.
+ *
  * @param amount - The numeric amount to format
  * @param currency - Currency code (default: 'USD')
  * @param showSymbol - Whether to show currency symbol (default: true)
@@ -68,29 +95,67 @@ export function formatCurrency(
   compact: boolean = false
 ): string {
   const config = CURRENCY_CONFIG[currency];
-  
-  if (!config) {
-    throw new Error(`Unsupported currency code: ${currency}`);
-  }
+  const decimals = getCurrencyDecimals(currency);
 
   const options: Intl.NumberFormatOptions = {
     style: showSymbol ? 'currency' : 'decimal',
     currency: showSymbol ? currency : undefined,
-    minimumFractionDigits: config.decimals,
-    maximumFractionDigits: config.decimals,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
     notation: compact ? 'compact' : 'standard',
-    compactDisplay: 'short'
+    compactDisplay: 'short',
+    numberingSystem: 'latn'
   };
 
   try {
-    return new Intl.NumberFormat(config.locale, options).format(amount);
+    return new Intl.NumberFormat(config?.locale ?? FALLBACK_LOCALE, options).format(amount);
   } catch {
-    // Fallback for unsupported locales
-    const formatted = amount.toLocaleString('en-US', {
-      minimumFractionDigits: config.decimals,
-      maximumFractionDigits: config.decimals
-    });
-    return showSymbol ? `${config.symbol}${formatted}` : formatted;
+    // Code Intl does not recognise: keep the number correct and name the
+    // currency; never substitute someone else's symbol.
+    return formatUnknownCurrency(amount, currency, decimals, showSymbol);
+  }
+}
+
+/**
+ * Fallback rendering for a code Intl rejects. Kept separate so both the
+ * showSymbol paths and callers that only need the number share one behaviour.
+ */
+function formatUnknownCurrency(
+  amount: number,
+  currency: string,
+  decimals: number,
+  showSymbol: boolean
+): string {
+  const plain = amount.toLocaleString(FALLBACK_LOCALE, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+    numberingSystem: 'latn'
+  });
+  return showSymbol ? `${currency} ${plain}` : plain;
+}
+
+/**
+ * Number of decimal places for a currency code.
+ *
+ * CURRENCY_CONFIG is authoritative for supported codes. Anything else is
+ * resolved through Intl so that, e.g., JPY renders 0 decimals and KWD 3 rather
+ * than everything collapsing to 2.
+ *
+ * Note: IDR is 0 here by product decision. ISO 4217 assigns it 2 (sen), and Intl
+ * follows ISO, but sen is not used in practice — Indonesian amounts round to
+ * whole rupiah. That divergence is deliberate and pinned by test.
+ */
+export function getCurrencyDecimals(currency: string): number {
+  const config = CURRENCY_CONFIG[currency as CurrencyCode];
+  if (config) return config.decimals;
+
+  try {
+    return new Intl.NumberFormat(FALLBACK_LOCALE, {
+      style: 'currency',
+      currency
+    }).resolvedOptions().minimumFractionDigits ?? 2;
+  } catch {
+    return 2;
   }
 }
 
