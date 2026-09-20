@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.16.6] - 2026-09-20
+
+### Patch — registration no longer reports success when email fails
+
+Registration returned `201` even when the verification email could not be sent. The token
+write and the send shared one `try/catch` that only logged, so with
+`requireEmailVerification` enabled the user was told to check an inbox that would never
+receive anything — and the account could not log in. The failure was visible only in
+server logs.
+
+**Changed**
+
+- Registration returns `503 VERIFICATION_EMAIL_FAILED` when verification is required and
+  the send did not happen, instead of `201`.
+- **New** `POST /api/auth/resend-verification`. Recovery previously meant re-registering
+  or an admin editing the database. The response is identical whether or not the address
+  exists, so it cannot be used to enumerate registered emails.
+- Login now carries the API error code through to the UI, which offers a resend when it
+  sees `EMAIL_NOT_VERIFIED`. The code was previously dropped at the API boundary, leaving
+  the UI to match on message text.
+- Limit defaults unified. Three services each hardcoded a fallback that disagreed with
+  `config/limits.ts` — assets `50` vs `30`, payments `100` vs `50`, nisab records `10` vs `5`.
+  Enforcement and the limits reported to clients now come from one source.
+- Admin system status reports email delivery health and verification counts, so a broken
+  provider is visible without reading logs.
+
+> **Operators:** if `requireEmailVerification` is on and sending fails, new accounts cannot
+> sign in. Check **Admin → System Health** for the email status.
+
+
 ## [0.16.5] - 2026-09-20
 
 ### Patch — security: the allowRegistration gate now actually runs
