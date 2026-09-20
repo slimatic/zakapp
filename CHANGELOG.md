@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.16.7] - 2026-09-20
+
+### Patch — payment amounts below 1,000,000 were read back as NaN
+
+Payment amounts are stored encrypted. To decide whether a stored value was ciphertext or a
+plain numeric string, the read path called `EncryptionService.isEncrypted()`. That predicate
+requires every base64 group in the value to be at least 12 characters — but an AES-256-GCM
+ciphertext is `ivB64:bodyB64:tagB64` where `bodyB64 = 4*ceil(len/3)`. For any plaintext
+shorter than 7 characters the body is under 12 characters, so `isEncrypted()` returned
+**false** for perfectly valid ciphertext.
+
+The code then took the not-encrypted branch and ran `parseFloat()` **on the ciphertext**:
+
+| amount stored | returned |
+| --- | --- |
+| 0 … 1000 | `NaN` |
+| 1.5, 12.25, 99.99 | `NaN` |
+| 1234.56 | `1234.56` (plaintext is exactly 7 chars) |
+
+Every amount below 1,000,000 read back as `NaN`, so zakat-paid totals, payment history and
+per-category statistics were all `NaN`. In unlucky cases it returned a **wrong number**
+instead of `NaN` — `"99.99"` produced `8`, because `parseFloat` stopped at the first digit
+it found in the ciphertext.
+
+Reachable via `POST /api/tracking/snapshots/:id/payments`, which is authenticated and
+returns the amount directly to the client.
+
+**Fixed by deciding from content rather than from a length-sensitive heuristic:** try the
+value as a plain number first, only attempt decryption when that fails, and let AES-GCM
+authentication decide which ciphertext form is real. An amount that is neither a plain
+number nor decryptable now throws with the row id instead of silently returning `NaN`.
+
+**Not retroactive data loss.** Verified read-only against existing databases: stored rows
+use the 2-part legacy CBC format, which `isEncrypted()` does recognise, and all of them
+decrypt correctly. The exposure was new writes, not existing data.
+
+### Tests
+
+30 tests for `PaymentRecordService` (previously 1.4% covered, 144 untested statements),
+covering exact money round trips, encrypted-at-rest assertions, totals per snapshot and per
+user, per-category statistics including the division-by-zero case, pagination totals, and
+cross-user isolation on both read and list.
+
 ## [0.16.6] - 2026-09-20
 
 ### Patch — registration no longer reports success when email fails
