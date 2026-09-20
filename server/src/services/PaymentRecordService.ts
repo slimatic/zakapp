@@ -54,41 +54,94 @@ export class PaymentRecordService {
           const rawAmount = payment.amount;
 
           const tryDecryptNormalizedAmount = async (raw: string) => {
-            if (EncryptionService.isEncrypted(raw)) {
-              return await EncryptionService.decrypt(raw, this.encryptionKey);
-            }
-            if (raw.includes('.=')) {
-              const alt = raw.replace('.=', ':');
-              if (EncryptionService.isEncrypted(alt)) {
-                return await EncryptionService.decrypt(alt, this.encryptionKey);
+            // Collect every plausible ciphertext form and try them in order,
+            // returning the first that actually decrypts.
+            //
+            // Relying on EncryptionService.isEncrypted() alone is NOT sufficient:
+            // it requires each base64 group to be >= 12 characters, so the
+            // ciphertext of a plaintext shorter than 7 characters is reported as
+            // not-encrypted. Attempting the decryption and letting AES-GCM
+            // authentication decide is the reliable test.
+            const candidates: string[] = [];
+            if (EncryptionService.isEncrypted(raw)) candidates.push(raw);
+
+            // Structured forms: 2 or 3 separator-delimited groups.
+            const seps = [':', '.=', '.', '|', ';'];
+            for (const sep of seps) {
+              if (!raw.includes(sep)) continue;
+              const parts = raw.split(sep);
+              if (parts.length === 2 || parts.length === 3) {
+                const normalized = parts.join(':');
+                if (EncryptionService.isEncrypted(normalized)) candidates.push(normalized);
+                // Also try the joined form even when isEncrypted says no, so a
+                // short body still reaches the AES attempt below.
+                candidates.push(normalized);
               }
             }
-            if (raw.includes('.') && !raw.includes(':')) {
-              const parts = raw.split('.');
-              if (parts.length === 2) {
-                const alt = parts.join(':');
-                if (EncryptionService.isEncrypted(alt)) {
-                  return await EncryptionService.decrypt(alt, this.encryptionKey);
-                }
+            candidates.push(raw);
+
+            for (const candidate of candidates) {
+              try {
+                return await EncryptionService.decrypt(candidate, this.encryptionKey);
+              } catch {
+                // try the next candidate
               }
             }
+
             throw new Error('NotEncryptedOrUnsupportedFormat');
           };
 
           if (typeof rawAmount === 'string') {
-            try {
+            // ------------------------------------------------------------------
+            // ORDER MATTERS HERE. A plain numeric string must be tried FIRST.
+            //
+            // A GCM ciphertext is "ivB64:bodyB64:tagB64". EncryptionService
+            // .isEncrypted() requires every base64 group to be >= 12 characters,
+            // so the body of a SHORT plaintext is not recognised as ciphertext:
+            //
+            //   plaintext   body (base64)   detected as encrypted?
+            //   "1"         4 chars         no
+            //   "1000"      8 chars         no
+            //   "1234.56"   12 chars        yes
+            //
+            // Encrypting an amount whose plaintext is < 7 characters therefore
+            // produces ciphertext that isEncrypted() reports as false. The old
+            // code then ran parseFloat() on the CIPHERTEXT, which yields NaN for
+            // almost every value below 1,000,000 — and in unlucky cases returned a
+            // wrong number (e.g. "99.99" -> 8).
+            //
+            // Deciding "plain number or ciphertext?" from the CONTENT is reliable;
+            // deciding it from isEncrypted() is not. So: parse as a number first,
+            // and only attempt decryption when that fails AND the value looks
+            // like ciphertext.
+            // ------------------------------------------------------------------
+            const asPlainNumber = Number(rawAmount);
+            if (rawAmount.trim() !== '' && Number.isFinite(asPlainNumber)) {
+              decrypted.amount = asPlainNumber;
+            } else {
+              // Not a plain number — it should be ciphertext, including the
+              // legacy separator variants handled by tryDecryptNormalizedAmount.
               const dec = await tryDecryptNormalizedAmount(rawAmount);
-              decrypted.amount = parseFloat(dec);
-            } catch (inner) {
-              // Not encrypted, parse as plain string
-              decrypted.amount = parseFloat(rawAmount as string);
+              const parsed = parseFloat(dec);
+              if (!Number.isFinite(parsed)) {
+                throw new Error(`Decrypted amount is not numeric: ${JSON.stringify(dec)}`);
+              }
+              decrypted.amount = parsed;
             }
           } else {
             decrypted.amount = rawAmount as number;
           }
         } catch (err) {
-          // Failed to decrypt/parse amount - fallback handled by return value
-          decrypted.amount = typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount;
+          // Only reached when the value is neither a plain number nor decryptable.
+          // Never silently coerce to NaN: surface it so the caller can see the row
+          // is unreadable rather than reporting a corrupt amount as real data.
+          const fallback = typeof payment.amount === 'string' ? Number(payment.amount) : payment.amount;
+          if (!Number.isFinite(fallback)) {
+            throw new Error(
+              `Unreadable payment amount (id=${payment?.id ?? 'unknown'}): value is neither a plain number nor decryptable`
+            );
+          }
+          decrypted.amount = fallback;
         }
       }
 

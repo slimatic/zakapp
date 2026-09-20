@@ -39,10 +39,10 @@ export default defineConfig({
       // failing on today's state. Ratchet these upward as Wave 1 lands — never
       // downward, or the gate stops meaning anything.
       thresholds: {
-        statements: 35,
-        branches: 27,
-        functions: 43,
-        lines: 35,
+        statements: 36,
+        branches: 28,
+        functions: 45,
+        lines: 36,
       },
     }
   },
