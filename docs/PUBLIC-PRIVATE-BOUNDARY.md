@@ -31,7 +31,7 @@ infrastructure is, what the API/sync hostnames are, or what our release timetabl
 | Category | Examples | Why |
 |---|---|---|
 | **Personal email** | any individual's real address | PII; harvestable; identifies the maintainer personally in a public repo |
-| **Operator filesystem paths** | `~/umbrel/<user>/services/...`, `/home/<user>/...`, NAS/Umbrel app-data paths | Discloses our host layout and the maintainer's username |
+| **Operator filesystem paths** | `~/<app-platform-dir>/<user>/services/...`, `/home/<user>/...`, NAS / app-platform app-data paths | Discloses our host layout and the maintainer's username |
 | **Production infrastructure hostnames** | `api.<domain>`, `syncdb.<domain>` (internal service subdomains) | Reveals our service topology and gives attackers targets |
 | **Production secrets** | `.env` contents, JWT/encryption keys, DB credentials, API keys | Direct compromise |
 | **Internal cost / budget / strategy** | budgets, cost allocations, pricing, roadmaps, revenue | Commercially sensitive; not the community's business |
@@ -79,7 +79,7 @@ git diff main...HEAD | grep -iE 'password|secret|api[_-]?key|token|private[_-]?k
   | grep -vE 'test|ci-|TODO|\.gitignore'
 
 # 3. Operator paths / production hosts
-git diff main...HEAD | grep -inE '/home/|~/|umbrel|nas/|syncdb|api\.' \
+git diff main...HEAD | grep -inE '/home/|~/|nas/|app-data|syncdb|api\.' \
   | grep -vE 'localhost|example\.com|YOUR_|placeholder'
 
 # 4. Private IP ranges

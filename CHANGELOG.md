@@ -10,7 +10,7 @@ public repository. Removed:
 - **Personal email addresses** from registration walkthroughs and fix reports
   (8 files, both `docs/reports/` and its duplicate `docs/archive/reports/` tree).
   Examples now use the IANA-reserved `example.com` domain.
-- **Operator-specific install paths** (`~/umbrel/<user>/services/...`) replaced with
+- **Operator-specific install paths** (`~/<app-platform-dir>/<user>/services/...`) replaced with
   the documented placeholder `<ZAKAPP_INSTALL_DIR>`, with a new preamble explaining
   that the path is wherever *you* installed ZakApp.
 - **Production service hostnames** (frontend, API, sync endpoints) replaced with
