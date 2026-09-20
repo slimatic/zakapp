@@ -27,6 +27,7 @@ import { EncryptionService } from '../../services/EncryptionService';
 import { emailService } from '../../services/EmailService';
 import { DEFAULT_LIMITS } from '../../config/limits';
 import { getPrismaClient, ENCRYPTION_KEY } from './utils';
+import { SettingsService } from '../../services/SettingsService';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 const logger = new Logger('AuthRegister');
@@ -36,6 +37,37 @@ const logger = new Logger('AuthRegister');
  * Register new user account
  */
 export const registerHandler = asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
+  // Gate on the operator's allowRegistration setting BEFORE any validation or
+  // user creation, so it cannot be bypassed with a malformed body.
+  //
+  // This setting previously round-tripped through the admin API and the UI but was
+  // read nowhere on the registration path, so an operator who disabled signups still
+  // accepted public registrations. Fail closed: if reading the setting throws, we
+  // refuse rather than silently allowing registration.
+  try {
+    const { allowRegistration } = await SettingsService.getSettings();
+    if (!allowRegistration) {
+      res.status(403).json({
+        success: false,
+        error: {
+          code: 'REGISTRATION_DISABLED',
+          message: 'Registration is currently disabled'
+        }
+      });
+      return;
+    }
+  } catch (settingsError) {
+    logger.error('Failed to read allowRegistration setting; refusing registration', settingsError);
+    res.status(503).json({
+      success: false,
+      error: {
+        code: 'REGISTRATION_UNAVAILABLE',
+        message: 'Registration is temporarily unavailable'
+      }
+    });
+    return;
+  }
+
   // Normalize email to lowercase first
   req.body.email = req.body.email.toLowerCase();
 
