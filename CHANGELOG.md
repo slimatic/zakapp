@@ -1,5 +1,32 @@
 # Changelog
 
+## [Unreleased]
+
+### Documentation hygiene — public/private boundary
+
+Tracked documentation had accumulated operational detail that does not belong in a
+public repository. Removed:
+
+- **Personal email addresses** from registration walkthroughs and fix reports
+  (8 files, both `docs/reports/` and its duplicate `docs/archive/reports/` tree).
+  Examples now use the IANA-reserved `example.com` domain.
+- **Operator-specific install paths** (`~/umbrel/<user>/services/...`) replaced with
+  the documented placeholder `<ZAKAPP_INSTALL_DIR>`, with a new preamble explaining
+  that the path is wherever *you* installed ZakApp.
+- **Production service hostnames** (frontend, API, sync endpoints) replaced with
+  `<YOUR_APP_HOST>` / `<YOUR_API_HOST>` / `<YOUR_SYNC_HOST>`. The project's reference
+  deployment is publicly linked as a demo; its internal service topology is not
+  documented here.
+- **A private IP on the maintainer's LAN subnet** in `IMPLEMENTATION-SUMMARY.md` and
+  `docs/NGINX-PROXY-MANAGER.md`, replaced with a neutral RFC1918 example.
+- **The maintainer's name** in registration examples and release-plan attributions.
+
+Added `docs/PUBLIC-PRIVATE-BOUNDARY.md`: the rule, the never-commit table, the
+synthetic-test-data convention, and grep checks to run before pushing.
+
+> Note: this repo is the open-source software; `zakapp.org` is one deployment of it.
+> They are related but distinct, and documentation must not conflate them.
+
 ## [0.17.0] - 2026-10-12
 
 ### Jumada al-Ula 1448 — logging hygiene, fabricated-data removal, test cleanup

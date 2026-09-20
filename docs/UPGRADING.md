@@ -5,10 +5,24 @@ This guide covers upgrading an existing ZakApp instance, including the
 
 ---
 
+## Conventions used in this guide
+
+`<ZAKAPP_INSTALL_DIR>` is the directory containing **your** `docker-compose.yml`
+for ZakApp — wherever you chose to install it. There is nothing special about
+any particular path; substitute your own. Examples:
+
+- self-hosted on a NAS or home server: `~/zakapp`
+- Unraid / Umbrel-style app directories: `/path/to/your/app/data/zakapp`
+- a plain VPS checkout: `/opt/zakapp`
+
+The commands below assume you are already inside that directory.
+
+---
+
 ## TL;DR
 
 ```bash
-cd ~/umbrel/slimatic/services/app.zakapp.org
+cd <ZAKAPP_INSTALL_DIR>
 bash upgrade.sh --dry-run    # see what will happen (no changes)
 bash upgrade.sh              # backup -> pull -> deploy -> verify
 ```
@@ -76,7 +90,7 @@ docker run --rm -v appzakapporg_backend_data:/data:ro alpine \
 ## Standard upgrade
 
 ```bash
-cd ~/umbrel/slimatic/services/app.zakapp.org
+cd <ZAKAPP_INSTALL_DIR>
 
 # 1. Dry run — reports your DB state, changes nothing
 bash upgrade.sh --dry-run
@@ -100,7 +114,7 @@ The script:
 If you prefer to drive it yourself:
 
 ```bash
-cd ~/umbrel/slimatic/services/app.zakapp.org
+cd <ZAKAPP_INSTALL_DIR>
 
 # 1. ALWAYS back up first
 bash scripts/ops/backup-before-upgrade.sh
@@ -182,7 +196,7 @@ Backups are written by `backup-before-upgrade.sh` to
 recent set is retained.
 
 ```bash
-cd ~/umbrel/slimatic/services/app.zakapp.org
+cd <ZAKAPP_INSTALL_DIR>
 BACKUP_DIR="${ZAKAPP_BACKUP_DIR:-$HOME/backups/zakapp-upgrades}"
 STAMP=$(ls -t "$BACKUP_DIR"/zakapp-sqlite-*.tar.gz | head -1 | grep -oE '[0-9]{8}-[0-9]{6}')
 

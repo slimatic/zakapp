@@ -13,7 +13,7 @@
   - Email: `testuser141@test.com`
   - Username: `testuser141`
   - Password: Strong password (meets requirements)
-  - First Name: Salim
+  - First Name: YourFirst
   - Last Name: Ibrahim
 - Error message: "Registration failed" (red banner)
 
@@ -190,7 +190,7 @@ npm run dev
 1. Open http://localhost:3000
 2. Click "Sign Up" or "Create Account"
 3. Fill in the form:
-   - **First Name**: Salim
+   - **First Name**: YourFirst
    - **Last Name**: Ibrahim
    - **Username**: testuser142 (use a new one)
    - **Email**: testuser142@test.com

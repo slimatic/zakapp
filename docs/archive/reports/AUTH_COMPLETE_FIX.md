@@ -95,10 +95,10 @@ This allows the form's "Username or email" field to work seamlessly with the bac
 
 ```
 User enters:
-- Username: slimatic234
-- First Name: Salim
+- Username: testuser
+- First Name: YourFirst
 - Last Name: Ibrahim
-- Email: salim.31+new@gmail.com (MUST be unique)
+- Email: user+test@example.com (MUST be unique)
 - Password: Secure@Pass123 (must have: uppercase, lowercase, number, special char)
 
 Frontend validation:
@@ -108,10 +108,10 @@ Frontend validation:
 API Request:
 POST /api/auth/register
 {
-  "username": "slimatic234",
-  "firstName": "Salim",
+  "username": "testuser",
+  "firstName": "YourFirst",
   "lastName": "Ibrahim",
-  "email": "salim.31+new@gmail.com",
+  "email": "user+test@example.com",
   "password": "Secure@Pass123",
   "confirmPassword": "Secure@Pass123"
 }
@@ -127,8 +127,8 @@ Backend:
 
 ```
 User enters:
-- Username or email: salim.31+new@gmail.com
-  (or just: salim234 or slimatic234)
+- Username or email: user+test@example.com
+  (or just: testuser or testuser)
 - Password: Secure@Pass123
 
 Frontend detection:
@@ -138,8 +138,8 @@ Frontend detection:
 API Request:
 POST /api/auth/login
 {
-  "email": "salim.31+new@gmail.com",  // or
-  "username": "salim234",
+  "email": "user+test@example.com",  // or
+  "username": "testuser",
   "password": "Secure@Pass123"
 }
 
@@ -159,7 +159,7 @@ Backend:
 Username:       testuser123
 First Name:     Test
 Last Name:      User
-Email:          test.email+zakapp@gmail.com (use unique email)
+Email:          user+test@example.com (use unique email)
 Password:       MySecure@Pass1 (must have all: uppercase, lowercase, number, special char)
 Confirm:        MySecure@Pass1
 ```
@@ -168,7 +168,7 @@ Confirm:        MySecure@Pass1
 
 ### 2. Login with Email
 ```
-Username or Email: test.email+zakapp@gmail.com
+Username or Email: user+test@example.com
 Password:          MySecure@Pass1
 ```
 

@@ -12,7 +12,7 @@ services:
       - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
       # CORS Configuration
       - COUCHDB_HTTPD_ENABLE_CORS=true
-      - COUCHDB_CORS_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000},https://app.zakapp.org}
+      - COUCHDB_CORS_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000},https://<YOUR_APP_HOST>}
       - COUCHDB_CORS_CREDENTIALS=true
       - COUCHDB_CORS_HEADERS=accept, authorization, content-type, origin, referer
       - COUCHDB_CORS_METHODS=GET, PUT, POST, HEAD, DELETE

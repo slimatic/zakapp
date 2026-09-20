@@ -25,7 +25,7 @@ You encountered a **"Input validation failed"** error when trying to register an
 
 ```text
 Username: slimatic616 ✅
-Email: salim31@gmail.com ✅
+Email: user@example.com ✅
 Password: (dots - insufficient complexity) ❌
 Error: "Input validation failed"
 ```
@@ -109,9 +109,9 @@ client/src/components/auth/Register.tsx        - Added firstName/lastName fields
 
 1. **Try registering again** with the form including all fields:
    - Username: `slimatic616` (your choice)
-   - First Name: `Salim` (or your first name)
+   - First Name: `Your First Name`
    - Last Name: `Your Last Name`
-   - Email: `salim31@gmail.com` (your choice)
+   - Email: `user@example.com` (your choice)
    - Password: `MySecure@Pass123` (meets all requirements)
    - Confirm: `MySecure@Pass123`
 
