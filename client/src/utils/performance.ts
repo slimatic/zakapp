@@ -15,6 +15,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { logger } from './logger';
+
 /**
  * Performance Monitoring Utility
  * 
@@ -94,16 +96,7 @@ const logMetric = (metric: Metric): void => {
   const rating = getMetricRating(metric);
   const value = formatMetricValue(metric);
 
-  const colors = {
-    good: 'color: #0cce6b',
-    'needs-improvement': 'color: #ffa400',
-    poor: 'color: #ff4e42',
-  };
-
-  console.log(
-    `%c${metric.name}: ${value} (${rating})`,
-    colors[rating]
-  );
+  logger.debug(`${metric.name}: ${value} (${rating})`);
 };
 
 /**
@@ -176,14 +169,8 @@ export const initPerformanceMonitoring = (): void => {
   }
 
   if (process.env.NODE_ENV === 'development') {
-    console.log(
-      '%c🚀 Performance Monitoring Active',
-      'color: #4f46e5; font-weight: bold; font-size: 14px'
-    );
-    console.log(
-      '%cCore Web Vitals Targets: CLS <0.1 | FID <100ms | LCP <2.5s',
-      'color: #6b7280; font-size: 12px'
-    );
+    logger.debug('🚀 Performance Monitoring Active');
+    logger.debug('Core Web Vitals Targets: CLS <0.1 | FID <100ms | LCP <2.5s');
   }
 
   // Register metric handlers

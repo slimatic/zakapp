@@ -265,7 +265,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const toastId = toast.loading('Starting recovery...', { duration: Infinity });
 
     try {
-      console.log('Recovery: Starting data recovery process...');
+      logger.debug('Recovery: Starting data recovery process...');
 
       // 1. Get the salt
       const backendUserId = state.user.id;

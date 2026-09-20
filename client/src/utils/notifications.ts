@@ -25,6 +25,7 @@
 /**
  * Check if notifications are supported
  */
+import { logger } from './logger';
 export function isNotificationSupported(): boolean {
   return 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
 }
@@ -60,7 +61,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
   try {
     const permission = await Notification.requestPermission();
-    console.log(`🔔 Notification permission: ${permission}`);
+    logger.info(`🔔 Notification permission: ${permission}`);
     return permission;
   } catch (error) {
     console.error('❌ Failed to request notification permission:', error);
@@ -98,9 +99,9 @@ export async function subscribeToPushNotifications(
         applicationServerKey: applicationServerKey as BufferSource,
       });
 
-      console.log('✅ Subscribed to push notifications');
+      logger.info('✅ Subscribed to push notifications');
     } else {
-      console.log('✅ Already subscribed to push notifications');
+      logger.info('✅ Already subscribed to push notifications');
     }
 
     return subscription;
@@ -124,7 +125,7 @@ export async function unsubscribeFromPushNotifications(): Promise<boolean> {
 
     if (subscription) {
       await subscription.unsubscribe();
-      console.log('✅ Unsubscribed from push notifications');
+      logger.info('✅ Unsubscribed from push notifications');
       return true;
     }
 
@@ -160,7 +161,7 @@ export async function showNotification(
       ...options,
     } as any); // TypeScript strict mode - notification actions are experimental
 
-    console.log('✅ Notification displayed:', title);
+    logger.info('✅ Notification displayed:', title);
   } catch (error) {
     console.error('❌ Failed to show notification:', error);
   }
@@ -232,7 +233,7 @@ export function setupNotificationHandlers(): void {
         window.location.href = url;
       }
 
-      console.log('🔔 Notification clicked:', action);
+      logger.info('🔔 Notification clicked:', action);
     }
   });
 }
@@ -271,6 +272,6 @@ export function scheduleZakatReminder(daysBeforeDue: number): void {
       );
     }, millisecondsUntilReminder);
 
-    console.log(`⏰ Zakat reminder scheduled for ${daysBeforeDue} days from now`);
+    logger.info(`⏰ Zakat reminder scheduled for ${daysBeforeDue} days from now`);
   }
 }

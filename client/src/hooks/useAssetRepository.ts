@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { logger } from '../utils/logger';
 import { useState, useEffect } from 'react';
 import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
@@ -289,7 +290,7 @@ export function useAssetRepository() {
             // RULES:
             // 1. If isEligibilityManual is true, DO NOT TOUCH.
             if (asset.isEligibilityManual) {
-                console.log(`Skipping Asset ${asset.name} (Manual Override)`);
+                logger.debug(`Skipping Asset ${asset.name} (Manual Override)`);
                 continue;
             }
 

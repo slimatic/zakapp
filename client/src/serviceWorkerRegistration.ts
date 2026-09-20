@@ -25,6 +25,7 @@
  */
 
 // This is the type for the config object
+import { logger } from './utils/logger';
 type Config = {
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
@@ -64,7 +65,7 @@ export function register(config?: Config): void {
         // Add some additional logging to localhost, pointing developers to the
         // service worker/PWA documentation
         navigator.serviceWorker.ready.then(() => {
-          console.log(
+          logger.info(
             '✅ This web app is being served cache-first by a service ' +
             'worker. To learn more, visit https://cra.link/PWA'
           );
@@ -84,7 +85,7 @@ function registerValidSW(swUrl: string, config?: Config): void {
   navigator.serviceWorker
     .register(swUrl)
     .then((registration) => {
-      console.log('✅ Service worker registered successfully');
+      logger.info('✅ Service worker registered successfully');
 
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
@@ -98,7 +99,7 @@ function registerValidSW(swUrl: string, config?: Config): void {
               // At this point, the updated precached content has been fetched,
               // but the previous service worker will still serve the older
               // content until all client tabs are closed
-              console.log(
+              logger.info(
                 '🔄 New content is available; please refresh or close all tabs.'
               );
 
@@ -109,7 +110,7 @@ function registerValidSW(swUrl: string, config?: Config): void {
             } else {
               // At this point, everything has been precached
               // It's the perfect time to display a "Content is cached for offline use" message
-              console.log('✅ Content is cached for offline use.');
+              logger.info('✅ Content is cached for offline use.');
 
               // Execute callback
               if (config && config.onSuccess) {
@@ -152,7 +153,7 @@ function checkValidServiceWorker(swUrl: string, config?: Config): void {
       }
     })
     .catch(() => {
-      console.log('⚠️ No internet connection found. App is running in offline mode.');
+      logger.debug('⚠️ No internet connection found. App is running in offline mode.');
     });
 }
 
@@ -164,7 +165,7 @@ export function unregister(): void {
     navigator.serviceWorker.ready
       .then((registration) => {
         registration.unregister();
-        console.log('✅ Service worker unregistered');
+        logger.info('✅ Service worker unregistered');
       })
       .catch((error) => {
         console.error('❌ Error unregistering service worker:', error.message);

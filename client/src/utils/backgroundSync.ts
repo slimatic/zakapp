@@ -23,6 +23,7 @@
  */
 
 // Type declarations for Background Sync API
+import { logger } from './logger';
 interface SyncManager {
   getTags(): Promise<string[]>;
   register(tag: string): Promise<void>;
@@ -102,13 +103,13 @@ export async function queueRequest(
       transaction.onerror = () => reject(transaction.error);
     });
 
-    console.log('📥 Request queued for background sync:', url);
+    logger.info('📥 Request queued for background sync:', url);
 
     // Register background sync if supported
     if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
       const registration = await navigator.serviceWorker.ready;
       await registration.sync.register('sync-requests');
-      console.log('🔄 Background sync registered');
+      logger.info('🔄 Background sync registered');
     }
   } catch (error) {
     console.error('❌ Failed to queue request:', error);
@@ -144,11 +145,11 @@ export async function syncPendingRequests(): Promise<void> {
   const pendingRequests = await getPendingRequests();
 
   if (pendingRequests.length === 0) {
-    console.log('✅ No pending requests to sync');
+    logger.info('✅ No pending requests to sync');
     return;
   }
 
-  console.log(`🔄 Syncing ${pendingRequests.length} pending requests...`);
+  logger.info(`🔄 Syncing ${pendingRequests.length} pending requests...`);
 
   for (const request of pendingRequests) {
     try {
@@ -162,7 +163,7 @@ export async function syncPendingRequests(): Promise<void> {
       if (response.ok) {
         // Request succeeded - remove from queue
         await removePendingRequest(request.id);
-        console.log(`✅ Synced request: ${request.url}`);
+        logger.info(`✅ Synced request: ${request.url}`);
       } else {
         // Request failed - increment retry count
         await incrementRetryCount(request.id);
@@ -180,7 +181,7 @@ export async function syncPendingRequests(): Promise<void> {
     }
   }
 
-  console.log('✅ Background sync complete');
+  logger.info('✅ Background sync complete');
 }
 
 /**
@@ -247,7 +248,7 @@ export async function clearPendingRequests(): Promise<void> {
       transaction.onerror = () => reject(transaction.error);
     });
 
-    console.log('✅ All pending requests cleared');
+    logger.info('✅ All pending requests cleared');
   } catch (error) {
     console.error('❌ Failed to clear pending requests:', error);
   }
@@ -259,13 +260,13 @@ export async function clearPendingRequests(): Promise<void> {
 export function initializeBackgroundSync(): void {
   // Sync when coming back online
   window.addEventListener('online', () => {
-    console.log('🌐 Connection restored - syncing pending requests...');
+    logger.debug('🌐 Connection restored - syncing pending requests...');
     syncPendingRequests();
   });
 
   // Log when going offline
   window.addEventListener('offline', () => {
-    console.log('⚠️ Connection lost - requests will be queued');
+    logger.info('⚠️ Connection lost - requests will be queued');
   });
 
   // Sync on page load if online

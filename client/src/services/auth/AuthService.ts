@@ -350,7 +350,7 @@ export const authService = {
     async runZeroKnowledgeMigration(encryptedDb: any) {
         setTimeout(async () => {
             try {
-                console.log('ZK Migration: Scanning for cleartext data...');
+                logger.debug('ZK Migration: Scanning for cleartext data...');
                 // Migration logic here (copied from AuthContext)
                 // Assets
                 const assets = await encryptedDb.assets.find().exec();

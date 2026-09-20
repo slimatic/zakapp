@@ -20,6 +20,7 @@
  * Visualizes analytics data using Recharts with multiple chart types
  */
 
+import { logger } from '../../utils/logger';
 import React, { useMemo } from 'react';
 import {
   LineChart,
@@ -427,7 +428,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
             <button
               onClick={() => {
                 // Export chart functionality would go here
-                console.log('Export chart functionality not implemented yet');
+                logger.debug('Export chart functionality not implemented yet');
               }}
               className="text-xs text-blue-600 hover:text-blue-700"
             >

@@ -20,6 +20,7 @@
  * Utility functions for formatting data for Recharts visualization
  */
 
+import { logger } from './logger';
 import type { AnalyticsMetricType } from '@zakapp/shared/types/tracking';
 
 export interface ChartDataPoint {
@@ -80,10 +81,10 @@ function formatTrendData(data: any): ChartDataPoint[] {
   // Handle data.trend array from backend analytics service
   const trendArray = data.trend || data.dataPoints || [];
   
-  console.log(`[ChartFormatter] formatTrendData - trendArray:`, trendArray);
+  logger.debug(`[ChartFormatter] formatTrendData - trendArray:`, trendArray);
   
   if (!Array.isArray(trendArray) || trendArray.length === 0) {
-    console.log(`[ChartFormatter] formatTrendData - No trend data found`);
+    logger.debug(`[ChartFormatter] formatTrendData - No trend data found`);
     return [];
   }
 
@@ -111,7 +112,7 @@ function formatTrendData(data: any): ChartDataPoint[] {
     return formattedPoint;
   });
   
-  console.log(`[ChartFormatter] formatTrendData - formatted:`, formatted);
+  logger.debug(`[ChartFormatter] formatTrendData - formatted:`, formatted);
   return formatted;
 }
 

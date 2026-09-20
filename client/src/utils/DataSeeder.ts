@@ -7,6 +7,7 @@
  * License, or (at your option) any later version.
  */
 
+import { logger } from './logger';
 import { getDb } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import { AssetCategoryType } from '@zakapp/shared';
@@ -37,7 +38,7 @@ export class DataSeeder {
         const db = await getDb();
         if (!db) throw new Error('DB not initialized');
 
-        console.log('🗑️ Clearing all data...');
+        logger.info('🗑️ Clearing all data...');
 
         try {
             await Promise.all([
@@ -45,7 +46,7 @@ export class DataSeeder {
                 db.payment_records.find().remove(),
                 db.nisab_year_records.find().remove()
             ]);
-            console.log('✅ All data cleared');
+            logger.info('✅ All data cleared');
         } catch (err) {
             console.error('Error clearing data:', err);
         }
@@ -56,7 +57,7 @@ export class DataSeeder {
         if (!db) throw new Error('DB not initialized');
 
         const userId = getSeedUserId();
-        console.log(`🌱 Seeding ${count} assets for user ${userId}...`);
+        logger.info(`🌱 Seeding ${count} assets for user ${userId}...`);
 
         const assets = [];
         // Asset types matching enum, cast as strings if needed to match shared type exactly in runtime
@@ -89,7 +90,7 @@ export class DataSeeder {
                 console.error(`❌ Seeding failed. First error details:`, JSON.stringify(result.error[0], null, 2));
                 throw new Error(`Failed to insert ${result.error.length} assets.`);
             }
-            console.log(`✅ ${result.success.length} assets created`);
+            logger.info(`✅ ${result.success.length} assets created`);
         } catch (e: any) {
             console.error(`❌ Seeding threw exception:`, JSON.stringify(e, null, 2));
             if (e.message) console.error('Error Message:', e.message);
@@ -102,7 +103,7 @@ export class DataSeeder {
         if (!db) throw new Error('DB not initialized');
 
         const userId = getSeedUserId();
-        console.log(`🌱 Seeding ${count} payments...`);
+        logger.info(`🌱 Seeding ${count} payments...`);
 
         const payments = [];
         const categories = ['poor', 'needy', 'administrators', 'hearts_aligned', 'slaves', 'debtors', 'cause_of_god', 'wayfarer'];
@@ -129,7 +130,7 @@ export class DataSeeder {
                 console.error(`❌ Seeding failed. First error:`, JSON.stringify(result.error[0], null, 2));
                 throw new Error(`Failed to insert ${result.error.length} payments.`);
             }
-            console.log(`✅ ${result.success.length} payments created`);
+            logger.info(`✅ ${result.success.length} payments created`);
         } catch (e: any) {
             console.error(`❌ Seeding payments threw exception:`, JSON.stringify(e, null, 2));
             throw e;
@@ -142,7 +143,7 @@ export class DataSeeder {
 
         const userId = getSeedUserId();
 
-        console.log(`🌱 Seeding ${years} years of Nisab history...`);
+        logger.info(`🌱 Seeding ${years} years of Nisab history...`);
         const records = [];
         const currentYear = new Date().getFullYear();
 
@@ -186,7 +187,7 @@ export class DataSeeder {
                 console.error(`❌ Seeding failed. First error:`, JSON.stringify(result.error[0], null, 2));
                 throw new Error(`Failed to insert ${result.error.length} nisab records.`);
             }
-            console.log(`✅ ${result.success.length} Nisab records created`);
+            logger.info(`✅ ${result.success.length} Nisab records created`);
         } catch (e: any) {
             console.error(`❌ Seeding Nisab threw exception:`, JSON.stringify(e, null, 2));
             throw e;
