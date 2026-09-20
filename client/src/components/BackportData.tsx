@@ -5,6 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { BackportEntry } from '@zakapp/shared/types/assetAmountEvent';
+import { formatCurrency } from '../utils/formatters';
 
 interface BackportDataProps {
   assetId: string;
@@ -137,12 +138,6 @@ export function BackportData({
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
 
   return (
     <div className="backport-data p-4 border rounded-lg">

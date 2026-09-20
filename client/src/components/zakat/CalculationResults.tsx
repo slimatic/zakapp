@@ -17,6 +17,7 @@
 
 import React, { useState } from 'react';
 import { DonationSuccessModal } from '../donation/DonationSuccessModal';
+import { formatCurrency } from '../../utils/formatters';
 
 /**
  * Interface for individual breakdown item
@@ -98,12 +99,6 @@ const CalculationResults: React.FC<CalculationResultsProps> = ({
     setExpandedRows(newExpanded);
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
 
   const getCategoryTooltip = (category: string): string => {
     const tooltips: Record<string, string> = {

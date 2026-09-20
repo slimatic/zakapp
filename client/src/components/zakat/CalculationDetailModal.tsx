@@ -17,6 +17,7 @@
 
 import React, { useState } from 'react';
 import { format } from 'date-fns';
+import { formatCurrency } from '../../utils/formatters';
 
 interface Calculation {
   id: string;
@@ -55,13 +56,6 @@ export const CalculationDetailModal: React.FC<CalculationDetailModalProps> = ({
 
   if (!isOpen) return null;
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(amount);
-  };
 
   const formatMethodology = (methodology: string): string => {
     const names: Record<string, string> = {

@@ -24,6 +24,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Tooltip, InfoIcon } from '../ui';
+import { formatCurrency } from '../../utils/formatters';
 
 export interface ComparisonCalculatorProps {
   initialAssets?: Record<string, number>;
@@ -114,14 +115,6 @@ export const ComparisonCalculator: React.FC<ComparisonCalculatorProps> = ({
     setAssets(prev => ({ ...prev, [assetType]: numValue }));
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
 
   const getHighestZakat = (): number => {
     return Math.max(...results.map(r => r.totalZakat));

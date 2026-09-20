@@ -18,6 +18,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import { formatCurrency } from '../../utils/formatters';
 
 interface Calculation {
   id: string;
@@ -146,13 +147,6 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = () => {
     }
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(amount);
-  };
 
   const formatMethodology = (methodology: string): string => {
     const methodologyNames: Record<string, string> = {

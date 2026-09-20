@@ -18,6 +18,7 @@
 import React, { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { useNisabYearRecords, useCompareSnapshots } from '../../hooks';
+import { formatCurrency } from '../../utils/formatters';
 
 /**
  * SnapshotComparison Component - T025 (Now using Nisab Year Record terminology)
@@ -51,12 +52,6 @@ const SnapshotComparison: React.FC = () => {
     return Array.from({ length: 10 }, (_, i) => currentYear - i);
   }, []);
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
 
   const formatPercentage = (value: number): string => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
