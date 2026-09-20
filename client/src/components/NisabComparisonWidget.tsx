@@ -32,6 +32,7 @@ import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useHawlStatus } from '../hooks/useHawlStatus';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { Tooltip } from './ui';
+import { formatCurrency as canonicalCurrency } from '../utils/formatters';
 
 export interface NisabComparisonWidgetProps {
   /**
@@ -143,12 +144,7 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
 
   // Format currency
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: record.currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
+    return canonicalCurrency(amount, record.currency || 'USD');
   };
 
   const formatMaskedCurrency = (amount: number) => maskedCurrency(formatCurrency(amount));

@@ -21,15 +21,12 @@ import autoTable from 'jspdf-autotable';
 import { NisabYearRecord } from '../types/nisabYearRecord';
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { Asset } from '../types/index';
+import { formatCurrency as canonicalCurrency } from './formatters';
 // import { formatCurrency } from './formatters'; // Avoid circular dependency if simple
 
 // Simple local formatter to avoid complex imports if needed, or import standard one
-const formatCurrency = (amount: number, currency = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency,
-    }).format(amount);
-};
+const formatCurrency = (amount: number, currency = 'USD') =>
+  canonicalCurrency(amount, currency);
 
 export class ReportGenerator {
     private doc: jsPDF;

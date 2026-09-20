@@ -20,6 +20,7 @@ import { Asset } from '../../types';
 import { getModifierBadge, getModifierLabel } from '../../utils/assetModifiers';
 import { getAssetZakatableValue } from '../../core/calculations/zakat';
 import { usePrivacy } from '../../contexts/PrivacyContext';
+import { formatCurrency as canonicalCurrency } from '../../utils/formatters';
 
 interface AssetCardProps {
   asset: Asset;
@@ -72,13 +73,9 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
   };
 
   const formatCurrency = (value: number): string => {
+    // Guard preserved: privacy mode must mask, never format.
     if (privacyMode) return '****';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: asset.currency || 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
+    return canonicalCurrency(value, asset.currency || 'USD');
   };
 
   return (

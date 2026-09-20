@@ -17,6 +17,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '../ui';
+import { formatCurrency as canonicalCurrency } from '../../utils/formatters';
 
 interface ZakatCalculation {
   id: string;
@@ -87,11 +88,7 @@ export const ZakatResults: React.FC<ZakatResultsProps> = ({
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: calculation.summary?.currency || 'USD',
-      minimumFractionDigits: 2
-    }).format(amount);
+    return canonicalCurrency(amount, calculation.summary?.currency || 'USD');
   };
 
   const formatPercentage = (rate: number): string => {
