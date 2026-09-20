@@ -83,18 +83,19 @@ const CURRENCY_CONFIG: Record<CurrencyCode, { symbol: string; locale: string; de
  * paths cannot drift apart.
  *
  * @param amount - The numeric amount to format
- * @param currency - Currency code (default: 'USD')
+ * @param currency - Currency code (default: 'USD'). Any string is accepted;
+ *                   unrecognised codes are handled by the fallback above.
  * @param showSymbol - Whether to show currency symbol (default: true)
  * @param compact - Use compact notation for large numbers (default: false)
  * @returns Formatted currency string
  */
 export function formatCurrency(
   amount: number,
-  currency: CurrencyCode = 'USD',
+  currency: string = 'USD',
   showSymbol: boolean = true,
   compact: boolean = false
 ): string {
-  const config = CURRENCY_CONFIG[currency];
+  const config = CURRENCY_CONFIG[currency as CurrencyCode];
   const decimals = getCurrencyDecimals(currency);
 
   const options: Intl.NumberFormatOptions = {

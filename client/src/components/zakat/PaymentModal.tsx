@@ -19,6 +19,7 @@ import React, { useState, useEffect } from 'react';
 import { ZakatPayment } from '../../types';
 import { apiService } from '../../services/api';
 import { parseDecimalNumber } from '../../utils/parseDecimal';
+import { formatCurrency } from '../../utils/formatters';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -180,12 +181,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   if (!isOpen) return null;
 
-  const formatCurrency = (amount: number, curr: string = 'USD'): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: curr,
-    }).format(amount);
-  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">

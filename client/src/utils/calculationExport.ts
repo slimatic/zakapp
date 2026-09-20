@@ -1,3 +1,4 @@
+import { formatCurrency } from './formatters';
 /**
  * Copyright (c) 2024 ZakApp Contributors
  *
@@ -366,17 +367,6 @@ export const exportAsPDF = (calculation: ZakatCalculation): void => {
   printCalculation(calculation);
 };
 
-/**
- * Helper: Format currency
- */
-const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount);
-};
 
 /**
  * Helper: Format date for filename

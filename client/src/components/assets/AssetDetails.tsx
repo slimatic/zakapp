@@ -24,6 +24,7 @@ import { Button, LoadingSpinner, ErrorMessage } from '../ui';
 import { EncryptedBadge } from '../ui/EncryptedBadge';
 import { isAssetZakatable, getAssetZakatableValue } from '../../core/calculations/zakat';
 import { AssetAmountHistory } from '../AssetAmountHistory';
+import { formatCurrency } from '../../utils/formatters';
 
 /**
  * AssetDetails component for displaying comprehensive asset information
@@ -48,15 +49,6 @@ export const AssetDetails: React.FC = () => {
 
 
 
-  const formatCurrency = (value: number | string | undefined, currency: string | undefined) => {
-    const parsed = typeof value === 'string' ? parseFloat(value) : value;
-    const finalValue = typeof parsed === 'number' && !isNaN(parsed) ? parsed : 0;
-    const finalCurrency = currency || 'USD';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: finalCurrency
-    }).format(finalValue);
-  };
 
   const formatDate = (dateString?: string | Date | null) => {
     if (!dateString) return 'Invalid Date';

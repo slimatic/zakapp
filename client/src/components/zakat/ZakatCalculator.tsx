@@ -34,6 +34,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { ShieldCheck, ArrowRight, Wallet, TrendingUp, Calculator, Lock } from 'lucide-react';
+import { formatCurrency } from '../../utils/formatters';
 
 export const ZakatCalculator: React.FC = () => {
   // Local DB Hooks
@@ -144,12 +145,6 @@ export const ZakatCalculator: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
-  };
 
   const steps = [
     { id: 0, title: "Methodology" },
