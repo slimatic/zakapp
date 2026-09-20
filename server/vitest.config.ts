@@ -22,6 +22,28 @@ export default defineConfig({
       deps: {
         inline: ['@prisma/client']
       }
+    },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/__tests__/**',
+        'src/**/*.d.ts',
+        'src/types/**',
+      ],
+      // Set just below the measured baseline (34.96% statements, 26.45% branches,
+      // 42.64% functions, 35.05% lines) so a REGRESSION fails the build without
+      // failing on today's state. Ratchet these upward as Wave 1 lands — never
+      // downward, or the gate stops meaning anything.
+      thresholds: {
+        statements: 25,
+        branches: 19,
+        functions: 29,
+        lines: 25,
+      },
     }
   },
 });
