@@ -170,3 +170,11 @@ auth-test-results.json
 *.db.backup-*
 backups/*.db.backup-*
 docs/archive/specs/*/lighthouse-report.json
+
+# Internal working documents — hold operational detail (host paths, live counts).
+# Kept on disk, never committed. See docs/PUBLIC-PRIVATE-BOUNDARY.md.
+/PLAN_NEXT_CYCLE_*.md
+/AUDIT_*.md
+/ZAKAPP_AUDIT_*.md
+/*_READINESS_*.md
+/CURRENCY_MIGRATION_*.md

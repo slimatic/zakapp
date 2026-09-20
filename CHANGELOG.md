@@ -29,27 +29,146 @@ synthetic-test-data convention, and grep checks to run before pushing.
 
 ## [0.17.0] - 2026-10-12
 
-### Jumada al-Ula 1448 — logging hygiene, fabricated-data removal, test cleanup
+### Jumada al-Ula 1448 — currency correctness, import safety, logging hygiene
+
+**Currency formatting consolidated**
+
+Both currency formatters in the client were wrong, in different ways, so the same
+amount could render differently depending on which screen you were on.
+
+- **SAR and EGP rendered Arabic-Indic digits.** An English-UI user saw
+  `١٬٢٣٤٫٥٦ ر.س.‏` for a Saudi riyal amount. The canonical formatter now pins
+  `numberingSystem: 'latn'` while keeping each currency's own symbol, placement and
+  grouping.
+- **IDR showed the code instead of the symbol** (`IDR 15,750,000`), and the
+  dashboard's hardcoded `$` could appear above a `Rp` figure on the same screen.
+  IDR now renders `Rp 15.750.000`.
+- **Decimals are now strict per currency** — USD always 2, IDR/JPY/KRW 0 — rather
+  than a 0–2 range that let `$1,234.5` and `$1,500,000` appear side by side.
+- `useDisplayCurrency` now delegates to the canonical `formatCurrency`, so the two
+  cannot drift apart again.
+- **28 duplicate `formatCurrency` definitions removed** across three passes. Eleven
+  were byte-identical for USD; eleven hardcoded USD with no currency source; five
+  read a record's own currency. Where a wrapper carried a guard — `privacyMode`
+  masking in `AssetCard`, the `NaN` guard in `FinalizationModal` — the wrapper was
+  kept as a thin delegate so no guard could be lost.
+
+> **Non-Latin locales:** if your display currency uses comma grouping, the separator
+> changes. `1,500,000` now renders `1.500.000` for IDR. The digits are unchanged;
+> only the grouping mark follows the currency's locale.
+
+**Export/import no longer destroys amounts**
+
+- CSV export wrote *formatted* values (`$1,234,567.89`) while the importers parsed
+  with `parseFloat`, which returns `NaN` on both `$` and `,`. Combined with a `|| 0`
+  fallback, **every amount silently became zero on re-import.** Export now writes raw
+  numbers with currency in its own column, and import accepts both raw values and
+  every formatted shape older releases produced — including id-ID grouping, where
+  `1.500.000` means one and a half million and must not parse as `1.5`.
+- Importers now return `NaN` on unparseable input instead of silently writing `0`.
+
+**Security**
+
+- The `allowRegistration` gate and the verification-email handling from the 0.16.x
+  maintenance line are present on `main`; a build from this tree can no longer ship
+  open public signups.
 
 **Fabricated data paths removed from Zakat and auth surfaces**
-- `NisabService.getHistoricalNisab()` generated its "historical" nisab values with `Math.random()`. Presented as trend data these are indistinguishable from real prices. The method has **no callers**, so nothing shipped broken — but it was a loaded gun in a religious-finance codebase. It now throws until a real historical price source is integrated.
-- `useCompareSnapshots()` resolved a hard-coded all-zero comparison (`assetGrowth: 0`, `differences: []`). `SnapshotComparison.tsx` binds those fields with `|| 0` fallbacks, so wiring that screen up would have rendered a complete **"$0.00 change / 0.0%"** table for any two records — visually identical to a genuine no-change result. It now rejects, and the component shows an explicit "not available" state. **Neither component is reachable from any route today**; this removes a trap for the next developer rather than changing current behaviour.
-- `AuthMiddleware.authorize()` hard-coded `const userPermissions: string[] = []` ahead of an `every()` check, so any future `authorize(['x'])` call would have 403'd for every user regardless of role. It now returns `501 AUTHORIZATION_NOT_IMPLEMENTED` rather than pretending. No caller passes a non-empty list today.
 
-**Production logging**
-- The server logger's `info()` wrote straight to the container log with no environment gate; the client sibling already gated on `NODE_ENV` and the two had drifted. Now consistent.
-- **58 `console.log` sites across 24 production files** now route through the per-workspace logger — lifecycle events to `info`, diagnostics to `debug`. Test, story and mock occurrences are deliberately untouched, as are the two logger implementations.
+- `NisabService.getHistoricalNisab()` generated its "historical" nisab values with
+  `Math.random()`. Presented as trend data these are indistinguishable from real
+  prices. The method has **no callers**, so nothing shipped broken — but it was a
+  loaded gun in a religious-finance codebase. It now throws until a real historical
+  price source is integrated.
+- `useCompareSnapshots()` resolved a hard-coded all-zero comparison (`assetGrowth: 0`,
+  `differences: []`). `SnapshotComparison.tsx` binds those fields with `|| 0`
+  fallbacks, so wiring that screen up would have rendered a complete
+  **"$0.00 change / 0.0%"** table for any two records — visually identical to a
+  genuine no-change result. It now rejects, and the component shows an explicit
+  "not available" state. **Neither component is reachable from any route today**;
+  this removes a trap for the next developer rather than changing current behaviour.
+- `AuthMiddleware.authorize()` hard-coded `const userPermissions: string[] = []`
+  ahead of an `every()` check, so any future `authorize(['x'])` call would have
+  403'd for every user regardless of role. It now returns
+  `501 AUTHORIZATION_NOT_IMPLEMENTED` rather than pretending. No caller passes a
+  non-empty list today.
 
-**Test cleanup**
-- Removed the orphaned root `tests/` directory (25 files, last touched 2026-05-18). It was referenced by **no CI job and no npm script**, could not run from the repo root (no vitest config; `bcryptjs` and `@playwright/test` exist only in sub-workspaces), and produced spurious `document is not defined` failures when swept into a root-level run.
-  - 5 contract tests duplicating `server/tests/contract/` counterparts, all superseded by the live versions.
-  - 8 root-only tests written against specs never implemented — they asserted `POST /api/zakat/payments`, a `receiptUrl` field, year filtering and a pagination envelope; the shipping route is mounted at `/api/payments`.
-  - 2 one-line re-export shims whose source of truth was that directory.
-- Added `server/tests/contract/payments.contract.test.ts` — a real contract test for the shipping API (9 tests), covering auth rejection, validation failure and resource-ownership checks.
+**Logging**
 
-**Suites:** server **494 pass** (50 files, was 485/49); client **566 pass / 1 skipped** (72 files). No regressions.
+- The server logger's `info()` wrote straight to the container log with no
+  environment gate; the client sibling already gated on `NODE_ENV` and the two had
+  drifted. Now consistent.
+- **58 `console.log` sites across 24 production files** now route through the
+  per-workspace logger — lifecycle events to `info`, diagnostics to `debug`. Test,
+  story and mock occurrences are deliberately untouched.
+
+**Maintainability**
+
+- `server/src/routes/auth.ts` split from **1,251 lines into a 62-line facade** over
+  six focused modules. All nine Express routes were compared byte-for-byte before
+  and after. An unimported duplicate auth directory was removed — it was the reason
+  a security fix once landed in a file the app never loaded.
+- Removed the orphaned root `tests/` directory (25 files, last touched 2026-05-18).
+  It was referenced by **no CI job and no npm script** and could not run from the
+  repo root.
+- Added `server/tests/contract/payments.contract.test.ts` — a real contract test for
+  the shipping API covering auth rejection, validation failure and ownership checks.
+
+**Dark mode**
+
+- Gradient stops, focus rings and `border-gray-500` were unmapped in the dark theme,
+  leaving skeleton shimmers flashing bright and focus rings invisible. Mapped, with a
+  static test that fails if an unmapped `gray-*` utility is introduced.
+
+**Public/private boundary**
+
+- Removed personal email addresses, operator install paths, production hostnames and
+  a private LAN IP from tracked documentation. Examples now use `example.com` and
+  RFC1918 ranges. Added `docs/PUBLIC-PRIVATE-BOUNDARY.md`, which states the rule, the
+  never-commit table, and the grep checks to run before pushing.
+
+**Suites:** server **507 pass** (53 files); client **605 pass / 1 skipped** (76 files).
+TypeScript clean across all workspaces.
 
 **Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.3...v0.17.0
+
+## [0.16.6] - 2026-09-20
+
+### Patch — registration gating, email verification recovery, admin transparency
+
+- **Registration gate enforced on the live route.** `allowRegistration` was only
+  checked in a file that no route imported, so the setting had no effect on the
+  mounted handler. The live route now reads the setting and refuses with
+  `REGISTRATION_DISABLED`, closing a public-signup bypass.
+- **Registration no longer reports success when the verification email fails.**
+  Signup returned `201 Created` even when delivery failed, leaving users unable to
+  sign in and with no indication why. It now returns `VERIFICATION_EMAIL_FAILED`.
+- **`POST /api/auth/resend-verification`** — an anonymous, non-enumerating recovery
+  path for accounts whose initial email never arrived. The response is identical
+  whether or not the account exists.
+- **Admin system status** surfaces SMTP configuration health (no secrets) and a
+  count of unverified accounts.
+- **Login** offers "Resend verification email" when sign-in is blocked for an
+  unverified account, and machine-readable error codes survive to the UI layer.
+
+## [0.16.5] - 2026-09-20
+
+### Patch — registration gate on the active handler, dark-mode liabilities
+
+- Registration gating moved to the route the app actually mounts.
+- `LiabilityList` and `LiabilityForm` replaced 34 hardcoded Tailwind `gray-*`
+  classes with semantic tokens, fixing unreadable fields in dark mode.
+- A static test prevents raw `gray-*` classes from returning to that subtree.
+
+## [0.16.4] - 2026-09-20
+
+### Patch — allowRegistration gate, public-repo boundary
+
+- Closed the public signup bypass by checking `allowRegistration` before any
+  validation work.
+- Established the public/private documentation boundary: operator paths, hostnames,
+  private IPs and personal emails are no longer committed. See
+  `docs/PUBLIC-PRIVATE-BOUNDARY.md`.
 
 ## [0.16.3] - 2026-09-17
 
