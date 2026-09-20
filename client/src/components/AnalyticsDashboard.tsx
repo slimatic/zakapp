@@ -18,6 +18,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui';
 import { LoadingSpinner } from './ui/LoadingSpinner';
+import { formatCurrency } from '../utils/formatters';
 
 interface AnalyticsData {
   totalPayments: number;
@@ -42,14 +43,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(
   data,
   isLoading
 }) => {
-  // Memoize expensive currency formatting function
-  const formatCurrency = useMemo(() => {
-    const formatter = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    });
-    return (amount: number) => formatter.format(amount);
-  }, []);
 
   if (isLoading) {
     return (

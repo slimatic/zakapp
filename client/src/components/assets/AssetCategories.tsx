@@ -17,6 +17,7 @@
 
 import React, { useState } from 'react';
 import { AssetCategoryType } from '@zakapp/shared';
+import { formatCurrency } from '../../utils/formatters';
 
 interface AssetCategory {
   id: AssetCategoryType;
@@ -112,12 +113,6 @@ export const AssetCategories: React.FC = () => {
     }
   ];
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
 
   const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
 

@@ -31,6 +31,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { formatCurrency } from '../../utils/formatters';
 
 export interface AssetBreakdownData {
   assets: Array<{
@@ -55,13 +56,6 @@ export const AssetBreakdownView: React.FC<AssetBreakdownViewProps> = ({
   assetBreakdown,
   recordStatus = 'FINALIZED',
 }) => {
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   // Format date
   const formatDate = (dateString: string) => {

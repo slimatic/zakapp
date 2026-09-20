@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { usePaymentRecords, useDeletePayment, PaymentFilters } from '../../hooks';
 import { ZakatPayment } from '../../types';
+import { formatCurrency } from '../../utils/formatters';
 
 /**
  * PaymentTracking Component - T024
@@ -100,12 +101,6 @@ const PaymentTracking: React.FC = () => {
     toast.error('Receipt download functionality would be implemented here');
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
 
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString();
