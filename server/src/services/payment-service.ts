@@ -17,6 +17,7 @@
 
 import { Payment, CreatePaymentData, PaymentData, DecryptedPaymentData } from '../models/payment';
 import { prisma } from '../config/database';
+import { DEFAULT_LIMITS } from '../config/limits';
 
 export class PaymentService {
   /**
@@ -30,7 +31,7 @@ export class PaymentService {
     });
 
     if (user) {
-      const limit = user.maxPayments ?? parseInt(process.env.DEFAULT_MAX_PAYMENTS || '100');
+      const limit = user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS;
       const currentCount = await prisma.paymentRecord.count({
         where: { userId: data.userId }
       });

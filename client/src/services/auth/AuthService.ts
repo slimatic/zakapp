@@ -124,7 +124,12 @@ export const authService = {
         const apiResult = await api.login({ email, password });
 
         if (!apiResult.success || !apiResult.user) {
-            throw new Error(apiResult.message || 'Login failed');
+            // Preserve the machine-readable code so callers (the login UI) can react to
+            // a specific cause such as EMAIL_NOT_VERIFIED. Previously only the message
+            // survived, forcing brittle text matching.
+            const err = new Error(apiResult.message || 'Login failed') as Error & { code?: string };
+            err.code = (apiResult as { code?: string }).code;
+            throw err;
         }
 
         // Store tokens

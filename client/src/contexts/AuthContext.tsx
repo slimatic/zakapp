@@ -34,12 +34,15 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  /** Machine-readable failure reason from the API (e.g. EMAIL_NOT_VERIFIED).
+   *  Lets the login form act on a specific cause instead of matching message text. */
+  errorCode: string | null;
 }
 
 type AuthAction =
   | { type: 'LOGIN_START' }
   | { type: 'LOGIN_SUCCESS'; payload: User }
-  | { type: 'LOGIN_FAILURE'; payload: string }
+  | { type: 'LOGIN_FAILURE'; payload: string; code?: string }
   | { type: 'LOGOUT' }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'CLEAR_ERROR' };
@@ -49,19 +52,21 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: true,
   error: null,
+  errorCode: null,
 };
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
     case 'LOGIN_START':
-      return { ...state, isLoading: true, error: null };
+      return { ...state, isLoading: true, error: null, errorCode: null };
     case 'LOGIN_SUCCESS':
       return {
         ...state,
         user: action.payload,
         isAuthenticated: true,
         isLoading: false,
-        error: null
+        error: null,
+        errorCode: null
       };
     case 'LOGIN_FAILURE':
       return {
@@ -69,7 +74,8 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: action.payload
+        error: action.payload,
+        errorCode: action.code ?? null
       };
     case 'LOGOUT':
       return {
@@ -82,7 +88,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
     case 'CLEAR_ERROR':
-      return { ...state, error: null };
+      return { ...state, error: null, errorCode: null };
     default:
       return state;
   }
@@ -146,9 +152,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return true;
     } catch (error) {
       logger.error('Login error', error);
+      // Pass the code through so the login form can offer a resend for
+      // EMAIL_NOT_VERIFIED instead of only printing the message.
       dispatch({
         type: 'LOGIN_FAILURE',
-        payload: error instanceof Error ? error.message : 'Login failed'
+        payload: error instanceof Error ? error.message : 'Login failed',
+        code: (error as { code?: string })?.code
       });
       return false;
     }

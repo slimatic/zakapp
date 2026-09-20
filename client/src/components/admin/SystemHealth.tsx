@@ -108,6 +108,79 @@ export const SystemHealth: React.FC = () => {
                     </CardContent>
                 </Card>
 
+                 {/* Email delivery */}
+                 {status.email && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Email Delivery</CardTitle>
+                            <CardDescription>Verification and notification sending</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex justify-between items-center border-b pb-2">
+                                <span className="text-muted-foreground">Configured</span>
+                                <Badge variant={status.email.configured && !status.email.issue ? 'default' : 'destructive'}>
+                                    {status.email.configured && !status.email.issue ? 'READY' : 'NOT READY'}
+                                </Badge>
+                            </div>
+                            <div className="flex justify-between items-center border-b pb-2">
+                                <span className="text-muted-foreground">Provider</span>
+                                <span className="font-mono">{status.email.provider ?? 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b pb-2">
+                                <span className="text-muted-foreground">From</span>
+                                <span className="font-mono text-xs">{status.email.from ?? 'not set'}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Host</span>
+                                <span className="font-mono text-xs">
+                                    {status.email.host ? `${status.email.host}:${status.email.port}` : 'N/A'}
+                                </span>
+                            </div>
+                            {status.email.issue && (
+                                <p className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-sm text-destructive">
+                                    {status.email.issue}
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
+
+                 {/* Accounts */}
+                 {status.users && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Accounts</CardTitle>
+                            <CardDescription>Verification state of registered users</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex justify-between items-center border-b pb-2">
+                                <span className="text-muted-foreground">Total Users</span>
+                                <span className="font-mono">{status.users.total}</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b pb-2">
+                                <span className="text-muted-foreground">Verified</span>
+                                <span className="font-mono text-emerald-600">{status.users.verified}</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b pb-2">
+                                <span className="text-muted-foreground">Unverified</span>
+                                <span className={`font-mono ${status.users.unverified > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                    {status.users.unverified}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Awaiting Verification</span>
+                                <span className="font-mono">{status.users.pendingVerificationTokens}</span>
+                            </div>
+                            {status.users.unverified > 0 && (
+                                <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-sm text-amber-900">
+                                    {status.users.unverified} account{status.users.unverified === 1 ? '' : 's'} cannot
+                                    sign in while email verification is required.
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
+
                  {/* Memory */}
                  <Card>
                     <CardHeader>

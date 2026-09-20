@@ -66,6 +66,9 @@ export interface AuthResponse {
     maxLiabilities?: number;
   };
   message?: string;
+  /** Machine-readable failure reason, e.g. EMAIL_NOT_VERIFIED. Lets the UI act on
+   *  a specific cause rather than pattern-matching the human-readable message. */
+  code?: string;
 }
 
 export interface ApiResponse<T = any> {
@@ -73,6 +76,8 @@ export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
   error?: string;
+  /** Machine-readable failure reason from the API. */
+  code?: string;
 }
 
 export interface UpdateProfileRequest {
@@ -211,11 +216,14 @@ class ApiService {
       const result = await response.json();
 
       if (!response.ok) {
-        // Extract detailed error message
+        // Extract detailed error message and the machine-readable code. The code is
+        // carried through so the UI can act on a specific cause (e.g. offer to resend
+        // a verification email) instead of matching on the message text.
         const errorMessage = result.error?.message || result.message || `Login failed: ${response.status}`;
         return {
           success: false,
-          message: errorMessage
+          message: errorMessage,
+          code: result.error?.code
         };
       }
 
@@ -607,6 +615,42 @@ class ApiService {
       body: JSON.stringify(data)
     });
     return this.handleResponse(response);
+  }
+
+  // Email Verification Methods
+  /**
+   * Request a fresh verification email. Used when a user is blocked at login with
+   * EMAIL_NOT_VERIFIED, which happens if the send failed at registration time.
+   */
+  async resendVerificationEmail(email: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: result.error?.message || result.message || 'Could not send verification email',
+          code: result.error?.code
+        };
+      }
+
+      return {
+        success: true,
+        message: result.message || 'Verification email sent',
+        data: result.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error occurred'
+      };
+    }
   }
 
   // Password Reset Methods
