@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.16.5] - 2026-09-20
+
+### Patch — security: the allowRegistration gate now actually runs
+
+**v0.16.4 did not close registration (#407)**
+
+v0.16.4 added the gate to `server/src/routes/auth/register.ts`. Nothing imports that
+module — it is dead code. The handler served at `POST /api/auth/register` lives in
+`server/src/routes/auth.ts`, so the gate was never executed and registration remained
+open with `allowRegistration = false`.
+
+The gate is now in the mounted handler, before any validation or user creation,
+failing closed (`503`) if the setting cannot be read.
+
+The earlier test passed because it called the patched module directly. The replacement
+drives the real express app, so it fails if the gate exists only in an unused module.
+
+**Also**
+- `test.yml` now runs on `release/**`. A pull request against a release branch was
+  receiving only the secret scan, so a patch release could merge with no tests run.
+
+> **Operators:** verify on your instance that registration is actually refused. Two
+> register handlers existed, and patching the unreferenced one produced a fix that
+> looked complete but changed nothing.
+
 ## [0.16.4] - 2026-09-20
 
 ### Patch — security: enforce the `allowRegistration` setting
