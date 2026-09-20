@@ -122,7 +122,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
 
     return (
         <div className="max-w-xl mx-auto p-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-6">
                 {isEditing ? 'Edit Liability' : 'Add New Liability'}
             </h2>
 
@@ -130,7 +130,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
 
                 {/* Name */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Debt Name *</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Debt Name *</label>
                     <Input
                         value={formData.name}
                         onChange={e => handleChange('name', e.target.value)}
@@ -143,11 +143,11 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                 {/* Type & Creditor */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Type</label>
                         <select
                             value={formData.type}
                             onChange={e => handleChange('type', e.target.value)}
-                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full border-input rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                         >
                             <option value="short_term">Short Term (Immediate)</option>
                             <option value="long_term">Long Term (Deferred)</option>
@@ -155,7 +155,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Creditor (Optional)</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Creditor (Optional)</label>
                         <Input
                             value={formData.creditor}
                             onChange={e => handleChange('creditor', e.target.value)}
@@ -168,7 +168,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <div className="flex justify-between items-center mb-1">
-                            <label className="block text-sm font-medium text-gray-700">Amount *</label>
+                            <label className="block text-sm font-medium text-foreground">Amount *</label>
                             <EncryptedBadge />
                         </div>
                         <Input
@@ -182,11 +182,11 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                         {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">Currency</label>
                         <select
                             value={formData.currency}
                             onChange={e => handleChange('currency', e.target.value)}
-                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full border-input rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                         >
                             {getSupportedCurrencies().map((code: CurrencyCode) => (
                                 <option key={code} value={code}>{code} - {getCurrencySymbol(code)}</option>
@@ -201,7 +201,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                     </div>
                     <div>
                         <div className="flex justify-between items-center mb-1">
-                            <label className="block text-sm font-medium text-gray-700">Deductible Amount (Optional)</label>
+                            <label className="block text-sm font-medium text-foreground">Deductible Amount (Optional)</label>
                             <EncryptedBadge />
                         </div>
                         <Input
@@ -217,7 +217,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
 
                 {/* Due Date */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Due Date *</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Due Date *</label>
                     <Input
                         type="date"
                         value={formData.dueDate}
@@ -228,7 +228,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
 
                     {/* Ductibility Preview */}
                     {formData.dueDate && !isNaN(new Date(formData.dueDate).getTime()) && (
-                        <div className={`mt-2 text-xs p-2 rounded ${isDeductiblePreview() ? 'bg-primary-50 text-primary-700' : 'bg-gray-100 text-gray-600'}`}>
+                        <div className={`mt-2 text-xs p-2 rounded ${isDeductiblePreview() ? 'bg-primary-50 text-primary-700' : 'bg-muted text-muted-foreground'}`}>
                             {isDeductiblePreview()
                                 ? '✅ Eligible for Zakat Deduction (Due within ~1 lunar year)'
                                 : 'ℹ️ Not automatically deductible (Due later than 1 lunar year)'}
@@ -238,12 +238,12 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
 
                 {/* Notes */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Notes</label>
                     <textarea
                         value={formData.notes}
                         onChange={e => handleChange('notes', e.target.value)}
                         rows={3}
-                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                        className="w-full border-input rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
                     />
                 </div>
 
