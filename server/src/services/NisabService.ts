@@ -424,46 +424,25 @@ export class NisabService {
 
   /**
    * Get historical nisab trends for analysis
-   * 
-   * @param methodology - Islamic calculation methodology
-   * @param currency - Target currency
-   * @param days - Number of days of historical data
-   * @returns Array of historical nisab values
+   *
+   * NOT IMPLEMENTED. This previously returned randomized placeholder prices
+   * (`65 + (Math.random() - 0.5) * 5`), which is unacceptable for a Zakat
+   * application: presented as historical nisab values they would be
+   * indistinguishable from real data and could lead a user to an incorrect
+   * obligation. Throwing is the honest behaviour until a real historical price
+   * source is integrated.
+   *
+   * @throws Always — pending historical price data integration
    */
   async getHistoricalNisab(
-    methodology: string,
-    currency: string = 'USD',
-    days: number = 30
+    _methodology: string,
+    _currency: string = 'USD',
+    _days: number = 30
   ): Promise<Array<{ date: string; nisab: number; basis: string }>> {
-    // TODO: Implement historical price data integration
-    // For now, return placeholder data
-    const historicalData: Array<{ date: string; nisab: number; basis: string }> = [];
-    const currentDate = new Date();
-
-    for (let i = days; i >= 0; i--) {
-      const date = new Date(currentDate);
-      date.setDate(date.getDate() - i);
-
-      // Simulate historical data with slight variations
-      const baseGold = 65 + (Math.random() - 0.5) * 5;
-      const baseSilver = 0.85 + (Math.random() - 0.5) * 0.1;
-
-      const goldNisab = this.calculateGoldNisab(baseGold);
-      const silverNisab = this.calculateSilverNisab(baseSilver);
-      const { effectiveNisab, nisabBasis } = this.determineEffectiveNisab(
-        methodology,
-        goldNisab,
-        silverNisab
-      );
-
-      historicalData.push({
-        date: date.toISOString().split('T')[0],
-        nisab: effectiveNisab,
-        basis: nisabBasis
-      });
-    }
-
-    return historicalData;
+    throw new Error(
+      'Historical nisab data is not implemented. No verified historical price source is integrated, ' +
+      'and returning simulated values would misrepresent a religious financial obligation.'
+    );
   }
 
   /**
