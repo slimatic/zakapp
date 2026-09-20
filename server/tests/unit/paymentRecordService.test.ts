@@ -286,6 +286,68 @@ describe('listing and pagination', () => {
   });
 });
 
+describe('the stored formats that actually exist in production', () => {
+  // These two formats are not hypothetical. Measured against the live database
+  // (read-only): every existing payment row is the 2-part legacy CBC form with
+  // 24-character groups. The 3-part GCM form with a SHORT body is what
+  // EncryptionService.encrypt() produces today for any amount below 1,000,000 —
+  // and it is the form isEncrypted() fails to recognise.
+
+  it('reads the legacy 2-part CBC format that production stores', async () => {
+    const svc = new PaymentRecordService();
+
+    // Build a CBC ciphertext the way the older code path did.
+    const crypto = await import('crypto');
+    const key = Buffer.from(KEY, 'utf8').subarray(0, 32);
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    const body = Buffer.concat([cipher.update('103.64', 'utf8'), cipher.final()]);
+    const legacy = `${iv.toString('base64')}:${body.toString('base64')}`;
+
+    // Insert it directly, bypassing the write path, to simulate an existing row.
+    store.rows.push({
+      id: 'legacy-1',
+      userId: 'u1',
+      snapshotId: 'snap-1',
+      amount: legacy,
+      recipientCategory: 'fakir',
+    });
+
+    const read = await svc.getPayment('legacy-1', 'u1');
+    expect(read?.amount).toBeCloseTo(103.64, 6);
+  });
+
+  it('reads the 3-part GCM format whose body is too short for isEncrypted()', async () => {
+    const svc = new PaymentRecordService();
+    const created = await svc.createPayment('u1', makePayment({ amount: 500 }));
+
+    // Confirm this really is the format isEncrypted() rejects — otherwise the
+    // test would pass for the wrong reason.
+    const raw = String(store.rows[0].amount);
+    expect(raw.split(':')).toHaveLength(3);
+    expect(raw.split(':')[1].length).toBeLessThan(12);
+    expect(EncryptionService.isEncrypted(raw)).toBe(false);
+
+    // And the service still returns the right number.
+    expect(created.amount).toBeCloseTo(500, 9);
+  });
+
+  it('surfaces an unreadable amount instead of returning NaN', async () => {
+    const svc = new PaymentRecordService();
+    store.rows.push({
+      id: 'garbage-1',
+      userId: 'u1',
+      snapshotId: 'snap-1',
+      amount: 'not-a-number-and-not-ciphertext',
+      recipientCategory: 'fakir',
+    });
+
+    // The old code returned NaN here, which silently poisoned every total that
+    // included the row. Throwing makes the corruption visible.
+    await expect(svc.getPayment('garbage-1', 'u1')).rejects.toThrow(/amount/i);
+  });
+});
+
 describe('the encryption key this service uses', () => {
   it('requires ENCRYPTION_KEY to be set', () => {
     const saved = process.env.ENCRYPTION_KEY;
