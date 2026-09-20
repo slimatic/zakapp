@@ -22,6 +22,7 @@ import { calculateDeductibleLiabilities } from '../../core/calculations/wealthCa
 import toast from 'react-hot-toast';
 import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
+import { formatCurrency } from '../../utils/formatters';
 
 interface LiabilityListProps {
     liabilities: Liability[];
@@ -43,12 +44,6 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
         }
     };
 
-    const formatCurrency = (amount: number, currency: string) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency,
-        }).format(amount);
-    };
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {

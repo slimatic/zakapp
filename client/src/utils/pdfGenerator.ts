@@ -27,6 +27,7 @@ import { format } from 'date-fns';
 import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
 import { formatCategoryName } from './chartFormatter';
 import { formatDualCalendar } from './calendarConverter';
+import { formatCurrency } from './formatters';
 
 /**
  * PDF generation options
@@ -403,33 +404,6 @@ export function previewPDF(doc: jsPDF): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/**
- * Formats currency value with proper separators
- * @param amount - Numeric amount
- * @param currency - Currency code (default: 'USD')
- * @returns Formatted string like "$1,234.56" or "Rp1.234.567"
- */
-function formatCurrency(amount: number, currency: string = 'USD'): string {
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    // Intl throws on an unrecognised ISO-4217 code. Do NOT fall back to a "$"
-    // prefix: that silently mislabels any non-USD amount as US dollars, which
-    // is exactly the #310 defect inside a generated PDF (harder to notice than
-    // on screen). Suffix the code instead so it stays truthful.
-    const n = Number.isFinite(amount) ? amount : 0;
-    const digits = n.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-    return `${digits} ${(currency || '').toUpperCase()}`.trim();
-  }
-}
 
 /**
  * Formats asset type name for display

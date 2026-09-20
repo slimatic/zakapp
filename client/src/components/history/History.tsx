@@ -17,6 +17,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
+import { formatCurrency } from '../../utils/formatters';
 
 interface Snapshot {
   id: string;
@@ -52,12 +53,6 @@ export const History: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
-  };
 
   if (isLoading) {
     return (

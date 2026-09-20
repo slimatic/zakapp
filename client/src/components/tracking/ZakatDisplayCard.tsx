@@ -35,6 +35,7 @@ import React from 'react';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { NisabYearRecord, NisabYearRecordWithLiveTracking } from '../../types/nisabYearRecord';
 import { toNumber, toDecimal, Decimal } from '../../utils/precision';
+import { formatCurrency } from '../../utils/formatters';
 
 interface ZakatDisplayCardProps {
   record: NisabYearRecord | NisabYearRecordWithLiveTracking;
@@ -43,20 +44,6 @@ interface ZakatDisplayCardProps {
   isLoadingAssets?: boolean;
 }
 
-/**
- * Format currency value for display
- */
-const formatCurrency = (value: number | string | Decimal, currency: string = 'USD'): string => {
-  const numValue = toNumber(value);
-  if (isNaN(numValue)) return `${currency} 0.00`;
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numValue);
-};
 
 export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
   record,

@@ -23,6 +23,7 @@
  */
 
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 
 export interface NisabIndicatorProps {
   totalWealth: number;
@@ -33,17 +34,6 @@ export interface NisabIndicatorProps {
   className?: string;
 }
 
-/**
- * Format currency with proper symbol and formatting
- */
-const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount);
-};
 
 /**
  * Format large numbers with K/M abbreviations

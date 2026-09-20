@@ -23,6 +23,7 @@
  */
 
 import React from 'react';
+import { formatCurrency } from '../../utils/formatters';
 
 export interface AssetBreakdown {
   type: string;
@@ -43,17 +44,6 @@ export interface CalculationBreakdownProps {
   showPrintView?: boolean;
 }
 
-/**
- * Format currency with proper symbol and formatting
- */
-const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount);
-};
 
 /**
  * Get color scheme for asset category

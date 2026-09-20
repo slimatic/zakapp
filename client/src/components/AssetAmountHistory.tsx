@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getApiBaseUrl } from '../config';
+import { formatCurrency } from '../utils/formatters';
 
 interface AssetAmountEvent {
   id: string;
@@ -96,12 +97,6 @@ export function AssetAmountHistory({ assetId, apiBaseUrl = getApiBaseUrl() }: As
     });
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency
-    }).format(amount);
-  };
 
   const getEventTypeBadgeClass = (eventType: string) => {
     switch (eventType) {
