@@ -35,8 +35,8 @@ jobs:
     - name: Install client dependencies
       run: cd client && npm install --legacy-peer-deps
 
-    - name: Run server tests
-      run: cd server && npm test
+    - name: Run server tests (with coverage gate)
+      run: cd server && npm run test:coverage
       env:
         CI: true
         NODE_ENV: test
@@ -44,10 +44,29 @@ jobs:
         JWT_SECRET: ci-test-jwt-secret-do-not-use-in-production
         DATABASE_URL: file:./test/test.db
 
-    - name: Run client unit tests
-      run: cd client && npm test -- --run
+    - name: Run client unit tests (with coverage gate)
+      run: cd client && npm run test:coverage
       env:
         CI: true
+
+    # Coverage thresholds in each vitest config fail the run on a regression, so
+    # these steps are the gate itself. The reports are uploaded purely so the
+    # numbers are visible when a build does fail.
+    - name: Upload server coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-server
+        path: server/coverage/
+        retention-days: 7
+
+    - name: Upload client coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-client
+        path: client/coverage/
+        retention-days: 7
 
     - name: Build client
       run: cd client && npm run build
