@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.17.0] - 2026-10-12
+
+### Jumada al-Ula 1448 — logging hygiene, fabricated-data removal, test cleanup
+
+**Fabricated data paths removed from Zakat and auth surfaces**
+- `NisabService.getHistoricalNisab()` generated its "historical" nisab values with `Math.random()`. Presented as trend data these are indistinguishable from real prices. The method has **no callers**, so nothing shipped broken — but it was a loaded gun in a religious-finance codebase. It now throws until a real historical price source is integrated.
+- `useCompareSnapshots()` resolved a hard-coded all-zero comparison (`assetGrowth: 0`, `differences: []`). `SnapshotComparison.tsx` binds those fields with `|| 0` fallbacks, so wiring that screen up would have rendered a complete **"$0.00 change / 0.0%"** table for any two records — visually identical to a genuine no-change result. It now rejects, and the component shows an explicit "not available" state. **Neither component is reachable from any route today**; this removes a trap for the next developer rather than changing current behaviour.
+- `AuthMiddleware.authorize()` hard-coded `const userPermissions: string[] = []` ahead of an `every()` check, so any future `authorize(['x'])` call would have 403'd for every user regardless of role. It now returns `501 AUTHORIZATION_NOT_IMPLEMENTED` rather than pretending. No caller passes a non-empty list today.
+
+**Production logging**
+- The server logger's `info()` wrote straight to the container log with no environment gate; the client sibling already gated on `NODE_ENV` and the two had drifted. Now consistent.
+- **58 `console.log` sites across 24 production files** now route through the per-workspace logger — lifecycle events to `info`, diagnostics to `debug`. Test, story and mock occurrences are deliberately untouched, as are the two logger implementations.
+
+**Test cleanup**
+- Removed the orphaned root `tests/` directory (25 files, last touched 2026-05-18). It was referenced by **no CI job and no npm script**, could not run from the repo root (no vitest config; `bcryptjs` and `@playwright/test` exist only in sub-workspaces), and produced spurious `document is not defined` failures when swept into a root-level run.
+  - 5 contract tests duplicating `server/tests/contract/` counterparts, all superseded by the live versions.
+  - 8 root-only tests written against specs never implemented — they asserted `POST /api/zakat/payments`, a `receiptUrl` field, year filtering and a pagination envelope; the shipping route is mounted at `/api/payments`.
+  - 2 one-line re-export shims whose source of truth was that directory.
+- Added `server/tests/contract/payments.contract.test.ts` — a real contract test for the shipping API (9 tests), covering auth rejection, validation failure and resource-ownership checks.
+
+**Suites:** server **494 pass** (50 files, was 485/49); client **566 pass / 1 skipped** (72 files). No regressions.
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.3...v0.17.0
+
 ## [0.16.3] - 2026-09-17
 
 ### Patch — upgrade safety, currency correctness, session hygiene
