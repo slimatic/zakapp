@@ -152,6 +152,11 @@ model ZakatCalculation {
   isZakatObligatory     Boolean
   zakatAmount           Float
   zakatRate             Float    @default(0.025) // 2.5%
+  // The currency these amounts are denominated in, recorded at calculation time.
+  // Stored explicitly because a calculation must display in the currency it was
+  // RECORDED in, not the user's current display currency. USD is an honest
+  // default for pre-existing rows: every production record is USD.
+  currency              String   @default("USD")
   breakdown             String   // JSON with detailed calculation steps
   assetsIncluded        String   // JSON snapshot of assets used
   liabilitiesIncluded   String   // JSON snapshot of liabilities used
@@ -722,6 +727,9 @@ model CalculationHistory {
   nisabThreshold    String   // Encrypted
   zakatDue          String   // Encrypted
   zakatRate         Float    @default(2.5)
+  // Plaintext on purpose: the currency is needed to render the encrypted amounts
+  // correctly, and it is not itself sensitive. See docs/CURRENCY-DISPLAY-RULE.md.
+  currency          String   @default("USD")
   
   // Detailed Asset Breakdown (encrypted JSON)
   assetBreakdown    String   // Encrypted JSON of asset categories and values

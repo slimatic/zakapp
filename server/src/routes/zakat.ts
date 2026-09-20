@@ -206,6 +206,30 @@ router.post('/calculate',
         netWorth,
         nisabThreshold: result.result.nisab.effectiveNisab
       };
+
+      // ---------------------------------------------------------------------
+      // Determine the currency the STORED totals are denominated in.
+      //
+      // This is not the display currency. The stored totals are raw sums of
+      // `asset.value`, and every asset carries its own `currency`. For a
+      // single-currency portfolio the denomination is unambiguous. For a mixed
+      // one there is no single denomination at all, and the sum is not a quantity
+      // of anything (see tests/unit/crossCurrencyAggregation.test.ts).
+      //
+      // We therefore:
+      //   · record the single currency when every asset agrees (or there are none);
+      //   · fall back to the user's working currency when they do not, and record
+      //     the mixture in the breakdown so the ambiguity is visible rather than
+      //     silently resolved.
+      // ---------------------------------------------------------------------
+      const currencyBreakdown: Record<string, number> = {};
+      for (const asset of result.result.assets as Array<{ value?: number; currency?: string }>) {
+        const code = (asset.currency || 'USD').toUpperCase();
+        currencyBreakdown[code] = (currencyBreakdown[code] || 0) + (asset.value || 0);
+      }
+      const distinctCurrencies = Object.keys(currencyBreakdown);
+      const storedCurrency =
+        distinctCurrencies.length === 1 ? distinctCurrencies[0] : displayCurrency;
       let fxRate = 1.0;
       if (displayCurrency !== 'USD') {
         try {
@@ -239,7 +263,26 @@ router.post('/calculate',
           isZakatObligatory: result.result.meetsNisab,
           zakatAmount: result.result.totals.totalZakatDue,
           zakatRate: result.methodology.zakatRate,
-          breakdown: JSON.stringify(result.breakdown),
+          // Record the currency these amounts are denominated in.
+          //
+          // The stored totals above are RAW asset values, not the fx-converted
+          // `presentation` figures, so the denomination is the base currency the
+          // assets were entered in. Assets carry their own `currency` column and
+          // totals are summed across them, so a mixed portfolio has no single
+          // denomination — in that case we record the currency the user is
+          // working in and flag the mixture separately (see `currencyBreakdown`
+          // below and docs/CURRENCY-DISPLAY-RULE.md).
+          //
+          // Every record in production today is USD, so this is a faithful label
+          // for existing data and a correct one going forward.
+          currency: storedCurrency,
+          breakdown: JSON.stringify({
+            ...result.breakdown,
+            // Retain the mixture so a later cross-currency fix has the data it
+            // needs rather than having to guess.
+            currencyBreakdown: currencyBreakdown ?? null,
+            recordedCurrency: storedCurrency,
+          }),
           assetsIncluded: JSON.stringify(result.result.assets),
           liabilitiesIncluded: JSON.stringify(liabilityData.liabilities),
           regionalAdjustments: null
@@ -268,7 +311,10 @@ router.post('/calculate',
             totalLiabilities: liabilityData.total
           },
           zakatYearStart: zakatYear.startDate,
-          zakatYearEnd: zakatYear.endDate
+          zakatYearEnd: zakatYear.endDate,
+          // Record the denomination so history can display in the currency it
+          // was recorded in, not the user's current display currency.
+          currency: storedCurrency
         });
       } catch {
         // Log error but don't fail the calculation
