@@ -79,7 +79,7 @@ Auto CORS configuration
 # On your server
 ./deploy-easy.sh
 # Select: 2 (IP address)
-# Access: https://192.168.86.45:3443
+# Access: https://192.168.1.100:3443
 # Note: Accept self-signed cert warning
 ```
 
@@ -129,7 +129,7 @@ The workflow is ready to auto-build on every push to main:
 ### **Option 1: Test the New System (Recommended)**
 ```bash
 # 1. SSH to your server
-ssh user@192.168.86.45
+ssh user@192.168.1.100
 
 # 2. Navigate to repo
 cd ~/zakapp
@@ -141,7 +141,7 @@ docker compose -f docker-compose.local.yml down
 ./deploy-easy.sh
 
 # 5. Select option 2 (IP address)
-# 6. Access via https://192.168.86.45:3443
+# 6. Access via https://192.168.1.100:3443
 ```
 
 ### **Option 2: Set up GitHub Actions**

@@ -4,7 +4,7 @@
 # Backs up: SQLite prod DB (backend_data volume), CouchDB data, compose + env config.
 #
 # Usage: run on the deployment host from the service directory, e.g.
-#   cd ~/umbrel/slimatic/services/app.zakapp.org && bash backup-before-upgrade.sh
+#   cd <ZAKAPP_INSTALL_DIR> && bash backup-before-upgrade.sh
 #
 # Exits non-zero if the DB dump fails, so it can gate a deploy pipeline.
 set -euo pipefail

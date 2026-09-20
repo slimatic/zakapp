@@ -157,14 +157,14 @@ Don't have a domain? Use these free options:
 4. Use in NPM: `zakapp-yourname.duckdns.org`
 
 ### Option 2: nip.io (No setup needed!)
-If your IP is `192.168.86.45`:
-- Use domain: `zakapp.192.168.86.45.nip.io`
+If your IP is `192.168.1.100`:
+- Use domain: `zakapp.192.168.1.100.nip.io`
 - NPM will resolve this automatically
 - Works for local testing only (not externally accessible)
 
 ### Option 3: Local DNS
 If you have Pi-hole or AdGuard Home:
-1. Add local DNS record: `zakapp.local` → `192.168.86.45`
+1. Add local DNS record: `zakapp.local` → `192.168.1.100`
 2. Use `zakapp.local` in NPM
 3. Generate self-signed certificate or use DNS challenge
 

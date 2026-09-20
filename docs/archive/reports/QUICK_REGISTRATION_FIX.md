@@ -44,9 +44,9 @@ Register with:
 
 ```text
 Username:       slimatic616
-First Name:     Salim (or your first name)
+First Name:     Your First Name
 Last Name:      Your last name
-Email:          salim31@gmail.com
+Email:          user@example.com
 Password:       MySecure@Pass1 (has all required types)
 Confirm:        MySecure@Pass1
 ```

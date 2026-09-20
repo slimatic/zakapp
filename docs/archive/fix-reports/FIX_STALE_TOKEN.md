@@ -10,8 +10,8 @@ This happens when:
 3. You're using a token from a different environment (e.g., production token with development database)
 
 ## Current Database Users
-- `mg3rn9uuj7a0y3mc7ni` - salim31@gmail.com
-- `mg3rsuzb5z1hmv9wrwv` - jdoe@gmail.com  
+- `mg3rn9uuj7a0y3mc7ni` - user@example.com
+- `mg3rsuzb5z1hmv9wrwv` - user@example.com  
 - `mgfcc858pn6w0ptazq` - test@zakapp.local
 
 ## Solutions
@@ -20,8 +20,8 @@ This happens when:
 1. Open the application in your browser
 2. Click the logout button (if available)
 3. Log in again with one of the existing users:
-   - salim31@gmail.com
-   - jdoe@gmail.com
+   - user@example.com
+   - user@example.com
    - test@zakapp.local
 4. Try creating a yearly snapshot again
 

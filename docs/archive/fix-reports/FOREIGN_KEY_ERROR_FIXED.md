@@ -23,8 +23,8 @@ Error in createSnapshot: User with ID mgmbkmxt28bvv77s3fb does not exist
 
 ### Current Valid Users
 The database currently has these users:
-- `mg3rn9uuj7a0y3mc7ni` - salim31@gmail.com
-- `mg3rsuzb5z1hmv9wrwv` - jdoe@gmail.com
+- `mg3rn9uuj7a0y3mc7ni` - user@example.com
+- `mg3rsuzb5z1hmv9wrwv` - user@example.com
 - `mgfcc858pn6w0ptazq` - test@zakapp.local
 
 ## Solutions

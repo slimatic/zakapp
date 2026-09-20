@@ -6,7 +6,7 @@
 
 - **One release per Hijri month**, tagged on (or within a day or two of) **1st of the Hijri month**, subject to local moon sighting (+/-1 day tolerance).
 - PRs merge into `main` continuously throughout the month (CI-gated as always).
-- At month start: version bump → CHANGELOG → tag `vX.Y.Z` → Docker Hub build (automated) → deploy to production (Umbrel, with pre-deploy backup).
+- At month start: version bump → CHANGELOG → tag `vX.Y.Z` → Docker Hub build (automated) → deploy to your instance (with pre-deploy backup).
 
 ## Upcoming Cycle Starts
 
@@ -38,7 +38,12 @@ Tabular Islamic calendar (hijridate Umm al-Qura approximation); actual dates may
    - Tag: `git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z`
    - Docker Hub workflow builds + pushes on tag.
    - Deploy: `scripts/ops/upgrade.sh` (runs `backup-before-upgrade.sh` first) — see `docs/UPGRADING.md`.
-   - Verify: 200 on `app.zakapp.org`, `api.zakapp.org/health`, `syncdb.zakapp.org`; migrations container ran `prisma migrate deploy` cleanly.
+   - Verify: 200 on `<YOUR_APP_HOST>`, `<YOUR_API_HOST>/health`, `<YOUR_SYNC_HOST>`; migrations container ran `prisma migrate deploy` cleanly.
+
+> **On the verify step:** the three hostnames above are placeholders for **your own**
+> deployment's frontend, API and sync endpoints. Substitute your domains. The project's
+> reference deployment is public, but its internal service hostnames are not documented
+> here — this repo must not assume any particular operator's infrastructure.
 4. **Post-release**: close the cycle's milestone, open next cycle's tracking issue.
 
 ## Release Naming
