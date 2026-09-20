@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.16.4] - 2026-09-20
+
+### Patch — security: enforce the `allowRegistration` setting
+
+**Public registration could not be disabled (#407)**
+
+The `allowRegistration` system setting was stored, exposed through the admin API, and presented as a working toggle in the admin UI — but nothing read it on the registration path. Setting it to `false` had no effect: `/api/auth/register` validated the payload and created the account regardless.
+
+For any deployment intending closed or invite-only signups, this silently defeated that intent while the UI reported otherwise.
+
+The registration handler now consults the setting **before** any validation or user creation, so it cannot be bypassed with a malformed body. It fails closed: if the setting cannot be read, registration returns `503` rather than silently falling through to open signups.
+
+Audited the sibling setting in the same struct: `requireEmailVerification` is genuinely enforced (`auth/login.ts`, `auth.ts`). `allowRegistration` was the only decorative one.
+
+> **Operators on a release before 0.16.4:** with the earlier code, flipping `allowRegistration` to `false` does not close registration. Until you upgrade, restrict it at the edge.
+
 ## [0.16.3] - 2026-09-17
 
 ### Patch — upgrade safety, currency correctness, session hygiene
