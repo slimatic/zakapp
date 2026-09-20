@@ -43,6 +43,7 @@ import type {
   LiveHawlData,
   LiveTrackingData,
 } from '@zakapp/shared';
+import { DEFAULT_LIMITS } from '../config/limits';
 
 export class NisabYearRecordService {
   private logger = new Logger('NisabYearRecordService');
@@ -86,7 +87,7 @@ export class NisabYearRecordService {
       });
 
       if (user) {
-        const limit = user.maxNisabRecords ?? parseInt(process.env.DEFAULT_MAX_NISAB_RECORDS || '10');
+        const limit = user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS;
         const currentCount = await this.prisma.yearlySnapshot.count({
           where: { userId }
         });

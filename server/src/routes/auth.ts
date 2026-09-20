@@ -309,6 +309,38 @@ router.post('/register',
   validateUserRegistration,
   handleValidationErrors,
   asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
+    // Gate on the operator's allowRegistration setting BEFORE any validation or
+    // user creation, so it cannot be bypassed with a malformed body.
+    //
+    // Fail closed: if reading the setting throws, refuse rather than silently
+    // falling through to open registration.
+    // Retain the full settings object: requireEmailVerification is needed later to
+    // decide whether a failed send must fail the request.
+    let settings: Awaited<ReturnType<typeof SettingsService.getSettings>>;
+    try {
+      settings = await SettingsService.getSettings();
+      if (!settings.allowRegistration) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: 'REGISTRATION_DISABLED',
+            message: 'Registration is currently disabled'
+          }
+        });
+        return;
+      }
+    } catch (settingsError) {
+      logger.error('Failed to read allowRegistration setting; refusing registration', settingsError);
+      res.status(503).json({
+        success: false,
+        error: {
+          code: 'REGISTRATION_UNAVAILABLE',
+          message: 'Registration is temporarily unavailable'
+        }
+      });
+      return;
+    }
+
     // Normalize email to lowercase first
     req.body.email = req.body.email.toLowerCase();
 
@@ -401,6 +433,13 @@ router.post('/register',
       });
 
       // Email Verification Logic
+      //
+      // The token write and the send are tracked separately on purpose. Previously both
+      // sat in one try/catch that only logged, so a failed send still returned 201 and the
+      // user was told to check an inbox that would never receive anything. Registration
+      // must not claim success when the required verification email did not leave.
+      let verificationEmailSent: boolean | null = null;
+
       try {
         const token = crypto.randomBytes(32).toString('hex');
         const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
@@ -414,9 +453,30 @@ router.post('/register',
           }
         });
 
-        await emailService.sendVerificationEmail(normalizedEmail, token, plainFirstName || firstName, username);
+        verificationEmailSent = await emailService.sendVerificationEmail(
+          normalizedEmail, token, plainFirstName || firstName, username
+        );
       } catch (err) {
         logger.error('Failed to initiate email verification', err);
+        verificationEmailSent = false;
+      }
+
+      if (settings.requireEmailVerification && verificationEmailSent !== true) {
+        logger.error(
+          `Registration verification email failed for ${normalizedEmail}; ` +
+          `user ${user.id} created but not notified. Registration would leave this ` +
+          `account unable to log in, so the request fails loudly instead of reporting success.`
+        );
+        res.status(503).json({
+          success: false,
+          error: {
+            code: 'VERIFICATION_EMAIL_FAILED',
+            message:
+              'Your account was created, but we could not send the verification email. ' +
+              'Please try signing in and requesting a new verification email, or contact the administrator.'
+          }
+        });
+        return;
       }
 
       // Generate tokens
@@ -977,6 +1037,81 @@ router.get('/verify-email',
       success: true,
       message: 'Email verified successfully'
     });
+  })
+);
+
+/**
+ * POST /api/auth/resend-verification
+ * Issue a fresh verification email for an unverified account.
+ *
+ * Needed because a failed send at registration leaves the account unable to log in;
+ * without this the only recovery was manual admin action or re-registering.
+ *
+ * Always answers 200 with the same shape, whether or not the address exists and
+ * whether or not the send succeeded: a distinguishable response here would let a
+ * caller enumerate registered emails.
+ */
+router.post('/resend-verification',
+  asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
+    const genericResponse = {
+      success: true,
+      message: 'If that account exists and is not yet verified, a new verification email has been sent.'
+    };
+
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    if (!email) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Email is required' }
+      });
+      return;
+    }
+
+    try {
+      const user = await getPrismaClient().user.findUnique({ where: { email } });
+
+      // Unknown address or already verified: no send, still generic 200.
+      if (!user || user.isVerified) {
+        res.status(200).json(genericResponse);
+        return;
+      }
+
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await getPrismaClient().user.update({
+        where: { id: user.id },
+        data: { verificationToken: token, verificationTokenExpires: expiry }
+      });
+
+      const sent = await emailService.sendVerificationEmail(
+        user.email, token, undefined, user.username || undefined
+      );
+
+      if (!sent) {
+        logger.error(`Resend verification email failed to send for user ${user.id}`);
+        res.status(503).json({
+          success: false,
+          error: {
+            code: 'VERIFICATION_EMAIL_FAILED',
+            message: 'We could not send the verification email right now. Please try again shortly.'
+          }
+        });
+        return;
+      }
+    } catch (err) {
+      logger.error('resend-verification failed', err);
+      res.status(503).json({
+        success: false,
+        error: {
+          code: 'VERIFICATION_EMAIL_FAILED',
+          message: 'We could not send the verification email right now. Please try again shortly.'
+        }
+      });
+      return;
+    }
+
+    res.status(200).json(genericResponse);
   })
 );
 
