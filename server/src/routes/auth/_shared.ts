@@ -5,18 +5,28 @@
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { getEncryptionKey } from '../../config/security';
+/**
+ * Shared state and helpers for the auth route modules.
+ *
+ * These were module-level in the old single-file auth.ts. Splitting the routes means
+ * the state has to live somewhere both sides can reach; this is that place. The
+ * in-memory maps are per-process, which matches the previous behaviour exactly.
+ */
+
+import express from 'express';
+import { Logger } from '../../utils/logger';
 import { prisma } from '../../utils/prisma';
+import { getEncryptionKey } from '../../config/security';
+
+export const logger = new Logger('AuthRoute');
+
+// Lazy initialization of Prisma client
+export function getPrismaClient() {
+  // Use the shared singleton instance
+  return prisma;
+}
 
 export const ENCRYPTION_KEY = getEncryptionKey();
 
@@ -24,9 +34,6 @@ export const ENCRYPTION_KEY = getEncryptionKey();
 export const revokedTokens = new Set<string>();
 export const tokenUsageCount = new Map<string, number>();
 export const userRateLimitMap = new Map<string, { count: number; resetTime: number }>();
-
-// Track which users we've already logged a profile decryption failure for to avoid log spam
-export const loggedProfileDecryptionFailures = new Set<string>();
 
 /**
  * Reset auth state for testing
@@ -90,10 +97,5 @@ export function checkUserRateLimit(userId: string): boolean {
   return false;
 }
 
-/**
- * Lazy initialization of Prisma client
- */
-export function getPrismaClient() {
-  // Use the shared singleton instance
-  return prisma;
-}
+// Track which users we\'ve already logged a profile decryption failure for to avoid log spam
+export const loggedProfileDecryptionFailures = new Set<string>();
