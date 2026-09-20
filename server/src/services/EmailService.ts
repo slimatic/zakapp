@@ -313,6 +313,73 @@ export class EmailService {
 
         return this.sendEmail(to, subject, html);
     }
+
+    /**
+     * Send a verification email and report whether it actually left.
+     *
+     * Callers must branch on this. Registration previously ignored it, so a failed
+     * send still returned 201 while the user was told to check an inbox that would
+     * never receive anything.
+     */
+    async sendVerificationEmailChecked(
+        to: string,
+        token: string,
+        firstName?: string,
+        username?: string
+    ): Promise<{ sent: boolean; error?: string }> {
+        try {
+            const sent = await this.sendVerificationEmail(to, token, firstName, username);
+            return sent ? { sent: true } : { sent: false, error: 'sendVerificationEmail returned false' };
+        } catch (err) {
+            return { sent: false, error: err instanceof Error ? err.message : String(err) };
+        }
+    }
+
+    /**
+     * Operator-visible email configuration state, with no secret material.
+     * Lets an admin see WHY sending fails without reading server logs.
+     */
+    async describeConfig(): Promise<{
+        configured: boolean;
+        provider: string | null;
+        from: string | null;
+        host: string | null;
+        port: number | null;
+        secure: boolean | null;
+        issue: string | null;
+    }> {
+        try {
+            const config = await this.getConfig();
+            if (!config) {
+                return {
+                    configured: false, provider: null, from: null,
+                    host: null, port: null, secure: null,
+                    issue: 'No email provider is configured. Set it in System Settings.'
+                };
+            }
+
+            const from = (config as any).from || null;
+            const issue = from
+                ? null
+                : 'No sender address is configured. Sending will likely be rejected.';
+
+            return {
+                configured: true,
+                provider: (config as any).provider ?? null,
+                from,
+                host: (config as any).host ?? null,
+                port: (config as any).port ?? null,
+                secure: (config as any).secure ?? null,
+                issue
+            };
+        } catch (err) {
+            return {
+                configured: false, provider: null, from: null,
+                host: null, port: null, secure: null,
+                issue: err instanceof Error ? err.message : 'Failed to read email configuration'
+            };
+        }
+    }
 }
 
 export const emailService = EmailService.getInstance();

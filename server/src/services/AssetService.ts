@@ -38,6 +38,7 @@ const RESTRICTED_ACCOUNT_TYPES = [
 import { prisma } from '../utils/prisma';
 
 import { getEncryptionKey } from '../config/security';
+import { DEFAULT_LIMITS } from '../config/limits';
 
 const ENCRYPTION_KEY = getEncryptionKey();
 
@@ -106,8 +107,7 @@ export class AssetService {
     });
 
     // Default to strict limit if user fetch fails or property missing (shouldn't happen)
-    const envLimit = parseInt(process.env.DEFAULT_MAX_ASSETS || '50');
-    const limit = user?.maxAssets ?? envLimit;
+    const limit = user?.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS;
 
     // Count active assets
     const currentCount = await prisma.asset.count({
@@ -596,7 +596,7 @@ export class AssetService {
     });
 
     if (user) {
-      const limit = user.maxAssets ?? parseInt(process.env.DEFAULT_MAX_ASSETS || '50');
+      const limit = user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS;
       const currentCount = await prisma.asset.count({
         where: { userId, isActive: true }
       });

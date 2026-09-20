@@ -1,6 +1,7 @@
 import express from 'express';
 import { prisma } from '../../utils/prisma';
 import { checkSchemaStatus } from '../../utils/schemaCheck';
+import { emailService } from '../../services/EmailService';
 import { authenticate, requireAdmin } from '../../middleware/AuthMiddleware';
 import packageJson from '../../../package.json';
 
@@ -25,6 +26,19 @@ router.get('/status', authenticate, requireAdmin, async (req, res) => {
 
     const memoryUsage = process.memoryUsage();
 
+    // Email health, surfaced because a misconfigured provider is invisible otherwise:
+    // registration still returns 201 and the failure only appears in server logs.
+    const emailConfig = await emailService.describeConfig();
+
+    // Verification counts. The admin dashboard previously reported only total/active,
+    // so an operator could not see how many accounts were stuck unverified.
+    const [totalUsers, verifiedUsers, unverifiedUsers, pendingTokens] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { isVerified: true } }),
+      prisma.user.count({ where: { isVerified: false } }),
+      prisma.user.count({ where: { verificationToken: { not: null } } })
+    ]);
+
     res.json({
       success: true,
       data: {
@@ -36,6 +50,21 @@ router.get('/status', authenticate, requireAdmin, async (req, res) => {
           latencyMs: dbLatency,
           schemaUpToDate: schemaStatus.upToDate,
           pendingMigrations: schemaStatus.pending.length,
+        },
+        email: {
+          configured: emailConfig.configured,
+          provider: emailConfig.provider,
+          from: emailConfig.from,
+          host: emailConfig.host,
+          port: emailConfig.port,
+          secure: emailConfig.secure,
+          issue: emailConfig.issue,
+        },
+        users: {
+          total: totalUsers,
+          verified: verifiedUsers,
+          unverified: unverifiedUsers,
+          pendingVerificationTokens: pendingTokens,
         },
         memory: {
           rss: Math.round(memoryUsage.rss / 1024 / 1024),

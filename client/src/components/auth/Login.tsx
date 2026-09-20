@@ -15,9 +15,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { apiService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/Card';
@@ -28,7 +29,28 @@ export const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { isAuthenticated, login, isLoading, error } = useAuth();
+  const { isAuthenticated, login, isLoading, error, errorCode } = useAuth();
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
+  const [resendMessage, setResendMessage] = useState<string>('');
+
+  // Reset the resend affordance whenever a new login attempt is made.
+  useEffect(() => {
+    setResendState('idle');
+    setResendMessage('');
+  }, [error]);
+
+  const handleResend = async () => {
+    setResendState('sending');
+    setResendMessage('');
+    const result = await apiService.resendVerificationEmail(username);
+    if (result.success) {
+      setResendState('sent');
+      setResendMessage(result.message || 'Verification email sent.');
+    } else {
+      setResendState('failed');
+      setResendMessage(result.message || 'Could not send the verification email.');
+    }
+  };
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -59,6 +81,28 @@ export const Login: React.FC = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {errorCode === 'EMAIL_NOT_VERIFIED' && (
+              <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">
+                <p className="text-amber-900">
+                  Your email hasn&apos;t been verified yet, so sign-in is blocked.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendState === 'sending' || resendState === 'sent'}
+                  className="mt-2 font-medium text-amber-900 underline underline-offset-2 disabled:opacity-60"
+                >
+                  {resendState === 'sending'
+                    ? 'Sending…'
+                    : resendState === 'sent'
+                      ? 'Verification email sent'
+                      : 'Resend verification email'}
+                </button>
+                {resendMessage && (
+                  <p className="mt-1 text-amber-800" role="status">{resendMessage}</p>
+                )}
+              </div>
+            )}
             {error && (
               <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
                 {error === 'Failed to fetch'
