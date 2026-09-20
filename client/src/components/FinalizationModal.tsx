@@ -31,6 +31,7 @@ import React, { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';
 import { toNumber, calculateZakat } from '../utils/precision';
+import { formatCurrency as canonicalCurrency } from '../utils/formatters';
 
 export interface FinalizationModalProps {
   /**
@@ -137,20 +138,9 @@ export const FinalizationModal: React.FC<FinalizationModalProps> = ({
 
   // Format currency
   const formatCurrency = (amount: number): string => {
-    if (isNaN(amount)) {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: record.currency || 'USD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }).format(0);
-    }
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: record.currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
+    // Guard preserved: a NaN renders $0.00, not "NaN".
+    if (isNaN(amount)) return canonicalCurrency(0, record.currency || 'USD');
+    return canonicalCurrency(amount, record.currency || 'USD');
   };
 
   return (
