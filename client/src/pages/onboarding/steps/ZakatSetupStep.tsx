@@ -1,3 +1,4 @@
+import { logger } from '../../../utils/logger';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -89,7 +90,7 @@ export const ZakatSetupStep: React.FC = () => {
             if (!estimates) throw new Error("Please wait for calculations to finish");
 
             const basis = (data.nisab.standard || 'GOLD').toUpperCase() as 'GOLD' | 'SILVER';
-            console.log('[ZakatSetupStep] Creating record with basis:', basis, 'from:', data.nisab);
+            logger.debug('[ZakatSetupStep] Creating record with basis:', basis, 'from:', data.nisab);
 
             const record = await addRecord({
                 hawlStartDate: hawlStartDate.toISOString(),

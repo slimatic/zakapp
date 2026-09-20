@@ -217,7 +217,7 @@ export class DatabaseManager {
       /*
       this.prisma.$on('query', (e) => {
         this.health.lastQuery = new Date();
-        console.log(`Query: ${e.query} - Duration: ${e.duration}ms`);
+        logger.debug(`Query: ${e.query} - Duration: ${e.duration}ms`);
       });
 
       this.prisma.$on('error', (e) => {
@@ -312,7 +312,7 @@ export class DatabaseManager {
     try {
       await this.prisma.$connect();
       this.connectionCount++;
-      console.log('Database connected successfully');
+      logger.info('Database connected successfully');
 
       // Perform initial health check
       await this.performHealthCheck();
@@ -333,7 +333,7 @@ export class DatabaseManager {
       }
       await this.prisma.$disconnect();
       this.connectionCount = Math.max(0, this.connectionCount - 1);
-      console.log('Database disconnected successfully');
+      logger.info('Database disconnected successfully');
     } catch (error) {
       console.error('Database disconnection failed:', error);
       throw error;

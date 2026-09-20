@@ -177,22 +177,18 @@ export class AuthMiddleware {
         return;
       }
 
-      // Extract user permissions from token (will be enhanced when user roles are implemented)
-      const userPermissions: string[] = []; // TODO: Extract from user data or token
-
-      // Check if user has all required permissions
-      const hasPermissions = requiredPermissions.every(permission =>
-        userPermissions.includes(permission)
-      );
-
-      if (!hasPermissions && requiredPermissions.length > 0) {
-        res.status(403).json({
+      // Role-based permissions are not implemented: there is no permissions claim on the
+      // user record or the JWT, and no caller currently passes a non-empty
+      // `requiredPermissions` list. Hard-coding an empty permission set here silently
+      // converts any future `authorize(['x'])` call into a guaranteed 403 for every user
+      // — a fail-closed trap rather than a working gate. Until roles exist, fail loudly.
+      if (requiredPermissions.length > 0) {
+        res.status(501).json({
           success: false,
-          error: 'INSUFFICIENT_PERMISSIONS',
-          message: 'Insufficient permissions to access this resource',
+          error: 'AUTHORIZATION_NOT_IMPLEMENTED',
+          message: 'Role-based authorization is not implemented; this endpoint cannot enforce permissions.',
           details: {
-            required: requiredPermissions,
-            userPermissions
+            required: requiredPermissions
           }
         });
         return;

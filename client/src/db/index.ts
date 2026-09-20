@@ -187,7 +187,7 @@ export const getDb = async (password?: string): Promise<ZakAppDatabase> => {
             // while we were waiting for closeDb().
             return getDb(password);
         } else {
-            // console.log('DatabaseService: Returning existing DB singleton');
+            // logger.debug('DatabaseService: Returning existing DB singleton');
             return window._zakapp_db_promise;
         }
     }
@@ -273,7 +273,7 @@ export const resetDb = async () => {
             if (db && !(db as any).destroyed) {
                 if (typeof (db as any).remove === 'function') {
                     await (db as any).remove();
-                    console.log("DatabaseService: DB Removed.");
+                    logger.debug("DatabaseService: DB Removed.");
                 } else {
                     console.warn("DatabaseService: missing remove() method");
                 }

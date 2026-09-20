@@ -230,6 +230,38 @@ export const useDeleteSnapshot = () => {
 };
 
 /**
+ * Shape of a snapshot comparison payload.
+ *
+ * Declared explicitly so the (unimplemented) hook below still types correctly for
+ * its consumer. Every field is optional because no comparison data is ever produced.
+ */
+export interface SnapshotComparisonData {
+  differences?: unknown[];
+  assetGrowth?: number;
+  zakatGrowth?: number;
+  zakatChange?: number;
+  liabilitiesChange?: number;
+  netWorthChange?: number;
+  netWorthGrowth?: number;
+  categoryBreakdown?: Record<string, unknown>;
+  fromSnapshot?: {
+    totalAssets?: number;
+    zakatDue?: number;
+    nisabThreshold?: number;
+    calculationDate?: string;
+    methodology?: string;
+  };
+  toSnapshot?: {
+    totalAssets?: number;
+    zakatDue?: number;
+    nisabThreshold?: number;
+    calculationDate?: string;
+    methodology?: string;
+  };
+  breakdown?: { from: unknown[]; to: unknown[] };
+}
+
+/**
  * Hook for comparing two snapshots.
  * Useful for tracking wealth changes and Zakat calculation differences over time.
  *
@@ -238,24 +270,24 @@ export const useDeleteSnapshot = () => {
  * @returns Query result with comparison data
  */
 export const useCompareSnapshots = (fromId: string, toId: string) => {
-  // TODO: Implement local comparison logic if needed, or keep partial API for heavy computational comparisons
-  // For now, redirecting to a safe empty state or mock
+  // NOT IMPLEMENTED. This previously resolved with a fully-populated comparison
+  // object whose every figure was hard-coded to 0 — `assetGrowth: 0`,
+  // `differences: []`, `breakdown: { from: [], to: [] }`. SnapshotComparison.tsx
+  // binds those fields with `|| 0` fallbacks, so the UI rendered a complete,
+  // confident table of "$0.00 change / 0.0%" for any two records. A user could
+  // not tell that apart from a genuine no-change comparison.
+  //
+  // Rejecting is the honest behaviour: the component's error branch surfaces the
+  // failure instead of displaying fabricated financial figures.
   return useQuery({
     queryKey: ['zakat-snapshots', 'compare', fromId, toId],
-    queryFn: async () => {
-      return {
-        success: true,
-        data: {
-          differences: [],
-          assetGrowth: 0,
-          zakatChange: 0,
-          liabilitiesChange: 0,
-          netWorthChange: 0,
-          breakdown: { from: [], to: [] }
-        }
-      };
+    queryFn: async (): Promise<{ success: true; data: SnapshotComparisonData }> => {
+      throw new Error(
+        'Snapshot comparison is not implemented. No real comparison data was computed.'
+      );
     },
     enabled: !!(fromId && toId),
+    retry: false,
   });
 };
 

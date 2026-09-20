@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { useMemo } from 'react';
 
 interface BestAction {
@@ -23,7 +24,7 @@ export const useBestAction = (
         const isZakatDue = activeRecord?.hawlCompletionDate &&
             new Date(activeRecord.hawlCompletionDate) <= new Date();
 
-        console.log('[useBestAction] State:', { isZakatDue, activeRecordId: activeRecord?.id, hasActiveRecord, isOnboardingComplete });
+        logger.info('[useBestAction] State:', { isZakatDue, activeRecordId: activeRecord?.id, hasActiveRecord, isOnboardingComplete });
 
         if (isZakatDue) {
             return {

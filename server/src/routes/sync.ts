@@ -60,7 +60,7 @@ router.post('/token', authMiddleware, async (req: AuthenticatedRequest, res: Res
                 message: 'Server sync is not configured (missing COUCHDB_JWT_SECRET). Local vault-only mode continues to work.'
             });
         }
-        console.log('Secret configured.');
+        logger.info('Secret configured.');
 
         // Get user from auth middleware
         const user = req.user;

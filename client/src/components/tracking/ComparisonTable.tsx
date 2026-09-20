@@ -20,6 +20,7 @@
  * Side-by-side comparison of multiple yearly snapshots
  */
 
+import { logger } from '../../utils/logger';
 import React from 'react';
 import { useComparison } from '../../hooks/useComparison';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
@@ -278,7 +279,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         <button 
           onClick={() => {
             // Export to CSV functionality would go here
-            console.log('Export to CSV functionality not implemented yet');
+            logger.debug('Export to CSV functionality not implemented yet');
           }}
           className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700"
         >

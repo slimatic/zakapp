@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { logger } from './utils/logger';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -72,7 +73,7 @@ initializeBackgroundSync();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then(() => console.log('[SW] Registered'))
+      .then(() => logger.info('[SW] Registered'))
       .catch(err => console.warn('[SW] Registration failed:', err));
   });
 }
@@ -81,7 +82,7 @@ if ('serviceWorker' in navigator) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then(() => console.log('[SW] Registered'))
+      .then(() => logger.info('[SW] Registered'))
       .catch(err => console.warn('[SW] Registration failed:', err));
   });
 }

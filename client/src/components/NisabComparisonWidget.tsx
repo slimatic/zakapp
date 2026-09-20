@@ -26,6 +26,7 @@
  * - Difference amount display
  */
 
+import { logger } from '../utils/logger';
 import React, { useMemo } from 'react';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useHawlStatus } from '../hooks/useHawlStatus';
@@ -75,7 +76,7 @@ export interface NisabComparisonWidgetProps {
  *   record={nisabYearRecord}
  *   currentWealth={45000}
  *   showDetails={true}
- *   onStatusChange={(isAbove) => console.log('Above Nisab:', isAbove)}
+ *   onStatusChange={(isAbove) => logger.debug('Above Nisab:', isAbove)}
  * />
  */
 export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
