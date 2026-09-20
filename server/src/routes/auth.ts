@@ -309,6 +309,35 @@ router.post('/register',
   validateUserRegistration,
   handleValidationErrors,
   asyncHandler(async (req: ExpressRequest, res: ExpressResponse) => {
+    // Gate on the operator's allowRegistration setting BEFORE any validation or
+    // user creation, so it cannot be bypassed with a malformed body.
+    //
+    // Fail closed: if reading the setting throws, refuse rather than silently
+    // falling through to open registration.
+    try {
+      const { allowRegistration } = await SettingsService.getSettings();
+      if (!allowRegistration) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: 'REGISTRATION_DISABLED',
+            message: 'Registration is currently disabled'
+          }
+        });
+        return;
+      }
+    } catch (settingsError) {
+      logger.error('Failed to read allowRegistration setting; refusing registration', settingsError);
+      res.status(503).json({
+        success: false,
+        error: {
+          code: 'REGISTRATION_UNAVAILABLE',
+          message: 'Registration is temporarily unavailable'
+        }
+      });
+      return;
+    }
+
     // Normalize email to lowercase first
     req.body.email = req.body.email.toLowerCase();
 
