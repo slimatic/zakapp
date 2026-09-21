@@ -250,18 +250,62 @@ async function migratePaymentRecords(): Promise<{ migrated: number; errors: stri
         process.env.ENCRYPTION_KEY || ''
       );
       
+      // Detect fail-open decryption BEFORE anything else.
+      //
+      // EncryptionService.decrypt is deliberately non-throwing: on failure it
+      // returns a stringified form of its input so that endpoints like /me degrade
+      // instead of crashing. That is reasonable for a read path and dangerous here,
+      // because a re-encryption loop would then encrypt the CIPHERTEXT itself:
+      //
+      //   decrypt(cipher, wrongKey) -> "cipher"        (fail-open)
+      //   encrypt("cipher", wrongKey) -> newCipher
+      //   decrypt(newCipher, wrongKey) -> "cipher"     (round-trip MATCHES)
+      //
+      // The round-trip check below cannot catch that on its own — the loop is
+      // internally consistent while the stored value becomes double-encrypted and
+      // unreadable, and the migration would still report success.
+      //
+      // Identity is the tell: a real decryption never returns its own input.
+      if (decrypted === payment.recipientName) {
+        throw new Error(
+          'decryption returned its input unchanged — the key does not match this ' +
+            'data, so re-encrypting would double-encrypt it. Row left untouched.'
+        );
+      }
+
       // Re-encrypt with GCM format
       const reencrypted = await EncryptionService.encrypt(
         decrypted,
         process.env.ENCRYPTION_KEY || ''
       );
-      
+      //
+      // This loop overwrites the original ciphertext in place, so a re-encryption
+      // that cannot be read back destroys the value outright — the plaintext is
+      // gone from the live database and survives only in the pre-migration backup.
+      // The backup makes that recoverable, not harmless: the migration would still
+      // report success while the user's recipient names were unreadable.
+      //
+      // Decrypting the new ciphertext and comparing it to what we started with
+      // turns a silent corruption path into a reported failure, and the throw
+      // leaves the original row untouched.
+      const roundTripped = await EncryptionService.decrypt(
+        reencrypted,
+        process.env.ENCRYPTION_KEY || ''
+      );
+
+      if (roundTripped !== decrypted) {
+        throw new Error(
+          `re-encryption did not round-trip (${decrypted.length} chars in, ` +
+            `${roundTripped.length} out) — original left unchanged`
+        );
+      }
+
       // Update database
       await prisma.paymentRecord.update({
         where: { id: payment.id },
         data: { recipientName: reencrypted }
       });
-      
+
       migrated++;
       
       if (migrated % 10 === 0) {
@@ -307,18 +351,42 @@ async function migrateUserProfiles(): Promise<{ migrated: number; errors: string
         process.env.ENCRYPTION_KEY || ''
       );
       
+      // Detect fail-open decryption BEFORE anything else — see the payment path
+      // above for why the round-trip check alone is not sufficient.
+      if (JSON.stringify(decrypted) === JSON.stringify(user.profile)) {
+        throw new Error(
+          'profile decryption returned its input unchanged — the key does not match ' +
+            'this data, so re-encrypting would double-encrypt it. Row left untouched.'
+        );
+      }
+
       // Re-encrypt with GCM format
       const reencrypted = await EncryptionService.encryptObject(
         decrypted,
         process.env.ENCRYPTION_KEY || ''
       );
-      
+
+      // Round-trip verification BEFORE the write — same reasoning as the payment
+      // path above. A profile that cannot be read back would leave the user's
+      // name, currency and methodology settings inaccessible while the migration
+      // still reported success.
+      const roundTripped = await EncryptionService.decryptObject(
+        reencrypted,
+        process.env.ENCRYPTION_KEY || ''
+      );
+
+      if (JSON.stringify(roundTripped) !== JSON.stringify(decrypted)) {
+        throw new Error(
+          'profile re-encryption did not round-trip — original left unchanged'
+        );
+      }
+
       // Update database
       await prisma.user.update({
         where: { id: user.id },
         data: { profile: reencrypted }
       });
-      
+
       migrated++;
       
       if (migrated % 10 === 0) {
