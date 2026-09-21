@@ -52,6 +52,25 @@ These hold for **every** release, not just majors:
 5. **No operational detail** in the repository — no hostnames, IPs, install paths or
    personal addresses. See `PUBLIC-PRIVATE-BOUNDARY.md`.
 
+## Release log
+
+Recorded so the cadence's own history is visible — including where it was deviated from,
+and why.
+
+| Release | Tagged | Lunar anchor | Anchor held? |
+|---|---|---|---|
+| v0.17.0 | 2026-09-21 | 10 Rabi al-Thani 1448, waxing gibbous 74% | **No** — see below |
+
+**v0.17.0 was released off-anchor, deliberately.** The work was finished and verified: the
+full suite green, and the upgrade path proven against a copy of a live production database
+with every row and value fingerprint intact. The next lunar anchor was three weeks away.
+The cadence's own rule is that *a finished, verified release sitting for three weeks is not
+more disciplined than shipping it* — so it shipped, on a waxing gibbous, and the deviation
+is recorded here rather than hidden.
+
+That is the cadence working, not bending. What would have been a deviation from the spirit
+is shipping with the suite red or the upgrade path untested; neither applied.
+
 ## Versioning
 
 - **Patch** (`0.16.x`) — fixes to a shipped release, backported to its release branch.
