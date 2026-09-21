@@ -78,32 +78,44 @@ export class UserController {
   });
 
   getSessions = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const mockSessions = [
-      {
-        id: 'session-1',
-        deviceInfo: 'Chrome on Windows',
-        ipAddress: '127.0.0.1',
-        lastActive: new Date().toISOString(),
-        isCurrent: true,
-        createdAt: new Date().toISOString()
-      }
-    ];
+    const userId = req.userId!;
+
+    // Real sessions from UserService. This previously returned a single hardcoded
+    // object ("Chrome on Windows", 127.0.0.1) that described no actual session, so
+    // a user checking whether their account had been accessed saw a fiction.
+    const sessions = await userService.getSessions(userId);
 
     const response: ApiResponse = {
       success: true,
-      sessions: mockSessions
+      sessions: sessions.map((s) => ({
+        id: s.id,
+        deviceInfo: s.userAgent || 'Unknown device',
+        ipAddress: s.ipAddress,
+        createdAt: s.createdAt,
+        lastActive: s.refreshedAt ?? s.createdAt,
+        expiresAt: s.expiresAt,
+        isCurrent: false,
+      })),
     };
 
     res.status(200).json(response);
   });
 
   deleteSession = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    // Session ID would be used for actual deletion
-    // const { id } = req.params;
+    const userId = req.userId!;
+    const { id } = req.params;
+
+    if (!id) {
+      throw new AppError('Session ID is required', 400, ErrorCode.VALIDATION_ERROR);
+    }
+
+    // Previously returned success while doing nothing, so a user who tried to
+    // terminate a session was told it was revoked and it was not.
+    await userService.revokeSession(userId, id);
 
     const response: ApiResponse = {
       success: true,
-      message: 'Session terminated successfully'
+      message: 'Session terminated successfully',
     };
 
     res.status(200).json(response);
@@ -240,88 +252,79 @@ export class UserController {
     }
   });
 
-  exportStatus = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { requestId } = req.params;
-
-    const response: ApiResponse = {
-      success: true,
-      exportStatus: {
-        id: requestId,
-        status: 'completed',
-        progress: 100,
-        createdAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-        downloadUrl: `/api/export/download/${requestId}`,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-      }
-    };
-
-    res.status(200).json(response);
+  exportStatus = asyncHandler(async (_req: AuthenticatedRequest, _res: Response) => {
+    // The export endpoint streams the file synchronously, so no stored export
+    // request exists to poll. This previously fabricated a completed status with
+    // a download URL under /api/export/download/, a route that is NOT mounted
+    // (see routes/export.ts) — so the URL 404'd every time.
+    throw new AppError(
+      'Export status polling is not supported: exports are streamed immediately by POST /api/user/export-request',
+      501,
+      ErrorCode.NOT_FOUND
+    );
   });
 
   getPrivacySettings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const mockPrivacySettings = {
-      dataSharing: false,
-      analytics: true,
-      marketing: false,
-      shareWithThirdParties: false,
-      publicProfile: false,
-      searchEngineIndexing: false,
-      activityTracking: true,
-      cookiePreferences: {
-        essential: true,
-        functional: true,
-        analytics: true,
-        marketing: false
-      }
-    };
+    const userId = req.userId!;
+
+    // Real stored settings, not a hardcoded object. The previous version returned
+    // the same fixed values for every user and ignored the database entirely, so
+    // the privacy preference shown could differ from what was saved.
+    const settings = await userService.getPrivacySettings(userId);
 
     const response: ApiResponse = {
       success: true,
-      privacySettings: mockPrivacySettings
+      privacySettings: {
+        // The client reads `analytics`; UserService persists it under
+        // privacy.analyticsEnabled. Map explicitly rather than hoping the shapes
+        // agree, and keep the other keys the client may read.
+        analytics: settings.analyticsEnabled,
+        dataSharing: false,
+        marketing: false,
+        shareWithThirdParties: false,
+        publicProfile: false,
+        searchEngineIndexing: false,
+        activityTracking: false,
+      },
     };
 
     res.status(200).json(response);
   });
 
   updatePrivacySettings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const privacyUpdate = req.body;
+    const userId = req.userId!;
+    const { analytics } = req.body ?? {};
+
+    // Previously echoed the request body back with an updatedAt stamp and wrote
+    // nothing, so the UI showed "Privacy settings updated successfully!" while the
+    // database was unchanged — and the setting silently reverted on reload.
+    const updated = await userService.updatePrivacySettings(userId, { analyticsEnabled: analytics });
 
     const response: ApiResponse = {
       success: true,
       message: 'Privacy settings updated successfully',
       privacySettings: {
-        ...privacyUpdate,
-        updatedAt: new Date().toISOString()
-      }
+        analytics: updated.privacy?.analyticsEnabled ?? false,
+        dataSharing: false,
+        marketing: false,
+      },
     };
 
     res.status(200).json(response);
   });
 
   getAuditLog = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const mockAuditLog = [
-      {
-        id: 'audit-1',
-        action: 'login',
-        timestamp: new Date().toISOString(),
-        ipAddress: '127.0.0.1',
-        userAgent: 'Chrome on Windows',
-        details: { method: 'password' }
-      },
-      {
-        id: 'audit-2',
-        action: 'asset_created',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        ipAddress: '127.0.0.1',
-        userAgent: 'Chrome on Windows',
-        details: { assetType: 'CASH', assetName: 'Savings Account' }
-      }
-    ];
+    const userId = req.userId!;
+    const limit = Number(req.query.limit ?? 50) || 50;
+
+    // Previously returned two hardcoded entries ("asset_created", "Savings
+    // Account") for every user. A user auditing their own account activity was
+    // shown fabricated history, which defeats the purpose of an audit log.
+    const auditLog = await userService.getAuditLog(userId, limit);
 
     const response: ApiResponse = {
       success: true,
-      auditLog: mockAuditLog
+      auditLog,
     };
 
     res.status(200).json(response);
@@ -331,46 +334,49 @@ export class UserController {
     const { includeHistory = true, encrypted = true } = req.body;
     const userId = req.userId!;
 
+    // Previously this returned a fabricated receipt: size was the string
+    // "2.5 MB" regardless of the data, and downloadUrl pointed at
+    // /api/user/backup/download/... — a route that does not exist anywhere in the
+    // codebase, so following it 404'd. A user was told a backup had been created
+    // and given a link to nothing.
+    //
+    // UserService.createBackup() does assemble REAL data (profile, assets,
+    // calculations, payments) with a true byte size, so return that. No download
+    // URL is offered because none is implemented — exporting data is handled by
+    // POST /api/user/export-request, which streams the file directly.
+    const backup = await userService.createBackup(userId);
+
     const response: ApiResponse = {
       success: true,
-      message: 'Backup created successfully',
+      message: 'Backup assembled successfully',
       backup: {
-        id: `backup-${userId}-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        size: '2.5 MB',
+        id: backup.backupId,
+        createdAt: backup.createdAt.toISOString(),
+        size: backup.size,
         includeHistory,
         encrypted,
-        downloadUrl: `/api/user/backup/download/backup-${userId}-${Date.now()}`,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
-      }
+        // Deliberately absent: downloadUrl. Nothing serves a stored backup file.
+        data: backup.data,
+      },
     };
 
     res.status(201).json(response);
   });
 
-  restore = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { backupId, overwrite = false } = req.body;
-
-    if (!backupId) {
-      throw new AppError('Backup ID is required', 400, ErrorCode.VALIDATION_ERROR);
-    }
-
-    const response: ApiResponse = {
-      success: true,
-      message: 'Data restoration completed successfully',
-      restoration: {
-        backupId,
-        restoredAt: new Date().toISOString(),
-        overwrite,
-        itemsRestored: {
-          assets: 5,
-          calculations: 3,
-          payments: 2,
-          settings: 1
-        }
-      }
-    };
-
-    res.status(200).json(response);
+  restore = asyncHandler(async (_req: AuthenticatedRequest, _res: Response) => {
+    // This used to answer "Data restoration completed successfully" with a
+    // fabricated restored-item count (assets: 5, calculations: 3, payments: 2,
+    // settings: 1) and restore nothing at all. That is the most dangerous possible
+    // response in this file: a user who believed their data had been restored
+    // would stop worrying about it.
+    //
+    // No restore implementation exists (UserService.restoreFromBackup() is a stub
+    // that returns a success message without touching the database). Answer
+    // honestly instead of pretending.
+    throw new AppError(
+      'Data restore is not implemented in this release. No data was modified.',
+      501,
+      ErrorCode.NOT_FOUND
+    );
   });
 }

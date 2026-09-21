@@ -51,7 +51,7 @@ const logger = new Logger('App');
 
 // Import middleware
 // import { DatabaseManager } from './config/database';
-// import { errorHandler } from './middleware/ErrorHandler';
+import { errorHandler } from './middleware/ErrorHandler';
 import { MaintenanceMiddleware } from './middleware/MaintenanceMiddleware';
 
 // Import job scheduler
@@ -195,10 +195,18 @@ app.get('/health', (req, res) => {
 });
 
 // Error handling middleware (must be last)
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error(`Application Error: ${err.message}`, err);
-  res.status(500).json({ success: false, error: 'Internal server error' });
-});
+//
+// This is the real ErrorHandler, which was commented out in fc3c8c05 alongside a
+// catch-all that rewrote EVERY error to a bare 500. The effect was systemic: 54
+// call sites throw AppError with a deliberate status (23x 400, 8x 401, 5x 404,
+// plus 403/422/429/501), and nearly all of them reached the client as
+// "Internal server error" with no machine-readable code. The client already tests
+// for 401/403/404/503/422, so it was waiting for codes the server never sent.
+//
+// Verified before re-enabling: this module imports only express and Prisma types
+// (no app import), so it cannot reintroduce the circular dependency, and no test
+// expects a 500 from a route that throws AppError.
+app.use(errorHandler);
 
 
 export { app };
