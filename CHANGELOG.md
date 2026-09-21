@@ -2,135 +2,149 @@
 
 ## [Unreleased]
 
-### Documentation hygiene — public/private boundary
-
-Tracked documentation had accumulated operational detail that does not belong in a
-public repository. Removed:
-
-- **Personal email addresses** from registration walkthroughs and fix reports
-  (8 files, both `docs/reports/` and its duplicate `docs/archive/reports/` tree).
-  Examples now use the IANA-reserved `example.com` domain.
-- **Operator-specific install paths** (`~/<app-platform-dir>/<user>/services/...`) replaced with
-  the documented placeholder `<ZAKAPP_INSTALL_DIR>`, with a new preamble explaining
-  that the path is wherever *you* installed ZakApp.
-- **Production service hostnames** (frontend, API, sync endpoints) replaced with
-  `<YOUR_APP_HOST>` / `<YOUR_API_HOST>` / `<YOUR_SYNC_HOST>`. The project's reference
-  deployment is publicly linked as a demo; its internal service topology is not
-  documented here.
-- **A private IP on the maintainer's LAN subnet** in `IMPLEMENTATION-SUMMARY.md` and
-  `docs/NGINX-PROXY-MANAGER.md`, replaced with a neutral RFC1918 example.
-- **The maintainer's name** in registration examples and release-plan attributions.
-
-Added `docs/PUBLIC-PRIVATE-BOUNDARY.md`: the rule, the never-commit table, the
-synthetic-test-data convention, and grep checks to run before pushing.
-
-> Note: this repo is the open-source software; `zakapp.org` is one deployment of it.
-> They are related but distinct, and documentation must not conflate them.
+_Nothing yet — the next cycle is `v0.18.0`, tagged 1 Jumada al-Thani 1448 (2026-11-10).
+See `docs/RELEASE-CADENCE.md`._
 
 ## [0.17.0] - 2026-10-12
 
-### Jumada al-Ula 1448 — currency correctness, import safety, logging hygiene
+### Jumada al-Ula 1448 — data safety, money correctness, and a clean container
 
-**Currency formatting consolidated**
+The first release on the lunar cadence. The theme is **trust in the numbers and the
+data**: every zakat figure this release displays is one it can actually justify, and
+every upgrade path was tested against a real copy of a production database before
+being tagged.
 
-Both currency formatters in the client were wrong, in different ways, so the same
-amount could render differently depending on which screen you were on.
+**Upgrades are verified to lose nothing**
 
-- **SAR and EGP rendered Arabic-Indic digits.** An English-UI user saw
-  `١٬٢٣٤٫٥٦ ر.س.‏` for a Saudi riyal amount. The canonical formatter now pins
-  `numberingSystem: 'latn'` while keeping each currency's own symbol, placement and
-  grouping.
-- **IDR showed the code instead of the symbol** (`IDR 15,750,000`), and the
-  dashboard's hardcoded `$` could appear above a `Rp` figure on the same screen.
-  IDR now renders `Rp 15.750.000`.
-- **Decimals are now strict per currency** — USD always 2, IDR/JPY/KRW 0 — rather
-  than a 0–2 range that let `$1,234.5` and `$1,500,000` appear side by side.
-- `useDisplayCurrency` now delegates to the canonical `formatCurrency`, so the two
-  cannot drift apart again.
-- **28 duplicate `formatCurrency` definitions removed** across three passes. Eleven
-  were byte-identical for USD; eleven hardcoded USD with no currency source; five
-  read a record's own currency. Where a wrapper carried a guard — `privacyMode`
-  masking in `AssetCard`, the `NaN` guard in `FinalizationModal` — the wrapper was
-  kept as a thin delegate so no guard could be lost.
+- **Backups are validated by content, not size.** The auto-migration path accepted a
+  backup as good if the *file size* looked plausible, which an empty SQLite database
+  with live WAL sidecars satisfies. A migration could therefore proceed with a useless
+  backup sitting behind it. Backups now checkpoint the WAL first, compare a SHA-256
+  digest, and run `PRAGMA integrity_check`.
+- **Re-encryption cannot silently corrupt.** The startup migration rewrites legacy
+  CBC ciphertext to AES-GCM in place. It now decrypts each newly written value and
+  compares it to the original before committing the row, and it detects the
+  fail-open case where a wrong key causes `decrypt` to return its own input —
+  which would otherwise double-encrypt a record and still pass a round-trip check.
+- **The migration no longer skips a column it claims to migrate.** It selected
+  `payment_records.amount` but only ever wrote `recipientName` back, and its
+  "migration needed?" probe looked at the name alone. A database with a migrated name
+  and an unmigrated amount reported *"No CBC-formatted encrypted data found"* while
+  the amounts remained on the legacy scheme. Both are now covered; values are
+  preserved (verified 10/10 on a production copy).
+- `scripts/ops/restore-backup.sh` — an interactive restore with row-count checks
+  before it overwrites anything.
 
-> **Non-Latin locales:** if your display currency uses comma grouping, the separator
-> changes. `1,500,000` now renders `1.500.000` for IDR. The digits are unchanged;
-> only the grouping mark follows the currency's locale.
+> Tested by applying this release's migrations to a copy of a live production
+> database: all 35 tables preserved, `integrity_check` ok, row counts and value
+> fingerprints byte-identical, and every encrypted value still decrypting.
+
+**Money correctness**
+
+- **Live exchange rates.** Rates were hardcoded to 2023 values and fed directly into
+  the zakat engine, understating non-USD wealth by 42% (EGP) and 77% (TRY) — enough to
+  tell a user they were below the nisab threshold when they were above it. Rates now
+  come from a live provider with a one-hour cache, and conversions without a direct
+  pair are solved through USD rather than falling back to 1:1.
+- **Saved calculations record the rate they used** (`fxRateUsed`, `fxRateSource`), and
+  `/rate-staleness` flags a saved calculation that current rates have moved ≥1% away
+  from, so the user can recalculate. Historical records are never silently rewritten.
+- **Payment amounts below 1,000,000 read back as `NaN`.** A base64 group-length check
+  rejected short ciphertexts, and the fallback coerced them to `NaN`. Amounts now
+  parse raw first and defer to authenticated decryption, with an explicit error rather
+  than a silent `NaN`.
+- **Ciphertext was being parsed as a number in six places.** `parseFloat` on an
+  encrypted column does not usually throw — and in roughly **1 sample in 6 the
+  ciphertext begins with a digit**, so it returns a small, plausible, *wrong* number
+  instead of `NaN`. That silently understated totals in the year-over-year comparison,
+  the live Hawl panel, the Hawl interruption check, the 4 AM summary job, payment
+  aggregations and one model helper. All six now decrypt through a shared
+  `encryptedNumbers` reader before any arithmetic.
+- **Every amount now displays in the currency it was recorded in.** An asset held in
+  IDR showed its retirement preview, and a payment list its totals, with a hardcoded
+  `$`. Eleven further call sites built their own formatter with `en-US` conventions,
+  rendering IDR as `IDR 50,000,000.00` instead of `Rp 50.000.000` on every onboarding
+  screen. The client now has exactly one currency formatter; `useDisplayCurrency`
+  delegates to it, and the SAR/EGP Arabic-Indic digit bug (an English-UI user seeing
+  `١٬٢٣٤٫٥٦ ر.س.‏`) is fixed by pinning `numberingSystem: 'latn'`.
+
+> **Non-Latin locales:** where a currency groups with commas, the separator changes.
+> `1,500,000` renders `1.500.000` for IDR. Digits are unchanged; only the grouping
+> mark follows the currency's locale.
 
 **Export/import no longer destroys amounts**
 
-- CSV export wrote *formatted* values (`$1,234,567.89`) while the importers parsed
-  with `parseFloat`, which returns `NaN` on both `$` and `,`. Combined with a `|| 0`
-  fallback, **every amount silently became zero on re-import.** Export now writes raw
-  numbers with currency in its own column, and import accepts both raw values and
-  every formatted shape older releases produced — including id-ID grouping, where
-  `1.500.000` means one and a half million and must not parse as `1.5`.
-- Importers now return `NaN` on unparseable input instead of silently writing `0`.
+- CSV export wrote *formatted* values (`$1,234,567.89`) while importers parsed with
+  `parseFloat`, which returns `NaN` on both `$` and `,`. Combined with a `|| 0`
+  fallback, **every amount silently became zero on re-import.** Export writes raw
+  numbers with the currency in its own column, and import accepts every formatted
+  shape older releases produced — including id-ID grouping, where `1.500.000` means one
+  and a half million and must not parse as `1.5`.
 
 **Security**
 
-- The `allowRegistration` gate and the verification-email handling from the 0.16.x
-  maintenance line are present on `main`; a build from this tree can no longer ship
-  open public signups.
-
-**Fabricated data paths removed from Zakat and auth surfaces**
-
-- `NisabService.getHistoricalNisab()` generated its "historical" nisab values with
-  `Math.random()`. Presented as trend data these are indistinguishable from real
-  prices. The method has **no callers**, so nothing shipped broken — but it was a
-  loaded gun in a religious-finance codebase. It now throws until a real historical
-  price source is integrated.
-- `useCompareSnapshots()` resolved a hard-coded all-zero comparison (`assetGrowth: 0`,
-  `differences: []`). `SnapshotComparison.tsx` binds those fields with `|| 0`
-  fallbacks, so wiring that screen up would have rendered a complete
-  **"$0.00 change / 0.0%"** table for any two records — visually identical to a
-  genuine no-change result. It now rejects, and the component shows an explicit
-  "not available" state. **Neither component is reachable from any route today**;
-  this removes a trap for the next developer rather than changing current behaviour.
-- `AuthMiddleware.authorize()` hard-coded `const userPermissions: string[] = []`
-  ahead of an `every()` check, so any future `authorize(['x'])` call would have
-  403'd for every user regardless of role. It now returns
-  `501 AUTHORIZATION_NOT_IMPLEMENTED` rather than pretending. No caller passes a
-  non-empty list today.
-
-**Logging**
-
-- The server logger's `info()` wrote straight to the container log with no
-  environment gate; the client sibling already gated on `NODE_ENV` and the two had
-  drifted. Now consistent.
-- **58 `console.log` sites across 24 production files** now route through the
-  per-workspace logger — lifecycle events to `info`, diagnostics to `debug`. Test,
-  story and mock occurrences are deliberately untouched.
+- **Containers no longer run as root.** The backend ran as uid 0, so an RCE in any
+  route — or a compromised dependency — held root inside the container with write
+  access to the mounted database and every secret in the process environment. The
+  entrypoint still starts as root to chown a bind-mounted or fresh volume (SQLite needs
+  write access to the *directory* for its `-wal`/`-shm` sidecars), then hands off with
+  `setpriv`; migrations and the server run as `node`. Verified by building the image and
+  checking the running process uid, on both a named volume and a host-owned bind mount.
+- **Public signups are gated.** `allowRegistration` was enforced only in a route file
+  the application never loaded, so disabling registration did not actually disable it.
+  Both the live route and the email-verification failure path now fail closed.
+- **The error handler was reconnected.** A commented-out middleware had been replaced
+  by a catch-all returning a flat `500 Internal server error`, collapsing 54 distinct
+  `AppError` statuses (400/401/404/501/503) into one unhelpful response. Clients again
+  receive real status codes and machine-readable error codes.
+- **Endpoints no longer fabricate answers.** The backup, restore, device-session,
+  audit-log and privacy-settings endpoints returned hardcoded payloads — `restore`
+  reported success while restoring nothing. Real data is read where it exists;
+  unimplemented endpoints return `501` instead of inventing a result.
+- `NisabService.getHistoricalNisab()` generated "historical" prices with `Math.random()`,
+  and `useCompareSnapshots()` resolved an all-zero comparison that would have rendered a
+  convincing "$0.00 change" table. Both now refuse rather than present invented data as
+  real. Neither is reachable from any route today; this removes a trap for the next
+  developer.
+- Removed personal email addresses, operator install paths, production hostnames and a
+  private LAN IP from tracked documentation. Added `docs/PUBLIC-PRIVATE-BOUNDARY.md`.
 
 **Maintainability**
 
-- `server/src/routes/auth.ts` split from **1,251 lines into a 62-line facade** over
-  six focused modules. All nine Express routes were compared byte-for-byte before
-  and after. An unimported duplicate auth directory was removed — it was the reason
-  a security fix once landed in a file the app never loaded.
-- Removed the orphaned root `tests/` directory (25 files, last touched 2026-05-18).
-  It was referenced by **no CI job and no npm script** and could not run from the
-  repo root.
-- Added `server/tests/contract/payments.contract.test.ts` — a real contract test for
-  the shipping API covering auth rejection, validation failure and ownership checks.
+- **113 unreachable files removed (28,729 lines)** — 35 on the server (11,060 lines), 78
+  in the client (17,669 lines), found with `knip` rather than guesswork. Nothing
+  test-covered was deleted; files that carry real coverage are deliberately kept and
+  flagged.
+- `server/src/routes/auth.ts` split from **1,251 lines into a 62-line facade** over six
+  route modules plus a shared helpers module, with all nine routes compared byte-for-byte.
+  An unimported duplicate auth
+  directory was removed — it was why a security fix once landed in a file the app never
+  loaded.
+- A dead payment subsystem and the old root `tests/` directory were removed.
+- Added `client/knip.json` and `server/knip.json` so this stays checkable.
 
-**Dark mode**
+**Tests and coverage**
 
-- Gradient stops, focus rings and `border-gray-500` were unmapped in the dark theme,
-  leaving skeleton shimmers flashing bright and focus rings invisible. Mapped, with a
-  static test that fails if an unmapped `gray-*` utility is introduced.
+- Coverage gates added to both workspaces, wired into CI. Measured honestly with `include`
+  globs: client **21.6%**, server **25.6%** at the start.
+- The suites grew from **507 → 753** (server) and **605 → 622** (client), and coverage
+  reached **38.8%** (server) on the way.
+- New tests cover the calculation engine (2.9% → 62.4%), encryption round-trips and
+  integrity, currency precision across 11 currencies, the backup verifier against real
+  SQLite files, and both production ciphertext formats.
+- Tests that previously **mocked the code under test** were replaced with ones that run
+  the real implementation against real files.
 
-**Public/private boundary**
+**Release cadence**
 
-- Removed personal email addresses, operator install paths, production hostnames and
-  a private LAN IP from tracked documentation. Examples now use `example.com` and
-  RFC1918 ranges. Added `docs/PUBLIC-PRIVATE-BOUNDARY.md`, which states the rule, the
-  never-commit table, and the grep checks to run before pushing.
+- `docs/RELEASE-CADENCE.md`: one release per Hijri month, tagged on the first day. Phase
+  1–10 sweep, 11–20 harden, 21–27 prepare, 28–1 release. A month is long enough to land
+  something meaningful and short enough that debt cannot pile up.
 
-**Suites:** server **507 pass** (53 files); client **605 pass / 1 skipped** (76 files).
-TypeScript clean across all workspaces.
+**Suites:** server **753 pass** (69 files); client **622 pass / 1 skipped** (78 files).
+TypeScript clean across all workspaces. Container image verified to build and serve.
 
-**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.3...v0.17.0
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.8...v0.17.0
 
 ## [0.16.6] - 2026-09-20
 
