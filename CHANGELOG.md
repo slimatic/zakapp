@@ -7,142 +7,57 @@ See `docs/RELEASE-CADENCE.md`._
 
 ## [0.17.0] - 2026-10-12
 
-### Jumada al-Ula 1448 — data safety, money correctness, and a clean container
+### Jumada al-Ula 1448
 
-The first release on the lunar cadence. The theme is **trust in the numbers and the
-data**: every zakat figure this release displays is one it can actually justify, and
-every upgrade path was tested against a real copy of a production database before
-being tagged.
+Trust in the numbers and the data: every figure displayed is one the app can justify, and
+the upgrade path was tested against a real production database before tagging.
 
-**Upgrades are verified to lose nothing**
+**Data safety**
 
-- **Backups are validated by content, not size.** The auto-migration path accepted a
-  backup as good if the *file size* looked plausible, which an empty SQLite database
-  with live WAL sidecars satisfies. A migration could therefore proceed with a useless
-  backup sitting behind it. Backups now checkpoint the WAL first, compare a SHA-256
-  digest, and run `PRAGMA integrity_check`.
-- **Re-encryption cannot silently corrupt.** The startup migration rewrites legacy
-  CBC ciphertext to AES-GCM in place. It now decrypts each newly written value and
-  compares it to the original before committing the row, and it detects the
-  fail-open case where a wrong key causes `decrypt` to return its own input —
-  which would otherwise double-encrypt a record and still pass a round-trip check.
-- **The migration no longer skips a column it claims to migrate.** It selected
-  `payment_records.amount` but only ever wrote `recipientName` back, and its
-  "migration needed?" probe looked at the name alone. A database with a migrated name
-  and an unmigrated amount reported *"No CBC-formatted encrypted data found"* while
-  the amounts remained on the legacy scheme. Both are now covered; values are
-  preserved (verified 10/10 on a production copy).
-- `scripts/ops/restore-backup.sh` — an interactive restore with row-count checks
-  before it overwrites anything.
-
-> Tested by applying this release's migrations to a copy of a live production
-> database: all 35 tables preserved, `integrity_check` ok, row counts and value
-> fingerprints byte-identical, and every encrypted value still decrypting.
+- Backups are validated by content (WAL checkpoint, SHA-256, `PRAGMA integrity_check`) instead of file size — an empty DB with live WAL sidecars passed the old check.
+- Startup re-encryption decrypts each rewritten value and compares it to the original before committing, and detects the wrong-key fail-open case that would double-encrypt a row.
+- Fixed the migration skipping `payment_records.amount` while reporting "no migration needed". Verified 10/10 values preserved on a production copy.
+- Added `scripts/ops/restore-backup.sh`, an interactive restore with row-count checks.
 
 **Money correctness**
 
-- **Live exchange rates.** Rates were hardcoded to 2023 values and fed directly into
-  the zakat engine, understating non-USD wealth by 42% (EGP) and 77% (TRY) — enough to
-  tell a user they were below the nisab threshold when they were above it. Rates now
-  come from a live provider with a one-hour cache, and conversions without a direct
-  pair are solved through USD rather than falling back to 1:1.
-- **Saved calculations record the rate they used** (`fxRateUsed`, `fxRateSource`), and
-  `/rate-staleness` flags a saved calculation that current rates have moved ≥1% away
-  from, so the user can recalculate. Historical records are never silently rewritten.
-- **Payment amounts below 1,000,000 read back as `NaN`.** A base64 group-length check
-  rejected short ciphertexts, and the fallback coerced them to `NaN`. Amounts now
-  parse raw first and defer to authenticated decryption, with an explicit error rather
-  than a silent `NaN`.
-- **Ciphertext was being parsed as a number in six places.** `parseFloat` on an
-  encrypted column does not usually throw — and in roughly **1 sample in 6 the
-  ciphertext begins with a digit**, so it returns a small, plausible, *wrong* number
-  instead of `NaN`. That silently understated totals in the year-over-year comparison,
-  the live Hawl panel, the Hawl interruption check, the 4 AM summary job, payment
-  aggregations and one model helper. All six now decrypt through a shared
-  `encryptedNumbers` reader before any arithmetic.
-- **Every amount now displays in the currency it was recorded in.** An asset held in
-  IDR showed its retirement preview, and a payment list its totals, with a hardcoded
-  `$`. Eleven further call sites built their own formatter with `en-US` conventions,
-  rendering IDR as `IDR 50,000,000.00` instead of `Rp 50.000.000` on every onboarding
-  screen. The client now has exactly one currency formatter; `useDisplayCurrency`
-  delegates to it, and the SAR/EGP Arabic-Indic digit bug (an English-UI user seeing
-  `١٬٢٣٤٫٥٦ ر.س.‏`) is fixed by pinning `numberingSystem: 'latn'`.
+- Exchange rates were hardcoded to 2023 values, understating non-USD wealth by 42% (EGP) and 77% (TRY) and misreporting nisab status. Now live, 1-hour cache, non-direct pairs solved through USD.
+- Payment amounts under 1,000,000 returned `NaN` from a base64 length check; now parse raw and defer to authenticated decryption, failing loudly instead.
+- `parseFloat` was run on encrypted columns in six places — ~1 ciphertext in 6 starts with a digit, so it returned a small *wrong* number rather than `NaN`. All six now decrypt first.
+- Saved calculations record the rate used (`fxRateUsed`), and `/rate-staleness` flags drift ≥1% without rewriting history.
+- Amounts display in their recorded currency. An IDR asset no longer shows `$` in its retirement preview, and 11 sites building their own `en-US` formatter now use the canonical one (`Rp 50.000.000`, not `IDR 50,000,000.00`). Fixed Arabic-Indic digits for SAR/EGP.
 
-> **Non-Latin locales:** where a currency groups with commas, the separator changes.
-> `1,500,000` renders `1.500.000` for IDR. Digits are unchanged; only the grouping
-> mark follows the currency's locale.
+**Export/import**
 
-**Export/import no longer destroys amounts**
-
-- CSV export wrote *formatted* values (`$1,234,567.89`) while importers parsed with
-  `parseFloat`, which returns `NaN` on both `$` and `,`. Combined with a `|| 0`
-  fallback, **every amount silently became zero on re-import.** Export writes raw
-  numbers with the currency in its own column, and import accepts every formatted
-  shape older releases produced — including id-ID grouping, where `1.500.000` means one
-  and a half million and must not parse as `1.5`.
+- CSV export wrote formatted values (`$1,234.56`) that `parseFloat` read as `NaN`; with a `|| 0` fallback every amount became zero on re-import. Export now writes raw numbers; import accepts every legacy format.
 
 **Security**
 
-- **Containers no longer run as root.** The backend ran as uid 0, so an RCE in any
-  route — or a compromised dependency — held root inside the container with write
-  access to the mounted database and every secret in the process environment. The
-  entrypoint still starts as root to chown a bind-mounted or fresh volume (SQLite needs
-  write access to the *directory* for its `-wal`/`-shm` sidecars), then hands off with
-  `setpriv`; migrations and the server run as `node`. Verified by building the image and
-  checking the running process uid, on both a named volume and a host-owned bind mount.
-- **Public signups are gated.** `allowRegistration` was enforced only in a route file
-  the application never loaded, so disabling registration did not actually disable it.
-  Both the live route and the email-verification failure path now fail closed.
-- **The error handler was reconnected.** A commented-out middleware had been replaced
-  by a catch-all returning a flat `500 Internal server error`, collapsing 54 distinct
-  `AppError` statuses (400/401/404/501/503) into one unhelpful response. Clients again
-  receive real status codes and machine-readable error codes.
-- **Endpoints no longer fabricate answers.** The backup, restore, device-session,
-  audit-log and privacy-settings endpoints returned hardcoded payloads — `restore`
-  reported success while restoring nothing. Real data is read where it exists;
-  unimplemented endpoints return `501` instead of inventing a result.
-- `NisabService.getHistoricalNisab()` generated "historical" prices with `Math.random()`,
-  and `useCompareSnapshots()` resolved an all-zero comparison that would have rendered a
-  convincing "$0.00 change" table. Both now refuse rather than present invented data as
-  real. Neither is reachable from any route today; this removes a trap for the next
-  developer.
-- Removed personal email addresses, operator install paths, production hostnames and a
-  private LAN IP from tracked documentation. Added `docs/PUBLIC-PRIVATE-BOUNDARY.md`.
+- **Containers no longer run as root.** The app ran as uid 0; it now starts root only to chown the data volume, then hands off with `setpriv`. Verified on a named volume and a bind mount.
+- Registration was gated in a route file the app never loaded, so disabling signups didn't disable them. Both paths now fail closed.
+- Reconnected the commented-out error handler that had collapsed 54 `AppError` statuses into a flat 500.
+- Backup/restore/session/audit/privacy endpoints returned hardcoded payloads (`restore` reported success, restoring nothing). They now read real data or return `501`.
+- Removed invented data paths (`Math.random()` "historical" nisab prices, a fabricated all-zero comparison); unreachable today, but a trap for the next developer.
+- Scrubbed personal emails, operator paths, production hostnames and a LAN IP from tracked docs.
 
 **Maintainability**
 
-- **113 unreachable files removed (28,729 lines)** — 35 on the server (11,060 lines), 78
-  in the client (17,669 lines), found with `knip` rather than guesswork. Nothing
-  test-covered was deleted; files that carry real coverage are deliberately kept and
-  flagged.
-- `server/src/routes/auth.ts` split from **1,251 lines into a 62-line facade** over six
-  route modules plus a shared helpers module, with all nine routes compared byte-for-byte.
-  An unimported duplicate auth
-  directory was removed — it was why a security fix once landed in a file the app never
-  loaded.
-- A dead payment subsystem and the old root `tests/` directory were removed.
-- Added `client/knip.json` and `server/knip.json` so this stays checkable.
+- Removed 113 unreachable files (28,729 lines) found with `knip` — 35 server, 78 client.
+- Split `server/src/routes/auth.ts` from 1,251 lines to a 62-line facade over 7 modules, routes compared byte-for-byte.
+- Removed a dead payment subsystem, the legacy root `tests/` directory, and an unimported duplicate auth directory.
+- Added `knip.json` to both workspaces so this stays checkable.
 
-**Tests and coverage**
+**Tests**
 
-- Coverage gates added to both workspaces, wired into CI. Measured honestly with `include`
-  globs: client **21.6%**, server **25.6%** at the start.
-- The suites grew from **507 → 753** (server) and **605 → 622** (client), and coverage
-  reached **38.8%** (server) on the way.
-- New tests cover the calculation engine (2.9% → 62.4%), encryption round-trips and
-  integrity, currency precision across 11 currencies, the backup verifier against real
-  SQLite files, and both production ciphertext formats.
-- Tests that previously **mocked the code under test** were replaced with ones that run
-  the real implementation against real files.
+- Suites: server **507 → 753**, client **605 → 622**; server coverage **25.6% → 38.8%**, with CI gates added.
+- New coverage for the calculation engine (2.9% → 62.4%), encryption round-trips, 11-currency precision, the backup verifier against real SQLite files, and both ciphertext formats.
+- Replaced tests that mocked the code under test with ones that run it against real files.
 
 **Release cadence**
 
-- `docs/RELEASE-CADENCE.md`: one release per Hijri month, tagged on the first day. Phase
-  1–10 sweep, 11–20 harden, 21–27 prepare, 28–1 release. A month is long enough to land
-  something meaningful and short enough that debt cannot pile up.
+- `docs/RELEASE-CADENCE.md`: one release per Hijri month, tagged on the first day.
 
-**Suites:** server **753 pass** (69 files); client **622 pass / 1 skipped** (78 files).
-TypeScript clean across all workspaces. Container image verified to build and serve.
+**Note:** no breaking changes. Non-Latin currencies now group differently — IDR renders `1.500.000` where it previously showed `1,500,000`.
 
 **Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.8...v0.17.0
 
