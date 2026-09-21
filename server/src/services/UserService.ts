@@ -445,14 +445,39 @@ export class UserService {
    * Get privacy settings
    */
   async getPrivacySettings(userId: string) {
-    const settings = await this.getSettings(userId);
+    type StoredPrivacySettings = {
+      privacy?: {
+        analyticsEnabled?: boolean;
+        crashReportingEnabled?: boolean;
+        encryptionLevel?: unknown;
+        dataRetentionPeriod?: unknown;
+      };
+      notifications?: boolean;
+      privacyLevel?: unknown;
+    };
+
+    const settings = (await this.getSettings(userId)) as StoredPrivacySettings;
+    const privacy = settings.privacy ?? {};
+
+    // Read the values that updatePrivacySettings actually persists. The previous
+    // version returned analyticsOptIn/thirdPartySharing/dataRetentionPeriod as
+    // hardcoded constants and never consulted `settings.privacy`, so a saved
+    // preference was written to the database and then silently ignored on read —
+    // the toggle reverted on reload.
+    const analyticsEnabled = privacy.analyticsEnabled === true;
 
     return {
       privacyLevel: settings.privacyLevel || 'STANDARD',
       notifications: settings.notifications !== false,
-      dataRetentionPeriod: '2 years',
+      analyticsEnabled,
+      crashReportingEnabled: privacy.crashReportingEnabled === true,
+      encryptionLevel: privacy.encryptionLevel,
+      // Only report a retention period that is actually configured; do not assert
+      // a policy on the user's behalf.
+      dataRetentionPeriod: privacy.dataRetentionPeriod ?? null,
       thirdPartySharing: false,
-      analyticsOptIn: false
+      // Kept for callers using the older key name.
+      analyticsOptIn: analyticsEnabled,
     };
   }
 
