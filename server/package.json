@@ -1,6 +1,6 @@
 {
   "name": "zakapp-server",
-  "version": "0.16.7",
+  "version": "0.16.8",
   "description": "zakapp backend server",
   "main": "index.js",
   "scripts": {
