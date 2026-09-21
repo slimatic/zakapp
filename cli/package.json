@@ -33,5 +33,7 @@
   },
   "overrides": {
     "vite": "8.0.10"
-  }
+  },
+  "license": "AGPL-3.0-or-later",
+  "private": true
 }
