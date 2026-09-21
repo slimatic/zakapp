@@ -17,6 +17,7 @@ import { DualCalendarDatePicker } from '../common/DualCalendarDatePicker';
 import { calculateWealth } from '../../core/calculations/wealthCalculator';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
 import { parseDecimalNumber } from '../../utils/parseDecimal';
+import { formatCurrency } from '../../utils/formatters';
 
 export interface CreateRecordModalProps {
   open: boolean;
@@ -148,8 +149,9 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
               currency={userCurrency}
             />
             <div className="bg-blue-50 p-3 rounded text-xs text-blue-700">
-              💰 Estimated Wealth: {new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(
-                allAssets.filter(a => selectedAssetIds.includes(a.id)).reduce((sum, a) => sum + (Number(a.value) || 0), 0)
+              💰 Estimated Wealth: {formatCurrency(
+                allAssets.filter(a => selectedAssetIds.includes(a.id)).reduce((sum, a) => sum + (Number(a.value) || 0), 0),
+                userCurrency
               )}
             </div>
           </div>
@@ -169,8 +171,9 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
             <div className="bg-amber-50 p-3 rounded text-xs text-amber-800 flex items-center gap-2">
               <span className="text-xl">📉</span>
               <div>
-                <strong>Deductible Liabilities:</strong> {new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(
-                  allLiabilities.filter(l => selectedLiabilityIds.includes(l.id)).reduce((sum, l) => sum + (Number(l.amount) || 0), 0)
+                <strong>Deductible Liabilities:</strong> {formatCurrency(
+                  allLiabilities.filter(l => selectedLiabilityIds.includes(l.id)).reduce((sum, l) => sum + (Number(l.amount) || 0), 0),
+                  userCurrency
                 )}
                 <br />
                 <span className="opacity-75">Only debts due within the coming lunar year are deducted.</span>
@@ -184,11 +187,11 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-muted p-4 rounded text-center">
                 <span className="block text-xs text-muted-foreground uppercase">Total Assets</span>
-                <span className="block text-xl font-bold text-card-foreground">{new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(preview.totalWealth)}</span>
+                <span className="block text-xl font-bold text-card-foreground">{formatCurrency(preview.totalWealth, userCurrency)}</span>
               </div>
               <div className="bg-muted p-4 rounded text-center border border-green-100 bg-green-50">
                 <span className="block text-xs text-green-700 uppercase font-medium">Net Zakatable</span>
-                <span className="block text-xl font-bold text-green-700">{new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(preview.netZakatableWealth)}</span>
+                <span className="block text-xl font-bold text-green-700">{formatCurrency(preview.netZakatableWealth, userCurrency)}</span>
               </div>
             </div>
 
@@ -230,7 +233,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
             <div className="bg-muted p-4 rounded text-center border border-blue-100 bg-blue-50">
               <span className="block text-xs text-blue-700 uppercase font-medium">Zakat Amount ({nisabBasis === 'GOLD' ? 'Gold' : 'Silver'})</span>
               <span className="block text-xl font-bold text-blue-700">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: userCurrency }).format(zakatAmount)}
+                {formatCurrency(zakatAmount, userCurrency)}
               </span>
             </div>
           </div>

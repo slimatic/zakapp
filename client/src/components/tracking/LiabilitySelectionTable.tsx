@@ -18,6 +18,7 @@
 import React, { useMemo, useState } from 'react';
 import { Liability } from '../../types';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
+import { formatCurrency } from '../../utils/formatters';
 import { Button, Input } from '../ui';
 import clsx from 'clsx';
 import { format } from 'date-fns';
@@ -143,7 +144,7 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                                                 <div className="text-xs text-gray-500">{liability.type}</div>
                                             </div>
                                             <div className="text-sm font-semibold text-gray-900">
-                                                {maskedCurrency(new Intl.NumberFormat('en-US', { style: 'currency', currency: liability.currency }).format(liability.amount))}
+                                                {maskedCurrency(formatCurrency(liability.amount, liability.currency))}
                                             </div>
                                         </div>
 
@@ -242,7 +243,7 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                                            {maskedCurrency(new Intl.NumberFormat('en-US', { style: 'currency', currency: liability.currency }).format(liability.amount))}
+                                            {maskedCurrency(formatCurrency(liability.amount, liability.currency))}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
                                             {liability.isDeductible ? (

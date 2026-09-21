@@ -11,7 +11,7 @@ import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
 import { calculateWealth } from '../../../core/calculations/wealthCalculator';
 import { gregorianToHijri } from '../../../utils/calendarConverter';
 import { useOnboarding } from '../context/OnboardingContext';
-import { getCurrencySymbol } from '../../../utils/formatters';
+import { getCurrencySymbol, formatCurrency as formatCurrencyCanonical } from '../../../utils/formatters';
 import toast from 'react-hot-toast';
 
 export const ZakatSetupStep: React.FC = () => {
@@ -155,7 +155,7 @@ export const ZakatSetupStep: React.FC = () => {
     };
 
     const formatCurrency = (val: number) =>
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: user?.settings?.currency || 'USD' }).format(val);
+        formatCurrencyCanonical(val, user?.settings?.currency || 'USD');
 
     if (isLoadingAssets || !estimates) {
         return <div className="p-8 text-center text-gray-500">{t('steps.zakatSetup.loadingAssets')}</div>;
