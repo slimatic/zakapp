@@ -34,15 +34,15 @@ export default defineConfig({
         'src/**/*.d.ts',
         'src/types/**',
       ],
-      // Set just below the measured baseline (37.95% statements, 29.00% branches,
-      // 47.57% functions, 37.93% lines) so a REGRESSION fails the build without
+      // Set just below the measured baseline (38.48% statements, 29.79% branches,
+      // 48.11% functions, 38.47% lines) so a REGRESSION fails the build without
       // failing on today's state. Ratchet these upward as Wave 1 lands — never
       // downward, or the gate stops meaning anything.
       thresholds: {
-        statements: 37,
+        statements: 38,
         branches: 29,
-        functions: 47,
-        lines: 37,
+        functions: 48,
+        lines: 38,
       },
     }
   },
