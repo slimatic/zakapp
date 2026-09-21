@@ -2,12 +2,12 @@
 
 ## [Unreleased]
 
-_Nothing yet — the next cycle is `v0.18.0`, tagged 1 Jumada al-Thani 1448 (2026-11-10).
-See `docs/RELEASE-CADENCE.md`._
+_Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
+See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
-## [0.17.0] - 2026-10-12
+## [0.17.0] - 2026-09-21
 
-### Jumada al-Ula 1448
+### 10 Rabi al-Thani 1448 — waxing gibbous, 74% lit
 
 Trust in the numbers and the data: every figure displayed is one the app can justify, and
 the upgrade path was tested against a real production database before tagging.
