@@ -55,7 +55,7 @@ the upgrade path was tested against a real production database before tagging.
 
 **Release cadence**
 
-- `docs/RELEASE-CADENCE.md`: one release per Hijri month, tagged on the first day.
+- `docs/RELEASE-CADENCE.md`: one release per Hijri month, aimed at a lunar anchor (crescent or waxing gibbous). Anchors are a preference, not a contract — a verified security or data-safety fix ships when it is ready.
 
 **Note:** no breaking changes. Non-Latin currencies now group differently — IDR renders `1.500.000` where it previously showed `1,500,000`.
 
