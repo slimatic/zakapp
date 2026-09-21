@@ -234,16 +234,30 @@ async function migratePaymentRecords(): Promise<{ migrated: number; errors: stri
   const errors: string[] = [];
   
   logger.info(`Checking ${payments.length} payment records for migration...`);
-  
+
   for (const payment of payments) {
-    if (!payment.recipientName) continue;
-    
+    // A row needs migrating when EITHER encrypted column is still legacy CBC.
+    //
+    // `recipientName` used to be the sole trigger, and the loop `continue`d whenever it
+    // was already GCM. A database in the half-migrated state this file could produce —
+    // recipientName GCM, amount CBC — therefore skipped every row and reported nothing
+    // left to do, leaving `amount` on the unauthenticated scheme indefinitely.
+    const recipientNeedsMigration = !!payment.recipientName && isCbcFormat(payment.recipientName);
+    const amountNeedsMigration =
+      !!payment.amount && String(payment.amount).split(':').length === 2;
+
+    if (!recipientNeedsMigration && !amountNeedsMigration) {
+      continue; // both already GCM, or never encrypted
+    }
+
     try {
-      // Check if it's CBC format
-      if (!isCbcFormat(payment.recipientName)) {
-        continue; // Already GCM or not encrypted
-      }
-      
+      // `recipientName` is only processed when IT is the column still on CBC.
+      // A row can reach here with a GCM name and a CBC amount, and decrypting the
+      // already-GCM name would either be a no-op or, worse, feed a value into the
+      // fail-open check below that is not a ciphertext at all.
+      let reencryptedRecipient: string | undefined;
+
+      if (recipientNeedsMigration) {
       // Decrypt with current key (supports both CBC and GCM)
       const decrypted = await EncryptionService.decrypt(
         payment.recipientName,
@@ -299,11 +313,80 @@ async function migratePaymentRecords(): Promise<{ migrated: number; errors: stri
             `${roundTripped.length} out) — original left unchanged`
         );
       }
+        reencryptedRecipient = reencrypted;
+      }
 
-      // Update database
+      // Update database.
+      //
+      // `amount` is migrated alongside `recipientName`.
+      //
+      // The loop previously selected `amount` but never wrote it back. That is not
+      // data loss — PaymentRecordService accepts both 2-part CBC and 3-part GCM, and
+      // a read of an unmigrated row returns the correct number, so money stayed
+      // correct. But it left the column permanently half-migrated: a database where
+      // `recipientName` is GCM and `amount` is still legacy CBC.
+      //
+      // That is worth closing because it makes the migration's own completion signal
+      // meaningless. The "already migrated" fast path keys off detecting CBC data at
+      // all, so a database in this state reads as fully migrated while one column
+      // still carries the legacy scheme — the one without authenticated integrity.
+      // GCM's auth tag is what makes tampering detectable; CBC has no such check.
+      //
+      // Guarded exactly like recipientName: decrypt, reject fail-open, re-encrypt,
+      // and verify the round trip before touching the row. A failure here leaves the
+      // original CBC value in place rather than writing an unreadable one.
+      let reencryptedAmount: string | undefined;
+      if (payment.amount) {
+        const amountParts = String(payment.amount).split(':');
+        // Only legacy 2-part CBC needs migrating; 3-part is already GCM and a plain
+        // numeric string is a value that was never encrypted.
+        if (amountParts.length === 2) {
+          try {
+            const plainAmount = await EncryptionService.decrypt(
+              payment.amount,
+              process.env.ENCRYPTION_KEY || ''
+            );
+
+            if (plainAmount === payment.amount) {
+              throw new Error('amount: decryption returned its input unchanged');
+            }
+            if (Number.isNaN(Number(plainAmount))) {
+              throw new Error('amount: decrypted value is not numeric');
+            }
+
+            const candidate = await EncryptionService.encrypt(
+              plainAmount,
+              process.env.ENCRYPTION_KEY || ''
+            );
+            const amountRoundTrip = await EncryptionService.decrypt(
+              candidate,
+              process.env.ENCRYPTION_KEY || ''
+            );
+
+            if (amountRoundTrip !== plainAmount) {
+              throw new Error('amount: re-encryption did not round-trip');
+            }
+            reencryptedAmount = candidate;
+          } catch (amountError) {
+            // Amount failure is reported but does NOT abort the recipientName write:
+            // the two columns are independent, and losing the name migration because
+            // a numeric field failed would be a worse outcome. The row keeps its
+            // original amount, which still reads correctly.
+            const msg = `Payment ${payment.id} amount not migrated: ${
+              amountError instanceof Error ? amountError.message : String(amountError)
+            }`;
+            logger.error(msg);
+            errors.push(msg);
+          }
+        }
+      }
+
       await prisma.paymentRecord.update({
         where: { id: payment.id },
-        data: { recipientName: reencrypted }
+        data: {
+          ...(reencryptedRecipient ? { recipientName: reencryptedRecipient } : {}),
+          ...(reencryptedAmount ? { amount: reencryptedAmount } : {})
+        }
       });
 
       migrated++;
@@ -406,14 +489,27 @@ async function migrateUserProfiles(): Promise<{ migrated: number; errors: string
  * Check if migration is needed by scanning for CBC-formatted encrypted data
  */
 async function checkMigrationNeeded(): Promise<boolean> {
-  // Check a sample of payment records
+  // Check a sample of payment records.
+  //
+  // BOTH encrypted columns are inspected. Keying this check off `recipientName` alone
+  // is what made the migration report "not required" for a database whose `amount`
+  // column was still entirely CBC: the name column had already been migrated by an
+  // earlier run, so the scan found nothing and returned early — before
+  // migratePaymentRecords (which does know about `amount`) ever executed.
+  //
+  // A partially migrated database is exactly the state that needs a follow-up pass, so
+  // the detector has to look at every column the migrator can rewrite.
   const samplePayments = await prisma.paymentRecord.findMany({
     take: 100,
-    select: { recipientName: true }
+    select: { recipientName: true, amount: true }
   });
-  
+
   for (const payment of samplePayments) {
     if (payment.recipientName && isCbcFormat(payment.recipientName)) {
+      return true;
+    }
+    // Legacy CBC is a 2-part "iv:body". A 3-part value is already GCM.
+    if (payment.amount && String(payment.amount).split(':').length === 2) {
       return true;
     }
   }
