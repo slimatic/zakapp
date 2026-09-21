@@ -41,9 +41,13 @@ export default defineConfig({
       // patch release would turn an unrelated future test change into a blocked
       // release. Patch releases carry fixes, not policy.
       //
-      // For reference, main's current gate is 36/28/45/36, ratcheted upward from
+      // For reference, main's current gate is 38/29/48/38, ratcheted upward from
       // the measured baseline as tests land. Never ratchet downward, or the gate
       // stops meaning anything.
+      //
+      // This branch's own measured baseline after the 0.16.8 currency fix is
+      // 38.48% statements / 29.79% branches / 48.11% functions / 38.47% lines —
+      // recorded here for reference only, not enforced.
     },
   },
 });

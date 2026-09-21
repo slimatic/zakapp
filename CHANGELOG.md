@@ -1,5 +1,56 @@
 # Changelog
 
+## [0.16.8] - 2026-09-21
+
+### Patch — zakat calculations used exchange rates frozen in 2023
+
+`CurrencyService` supplied the exchange rates used by `ZakatEngine`. Its rates came from a
+hardcoded table commented *"for demo purposes"* — and shipped to production.
+
+Measured against a live provider:
+
+| pair | in the code | actual | error |
+| --- | --- | --- | --- |
+| USD → EGP | 30.90 | 52.04 | 68% low |
+| USD → TRY | 27.50 | 48.79 | 77% low |
+| USD → INR | 83.20 | 96.04 | 15% low |
+| USD → IDR | 15,750 | 17,790 | 13% low |
+| USD → EUR | 0.85 | 0.8713 | 3% low |
+| USD → GBP | 0.73 | 0.7474 | 2% low |
+
+**SAR and AED were correct** — both are USD-pegged. That is precisely why the table looked
+plausible and survived: the pegged entries never drifted.
+
+**Why this is more than a display defect.** Nisab is compared in the base currency, and this
+service sits inside the calculation engine. An understated conversion understates the user's
+wealth, so a user can be shown as *below* the nisab threshold while actually being above it —
+and told they owe nothing when they owe zakat. The error is systematic and one-directional:
+every drifting currency was too low, always in the direction that hides an obligation.
+
+**A second defect in the same file.** When no rate was available the fallback returned `1.0`
+with only a log line, silently asserting *1 TRY = 1 USD* — understating wealth by roughly 49×
+for TRY and 15,800× for IDR.
+
+**Fixed by**
+
+- fetching live rates from a keyless provider (verified reachable from the production host,
+  not only from a dev machine). `RATES_API_URL` overrides the provider;
+  `RATES_API_TIMEOUT_MS` (default 5s) bounds the wait so a slow provider degrades rather than
+  hanging a request.
+- caching one full rate table per hour and deriving cross-rates through the provider base,
+  instead of a separate lookup per pair.
+- removing the parity fallback. A degraded path now cross-rates through the built-in USD
+  table so a non-USD pair keeps a sane order of magnitude during an outage, and raises an
+  error only for a pair it genuinely cannot rate.
+- exposing `getRateSource()` so a surface can disclose whether a figure used a live, cached,
+  or fallback rate.
+
+**Not affected:** calculations already stored in the database. Their amounts were written at
+their own rates and are unchanged. What changes is any new calculation and any recomputation.
+
+**Note:** a 1-hour rate cache means a deploy can serve the built-in fallback until the first
+successful fetch. `getRateSource()` reports which case applies.
+
 ## [0.16.7] - 2026-09-20
 
 ### Patch — payment amounts below 1,000,000 were read back as NaN
