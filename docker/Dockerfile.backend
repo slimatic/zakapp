@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-slim AS build
+FROM node:25-slim AS build
 
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
@@ -50,7 +50,7 @@ WORKDIR /app/server
 RUN npm run build
 
 # Development stage (original)
-FROM node:20-slim AS development
+FROM node:25-slim AS development
 
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
@@ -120,7 +120,7 @@ CMD ["npm", "run", "dev"]
 # flagged by the container security scan (11 CRITICAL, blocking PRs).
 # node:24-slim tracks a newer Debian base with patched libraries.
 # NODE_VERSION=18 in security-scan.yml is display-only, no change needed there.
-FROM node:24-slim AS backend-production
+FROM node:25-slim AS backend-production
 
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
