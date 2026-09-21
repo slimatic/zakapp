@@ -156,7 +156,7 @@ RUN mkdir -p /app/server/prisma/data
 #
 # The entrypoint still runs as root deliberately: it validates secrets and runs
 # migrations, and the operator's bind-mounted volume needs a chown before the
-# app can write to it. It hands off with `su-exec` at the end. The migrations
+# app can write to it. It hands off with `setpriv` at the end. The migrations
 # and the server therefore run as `node`, not root.
 # ---------------------------------------------------------------------------
 RUN chown -R node:node /app/server /app/shared
