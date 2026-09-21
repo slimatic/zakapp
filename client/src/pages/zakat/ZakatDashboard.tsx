@@ -185,7 +185,11 @@ const ZakatDashboard: React.FC = () => {
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          ${payment.amount.toLocaleString()}
+                          {/* Use the canonical formatter — the component already
+                              destructures formatCurrency from useDisplayCurrency, but
+                              this line hardcoded "$" and ignored it, so a payment
+                              recorded in another currency was shown as dollars. */}
+                          {formatCurrency(payment.amount, payment.currency)}
                         </p>
                         <p className="text-xs text-gray-500">
                           {new Date(payment.date).toLocaleDateString()}
