@@ -6,6 +6,7 @@ import { useAssetRepository } from '../../../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../../../hooks/useLiabilityRepository';
 import { calculateWealth } from '../../../core/calculations/wealthCalculator';
 import toast from 'react-hot-toast';
+import { formatCurrency as formatCurrencyCanonical } from '../../../utils/formatters';
 
 export const ReviewStep: React.FC = () => {
   const { t } = useTranslation('onboarding');
@@ -252,7 +253,7 @@ export const ReviewStep: React.FC = () => {
         }
     };
 
-    const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: data.settings?.currency || 'USD' }).format(val);
+    const formatCurrency = (val: number) => formatCurrencyCanonical(val, data.settings?.currency || 'USD');
 
     return (
         <div className="space-y-8 animate-fadeIn">

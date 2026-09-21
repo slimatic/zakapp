@@ -4,7 +4,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
-import { getSupportedCurrencies, getCurrencySymbol } from '../../../utils/formatters';
+import { getSupportedCurrencies, getCurrencySymbol, formatCurrency as formatCurrencyCanonical } from '../../../utils/formatters';
 
 
 export const IdentityStep: React.FC = () => {
@@ -29,7 +29,7 @@ export const IdentityStep: React.FC = () => {
 
     // Nisab thresholds are always shown in USD for clarity during onboarding
     const formatNisabUSD = (val: number) =>
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+        formatCurrencyCanonical(val, 'USD');
 
     const currencies = getSupportedCurrencies().map(code => ({
         code,
