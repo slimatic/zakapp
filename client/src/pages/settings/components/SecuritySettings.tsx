@@ -75,10 +75,10 @@ export const SecuritySettings: React.FC = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                <h2 className="text-xl font-semibold text-primary mb-4">
                     Security Settings
                 </h2>
-                <p className="text-gray-600 mb-6">
+                <p className="text-muted-foreground mb-6">
                     Manage your password and account security options
                 </p>
             </div>
@@ -94,11 +94,11 @@ export const SecuritySettings: React.FC = () => {
 
             {/* Change Password Section */}
             <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900">Change Password</h3>
+                <h3 className="text-lg font-medium text-primary">Change Password</h3>
 
                 <div className="grid grid-cols-1 gap-6 max-w-md">
                     <div>
-                        <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="currentPassword" className="block text-sm font-medium text-primary mb-2">
                             Current Password
                         </label>
                         <input
@@ -109,13 +109,13 @@ export const SecuritySettings: React.FC = () => {
                                 ...passwordData,
                                 currentPassword: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="newPassword" className="block text-sm font-medium text-primary mb-2">
                             New Password
                         </label>
                         <input
@@ -126,17 +126,17 @@ export const SecuritySettings: React.FC = () => {
                                 ...passwordData,
                                 newPassword: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                             minLength={8}
                         />
-                        <p className="mt-1 text-xs text-gray-500">
+                        <p className="mt-1 text-xs text-muted-foreground">
                             Minimum 8 characters required
                         </p>
                     </div>
 
                     <div>
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-primary mb-2">
                             Confirm New Password
                         </label>
                         <input
@@ -147,7 +147,7 @@ export const SecuritySettings: React.FC = () => {
                                 ...passwordData,
                                 confirmPassword: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                             minLength={8}
                         />
@@ -174,16 +174,16 @@ export const SecuritySettings: React.FC = () => {
             )}
 
             {/* Two-Factor Authentication */}
-            <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <div className="border-t border-default pt-6">
+                <h3 className="text-lg font-medium text-primary mb-4">
                     Two-Factor Authentication
                 </h3>
 
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-accent rounded-lg p-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="font-medium text-gray-900">Authenticator App</p>
-                            <p className="text-sm text-gray-600">Use an authenticator app for codes</p>
+                            <p className="font-medium text-primary">Authenticator App</p>
+                            <p className="text-sm text-muted-foreground">Use an authenticator app for codes</p>
                         </div>
                         <Button variant="secondary" size="sm" disabled>
                             Coming Soon
