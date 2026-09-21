@@ -28,95 +28,14 @@
 
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
-import { EncryptionService } from '../services/EncryptionService';
+import { readEncryptedAmount } from '../utils/encryptedNumbers';
+
+// Re-exported so existing imports of this module keep working. The implementation
+// now lives in utils/encryptedNumbers.ts, shared with the live Hawl tracking path.
+export { readEncryptedAmount };
 
 const logger = new Logger('SummaryRegeneration');
 const prisma = new PrismaClient();
-
-
-/**
- * Read a stored numeric amount that may be ciphertext.
- *
- * WHY THIS EXISTS
- *
- * `PaymentRecord.amount`, `YearlySnapshot.zakatAmount` and the `AnnualSummary`
- * totals are all `String // Encrypted` in the schema, and production holds real
- * ciphertext — values like
- * `"HWXQ098Y/CRwFrkCo2j/Og==:7aqR3gmgwjBIlBBwiCNWJQ=="`.
- *
- * The previous code called `Number(payment.amount)` on those directly. `Number()`
- * of a ciphertext string is `NaN`, and `NaN` propagates: every total this job wrote
- * would have been the string "NaN". That is the same class of defect as the payment
- * NaN bug fixed in 0.16.7, reached from the scheduled-job side instead of the API.
- *
- * Deciding "plain number or ciphertext?" from the CONTENT is the reliable test.
- * `EncryptionService.isEncrypted()` is not: it requires each base64 group to be at
- * least 12 characters, so the ciphertext of a plaintext shorter than 7 characters is
- * reported as not-encrypted. So parse as a number first, and only attempt decryption
- * when that fails.
- *
- * Throws rather than returning NaN when a value resolves to neither. A job that
- * cannot read an amount should report a failure, not silently persist "NaN" — the
- * caller catches per-snapshot and records the error.
- */
-export async function readEncryptedAmount(
-  raw: unknown,
-  encryptionKey: string
-): Promise<number> {
-  if (raw === null || raw === undefined) {
-    return 0;
-  }
-
-  if (typeof raw === 'number') {
-    if (!Number.isFinite(raw)) {
-      throw new Error(`Amount is not a finite number: ${JSON.stringify(raw)}`);
-    }
-    return raw;
-  }
-
-  const asString = String(raw);
-
-  // Plain numeric string — the fast, common path.
-  const asPlainNumber = Number(asString);
-  if (asString.trim() !== '' && Number.isFinite(asPlainNumber)) {
-    return asPlainNumber;
-  }
-
-  // Otherwise it should be ciphertext. Try the plausible separator forms and let
-  // AES-GCM authentication decide which one is real.
-  const candidates: string[] = [];
-  if (EncryptionService.isEncrypted(asString)) candidates.push(asString);
-
-  for (const sep of [':', '.=', '.', '|', ';']) {
-    if (!asString.includes(sep)) continue;
-    const parts = asString.split(sep);
-    if (parts.length === 2 || parts.length === 3) {
-      const normalized = parts.join(':');
-      if (EncryptionService.isEncrypted(normalized)) candidates.push(normalized);
-      // Also attempt the joined form even when isEncrypted() says no, so a short
-      // body still reaches the decryption attempt.
-      candidates.push(normalized);
-    }
-  }
-  candidates.push(asString);
-
-  for (const candidate of candidates) {
-    try {
-      const decrypted = await EncryptionService.decrypt(candidate, encryptionKey);
-      const parsed = parseFloat(decrypted);
-      if (Number.isFinite(parsed)) {
-        return parsed;
-      }
-    } catch {
-      // try the next candidate
-    }
-  }
-
-  throw new Error(
-    `Amount is neither a plain number nor decryptable ciphertext ` +
-      `(length ${asString.length})`
-  );
-}
 
 
 /**
