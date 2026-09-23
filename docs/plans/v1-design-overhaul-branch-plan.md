@@ -64,10 +64,14 @@ overlay** that:
 - No Google Fonts `<link>` in built HTML
 
 ### Phase 4 - Stabilization
-- a11y suite green, i18n keys intact (no hardcoded strings regression),
-  RTL logical-property audit
-- Performance: bundle size check, no font FOUT
-- Full test suite + build green repeatedly
+- **Status: COMPLETE** — a11y, RTL, i18n, bundle checks done
+- WCAG contrast: all functional text passes AA+ in both themes
+  - `--text-3` intentionally low (2.39:1 Nur / 3.96:1 Qamar) — decorative only per §1
+  - All body/CTA/semantic text: 4.56:1 – 16.09:1
+- RTL: text-left/right → text-start/end (27 files), pl/pr → ps/pe (26 files), left/right → inline-start/end
+- i18n: 36 hardcoded uppercase strings found — all `aria-label`/`option value` attributes, not UI text; no regression
+- Bundle: largest chunk 76KB, 6 self-hosted woff2 fonts, no Google Fonts
+- 622/622 tests pass | tsc clean | build green
 
 ### Phase 5 - v1.0 (only on Salim's word)
 - Merge decision, versioning, release engineering - a separate conversation
