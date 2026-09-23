@@ -31,12 +31,14 @@ overlay** that:
 ### Phase 0 - Foundation (this planning phase)
 - [x] Branch created locally, push-guarded
 - [x] Mockup approved (Nur/Qamar + M3 mechanics)
-- [ ] **DESIGN.md** - the contract: token maps Nur + Qamar, type scale, spacing,
+- [x] **DESIGN.md** - the contract: token maps Nur + Qamar, type scale, spacing,
   elevation tiers, motion curves, accent-rationing rules, moon-arc component spec
   (built with glm-5.3-flash + deepseek-v4.1-flash in parallel, Open Design skills
   as the quality gate)
-- [ ] Token strategy decision: extend existing HSL vars vs new semantic layer
-  ( leaning: extend - less churn, existing components keep working unchanged )
+- [x] Token strategy decision: **extend existing HSL vars** (per token-migration
+  doc - value-only diff, existing components keep working unchanged)
+- Note: sweep scope corrected to 108 files (104 .tsx + 4 .ts); gray is the real
+  volume (~1,300 usages), raw teal is only 5 files
 
 ### Phase 1 - Token layer (non-breaking, first PR-worthy milestone)
 - Nur values into `:root`, Qamar values into `.dark`
