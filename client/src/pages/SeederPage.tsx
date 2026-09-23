@@ -83,11 +83,11 @@ export const SeederPage: React.FC = () => {
         <Layout>
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">🌩️ Stress Test Control Center</h1>
-                    <p className="text-gray-600 mt-2">
+                    <h1 className="text-3xl font-bold text-foreground">🌩️ Stress Test Control Center</h1>
+                    <p className="text-muted-foreground mt-2">
                         Use this panel to flood the local database with dummy data for performance and sync testing.
                         <br />
-                        <span className="text-red-600 font-semibold">⚠️ WARNING: This will affect your local database!</span>
+                        <span className="text-danger font-semibold">⚠️ WARNING: This will affect your local database!</span>
                     </p>
                 </div>
 
@@ -100,17 +100,17 @@ export const SeederPage: React.FC = () => {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                    <span className="font-medium text-gray-700">Assets</span>
-                                    <span className="text-2xl font-bold text-primary-600">{counts.assets}</span>
+                                <div className="flex justify-between items-center p-3 bg-surface-2 rounded-lg">
+                                    <span className="font-medium text-foreground">Assets</span>
+                                    <span className="text-2xl font-bold text-secondary">{counts.assets}</span>
                                 </div>
-                                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                    <span className="font-medium text-gray-700">Payments</span>
-                                    <span className="text-2xl font-bold text-primary-600">{counts.payments}</span>
+                                <div className="flex justify-between items-center p-3 bg-surface-2 rounded-lg">
+                                    <span className="font-medium text-foreground">Payments</span>
+                                    <span className="text-2xl font-bold text-secondary">{counts.payments}</span>
                                 </div>
-                                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                    <span className="font-medium text-gray-700">Nisab Records</span>
-                                    <span className="text-2xl font-bold text-primary-600">{counts.nisab}</span>
+                                <div className="flex justify-between items-center p-3 bg-surface-2 rounded-lg">
+                                    <span className="font-medium text-foreground">Nisab Records</span>
+                                    <span className="text-2xl font-bold text-secondary">{counts.nisab}</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -159,10 +159,10 @@ export const SeederPage: React.FC = () => {
                                 </Button>
                             </div>
 
-                            <hr className="my-4 border-gray-100" />
+                            <hr className="my-4 border-border" />
 
                             <Button
-                                className="w-full bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border-red-200"
+                                className="w-full bg-danger-soft text-danger hover:bg-danger-soft hover:text-danger border-danger/30"
                                 variant="destructive"
                                 onClick={() => handleAction('Clearing Database', DataSeeder.clearAllData)}
                                 disabled={isLoading}
