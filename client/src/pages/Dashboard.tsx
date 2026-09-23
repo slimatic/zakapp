@@ -62,12 +62,12 @@ const EducationalModule: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-2 border-teal-200 p-4 sm:p-6">
+    <div className="bg-muted rounded-lg border border-border p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-teal-100 rounded-lg">
+          <div className="p-2 bg-accent rounded-lg">
             <svg
-              className="w-6 h-6 text-teal-600"
+              className="w-6 h-6 text-accent-foreground"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -81,12 +81,12 @@ const EducationalModule: React.FC = () => {
               />
             </svg>
           </div>
-          <h2 className="text-lg font-bold text-gray-900">{t('education.understandingZakat')}</h2>
+          <h2 className="text-lg font-bold text-secondary">{t('education.understandingZakat')}</h2>
         </div>
 
         <button
           onClick={toggleExpanded}
-          className="p-2 rounded-md text-gray-600 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-600 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="p-2 rounded-md text-muted-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label={isExpanded ? 'Collapse educational content' : 'Expand educational content'}
           aria-expanded={isExpanded}
         >
@@ -110,10 +110,10 @@ const EducationalModule: React.FC = () => {
       {isExpanded && (
         <div className="space-y-4">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">
+            <h3 className="font-semibold text-secondary mb-2">
               <Trans i18nKey="education.whatIsZakat" components={{ glossary: <GlossaryTerm term="zakat" /> }} />
             </h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               <GlossaryTerm term="zakat" /> is one of the Five Pillars of Islam and is an obligatory act of charity. It requires Muslims
               who meet specific wealth criteria to donate 2.5% of their qualifying wealth annually to those in need.
               <GlossaryTerm term="zakat" /> purifies wealth and helps create a more equitable society.
@@ -121,10 +121,10 @@ const EducationalModule: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">
+            <h3 className="font-semibold text-secondary mb-2">
               <Trans i18nKey="education.whatIsNisab" components={{ glossary: <GlossaryTerm term="nisab" /> }} />
             </h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               <GlossaryTerm term="nisab" /> is the minimum threshold of wealth a Muslim must possess for one lunar year (<GlossaryTerm term="hawl" />) before
               <GlossaryTerm term="zakat" /> becomes obligatory. The <GlossaryTerm term="nisab" /> can be calculated based on the value of gold (85 grams) or
               silver (595 grams). ZakApp helps you track your wealth and determine when you've reached the <GlossaryTerm term="nisab" /> threshold.
@@ -132,22 +132,22 @@ const EducationalModule: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">
+            <h3 className="font-semibold text-secondary mb-2">
               <Trans i18nKey="education.hawlPeriod" components={{ glossary: <GlossaryTerm term="hawl" /> }} />
             </h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               The <GlossaryTerm term="hawl" /> is the Islamic lunar year period (354 days) during which your wealth must remain above
               the <GlossaryTerm term="nisab" /> threshold for <GlossaryTerm term="zakat" /> to be due. ZakApp's Nisab Year Record feature helps you track this
               period automatically and alerts you when <GlossaryTerm term="zakat" /> payment is due.
             </p>
           </div>
 
-          <div className="pt-4 border-t border-teal-200">
-            <h3 className="font-semibold text-gray-900 mb-3">Learn More</h3>
+          <div className="pt-4 border-t border-border">
+            <h3 className="font-semibold text-secondary mb-3">Learn More</h3>
             <div className="space-y-2">
               <Link
                 to="/learn"
-                className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
+                className="flex items-center text-sm text-secondary hover:text-secondary/80 hover:underline"
               >
                 <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
@@ -158,7 +158,7 @@ const EducationalModule: React.FC = () => {
                 href="https://youtube.com/playlist?list=PLXguldgkbZPffh6p4efOetXkTeJATAbcS&si=CoJ4JB5dLrJDgNS7"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
+                className="flex items-center text-sm text-secondary hover:text-secondary/80 hover:underline"
               >
                 <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -176,7 +176,7 @@ const EducationalModule: React.FC = () => {
       )}
 
       {!isExpanded && (
-        <span className="text-sm text-gray-600 block">
+        <span className="text-sm text-muted-foreground block">
           Learn about <GlossaryTerm term="zakat" /> obligations, <GlossaryTerm term="nisab" /> threshold, and the <GlossaryTerm term="hawl" /> period. Click to expand.
         </span>
       )}
@@ -290,8 +290,8 @@ export const Dashboard: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-6 space-y-6">
         <div className="mb-6">
-          <div className="h-8 bg-gray-200 rounded animate-pulse w-1/3 mb-2" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+          <div className="h-8 bg-muted rounded animate-pulse w-1/3 mb-2" />
+          <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <SkeletonCard />
@@ -325,16 +325,16 @@ export const Dashboard: React.FC = () => {
       
       {/* Migration Banner */}
       {needsMigration && !showMigration && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-2 border-blue-200 flex items-center justify-between gap-4 shadow-sm">
+        <div className="bg-accent p-4 rounded-lg border border-border flex items-center justify-between gap-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 bg-card rounded-lg flex-shrink-0">
+              <svg className="w-6 h-6 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-gray-900">{t('privacy.upgradeAvailable')}</p>
-              <p className="text-sm text-gray-700">{t('privacy.upgradeHint')}</p>
+              <p className="font-semibold text-secondary">{t('privacy.upgradeAvailable')}</p>
+              <p className="text-sm text-foreground">{t('privacy.upgradeHint')}</p>
             </div>
           </div>
           <Button onClick={() => setShowMigration(true)} size="sm" className="flex-shrink-0">
@@ -383,7 +383,7 @@ export const Dashboard: React.FC = () => {
               currency={userCurrency}
             />
 
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <div className="bg-card rounded-lg shadow-card p-6 border border-border">
               <AssetsBreakdownChart
                 assets={assets}
                 currency={userCurrency}
@@ -392,12 +392,12 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Recent Assets Summary */}
-          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <div className="bg-card rounded-lg shadow-card p-6 border border-border">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">{t('assets.yourAssets')}</h2>
+              <h2 className="text-xl font-semibold text-secondary">{t('assets.yourAssets')}</h2>
               <Link
                 to="/assets"
-                className="text-sm font-medium text-green-600 hover:text-green-700 hover:underline"
+                className="text-sm font-medium text-success hover:text-success/80 hover:underline"
               >
                 View All →
               </Link>
@@ -407,24 +407,24 @@ export const Dashboard: React.FC = () => {
               {assets.slice(0, 5).map((asset: Asset) => (
                 <div
                   key={asset.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-between p-3 bg-surface-2 rounded-lg hover:bg-muted transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="p-2 bg-card rounded-lg">
+                      <svg className="w-5 h-5 text-accent-foreground" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
                         <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
                       </svg>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{asset.name}</p>
-                      <p className="text-sm text-gray-600 capitalize">
+                      <p className="font-medium text-secondary">{asset.name}</p>
+                      <p className="text-sm text-muted-foreground capitalize">
                         {asset.type.replace('_', ' ')}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-secondary">
                       {maskedCurrency(new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: asset.currency || 'USD',
@@ -432,13 +432,13 @@ export const Dashboard: React.FC = () => {
                         maximumFractionDigits: 0,
                       }).format(asset.value || 0))}
                     </p>
-                    <span className="text-xs text-green-600 font-medium">{t('assets.zakatable')}</span>
+                    <span className="text-xs text-success font-medium">{t('assets.zakatable')}</span>
                   </div>
                 </div>
               ))}
 
               {assets.length === 0 && (
-                <div className="text-center py-6 text-gray-500">
+                <div className="text-center py-6 text-muted-foreground">
                   No assets added yet.
                 </div>
               )}

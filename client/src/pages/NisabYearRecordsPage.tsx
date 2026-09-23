@@ -147,21 +147,21 @@ export const NisabYearRecordsPage: React.FC = () => {
   const isFullyPaid = totalObligation > 0 && remainingBalance === 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-6">
+    <div className="min-h-screen bg-background pb-20 md:pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8" id="main-content">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Nisab Year Records</h1>
-              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
+              <h1 className="text-2xl sm:text-3xl font-bold text-secondary">Nisab Year Records</h1>
+              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-muted-foreground">
                 Track Hawl periods, Nisab thresholds, and Zakat calculations
               </p>
             </div>
             <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-primary text-primary-foreground rounded-md hover:bg-warn-strong transition-colors shadow-elev-2"
               >
                 + New Record
               </button>
@@ -225,7 +225,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="hidden lg:flex flex-col items-center justify-center h-full text-center text-gray-400">
+              <div className="hidden lg:flex flex-col items-center justify-center h-full text-center text-tertiary">
                 <p className="max-w-xs mx-auto">
                   Click on any Nisab Year card from the list on the left to view its full wealth breakdown and Zakat obligations.
                 </p>
