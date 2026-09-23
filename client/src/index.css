@@ -1,75 +1,162 @@
+/* ── Self-hosted fonts (v1.0) — replaces Google Fonts links in index.html ── */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+2000-206F;
+}
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/outfit-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+2000-206F;
+}
+@font-face {
+  font-family: 'Amiri';
+  src: url('/fonts/amiri-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+2000-206F;
+}
+@font-face {
+  font-family: 'Amiri';
+  src: url('/fonts/amiri-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+2000-206F;
+}
+@font-face {
+  font-family: 'Amiri';
+  src: url('/fonts/amiri-arabic-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF;
+}
+@font-face {
+  font-family: 'Amiri';
+  src: url('/fonts/amiri-arabic-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
+    /* ── NUR (light) — v1.0 design contract (docs/plans/v1-design-overhaul-DESIGN.md §1.1) ── */
+    --background: 48 33% 97%;
+    --foreground: 215 28% 17%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 28% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 28% 17%;
 
-    --primary: 159 81% 40%;
-    /* Emerald 600 */
-    --primary-foreground: 210 40% 98%;
+    /* primary = the rationed amber accent: CTA buttons, zakat-due figure, focus ring */
+    --primary: 26 90% 37%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 44 93% 53%;
-    /* Gold 500 */
-    --secondary-foreground: 210 40% 98%;
+    /* secondary = the brand (deep forest): headings, card titles, active nav, logo */
+    --secondary: 159 36% 17%;
+    --secondary-foreground: 140 17% 93%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 42 29% 93%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* shadcn accent = brand-soft tonal surface (NOT the amber) */
+    --accent: 140 17% 93%;
+    --accent-foreground: 159 36% 17%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 5 61% 44%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 159 81% 40%;
-    /* Ring matches Primary */
+    --border: 41 24% 87%;
+    --input: 41 24% 87%;
+    --ring: 26 90% 37%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
+
+    /* ── v1.0 semantic layer (DESIGN.md §1.1) ── */
+    --surface-2: 42 29% 93%;
+    --border-strong: 41 21% 80%;
+    --success: 150 64% 29%;
+    --success-soft: 138 39% 94%;
+    --warn: 26 90% 37%;
+    --warn-soft: 37 87% 94%;
+    --warn-strong: 23 82% 31%;
+    --danger: 5 61% 44%;
+    --danger-soft: 6 70% 95%;
+    --text-3: 218 11% 65%;
+    --elev-1: 0 1px 2px rgba(27,58,47,.08), 0 1px 3px rgba(27,58,47,.06);
+    --elev-2: 0 1px 2px rgba(27,58,47,.10), 0 2px 6px rgba(27,58,47,.08);
+    --elev-3: 0 2px 4px rgba(27,58,47,.10), 0 8px 20px rgba(27,58,47,.10);
+    --shadow-card: 0 1px 3px rgba(27,58,47,.06), 0 4px 14px rgba(27,58,47,.05);
+    --glow: none;
+    --motion-standard: cubic-bezier(.2, 0, 0, 1);
+    --motion-emphasized: cubic-bezier(.2, 0, 0, 1);
   }
 
   /* ── Dark theme ("Ikhlas Night") — class strategy, additive & non-breaking ── */
   .dark {
-    --background: 222 47% 7%;
-    /* deep navy-teal, slate-950 family */
-    --foreground: 210 40% 96%;
+    /* ── QAMAR (dark) — v1.0 design contract (DESIGN.md §1.2) ── */
+    --background: 221 44% 10%;
+    --foreground: 216 38% 95%;
 
-    --card: 222 44% 11%;
-    --card-foreground: 210 40% 96%;
+    --card: 219 32% 14%;
+    --card-foreground: 216 38% 95%;
 
-    --popover: 222 44% 11%;
-    --popover-foreground: 210 40% 96%;
+    --popover: 219 32% 14%;
+    --popover-foreground: 216 38% 95%;
 
-    --primary: 172 66% 50%;
-    /* brighter turquoise for contrast on dark */
-    --primary-foreground: 222 47% 7%;
+    /* primary = manuscript gold: CTAs, due figure, focus ring */
+    --primary: 41 62% 56%;
+    --primary-foreground: 221 44% 10%;
 
-    --secondary: 45 93% 47%;
-    /* gold, slightly deeper */
-    --secondary-foreground: 222 47% 7%;
+    /* gold also takes the brand role in dark (sanctioned exception) */
+    --secondary: 41 62% 56%;
+    --secondary-foreground: 221 44% 10%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 221 39% 11%;
+    --muted-foreground: 215 15% 66%;
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 96%;
+    --accent: 43 33% 12%;
+    --accent-foreground: 41 62% 56%;
 
-    --destructive: 0 72% 56%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 7 82% 72%;
+    --destructive-foreground: 221 44% 10%;
 
-    --border: 217 27% 22%;
-    --input: 217 27% 22%;
-    --ring: 172 66% 50%;
+    --border: 219 25% 22%;
+    --input: 219 25% 22%;
+    --ring: 41 62% 56%;
+
+    /* ── v1.0 semantic layer (Qamar) ── */
+    --surface-2: 221 39% 11%;
+    --border-strong: 219 23% 29%;
+    --success: 151 69% 58%;
+    --success-soft: 146 45% 13%;
+    --warn: 42 71% 63%;
+    --warn-soft: 39 33% 14%;
+    --warn-strong: 42 71% 63%;
+    --danger: 7 82% 72%;
+    --danger-soft: 358 34% 15%;
+    --text-3: 222 15% 49%;
+    --elev-1: 0 1px 2px rgba(0,0,0,.35);
+    --elev-2: 0 2px 6px rgba(0,0,0,.40);
+    --elev-3: 0 4px 10px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.35);
+    --shadow-card: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+    --glow: 0 0 40px rgba(212,169,74,.18);
   }
 }
 
@@ -290,27 +377,32 @@
 
 @layer components {
 
-  /* Glassmorphism Classes */
+  /* v1.0: glass retired -> solid card surfaces (DESIGN.md 7.1). Class names kept
+     during the sweep so unswept components keep rendering. */
   .glass-panel {
-    @apply bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl ring-1 ring-black/5;
+    @apply bg-card border border-border shadow-elev-2;
   }
 
   .glass-card {
-    @apply bg-white/90 backdrop-blur-sm border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl;
+    @apply bg-card border border-border shadow-card hover:shadow-elev-2 transition-all duration-300 rounded-lg;
   }
 
-  /* Premium Buttons */
+  /* v1.0 buttons (DESIGN.md 7.4): primary = rationed amber/gold; secondary = neutral card */
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 active:scale-95 transition-all duration-200 shadow-lg shadow-primary-500/20 font-medium tracking-wide rounded-lg px-4 py-2;
+    @apply bg-primary text-primary-foreground hover:bg-warn-strong active:scale-[.98] transition-all duration-200 shadow-elev-2 font-medium tracking-wide rounded-md px-4 py-2;
   }
 
   .btn-secondary {
-    @apply bg-white text-primary-700 border border-primary-100 hover:bg-primary-50 active:scale-95 transition-all duration-200 shadow-sm hover:border-primary-200 rounded-lg px-4 py-2;
+    @apply bg-card text-foreground border border-border-strong hover:bg-muted active:scale-[.98] transition-all duration-200 shadow-elev-1 hover:border-primary rounded-md px-4 py-2;
+  }
+
+  .btn-tonal {
+    @apply bg-accent text-accent-foreground hover:bg-muted active:scale-[.98] transition-all duration-200 font-medium rounded-md px-4 py-2;
   }
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 font-sans antialiased selection:bg-primary-100 selection:text-primary-900;
+  @apply bg-background text-foreground font-sans antialiased selection:bg-warn-soft selection:text-warn-strong;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -321,7 +413,7 @@ h4,
 h5,
 h6 {
   font-family: 'Outfit', system-ui, sans-serif;
-  @apply tracking-tight font-semibold text-slate-900;
+  @apply tracking-tight font-semibold text-secondary;
 }
 
 /* Trust Signals */
