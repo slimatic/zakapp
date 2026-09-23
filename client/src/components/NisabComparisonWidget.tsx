@@ -157,8 +157,8 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   }, [isAbove, onStatusChange]);
 
   const statusLabel = isAbove ? 'Above Nisab' : 'Below Nisab';
-  const statusBg = isAbove ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
-  const statusBadge = isAbove ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+  const statusBg = isAbove ? 'bg-success-soft border-success/30' : 'bg-danger-soft border-danger/30';
+  const statusBadge = isAbove ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger';
   const statusIcon = isAbove ? '✓' : '⚠';
 
   return (
@@ -166,10 +166,10 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
       <div className={`rounded-lg border p-4 ${statusBg}`}>
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">Wealth vs Nisab</h3>
+          <h3 className="text-sm font-semibold text-foreground">Wealth vs Nisab</h3>
           {isUpdating && (
-            <span className="inline-flex items-center gap-1 text-xs text-gray-600">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-600"></span>
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-secondary"></span>
               Updating...
             </span>
           )}
@@ -181,30 +181,30 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
         {/* Main comparison */}
         <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-3 sm:gap-4">
           {/* Zakatable Wealth */}
-          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
-            <div className="text-xs font-medium text-gray-500 mb-1 truncate">Zakatable Wealth</div>
+          <div className="rounded-lg bg-card p-3 shadow-sm border border-border min-w-0">
+            <div className="text-xs font-medium text-muted-foreground mb-1 truncate">Zakatable Wealth</div>
             <Tooltip content={formatMaskedCurrency(displayWealth)}>
-              <div className="text-base sm:text-lg font-bold text-gray-900 tracking-tight truncate block">
+              <div className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate block">
                 {formatMaskedCurrency(displayWealth)}
               </div>
             </Tooltip>
           </div>
 
           {/* Total Wealth */}
-          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
-            <div className="text-xs font-medium text-gray-500 mb-1 truncate">Total Wealth</div>
+          <div className="rounded-lg bg-card p-3 shadow-sm border border-border min-w-0">
+            <div className="text-xs font-medium text-muted-foreground mb-1 truncate">Total Wealth</div>
             <Tooltip content={formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}>
-              <div className="text-base sm:text-lg font-bold text-gray-900 tracking-tight truncate block">
+              <div className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate block">
                 {formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}
               </div>
             </Tooltip>
           </div>
 
           {/* Nisab Threshold */}
-          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
-            <div className="text-xs font-medium text-gray-500 mb-1 truncate">Nisab Threshold</div>
+          <div className="rounded-lg bg-card p-3 shadow-sm border border-border min-w-0">
+            <div className="text-xs font-medium text-muted-foreground mb-1 truncate">Nisab Threshold</div>
             <Tooltip content={formatMaskedCurrency(displayNisab)}>
-              <div className="text-base sm:text-lg font-bold text-gray-700 tracking-tight truncate block">
+              <div className="text-base sm:text-lg font-bold text-foreground/80 tracking-tight truncate block">
                 {formatMaskedCurrency(displayNisab)}
               </div>
             </Tooltip>
@@ -213,18 +213,18 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
 
         {/* Visual bar chart */}
         <div className="mb-4">
-          <div className="mb-2 flex justify-between text-xs text-gray-600">
+          <div className="mb-2 flex justify-between text-xs text-muted-foreground">
             <span>Nisab</span>
             <span>100%</span>
             {percentage > 100 && <span>Current</span>}
           </div>
-          <div className="relative h-8 overflow-hidden rounded-lg bg-gray-200">
+          <div className="relative h-8 overflow-hidden rounded-lg bg-muted">
             {/* Nisab baseline (100%) */}
-            <div className="absolute left-0 top-0 h-full w-1/4 bg-gray-400"></div>
+            <div className="absolute left-0 top-0 h-full w-1/4 bg-border-strong"></div>
 
             {/* Current wealth bar */}
             <div
-              className={`absolute left-0 top-0 h-full transition-all duration-500 ${isAbove ? 'bg-green-500' : 'bg-red-500'
+              className={`absolute left-0 top-0 h-full transition-all duration-500 ${isAbove ? 'bg-success' : 'bg-danger'
                 }`}
               style={{ width: `${Math.min(percentage / 2, 100)}%` }}
             ></div>
@@ -239,34 +239,34 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
         </div>
 
         {/* Difference indicator */}
-        <div className={`rounded-lg bg-white p-3 text-center`}>
-          <div className="text-xs text-gray-600">
+        <div className={`rounded-lg bg-card p-3 text-center`}>
+          <div className="text-xs text-muted-foreground">
             {isAbove ? 'Above' : 'Below'} Nisab by
           </div>
-          <div className={`text-lg font-bold ${isAbove ? 'text-green-600' : 'text-red-600'}`}>
+          <div className={`text-lg font-bold ${isAbove ? 'text-success' : 'text-danger'}`}>
             {isAbove ? '+' : '-'} {formatMaskedCurrency(differenceAmount)}
           </div>
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-muted-foreground">
             ({((differenceAmount / displayNisab) * 100).toFixed(1)}%)
           </div>
         </div>
 
         {/* Details section */}
         {showDetails && (
-          <div className="mt-4 border-t border-gray-200 pt-4">
-            <div className="text-xs font-medium text-gray-700">Details</div>
+          <div className="mt-4 border-t border-border pt-4">
+            <div className="text-xs font-medium text-foreground/80">Details</div>
 
-            <div className="mt-2 space-y-2 text-xs text-gray-600">
+            <div className="mt-2 space-y-2 text-xs text-muted-foreground">
               <div className="flex justify-between">
                 <span>Nisab Basis:</span>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-foreground">
                   {record.nisabBasis === 'GOLD' ? 'Gold (87.48g)' : 'Silver (612.36g)'}
                 </span>
               </div>
 
               {/* Live Price Display by Antigravity */}
               {(record.nisabBasis === 'GOLD' ? goldPrice : silverPrice) && (
-                <div className="flex justify-between text-gray-500">
+                <div className="flex justify-between text-muted-foreground">
                   <span>Current Price:</span>
                   <span className="font-medium">
                     {formatMaskedCurrency(Number(record.nisabBasis === 'GOLD' ? goldPrice : silverPrice))}/g
@@ -276,12 +276,12 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
 
               <div className="flex justify-between">
                 <span>Status:</span>
-                <span className="font-medium text-gray-900">{record.status}</span>
+                <span className="font-medium text-foreground">{record.status}</span>
               </div>
               {record.startDate && (
                 <div className="flex justify-between">
                   <span>Record Started:</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-foreground">
                     {new Date(record.startDate).toLocaleDateString()}
                   </span>
                 </div>
@@ -292,16 +292,16 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
 
         {/* Status-specific messages */}
         {!isAbove && record.status === 'DRAFT' && (
-          <div className="mt-4 rounded-lg bg-red-100 p-3">
-            <p className="text-sm text-red-700">
+          <div className="mt-4 rounded-lg bg-danger-soft p-3">
+            <p className="text-sm text-danger">
               Wealth is below Nisab threshold. Zakat is not due until wealth reaches or exceeds the threshold.
             </p>
           </div>
         )}
 
         {isAbove && record.status === 'DRAFT' && (
-          <div className="mt-4 rounded-lg bg-green-100 p-3">
-            <p className="text-sm text-green-700">
+          <div className="mt-4 rounded-lg bg-success-soft p-3">
+            <p className="text-sm text-success">
               Wealth is above Nisab. Hawl period is tracking. Once 354 lunar days pass, you can finalize and calculate Zakat.
             </p>
           </div>

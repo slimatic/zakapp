@@ -186,29 +186,29 @@ export const ZakatCalculator: React.FC = () => {
         </CardHeader>
         <CardContent>
           {assets.length === 0 ? (
-            <div className="text-center py-12 bg-slate-50 rounded-lg border-dashed border-2 border-slate-200">
-              <Wallet className="mx-auto h-12 w-12 text-slate-300" />
-              <p className="mt-2 text-slate-500 text-sm">No assets found in your local vault.</p>
+            <div className="text-center py-12 bg-surface-2 rounded-lg border-dashed border-2 border-border">
+              <Wallet className="mx-auto h-12 w-12 text-tertiary" />
+              <p className="mt-2 text-muted-foreground text-sm">No assets found in your local vault.</p>
               <Button variant="link" onClick={() => window.location.href = '/assets'}>Add Assets Now</Button>
             </div>
           ) : (
             <div className="grid gap-4">
               {assets.map((asset) => (
                 <div key={asset.id}
-                  className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${selectedAssets.includes(asset.id) ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500' : 'border-slate-200 hover:border-slate-300'}`}
+                  className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${selectedAssets.includes(asset.id) ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border hover:border-border-strong'}`}
                   onClick={() => handleAssetSelection(asset.id, !selectedAssets.includes(asset.id))}
                 >
                   <div className="flex items-center space-x-4">
-                    <div className={`p-2 rounded-full ${selectedAssets.includes(asset.id) ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'}`}>
+                    <div className={`p-2 rounded-full ${selectedAssets.includes(asset.id) ? 'bg-accent text-secondary' : 'bg-muted text-muted-foreground'}`}>
                       <TrendingUp className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-slate-900">{asset.name}</h4>
-                      <p className="text-xs text-slate-500 uppercase tracking-wide">{asset.type.replace('_', ' ')}</p>
+                      <h4 className="font-semibold text-foreground">{asset.name}</h4>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">{asset.type.replace('_', ' ')}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-slate-900">{formatCurrency(asset.value, asset.currency)}</p>
+                    <p className="font-bold text-foreground">{formatCurrency(asset.value, asset.currency)}</p>
                     {asset.type === 'RETIREMENT' && <Badge variant="secondary" className="mt-1">401k/IRA</Badge>}
                   </div>
                 </div>
@@ -231,14 +231,14 @@ export const ZakatCalculator: React.FC = () => {
     return (
       <div className="space-y-6 animate-fade-in">
         {/* Highlight Result */}
-        <Card className="border-primary-100 bg-gradient-to-br from-white to-primary-50/30 overflow-hidden relative">
+        <Card className="border-border bg-card overflow-hidden relative">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Calculator className="h-48 w-48 text-primary-900" />
+            <Calculator className="h-48 w-48 text-secondary" />
           </div>
           <CardContent className="pt-8 pb-8 text-center relative z-10">
-            <p className="text-sm font-medium text-primary-600 uppercase tracking-wider mb-2">Zakat Obligation</p>
-            <h2 className="text-5xl font-bold text-slate-900 mb-2">{formatCurrency(calculation.zakatDue)}</h2>
-            <p className="text-slate-500 text-sm">
+            <p className="text-sm font-medium text-secondary uppercase tracking-wider mb-2">Zakat Obligation</p>
+            <h2 className="text-5xl font-bold text-foreground mb-2">{formatCurrency(calculation.zakatDue)}</h2>
+            <p className="text-muted-foreground text-sm">
               {calculation.isAboveNisab
                 ? `Nisab Threshold: ${formatCurrency(calculation.nisabThreshold)} (Exceeded)`
                 : `Below Nisab Threshold (${formatCurrency(calculation.nisabThreshold)})`}
@@ -252,21 +252,21 @@ export const ZakatCalculator: React.FC = () => {
             <CardTitle>Wealth Breakdown</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center py-2 border-b border-slate-100">
-              <span className="text-slate-600">Total Assets</span>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-muted-foreground">Total Assets</span>
               <span className="font-semibold">{formatCurrency(calculation.totalAssets)}</span>
             </div>
             {calculation.assetBreakdown.map((item: any, i: number) => (
               <div key={i} className="flex justify-between items-center py-2 text-sm">
-                <span className="text-slate-500 pl-4 border-l-2 border-slate-200">{item.type.replace(/_/g, ' ')}</span>
-                <span className="font-medium text-slate-700">{formatCurrency(item.zakatableAmount)} (Zakatable)</span>
+                <span className="text-muted-foreground pl-4 border-l-2 border-border">{item.type.replace(/_/g, ' ')}</span>
+                <span className="font-medium text-foreground">{formatCurrency(item.zakatableAmount)} (Zakatable)</span>
               </div>
             ))}
 
             {/* Per-asset madhab rulings — why each asset is zakatable/exempt */}
             {calculation.assetRulings && calculation.assetRulings.length > 0 && (
-              <div className="pt-3 space-y-2 border-t border-slate-100">
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+              <div className="pt-3 space-y-2 border-t border-border">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Why each asset counts the way it does
                 </p>
                 {calculation.assetRulings.map((item: any) => (
@@ -295,12 +295,12 @@ export const ZakatCalculator: React.FC = () => {
       {/* Header with Privacy Badge */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Zakat Calculator</h1>
-          <p className="text-slate-500 mt-1">Calculate your obligation locally & privately.</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Zakat Calculator</h1>
+          <p className="text-muted-foreground mt-1">Calculate your obligation locally & privately.</p>
         </div>
-        <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
-          <ShieldCheck className="h-4 w-4 text-emerald-500" />
-          <span className="text-xs font-medium text-emerald-700">Local-First Architecture</span>
+        <div className="flex items-center space-x-2 bg-card px-3 py-1.5 rounded-full border border-border shadow-sm">
+          <ShieldCheck className="h-4 w-4 text-success" />
+          <span className="text-xs font-medium text-secondary">Local-First Architecture</span>
           <Badge variant="privacy" className="ml-2">
             <Lock className="h-3 w-3 mr-1" /> Encrypted
           </Badge>
@@ -313,15 +313,15 @@ export const ZakatCalculator: React.FC = () => {
           <div key={step.id} className="flex items-center">
             <div className={`
                        h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors
-                       ${currentStep === step.id ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' :
-                currentStep > step.id ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-400'}
+                       ${currentStep === step.id ? 'bg-primary text-primary-foreground shadow-elev-2' :
+                currentStep > step.id ? 'bg-accent text-secondary' : 'bg-muted text-tertiary'}
                    `}>
               {currentStep > step.id ? <ShieldCheck className="h-4 w-4" /> : step.id + 1}
             </div>
-            <span className={`ml-2 text-sm font-medium ${currentStep === step.id ? 'text-slate-900' : 'text-slate-500'}`}>
+            <span className={`ml-2 text-sm font-medium ${currentStep === step.id ? 'text-foreground' : 'text-muted-foreground'}`}>
               {step.title}
             </span>
-            {step.id !== steps.length - 1 && <div className="w-12 h-px bg-slate-200 mx-4" />}
+            {step.id !== steps.length - 1 && <div className="w-12 h-px bg-border-strong mx-4" />}
           </div>
         ))}
       </div>
