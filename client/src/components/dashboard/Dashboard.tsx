@@ -61,7 +61,7 @@ export const Dashboard: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center p-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-tertiary"></div>
       </div>
     );
   }
@@ -81,7 +81,7 @@ export const Dashboard: React.FC = () => {
             <Wallet className="h-4 w-4 mr-2" />
             Add Asset
           </Button>
-          <Button onClick={() => navigate('/calculate')} variant="default" className="shadow-lg shadow-emerald-600/20">
+          <Button onClick={() => navigate('/calculate')} variant="default" className="shadow-lg shadow-elev-2">
             <Calculator className="h-4 w-4 mr-2" />
             Calculate Zakat
           </Button>
@@ -91,12 +91,12 @@ export const Dashboard: React.FC = () => {
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Assets */}
-        <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-emerald-500">
+        <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-secondary">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Assets Value
             </CardTitle>
-            <Wallet className="h-4 w-4 text-emerald-600" />
+            <Wallet className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">
@@ -111,12 +111,12 @@ export const Dashboard: React.FC = () => {
         </Card>
 
         {/* Zakatable Assets */}
-        <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-amber-400">
+        <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-warn">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Zakatable Assets
             </CardTitle>
-            <TrendingUp className="h-4 w-4 text-amber-500" />
+            <TrendingUp className="h-4 w-4 text-warn" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">
@@ -141,7 +141,7 @@ export const Dashboard: React.FC = () => {
               --
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              <Link to="/history" className="text-emerald-600 hover:underline">View History</Link>
+              <Link to="/history" className="text-secondary hover:underline">View History</Link>
             </p>
           </CardContent>
         </Card>
@@ -164,13 +164,13 @@ export const Dashboard: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 {assets.slice(0, 3).map((asset) => (
-                  <div key={asset.id} className="flex items-center justify-between p-3 bg-muted rounded-lg group hover:bg-emerald-50/50 transition-colors">
+                  <div key={asset.id} className="flex items-center justify-between p-3 bg-muted rounded-lg group hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-card border-border flex items-center justify-center text-lg shadow-sm">
                         {asset.type === 'CASH' ? '💵' : asset.type === 'GOLD' ? '🪙' : '📦'}
                       </div>
                       <div>
-                        <p className="font-medium text-card-foreground group-hover:text-emerald-900">{asset.name}</p>
+                        <p className="font-medium text-card-foreground group-hover:text-secondary">{asset.name}</p>
                         <p className="text-xs text-muted-foreground capitalize">{asset.type.toLowerCase().replace('_', ' ')}</p>
                       </div>
                     </div>
@@ -185,7 +185,7 @@ export const Dashboard: React.FC = () => {
           </CardContent>
           {assets.length > 0 && (
             <CardFooter className="bg-muted/50 border-t border-border p-3">
-              <Link to="/assets" className="w-full text-center text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center justify-center gap-1">
+              <Link to="/assets" className="w-full text-center text-sm text-secondary hover:text-secondary font-medium flex items-center justify-center gap-1">
                 View All Assets <ArrowRight className="h-3 w-3" />
               </Link>
             </CardFooter>
@@ -193,32 +193,32 @@ export const Dashboard: React.FC = () => {
         </Card>
 
         {/* Quick Guide / Help */}
-        <Card className="col-span-1 bg-gradient-to-br from-emerald-900 to-slate-900 text-white border-none shadow-xl">
+        <Card className="col-span-1 bg-secondary text-secondary-foreground border-none shadow-elev-3">
           <CardHeader>
-            <CardTitle className="text-white">Why Local-First?</CardTitle>
+            <CardTitle className="text-secondary-foreground">Why Local-First?</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-emerald-100/90 leading-relaxed">
+            <p className="text-secondary-foreground/90 leading-relaxed">
               To protect your financial privacy, ZakApp calculates everything
               <strong> on your device</strong>. Your asset data never leaves your browser unencrypted.
             </p>
-            <ul className="space-y-2 text-sm text-emerald-50/80">
+            <ul className="space-y-2 text-sm text-secondary-foreground/80">
               <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                <span className="h-1.5 w-1.5 rounded-full bg-secondary-foreground"></span>
                 Zero-Knowledge Architecture
               </li>
               <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                <span className="h-1.5 w-1.5 rounded-full bg-secondary-foreground"></span>
                 Offline Capability
               </li>
               <li className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                <span className="h-1.5 w-1.5 rounded-full bg-secondary-foreground"></span>
                 Client-Side Encryption (AES-GCM)
               </li>
             </ul>
             <Button
               variant="secondary"
-              className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-sm"
+              className="w-full mt-4 bg-secondary-foreground/10 hover:bg-secondary-foreground/20 text-secondary-foreground border-0 backdrop-blur-sm"
               onClick={() => window.open('https://github.com/zakapp/project-ikhlas', '_blank')}
             >
               Learn More on GitHub

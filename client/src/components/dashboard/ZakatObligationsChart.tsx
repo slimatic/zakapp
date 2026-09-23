@@ -104,7 +104,7 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
 
     if (data.length === 0) {
         return (
-            <div className="h-[300px] flex items-center justify-center text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground bg-muted rounded-lg border border-dashed border-border">
                 No obligation history available.
             </div>
         );
@@ -113,13 +113,13 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
     return (
         <div className="h-[320px] w-full">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Zakat Obligations</h3>
-                <div className="flex bg-gray-100 p-0.5 rounded-lg">
+                <h3 className="text-lg font-semibold text-foreground">Zakat Obligations</h3>
+                <div className="flex bg-muted p-0.5 rounded-lg">
                     <button
                         onClick={() => setCalendarFormat('hijri')}
                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${calendarFormat === 'hijri'
-                                ? 'bg-white text-primary-700 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-card text-secondary shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         Hijri
@@ -127,8 +127,8 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
                     <button
                         onClick={() => setCalendarFormat('gregorian')}
                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${calendarFormat === 'gregorian'
-                                ? 'bg-white text-primary-700 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-card text-secondary shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         Gregorian

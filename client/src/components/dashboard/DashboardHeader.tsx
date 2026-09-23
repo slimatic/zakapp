@@ -89,16 +89,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   return (
     <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
           {getGreeting()}
         </h1>
-        <p className="text-base md:text-lg text-gray-600">
+        <p className="text-base md:text-lg text-muted-foreground">
           {getSubtitle()}
         </p>
 
         {/* App description for brand new users */}
         {!hasAssets && (
-          <p className="mt-3 text-sm text-gray-500 max-w-2xl">
+          <p className="mt-3 text-sm text-muted-foreground max-w-2xl">
             Track your wealth, monitor your Hawl period, and calculate your Zakat
             obligations with confidence. Start by adding your first asset below.
           </p>
@@ -110,10 +110,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {feedbackEmail && (
           <a
             href={`mailto:${feedbackEmail}`}
-            className="flex items-center gap-2 px-3 py-1.5 bg-white/50 rounded-lg border border-gray-200 backdrop-blur-sm text-gray-600 text-sm font-medium hover:text-teal-700 hover:bg-white hover:border-teal-300 transition-all shadow-sm group"
+            className="flex items-center gap-2 px-3 py-1.5 bg-card/50 rounded-lg border border-border backdrop-blur-sm text-muted-foreground text-sm font-medium hover:text-secondary hover:bg-card hover:border-border-strong transition-all shadow-sm group"
             title="Send Feedback via Email"
           >
-            <svg className="w-4 h-4 text-gray-500 group-hover:text-teal-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 text-muted-foreground group-hover:text-secondary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
             <span className="hidden sm:inline">Feedback</span>
@@ -128,20 +128,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               window.location.href = '/onboarding';
             }
           }}
-          className="flex items-center gap-2 px-3 py-1.5 bg-white/50 rounded-lg border border-gray-200 backdrop-blur-sm text-gray-600 text-sm font-medium hover:text-emerald-700 hover:bg-white hover:border-emerald-300 transition-all shadow-sm group"
+          className="flex items-center gap-2 px-3 py-1.5 bg-card/50 rounded-lg border border-border backdrop-blur-sm text-muted-foreground text-sm font-medium hover:text-secondary hover:bg-card hover:border-secondary/50 transition-all shadow-sm group"
           title="Re-assess"
           aria-label="Re-assess"
         >
-          <svg className="w-4 h-4 text-gray-500 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-muted-foreground group-hover:text-warn transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
           </svg>
           <span className="hidden sm:inline">Re-assess</span>
         </button>
 
         {/* Date Display Widget */}
-        <div className="hidden md:block text-right bg-white/50 p-2.5 px-4 rounded-lg border border-gray-100 backdrop-blur-sm shadow-sm">
-          <p className="text-sm font-semibold text-gray-900 leading-tight">{gregorian}</p>
-          <p className="text-xs text-teal-700 font-medium font-serif mt-0.5">{hijri}</p>
+        <div className="hidden md:block text-right bg-card/50 p-2.5 px-4 rounded-lg border border-border backdrop-blur-sm shadow-sm">
+          <p className="text-sm font-semibold text-foreground leading-tight">{gregorian}</p>
+          <p className="text-xs text-secondary font-medium font-serif mt-0.5">{hijri}</p>
         </div>
       </div>
     </div>

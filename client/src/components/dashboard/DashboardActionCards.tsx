@@ -129,15 +129,15 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
     
     // Default: Show summary/analytics card
     return (
-      <div className="bg-gradient-to-r from-green-50 to-cyan-50 rounded-lg border-2 border-green-200 p-6">
+      <div className="bg-success-soft rounded-lg border border-success/30 p-6">
         <div className="flex items-start gap-4">
-          <div className="p-3 bg-green-100 rounded-lg text-green-600">
+          <div className="p-3 bg-success-soft rounded-lg text-success">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
+            <h3 className="text-lg font-bold text-foreground mb-2">
               Your Wealth at a Glance
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
@@ -156,13 +156,13 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
               <StatItem
                 label="Tracking Status"
                 value="Active"
-                className="text-green-600 font-semibold"
+                className="text-success font-semibold"
               />
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 to="/assets"
-                className="inline-flex items-center text-sm font-medium text-green-700 hover:text-green-800 hover:underline"
+                className="inline-flex items-center text-sm font-medium text-success hover:text-success/80 hover:underline"
               >
                 View All Assets
                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,7 +171,7 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
               </Link>
               <Link
                 to="/payments"
-                className="inline-flex items-center text-sm font-medium text-green-700 hover:text-green-800 hover:underline"
+                className="inline-flex items-center text-sm font-medium text-success hover:text-success/80 hover:underline"
               >
                 Payment History
                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,40 +216,40 @@ const ActionCard: React.FC<ActionCardProps> = ({
 }) => {
   const variantStyles = {
     primary: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
-      iconBg: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      titleColor: 'text-blue-900',
-      descColor: 'text-blue-800',
-      buttonBg: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+      bg: 'bg-accent',
+      border: 'border-border',
+      iconBg: 'bg-accent',
+      iconColor: 'text-secondary',
+      titleColor: 'text-secondary',
+      descColor: 'text-secondary',
+      buttonBg: 'bg-secondary hover:bg-secondary/90 focus:ring-ring', buttonFg: 'text-secondary-foreground',
     },
     warning: {
-      bg: 'bg-amber-50',
-      border: 'border-amber-200',
-      iconBg: 'bg-amber-100',
-      iconColor: 'text-amber-600',
-      titleColor: 'text-amber-900',
-      descColor: 'text-amber-800',
-      buttonBg: 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500',
+      bg: 'bg-warn-soft',
+      border: 'border-warn/30',
+      iconBg: 'bg-warn-soft',
+      iconColor: 'text-warn-strong',
+      titleColor: 'text-warn-strong',
+      descColor: 'text-warn-strong',
+      buttonBg: 'bg-warn hover:bg-warn-strong focus:ring-warn', buttonFg: 'text-primary-foreground',
     },
     urgent: {
-      bg: 'bg-red-50',
-      border: 'border-red-200',
-      iconBg: 'bg-red-100',
-      iconColor: 'text-red-600',
-      titleColor: 'text-red-900',
-      descColor: 'text-red-800',
-      buttonBg: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+      bg: 'bg-danger-soft',
+      border: 'border-danger/30',
+      iconBg: 'bg-danger-soft',
+      iconColor: 'text-danger',
+      titleColor: 'text-danger',
+      descColor: 'text-danger',
+      buttonBg: 'bg-danger hover:bg-danger/90 focus:ring-danger', buttonFg: 'text-danger-foreground',
     },
     success: {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
-      iconBg: 'bg-green-100',
-      iconColor: 'text-green-600',
-      titleColor: 'text-green-900',
-      descColor: 'text-green-800',
-      buttonBg: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
+      bg: 'bg-success-soft',
+      border: 'border-success/30',
+      iconBg: 'bg-success-soft',
+      iconColor: 'text-success',
+      titleColor: 'text-success',
+      descColor: 'text-success',
+      buttonBg: 'bg-success hover:bg-success/90 focus:ring-success', buttonFg: 'text-success-foreground',
     },
   };
   
@@ -275,7 +275,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
           {/* Action Button */}
           <Link
             to={href}
-            className={`${styles.buttonBg} inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px]`}
+            className={`${styles.buttonBg} inline-flex items-center justify-center px-4 py-2 text-sm font-medium ${styles.buttonFg} rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px]`}
             data-testid={`action-card-${variant}`}
           >
             {label}
@@ -298,8 +298,8 @@ const StatItem: React.FC<{
   className?: string;
 }> = ({ label, value, className }) => (
   <div className="text-center sm:text-left">
-    <dt className="text-xs text-gray-600 uppercase tracking-wide">{label}</dt>
-    <dd className={`mt-1 text-lg font-semibold text-gray-900 ${className || ''}`}>
+    <dt className="text-xs text-muted-foreground uppercase tracking-wide">{label}</dt>
+    <dd className={`mt-1 text-lg font-semibold text-foreground ${className || ''}`}>
       {value}
     </dd>
   </div>

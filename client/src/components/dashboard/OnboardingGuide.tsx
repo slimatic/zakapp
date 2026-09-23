@@ -135,42 +135,42 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
 
   // Helper for dynamic styles
   const getStepStyles = (completed: boolean, current: boolean, variant?: string) => {
-    if (current && variant === 'urgent') return 'bg-red-50 border-red-200 shadow-md ring-1 ring-red-200';
-    if (current && variant === 'warning') return 'bg-amber-50 border-amber-200 shadow-sm';
+    if (current && variant === 'urgent') return 'bg-danger-soft border-danger/30 shadow-md ring-1 ring-danger/30';
+    if (current && variant === 'warning') return 'bg-warn-soft border-warn/30 shadow-sm';
 
-    if (completed && !current) return 'bg-green-50 border-green-200';
-    if (current) return 'bg-white border-blue-300 shadow-sm';
+    if (completed && !current) return 'bg-success-soft border-success/30';
+    if (current) return 'bg-card border-border-strong shadow-sm';
 
-    return 'bg-gray-50 border-gray-200';
+    return 'bg-muted border-border';
   };
 
   const getBadgeStyles = (completed: boolean, current: boolean, variant?: string) => {
-    if (current && variant === 'urgent') return 'bg-red-600 text-white animate-pulse';
-    if (current && variant === 'warning') return 'bg-amber-500 text-white';
+    if (current && variant === 'urgent') return 'bg-danger text-danger-foreground animate-pulse';
+    if (current && variant === 'warning') return 'bg-warn text-primary-foreground';
 
-    if (completed && !current) return 'bg-green-600 text-white';
-    if (current) return 'bg-blue-600 text-white';
+    if (completed && !current) return 'bg-success text-success-foreground';
+    if (current) return 'bg-secondary text-secondary-foreground';
 
-    return 'bg-gray-300 text-gray-600';
+    return 'bg-border-strong text-muted-foreground';
   };
 
   const getTitleStyles = (completed: boolean, current: boolean, variant?: string) => {
-    if (current && variant === 'urgent') return 'text-red-700 font-bold';
-    if (current && variant === 'warning') return 'text-amber-800 font-bold';
+    if (current && variant === 'urgent') return 'text-danger font-bold';
+    if (current && variant === 'warning') return 'text-warn-strong font-bold';
 
-    if (completed && !current) return 'text-green-700';
-    if (current) return 'text-blue-700';
+    if (completed && !current) return 'text-success';
+    if (current) return 'text-secondary';
 
-    return 'text-gray-600';
+    return 'text-muted-foreground';
   };
 
   const getButtonStyles = (variant?: string) => {
     const base = "inline-flex items-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 rounded min-h-[44px] py-2 px-4 transition-colors ";
 
-    if (variant === 'urgent') return base + "bg-red-600 text-white hover:bg-red-700 focus:ring-red-600 shadow-sm";
-    if (variant === 'warning') return base + "bg-amber-100 text-amber-800 hover:bg-amber-200 focus:ring-amber-500";
+    if (variant === 'urgent') return base + "bg-danger text-danger-foreground hover:bg-danger/90 focus:ring-danger shadow-sm";
+    if (variant === 'warning') return base + "bg-warn-soft text-warn-strong hover:bg-warn-soft/60 focus:ring-warn";
 
-    return base + "text-blue-600 hover:text-blue-700 hover:underline focus:ring-blue-600 px-3"; // Standard link style
+    return base + "text-secondary hover:text-secondary/80 hover:underline focus:ring-ring px-3"; // Standard link style
   };
 
   // RENDER: Maintenance Mode (Single Card) - replaces the 3-step guide on completion
@@ -178,21 +178,22 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
     const isWarning = bestAction.variant === 'warning';
     const isUrgent = bestAction.variant === 'urgent';
     // Base colors for maintenance mode
-    const bgClass = isUrgent ? 'bg-red-50 border-red-200' :
-      isWarning ? 'bg-amber-50 border-amber-200' :
-        'bg-blue-50 border-blue-200';
-    const textClass = isUrgent ? 'text-red-900' :
-      isWarning ? 'text-amber-900' :
-        'text-blue-900';
-    const btnClass = isUrgent ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' :
-      isWarning ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500' :
-        'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500';
+    const bgClass = isUrgent ? 'bg-danger-soft border-danger/30' :
+      isWarning ? 'bg-warn-soft border-warn/30' :
+        'bg-accent border-border';
+    const textClass = isUrgent ? 'text-danger' :
+      isWarning ? 'text-warn-strong' :
+        'text-secondary';
+    const btnFg = isUrgent ? 'text-danger-foreground' : isWarning ? 'text-primary-foreground' : 'text-secondary-foreground';
+    const btnClass = isUrgent ? 'bg-danger hover:bg-danger/90 focus:ring-danger' :
+      isWarning ? 'bg-warn hover:bg-warn-strong focus:ring-warn' :
+        'bg-secondary hover:bg-secondary/90 focus:ring-ring';
 
     return (
       <div className={`rounded-xl border shadow-sm p-4 sm:p-5 transition-all duration-300 ${bgClass}`}>
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex gap-4 items-start">
-            <div className={`p-2 rounded-lg shrink-0 ${isUrgent ? 'bg-red-100 text-red-600' : isWarning ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+            <div className={`p-2 rounded-lg shrink-0 ${isUrgent ? 'bg-danger-soft text-danger' : isWarning ? 'bg-warn-soft text-warn-strong' : 'bg-accent text-secondary'}`}>
               {/* Dynamic Icon based on variant */}
               {isUrgent ? (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -214,7 +215,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
 
           <Link
             to={bestAction.href}
-            className={`inline-flex items-center justify-center px-4 py-2 font-medium text-white rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${btnClass} whitespace-nowrap w-full sm:w-auto`}
+            className={`inline-flex items-center justify-center px-4 py-2 font-medium ${btnFg} rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${btnClass} whitespace-nowrap w-full sm:w-auto`}
           >
             {bestAction.label}
             <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,13 +228,13 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
   }
 
   return (
-    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 shadow-sm">
+    <div className="bg-accent border border-border rounded-lg p-6 shadow-sm">
       {/* Header with Toggle */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
+          <div className="p-2 bg-accent rounded-lg">
             <svg
-              className="w-6 h-6 text-blue-600"
+              className="w-6 h-6 text-secondary"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -247,13 +248,13 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
               />
             </svg>
           </div>
-          <h2 className="text-lg font-bold text-gray-900">Your Zakat Journey</h2>
+          <h2 className="text-lg font-bold text-foreground">Your Zakat Journey</h2>
         </div>
 
         {/* Toggle Button */}
         <button
           onClick={toggleCollapsed}
-          className="p-2 rounded-md text-gray-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="p-2 rounded-md text-muted-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label={isCollapsed ? 'Expand guide' : 'Collapse guide'}
           aria-expanded={!isCollapsed}
         >
@@ -278,13 +279,13 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
       {!isCollapsed && (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-foreground/80">
               Follow these steps to track your Zakat obligations. We'll highlight what needs attention.
             </p>
             <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
               <Link
                 to="/onboarding"
-                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                className="p-2 text-muted-foreground hover:text-secondary hover:bg-accent rounded-full transition-colors"
                 title="Restart Onboarding Journey"
                 aria-label="Restart Onboarding Journey"
               >
@@ -292,10 +293,10 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                 </svg>
               </Link>
-              <div className="h-4 w-px bg-gray-300 mx-1"></div>
+              <div className="h-4 w-px bg-border-strong mx-1"></div>
               <Link
                 to="/learn"
-                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                className="p-2 text-muted-foreground hover:text-secondary hover:bg-accent rounded-full transition-colors"
                 title="View Learning Guide"
                 aria-label="View Learning Guide"
               >
@@ -357,7 +358,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                     >
                       {step.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-sm text-muted-foreground mb-3">
                       {step.description}
                     </p>
 
@@ -378,21 +379,21 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                     {/* Completed State with Add More option */}
                     {!current && completed && (
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-medium text-green-600">
+                        <span className="text-xs font-medium text-success">
                           ✓ Completed
                         </span>
                         {step.number === 1 && (
                           <>
                             <Link
                               to={step.href}
-                              className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                              className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                             >
                               Add more assets
                             </Link>
-                            <span className="text-gray-300">|</span>
+                            <span className="text-tertiary">|</span>
                             <Link
                               to="/liabilities"
-                              className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                              className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                             >
                               Add liabilities
                             </Link>
@@ -401,7 +402,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                         {step.number === 2 && (
                           <Link
                             to={step.href}
-                            className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                            className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                           >
                             Create another record
                           </Link>
@@ -409,7 +410,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                         {step.number === 3 && (
                           <Link
                             to={step.href}
-                            className="text-xs font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                            className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                           >
                             Record another payment
                           </Link>
@@ -423,16 +424,16 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
           </div>
 
           {/* Progress Indicator */}
-          <div className="pt-4 border-t border-blue-200">
+          <div className="pt-4 border-t border-border">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Progress</span>
-              <span className="font-medium text-gray-900">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="font-medium text-foreground">
                 {completedSteps.length} of {steps.length} completed
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div className="w-full bg-muted rounded-full h-2 mt-2">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                className="bg-secondary h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(completedSteps.length / steps.length) * 100}%` }}
                 role="progressbar"
                 aria-valuenow={(completedSteps.length / steps.length) * 100}
@@ -450,19 +451,19 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
       {
         isCollapsed && (
           <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {completedSteps.length} of {steps.length} steps completed
             </p>
             <div className="flex items-center gap-3">
-              <Link to="/onboarding" className="text-xs font-medium text-gray-500 hover:text-blue-600">
+              <Link to="/onboarding" className="text-xs font-medium text-muted-foreground hover:text-secondary">
                 Restart Journey
               </Link>
-              <span className="text-gray-300">|</span>
-              <Link to="/learn" className="text-xs font-medium text-gray-500 hover:text-blue-600">
+              <span className="text-tertiary">|</span>
+              <Link to="/learn" className="text-xs font-medium text-muted-foreground hover:text-secondary">
                 Learning Guide
               </Link>
             </div>
-            <span className="text-xs text-blue-600 font-medium cursor-pointer" onClick={toggleCollapsed}>Click to expand</span>
+            <span className="text-xs text-secondary font-medium cursor-pointer" onClick={toggleCollapsed}>Click to expand</span>
           </div>
         )
       }

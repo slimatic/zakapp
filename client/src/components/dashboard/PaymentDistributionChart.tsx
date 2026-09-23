@@ -92,7 +92,7 @@ export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> =
 
     if (data.length === 0) {
         return (
-            <div className="h-[300px] flex items-center justify-center text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground bg-muted rounded-lg border border-dashed border-border">
                 No payment data available
             </div>
         );
@@ -100,7 +100,7 @@ export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> =
 
     return (
         <div className="h-[320px] w-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Distribution</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">Payment Distribution</h3>
             <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie

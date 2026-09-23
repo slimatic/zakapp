@@ -139,23 +139,23 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
   const getStatusColor = (): { bg: string; text: string; border: string; status: string } => {
     if (differencePercentage >= 10) {
       return {
-        bg: 'bg-green-50',
-        text: 'text-green-700',
-        border: 'border-green-200',
+        bg: 'bg-success-soft',
+        text: 'text-success',
+        border: 'border-success/30',
         status: 'Well Above Nisab',
       };
     } else if (differencePercentage >= 0) {
       return {
-        bg: 'bg-yellow-50',
-        text: 'text-yellow-700',
-        border: 'border-yellow-200',
+        bg: 'bg-warn-soft',
+        text: 'text-warn-strong',
+        border: 'border-warn/30',
         status: 'Near Nisab',
       };
     } else {
       return {
-        bg: 'bg-red-50',
-        text: 'text-red-700',
-        border: 'border-red-200',
+        bg: 'bg-danger-soft',
+        text: 'text-danger',
+        border: 'border-danger/30',
         status: 'Below Nisab',
       };
     }
@@ -172,7 +172,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
     <div className={`rounded-lg border-2 ${statusColors.border} ${statusColors.bg} p-6 shadow-md`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">{displayTitle}</h2>
+        <h2 className="text-xl font-bold text-foreground">{displayTitle}</h2>
         <span className={`text-sm font-medium ${statusColors.text}`}>
           {statusColors.status}
         </span>
@@ -181,18 +181,18 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
       {/* Hawl Progress */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-foreground/80">
             Day {daysElapsed} of {totalDays}
           </span>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-muted-foreground">
             {daysRemaining} days remaining
           </span>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+        <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
           <div
-            className="bg-green-600 h-3 rounded-full transition-all duration-500"
+            className="bg-success h-3 rounded-full transition-all duration-500"
             style={{ width: `${progressPercentage}%` }}
             role="progressbar"
             aria-valuenow={progressPercentage}
@@ -202,45 +202,45 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
           />
         </div>
 
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           {progressPercentage.toFixed(1)}% complete
         </p>
 
         {/* Hawl countdown milestones — surfaces urgency without any state change */}
         {daysRemaining <= 30 && daysRemaining > 0 && (
           <p
-            className="text-xs font-semibold text-amber-600 mt-1"
+            className="text-xs font-semibold text-warn-strong mt-1"
             role="status"
           >
             ⏳ Zakat due soon — {daysRemaining} day{daysRemaining === 1 ? '' : 's'} left in this Hawl
           </p>
         )}
         {daysRemaining === 0 && (
-          <p className="text-xs font-semibold text-red-600 mt-1" role="status">
+          <p className="text-xs font-semibold text-danger mt-1" role="status">
             🔔 Hawl complete — calculate and pay your Zakat now
           </p>
         )}
       </div>
 
       {/* Wealth Comparison */}
-      <div className="mb-4 p-4 bg-white rounded-md border border-gray-200">
+      <div className="mb-4 p-4 bg-card rounded-md border border-border">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">Current Wealth</span>
-          <span className="text-lg font-bold text-gray-900">
+          <span className="text-sm text-muted-foreground">Current Wealth</span>
+          <span className="text-lg font-bold text-foreground">
             {formatCurrency(currentWealth)}
           </span>
         </div>
 
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">Nisab Threshold</span>
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm text-muted-foreground">Nisab Threshold</span>
+          <span className="text-sm font-medium text-foreground/80">
             {formatCurrency(nisabThreshold)}
           </span>
         </div>
 
-        <div className="pt-2 border-t border-gray-200">
+        <div className="pt-2 border-t border-border">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Difference</span>
+            <span className="text-sm font-medium text-foreground/80">Difference</span>
             <span className={`text-sm font-bold ${statusColors.text}`}>
               {formatCurrency(wealthDifference)}
               {' '}({differencePercentage >= 0 ? '+' : ''}{differencePercentage.toFixed(1)}%)
@@ -250,19 +250,19 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
       </div>
 
       {/* Zakat payment summary */}
-      <div className="mb-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+      <div className="mb-4 p-4 bg-muted rounded-md border border-border">
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
-            <div className="text-xs text-gray-600">Zakat Due</div>
-            <div className="text-lg font-bold text-green-800">{formatCurrency(zakatDue)}</div>
+            <div className="text-xs text-muted-foreground">Zakat Due</div>
+            <div className="text-lg font-bold text-success">{formatCurrency(zakatDue)}</div>
           </div>
           <div>
-            <div className="text-xs text-gray-600">Payments Made</div>
-            <div className="text-lg font-bold text-gray-900">{formatCurrency(totalPaid)}</div>
+            <div className="text-xs text-muted-foreground">Payments Made</div>
+            <div className="text-lg font-bold text-foreground">{formatCurrency(totalPaid)}</div>
           </div>
           <div>
-            <div className="text-xs text-gray-600">Payments Remaining</div>
-            <div className="text-lg font-bold text-red-700">{formatCurrency(zakatRemaining)}</div>
+            <div className="text-xs text-muted-foreground">Payments Remaining</div>
+            <div className="text-lg font-bold text-danger">{formatCurrency(zakatRemaining)}</div>
           </div>
         </div>
       </div>
@@ -270,7 +270,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
       {/* Action Link */}
       <Link
         to={`/nisab-records`}
-        className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600"
+        className="block w-full text-center px-4 py-2 bg-success text-success-foreground rounded-md hover:bg-success/90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
       >
         View Detailed Record
       </Link>

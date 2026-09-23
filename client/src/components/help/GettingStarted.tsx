@@ -22,30 +22,30 @@ export const GettingStarted: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Getting Started with ZakApp</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground">Getting Started with ZakApp</h1>
+        <p className="mt-2 text-muted-foreground">
           Your complete guide to calculating and managing Zakat according to Islamic principles
         </p>
       </div>
 
       {/* Quick Start Steps */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Start Guide</h2>
+      <div className="bg-card shadow rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-foreground mb-6">Quick Start Guide</h2>
         <div className="space-y-6">
           {/* Step 1 */}
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-8 h-8 bg-success-soft rounded-full flex items-center justify-center text-success font-bold">
                 1
               </div>
             </div>
             <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">Add Your Assets</h3>
-              <p className="text-gray-600 mb-2">
+              <h3 className="text-lg font-medium text-foreground">Add Your Assets</h3>
+              <p className="text-muted-foreground mb-2">
                 Start by adding all your zakatable assets including cash, bank accounts, gold, silver, 
                 investments, and business assets.
               </p>
-              <a href="/assets" className="text-green-600 hover:text-green-700 font-medium">
+              <a href="/assets" className="text-success hover:text-success/80 font-medium">
                 Add Assets →
               </a>
             </div>
@@ -54,17 +54,17 @@ export const GettingStarted: React.FC = () => {
           {/* Step 2 */}
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-8 h-8 bg-success-soft rounded-full flex items-center justify-center text-success font-bold">
                 2
               </div>
             </div>
             <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">Calculate Your Zakat</h3>
-              <p className="text-gray-600 mb-2">
+              <h3 className="text-lg font-medium text-foreground">Calculate Your Zakat</h3>
+              <p className="text-muted-foreground mb-2">
                 Use our comprehensive calculator to determine your Zakat obligation based on 
                 authentic Islamic methodologies.
               </p>
-              <a href="/nisab-records" className="text-green-600 hover:text-green-700 font-medium">
+              <a href="/nisab-records" className="text-success hover:text-success/80 font-medium">
                 Calculate Zakat →
               </a>
             </div>
@@ -73,17 +73,17 @@ export const GettingStarted: React.FC = () => {
           {/* Step 3 */}
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-8 h-8 bg-success-soft rounded-full flex items-center justify-center text-success font-bold">
                 3
               </div>
             </div>
             <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">Track Your History</h3>
-              <p className="text-gray-600 mb-2">
+              <h3 className="text-lg font-medium text-foreground">Track Your History</h3>
+              <p className="text-muted-foreground mb-2">
                 Keep records of your calculations and payments for better financial planning 
                 and Islamic compliance.
               </p>
-              <a href="/history" className="text-green-600 hover:text-green-700 font-medium">
+              <a href="/history" className="text-success hover:text-success/80 font-medium">
                 View History →
               </a>
             </div>
@@ -92,33 +92,33 @@ export const GettingStarted: React.FC = () => {
       </div>
 
       {/* Islamic Guidance */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-green-900 mb-4">Understanding Zakat</h2>
+      <div className="bg-success-soft border border-success/30 rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-success mb-4">Understanding Zakat</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="font-medium text-green-900 mb-2">What is Zakat?</h3>
-            <p className="text-green-800 text-sm">
+            <h3 className="font-medium text-success mb-2">What is Zakat?</h3>
+            <p className="text-success text-sm">
               Zakat is one of the Five Pillars of Islam, a mandatory charitable contribution 
               calculated as 2.5% of savings and wealth above the nisab threshold.
             </p>
           </div>
           <div>
-            <h3 className="font-medium text-green-900 mb-2">When is Zakat Due?</h3>
-            <p className="text-green-800 text-sm">
+            <h3 className="font-medium text-success mb-2">When is Zakat Due?</h3>
+            <p className="text-success text-sm">
               Zakat becomes obligatory when your wealth exceeds the nisab threshold and you 
               have owned it for one full lunar year (hawl).
             </p>
           </div>
           <div>
-            <h3 className="font-medium text-green-900 mb-2">What is Nisab?</h3>
-            <p className="text-green-800 text-sm">
+            <h3 className="font-medium text-success mb-2">What is Nisab?</h3>
+            <p className="text-success text-sm">
               Nisab is the minimum threshold of wealth that makes Zakat obligatory. It's equivalent 
               to 85 grams of gold or 595 grams of silver.
             </p>
           </div>
           <div>
-            <h3 className="font-medium text-green-900 mb-2">Who Receives Zakat?</h3>
-            <p className="text-green-800 text-sm">
+            <h3 className="font-medium text-success mb-2">Who Receives Zakat?</h3>
+            <p className="text-success text-sm">
               The Quran specifies eight categories of people entitled to receive Zakat, 
               including the poor, needy, and those in debt.
             </p>
@@ -127,12 +127,12 @@ export const GettingStarted: React.FC = () => {
       </div>
 
       {/* Asset Types Guide */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Zakatable Assets</h2>
+      <div className="bg-card shadow rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">Zakatable Assets</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="font-medium text-gray-900 mb-3">✅ Zakatable Assets</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
+            <h3 className="font-medium text-foreground mb-3">✅ Zakatable Assets</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• Cash in hand and bank accounts</li>
               <li>• Gold and silver (jewelry & investments)</li>
               <li>• Stocks, bonds, and mutual funds</li>
@@ -143,8 +143,8 @@ export const GettingStarted: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h3 className="font-medium text-gray-900 mb-3">❌ Non-Zakatable Assets</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
+            <h3 className="font-medium text-foreground mb-3">❌ Non-Zakatable Assets</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• Primary residence</li>
               <li>• Personal vehicles</li>
               <li>• Household furniture and appliances</li>
@@ -158,19 +158,19 @@ export const GettingStarted: React.FC = () => {
       </div>
 
       {/* Calculation Methods */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-blue-900 mb-4">Calculation Methodologies</h2>
+      <div className="bg-accent border border-border rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-secondary mb-4">Calculation Methodologies</h2>
         <div className="space-y-4">
           <div>
-            <h3 className="font-medium text-blue-900">Standard Methodology</h3>
-            <p className="text-blue-800 text-sm">
+            <h3 className="font-medium text-secondary">Standard Methodology</h3>
+            <p className="text-secondary text-sm">
               Uses the lower of gold or silver nisab thresholds, providing a balanced approach 
               suitable for most situations.
             </p>
           </div>
           <div>
-            <h3 className="font-medium text-blue-900">Hanafi Methodology</h3>
-            <p className="text-blue-800 text-sm">
+            <h3 className="font-medium text-secondary">Hanafi Methodology</h3>
+            <p className="text-secondary text-sm">
               Follows the Hanafi school of jurisprudence, typically using the silver nisab 
               threshold which results in a lower threshold and more Zakat obligations.
             </p>
@@ -179,32 +179,32 @@ export const GettingStarted: React.FC = () => {
       </div>
 
       {/* FAQ */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
+      <div className="bg-card shadow rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">Frequently Asked Questions</h2>
         <div className="space-y-4">
           <div>
-            <h3 className="font-medium text-gray-900">Q: How often should I calculate Zakat?</h3>
-            <p className="text-gray-600 text-sm mt-1">
+            <h3 className="font-medium text-foreground">Q: How often should I calculate Zakat?</h3>
+            <p className="text-muted-foreground text-sm mt-1">
               A: You should calculate Zakat annually, ideally on the same date each year (your Zakat anniversary).
             </p>
           </div>
           <div>
-            <h3 className="font-medium text-gray-900">Q: Can I pay Zakat in installments?</h3>
-            <p className="text-gray-600 text-sm mt-1">
+            <h3 className="font-medium text-foreground">Q: Can I pay Zakat in installments?</h3>
+            <p className="text-muted-foreground text-sm mt-1">
               A: Yes, you can pay Zakat in advance or in installments throughout the year, but the full amount 
               should be distributed once it becomes due.
             </p>
           </div>
           <div>
-            <h3 className="font-medium text-gray-900">Q: Do I pay Zakat on my retirement fund?</h3>
-            <p className="text-gray-600 text-sm mt-1">
+            <h3 className="font-medium text-foreground">Q: Do I pay Zakat on my retirement fund?</h3>
+            <p className="text-muted-foreground text-sm mt-1">
               A: Generally, Zakat is not due on retirement funds that you cannot access. However, consult 
               a scholar for your specific situation.
             </p>
           </div>
           <div>
-            <h3 className="font-medium text-gray-900">Q: What if I'm in debt?</h3>
-            <p className="text-gray-600 text-sm mt-1">
+            <h3 className="font-medium text-foreground">Q: What if I'm in debt?</h3>
+            <p className="text-muted-foreground text-sm mt-1">
               A: You can deduct immediate debts from your total wealth before calculating Zakat. The remaining 
               amount should exceed nisab for Zakat to be due.
             </p>
@@ -213,9 +213,9 @@ export const GettingStarted: React.FC = () => {
       </div>
 
       {/* Security Note */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-yellow-900 mb-2">🔐 Your Privacy & Security</h2>
-        <p className="text-yellow-800 text-sm">
+      <div className="bg-warn-soft border border-warn/30 rounded-lg p-6">
+        <h2 className="text-lg font-semibold text-warn-strong mb-2">🔐 Your Privacy & Security</h2>
+        <p className="text-warn-strong text-sm">
           ZakApp uses bank-level encryption to protect your financial information. All sensitive data 
           is encrypted before storage, and we never store your login credentials in plain text. 
           Your financial information remains private and secure.
@@ -224,16 +224,16 @@ export const GettingStarted: React.FC = () => {
 
       {/* Contact */}
       <div className="text-center">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Need Help?</h3>
-        <p className="text-gray-600 text-sm mb-4">
+        <h3 className="text-lg font-medium text-foreground mb-2">Need Help?</h3>
+        <p className="text-muted-foreground text-sm mb-4">
           For complex situations or specific Islamic jurisprudence questions, 
           we recommend consulting with a qualified Islamic scholar.
         </p>
         <div className="space-x-4">
-          <a href="/assets" className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
+          <a href="/assets" className="bg-success text-success-foreground px-6 py-2 rounded-md hover:bg-success/90">
             Start Adding Assets
           </a>
-          <a href="/nisab-records" className="border border-green-600 text-green-600 px-6 py-2 rounded-md hover:bg-green-50">
+          <a href="/nisab-records" className="border border-success/50 text-success px-6 py-2 rounded-md hover:bg-success-soft">
             Calculate Zakat
           </a>
         </div>

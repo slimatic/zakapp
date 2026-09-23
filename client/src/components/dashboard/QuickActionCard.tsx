@@ -59,19 +59,19 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({
     flex flex-col items-start gap-3 p-6 rounded-lg shadow-md
     transition-shadow duration-200 hover:shadow-lg
     min-h-[88px] w-full
-    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring
   `;
 
   const getVariantClasses = () => {
     switch (variant) {
       case 'primary':
-        return 'bg-green-50 border-2 border-green-200 hover:border-green-300';
+        return 'bg-success-soft border-2 border-success/30 hover:border-success/50';
       case 'alert':
-        return 'bg-red-50 border-2 border-red-200 hover:border-red-300';
+        return 'bg-danger-soft border-2 border-danger/30 hover:border-danger/50';
       case 'warning':
-        return 'bg-amber-50 border-2 border-amber-200 hover:border-amber-300';
+        return 'bg-warn-soft border-2 border-warn/30 hover:border-warn/50';
       default:
-        return 'bg-white border border-gray-200 hover:border-gray-300';
+        return 'bg-card border border-border hover:border-border-strong';
     }
   };
 
@@ -80,22 +80,22 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({
   const content = (
     <>
       {/* Icon */}
-      <div className="flex-shrink-0 text-green-600" aria-hidden="true">
+      <div className="flex-shrink-0 text-success" aria-hidden="true">
         {icon}
       </div>
 
       {/* Text Content */}
       <div className="flex-1">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+        <h3 className="text-lg font-semibold text-foreground mb-1">
           {title}
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           {description}
         </p>
       </div>
 
       {/* Arrow indicator */}
-      <div className="self-end text-gray-400">
+      <div className="self-end text-muted-foreground">
         <svg
           className="w-5 h-5"
           xmlns="http://www.w3.org/2000/svg"
