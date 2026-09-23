@@ -139,7 +139,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </button>
 
         {/* Date Display Widget */}
-        <div className="hidden md:block text-right bg-card/50 p-2.5 px-4 rounded-lg border border-border backdrop-blur-sm shadow-sm">
+        <div className="hidden md:block text-end bg-card/50 p-2.5 px-4 rounded-lg border border-border backdrop-blur-sm shadow-sm">
           <p className="text-sm font-semibold text-foreground leading-tight">{gregorian}</p>
           <p className="text-xs text-secondary font-medium font-serif mt-0.5">{hijri}</p>
         </div>

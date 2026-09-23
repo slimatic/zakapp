@@ -297,7 +297,7 @@ const StatItem: React.FC<{
   value: string;
   className?: string;
 }> = ({ label, value, className }) => (
-  <div className="text-center sm:text-left">
+  <div className="text-center sm:text-start">
     <dt className="text-xs text-muted-foreground uppercase tracking-wide">{label}</dt>
     <dd className={`mt-1 text-lg font-semibold text-foreground ${className || ''}`}>
       {value}

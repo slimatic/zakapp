@@ -96,7 +96,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
               {categoryLabel}
             </p>
           </div>
-          <div className="text-left sm:text-right flex-shrink-0">
+          <div className="text-start sm:text-end flex-shrink-0">
             <div className="text-base sm:text-lg font-bold text-success">
                 {maskedCurrency(formatCurrency(safeAmount(payment), payment.currency as CurrencyCode))}
               </div>

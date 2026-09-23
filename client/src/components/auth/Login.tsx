@@ -165,12 +165,12 @@ export const Login: React.FC = () => {
                   disabled={isLoading}
                   autoComplete="current-password"
                   aria-required="true"
-                  className="focus:ring-ring border-border-strong pr-10"
+                  className="focus:ring-ring border-border-strong pe-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                  className="absolute inline-end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

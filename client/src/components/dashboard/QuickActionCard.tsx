@@ -130,7 +130,7 @@ export const QuickActionCard: React.FC<QuickActionCardProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`${baseClasses} ${variantClasses} text-left`}
+      className={`${baseClasses} ${variantClasses} text-start`}
       type="button"
     >
       {content}

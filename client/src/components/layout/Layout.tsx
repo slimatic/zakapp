@@ -214,7 +214,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               </div>
               <div className="hidden md:block">
-                <ul className="ml-10 flex items-center space-x-1 lg:space-x-4">
+                <ul className="ms-10 flex items-center space-x-1 lg:space-x-4">
                   {desktopGroups.map((group) => (
                     <li key={group.name} className="relative group">
                       {group.items ? (
@@ -226,13 +226,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                               }`}
                           >
                             {group.name}
-                            <svg className="ml-1 h-4 w-4 text-tertiary group-hover:text-muted-foreground transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="ms-1 h-4 w-4 text-tertiary group-hover:text-muted-foreground transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
 
                           {/* Dropdown Menu */}
-                          <div className="absolute left-0 mt-0 w-48 rounded-md shadow-elev-3 py-1 bg-popover ring-1 ring-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                          <div className="absolute inline-start-0 mt-0 w-48 rounded-md shadow-elev-3 py-1 bg-popover ring-1 ring-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             {group.items.map((item) => (
                               <Link
                                 key={item.href}
@@ -304,7 +304,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </button>
 
               {/* Mobile Navigation Hamburger (md:hidden) */}
-              <div className="md:hidden mr-2">
+              <div className="md:hidden me-2">
                 <MobileNav
                   items={navigation}
                   isOpen={isMobileMenuOpen}
@@ -355,7 +355,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                   {isOpen && (
                     <div
-                      className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-elev-3 py-1 bg-popover ring-1 ring-border focus:outline-none z-50"
+                      className="origin-top-right absolute inline-end-0 mt-2 w-48 rounded-md shadow-elev-3 py-1 bg-popover ring-1 ring-border focus:outline-none z-50"
                       role="menu"
                       aria-orientation="vertical"
                       aria-labelledby="user-menu-button"
@@ -390,7 +390,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                           setIsOpen(false);
                           handleLogout();
                         }}
-                        className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted focus:bg-muted"
+                        className="block w-full text-start px-4 py-2 text-sm text-foreground hover:bg-muted focus:bg-muted"
                         role="menuitem"
                         tabIndex={0}
                       >

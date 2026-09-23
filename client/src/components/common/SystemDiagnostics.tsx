@@ -117,7 +117,7 @@ export const SystemDiagnostics: React.FC = () => {
                             {serverStatus === 'offline' && (
                                 <div className="space-y-3 pt-2">
                                     <h4 className="text-sm font-semibold">Troubleshooting Steps:</h4>
-                                    <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-4">
+                                    <ul className="text-sm text-muted-foreground space-y-2 list-disc ps-4">
                                         <li>Check your internet connection.</li>
                                         <li>If you are self-hosting, ensure the Docker container is running.</li>
                                         <li>Reload the page to try reconnecting.</li>

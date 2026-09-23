@@ -174,7 +174,7 @@ export const Dashboard: React.FC = () => {
                         <p className="text-xs text-muted-foreground capitalize">{asset.type.toLowerCase().replace('_', ' ')}</p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-end">
                       <p className="font-semibold text-card-foreground">{formatCurrency(asset.value, asset.currency)}</p>
                       {isAssetZakatable(asset, 'STANDARD') && <Badge variant="secondary" className="text-[10px] h-5">Zakatable</Badge>}
                     </div>

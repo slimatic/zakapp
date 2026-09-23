@@ -312,7 +312,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             label="Amount Paid *"
             type="text"
             placeholder="0.00"
-            className="text-right"
+            className="text-end"
             error={errors.amount?.message}
             onFocus={(e) => e.target.select()}
             {...register('amount')}

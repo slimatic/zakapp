@@ -12,7 +12,7 @@ const DiagnosticsPage: React.FC = () => {
         <Layout>
             <div className="container mx-auto py-6 max-w-4xl space-y-6">
                 <div>
-                    <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4 pl-0 hover:bg-transparent hover:text-primary">
+                    <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4 ps-0 hover:bg-transparent hover:text-primary">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back
                     </Button>

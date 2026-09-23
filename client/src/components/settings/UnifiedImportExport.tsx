@@ -272,7 +272,7 @@ export const UnifiedImportExport: React.FC = () => {
                                     {stats.errors.length > 0 && (
                                         <div className="mt-2 text-xs text-danger max-h-32 overflow-y-auto">
                                             <p className="font-semibold mb-1">Errors ({stats.errors.length}):</p>
-                                            <ul className="list-disc pl-4 space-y-1">
+                                            <ul className="list-disc ps-4 space-y-1">
                                                 {stats.errors.map((e, i) => <li key={i}>{e}</li>)}
                                             </ul>
                                         </div>

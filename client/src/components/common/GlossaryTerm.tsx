@@ -33,7 +33,7 @@ export const GlossaryTerm: React.FC<GlossaryTermProps> = ({
                 {glossaryItem.definition}
             </p>
             {glossaryItem.longDefinition && (
-                <div className="pt-2 mt-2 border-t border-border text-xs text-right">
+                <div className="pt-2 mt-2 border-t border-border text-xs text-end">
                     <Link to="/learn" className="text-success hover:text-success/80 flex items-center justify-end gap-1">
                         <BookOpen size={12} />
                         Learn more

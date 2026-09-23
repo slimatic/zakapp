@@ -113,7 +113,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(
             {data.yearlyComparison.map(comparison => (
               <li key={comparison.year} className="flex justify-between items-center">
                 <span className="font-medium">{comparison.year}</span>
-                <div className="text-right">
+                <div className="text-end">
                   <div className="font-bold">{formatCurrency(comparison.totalAmount)}</div>
                   <div className="text-sm text-muted-foreground">{comparison.paymentCount} payments</div>
                 </div>
@@ -133,7 +133,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(
             {data.categoryBreakdown.map(category => (
               <li key={category.category} className="flex justify-between items-center">
                 <span className="capitalize">{category.category}</span>
-                <div className="text-right">
+                <div className="text-end">
                   <div className="font-bold">{formatCurrency(category.amount)}</div>
                   <div className="text-sm text-muted-foreground">{category.percentage}%</div>
                 </div>

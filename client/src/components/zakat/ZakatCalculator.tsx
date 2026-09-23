@@ -207,7 +207,7 @@ export const ZakatCalculator: React.FC = () => {
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">{asset.type.replace('_', ' ')}</p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <p className="font-bold text-foreground">{formatCurrency(asset.value, asset.currency)}</p>
                     {asset.type === 'RETIREMENT' && <Badge variant="secondary" className="mt-1">401k/IRA</Badge>}
                   </div>
@@ -232,7 +232,7 @@ export const ZakatCalculator: React.FC = () => {
       <div className="space-y-6 animate-fade-in">
         {/* Highlight Result */}
         <Card className="border-border bg-card overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
+          <div className="absolute top-0 inline-end-0 p-4 opacity-10">
             <Calculator className="h-48 w-48 text-secondary" />
           </div>
           <CardContent className="pt-8 pb-8 text-center relative z-10">
@@ -258,7 +258,7 @@ export const ZakatCalculator: React.FC = () => {
             </div>
             {calculation.assetBreakdown.map((item: any, i: number) => (
               <div key={i} className="flex justify-between items-center py-2 text-sm">
-                <span className="text-muted-foreground pl-4 border-l-2 border-border">{item.type.replace(/_/g, ' ')}</span>
+                <span className="text-muted-foreground ps-4 border-l-2 border-border">{item.type.replace(/_/g, ' ')}</span>
                 <span className="font-medium text-foreground">{formatCurrency(item.zakatableAmount)} (Zakatable)</span>
               </div>
             ))}

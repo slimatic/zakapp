@@ -70,7 +70,7 @@ export const SyncIndicator: React.FC = () => {
             >
                 <RefreshCcw className="w-4 h-4 animate-spin" />
                 <span className="hidden sm:inline">Syncing...</span>
-                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-xs p-2 rounded shadow-card opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">
+                <div className="absolute top-full mt-2 inline-start-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-xs p-2 rounded shadow-card opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">
                     Waiting for: {status.pending?.length ? status.pending.join(', ') : 'Server Response'}
                     <br />
                     (Click to Test Connection)

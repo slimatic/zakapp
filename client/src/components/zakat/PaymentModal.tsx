@@ -253,7 +253,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 Payment Amount *
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 inline-start-0 ps-3 flex items-center pointer-events-none">
                   <span className="text-muted-foreground sm:text-sm">{currency}</span>
                 </div>
                 <input
@@ -266,7 +266,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   value={formData.amount}
                   onChange={handleChange}
                   onFocus={(e) => e.target.select()}
-                  className={`block w-full pl-12 pr-12 border rounded-md focus:ring-ring focus:border-ring sm:text-sm ${validationErrors.amount ? 'border-danger/40' : 'border-border-strong'
+                  className={`block w-full ps-12 pe-12 border rounded-md focus:ring-ring focus:border-ring sm:text-sm ${validationErrors.amount ? 'border-danger/40' : 'border-border-strong'
                     }`}
                   placeholder="0.00"
                   aria-describedby="amount-error"

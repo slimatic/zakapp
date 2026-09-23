@@ -555,7 +555,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between pt-6 border-t border-border">
-              <div className="text-sm text-muted-foreground text-center sm:text-left">
+              <div className="text-sm text-muted-foreground text-center sm:text-start">
                 Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, sortedAndFilteredPayments.length)} of {sortedAndFilteredPayments.length} payments
               </div>
 

@@ -135,11 +135,11 @@ export const InstallPrompt: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-card/95 backdrop-blur-sm rounded-xl shadow-2xl border border-border p-5 z-50 animate-slide-up ring-1 ring-black/5">
+    <div className="fixed bottom-4 inline-start-4 inline-end-4 md:left-auto md:inline-end-4 md:w-96 bg-card/95 backdrop-blur-sm rounded-xl shadow-2xl border border-border p-5 z-50 animate-slide-up ring-1 ring-black/5">
       {/* Close button */}
       <button
         onClick={handleDismiss}
-        className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
+        className="absolute top-2 inline-end-2 p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
         aria-label="Dismiss install prompt"
       >
         <XMarkIcon className="w-5 h-5" />

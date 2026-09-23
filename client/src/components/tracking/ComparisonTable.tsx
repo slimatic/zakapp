@@ -154,7 +154,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
 
         {/* Summary Stats */}
         {comparison.summary && (
-          <div className="text-right">
+          <div className="text-end">
             <div className="text-sm text-muted-foreground">Total Period Zakat</div>
             <div className="text-lg font-bold text-success">
               {formatCurrency(comparison.summary.totalZakat)}
@@ -168,7 +168,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         <table className="min-w-full bg-card border border-border rounded-lg">
           <thead className="bg-muted">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-foreground/80 border-b">
+              <th className="px-4 py-3 text-start text-sm font-medium text-foreground/80 border-b">
                 Metric
               </th>
               {snapshots.map((snapshot: YearlySnapshot) => (

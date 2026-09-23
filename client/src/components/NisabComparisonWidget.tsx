@@ -220,11 +220,11 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
           </div>
           <div className="relative h-8 overflow-hidden rounded-lg bg-muted">
             {/* Nisab baseline (100%) */}
-            <div className="absolute left-0 top-0 h-full w-1/4 bg-border-strong"></div>
+            <div className="absolute inline-start-0 top-0 h-full w-1/4 bg-border-strong"></div>
 
             {/* Current wealth bar */}
             <div
-              className={`absolute left-0 top-0 h-full transition-all duration-500 ${isAbove ? 'bg-success' : 'bg-danger'
+              className={`absolute inline-start-0 top-0 h-full transition-all duration-500 ${isAbove ? 'bg-success' : 'bg-danger'
                 }`}
               style={{ width: `${Math.min(percentage / 2, 100)}%` }}
             ></div>

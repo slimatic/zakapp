@@ -165,7 +165,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
           <div className="bg-muted rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-muted-foreground">Payment Date:</span>
-              <div className="text-right">
+              <div className="text-end">
                 <div className="text-sm text-foreground font-medium">
                   {formatGregorianDate(new Date(payment.paymentDate))}
                 </div>
@@ -224,7 +224,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
                     Calculated: {formatGregorianDate(new Date(nisabYear.calculationDate))}
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-end">
                   <div className="text-sm font-medium text-secondary mb-1">Total Zakat Due</div>
                   <div className="text-lg font-bold text-secondary">
                     {maskedCurrency(formatCurrency(nisabYear.zakatAmount || 0))}

@@ -212,7 +212,7 @@ export const AssetList: React.FC = () => {
                         {asset.type.replace(/_/g, ' ')}
                       </span>
                     </div>
-                    <div className="text-right">
+                    <div className="text-end">
                       <div className="font-bold text-card-foreground">{formatCurrency(asset.value, asset.currency)}</div>
                       <div className="text-xs text-muted-foreground">Zakatable: {formatCurrency(zakatableAmount, asset.currency)}</div>
                     </div>
@@ -242,11 +242,11 @@ export const AssetList: React.FC = () => {
               <table className="min-w-full divide-y divide-border">
                 <thead className="bg-muted">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Asset Name</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Value</th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Zakatable</th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
+                    <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-muted-foreground uppercase tracking-wider">Asset Name</th>
+                    <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
+                    <th scope="col" className="px-6 py-3 text-end text-xs font-medium text-muted-foreground uppercase tracking-wider">Value</th>
+                    <th scope="col" className="px-6 py-3 text-end text-xs font-medium text-muted-foreground uppercase tracking-wider">Zakatable</th>
+                    <th scope="col" className="px-6 py-3 text-end text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-card divide-y divide-border">
@@ -271,13 +271,13 @@ export const AssetList: React.FC = () => {
                             {asset.type.replace(/_/g, ' ')}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-card-foreground">
+                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-semibold text-card-foreground">
                           {formatCurrency(asset.value, asset.currency)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-muted-foreground">
+                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm text-muted-foreground">
                           {formatCurrency(zakatableAmount, asset.currency)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
                           <button
                             onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
                             className="text-secondary hover:text-secondary/80 mr-4 font-medium"

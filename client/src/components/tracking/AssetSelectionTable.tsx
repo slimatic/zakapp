@@ -162,7 +162,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-1">
-                    <h4 className="font-semibold text-foreground truncate pr-2">{asset.name}</h4>
+                    <h4 className="font-semibold text-foreground truncate pe-2">{asset.name}</h4>
                     <span className="font-bold text-foreground whitespace-nowrap">{formatCurrency(asset.value)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
@@ -208,25 +208,25 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
         <table className="min-w-full divide-y divide-border" role="table">
           <thead className="bg-muted">
             <tr>
-              <th scope="col" className="px-4 py-3 text-left">
+              <th scope="col" className="px-4 py-3 text-start">
                 <span className="sr-only">Select</span>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-start text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Name
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-start text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Type
               </th>
-              <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-foreground/80 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-end text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Value
               </th>
-              <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-foreground/80 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-end text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Zakatable
               </th>
               <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Status
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-start text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Added
               </th>
             </tr>
@@ -261,10 +261,10 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                   <td className="px-4 py-3 text-sm text-muted-foreground capitalize">
                     {asset.type.replace(/_/g, ' ').toLowerCase()}
                   </td>
-                  <td className="px-4 py-3 text-sm text-foreground text-right font-medium">
+                  <td className="px-4 py-3 text-sm text-foreground text-end font-medium">
                     {formatCurrency(asset.value)}
                   </td>
-                  <td className="px-4 py-3 text-sm text-foreground text-right font-medium">
+                  <td className="px-4 py-3 text-sm text-foreground text-end font-medium">
                     {formatCurrency(displayZakatable)}
                   </td>
                   <td className="px-4 py-3 text-center">

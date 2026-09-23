@@ -423,7 +423,7 @@ export const Dashboard: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <p className="font-semibold text-secondary">
                       {maskedCurrency(new Intl.NumberFormat('en-US', {
                         style: 'currency',

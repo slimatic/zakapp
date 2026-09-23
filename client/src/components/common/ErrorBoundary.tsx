@@ -88,7 +88,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     : `Error: ${this.state.error?.message}`}
             </p>
             {process.env.NODE_ENV !== 'production' && this.state.error?.message && (
-              <div className="mt-4 p-2 bg-danger-soft text-danger text-xs text-left overflow-auto max-h-32 rounded">
+              <div className="mt-4 p-2 bg-danger-soft text-danger text-xs text-start overflow-auto max-h-32 rounded">
                 {this.state.error.message}
               </div>
             )}

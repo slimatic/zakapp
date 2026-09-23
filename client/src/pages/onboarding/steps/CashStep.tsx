@@ -31,12 +31,12 @@ export const CashStep: React.FC = () => {
                             Bank Accounts (Checking/Savings)
                         </label>
                         <div className="relative rounded-md shadow-sm">
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <div className="pointer-events-none absolute inset-y-0 inline-start-0 flex items-center ps-3">
                                 <span className="text-muted-foreground sm:text-sm">{currencySymbol}</span>
                             </div>
                             <input
                                 type="number"
-                                className="block w-full rounded-lg border-border-strong pl-7 pr-12 focus:border-ring focus:ring-ring py-3"
+                                className="block w-full rounded-lg border-border-strong ps-7 pe-12 focus:border-ring focus:ring-ring py-3"
                                 placeholder="0.00"
                                 value={data.assets.bank_accounts.value || ''}
                                 onChange={(e) => handleValueChange('bank_accounts', e.target.value)}
@@ -50,12 +50,12 @@ export const CashStep: React.FC = () => {
                             Cash on Hand
                         </label>
                         <div className="relative rounded-md shadow-sm">
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <div className="pointer-events-none absolute inset-y-0 inline-start-0 flex items-center ps-3">
                                 <span className="text-muted-foreground sm:text-sm">{currencySymbol}</span>
                             </div>
                             <input
                                 type="number"
-                                className="block w-full rounded-lg border-border-strong pl-7 pr-12 focus:border-ring focus:ring-ring py-3"
+                                className="block w-full rounded-lg border-border-strong ps-7 pe-12 focus:border-ring focus:ring-ring py-3"
                                 placeholder="0.00"
                                 value={data.assets.cash_on_hand.value || ''}
                                 onChange={(e) => handleValueChange('cash_on_hand', e.target.value)}

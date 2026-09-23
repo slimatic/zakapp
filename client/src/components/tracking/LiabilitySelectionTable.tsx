@@ -185,7 +185,7 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                 <table className="min-w-full divide-y divide-border">
                     <thead className="bg-muted sticky top-0">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-10">
+                            <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-muted-foreground uppercase tracking-wider w-10">
                                 <input
                                     type="checkbox"
                                     className="rounded border-border-strong text-secondary focus:ring-ring"
@@ -201,9 +201,9 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                                     }}
                                 />
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Liability</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</th>
+                            <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-muted-foreground uppercase tracking-wider">Liability</th>
+                            <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</th>
+                            <th scope="col" className="px-6 py-3 text-end text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</th>
                             <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
                         </tr>
                     </thead>
@@ -242,7 +242,7 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                                                 {liability.daysUntilDue <= 0 ? 'Due/Overdue' : `${liability.daysUntilDue} days`}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-foreground">
+                                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium text-foreground">
                                             {maskedCurrency(formatCurrency(liability.amount, liability.currency))}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">

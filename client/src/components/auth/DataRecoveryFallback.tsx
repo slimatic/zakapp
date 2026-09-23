@@ -73,13 +73,13 @@ export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => 
                     Did you recently change your password?
                 </p>
 
-                <div className="text-left bg-warn-soft p-4 rounded-md mb-6 text-sm text-warn-strong">
+                <div className="text-start bg-warn-soft p-4 rounded-md mb-6 text-sm text-warn-strong">
                     <p className="mb-2"><strong>Security Notice:</strong> Your data is encrypted with your password. When you change your password, your local data remains locked with the old one.</p>
                     <p>Please enter your <strong>OLD password</strong> below to unlock and migrate your data.</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="text-left">
+                    <div className="text-start">
                         <label className="block text-sm font-medium text-foreground/80 mb-1">Old Password</label>
                         <Input
                             type="password"

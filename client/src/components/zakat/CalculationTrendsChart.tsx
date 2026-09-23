@@ -297,13 +297,13 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
  <table className="min-w-full divide-y divide-border ">
  <thead>
  <tr>
- <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
+ <th className="px-4 py-2 text-start text-sm font-medium text-muted-foreground">
  Date
  </th>
- <th className="px-4 py-2 text-right text-sm font-medium text-muted-foreground">
+ <th className="px-4 py-2 text-end text-sm font-medium text-muted-foreground">
  Wealth
  </th>
- <th className="px-4 py-2 text-right text-sm font-medium text-muted-foreground">
+ <th className="px-4 py-2 text-end text-sm font-medium text-muted-foreground">
  Zakat
  </th>
  </tr>
@@ -314,10 +314,10 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
  <td className="px-4 py-2 text-sm text-foreground">
  {row.date}
  </td>
- <td className="px-4 py-2 text-sm text-right text-foreground">
+ <td className="px-4 py-2 text-sm text-end text-foreground">
  {formatCurrency(row.wealth)}
  </td>
- <td className="px-4 py-2 text-sm text-right text-success">
+ <td className="px-4 py-2 text-sm text-end text-success">
  {formatCurrency(row.zakat)}
  </td>
  </tr>

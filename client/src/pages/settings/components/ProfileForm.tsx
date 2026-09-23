@@ -367,7 +367,7 @@ export const ProfileForm: React.FC = () => {
                                     onChange={(e) => setHijriAdjustment(parseInt(e.target.value))}
                                     className="w-full h-2 bg-accent rounded-lg appearance-none cursor-pointer"
                                 />
-                                <span className="text-sm font-medium text-primary w-16 text-right">
+                                <span className="text-sm font-medium text-primary w-16 text-end">
                                     {hijriAdjustment > 0 ? `+${hijriAdjustment}` : hijriAdjustment} Days
                                 </span>
                             </div>

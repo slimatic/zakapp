@@ -126,7 +126,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
             </p>
           </div>
 
-          <div className="text-right">
+          <div className="text-end">
             <p className={`text-lg font-bold ${isAboveNisab ? 'text-success' : 'text-danger'}`}>
               {`${isAboveNisab ? '+' : '-'}${fmt(difference)}`}
             </p>

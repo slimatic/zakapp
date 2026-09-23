@@ -71,7 +71,7 @@ export const Modal: React.FC<ModalProps> = ({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className={clsx(
-                'w-full transform overflow-hidden rounded-2xl bg-card border border-border p-6 text-left align-middle shadow-xl transition-all',
+                'w-full transform overflow-hidden rounded-2xl bg-card border border-border p-6 text-start align-middle shadow-xl transition-all',
                 sizeClasses[size]
               )}>
                 {(title || showCloseButton) && (

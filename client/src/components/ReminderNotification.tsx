@@ -103,7 +103,7 @@ export const ReminderNotification: React.FC<ReminderNotificationProps> = ({
   return (
     <>
       {/* Notification Banner */}
-      <div className={`fixed top-4 right-4 z-50 max-w-md ${getPriorityColor(currentReminder.priority)} border-l-4 p-4 shadow-lg`}>
+      <div className={`fixed top-4 inline-end-4 z-50 max-w-md ${getPriorityColor(currentReminder.priority)} border-l-4 p-4 shadow-lg`}>
         <div className="flex items-start">
           <div className="flex-shrink-0">
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

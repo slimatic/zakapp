@@ -130,7 +130,7 @@ export const ReminderBanner: React.FC<ReminderBannerProps> = ({
     : 'bottom-0';
 
   return (
-    <div className={`${compact ? 'relative' : `fixed left-0 right-0 ${positionClasses} z-50`}`}>
+    <div className={`${compact ? 'relative' : `fixed inline-start-0 inline-end-0 ${positionClasses} z-50`}`}>
       <div className={`${compact ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'}`}>
         <div className="space-y-2">
           {sortedReminders.map((reminder) => {

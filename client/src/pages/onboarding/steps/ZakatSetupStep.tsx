@@ -210,7 +210,7 @@ export const ZakatSetupStep: React.FC = () => {
                     Have you already paid any Zakat for this period?
                 </label>
                 <div className="relative rounded-md shadow-sm max-w-md mx-auto">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 inline-start-0 ps-3 flex items-center pointer-events-none">
                         <span className="text-muted-foreground sm:text-sm">{currencySymbol}</span>
                     </div>
                     <input
@@ -219,7 +219,7 @@ export const ZakatSetupStep: React.FC = () => {
                         step="0.01"
                         value={zakatPaid || ''}
                         onChange={(e) => setZakatPaid(parseFloat(e.target.value) || 0)}
-                        className="focus:ring-ring focus:border-ring block w-full pl-7 pr-12 sm:text-sm border-border-strong rounded-md py-3"
+                        className="focus:ring-ring focus:border-ring block w-full ps-7 pe-12 sm:text-sm border-border-strong rounded-md py-3"
                         placeholder="0.00"
                     />
                 </div>

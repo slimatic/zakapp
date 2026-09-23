@@ -121,7 +121,7 @@ export const UserManagement: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto">
-                <table className="w-full text-left">
+                <table className="w-full text-start">
                     <thead className="bg-muted text-muted-foreground text-sm uppercase">
                         <tr>
                             <th className="px-6 py-3 font-medium">User</th>
@@ -129,7 +129,7 @@ export const UserManagement: React.FC = () => {
                             <th className="px-6 py-3 font-medium">Type</th>
                             <th className="px-6 py-3 font-medium">Limits</th>
                             <th className="px-6 py-3 font-medium">Last Login</th>
-                            <th className="px-6 py-3 font-medium text-right">Actions</th>
+                            <th className="px-6 py-3 font-medium text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -166,7 +166,7 @@ export const UserManagement: React.FC = () => {
                                 <td className="px-6 py-4 text-sm text-muted-foreground">
                                     {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
                                 </td>
-                                <td className="px-6 py-4 text-right">
+                                <td className="px-6 py-4 text-end">
                                     <div className="flex justify-end gap-2 flex-wrap">
                                         {!user.isVerified && (
                                             <button

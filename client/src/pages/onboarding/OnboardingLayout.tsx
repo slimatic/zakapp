@@ -58,7 +58,7 @@ export const OnboardingLayout: React.FC = () => {
     return (
         <div className="min-h-screen bg-surface-2 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative bg-[url('/patterns/grid.svg')]">
             {/* Learning Hub - Top Left */}
-            <div className="absolute top-4 left-4 sm:top-8 sm:left-8 z-10">
+            <div className="absolute top-4 inline-start-4 sm:top-8 sm:inline-start-8 z-10">
                 <Link
                     to="/learn"
                     target="_blank"
@@ -74,7 +74,7 @@ export const OnboardingLayout: React.FC = () => {
             </div>
 
             {/* Skip Option - Top Right */}
-            <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-10">
+            <div className="absolute top-4 inline-end-4 sm:top-8 sm:inline-end-8 z-10">
                 <button
                     onClick={handleSkip}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1 px-3 py-1 rounded-md hover:bg-muted"
@@ -98,7 +98,7 @@ export const OnboardingLayout: React.FC = () => {
                             </span>
                             {/* Privacy Indicator */}
                             <div className="flex items-center text-xs text-tertiary bg-surface-2 px-2 py-1 rounded-md">
-                                <span className="mr-1">🔒</span>
+                                <span className="me-1">🔒</span>
                                 Encrypted on Device
                             </div>
                         </div>

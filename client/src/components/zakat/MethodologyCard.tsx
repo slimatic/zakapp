@@ -126,14 +126,14 @@ export const MethodologyCard: React.FC<MethodologyCardProps> = ({
  >
  {/* Recommended Badge */}
  {isRecommended && (
- <div className="absolute -top-3 -right-3 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow-md">
+ <div className="absolute -top-3 -inline-end-3 bg-success text-success-foreground text-xs font-bold px-3 py-1 rounded-full shadow-md">
  ⭐ Recommended
  </div>
  )}
 
  {/* Selected Indicator */}
  {isSelected && (
- <div className="absolute top-4 right-4">
+ <div className="absolute top-4 inline-end-4">
  <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center">
  <svg
  className="w-4 h-4 text-secondary-foreground"

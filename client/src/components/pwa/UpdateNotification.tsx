@@ -87,7 +87,7 @@ export const UpdateNotification: React.FC = () => {
   }
 
   return (
-    <div className="fixed top-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-96 bg-secondary text-secondary-foreground rounded-lg shadow-elev-3 p-4 z-50 animate-slide-down">
+    <div className="fixed top-4 inline-start-4 inline-end-4 md:inline-start-1/2 md:-translate-x-1/2 md:w-96 bg-secondary text-secondary-foreground rounded-lg shadow-elev-3 p-4 z-50 animate-slide-down">
       <div className="flex items-start gap-3">
         {/* Update Icon */}
         <div className="flex-shrink-0 w-10 h-10 bg-muted rounded-lg flex items-center justify-center">

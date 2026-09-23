@@ -47,11 +47,11 @@ export const IdentityStep: React.FC = () => {
                     <Listbox value={selectedCurrency} onChange={handleCurrencyChange}>
                         {({ open: _open }) => (
                             <div className="relative mt-1">
-                                <Listbox.Button className="relative w-full cursor-default rounded-lg bg-card py-3 pl-4 pr-10 text-left border border-border-strong shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring sm:text-sm">
+                                <Listbox.Button className="relative w-full cursor-default rounded-lg bg-card py-3 ps-4 pe-10 text-start border border-border-strong shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring sm:text-sm">
                                     <span className="block truncate">
                                         {currencies.find(c => c.code === selectedCurrency)?.code} - {currencies.find(c => c.code === selectedCurrency)?.name}
                                     </span>
-                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                    <span className="pointer-events-none absolute inset-y-0 inline-end-0 flex items-center pe-2">
                                         <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                                     </span>
                                 </Listbox.Button>
@@ -66,7 +66,7 @@ export const IdentityStep: React.FC = () => {
                                             <Listbox.Option
                                                 key={currency.code}
                                                 className={({ active }) =>
-                                                    `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-accent text-secondary' : 'text-foreground'
+                                                    `relative cursor-default select-none py-2 ps-10 pe-4 ${active ? 'bg-accent text-secondary' : 'text-foreground'
                                                     }`
                                                 }
                                                 value={currency.code}
@@ -77,7 +77,7 @@ export const IdentityStep: React.FC = () => {
                                                             {currency.code} - {currency.name}
                                                         </span>
                                                         {selected ? (
-                                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-secondary">
+                                                            <span className="absolute inset-y-0 inline-start-0 flex items-center ps-3 text-secondary">
                                                                 <CheckIcon className="h-5 w-5" aria-hidden="true" />
                                                             </span>
                                                         ) : null}

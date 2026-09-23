@@ -18,10 +18,10 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ question, answer, isOpen,
         <div className="border border-border rounded-lg bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <button
                 onClick={onClick}
-                className="w-full flex items-center justify-between p-5 text-left bg-card hover:bg-secondary/90 transition-colors"
+                className="w-full flex items-center justify-between p-5 text-start bg-card hover:bg-secondary/90 transition-colors"
                 aria-expanded={isOpen}
             >
-                <h3 className="text-lg font-medium text-foreground pr-8">{question}</h3>
+                <h3 className="text-lg font-medium text-foreground pe-8">{question}</h3>
                 {isOpen ? <ChevronUp className="text-success shrink-0" /> : <ChevronDown className="text-muted-foreground shrink-0" />}
             </button>
             <AnimatePresence initial={false}>
@@ -152,7 +152,7 @@ export const KnowledgeHub: React.FC = () => {
                             <h3 className="text-xl font-semibold text-foreground mb-6">Simple Zakat Guide Series</h3>
                             <div className="aspect-w-16 aspect-h-9 bg-muted rounded-xl overflow-hidden shadow-lg relative" style={{ paddingBottom: '56.25%' }}>
                                 <iframe
-                                    className="absolute top-0 left-0 w-full h-full"
+                                    className="absolute top-0 inline-start-0 w-full h-full"
                                     src={`https://www.youtube.com/embed/videoseries?list=${VIDEO_PLAYLIST_ID}`}
                                     title="Zakat Guide Playlist"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -65,7 +65,7 @@ export const HelpSupport = () => {
                                     <p className="mb-2">
                                         The "Blue Loop" usually means your device cannot reach the database server.
                                     </p>
-                                    <ul className="list-disc pl-5 space-y-1">
+                                    <ul className="list-disc ps-5 space-y-1">
                                         <li>Check if the server is running.</li>
                                         <li>If you are on a different WiFi network, check your firewall settings.</li>
                                         <li>Try reloading the page—the app will attempt to find the correct hostname automatically.</li>

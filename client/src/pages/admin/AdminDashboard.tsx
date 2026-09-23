@@ -115,7 +115,7 @@ export const AdminDashboard: React.FC = () => {
             {/* Content Area */}
             <div className="py-4">
                 {activeTab === 'overview' && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-inline-start-4 duration-300">
                         {/* Stats Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <StatCard title="Total Users" value={stats?.totalUsers || 0} icon="👥" color="bg-accent text-secondary" />
@@ -135,19 +135,19 @@ export const AdminDashboard: React.FC = () => {
                 )}
 
                 {activeTab === 'users' && (
-                    <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                    <div className="animate-in fade-in slide-in-from-inline-start-4 duration-300">
                         <UserManagement />
                     </div>
                 )}
 
                 {activeTab === 'settings' && (
-                    <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                    <div className="animate-in fade-in slide-in-from-inline-start-4 duration-300">
                         <SystemSettings />
                     </div>
                 )}
 
                 {activeTab === 'health' && (
-                    <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                    <div className="animate-in fade-in slide-in-from-inline-start-4 duration-300">
                         <SystemHealth />
                     </div>
                 )}
