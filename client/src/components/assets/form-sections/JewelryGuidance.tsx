@@ -15,7 +15,7 @@ export const JewelryGuidance: React.FC<JewelryGuidanceProps> = ({
 }) => {
     return (
         <>
-            <div className="mt-2 ml-6 p-2 bg-amber-100 border border-amber-300 rounded text-amber-900 text-xs flex gap-2">
+            <div className="mt-2 ml-6 p-2 bg-warn-soft border border-warn/40 rounded text-warn-strong text-xs flex gap-2">
                 <span className="text-lg">⚠️</span>
                 <span>
                     <strong>Warning:</strong> Do not include the value of precious stones (diamonds, rubies, pearls) in your calculation.
@@ -25,7 +25,7 @@ export const JewelryGuidance: React.FC<JewelryGuidanceProps> = ({
 
             {/* Smart Guidance for Jewelry */}
             {zakatEligible && isJewelryExemptMethodology && (
-                <div className="mt-2 ml-6 p-2 bg-amber-50 border border-amber-200 rounded text-amber-800 text-xs flex gap-2 animate-pulse">
+                <div className="mt-2 ml-6 p-2 bg-warn-soft border border-warn/30 rounded text-warn-strong text-xs flex gap-2 animate-pulse">
                     <span className="text-lg">ℹ️</span>
                     <span>
                         <strong>Note:</strong> Under the <strong>{methodologyName}</strong> school, personal jewelry is typically <strong>exempt</strong> from Zakat.
@@ -36,7 +36,7 @@ export const JewelryGuidance: React.FC<JewelryGuidanceProps> = ({
 
             {/* Show inverse guidance: If UNCHECKED but methodology says it SHOULD be checked (rare, e.g. Hanafi) */}
             {!zakatEligible && !isJewelryExemptMethodology && (
-                <div className="mt-2 ml-6 p-2 bg-blue-50 border border-blue-200 rounded text-blue-800 text-xs flex gap-2">
+                <div className="mt-2 ml-6 p-2 bg-accent border border-border rounded text-secondary text-xs flex gap-2">
                     <span className="text-lg">ℹ️</span>
                     <span>
                         <strong>Note:</strong> Under the <strong>{methodologyName}</strong> school, jewelry is typically <strong>Zakatable</strong>.
@@ -47,7 +47,7 @@ export const JewelryGuidance: React.FC<JewelryGuidanceProps> = ({
 
             {/* Guidance for Auto-Exempted Assets */}
             {!zakatEligible && isJewelryExemptMethodology && !isEligibilityManual && (
-                <div className="mt-2 ml-6 p-2 bg-gray-50 border border-gray-200 rounded text-gray-700 text-xs flex gap-2">
+                <div className="mt-2 ml-6 p-2 bg-surface-2 border border-border rounded text-foreground text-xs flex gap-2">
                     <span className="text-lg">ℹ️</span>
                     <span>
                         <strong>Note:</strong> This asset is set to <strong>Exempt</strong> based on <strong>{methodologyName}</strong> rules regarding personal jewelry.

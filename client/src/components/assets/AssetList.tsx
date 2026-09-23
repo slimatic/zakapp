@@ -129,12 +129,12 @@ export const AssetList: React.FC = () => {
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-border mt-2">
                 <span className="text-muted-foreground font-medium">Estimated Zakat</span>
-                <span className="font-bold text-blue-600">
+                <span className="font-bold text-secondary">
                   {formatCurrency(estimatedZakat)}
                 </span>
               </div>
               <div className="pt-4 mt-2">
-                <div className="bg-green-100 text-green-800 text-xs px-3 py-2 rounded-md">
+                <div className="bg-success-soft text-success text-xs px-3 py-2 rounded-md">
                   {privacyMode
                     ? "Privacy Mode Enabled: Values are hidden."
                     : "All values are legally owned by you and calculated locally."
@@ -158,7 +158,7 @@ export const AssetList: React.FC = () => {
       ) : error ? (
         /* Error state — honest failure, with a retry path */
         <Card className="p-8 text-center">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-danger-soft rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">⚠️</span>
           </div>
           <h3 className="text-lg font-medium text-card-foreground mb-2">Couldn't load your assets</h3>
@@ -220,13 +220,13 @@ export const AssetList: React.FC = () => {
                   <div className="flex justify-end gap-3 mt-3 pt-3 border-t border-border">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
-                      className="text-sm font-medium text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded"
+                      className="text-sm font-medium text-secondary hover:text-secondary px-3 py-1.5 bg-accent rounded"
                     >
                       Edit
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDelete(asset.id, asset.name); }}
-                      className="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-1.5 bg-red-50 rounded"
+                      className="text-sm font-medium text-danger hover:text-danger px-3 py-1.5 bg-danger-soft rounded"
                     >
                       Delete
                     </button>
@@ -280,13 +280,13 @@ export const AssetList: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button
                             onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
-                            className="text-indigo-600 hover:text-indigo-900 mr-4 font-medium"
+                            className="text-secondary hover:text-secondary/80 mr-4 font-medium"
                           >
                             Edit
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDelete(asset.id, asset.name); }}
-                            className="text-red-600 hover:text-red-900 font-medium"
+                            className="text-danger hover:text-danger font-medium"
                           >
                             Delete
                           </button>

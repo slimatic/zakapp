@@ -61,10 +61,10 @@ export function AssetAmountHistory({ assetId, apiBaseUrl = getApiBaseUrl() }: As
 
   if (loading) {
     return (
-      <div className="asset-history p-4 border rounded-lg bg-gray-50">
+      <div className="asset-history p-4 border rounded-lg bg-surface-2">
         <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-gray-600">Loading history...</span>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-tertiary"></div>
+          <span className="ml-2 text-muted-foreground">Loading history...</span>
         </div>
       </div>
     );
@@ -72,17 +72,17 @@ export function AssetAmountHistory({ assetId, apiBaseUrl = getApiBaseUrl() }: As
 
   if (error) {
     return (
-      <div className="asset-history p-4 border rounded-lg bg-red-50">
-        <p className="text-red-600 text-sm">{error}</p>
+      <div className="asset-history p-4 border rounded-lg bg-danger-soft">
+        <p className="text-danger text-sm">{error}</p>
       </div>
     );
   }
 
   if (history.length === 0) {
     return (
-      <div className="asset-history p-6 border rounded-lg bg-gray-50">
+      <div className="asset-history p-6 border rounded-lg bg-surface-2">
         <h3 className="text-lg font-semibold mb-2">Amount History</h3>
-        <p className="text-gray-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           No history available yet. Changes to this asset's value will be tracked here automatically.
         </p>
       </div>
@@ -101,46 +101,46 @@ export function AssetAmountHistory({ assetId, apiBaseUrl = getApiBaseUrl() }: As
   const getEventTypeBadgeClass = (eventType: string) => {
     switch (eventType) {
       case 'CREATED':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success-soft text-success';
       case 'UPDATED':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-accent text-secondary';
       case 'CORRECTION':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-warn-soft text-warn-strong';
       case 'BACKPORT':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-accent text-secondary';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-foreground';
     }
   };
 
   return (
-    <div className="asset-history p-6 border rounded-lg bg-white">
+    <div className="asset-history p-6 border rounded-lg bg-card">
       <h3 className="text-lg font-semibold mb-4">Amount History</h3>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-surface-2">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Amount
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Type
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Description
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {history.map((event) => (
-              <tr key={event.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+              <tr key={event.id} className="hover:bg-surface-2">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-foreground">
                   {formatDate(event.effectiveDate)}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-foreground">
                   {formatCurrency(event.amount, event.currency)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
@@ -152,7 +152,7 @@ export function AssetAmountHistory({ assetId, apiBaseUrl = getApiBaseUrl() }: As
                     {event.eventType}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
+                <td className="px-4 py-3 text-sm text-muted-foreground">
                   {event.description || '-'}
                 </td>
               </tr>
@@ -160,7 +160,7 @@ export function AssetAmountHistory({ assetId, apiBaseUrl = getApiBaseUrl() }: As
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-500 mt-4">
+      <p className="text-xs text-muted-foreground mt-4">
         Total changes recorded: {history.length}
       </p>
     </div>

@@ -131,14 +131,14 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
         {effectiveModifier !== 1.0 && (
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Zakatable:</span>
-            <span className="font-medium text-blue-600">{formatCurrency(zakatableAmount)}</span>
+            <span className="font-medium text-secondary">{formatCurrency(zakatableAmount)}</span>
           </div>
         )}
 
         {/* Estimated Zakat */}
         <div className="flex justify-between items-center text-sm border-t border-border pt-2 mt-2">
           <span className="font-medium text-card-foreground">Estimated Zakat:</span>
-          <span className="font-bold text-green-600">{formatCurrency(zakatOwed)}</span>
+          <span className="font-bold text-success">{formatCurrency(zakatOwed)}</span>
         </div>
       </div>
 
@@ -175,7 +175,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
               e.stopPropagation();
               onDelete();
             }}
-            className="flex-1 px-3 py-2 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded transition-colors"
+            className="flex-1 px-3 py-2 text-xs font-medium text-danger bg-danger-soft hover:bg-danger-soft rounded transition-colors"
             aria-label={`Delete ${asset.name}`}
           >
             Delete

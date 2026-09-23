@@ -49,7 +49,7 @@ export const AssetEditPage: React.FC = () => {
   if (!isLoading && !asset) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-yellow-50 text-yellow-800 p-4 rounded-lg">
+        <div className="bg-warn-soft text-warn-strong p-4 rounded-lg">
           Asset not found in local database.
         </div>
       </div>

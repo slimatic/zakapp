@@ -122,10 +122,10 @@ export const AssetDetails: React.FC = () => {
   if (!asset) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+        <div className="bg-warn-soft border border-warn/30 rounded-lg p-6 text-center">
           <div className="text-6xl mb-4">⚠️</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Asset Not Found</h3>
-          <p className="text-gray-600 mb-6">
+          <h3 className="text-xl font-semibold text-foreground mb-2">Asset Not Found</h3>
+          <p className="text-muted-foreground mb-6">
             The asset you're looking for doesn't exist or may have been deleted.
           </p>
           <Link to="/assets">
@@ -174,8 +174,8 @@ export const AssetDetails: React.FC = () => {
             {getCategoryIcon(safeAsset.type)}
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{safeAsset.name}</h1>
-            <p className="text-lg text-gray-600">
+            <h1 className="text-3xl font-bold text-foreground">{safeAsset.name}</h1>
+            <p className="text-lg text-muted-foreground">
               {getCategoryLabel(safeAsset.type)}
             </p>
           </div>
@@ -201,27 +201,27 @@ export const AssetDetails: React.FC = () => {
       {/* Asset Details Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Value */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-card rounded-lg border border-border p-6">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">Current Value</h3>
+            <h3 className="text-lg font-semibold text-foreground">Current Value</h3>
             <EncryptedBadge className="scale-90 origin-top-right" />
           </div>
-          <p className="text-3xl font-bold text-green-600">
+          <p className="text-3xl font-bold text-success">
             {formatCurrency(numericValue, safeAsset.currency)}
           </p>
-          <p className="text-sm text-gray-500 mt-1">{safeAsset.currency}</p>
+          <p className="text-sm text-muted-foreground mt-1">{safeAsset.currency}</p>
         </div>
 
         {/* Zakat Status */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Zakat Status</h3>
+        <div className="bg-card rounded-lg border border-border p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-2">Zakat Status</h3>
           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${isAssetZakatable(safeAsset, 'STANDARD')
-            ? 'bg-green-100 text-green-800'
-            : 'bg-gray-100 text-gray-800'
+            ? 'bg-success-soft text-success'
+            : 'bg-muted text-foreground'
             }`}>
             {isAssetZakatable(safeAsset, 'STANDARD') ? '✓ Zakat Eligible' : '✗ Not Eligible'}
           </div>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             {isAssetZakatable(safeAsset, 'STANDARD')
               ? 'This asset will be included in Zakat calculations'
               : 'This asset will be excluded from Zakat calculations'
@@ -230,47 +230,47 @@ export const AssetDetails: React.FC = () => {
         </div>
 
         {/* Asset Age */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Asset Age</h3>
-          <p className="text-2xl font-bold text-blue-600">
+        <div className="bg-card rounded-lg border border-border p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-2">Asset Age</h3>
+          <p className="text-2xl font-bold text-secondary">
             {Math.floor(
               (new Date().getTime() - new Date(safeAsset.createdAt).getTime()) /
               (1000 * 60 * 60 * 24)
             )} days
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Added on {formatDate(safeAsset.createdAt)}
           </p>
         </div>
       </div>
 
       {/* Asset Information */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Asset Information</h3>
+      <div className="bg-card rounded-lg border border-border p-6 mb-6">
+        <h3 className="text-xl font-semibold text-foreground mb-4">Asset Information</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">
+            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
               Basic Details
             </h4>
             <dl className="space-y-3">
               <div>
-                <dt className="text-sm font-medium text-gray-900">Name</dt>
-                <dd className="text-sm text-gray-700">{safeAsset.name}</dd>
+                <dt className="text-sm font-medium text-foreground">Name</dt>
+                <dd className="text-sm text-foreground">{safeAsset.name}</dd>
               </div>
               <div className="flex-1">
-                <dt className="text-sm font-medium text-gray-900">Category</dt>
-                <dd className="text-sm text-gray-700">{getCategoryLabel(safeAsset.type)}</dd>
+                <dt className="text-sm font-medium text-foreground">Category</dt>
+                <dd className="text-sm text-foreground">{getCategoryLabel(safeAsset.type)}</dd>
               </div>
               {safeAsset.subCategory && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-900">Sub-Category</dt>
-                  <dd className="text-sm text-gray-700">{getSubCategoryLabel(safeAsset.subCategory)}</dd>
+                  <dt className="text-sm font-medium text-foreground">Sub-Category</dt>
+                  <dd className="text-sm text-foreground">{getSubCategoryLabel(safeAsset.subCategory)}</dd>
                 </div>
               )}
               <div>
-                <dt className="text-sm font-medium text-gray-900">Value</dt>
-                <dd className="text-sm text-gray-700">
+                <dt className="text-sm font-medium text-foreground">Value</dt>
+                <dd className="text-sm text-foreground">
                   {formatCurrency(safeAsset.value, safeAsset.currency)}
                 </dd>
               </div>
@@ -278,21 +278,21 @@ export const AssetDetails: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">
+            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
               Timestamps
             </h4>
             <dl className="space-y-3">
               <div>
-                <dt className="text-sm font-medium text-gray-900">Created</dt>
-                <dd className="text-sm text-gray-700">{formatDate(safeAsset.createdAt)}</dd>
+                <dt className="text-sm font-medium text-foreground">Created</dt>
+                <dd className="text-sm text-foreground">{formatDate(safeAsset.createdAt)}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-900">Last Updated</dt>
-                <dd className="text-sm text-gray-700">{formatDate(safeAsset.updatedAt)}</dd>
+                <dt className="text-sm font-medium text-foreground">Last Updated</dt>
+                <dd className="text-sm text-foreground">{formatDate(safeAsset.updatedAt)}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-900">Asset ID</dt>
-                <dd className="text-sm text-gray-700 font-mono">{safeAsset.id}</dd>
+                <dt className="text-sm font-medium text-foreground">Asset ID</dt>
+                <dd className="text-sm text-foreground font-mono">{safeAsset.id}</dd>
               </div>
             </dl>
           </div>
@@ -300,59 +300,59 @@ export const AssetDetails: React.FC = () => {
 
         {/* Description */}
         {safeAsset.description && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">
+          <div className="mt-6 pt-6 border-t border-border">
+            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
               Description
             </h4>
-            <p className="text-sm text-gray-700 leading-6">{safeAsset.description}</p>
+            <p className="text-sm text-foreground leading-6">{safeAsset.description}</p>
           </div>
         )}
       </div>
 
       {/* Zakat Calculation Info */}
       <div className={`rounded-lg border p-6 mb-6 ${isAssetZakatable(safeAsset, 'STANDARD')
-        ? 'bg-green-50 border-green-200'
-        : 'bg-gray-50 border-gray-200'
+        ? 'bg-success-soft border-success/30'
+        : 'bg-surface-2 border-border'
         }`}>
-        <h3 className={`text-xl font-semibold mb-4 ${isAssetZakatable(safeAsset, 'STANDARD') ? 'text-green-900' : 'text-gray-900'}`}>
+        <h3 className={`text-xl font-semibold mb-4 ${isAssetZakatable(safeAsset, 'STANDARD') ? 'text-success' : 'text-foreground'}`}>
           Zakat Calculation Information
         </h3>
         <div className="space-y-3">
-          <p className={`text-sm ${isAssetZakatable(safeAsset, 'STANDARD') ? 'text-green-800' : 'text-gray-700'}`}>
+          <p className={`text-sm ${isAssetZakatable(safeAsset, 'STANDARD') ? 'text-success' : 'text-foreground'}`}>
             <span className="font-medium">Original Value:</span> {formatCurrency(numericValue, safeAsset.currency)}
           </p>
 
           {isAssetZakatable(safeAsset, 'STANDARD') ? (
             <>
               {effectiveModifier !== 1.0 && (
-                <p className="text-sm text-green-800">
+                <p className="text-sm text-success">
                   <span className="font-medium">Zakatable Value (after modifier {Math.round(effectiveModifier * 100)}%):</span> {formatCurrency(zakatableValue, safeAsset.currency)}
                 </p>
               )}
               {effectiveModifier === 1.0 && (
-                <p className="text-sm text-green-800">
+                <p className="text-sm text-success">
                   <span className="font-medium">Zakatable Value:</span> {formatCurrency(zakatableValue, safeAsset.currency)}
                 </p>
               )}
-              <p className="text-sm text-green-800">
+              <p className="text-sm text-success">
                 <span className="font-medium">Estimated Zakat (2.5%):</span> {formatCurrency(zakatableValue * 0.025, safeAsset.currency)}
               </p>
             </>
           ) : (
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-foreground">
               <p className="font-medium mb-1">🚫 Asset Excluded from Calculations</p>
               <p>
                 Calculated Zakat: {formatCurrency(0, safeAsset.currency)}
               </p>
               {safeAsset.subCategory === 'jewelry' && (
-                <p className="mt-2 text-xs text-gray-500 italic">
+                <p className="mt-2 text-xs text-muted-foreground italic">
                   Note: Jewelry for personal use is exempt under certain schools of thought (e.g., Hanbali, Shafi'i, Maliki).
                 </p>
               )}
             </div>
           )}
 
-          <p className={`text-xs mt-3 ${isAssetZakatable(safeAsset, 'STANDARD') ? 'text-green-600' : 'text-gray-500'}`}>
+          <p className={`text-xs mt-3 ${isAssetZakatable(safeAsset, 'STANDARD') ? 'text-success' : 'text-muted-foreground'}`}>
             * This is an estimate. Actual Zakat calculation depends on your total wealth,
             nisab threshold, and chosen calculation methodology.
           </p>

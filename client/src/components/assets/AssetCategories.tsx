@@ -119,8 +119,8 @@ export const AssetCategories: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Asset Categories & Zakat Rules</h1>
-        <p className="text-lg text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground mb-4">Asset Categories & Zakat Rules</h1>
+        <p className="text-lg text-muted-foreground">
           Understanding how different types of assets are treated in Islamic Zakat calculation
         </p>
       </div>
@@ -130,22 +130,22 @@ export const AssetCategories: React.FC = () => {
         {categories.map((category) => (
           <div
             key={category.id}
-            className={`bg-white rounded-lg border-2 p-6 cursor-pointer transition-all duration-200 hover:shadow-md ${
+            className={`bg-card rounded-lg border-2 p-6 cursor-pointer transition-all duration-200 hover:shadow-md ${
               selectedCategory === category.id 
-                ? 'border-blue-500 ring-2 ring-blue-200' 
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-primary ring-2 ring-ring' 
+                : 'border-border hover:border-border-strong'
             }`}
             onClick={() => setSelectedCategory(category.id)}
           >
             <div className="text-center">
               <div className="text-4xl mb-3">{category.icon}</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 {category.name}
               </h3>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-muted-foreground mb-3">
                 {category.description}
               </p>
-              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-success-soft text-success">
                 {category.zakatRate}% Zakat Rate
               </div>
             </div>
@@ -155,14 +155,14 @@ export const AssetCategories: React.FC = () => {
 
       {/* Detailed Information Panel */}
       {selectedCategoryData && (
-        <div className="bg-white rounded-lg border border-gray-200 p-8">
+        <div className="bg-card rounded-lg border border-border p-8">
           <div className="flex items-center mb-6">
             <div className="text-5xl mr-4">{selectedCategoryData.icon}</div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground">
                 {selectedCategoryData.name}
               </h2>
-              <p className="text-gray-600 mt-1">
+              <p className="text-muted-foreground mt-1">
                 {selectedCategoryData.description}
               </p>
             </div>
@@ -171,28 +171,28 @@ export const AssetCategories: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Zakat Rules */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Zakat Rules</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Zakat Rules</h3>
               <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800">
+                <div className="bg-accent border border-border rounded-lg p-4">
+                  <p className="text-sm text-secondary">
                     {selectedCategoryData.zakatRule}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-gray-900 mb-1">Zakat Rate</h4>
-                    <p className="text-xl font-bold text-green-600">
+                  <div className="bg-surface-2 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-foreground mb-1">Zakat Rate</h4>
+                    <p className="text-xl font-bold text-success">
                       {selectedCategoryData.zakatRate}%
                     </p>
                   </div>
                   
                   {selectedCategoryData.nisabThreshold && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-gray-900 mb-1">
+                    <div className="bg-surface-2 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-foreground mb-1">
                         Nisab Threshold
                       </h4>
-                      <p className="text-lg font-bold text-orange-600">
+                      <p className="text-lg font-bold text-warn-strong">
                         {selectedCategoryData.nisabThreshold} 
                         {selectedCategoryData.id === 'gold' ? 'g' : selectedCategoryData.id === 'silver' ? 'g' : ''}
                       </p>
@@ -204,22 +204,22 @@ export const AssetCategories: React.FC = () => {
 
             {/* Examples */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Examples</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Examples</h3>
               <div className="space-y-2">
                 {selectedCategoryData.examples.map((example, index) => (
                   <div key={index} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                    <span className="text-sm text-gray-700">{example}</span>
+                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                    <span className="text-sm text-foreground">{example}</span>
                   </div>
                 ))}
               </div>
 
               {/* Islamic Guidance */}
-              <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-green-900 mb-2">
+              <div className="mt-6 bg-success-soft border border-success/30 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-success mb-2">
                   📖 Islamic Guidance
                 </h4>
-                <p className="text-xs text-green-800">
+                <p className="text-xs text-success">
                   {selectedCategoryData.id === 'cash' && 
                     "Cash and liquid assets are subject to Zakat if they meet the nisab threshold and have been held for one complete lunar year (hawl)."}
                   {selectedCategoryData.id === 'gold' && 
@@ -242,22 +242,22 @@ export const AssetCategories: React.FC = () => {
           </div>
 
           {/* Calculation Example */}
-          <div className="mt-8 bg-gray-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="mt-8 bg-surface-2 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
               Calculation Example
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div>
-                <span className="text-gray-600">Asset Value:</span>
+                <span className="text-muted-foreground">Asset Value:</span>
                 <span className="ml-2 font-semibold">{formatCurrency(10000)}</span>
               </div>
               <div>
-                <span className="text-gray-600">Zakat Rate:</span>
+                <span className="text-muted-foreground">Zakat Rate:</span>
                 <span className="ml-2 font-semibold">{selectedCategoryData.zakatRate}%</span>
               </div>
               <div>
-                <span className="text-gray-600">Zakat Due:</span>
-                <span className="ml-2 font-semibold text-green-600">
+                <span className="text-muted-foreground">Zakat Due:</span>
+                <span className="ml-2 font-semibold text-success">
                   {formatCurrency(10000 * (selectedCategoryData.zakatRate / 100))}
                 </span>
               </div>
@@ -267,11 +267,11 @@ export const AssetCategories: React.FC = () => {
       )}
 
       {/* General Information */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-4">
+      <div className="mt-8 bg-accent border border-border rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-secondary mb-4">
           📚 General Zakat Principles
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-blue-800">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-secondary">
           <div>
             <h4 className="font-semibold mb-2">Key Requirements:</h4>
             <ul className="space-y-1 list-disc list-inside">

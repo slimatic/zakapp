@@ -361,14 +361,14 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+      <h2 className="text-2xl font-bold text-foreground mb-6">
         {isEditing ? 'Edit Asset' : 'Add New Asset'}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Asset Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
             Asset Name *
           </label>
           <Input
@@ -376,17 +376,17 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             id="name"
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
-            className={errors.name ? 'border-red-500' : ''}
+            className={errors.name ? 'border-danger' : ''}
             placeholder="e.g., Chase Savings Account"
             aria-required="true"
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? 'name-error' : 'name-help'}
           />
-          <p id="name-help" className="mt-1 text-xs text-gray-500">
+          <p id="name-help" className="mt-1 text-xs text-muted-foreground">
             Enter a descriptive name for your asset
           </p>
           {errors.name && (
-            <p id="name-error" className="mt-1 text-sm text-red-600" role="alert">
+            <p id="name-error" className="mt-1 text-sm text-danger" role="alert">
               {errors.name}
             </p>
           )}
@@ -394,7 +394,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
         {/* Category */}
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="category" className="block text-sm font-medium text-foreground mb-2">
             Category *
           </label>
           <select
@@ -404,7 +404,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               handleChange('category', e.target.value);
               handleChange('subCategory', ''); // Reset subcategory when category changes
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             aria-required="true"
             aria-describedby="category-help"
           >
@@ -414,7 +414,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               </option>
             ))}
           </select>
-          <p id="category-help" className="mt-1 text-xs text-gray-500">
+          <p id="category-help" className="mt-1 text-xs text-muted-foreground">
             Select the type of asset you're adding
           </p>
         </div>
@@ -422,14 +422,14 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         {/* Sub-Category */}
         {subCategoryOptions[formData.category] && (
           <div>
-            <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="subCategory" className="block text-sm font-medium text-foreground mb-2">
               Sub-Category
             </label>
             <select
               id="subCategory"
               value={formData.subCategory}
               onChange={(e) => handleChange('subCategory', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
               aria-describedby="subcategory-help"
             >
               <option value="">Select a sub-category</option>
@@ -439,7 +439,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
                 </option>
               ))}
             </select>
-            <p id="subcategory-help" className="mt-1 text-xs text-gray-500">
+            <p id="subcategory-help" className="mt-1 text-xs text-muted-foreground">
               Optional: Specify a more detailed classification
             </p>
           </div>
@@ -449,7 +449,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label htmlFor="value" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="value" className="block text-sm font-medium text-foreground">
                 Value *
               </label>
               <EncryptedBadge />
@@ -460,7 +460,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               value={formData.value}
               onChange={(e) => handleChange('value', e.target.value)} // Keep as string for validity
               onFocus={(e) => e.target.select()}
-              className={errors.value ? 'border-red-500' : ''}
+              className={errors.value ? 'border-danger' : ''}
               min="0"
               step="0.01"
               placeholder="0.00"
@@ -469,21 +469,21 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               aria-describedby={errors.value ? 'value-error' : undefined}
             />
             {errors.value && (
-              <p id="value-error" className="mt-1 text-sm text-red-600" role="alert">
+              <p id="value-error" className="mt-1 text-sm text-danger" role="alert">
                 {errors.value}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="currency" className="block text-sm font-medium text-foreground mb-2">
               Currency *
             </label>
             <select
               id="currency"
               value={formData.currency}
               onChange={(e) => handleChange('currency', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.currency ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${errors.currency ? 'border-danger' : 'border-border-strong'
                 }`}
               aria-required="true"
               aria-invalid={!!errors.currency}
@@ -493,11 +493,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
                 <option key={code} value={code}>{code} - {getCurrencySymbol(code)}</option>
               ))}
             </select>
-            <p id="currency-help" className="mt-1 text-xs text-gray-500">
+            <p id="currency-help" className="mt-1 text-xs text-muted-foreground">
               Select the currency for this asset's value
             </p>
             {errors.currency && (
-              <p id="currency-error" className="mt-1 text-sm text-red-600" role="alert">
+              <p id="currency-error" className="mt-1 text-sm text-danger" role="alert">
                 {errors.currency}
               </p>
             )}
@@ -506,7 +506,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
         {/* Acquisition Date */}
         <div>
-          <label htmlFor="acquisitionDate" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="acquisitionDate" className="block text-sm font-medium text-foreground mb-2">
             Acquisition Date *
           </label>
           <Input
@@ -514,17 +514,17 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
             id="acquisitionDate"
             value={formData.acquisitionDate}
             onChange={(e) => handleChange('acquisitionDate', e.target.value)}
-            className={errors.acquisitionDate ? 'border-red-500' : ''}
+            className={errors.acquisitionDate ? 'border-danger' : ''}
             aria-required="true"
             aria-invalid={!!errors.acquisitionDate}
             aria-describedby={errors.acquisitionDate ? 'acquisitionDate-error' : 'acquisitionDate-help'}
             max={new Date().toISOString().split('T')[0]}
           />
-          <p id="acquisitionDate-help" className="mt-1 text-xs text-gray-500">
+          <p id="acquisitionDate-help" className="mt-1 text-xs text-muted-foreground">
             When did you acquire this asset?
           </p>
           {errors.acquisitionDate && (
-            <p id="acquisitionDate-error" className="mt-1 text-sm text-red-600" role="alert">
+            <p id="acquisitionDate-error" className="mt-1 text-sm text-danger" role="alert">
               {errors.acquisitionDate}
             </p>
           )}
@@ -532,19 +532,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="description" className="block text-sm font-medium text-foreground mb-2">
             Description
           </label>
           <textarea
             id="description"
             value={formData.description}
             onChange={(e) => handleChange('description', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             rows={3}
             placeholder="Additional notes about this asset..."
             aria-describedby="description-help"
           />
-          <p id="description-help" className="mt-1 text-xs text-gray-500">
+          <p id="description-help" className="mt-1 text-xs text-muted-foreground">
             Optional: Add any additional details or notes
           </p>
         </div>
@@ -567,19 +567,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
                   handleChange('isPassiveInvestment', false);
                 }
               }}
-              className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              className="rounded border-border-strong text-secondary shadow-sm focus:border-ring focus:ring-2 focus:ring-ring"
               aria-describedby="zakat-help"
             />
-            <span className="ml-2 text-sm text-gray-700">
+            <span className="ml-2 text-sm text-foreground">
               This asset is eligible for Zakat calculation
             </span>
             {formData.isEligibilityManual && (
-              <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded border border-gray-200">
+              <span className="ml-2 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded border border-border">
                 Manual Override
               </span>
             )}
           </label>
-          <p id="zakat-help" className="mt-1 ml-6 text-xs text-gray-500">
+          <p id="zakat-help" className="mt-1 ml-6 text-xs text-muted-foreground">
             Check this if the asset should be included in Zakat calculations
           </p>
 
@@ -634,12 +634,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
         {/* Property Guidance Section */}
         {formData.category === 'property' && getPropertyGuidance(formData.subCategory) && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-md p-4">
+          <div className="bg-accent border border-border rounded-md p-4">
             <div className="flex gap-2">
               <span className="text-xl">💡</span>
               <div>
-                <p className="text-sm text-emerald-900 font-medium">Fiqh Guidance</p>
-                <p className="text-sm text-emerald-800 mt-1">
+                <p className="text-sm text-secondary font-medium">Fiqh Guidance</p>
+                <p className="text-sm text-secondary mt-1">
                   {getPropertyGuidance(formData.subCategory)}
                 </p>
               </div>
@@ -649,11 +649,11 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
         {/* Calculation Modifier Display */}
         {(formData.isPassiveInvestment || formData.isRestrictedAccount) && (
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <p className="text-sm text-gray-700 font-medium">
-              Calculation Modifier: <span className="font-bold text-blue-600">{(calculationModifier * 100).toFixed(1)}%</span>
+          <div className="bg-accent border border-border rounded-md p-4">
+            <p className="text-sm text-foreground font-medium">
+              Calculation Modifier: <span className="font-bold text-secondary">{(calculationModifier * 100).toFixed(1)}%</span>
             </p>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Your Zakat will be calculated on {calculationModifier === 1.0 ? 'the full value' : `${(calculationModifier * 100).toFixed(1)}% of`} of this asset.
             </p>
           </div>
@@ -661,8 +661,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
 
         {/* Submit Error */}
         {errors.submit && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4" role="alert" aria-live="assertive">
-            <p className="text-sm text-red-600">{errors.submit}</p>
+          <div className="bg-danger-soft border border-danger/30 rounded-md p-4" role="alert" aria-live="assertive">
+            <p className="text-sm text-danger">{errors.submit}</p>
           </div>
         )}
 
