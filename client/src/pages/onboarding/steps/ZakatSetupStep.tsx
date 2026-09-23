@@ -158,60 +158,60 @@ export const ZakatSetupStep: React.FC = () => {
         formatCurrencyCanonical(val, user?.settings?.currency || 'USD');
 
     if (isLoadingAssets || !estimates) {
-        return <div className="p-8 text-center text-gray-500">{t('steps.zakatSetup.loadingAssets')}</div>;
+        return <div className="p-8 text-center text-muted-foreground">{t('steps.zakatSetup.loadingAssets')}</div>;
     }
 
     return (
         <div className="space-y-8 animate-fadeIn">
             <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent mb-6">
                     <span className="text-3xl">🧮</span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('steps.zakatSetup.title')}</h2>
-                <p className="text-gray-500 max-w-lg mx-auto">
+                <h2 className="text-2xl font-bold text-foreground mb-2">{t('steps.zakatSetup.title')}</h2>
+                <p className="text-muted-foreground max-w-lg mx-auto">
                     We've saved your assets. Now, let's initialize your Zakat Year (Hawl) and record any payments you've already made.
                 </p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                    <h3 className="font-semibold text-gray-900">{t('steps.zakatSetup.portfolioSummary')}</h3>
-                    <span className="text-xs text-gray-400 uppercase tracking-wider">{t('steps.zakatSetup.sourceDatabase')}</span>
+            <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+                <div className="bg-muted px-6 py-4 border-b border-border flex justify-between items-center">
+                    <h3 className="font-semibold text-foreground">{t('steps.zakatSetup.portfolioSummary')}</h3>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('steps.zakatSetup.sourceDatabase')}</span>
                 </div>
                 <div className="p-6 space-y-4">
                     <div className="flex justify-between items-center">
-                        <span className="text-gray-600">{t('steps.zakatSetup.totalAssets')}</span>
-                        <span className="font-medium text-gray-900">{formatCurrency(estimates.totalWealth)}</span>
+                        <span className="text-muted-foreground">{t('steps.zakatSetup.totalAssets')}</span>
+                        <span className="font-medium text-foreground">{formatCurrency(estimates.totalWealth)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Liabilities</span>
-                        <span className="font-medium text-red-600">-{formatCurrency(estimates.totalLiabilities)}</span>
+                        <span className="text-muted-foreground">Liabilities</span>
+                        <span className="font-medium text-danger">-{formatCurrency(estimates.totalLiabilities)}</span>
                     </div>
-                    <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
-                        <span className="text-gray-900 font-medium">{t('steps.zakatSetup.netZakatableWealth')}</span>
-                        <span className="font-bold text-emerald-700 text-lg">{formatCurrency(estimates.netZakatable)}</span>
+                    <div className="border-t border-border pt-3 flex justify-between items-center">
+                        <span className="text-foreground font-medium">{t('steps.zakatSetup.netZakatableWealth')}</span>
+                        <span className="font-bold text-secondary text-lg">{formatCurrency(estimates.netZakatable)}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-emerald-600 rounded-2xl p-8 text-center text-white shadow-xl shadow-emerald-200">
-                <p className="text-emerald-100 font-medium mb-1">{t('steps.zakatSetup.estimatedZakatDue')}</p>
+            <div className="bg-secondary rounded-2xl p-8 text-center text-secondary-foreground shadow-elev-3">
+                <p className="text-secondary-foreground font-medium mb-1">{t('steps.zakatSetup.estimatedZakatDue')}</p>
                 <div className="text-4xl font-bold mb-2">
                     {formatCurrency(estimates.totalZakatDue)}
                 </div>
-                <div className="text-sm text-emerald-100 opacity-90 mt-4 bg-emerald-700/30 py-2 px-4 rounded-lg inline-block">
+                <div className="text-sm text-secondary-foreground/90 mt-4 bg-secondary/30 py-2 px-4 rounded-lg inline-block">
                     Your Hawl (Year) starts today. You can pay this anytime over the coming year.
                 </div>
             </div>
 
             {/* Payment Input */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+            <div className="bg-card rounded-xl border border-border p-6">
+                <label className="block text-sm font-medium text-foreground/80 mb-3">
                     Have you already paid any Zakat for this period?
                 </label>
                 <div className="relative rounded-md shadow-sm max-w-md mx-auto">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">{currencySymbol}</span>
+                        <span className="text-muted-foreground sm:text-sm">{currencySymbol}</span>
                     </div>
                     <input
                         type="number"
@@ -219,11 +219,11 @@ export const ZakatSetupStep: React.FC = () => {
                         step="0.01"
                         value={zakatPaid || ''}
                         onChange={(e) => setZakatPaid(parseFloat(e.target.value) || 0)}
-                        className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md py-3"
+                        className="focus:ring-ring focus:border-ring block w-full pl-7 pr-12 sm:text-sm border-border-strong rounded-md py-3"
                         placeholder="0.00"
                     />
                 </div>
-                <p className="text-xs text-gray-500 mt-2 text-center">
+                <p className="text-xs text-muted-foreground mt-2 text-center">
                     We'll record this as a payment against your new Nisab Record.
                 </p>
             </div>
@@ -232,7 +232,7 @@ export const ZakatSetupStep: React.FC = () => {
                 <button
                     onClick={handleFinish}
                     disabled={isSubmitting}
-                    className="w-full sm:w-auto px-12 py-4 bg-emerald-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-12 py-4 bg-secondary text-secondary-foreground rounded-xl font-semibold shadow-elev-2 hover:bg-secondary/90 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                     {isSubmitting ? 'Finalizing...' : 'Finish & Go to Dashboard →'}
                 </button>

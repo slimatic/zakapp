@@ -21,26 +21,26 @@ export const InvestmentsStep: React.FC = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.investments.title')}</h3>
-                <p className="text-sm text-gray-500 mb-6">
+                <h3 className="text-xl font-semibold text-foreground mb-2">{t('steps.investments.title')}</h3>
+                <p className="text-sm text-muted-foreground mb-6">
                     Enter market value for investments. You can start with your primary account and add more later.
                 </p>
 
                 <div className="space-y-6">
                     {/* Retirement Accounts */}
-                    <div className="bg-blue-50 rounded-xl p-5 border border-blue-200 transition-all duration-300">
+                    <div className="bg-accent rounded-xl p-5 border border-border transition-all duration-300">
                         <div className="flex justify-between items-start mb-4">
-                            <label className="text-blue-900 font-medium flex items-center gap-2">
-                                <span className="p-1.5 bg-blue-200 rounded text-blue-800">☂️</span>
+                            <label className="text-secondary font-medium flex items-center gap-2">
+                                <span className="p-1.5 bg-accent rounded text-secondary">☂️</span>
                                 Retirement (401k, IRA)
                             </label>
-                            <span className="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full">{t('steps.investments.usuallyRestricted')}</span>
+                            <span className="text-xs bg-accent text-secondary px-2 py-0.5 rounded-full">{t('steps.investments.usuallyRestricted')}</span>
                         </div>
 
                         <div className="mb-4">
                             <input
                                 type="number"
-                                className="block w-full rounded-lg border-blue-300 focus:border-blue-500 focus:ring-blue-500 py-3"
+                                className="block w-full rounded-lg border-border-strong focus:border-ring focus:ring-ring py-3"
                                 placeholder={`Total Market Value (${currencySymbol})`}
                                 value={data.assets.retirement.value || ''}
                                 onChange={(e) => handleValueChange('retirement', e.target.value)}
@@ -49,8 +49,8 @@ export const InvestmentsStep: React.FC = () => {
 
                         {/* Collapsible Treatment Section */}
                         {(data.assets.retirement.value || 0) > 0 && (
-                            <div className="bg-white/50 p-4 rounded-lg border border-blue-100/50 space-y-3 animate-fadeIn">
-                                <p className="text-sm font-medium text-blue-900">{t('steps.investments.zakatTreatment')}</p>
+                            <div className="bg-card/50 p-4 rounded-lg border border-border/50 space-y-3 animate-fadeIn">
+                                <p className="text-sm font-medium text-secondary">{t('steps.investments.zakatTreatment')}</p>
 
                                 <label className="flex items-start gap-3 cursor-pointer">
                                     <input
@@ -58,10 +58,10 @@ export const InvestmentsStep: React.FC = () => {
                                         name="retirement-treatment"
                                         checked={data.assets.retirement.retirementTreatment === 'full'}
                                         onChange={() => updateAsset('retirement', { retirementTreatment: 'full' })}
-                                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        className="mt-1 h-4 w-4 text-secondary focus:ring-ring border-border-strong"
                                     />
                                     <div>
-                                        <span className="block text-sm font-medium text-gray-900">{t('steps.investments.fullAssessment')}</span>
+                                        <span className="block text-sm font-medium text-foreground">{t('steps.investments.fullAssessment')}</span>
                                     </div>
                                 </label>
 
@@ -71,11 +71,11 @@ export const InvestmentsStep: React.FC = () => {
                                         name="retirement-treatment"
                                         checked={data.assets.retirement.retirementTreatment === 'net_value' || !data.assets.retirement.retirementTreatment}
                                         onChange={() => updateAsset('retirement', { retirementTreatment: 'net_value' })}
-                                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        className="mt-1 h-4 w-4 text-secondary focus:ring-ring border-border-strong"
                                     />
                                     <div>
-                                        <span className="block text-sm font-medium text-gray-900">{t('steps.investments.deductTaxes')}</span>
-                                        <span className="block text-xs text-gray-500">{t('steps.investments.fullAssessmentHint')}</span>
+                                        <span className="block text-sm font-medium text-foreground">{t('steps.investments.deductTaxes')}</span>
+                                        <span className="block text-xs text-muted-foreground">{t('steps.investments.fullAssessmentHint')}</span>
                                     </div>
                                 </label>
 
@@ -85,11 +85,11 @@ export const InvestmentsStep: React.FC = () => {
                                         name="retirement-treatment"
                                         checked={data.assets.retirement.retirementTreatment === 'passive'}
                                         onChange={() => updateAsset('retirement', { retirementTreatment: 'passive' })}
-                                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        className="mt-1 h-4 w-4 text-secondary focus:ring-ring border-border-strong"
                                     />
                                     <div>
-                                        <span className="block text-sm font-medium text-gray-900">{t('steps.investments.passive30')}</span>
-                                        <span className="block text-xs text-gray-500">{t('steps.investments.passiveHint')}</span>
+                                        <span className="block text-sm font-medium text-foreground">{t('steps.investments.passive30')}</span>
+                                        <span className="block text-xs text-muted-foreground">{t('steps.investments.passiveHint')}</span>
                                     </div>
                                 </label>
 
@@ -99,11 +99,11 @@ export const InvestmentsStep: React.FC = () => {
                                         name="retirement-treatment"
                                         checked={data.assets.retirement.retirementTreatment === 'deferred'}
                                         onChange={() => updateAsset('retirement', { retirementTreatment: 'deferred' })}
-                                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        className="mt-1 h-4 w-4 text-secondary focus:ring-ring border-border-strong"
                                     />
                                     <div>
-                                        <span className="block text-sm font-medium text-gray-900">{t('steps.investments.deferred')}</span>
-                                        <span className="block text-xs text-gray-500">{t('steps.investments.deferredHint')}</span>
+                                        <span className="block text-sm font-medium text-foreground">{t('steps.investments.deferred')}</span>
+                                        <span className="block text-xs text-muted-foreground">{t('steps.investments.deferredHint')}</span>
                                     </div>
                                 </label>
                             </div>
@@ -111,10 +111,10 @@ export const InvestmentsStep: React.FC = () => {
                     </div>
 
                     {/* Stocks / ETFs */}
-                    <div className="bg-indigo-50 rounded-xl p-5 border border-indigo-200">
+                    <div className="bg-accent rounded-xl p-5 border border-border">
                         <div className="flex justify-between items-start mb-4">
-                            <label className="text-indigo-900 font-medium flex items-center gap-2">
-                                <span className="p-1.5 bg-indigo-200 rounded text-indigo-800">📈</span>
+                            <label className="text-secondary font-medium flex items-center gap-2">
+                                <span className="p-1.5 bg-accent rounded text-secondary">📈</span>
                                 Stocks, ETFs, Mutual Funds
                             </label>
                         </div>
@@ -122,24 +122,24 @@ export const InvestmentsStep: React.FC = () => {
                         <div className="mb-4">
                             <input
                                 type="number"
-                                className="block w-full rounded-lg border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 py-3"
+                                className="block w-full rounded-lg border-border-strong focus:border-secondary focus:ring-ring py-3"
                                 placeholder={`Total Market Value (${currencySymbol})`}
                                 value={data.assets.stocks.value || ''}
                                 onChange={(e) => handleValueChange('stocks', e.target.value)}
                             />
                         </div>
 
-                        <div className="flex items-center gap-3 bg-white/50 p-3 rounded-lg border border-indigo-100/50">
+                        <div className="flex items-center gap-3 bg-surface-2 p-3 rounded-lg border border-border/50">
                             <input
                                 type="checkbox"
                                 id="passive-check"
                                 checked={data.assets.stocks.isPassive}
                                 onChange={() => toggleFlag('stocks', 'isPassive')}
-                                className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                className="h-5 w-5 text-secondary focus:ring-ring border-border-strong rounded"
                             />
-                            <label htmlFor="passive-check" className="text-sm text-indigo-900 cursor-pointer select-none">
+                            <label htmlFor="passive-check" className="text-sm text-secondary cursor-pointer select-none">
                                 <strong>{t('steps.investments.passiveInvestment')}</strong> (Buy & Hold)
-                                <span className="block text-xs text-indigo-700 font-normal mt-0.5">
+                                <span className="block text-xs text-secondary font-normal mt-0.5">
                                     Only 30% of value is zakatable (Proxy for underlying assets)
                                 </span>
                             </label>
@@ -147,14 +147,14 @@ export const InvestmentsStep: React.FC = () => {
                     </div>
 
                     {/* Crypto */}
-                    <div className="bg-orange-50 rounded-xl p-5 border border-orange-200">
-                        <label className="text-orange-900 font-medium flex items-center gap-2 mb-4">
-                            <span className="p-1.5 bg-orange-100 rounded text-orange-600">₿</span>
+                    <div className="bg-warn-soft rounded-xl p-5 border border-warn/30">
+                        <label className="text-warn-strong font-medium flex items-center gap-2 mb-4">
+                            <span className="p-1.5 bg-warn-soft rounded text-warn-strong">₿</span>
                             Cryptocurrency
                         </label>
                         <input
                             type="number"
-                            className="block w-full rounded-lg border-orange-300 focus:border-orange-500 focus:ring-orange-500 py-3"
+                            className="block w-full rounded-lg border-border-strong focus:border-warn focus:ring-warn py-3"
                             placeholder={`Total Market Value (${currencySymbol})`}
                             value={data.assets.crypto.value || ''}
                             onChange={(e) => handleValueChange('crypto', e.target.value)}
@@ -166,13 +166,13 @@ export const InvestmentsStep: React.FC = () => {
             <div className="flex justify-between pt-8">
                 <button
                     onClick={prevStep}
-                    className="px-6 py-3 text-slate-600 font-medium hover:text-slate-800 transition-colors"
+                    className="px-6 py-3 text-muted-foreground font-medium hover:text-foreground transition-colors"
                 >
                     Back
                 </button>
                 <button
                     onClick={nextStep}
-                    className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                    className="px-8 py-3 bg-secondary text-secondary-foreground rounded-xl font-semibold shadow-elev-2 hover:bg-secondary/90 transition-all"
                 >
                     Next: Review
                 </button>

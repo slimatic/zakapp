@@ -258,22 +258,22 @@ export const ReviewStep: React.FC = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent mb-6">
                     <span className="text-3xl">📝</span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('steps.review.title')}</h2>
-                <p className="text-gray-500 max-w-sm mx-auto">
+                <h2 className="text-2xl font-bold text-foreground mb-2">{t('steps.review.title')}</h2>
+                <p className="text-muted-foreground max-w-sm mx-auto">
                     Please review your assets below. We will save these to your portfolio and then calculate your Zakat.
                 </p>
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-4">{t('steps.review.summaryOfEntries')}</h4>
+            <div className="bg-muted rounded-xl p-6 border border-border">
+                <h4 className="font-medium text-foreground mb-4">{t('steps.review.summaryOfEntries')}</h4>
                 <div className="space-y-3 text-sm">
                     {Object.entries(data.assets).map(([key, asset]) => {
                         if (!asset.enabled || !asset.value) return null;
                         return (
-                            <div key={key} className="flex justify-between items-center text-gray-700">
+                            <div key={key} className="flex justify-between items-center text-foreground/80">
                                 <span className="capitalize">{key.replace(/_/g, ' ')}</span>
                                 <span className="font-medium">{formatCurrency(asset.value)}</span>
                             </div>
@@ -281,31 +281,31 @@ export const ReviewStep: React.FC = () => {
                     })}
 
                     {(data.liabilities?.immediate > 0 || data.liabilities?.expenses > 0) && (
-                        <div className="border-t border-gray-200 my-2 pt-2"></div>
+                        <div className="border-t border-border my-2 pt-2"></div>
                     )}
                     {data.liabilities?.immediate > 0 && (
-                        <div className="flex justify-between items-center text-red-700">
+                        <div className="flex justify-between items-center text-danger">
                             <span>{t('steps.review.immediateDebts')}</span>
                             <span className="font-medium">-{formatCurrency(data.liabilities.immediate)}</span>
                         </div>
                     )}
                     {data.liabilities?.expenses > 0 && (
-                        <div className="flex justify-between items-center text-orange-700">
+                        <div className="flex justify-between items-center text-warn-strong">
                             <span>{t('steps.review.livingExpenses')}</span>
                             <span className="font-medium">-{formatCurrency(data.liabilities.expenses)}</span>
                         </div>
                     )}
                 </div>
-                <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
-                    <span className="text-base font-semibold text-gray-900">{t('steps.review.totalNetAssets')}</span>
-                    <span className="text-lg font-bold text-emerald-700">{formatCurrency(estimates.totalWealth - estimates.totalLiabilities)}</span>
+                <div className="mt-6 pt-4 border-t border-border flex justify-between items-center">
+                    <span className="text-base font-semibold text-foreground">{t('steps.review.totalNetAssets')}</span>
+                    <span className="text-lg font-bold text-secondary">{formatCurrency(estimates.totalWealth - estimates.totalLiabilities)}</span>
                 </div>
             </div>
 
             <div className="flex justify-between pt-4">
                 <button
                     onClick={prevStep}
-                    className="px-6 py-3 text-slate-600 font-medium hover:text-slate-800 transition-colors"
+                    className="px-6 py-3 text-muted-foreground font-medium hover:text-foreground transition-colors"
                     disabled={isSubmitting}
                 >
                     Back
@@ -313,7 +313,7 @@ export const ReviewStep: React.FC = () => {
                 <button
                     onClick={saveData}
                     disabled={isSubmitting}
-                    className="px-12 py-3 bg-emerald-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-12 py-3 bg-secondary text-secondary-foreground rounded-xl font-semibold shadow-elev-2 hover:bg-secondary/90 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isSubmitting ? 'Finalizing Setup...' : 'Save & Continue'}
                 </button>
