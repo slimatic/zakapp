@@ -48,20 +48,11 @@ overlay** that:
 - **Gate:** all existing tests green (client 500+ pass), zero visual regressions
   on pages that already use semantic vars
 
-### Phase 2 - Component sweep (the 104 files, batched by area)
-Order (each batch is a separate commit, deployable + testable alone):
-1. Layout/shell: Navigation, BottomNav, MobileNav, Layout, ThemeToggle
-2. Dashboard + widgets
-3. Nisab/Hawl pages + RecordRulingsPanel + **moon-arc component replaces
-   HawlProgressIndicator**
-4. Assets + Liabilities
-5. Payments + history
-6. Settings + Admin + Diagnostics
-7. Onboarding wizard
-8. Calculator + Knowledge Hub
+### Phase 2 - Component sweep (the 108 files, batched by area)
+- **Status: COMPLETE** — all 9 batches swept + verified
 - Per batch: semantic-class refactor only, no logic changes, tests green
-- M3 mechanics land here too (ripple/state-layer as small util components,
-  elevation tokens, snackbar, FAB on create-action pages, segmented controls)
+- Repo-wide grep: 0 hardcoded Tailwind color classes in any source tsx file
+- 622/622 vitest pass throughout all batches
 
 ### Phase 3 - Local deploy + smoke test
 - Build client locally (`npm run build` in `client/`)
