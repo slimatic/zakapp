@@ -21,14 +21,14 @@
 | `--card` | `0 0% 100%` | `0 0% 100%` | unchanged (white surface) |
 | `--card-foreground` | `222.2 84% 4.9%` | `215 28% 17%` | |
 | `--popover` / `--popover-foreground` | as card | same as card | |
-| `--primary` | `159 81% 40%` (emerald) | `159 36% 17%` | deep forest #1B3A2F — brand/heading role |
-| `--primary-foreground` | `210 40% 98%` | `140 17% 93%` | #EAF0EC |
-| `--secondary` | `44 93% 53%` (gold) | `26 90% 37%` | amber accent #B45309 |
-| `--secondary-foreground` | `210 40% 98%` | `37 87% 94%` | #FDF3E3 |
+| `--primary` | `159 81% 40%` (emerald) | `26 90% 37%` | amber accent #B45309 — CTA/ring role (DESIGN.md §1.3) |
+| `--primary-foreground` | `210 40% 98%` | `0 0% 100%` | white on amber |
+| `--secondary` | `44 93% 53%` (gold) | `159 36% 17%` | deep forest #1B3A2F — brand role |
+| `--secondary-foreground` | `210 40% 98%` | `140 17% 93%` | #EAF0EC |
 | `--muted` | `210 40% 96.1%` | `42 29% 93%` | #F3F0E9 recessed |
 | `--muted-foreground` | `215.4 16.3% 46.9%` | `220 9% 46%` | #6B7280 |
-| `--accent` | `210 40% 96.1%` | `37 87% 94%` | #FDF3E3 amber-soft (hover tint) |
-| `--accent-foreground` | `222.2 47.4% 11.2%` | `23 82% 31%` | #92400E |
+| `--accent` | `210 40% 96.1%` | `140 17% 93%` | #EAF0EC brand-soft tonal surface (per DESIGN.md §1.3) |
+| `--accent-foreground` | `222.2 47.4% 11.2%` | `159 36% 17%` | forest on brand-soft |
 | `--destructive` | `0 84.2% 60.2%` | `5 61% 44%` | #B3372B |
 | `--destructive-foreground` | `210 40% 98%` | `6 70% 95%` | |
 | `--border` | `214.3 31.8% 91.4%` | `41 24% 87%` | warm #E5E0D5 |
@@ -36,10 +36,10 @@
 | `--ring` | `159 81% 40%` | `26 90% 37%` | focus ring = amber (accent-rationing rule) |
 | `--radius` | `0.75rem` | `14px`→`0.875rem` | mockup radius |
 
-   ⚠️ **Role flip to know:** in the old system `primary`=teal (action color) and `secondary`=gold. In Nur, `primary` becomes the deep-forest *brand* color and `secondary` becomes the rationed *amber accent*. Components using `bg-primary-600` as "the action button" must be swept to `--accent`-based classes (see (b)/(c)) or buttons silently turn forest-green. This is the single semantic hazard of the extend path — it is why the sweep must touch the button/nav components (batch 1) before anything else renders differently.
+   ⚠️ **Role flip to know:** in the old system `primary`=teal (action) and `secondary`=gold. In Nur, `primary` becomes the rationed **amber accent** and `secondary` the forest **brand**. Effect on unswept code: `bg-primary-600` action buttons turn amber (desired CTA color — safe), but `text-primary-700`/`primary-900` headings and brand links also turn amber (they must become `text-secondary` in the sweep — brand headings are forest, amber is rationed). This is why batch 1 (shell) + batch 2 (ui primitives) sweep before any page: nav/heading roles must move to `--secondary`-based classes immediately.
 
 2. **`.dark` (Qamar) — same var names, new values:**
-   `--background: 221 44% 10%` (#0E1524) · `--foreground: 216 38% 95%` · `--card/--popover: 219 32% 14%` (#18202F) · `--primary: 41 62% 56%` (**gold #D4A94A takes the brand role in dark**) · `--primary-foreground: 43 33% 12%` · `--secondary: 42 71% 63%` (#E4BC5F) · `--secondary-foreground: 39 33% 14%` · `--muted/--accent: 221 39% 11%` (#111827) · `--muted-foreground: 215 15% 66%` · `--accent-foreground: 42 71% 63%` · `--destructive: 7 82% 72%` (#F28B7D) · `--border/--input: 219 25% 22%` (#2A3446) · `--ring: 42 71% 63%`.
+   `--background: 221 44% 10%` (#0E1524) · `--foreground: 216 38% 95%` · `--card/--popover: 219 32% 14%` (#18202F) · `--primary: 41 62% 56%` (**gold #D4A94A - CTA/ring role in dark**) · `--primary-foreground: 221 44% 10%` · `--secondary: 41 62% 56%` (gold also takes the brand role in dark) · `--secondary-foreground: 221 44% 10%` · `--accent: 43 33% 12%` (#2A2415 brand-soft) · `--accent-foreground: 41 62% 56%` (gold) · `--muted/--accent: 221 39% 11%` (#111827) · `--muted-foreground: 215 15% 66%` · `--accent-foreground: 42 71% 63%` · `--destructive: 7 82% 72%` (#F28B7D) · `--border/--input: 219 25% 22%` (#2A3446) · `--ring: 42 71% 63%`.
 
 3. **Add the missing semantic vars** (present in mockup tokens, absent in index.css) — appended to both `:root` and `.dark`:
 
@@ -58,15 +58,31 @@
 }
 .dark {
   --surface-2: 221 39% 11%;  --border-strong: 219 23% 29%;
-  --success: 151 69% 58%;  --success-soft: 19 33% 12%; /* #12301F */
+  --success: 151 69% 58%;  --success-soft: 146 45% 13%; /* #12301F - deep green, NOT orange */
   --warn: 42 71% 63%;      --warn-soft: 39 33% 14%;
-  --danger: 7 82% 72%;     --danger-soft: 331 91% 15%; /* #33191A */
+  --danger: 7 82% 72%;     --danger-soft: 358 34% 15%; /* #33191A - deep red, NOT magenta */
   --elev-1: 0 1px 2px rgba(0,0,0,.35);
   --elev-2: 0 2px 6px rgba(0,0,0,.40);
   --elev-3: 0 4px 10px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.35);
   --glow: 0 0 40px rgba(212,169,74,.18);
 }
 ```
+
+**Peer-review correction (RIQ, Phase 1):** the first draft of this block had two
+wrong dark conversions (`--success-soft` as `19 33% 12%` orange, `--danger-soft`
+as `331 91% 15%` magenta) from a botched hex-to-HSL pass. Values above are the
+correct conversions of the mockup hexes and match DESIGN.md §1.2.
+
+**Role-map alignment (peer-review correction):** this doc's first draft mapped
+`--primary` = forest and `--secondary` = amber, contradicting DESIGN.md §1.1/§1.3.
+**DESIGN.md wins** (it is the contract): `--primary` = the rationed accent
+(amber in Nur, gold in Qamar — drives CTAs + ring via shadcn semantics, matching
+the mockup exactly), `--secondary` = the brand (forest in Nur, gold in Qamar),
+shadcn `--accent` = brand-soft tonal surface. The role-flip hazard in the old
+system still holds but inverts: components using `bg-primary-600` as "the action
+button" were emerald; under Nur they become amber — which is the DESIRED CTA
+color, so the flip is actually safe for CTAs. Batch 1 (shell) + batch 2 (ui
+primitives) still sweep first to align nav/heading roles.
 
 4. **`.dark` mapping already exists** — index.css carries ~170 lines of `.dark .bg-gray-*` retrofit overrides. On sweep day these become dead weight; **delete each retrofit rule in the same commit as the batch that sweeps those classes** (rule: a `.dark .bg-gray-N` line may be removed only when `grep` confirms zero remaining usages of that class in `client/src`). The `.dark body`, form-control, and `glass-panel` rules stay until their owning batch lands.
 
