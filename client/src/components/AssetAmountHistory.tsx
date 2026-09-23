@@ -120,16 +120,16 @@ export function AssetAmountHistory({ assetId, apiBaseUrl = getApiBaseUrl() }: As
         <table className="min-w-full divide-y divide-border">
           <thead className="bg-surface-2">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Amount
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Type
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Description
               </th>
             </tr>

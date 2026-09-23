@@ -220,7 +220,7 @@ export const AssetList: React.FC = () => {
                   <div className="flex justify-end gap-3 mt-3 pt-3 border-t border-border">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
-                      className="text-sm font-medium text-secondary hover:text-secondary px-3 py-1.5 bg-accent rounded"
+                      className="text-sm font-medium text-secondary px-3 py-1.5 bg-accent rounded"
                     >
                       Edit
                     </button>

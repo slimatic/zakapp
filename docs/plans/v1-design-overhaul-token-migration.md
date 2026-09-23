@@ -134,7 +134,7 @@ colors: {
 
 Note the collision: `accent` currently exists as a shadcn neutral hover-tint. In the new system `accent` = the rationed amber/gold. Resolve by folding: `accent` gets the amber values (per (a) table) and the old "hover tint" call sites move to `bg-muted` in the sweep — the count of `bg-accent`-as-hover usages is small and they're all in batch 1-2 files.
 
-**Family-scale nuance:** `bg-primary-50` (tinted surface) → `bg-accent-soft` when the source hue was amber, `bg-brand-soft`-style when forest; the naming convention in (c) makes this mechanical. `ring-primary-500` (16 usages) → `ring-accent` — focus rings are amber per the accent-rationing rule.
+**Family-scale nuance:** `bg-primary-50` (tinted surface) → `bg-accent` (brand-soft; there is no separate accent-soft token); the naming convention in (c) makes this mechanical. `ring-primary-500` (16 usages) → `ring-ring` — focus rings bind to --ring (amber CTA ring, §4 slot 4).
 
 ---
 
@@ -155,8 +155,8 @@ Hardcoded scale steps map to semantics, not to other hues:
 | `bg-gray-200` | `bg-surface-2` | stronger recess |
 | `border-gray-100/200`, `divide-gray-*` | `border-border`, `divide-border` | |
 | `border-gray-300` | `border-border-strong` | |
-| `bg-primary-N`, `text-primary-N`, `ring-primary-N` | `bg-accent`, `text-accent`, `ring-accent` when action/accent role; `text-primary` when brand/heading role | decide per call site using the accent-rationing rule: amber ONLY for CTA, zakat-due figure, hawl moon marker, logo Arabic mark, focus rings |
-| `bg-secondary-N` / `text-secondary-N` | `bg-accent-soft` / `text-accent` | gold chips |
+| `bg-primary-N`, `text-primary-N`, `ring-primary-N` | `bg-primary` when CTA/action role; `text-secondary` when brand/heading role; `ring-ring` for focus rings | decide per call site using the accent-rationing rule: amber ONLY for CTA, zakat-due figure, hawl moon marker, logo Arabic mark, focus rings |
+| `bg-secondary-N` / `text-secondary-N` | `bg-warn-soft` / `text-warn-strong` | gold chips (rationed warn pair) |
 | `bg-{hue}-50/100` + `text-{hue}-800/900` status cards | `bg-success-soft text-success` / `bg-warn-soft text-warn` / `bg-danger-soft text-danger` | hue decides which of the three |
 | `bg-teal-*` (5 files) | same mapping as primary-N above | |
 
@@ -201,7 +201,7 @@ NOTE (batch-2 review): there is NO `accent-soft` token; `bg-accent` IS the brand
 surface (Nur 140 17% 93%, Qamar 43 33% 12%) — icons on it use `text-accent-foreground`, never
 `text-accent`. Banner text maps to `text-foreground` (muted-foreground on bg-muted fails 4.5:1
 in Nur). Banners use `rounded-lg`/`shadow-card` (radius spec amendment: banners share card radius).-          className="p-2 rounded-md text-gray-600 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-600 …"
-+          className="p-2 rounded-md text-muted-foreground hover:bg-accent-soft focus:outline-none focus:ring-2 focus:ring-accent …"
++          className="p-2 rounded-md text-muted-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring …"
 -          <div className="pt-4 border-t border-teal-200">
 +          <div className="pt-4 border-t border-border">
 ```

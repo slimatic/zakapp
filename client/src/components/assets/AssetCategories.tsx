@@ -132,7 +132,7 @@ export const AssetCategories: React.FC = () => {
             key={category.id}
             className={`bg-card rounded-lg border-2 p-6 cursor-pointer transition-all duration-200 hover:shadow-md ${
               selectedCategory === category.id 
-                ? 'border-primary ring-2 ring-ring' 
+                ? 'border-secondary ring-2 ring-secondary/25' 
                 : 'border-border hover:border-border-strong'
             }`}
             onClick={() => setSelectedCategory(category.id)}
@@ -208,7 +208,7 @@ export const AssetCategories: React.FC = () => {
               <div className="space-y-2">
                 {selectedCategoryData.examples.map((example, index) => (
                   <div key={index} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                    <div className="w-2 h-2 bg-secondary/70 rounded-full flex-shrink-0"></div>
                     <span className="text-sm text-foreground">{example}</span>
                   </div>
                 ))}

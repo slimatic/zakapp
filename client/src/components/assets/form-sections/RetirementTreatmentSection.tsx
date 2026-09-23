@@ -107,7 +107,7 @@ export const RetirementTreatmentSection: React.FC<RetirementTreatmentSectionProp
 
             {/* Option 1: Collectible Value */}
             <label className={`flex items-start gap-3 cursor-pointer p-3 rounded-lg border-2 transition-colors ${
-                methodology === 'collectible_value' ? 'border-primary bg-accent' : 'border-border hover:border-border-strong'
+                methodology === 'collectible_value' ? 'border-secondary bg-accent' : 'border-border hover:border-border-strong'
             }`}>
                 <input
                     type="radio"
@@ -164,7 +164,7 @@ export const RetirementTreatmentSection: React.FC<RetirementTreatmentSectionProp
 
             {/* Option 2: Preserved Growth */}
             <label className={`flex items-start gap-3 cursor-pointer p-3 rounded-lg border-2 transition-colors ${
-                methodology === 'preserved_growth' ? 'border-primary bg-accent' : 'border-border hover:border-border-strong'
+                methodology === 'preserved_growth' ? 'border-secondary bg-accent' : 'border-border hover:border-border-strong'
             }`}>
                 <input
                     type="radio"
@@ -183,7 +183,7 @@ export const RetirementTreatmentSection: React.FC<RetirementTreatmentSectionProp
 
             {/* Option 3: Manual (Standard) */}
             <label className={`flex items-start gap-3 cursor-pointer p-3 rounded-lg border-2 transition-colors ${
-                methodology === 'manual' ? 'border-primary bg-accent' : 'border-border hover:border-border-strong'
+                methodology === 'manual' ? 'border-secondary bg-accent' : 'border-border hover:border-border-strong'
             }`}>
                 <input
                     type="radio"

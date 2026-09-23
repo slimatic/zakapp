@@ -317,7 +317,7 @@ export const AssetImportExport: React.FC = () => {
               accept=".csv,.json"
               onChange={handleImport}
               disabled={importing}
-              className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent disabled:opacity-50"
+              className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent/80 disabled:opacity-50"
             />
           </label>
           <p className="mt-1 text-xs text-muted-foreground">

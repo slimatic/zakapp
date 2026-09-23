@@ -175,7 +175,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, on
               e.stopPropagation();
               onDelete();
             }}
-            className="flex-1 px-3 py-2 text-xs font-medium text-danger bg-danger-soft hover:bg-danger-soft rounded transition-colors"
+            className="flex-1 px-3 py-2 text-xs font-medium text-danger bg-danger-soft hover:bg-danger/20 rounded transition-colors"
             aria-label={`Delete ${asset.name}`}
           >
             Delete
