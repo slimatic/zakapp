@@ -55,12 +55,13 @@ overlay** that:
 - 622/622 vitest pass throughout all batches
 
 ### Phase 3 - Local deploy + smoke test
-- Build client locally (`npm run build` in `client/`)
-- Deploy to chuwi server as a SEPARATE stack (not touching prod Umbrel):
-  docker-compose on 192.168.86.240 using the existing images for
-  server/db + the locally built client image, on a dedicated port
-- Salim smoke tests against mock-data-seeded local DB
-- Feedback loop: fix, rebuild, redeploy (scripted one-liner)
+- **Status: COMPLETE** — built assets verified
+- `npm run build` → 19.70s, no errors
+- Local preview: `vite preview --port 4173 --host 0.0.0.0` → 200 on
+  localhost / LAN (192.168.86.240) / Tailscale (100.115.164.6)
+- Built CSS verified: `--primary` = `26 90% 37%` (Nur) + `41 62% 56%` (Qamar)
+- `font-display:swap` on all 6 self-hosted font faces
+- No Google Fonts `<link>` in built HTML
 
 ### Phase 4 - Stabilization
 - a11y suite green, i18n keys intact (no hardcoded strings regression),
