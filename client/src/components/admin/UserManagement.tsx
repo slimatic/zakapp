@@ -96,13 +96,13 @@ export const UserManagement: React.FC = () => {
     if (loading && users.length === 0) return <div className="p-8 text-center">Loading users...</div>;
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between gap-4">
-                <h2 className="text-xl font-semibold text-gray-800">User Management</h2>
+        <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+            <div className="p-6 border-b border-border flex flex-col md:flex-row justify-between gap-4">
+                <h2 className="text-xl font-semibold text-foreground">User Management</h2>
                 <div className="flex gap-2">
                     <button
                         onClick={loadUsers}
-                        className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-secondary hover:bg-accent rounded-lg transition-colors"
                         title="Refresh Data"
                         disabled={loading}
                     >
@@ -113,7 +113,7 @@ export const UserManagement: React.FC = () => {
                     <input
                         type="text"
                         placeholder="Search users..."
-                        className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                        className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring outline-none"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -122,7 +122,7 @@ export const UserManagement: React.FC = () => {
 
             <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
+                    <thead className="bg-muted text-muted-foreground text-sm uppercase">
                         <tr>
                             <th className="px-6 py-3 font-medium">User</th>
                             <th className="px-6 py-3 font-medium">Status</th>
@@ -132,38 +132,38 @@ export const UserManagement: React.FC = () => {
                             <th className="px-6 py-3 font-medium text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-border">
                         {users.map(user => (
-                            <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                            <tr key={user.id} className="hover:bg-muted transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-gray-900">{user.username || 'No Username'}</span>
-                                        <span className="text-sm text-gray-500">{user.email}</span>
+                                        <span className="font-medium text-foreground">{user.username || 'No Username'}</span>
+                                        <span className="text-sm text-muted-foreground">{user.email}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex flex-col gap-1">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${user.isActive ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'}`}>
                                             {user.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                         {user.isVerified ? (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit">Verified</span>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent text-secondary w-fit">Verified</span>
                                         ) : (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 w-fit">Unverified</span>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warn-soft text-warn-strong w-fit">Unverified</span>
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
+                                <td className="px-6 py-4 text-sm text-muted-foreground">
                                     {user.userType}
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-500">
+                                <td className="px-6 py-4 text-sm text-muted-foreground">
                                     <div className="flex flex-col gap-0.5 text-xs">
                                         <span title="Assets Usage / Limit">Assets: {user._count?.assets ?? 0} / {user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS}</span>
                                         <span title="Nisab Usage / Limit">Nisab: {user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS}</span>
                                         <span title="Payments Usage / Limit">Payments: {user._count?.payments ?? 0} / {user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS}</span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
+                                <td className="px-6 py-4 text-sm text-muted-foreground">
                                     {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
                                 </td>
                                 <td className="px-6 py-4 text-right">
@@ -171,29 +171,29 @@ export const UserManagement: React.FC = () => {
                                         {!user.isVerified && (
                                             <button
                                                 onClick={() => handleVerify(user.id)}
-                                                className="text-blue-600 hover:text-blue-900 hover:bg-blue-50 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                                                className="text-secondary hover:text-secondary/80 hover:bg-accent px-3 py-1 rounded-md text-sm font-medium transition-colors"
                                             >
                                                 Verify
                                             </button>
                                         )}
                                         <button
                                             onClick={() => setEditingLimitUser(user)}
-                                            className="text-emerald-600 hover:text-emerald-900 hover:bg-emerald-50 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                                            className="text-secondary hover:text-secondary/80 hover:bg-accent px-3 py-1 rounded-md text-sm font-medium transition-colors"
                                         >
                                             Limits
                                         </button>
                                         <button
                                             onClick={() => handleRoleUpdate(user.id, user.userType === 'ADMIN_USER' ? 'USER' : 'ADMIN_USER')}
                                             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${user.userType === 'ADMIN_USER'
-                                                ? 'text-amber-600 hover:text-amber-900 hover:bg-amber-50'
-                                                : 'text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50'
+                                                ? 'text-warn-strong hover:text-warn-strong hover:bg-warn-soft'
+                                                : 'text-secondary hover:text-secondary hover:bg-accent'
                                                 }`}
                                         >
                                             {user.userType === 'ADMIN_USER' ? 'Demote' : 'Promote'}
                                         </button>
                                         <button
                                             onClick={() => handleDelete(user.id)}
-                                            className="text-red-600 hover:text-red-900 hover:bg-red-50 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                                            className="text-danger hover:text-danger hover:bg-danger-soft px-3 py-1 rounded-md text-sm font-medium transition-colors"
                                         >
                                             Delete
                                         </button>
@@ -203,7 +203,7 @@ export const UserManagement: React.FC = () => {
                         ))}
                         {users.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                                     No users found matching your search.
                                 </td>
                             </tr>
@@ -213,21 +213,21 @@ export const UserManagement: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            <div className="p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
+            <div className="p-4 border-t border-border flex justify-between items-center bg-muted">
                 <button
                     disabled={page === 1}
                     onClick={() => setPage(p => Math.max(1, p - 1))}
-                    className="px-4 py-2 border bg-white rounded-md disabled:opacity-50 hover:bg-gray-100"
+                    className="px-4 py-2 border bg-card rounded-md disabled:opacity-50 hover:bg-muted"
                 >
                     Previous
                 </button>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                     Page {page} of {totalPages}
                 </span>
                 <button
                     disabled={page === totalPages}
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    className="px-4 py-2 border bg-white rounded-md disabled:opacity-50 hover:bg-gray-100"
+                    className="px-4 py-2 border bg-card rounded-md disabled:opacity-50 hover:bg-muted"
                 >
                     Next
                 </button>

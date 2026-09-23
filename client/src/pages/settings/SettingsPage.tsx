@@ -64,13 +64,13 @@ export const SettingsPage: React.FC = () => {
                                     key={item.id}
                                     onClick={() => setActiveTab(item.id as SettingsTab)}
                                     className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === item.id
-                                        ? 'bg-accent text-primary'
-                                        : 'text-primary hover:bg-accent hover:text-primary'
+                                        ? 'bg-accent text-secondary'
+                                        : 'text-foreground hover:bg-muted hover:text-foreground'
                                         }`}
                                     aria-current={activeTab === item.id ? 'page' : undefined}
                                 >
                                     <Icon
-                                        className={`flex-shrink-0 -ml-1 mr-3 h-5 w-5 ${activeTab === item.id ? 'text-primary' : 'text-muted-foreground group-hover:text-muted-foreground'
+                                        className={`flex-shrink-0 -ml-1 mr-3 h-5 w-5 ${activeTab === item.id ? 'text-secondary' : 'text-muted-foreground group-hover:text-muted-foreground'
                                             }`}
                                         aria-hidden="true"
                                     />
@@ -80,7 +80,7 @@ export const SettingsPage: React.FC = () => {
                         })}
 
                         {/* Language Selection (#338) */}
-                        <div className="mt-6 pt-6 border-t border-default">
+                        <div className="mt-6 pt-6 border-t border-border">
                             <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                                 Language
                             </h3>
@@ -91,21 +91,21 @@ export const SettingsPage: React.FC = () => {
 
                         {/* Admin Dashboard Link - Separated */}
                         {user?.isAdmin && (
-                            <div className="mt-6 pt-6 border-t border-default">
+                            <div className="mt-6 pt-6 border-t border-border">
                                 <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                                     Administration
                                 </h3>
                                 <button
                                     onClick={() => navigate('/admin')}
                                     className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 
-                                    bg-accent text-primary 
-                                    hover:bg-accent/80 hover:shadow-sm border border-default"
+                                    bg-muted text-secondary 
+                                    hover:shadow-sm border border-border"
                                 >
                                     <LayoutDashboard
-                                        className="flex-shrink-0 -ml-1 mr-3 h-5 w-5 text-primary"
+                                        className="flex-shrink-0 -ml-1 mr-3 h-5 w-5 text-secondary"
                                         aria-hidden="true"
                                     />
-                                    <span className="truncate font-bold text-primary">
+                                    <span className="truncate font-bold text-secondary">
                                         Admin Dashboard
                                     </span>
                                 </button>

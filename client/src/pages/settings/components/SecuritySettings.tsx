@@ -84,10 +84,10 @@ export const SecuritySettings: React.FC = () => {
             </div>
 
             {showSuccessMessage && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div className="bg-success-soft border border-success/30 rounded-lg p-4 mb-6">
                     <div className="flex items-center">
-                        <span className="text-green-600 text-xl mr-3" aria-hidden="true">✅</span>
-                        <p className="text-green-800 font-medium">{showSuccessMessage}</p>
+                        <span className="text-success text-xl mr-3" aria-hidden="true">✅</span>
+                        <p className="text-success font-medium">{showSuccessMessage}</p>
                     </div>
                 </div>
             )}
@@ -109,7 +109,7 @@ export const SecuritySettings: React.FC = () => {
                                 ...passwordData,
                                 currentPassword: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
@@ -126,7 +126,7 @@ export const SecuritySettings: React.FC = () => {
                                 ...passwordData,
                                 newPassword: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                             minLength={8}
                         />
@@ -147,7 +147,7 @@ export const SecuritySettings: React.FC = () => {
                                 ...passwordData,
                                 confirmPassword: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                             minLength={8}
                         />
@@ -174,7 +174,7 @@ export const SecuritySettings: React.FC = () => {
             )}
 
             {/* Two-Factor Authentication */}
-            <div className="border-t border-default pt-6">
+            <div className="border-t border-border pt-6">
                 <h3 className="text-lg font-medium text-primary mb-4">
                     Two-Factor Authentication
                 </h3>

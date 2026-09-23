@@ -128,16 +128,16 @@ export const DangerZone: React.FC = () => {
             </div>
 
             {/* Clear Local DB Section (Sync Reset) */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                <h3 className="text-lg font-medium text-yellow-800 mb-2">
+            <div className="bg-warn-soft border border-warn/30 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-warn-strong mb-2">
                     Reset Local Sync
                 </h3>
-                <p className="text-yellow-700 mb-4">
+                <p className="text-warn-strong mb-4">
                     Reset your local data cache and logout. This allows you to re-sync fresh data from the server. Safe to use if your data is already synced.
                 </p>
                 <Button
                     variant="outline"
-                    className="border-yellow-600 text-yellow-800 hover:bg-yellow-100"
+                    className="border-yellow-600 text-warn-strong hover:bg-warn-soft"
                     onClick={handleClearLocalDatabase}
                 >
                     Reset & Re-sync
@@ -145,16 +145,16 @@ export const DangerZone: React.FC = () => {
             </div>
 
             {/* Purge Cloud Data Section (New Phase 6 Feature) */}
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-                <h3 className="text-lg font-medium text-orange-900 mb-2">
+            <div className="bg-warn-soft border border-warn/30 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-warn-strong mb-2">
                     Purge Cloud Data
                 </h3>
-                <p className="text-orange-800 mb-4">
+                <p className="text-warn-strong mb-4">
                     Permanently delete your encrypted data from the synchronization server. Your local data will be preserved, but you will need to re-enable sync.
                 </p>
                 <Button
                     variant="outline"
-                    className="border-orange-600 text-orange-900 hover:bg-orange-100"
+                    className="border-warn text-warn-strong hover:bg-warn-soft"
                     onClick={() => setIsPurgeCloudModalOpen(true)}
                 >
                     Purge Cloud Data
@@ -162,14 +162,14 @@ export const DangerZone: React.FC = () => {
             </div>
 
             {/* Clear Financial Data Section */}
-            <div className="flex items-center justify-between p-6 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-between p-6 bg-danger-soft border border-danger/30 rounded-lg">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-red-100 rounded-full shrink-0">
-                        <Trash2 className="w-6 h-6 text-red-600" />
+                    <div className="p-3 bg-danger-soft rounded-full shrink-0">
+                        <Trash2 className="w-6 h-6 text-danger" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-medium text-red-900">Clear Financial Data</h3>
-                        <p className="text-sm text-red-700 mt-1">
+                        <h3 className="text-lg font-medium text-danger">Clear Financial Data</h3>
+                        <p className="text-sm text-danger mt-1">
                             Permanently delete all assets, liabilities, and records from this device. Account stays active.
                         </p>
                     </div>
@@ -183,11 +183,11 @@ export const DangerZone: React.FC = () => {
             </div>
 
             {/* Delete Account Section */}
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                <h3 className="text-lg font-medium text-red-800 mb-2">
+            <div className="bg-danger-soft border border-danger/30 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-danger mb-2">
                     Delete Account
                 </h3>
-                <p className="text-red-700 mb-4">
+                <p className="text-danger mb-4">
                     Permanently remove your account and all associated data. This action cannot be undone.
                 </p>
                 <Button
@@ -205,9 +205,9 @@ export const DangerZone: React.FC = () => {
                 title="Clear All Financial Data?"
             >
                 <div className="space-y-4">
-                    <div className="bg-red-50 p-4 rounded-lg flex items-start gap-3 border border-red-100">
-                        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                        <div className="text-sm text-red-800">
+                    <div className="bg-danger-soft p-4 rounded-lg flex items-start gap-3 border border-danger/20">
+                        <AlertTriangle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
+                        <div className="text-sm text-danger">
                             <p className="font-semibold">This action is irreversible.</p>
                             <p className="mt-1">All your tracked Assets, Liabilities, Payments, and History will be wiped from this device's database.</p>
                         </div>
@@ -243,12 +243,12 @@ export const DangerZone: React.FC = () => {
                 title="Purge Cloud Data?"
             >
                 <div className="space-y-4">
-                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                        <AlertTriangle className="w-5 h-5 text-orange-600 mb-2" />
-                        <p className="text-sm text-orange-900 font-bold">
+                    <div className="bg-warn-soft p-4 rounded-lg border border-warn/30">
+                        <AlertTriangle className="w-5 h-5 text-warn-strong mb-2" />
+                        <p className="text-sm text-warn-strong font-bold">
                             Warning: This will destroy your remote backups.
                         </p>
-                        <p className="text-sm text-orange-800 mt-1">
+                        <p className="text-sm text-warn-strong mt-1">
                             Your encrypted data on the secure cloud server will be permanently deleted.
                             This will break synchronization with other devices.
                         </p>
@@ -284,11 +284,11 @@ export const DangerZone: React.FC = () => {
                 title="Delete Account"
             >
                 <div className="space-y-4">
-                    <div className="bg-red-50 p-4 rounded-md border border-red-200">
-                        <p className="text-sm text-red-800 font-medium">
+                    <div className="bg-danger-soft p-4 rounded-md border border-danger/30">
+                        <p className="text-sm text-danger font-medium">
                             Warning: This action is permanent.
                         </p>
-                        <p className="text-sm text-red-700 mt-1">
+                        <p className="text-sm text-danger mt-1">
                             All your data, including asset history, Zakat records, and settings will be permanently deleted.
                             This cannot be undone.
                         </p>

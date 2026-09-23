@@ -95,15 +95,15 @@ export const SystemSettings: React.FC = () => {
     };
 
     if (loading && !settings) return <div className="p-8 text-center">Loading settings...</div>;
-    if (!settings) return <div className="p-8 text-center text-red-500">Failed to load settings</div>;
+    if (!settings) return <div className="p-8 text-center text-danger">Failed to load settings</div>;
 
     return (
         <div className="space-y-6">
-            <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
-                <div className="flex justify-between items-center border-b border-gray-100 pb-4">
-                    <h2 className="text-xl font-semibold text-gray-800">System Configuration</h2>
+            <form onSubmit={handleSubmit} className="bg-card rounded-xl shadow-sm border border-border p-6 space-y-6">
+                <div className="flex justify-between items-center border-b border-border pb-4">
+                    <h2 className="text-xl font-semibold text-foreground">System Configuration</h2>
                     {message && (
-                        <div className={`text-sm px-3 py-1 rounded-md ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <div className={`text-sm px-3 py-1 rounded-md ${message.type === 'success' ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'}`}>
                             {message.text}
                         </div>
                     )}
@@ -111,34 +111,34 @@ export const SystemSettings: React.FC = () => {
 
                 {/* Email Provider Selection */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Provider</label>
+                    <label className="block text-sm font-medium text-foreground/80 mb-2">Email Provider</label>
                     <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer border p-3 rounded-lg hover:bg-gray-50 has-[:checked]:border-emerald-500 has-[:checked]:ring-1 has-[:checked]:ring-emerald-500">
+                        <label className="flex items-center gap-2 cursor-pointer border p-3 rounded-lg hover:bg-muted has-[:checked]:border-secondary has-[:checked]:ring-1 has-[:checked]:ring-ring">
                             <input
                                 type="radio"
                                 name="emailProvider"
                                 value="smtp"
                                 checked={settings.emailProvider === 'smtp'}
                                 onChange={() => handleChange('emailProvider', 'smtp')}
-                                className="text-emerald-600 focus:ring-emerald-500"
+                                className="text-secondary focus:ring-ring"
                             />
                             <div>
-                                <div className="font-medium text-gray-900">SMTP Server</div>
-                                <div className="text-xs text-gray-500">Use your own mail server</div>
+                                <div className="font-medium text-foreground">SMTP Server</div>
+                                <div className="text-xs text-muted-foreground">Use your own mail server</div>
                             </div>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer border p-3 rounded-lg hover:bg-gray-50 has-[:checked]:border-emerald-500 has-[:checked]:ring-1 has-[:checked]:ring-emerald-500">
+                        <label className="flex items-center gap-2 cursor-pointer border p-3 rounded-lg hover:bg-muted has-[:checked]:border-secondary has-[:checked]:ring-1 has-[:checked]:ring-ring">
                             <input
                                 type="radio"
                                 name="emailProvider"
                                 value="resend"
                                 checked={settings.emailProvider === 'resend'}
                                 onChange={() => handleChange('emailProvider', 'resend')}
-                                className="text-emerald-600 focus:ring-emerald-500"
+                                className="text-secondary focus:ring-ring"
                             />
                             <div>
-                                <div className="font-medium text-gray-900">Resend API</div>
-                                <div className="text-xs text-gray-500">Managed email delivery</div>
+                                <div className="font-medium text-foreground">Resend API</div>
+                                <div className="text-xs text-muted-foreground">Managed email delivery</div>
                             </div>
                         </label>
                     </div>
@@ -148,24 +148,24 @@ export const SystemSettings: React.FC = () => {
                 {settings.emailProvider === 'resend' && (
                     <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Resend API Key</label>
+                            <label className="block text-sm font-medium text-foreground/80">Resend API Key</label>
                             <input
                                 type="password"
                                 value={resendApiKey}
                                 onChange={(e) => setResendApiKey(e.target.value)}
                                 placeholder={settings.resendApiKey ? 'Type to replace existing key' : 'Enter Resend API Key'}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-ring focus:ring-ring sm:text-sm border p-2"
                             />
-                            <p className="text-xs text-gray-500 mt-1">Leave empty to keep existing key</p>
+                            <p className="text-xs text-muted-foreground mt-1">Leave empty to keep existing key</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">From Email</label>
+                            <label className="block text-sm font-medium text-foreground/80">From Email</label>
                             <input
                                 type="email"
                                 value={settings.smtpFromEmail || ''}
                                 onChange={(e) => handleChange('smtpFromEmail', e.target.value)}
                                 placeholder="noreply@yourdomain.com"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-ring focus:ring-ring sm:text-sm border p-2"
                             />
                         </div>
                     </div>
@@ -175,63 +175,63 @@ export const SystemSettings: React.FC = () => {
                 {settings.emailProvider === 'smtp' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 animate-in fade-in slide-in-from-top-2">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">SMTP Host</label>
+                            <label className="block text-sm font-medium text-foreground/80">SMTP Host</label>
                             <input
                                 type="text"
                                 value={settings.smtpHost || ''}
                                 onChange={(e) => handleChange('smtpHost', e.target.value)}
                                 placeholder="smtp.example.com"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-ring focus:ring-ring sm:text-sm border p-2"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">SMTP Port</label>
+                            <label className="block text-sm font-medium text-foreground/80">SMTP Port</label>
                             <input
                                 type="number"
                                 value={settings.smtpPort || ''}
                                 onChange={(e) => handleChange('smtpPort', parseInt(e.target.value))}
                                 placeholder="587"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-ring focus:ring-ring sm:text-sm border p-2"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">SMTP User</label>
+                            <label className="block text-sm font-medium text-foreground/80">SMTP User</label>
                             <input
                                 type="text"
                                 value={settings.smtpUser || ''}
                                 onChange={(e) => handleChange('smtpUser', e.target.value)}
                                 placeholder="user@example.com"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-ring focus:ring-ring sm:text-sm border p-2"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">SMTP Password</label>
+                            <label className="block text-sm font-medium text-foreground/80">SMTP Password</label>
                             <input
                                 type="password"
                                 value={smtpPass}
                                 onChange={(e) => setSmtpPass(e.target.value)}
                                 placeholder={!!settings.smtpUser ? 'Type to replace existing password' : 'Enter password'}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-ring focus:ring-ring sm:text-sm border p-2"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">From Name</label>
+                            <label className="block text-sm font-medium text-foreground/80">From Name</label>
                             <input
                                 type="text"
                                 value={settings.smtpFromName || ''}
                                 onChange={(e) => handleChange('smtpFromName', e.target.value)}
                                 placeholder="ZakApp"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-ring focus:ring-ring sm:text-sm border p-2"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">From Email</label>
+                            <label className="block text-sm font-medium text-foreground/80">From Email</label>
                             <input
                                 type="email"
                                 value={settings.smtpFromEmail || ''}
                                 onChange={(e) => handleChange('smtpFromEmail', e.target.value)}
                                 placeholder="noreply@yourdomain.com"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-ring focus:ring-ring sm:text-sm border p-2"
                             />
                         </div>
                         <div className="flex items-center pt-6">
@@ -240,27 +240,27 @@ export const SystemSettings: React.FC = () => {
                                     type="checkbox"
                                     checked={settings.smtpSecure}
                                     onChange={(e) => handleChange('smtpSecure', e.target.checked)}
-                                    className="rounded border-gray-300 text-emerald-600 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                                    className="rounded border-border-strong text-secondary shadow-sm focus:border-ring focus:ring-ring h-4 w-4"
                                 />
-                                <span className="text-sm font-medium text-gray-900">Use Secure Connection (TLS/SSL)</span>
+                                <span className="text-sm font-medium text-foreground">Use Secure Connection (TLS/SSL)</span>
                             </label>
                         </div>
                     </div>
                 )}
 
-                <div className="border-t border-gray-100 pt-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Registration & Security</h3>
+                <div className="border-t border-border pt-6">
+                    <h3 className="text-lg font-medium text-foreground mb-4">Registration & Security</h3>
                     <div className="space-y-4">
                         <label className="flex items-center gap-3 cursor-pointer">
                             <input
                                 type="checkbox"
                                 checked={settings.allowRegistration}
                                 onChange={(e) => handleChange('allowRegistration', e.target.checked)}
-                                className="rounded border-gray-300 text-emerald-600 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                                className="rounded border-border-strong text-secondary shadow-sm focus:border-ring focus:ring-ring h-4 w-4"
                             />
                             <div>
-                                <div className="text-sm font-medium text-gray-900">Allow New User Registration</div>
-                                <div className="text-xs text-gray-500">Uncheck to close sign-ups</div>
+                                <div className="text-sm font-medium text-foreground">Allow New User Registration</div>
+                                <div className="text-xs text-muted-foreground">Uncheck to close sign-ups</div>
                             </div>
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer">
@@ -268,11 +268,11 @@ export const SystemSettings: React.FC = () => {
                                 type="checkbox"
                                 checked={settings.requireEmailVerification}
                                 onChange={(e) => handleChange('requireEmailVerification', e.target.checked)}
-                                className="rounded border-gray-300 text-emerald-600 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                                className="rounded border-border-strong text-secondary shadow-sm focus:border-ring focus:ring-ring h-4 w-4"
                             />
                             <div>
-                                <div className="text-sm font-medium text-gray-900">Require Email Verification</div>
-                                <div className="text-xs text-gray-500">Users must verify their email before logging in</div>
+                                <div className="text-sm font-medium text-foreground">Require Email Verification</div>
+                                <div className="text-xs text-muted-foreground">Users must verify their email before logging in</div>
                             </div>
                         </label>
                     </div>
@@ -282,7 +282,7 @@ export const SystemSettings: React.FC = () => {
                     <button
                         type="submit"
                         disabled={saving}
-                        className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 transition-colors font-medium shadow-sm"
+                        className="bg-secondary text-secondary-foreground px-6 py-2 rounded-lg hover:bg-secondary/90 focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 transition-colors font-medium shadow-sm"
                     >
                         {saving ? 'Saving...' : 'Save Settings'}
                     </button>
@@ -290,30 +290,30 @@ export const SystemSettings: React.FC = () => {
             </form>
 
             {/* Test Email Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Test Email Configuration</h3>
+            <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+                <h3 className="text-lg font-medium text-foreground mb-4">Test Email Configuration</h3>
                 <form onSubmit={handleTestEmail} className="flex gap-4 items-end">
                     <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">To Email Address</label>
+                        <label className="block text-sm font-medium text-foreground/80 mb-1">To Email Address</label>
                         <input
                             type="email"
                             value={testEmailTo}
                             onChange={(e) => setTestEmailTo(e.target.value)}
                             placeholder="your-email@example.com"
                             required
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm border p-2"
+                            className="block w-full rounded-md border-border-strong shadow-sm focus:border-ring focus:ring-ring sm:text-sm border p-2"
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={sendingTest || !testEmailTo}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-colors font-medium shadow-sm mb-[1px]"
+                        className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 transition-colors font-medium shadow-sm mb-[1px]"
                     >
                         {sendingTest ? 'Sending...' : 'Send Test Email'}
                     </button>
                 </form>
                 {testResult && (
-                    <div className={`mt-4 p-3 rounded-md text-sm ${testResult.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                    <div className={`mt-4 p-3 rounded-md text-sm ${testResult.success ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'}`}>
                         {testResult.message}
                     </div>
                 )}

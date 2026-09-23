@@ -180,7 +180,7 @@ export const ProfileForm: React.FC = () => {
             </div>
 
             {showSuccessMessage && (
-                <div className="bg-accent border border-default rounded-lg p-4 mb-6">
+                <div className="bg-accent border border-border rounded-lg p-4 mb-6">
                     <div className="flex items-center">
                         <span className="text-primary text-xl mr-3" aria-hidden="true">✅</span>
                         <p className="text-primary font-medium">{showSuccessMessage}</p>
@@ -202,7 +202,7 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 firstName: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
@@ -219,7 +219,7 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 lastName: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
@@ -235,7 +235,7 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 username: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
@@ -252,7 +252,7 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 email: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                         <div className="mt-1">
@@ -270,7 +270,7 @@ export const ProfileForm: React.FC = () => {
                 </div>
 
                 {/* Preferences Section */}
-                <div className="border-t border-default pt-6">
+                <div className="border-t border-border pt-6">
                     <h3 className="text-lg font-medium text-primary mb-4">
                         Islamic Calculation Preferences
                     </h3>
@@ -290,7 +290,7 @@ export const ProfileForm: React.FC = () => {
                                         currency: e.target.value
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 {currencies.map((currency) => (
                                     <option key={currency.code} value={currency.code}>
@@ -314,7 +314,7 @@ export const ProfileForm: React.FC = () => {
                                         zakatMethod: e.target.value
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 {zakatMethods.map((method) => (
                                     <option key={method.value} value={method.value}>
@@ -341,7 +341,7 @@ export const ProfileForm: React.FC = () => {
                                         calendarType: e.target.value as 'lunar' | 'solar'
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 <option value="lunar">Hijri (Islamic Lunar Calendar - 354 days/year)</option>
                                 <option value="solar">Gregorian (Solar Calendar - 365 days/year)</option>
@@ -372,7 +372,7 @@ export const ProfileForm: React.FC = () => {
                                 </span>
                             </div>
                             {/* Live Date Preview */}
-                            <div className="mt-3 p-3 bg-accent rounded-lg border border-default">
+                            <div className="mt-3 p-3 bg-accent rounded-lg border border-border">
                                 <p className="text-xs text-muted-foreground mb-1">Today's Date Preview:</p>
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm text-primary">
@@ -402,7 +402,7 @@ export const ProfileForm: React.FC = () => {
                                         language: e.target.value
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 <option value="en">English (US)</option>
                                 <option value="ar" disabled>العربية (Arabic) - Coming Soon</option>

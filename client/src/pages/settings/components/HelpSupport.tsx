@@ -33,7 +33,7 @@ export const HelpSupport = () => {
                 <CardContent>
                     <Link
                         to="/diagnostics"
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary-600 text-white hover:bg-primary-700 h-10 px-4 py-2"
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-warn-strong h-10 px-4 py-2"
                     >
                         <Activity className="mr-2 h-4 w-4" />
                         Run System Diagnostics
@@ -55,7 +55,7 @@ export const HelpSupport = () => {
                         <div className="border rounded-md p-4">
                             <details className="group">
                                 <summary className="flex items-center gap-2 font-medium cursor-pointer list-none">
-                                    <Wifi className="h-4 w-4 text-blue-500" />
+                                    <Wifi className="h-4 w-4 text-secondary" />
                                     <span>Why is Sync stuck on "Syncing..."?</span>
                                     <span className="ml-auto transition-transform group-open:rotate-180">
                                         ▼
@@ -78,14 +78,14 @@ export const HelpSupport = () => {
                         <div className="border rounded-md p-4">
                             <details className="group">
                                 <summary className="flex items-center gap-2 font-medium cursor-pointer list-none">
-                                    <Smartphone className="h-4 w-4 text-orange-500" />
+                                    <Smartphone className="h-4 w-4 text-warn-strong" />
                                     <span>Why doesn't it work on my phone?</span>
                                     <span className="ml-auto transition-transform group-open:rotate-180">
                                         ▼
                                     </span>
                                 </summary>
                                 <div className="mt-3 text-sm text-muted-foreground pb-2">
-                                    <div className="bg-red-50 text-red-700 p-3 rounded mb-3 text-xs font-semibold border border-red-200">
+                                    <div className="bg-danger-soft text-danger p-3 rounded mb-3 text-xs font-semibold border border-danger/30">
                                         Security Requirement: Mobile browsers block encryption features on insecure (HTTP) connections.
                                     </div>
                                     <p>
@@ -100,14 +100,14 @@ export const HelpSupport = () => {
                         <div className="border rounded-md p-4">
                             <details className="group">
                                 <summary className="flex items-center gap-2 font-medium cursor-pointer list-none">
-                                    <KeyRound className="h-4 w-4 text-green-500" />
+                                    <KeyRound className="h-4 w-4 text-success" />
                                     <span>I forgot my password. Can I reset it?</span>
                                     <span className="ml-auto transition-transform group-open:rotate-180">
                                         ▼
                                     </span>
                                 </summary>
                                 <div className="mt-3 text-sm text-muted-foreground pb-2">
-                                    <p className="font-semibold text-red-500 mb-1">No.</p>
+                                    <p className="font-semibold text-danger mb-1">No.</p>
                                     <p>
                                         ZakApp is a <strong>Zero-Knowledge</strong> platform. Your password IS your encryption key.
                                         We do not store it, so we cannot reset it. If you lose your password, your data is permanently locked.
@@ -120,7 +120,7 @@ export const HelpSupport = () => {
                         <div className="border rounded-md p-4">
                             <details className="group">
                                 <summary className="flex items-center gap-2 font-medium cursor-pointer list-none">
-                                    <ShieldCheck className="h-4 w-4 text-purple-500" />
+                                    <ShieldCheck className="h-4 w-4 text-secondary" />
                                     <span>Is my financial data sent to the cloud?</span>
                                     <span className="ml-auto transition-transform group-open:rotate-180">
                                         ▼
