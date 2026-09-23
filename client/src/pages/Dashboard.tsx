@@ -176,7 +176,7 @@ const EducationalModule: React.FC = () => {
       )}
 
       {!isExpanded && (
-        <span className="text-sm text-muted-foreground block">
+        <span className="text-sm text-foreground/80 block">
           Learn about <GlossaryTerm term="zakat" /> obligations, <GlossaryTerm term="nisab" /> threshold, and the <GlossaryTerm term="hawl" /> period. Click to expand.
         </span>
       )}
@@ -325,7 +325,7 @@ export const Dashboard: React.FC = () => {
       
       {/* Migration Banner */}
       {needsMigration && !showMigration && (
-        <div className="bg-accent p-4 rounded-lg border border-border flex items-center justify-between gap-4 shadow-sm">
+        <div className="bg-accent p-4 rounded-lg border border-border flex items-center justify-between gap-4 shadow-card">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-card rounded-lg flex-shrink-0">
               <svg className="w-6 h-6 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -397,7 +397,7 @@ export const Dashboard: React.FC = () => {
               <h2 className="text-xl font-semibold text-secondary">{t('assets.yourAssets')}</h2>
               <Link
                 to="/assets"
-                className="text-sm font-medium text-success hover:text-success/80 hover:underline"
+                className="text-sm font-medium text-success hover:underline"
               >
                 View All →
               </Link>
@@ -407,7 +407,7 @@ export const Dashboard: React.FC = () => {
               {assets.slice(0, 5).map((asset: Asset) => (
                 <div
                   key={asset.id}
-                  className="flex items-center justify-between p-3 bg-surface-2 rounded-lg hover:bg-muted transition-colors"
+                  className="flex items-center justify-between p-3 bg-surface-2 rounded-lg hover:bg-card transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-card rounded-lg">

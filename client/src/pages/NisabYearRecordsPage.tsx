@@ -225,7 +225,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="hidden lg:flex flex-col items-center justify-center h-full text-center text-tertiary">
+              <div className="hidden lg:flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                 <p className="max-w-xs mx-auto">
                   Click on any Nisab Year card from the list on the left to view its full wealth breakdown and Zakat obligations.
                 </p>

@@ -30,8 +30,8 @@ pairs = [
     (r'text-gray-700', 'text-foreground'),
     (r'text-gray-600', 'text-muted-foreground'),
     (r'text-gray-500', 'text-muted-foreground'),
-    (r'text-gray-400', 'text-tertiary'),
-    (r'text-gray-300', 'text-tertiary'),
+    (r'text-gray-400', 'text-muted-foreground'),  # batch2 review: tertiary fails 2.41:1 on bg; muted is the safe default - hand-apply tertiary only to decorative icons
+    (r'text-gray-300', 'text-tertiary'),  # rare (disabled/dividers)
     (r'text-slate-900', 'text-foreground'),
     (r'text-slate-800', 'text-foreground'),
     (r'text-slate-700', 'text-foreground'),

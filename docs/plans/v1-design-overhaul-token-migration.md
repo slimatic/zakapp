@@ -188,15 +188,19 @@ After every batch: delete that batch's now-dead `.dark` retrofit rules from inde
 +                  ? 'text-secondary font-bold'          // nav-active = BRAND, no tint (DESIGN.md §4: amber is NOT for persistent nav states; peer-review correction - the original 'text-accent bg-accent/10' here violated the accent-rationing contract)
 ```
 
-**Batch 3 — `client/src/pages/Dashboard.tsx`** (the education banner, teal → accent family):
+**Worked example (DONE, batch 2, corrected by peer review)** — `client/src/pages/Dashboard.tsx` education banner, teal → neutral/brand-tonal per §7.3:
 ```diff
 -    <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-2 border-teal-200 p-4 sm:p-6">
 +    <div className="bg-muted rounded-lg border border-border p-4 sm:p-6">
 -          <div className="p-2 bg-teal-100 rounded-lg">
-+          <div className="p-2 bg-accent-soft rounded-lg">
++          <div className="p-2 bg-accent rounded-lg">
 -              className="w-6 h-6 text-teal-600"
-+              className="w-6 h-6 text-accent"
--          className="p-2 rounded-md text-gray-600 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-600 …"
++              className="w-6 h-6 text-accent-foreground"
+```
+NOTE (batch-2 review): there is NO `accent-soft` token; `bg-accent` IS the brand-soft tonal
+surface (Nur 140 17% 93%, Qamar 43 33% 12%) — icons on it use `text-accent-foreground`, never
+`text-accent`. Banner text maps to `text-foreground` (muted-foreground on bg-muted fails 4.5:1
+in Nur). Banners use `rounded-lg`/`shadow-card` (radius spec amendment: banners share card radius).-          className="p-2 rounded-md text-gray-600 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-600 …"
 +          className="p-2 rounded-md text-muted-foreground hover:bg-accent-soft focus:outline-none focus:ring-2 focus:ring-accent …"
 -          <div className="pt-4 border-t border-teal-200">
 +          <div className="pt-4 border-t border-border">
