@@ -93,7 +93,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
                 rounded-lg
                 transition-all duration-200
                 ${navActive || active
-                  ? 'text-primary bg-warn-soft/60'
+                  ? 'text-secondary font-bold'
                   : 'text-muted-foreground hover:text-foreground'
                 }
                 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2

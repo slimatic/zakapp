@@ -4,7 +4,7 @@ import { DonationCTA } from '../donation/DonationCTA';
 
 export const Footer: React.FC = () => {
     return (
-        <footer className="mt-auto border-t border-border bg-surface-2">
+        <footer className="mt-auto border-t border-border bg-muted">
             {/* Top Section: CTA */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex justify-center">
@@ -48,7 +48,7 @@ export const Footer: React.FC = () => {
             </div>
 
             {/* Bottom Section: Copyright & Credits */}
-            <div className="bg-surface-2 border-t border-border">
+            <div className="bg-muted border-t border-border">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-tertiary">
                         <div className="flex items-center gap-1">

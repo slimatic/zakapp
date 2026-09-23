@@ -55,7 +55,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
           <h3 className="text-sm font-medium text-danger">
             {title}
           </h3>
-          <div className="mt-2 text-sm text-danger/90">
+          <div className="mt-2 text-sm text-danger">
             {errorMessage}
           </div>
           {onRetry && (
@@ -64,7 +64,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
                 variant="secondary"
                 size="sm"
                 onClick={onRetry}
-                className="bg-danger-soft text-danger hover:bg-danger/20 border-danger/40"
+                className="bg-danger-soft text-danger hover:bg-danger/10 border-danger/40"
               >
                 Try again
               </Button>

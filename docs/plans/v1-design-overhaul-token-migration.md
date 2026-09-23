@@ -185,7 +185,7 @@ After every batch: delete that batch's now-dead `.dark` retrofit rules from inde
 -                className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition-all active:scale-95"
 +                className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-muted-foreground hover:text-foreground transition-all active:scale-95"
 -                  ? 'text-primary-600 bg-primary-50/50'
-+                  ? 'text-accent bg-accent/10'          // nav-active: amber only when active — matches rationing
++                  ? 'text-secondary font-bold'          // nav-active = BRAND, no tint (DESIGN.md §4: amber is NOT for persistent nav states; peer-review correction - the original 'text-accent bg-accent/10' here violated the accent-rationing contract)
 ```
 
 **Batch 3 — `client/src/pages/Dashboard.tsx`** (the education banner, teal → accent family):

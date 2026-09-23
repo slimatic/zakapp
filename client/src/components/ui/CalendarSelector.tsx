@@ -191,7 +191,7 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
       </div>
 
       {/* Date Input Section */}
-      <div className="bg-card  rounded-lg border border-border-strong  p-4">
+      <div className="bg-card rounded-lg border border-border-strong p-4">
         {localCalendarType === 'gregorian' ? (
           /* Gregorian Date Picker */
           <div>
@@ -204,8 +204,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
               value={formatGregorianForInput(gregorianDate)}
               onChange={handleGregorianDateChange}
               disabled={disabled}
-              className="w-full px-3 py-2 border border-border-strong  rounded-lg 
-                       bg-card  text-foreground 
+              className="w-full px-3 py-2 border border-border-strong rounded-lg 
+                       bg-card text-foreground 
                        focus:ring-2 focus:ring-ring focus:border-transparent
                        disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -219,7 +219,7 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
             <div className="grid grid-cols-3 gap-3">
               {/* Day */}
               <div>
-                <label htmlFor="hijri-day" className="block text-xs text-muted-foreground  mb-1">
+                <label htmlFor="hijri-day" className="block text-xs text-muted-foreground mb-1">
                   Day
                 </label>
                 <input
@@ -230,8 +230,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
                   value={hijriDate.hd}
                   onChange={(e) => handleHijriDateChange('day', parseInt(e.target.value))}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-border-strong  rounded-lg 
-                           bg-card  text-foreground 
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg 
+                           bg-card text-foreground 
                            focus:ring-2 focus:ring-ring focus:border-transparent
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 />
@@ -239,7 +239,7 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
 
               {/* Month */}
               <div>
-                <label htmlFor="hijri-month" className="block text-xs text-muted-foreground  mb-1">
+                <label htmlFor="hijri-month" className="block text-xs text-muted-foreground mb-1">
                   Month
                 </label>
                 <select
@@ -247,8 +247,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
                   value={hijriDate.hm}
                   onChange={(e) => handleHijriDateChange('month', parseInt(e.target.value))}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-border-strong  rounded-lg 
-                           bg-card  text-foreground 
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg 
+                           bg-card text-foreground 
                            focus:ring-2 focus:ring-ring focus:border-transparent
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -262,7 +262,7 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
 
               {/* Year */}
               <div>
-                <label htmlFor="hijri-year" className="block text-xs text-muted-foreground  mb-1">
+                <label htmlFor="hijri-year" className="block text-xs text-muted-foreground mb-1">
                   Year
                 </label>
                 <input
@@ -273,8 +273,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
                   value={hijriDate.hy}
                   onChange={(e) => handleHijriDateChange('year', parseInt(e.target.value))}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-border-strong  rounded-lg 
-                           bg-card  text-foreground 
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg 
+                           bg-card text-foreground 
                            focus:ring-2 focus:ring-ring focus:border-transparent
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 />
