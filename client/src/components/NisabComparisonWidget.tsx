@@ -231,7 +231,7 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
 
             {/* Percentage label */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-sm font-bold text-white drop-shadow-sm">
+              <span className="text-sm font-bold text-success-foreground">
                 {percentage.toFixed(0)}%
               </span>
             </div>

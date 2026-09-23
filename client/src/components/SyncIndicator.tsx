@@ -35,7 +35,7 @@ export const SyncIndicator: React.FC = () => {
 
     if (status.errors.length > 0) {
         return (
-            <div className="flex items-center gap-2 text-red-500 text-sm px-3 py-1 bg-red-50 rounded-full" title="Sync Error">
+            <div className="flex items-center gap-2 text-danger text-sm px-3 py-1 bg-danger-soft rounded-full" title="Sync Error">
                 <AlertCircle className="w-4 h-4" />
                 <span className="hidden sm:inline">Sync Error</span>
             </div>
@@ -65,12 +65,12 @@ export const SyncIndicator: React.FC = () => {
         return (
             <button
                 onClick={runDiagnostic}
-                className="flex items-center gap-2 text-blue-600 text-sm px-3 py-1 bg-blue-50 rounded-full animate-pulse group relative cursor-help hover:bg-blue-100 transition-colors"
+                className="flex items-center gap-2 text-secondary text-sm px-3 py-1 bg-accent rounded-full animate-pulse group relative cursor-help hover:bg-accent transition-colors"
                 title="Click to run connection test"
             >
                 <RefreshCcw className="w-4 h-4 animate-spin" />
                 <span className="hidden sm:inline">Syncing...</span>
-                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">
+                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-xs p-2 rounded shadow-card opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">
                     Waiting for: {status.pending?.length ? status.pending.join(', ') : 'Server Response'}
                     <br />
                     (Click to Test Connection)
@@ -80,7 +80,7 @@ export const SyncIndicator: React.FC = () => {
     }
 
     return (
-        <div className="flex items-center gap-2 text-green-600 text-sm px-3 py-1 bg-green-50 rounded-full transition-colors duration-500">
+        <div className="flex items-center gap-2 text-success text-sm px-3 py-1 bg-success-soft rounded-full transition-colors duration-500">
             <CheckCircle className="w-4 h-4" />
             <span className="hidden sm:inline">Synced</span>
         </div>

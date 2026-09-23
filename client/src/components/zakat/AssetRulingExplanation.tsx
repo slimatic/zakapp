@@ -37,10 +37,10 @@ export interface AssetRulingExplanationProps {
 }
 
 const STATUS_LABELS: Record<RulingStatus, { label: string; classes: string }> = {
-  zakatable: { label: 'Zakatable', classes: 'bg-green-100 text-green-800 border-green-200' },
-  exempt: { label: 'Exempt', classes: 'bg-gray-100 text-gray-700 border-gray-200' },
-  'override-zakatable': { label: 'Zakatable (your override)', classes: 'bg-blue-100 text-blue-800 border-blue-200' },
-  'override-exempt': { label: 'Exempt (your override)', classes: 'bg-blue-100 text-blue-800 border-blue-200' },
+  zakatable: { label: 'Zakatable', classes: 'bg-success-soft text-success border-success/30' },
+  exempt: { label: 'Exempt', classes: 'bg-muted text-foreground/80 border-border' },
+  'override-zakatable': { label: 'Zakatable (your override)', classes: 'bg-accent text-secondary border-border' },
+  'override-exempt': { label: 'Exempt (your override)', classes: 'bg-accent text-secondary border-border' },
 };
 
 export const AssetRulingExplanation: React.FC<{
@@ -53,11 +53,11 @@ export const AssetRulingExplanation: React.FC<{
   const status = STATUS_LABELS[ruling.status];
 
   return (
-    <div className={`rounded-lg border border-slate-200 bg-slate-50/60 ${className}`} data-testid="asset-ruling-explanation">
+    <div className={`rounded-lg border border-border bg-surface-2/60 ${className}`} data-testid="asset-ruling-explanation">
       {/* Status line + toggle */}
       <div className="flex items-center justify-between gap-3 px-3 py-2">
         <div className="flex items-center gap-2 min-w-0">
-          <Scale className="h-4 w-4 text-slate-500 shrink-0" aria-hidden="true" />
+          <Scale className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
           <span
             className={`text-xs font-medium px-2 py-0.5 rounded-full border ${status.classes}`}
             data-testid="ruling-status"
@@ -65,7 +65,7 @@ export const AssetRulingExplanation: React.FC<{
             {status.label}
           </span>
           {ruling.override && (
-            <span className="hidden sm:inline text-xs text-blue-700 truncate" data-testid="override-hint">
+            <span className="hidden sm:inline text-xs text-secondary truncate" data-testid="override-hint">
               you marked this yourself — see why below
             </span>
           )}
@@ -75,7 +75,7 @@ export const AssetRulingExplanation: React.FC<{
           onClick={() => setExpanded(v => !v)}
           aria-expanded={expanded}
           aria-controls={`ruling-detail-${assetName.replace(/\s+/g, '-').toLowerCase()}`}
-          className="flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-slate-900 shrink-0"
+          className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-secondary shrink-0"
           data-testid="ruling-toggle"
         >
           {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -91,22 +91,22 @@ export const AssetRulingExplanation: React.FC<{
         >
           {/* Madhab default */}
           <div>
-            <p className="font-medium text-slate-900">{ruling.madhabDefault.ruling}</p>
-            <p className="text-slate-600 mt-0.5">{ruling.madhabDefault.reasoning}</p>
+            <p className="font-medium text-foreground">{ruling.madhabDefault.ruling}</p>
+            <p className="text-muted-foreground mt-0.5">{ruling.madhabDefault.reasoning}</p>
           </div>
 
           {/* Override explanation */}
           {ruling.override && (
-            <div className="border-l-2 border-blue-300 bg-blue-50/70 rounded-r-md px-3 py-2" data-testid="override-block">
-              <p className="font-medium text-blue-900">{ruling.override.ruling}</p>
-              <p className="text-blue-800 mt-0.5">{ruling.override.reasoning}</p>
+            <div className="border-l-2 border-border-strong bg-accent/70 rounded-r-md px-3 py-2" data-testid="override-block">
+              <p className="font-medium text-secondary">{ruling.override.ruling}</p>
+              <p className="text-secondary mt-0.5">{ruling.override.reasoning}</p>
             </div>
           )}
 
           {/* Citations */}
           {ruling.citations.length > 0 && (
-            <div className="pt-1 border-t border-slate-200">
-              <p className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mt-2 mb-1">
+            <div className="pt-1 border-t border-border">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mt-2 mb-1">
                 <BookOpen className="h-3.5 w-3.5" aria-hidden="true" /> Sources
               </p>
               <ul className="space-y-1">
@@ -117,12 +117,12 @@ export const AssetRulingExplanation: React.FC<{
                         href={citation.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary-700 hover:underline break-words"
+                        className="text-secondary hover:underline break-words"
                       >
                         {citation.text}
                       </a>
                     ) : (
-                      <span className="text-slate-600">{citation.text}</span>
+                      <span className="text-muted-foreground">{citation.text}</span>
                     )}
                   </li>
                 ))}
@@ -131,7 +131,7 @@ export const AssetRulingExplanation: React.FC<{
           )}
 
           {/* Standing disclaimer */}
-          <p className="flex items-start gap-1.5 text-xs text-slate-500 pt-1" data-testid="ruling-disclaimer">
+          <p className="flex items-start gap-1.5 text-xs text-muted-foreground pt-1" data-testid="ruling-disclaimer">
             <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden="true" />
             Educational summary — consult a qualified scholar for your specific situation.
           </p>

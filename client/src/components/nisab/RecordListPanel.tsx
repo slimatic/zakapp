@@ -92,21 +92,21 @@ export const RecordListPanel: React.FC<RecordListPanelProps> = ({
       {selectedRecordId && (
         <button
           onClick={onClearSelection}
-          className="lg:hidden flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+          className="lg:hidden flex items-center gap-2 text-secondary hover:text-secondary/80 font-medium"
         >
           ← Back to list
         </button>
       )}
 
       {/* Status tabs */}
-      <div className={`flex gap-2 border-b border-gray-200 overflow-x-auto pb-px ${selectedRecordId ? 'hidden lg:flex' : ''}`}>
+      <div className={`flex gap-2 border-b border-border overflow-x-auto pb-px ${selectedRecordId ? 'hidden lg:flex' : ''}`}>
         {RECORD_STATUS_FILTERS.map((status) => (
           <button
             key={status}
             onClick={() => onStatusFilterChange(status)}
             className={`px-3 sm:px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base ${activeStatusFilter === status
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
+              ? 'border-secondary text-secondary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
           >
             {TAB_LABELS[status]}
@@ -117,14 +117,14 @@ export const RecordListPanel: React.FC<RecordListPanelProps> = ({
       {/* Records list */}
       {isLoading ? (
         <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-secondary"></div>
         </div>
       ) : records.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-          <p className="text-gray-600">No {activeStatusFilter === 'all' ? '' : activeStatusFilter} records yet</p>
+        <div className="rounded-lg border border-border bg-card p-12 text-center">
+          <p className="text-muted-foreground">No {activeStatusFilter === 'all' ? '' : activeStatusFilter} records yet</p>
           <button
             onClick={onCreateRecord}
-            className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+            className="mt-4 text-secondary hover:text-secondary/80 font-medium"
           >
             Create your first record →
           </button>

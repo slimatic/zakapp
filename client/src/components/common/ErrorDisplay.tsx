@@ -39,28 +39,28 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   const { title, message, recoverySteps, showSupport } = formatErrorForDisplay(error);
 
   return (
-    <div className={`bg-red-50 border border-red-200 rounded-lg p-4 ${className}`}>
+    <div className={`bg-danger-soft border border-danger/30 rounded-lg p-4 ${className}`}>
       {/* Header */}
       <div className="flex items-start gap-3 mb-3">
         <div className="flex-shrink-0">
-          <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+          <ExclamationTriangleIcon className="w-6 h-6 text-danger" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-red-900">{title}</h3>
-          <p className="text-sm text-red-800 mt-1">{message}</p>
+          <h3 className="text-lg font-semibold text-danger">{title}</h3>
+          <p className="text-sm text-danger mt-1">{message}</p>
         </div>
       </div>
 
       {/* Recovery Steps */}
       {recoverySteps.length > 0 && (
-        <div className="bg-white rounded-md p-3 mb-3">
+        <div className="bg-card rounded-md p-3 mb-3">
           <div className="flex items-start gap-2 mb-2">
-            <InformationCircleIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <h4 className="font-medium text-gray-900 text-sm">What you can do:</h4>
+            <InformationCircleIcon className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+            <h4 className="font-medium text-foreground text-sm">What you can do:</h4>
           </div>
           <ul className="space-y-1.5 ml-7">
             {recoverySteps.map((step, index) => (
-              <li key={index} className="text-sm text-gray-700 flex items-start">
+              <li key={index} className="text-sm text-foreground/80 flex items-start">
                 <span className="mr-2">•</span>
                 <span>{step}</span>
               </li>
@@ -74,7 +74,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+            className="px-4 py-2 bg-danger text-danger-foreground text-sm font-medium rounded-lg hover:bg-danger focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
           >
             Try Again
           </button>
@@ -83,7 +83,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         {showSupport && (
           <a
             href="mailto:support@zakapp.com"
-            className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+            className="px-4 py-2 border border-danger/40 text-danger text-sm font-medium rounded-lg hover:bg-danger-soft focus:outline-none focus:ring-2 focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
           >
             Contact Support
           </a>
@@ -92,7 +92,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 
       {/* Support Message */}
       {showSupport && (
-        <p className="text-xs text-gray-600 mt-3">{getSupportMessage()}</p>
+        <p className="text-xs text-muted-foreground mt-3">{getSupportMessage()}</p>
       )}
     </div>
   );

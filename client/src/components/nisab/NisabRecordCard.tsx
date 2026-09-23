@@ -66,7 +66,7 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
   return (
     <div
       onClick={onSelect}
-      className={`border rounded-lg p-4 sm:p-5 cursor-pointer transition-all ${shouldHideOnMobile ? 'hidden lg:block' : ''} ${isSelected ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-border bg-card hover:bg-accent shadow-sm hover:shadow-md'}`}
+      className={`border rounded-lg p-4 sm:p-5 cursor-pointer transition-all ${shouldHideOnMobile ? 'hidden lg:block' : ''} ${isSelected ? 'border-primary bg-accent shadow-md' : 'border-border bg-card hover:bg-accent shadow-sm hover:shadow-md'}`}
     >
       <div className="space-y-3">
         {/* Header */}
@@ -77,7 +77,7 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
                 ? `${record.hijriYear} H • ${startDateFormatted.split(',')[1]?.trim() || startDateFormatted}`
                 : startDateFormatted}
             </h3>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${badge.color === 'green' ? 'bg-green-100 text-green-800' : badge.color === 'blue' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${badge.color === 'green' ? 'bg-success-soft text-success' : badge.color === 'blue' ? 'bg-accent text-secondary' : 'bg-warn-soft text-warn-strong'}`}
             >
               {badge.label}
             </span>
@@ -101,13 +101,13 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
           {zakatableWealth > 0 && (
             <div>
               <div className="text-xs text-muted-foreground mb-1">Zakatable</div>
-              <div className="text-sm font-medium text-green-700">{formatCurrency(zakatableWealth, currency)}</div>
+              <div className="text-sm font-medium text-success">{formatCurrency(zakatableWealth, currency)}</div>
             </div>
           )}
           {zakatAmount > 0 && (
             <div>
               <div className="text-xs text-muted-foreground mb-1">Zakat Obligation</div>
-              <div className="text-sm font-bold text-blue-700">{formatCurrency(zakatAmount, currency)}</div>
+              <div className="text-sm font-bold text-secondary">{formatCurrency(zakatAmount, currency)}</div>
             </div>
           )}
         </div>
@@ -139,15 +139,15 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
           )}
 
           {record.status === 'DRAFT' && (
-            <button onClick={onFinalize} className="px-2 py-1 bg-green-600 text-white rounded text-xs">Finalize</button>
+            <button onClick={onFinalize} className="px-2 py-1 bg-success text-success-foreground rounded text-xs">Finalize</button>
           )}
           {record.status === 'FINALIZED' && (
             <>
-              <button onClick={onUnlock} className="px-2 py-1 bg-amber-600 text-white rounded text-xs">Unlock</button>
+              <button onClick={onUnlock} className="px-2 py-1 bg-warn-strong text-card-foreground rounded text-xs">Unlock</button>
               <button onClick={onGeneratePdf} className="px-2 py-1 bg-muted text-muted-foreground border border-border rounded text-xs hover:bg-accent flex items-center gap-1">📄 PDF</button>
             </>
           )}
-          <button onClick={onDelete} className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs">Delete</button>
+          <button onClick={onDelete} className="px-2 py-1 text-danger hover:bg-danger-soft rounded text-xs">Delete</button>
         </div>
       </div>
     </div>

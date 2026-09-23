@@ -32,8 +32,8 @@ export const PageLoadingFallback: React.FC = () => {
   return (
     <div className="flex items-center justify-center min-h-screen" role="status" aria-live="polite">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-tertiary mx-auto"></div>
+        <p className="mt-4 text-muted-foreground">Loading...</p>
         <span className="sr-only">Loading page content</span>
       </div>
     </div>
@@ -123,7 +123,7 @@ export const CalculatorSkeleton: React.FC = () => {
       {/* Form Sections */}
       <div className="space-y-6">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-white p-6 rounded-lg shadow">
+          <div key={i} className="bg-card p-6 rounded-lg shadow-card">
             <Skeleton height="24px" width="180px" className="mb-4" />
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -142,7 +142,7 @@ export const CalculatorSkeleton: React.FC = () => {
       </div>
 
       {/* Result Section */}
-      <div className="bg-blue-50 p-6 rounded-lg">
+      <div className="bg-accent p-6 rounded-lg">
         <Skeleton height="28px" width="200px" className="mb-3" />
         <Skeleton height="48px" width="150px" />
       </div>
@@ -162,7 +162,7 @@ export const ProfileSkeleton: React.FC = () => {
       <Skeleton height="32px" width="150px" />
 
       {/* Form Sections */}
-      <div className="bg-white p-6 rounded-lg shadow space-y-6">
+      <div className="bg-card p-6 rounded-lg shadow-card space-y-6">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i}>
             <Skeleton height="16px" width="120px" className="mb-2" />
@@ -201,7 +201,7 @@ export const HistorySkeleton: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-card rounded-lg shadow-card p-6">
         <SkeletonTable rows={8} columns={5} />
       </div>
     </div>

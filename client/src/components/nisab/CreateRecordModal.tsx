@@ -131,7 +131,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
           {step === 3 && "Review your configuration and set the Nisab Standard."}
         </div>
         <div className="w-full bg-muted rounded-full h-2">
-          <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
+          <div className="bg-secondary h-2 rounded-full transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
         </div>
       </div>
 
@@ -148,7 +148,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
               onSelectionChange={setSelectedAssetIds}
               currency={userCurrency}
             />
-            <div className="bg-blue-50 p-3 rounded text-xs text-blue-700">
+            <div className="bg-accent p-3 rounded text-xs text-secondary">
               💰 Estimated Wealth: {formatCurrency(
                 allAssets.filter(a => selectedAssetIds.includes(a.id)).reduce((sum, a) => sum + (Number(a.value) || 0), 0),
                 userCurrency
@@ -168,7 +168,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
               selectedLiabilityIds={selectedLiabilityIds}
               onSelectionChange={setSelectedLiabilityIds}
             />
-            <div className="bg-amber-50 p-3 rounded text-xs text-amber-800 flex items-center gap-2">
+            <div className="bg-warn-soft p-3 rounded text-xs text-warn-strong flex items-center gap-2">
               <span className="text-xl">📉</span>
               <div>
                 <strong>Deductible Liabilities:</strong> {formatCurrency(
@@ -189,9 +189,9 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
                 <span className="block text-xs text-muted-foreground uppercase">Total Assets</span>
                 <span className="block text-xl font-bold text-card-foreground">{formatCurrency(preview.totalWealth, userCurrency)}</span>
               </div>
-              <div className="bg-muted p-4 rounded text-center border border-green-100 bg-green-50">
-                <span className="block text-xs text-green-700 uppercase font-medium">Net Zakatable</span>
-                <span className="block text-xl font-bold text-green-700">{formatCurrency(preview.netZakatableWealth, userCurrency)}</span>
+              <div className="bg-muted p-4 rounded text-center border border-success/20 bg-success-soft">
+                <span className="block text-xs text-success uppercase font-medium">Net Zakatable</span>
+                <span className="block text-xl font-bold text-success">{formatCurrency(preview.netZakatableWealth, userCurrency)}</span>
               </div>
             </div>
 
@@ -200,26 +200,26 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
                 label="Hawl Start Date"
                 value={creationDate}
                 onChange={setCreationDate}
-                className="border-blue-100 bg-blue-50/50"
+                className="border-border bg-accent/50"
               />
             </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-card-foreground">Select Nisab Standard</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'GOLD' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-border'}`}>
+                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'GOLD' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border'}`}>
                   <div className="flex items-center">
-                    <input type="radio" name="nisab" checked={nisabBasis === 'GOLD'} onChange={() => setNisabBasis('GOLD')} className="mr-3 h-4 w-4 text-blue-600" />
+                    <input type="radio" name="nisab" checked={nisabBasis === 'GOLD'} onChange={() => setNisabBasis('GOLD')} className="mr-3 h-4 w-4 text-secondary" />
                     <div>
                       <span className="block font-medium text-card-foreground">Gold Standard</span>
                       <span className="text-xs text-muted-foreground">For Wealthy/Safer</span>
                     </div>
                   </div>
-                  <span className="text-xs font-mono bg-yellow-100 text-yellow-800 px-2 py-1 rounded">87.48g</span>
+                  <span className="text-xs font-mono bg-warn-soft text-warn-strong px-2 py-1 rounded">87.48g</span>
                 </label>
-                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'SILVER' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-border'}`}>
+                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'SILVER' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border'}`}>
                   <div className="flex items-center">
-                    <input type="radio" name="nisab" checked={nisabBasis === 'SILVER'} onChange={() => setNisabBasis('SILVER')} className="mr-3 h-4 w-4 text-blue-600" />
+                    <input type="radio" name="nisab" checked={nisabBasis === 'SILVER'} onChange={() => setNisabBasis('SILVER')} className="mr-3 h-4 w-4 text-secondary" />
                     <div>
                       <span className="block font-medium text-card-foreground">Silver Standard</span>
                       <span className="text-xs text-muted-foreground">For Low Income</span>
@@ -230,9 +230,9 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
               </div>
             </div>
 
-            <div className="bg-muted p-4 rounded text-center border border-blue-100 bg-blue-50">
-              <span className="block text-xs text-blue-700 uppercase font-medium">Zakat Amount ({nisabBasis === 'GOLD' ? 'Gold' : 'Silver'})</span>
-              <span className="block text-xl font-bold text-blue-700">
+            <div className="bg-muted p-4 rounded text-center border border-border bg-accent">
+              <span className="block text-xs text-secondary uppercase font-medium">Zakat Amount ({nisabBasis === 'GOLD' ? 'Gold' : 'Silver'})</span>
+              <span className="block text-xl font-bold text-secondary">
                 {formatCurrency(zakatAmount, userCurrency)}
               </span>
             </div>
@@ -252,7 +252,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
             Next Step →
           </Button>
         ) : (
-          <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700 text-white">
+          <Button onClick={handleSubmit} className="bg-success hover:bg-success/90 text-success-foreground">
             Start Hawl Tracking
           </Button>
         )}

@@ -137,7 +137,7 @@ export const DangerZone: React.FC = () => {
                 </p>
                 <Button
                     variant="outline"
-                    className="border-yellow-600 text-warn-strong hover:bg-warn-soft"
+                    className="border-warn text-warn-strong hover:bg-warn-soft"
                     onClick={handleClearLocalDatabase}
                 >
                     Reset & Re-sync

@@ -57,7 +57,7 @@ export const VerifyEmailPage: React.FC = () => {
 
                     {status === 'success' && (
                         <>
-                            <CheckCircle className="h-16 w-16 text-green-500 scale-110 animate-in zoom-in duration-300" />
+                            <CheckCircle className="h-16 w-16 text-success scale-110 animate-in zoom-in duration-300" />
                             <div className="text-center space-y-2">
                                 <h3 className="text-xl font-semibold text-foreground">Verified!</h3>
                                 <p className="text-muted-foreground">{message}</p>

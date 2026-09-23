@@ -12,7 +12,7 @@ export const DonationCTA: React.FC<{ className?: string, variant?: 'sidebar' | '
                 href={donationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center gap-2 text-xs text-amber-600 hover:text-amber-700 transition-colors ${className}`}
+                className={`inline-flex items-center gap-2 text-xs text-warn-strong hover:text-warn-strong/80 transition-colors ${className}`}
             >
                 <span>☕</span>
                 <span>Sustain ZakApp</span>
@@ -25,7 +25,7 @@ export const DonationCTA: React.FC<{ className?: string, variant?: 'sidebar' | '
             href={donationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors ${className}`}
+            className={`flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-warn-soft hover:text-warn-strong transition-colors ${className}`}
         >
             <span>☕</span>
             <span>Sustain this Project</span>

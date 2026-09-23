@@ -211,7 +211,7 @@ export const UnifiedImportExport: React.FC = () => {
             <Card>
                 <CardHeader>
                     <div className="flex items-center gap-2">
-                        <Database className="w-6 h-6 text-green-600" />
+                        <Database className="w-6 h-6 text-success" />
                         <CardTitle>Data Management (Unified)</CardTitle>
                     </div>
                     <CardDescription>
@@ -258,11 +258,11 @@ export const UnifiedImportExport: React.FC = () => {
                     </div>
 
                     {stats && (
-                        <div className={`mt-4 p-4 rounded-lg border ${stats.errors.length > 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200'}`}>
+                        <div className={`mt-4 p-4 rounded-lg border ${stats.errors.length > 0 ? 'bg-warn-soft border-warn/30' : 'bg-success-soft border-success/30'}`}>
                             <div className="flex items-start gap-3">
-                                {stats.errors.length > 0 ? <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0" /> : <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />}
+                                {stats.errors.length > 0 ? <AlertTriangle className="w-5 h-5 text-warn-strong shrink-0" /> : <CheckCircle className="w-5 h-5 text-success shrink-0" />}
                                 <div>
-                                    <h4 className={`font-medium ${stats.errors.length > 0 ? 'text-yellow-800' : 'text-green-800'}`}>
+                                    <h4 className={`font-medium ${stats.errors.length > 0 ? 'text-warn-strong' : 'text-success'}`}>
                                         Import Report
                                     </h4>
                                     <p className="text-sm text-card-foreground mt-1">
@@ -270,7 +270,7 @@ export const UnifiedImportExport: React.FC = () => {
                                         {stats.settings && " User settings were also restored."}
                                     </p>
                                     {stats.errors.length > 0 && (
-                                        <div className="mt-2 text-xs text-red-600 max-h-32 overflow-y-auto">
+                                        <div className="mt-2 text-xs text-danger max-h-32 overflow-y-auto">
                                             <p className="font-semibold mb-1">Errors ({stats.errors.length}):</p>
                                             <ul className="list-disc pl-4 space-y-1">
                                                 {stats.errors.map((e, i) => <li key={i}>{e}</li>)}
@@ -284,14 +284,14 @@ export const UnifiedImportExport: React.FC = () => {
 
                     {/* Danger Zone */}
                     <div className="border-t border-border pt-6">
-                        <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-danger-soft border border-danger/30 rounded-lg">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-red-100 rounded-full">
-                                    <Trash2 className="w-5 h-5 text-red-600" />
+                                <div className="p-2 bg-danger-soft rounded-full">
+                                    <Trash2 className="w-5 h-5 text-danger" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-medium text-red-900">Clear Financial Data</h3>
-                                    <p className="text-xs text-red-700 mt-0.5">
+                                    <h3 className="text-sm font-medium text-danger">Clear Financial Data</h3>
+                                    <p className="text-xs text-danger mt-0.5">
                                         Permanently delete all assets, liabilities, and records from this device. Account stays active.
                                     </p>
                                 </div>
@@ -316,9 +316,9 @@ export const UnifiedImportExport: React.FC = () => {
                 size="sm"
             >
                 <div className="space-y-4">
-                    <div className="bg-red-50 p-4 rounded-lg flex items-start gap-3">
-                        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                        <p className="text-sm text-red-800">
+                    <div className="bg-danger-soft p-4 rounded-lg flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
+                        <p className="text-sm text-danger">
                             This action is <strong>irreversible</strong>. All your tracking data (Assets, Liabilities, Payments, History) will be wiped from the database.
                         </p>
                     </div>

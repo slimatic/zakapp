@@ -138,16 +138,16 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/40">
+    <main className="min-h-screen flex items-center justify-center bg-muted px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-card/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/40">
         <div>
           <div className="mx-auto flex justify-center">
             <Logo className="h-16 w-16" />
           </div>
-          <h1 className="mt-6 text-center text-4xl font-heading font-extrabold text-gray-900 tracking-tight">
+          <h1 className="mt-6 text-center text-4xl font-heading font-extrabold text-foreground tracking-tight">
             Create your account
           </h1>
-          <p className="mt-2 text-center text-lg text-gray-600">
+          <p className="mt-2 text-center text-lg text-muted-foreground">
             Join ZakApp to calculate and track your Zakat
           </p>
         </div>
@@ -164,7 +164,7 @@ export const Register: React.FC = () => {
               onChange={handleChange}
               error={formErrors.username}
               label="Username"
-              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
+              className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
             />
 
             <div className="grid grid-cols-2 gap-4">
@@ -179,7 +179,7 @@ export const Register: React.FC = () => {
                 data-testid="first-name-input"
                 error={formErrors.firstName}
                 label="First Name"
-                className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
+                className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
               />
 
               <Input
@@ -193,7 +193,7 @@ export const Register: React.FC = () => {
                 data-testid="last-name-input"
                 error={formErrors.lastName}
                 label="Last Name"
-                className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
+                className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
               />
             </div>
 
@@ -209,7 +209,7 @@ export const Register: React.FC = () => {
               data-testid="email-input"
               error={formErrors.email}
               label="Email Address"
-              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
+              className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
             />
 
             <Input
@@ -224,33 +224,33 @@ export const Register: React.FC = () => {
               onFocus={() => setShowPasswordHints(true)}
               error={formErrors.password}
               label="Password"
-              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
+              className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
             />
 
             {/* Password requirements with live validation */}
             {showPasswordHints && (
               <div
-                className="text-xs space-y-1 mt-1 -mt-3 px-3 py-3 bg-blue-50/80 backdrop-blur-sm rounded-lg border border-blue-100 shadow-sm animate-fade-in"
+                className="text-xs space-y-1 mt-1 -mt-3 px-3 py-3 bg-accent/80 backdrop-blur-sm rounded-lg border border-border shadow-sm animate-fade-in"
                 onAnimationEnd={(e) => e.stopPropagation()}
               >
-                <p className="font-semibold text-blue-900 mb-2">Password must include:</p>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.length ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
+                <p className="font-semibold text-secondary mb-2">Password must include:</p>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.length ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
                   <span>{passwordStrength.length ? '✓' : '○'}</span>
                   <span>At least 8 characters</span>
                 </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.uppercase ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.uppercase ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
                   <span>{passwordStrength.uppercase ? '✓' : '○'}</span>
                   <span>One uppercase letter (A-Z)</span>
                 </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.lowercase ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.lowercase ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
                   <span>{passwordStrength.lowercase ? '✓' : '○'}</span>
                   <span>One lowercase letter (a-z)</span>
                 </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.number ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.number ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
                   <span>{passwordStrength.number ? '✓' : '○'}</span>
                   <span>One number (0-9)</span>
                 </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.special ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
+                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.special ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
                   <span>{passwordStrength.special ? '✓' : '○'}</span>
                   <span>One special character (!@#$%^&*)</span>
                 </div>
@@ -269,20 +269,20 @@ export const Register: React.FC = () => {
               data-testid="confirm-password-input"
               error={formErrors.confirmPassword}
               label="Confirm Password"
-              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
+              className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
             />
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 p-4 border border-red-100">
+            <div className="rounded-md bg-danger-soft p-4 border border-danger/20">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <svg className="h-5 w-5 text-danger/80" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
+                  <h3 className="text-sm font-medium text-danger">
                     {error || 'Registration failed. Please try again.'}
                   </h3>
                 </div>
@@ -295,24 +295,24 @@ export const Register: React.FC = () => {
             disabled={isLoading}
             isLoading={isLoading}
             data-testid="register-button"
-            className="w-full bg-primary-700 hover:bg-primary-800 text-white shadow-lg shadow-primary-700/20 transition-all hover:scale-[1.02]"
+            className="w-full bg-primary hover:bg-warn-strong text-primary-foreground shadow-elev-2 transition-all hover:scale-[1.02]"
           >
             Create account
           </Button>
 
           <div className="text-center">
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-foreground/80">
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="font-medium text-primary-700 hover:text-primary-800 hover:underline transition-colors"
+                className="font-medium text-secondary hover:text-secondary hover:underline transition-colors"
               >
                 Sign in instead
               </Link>
             </p>
 
-            <div className="mt-8 pt-6 border-t border-gray-100/50 flex flex-col items-center gap-2">
-              <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1 opacity-70 hover:opacity-100">
+            <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-2">
+              <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 opacity-70 hover:opacity-100">
                 <span>Made with ❤️ by</span>
                 <span className="font-semibold">RST Labs</span>
               </a>
@@ -320,7 +320,7 @@ export const Register: React.FC = () => {
                 href="https://github.com/slimatic/zakapp/releases"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] text-gray-300 hover:text-primary-600 font-mono transition-colors"
+                className="text-[10px] text-tertiary hover:text-secondary font-mono transition-colors"
               >
                 {__APP_VERSION__} ({__COMMIT_HASH__})
               </a>

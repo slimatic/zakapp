@@ -135,11 +135,11 @@ export const InstallPrompt: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-primary-100 p-5 z-50 animate-slide-up ring-1 ring-black/5">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-card/95 backdrop-blur-sm rounded-xl shadow-2xl border border-border p-5 z-50 animate-slide-up ring-1 ring-black/5">
       {/* Close button */}
       <button
         onClick={handleDismiss}
-        className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+        className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
         aria-label="Dismiss install prompt"
       >
         <XMarkIcon className="w-5 h-5" />
@@ -152,32 +152,32 @@ export const InstallPrompt: React.FC = () => {
         </div>
 
         <div className="flex-1 pt-0.5">
-          <h3 className="font-heading font-bold text-gray-900 mb-1 text-lg">
+          <h3 className="font-heading font-bold text-foreground mb-1 text-lg">
             Install ZakApp
           </h3>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            Get quick access to your local vault and unlock full <span className="font-medium text-primary-700">offline functionality</span>.
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Get quick access to your local vault and unlock full <span className="font-medium text-secondary">offline functionality</span>.
           </p>
         </div>
       </div>
 
       {/* Features */}
-      <ul className="space-y-2 mb-6 text-sm text-gray-600">
+      <ul className="space-y-2 mb-6 text-sm text-muted-foreground">
         <li className="flex items-center gap-2.5">
-          <div className="bg-green-100/50 p-0.5 rounded-full">
-            <span className="text-green-600 text-xs font-bold px-0.5">✓</span>
+          <div className="bg-success-soft/50 p-0.5 rounded-full">
+            <span className="text-success text-xs font-bold px-0.5">✓</span>
           </div>
           <span>Work offline with cached data</span>
         </li>
         <li className="flex items-center gap-2.5">
-          <div className="bg-green-100/50 p-0.5 rounded-full">
-            <span className="text-green-600 text-xs font-bold px-0.5">✓</span>
+          <div className="bg-success-soft/50 p-0.5 rounded-full">
+            <span className="text-success text-xs font-bold px-0.5">✓</span>
           </div>
           <span>Instant loading (no wait times)</span>
         </li>
         <li className="flex items-center gap-2.5">
-          <div className="bg-green-100/50 p-0.5 rounded-full">
-            <span className="text-green-600 text-xs font-bold px-0.5">✓</span>
+          <div className="bg-success-soft/50 p-0.5 rounded-full">
+            <span className="text-success text-xs font-bold px-0.5">✓</span>
           </div>
           <span>Secure home screen access</span>
         </li>
@@ -187,14 +187,14 @@ export const InstallPrompt: React.FC = () => {
       <div className="flex gap-3">
         <button
           onClick={handleInstallClick}
-          className="flex-1 px-4 py-2.5 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all shadow-md shadow-primary-700/20 hover:scale-[1.02]"
+          className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-warn-strong focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all shadow-elev-2 hover:scale-[1.02]"
         >
           Install App
         </button>
 
         <button
           onClick={handleDismiss}
-          className="px-4 py-2.5 border border-gray-200 text-gray-600 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-colors"
+          className="px-4 py-2.5 border border-border text-muted-foreground font-medium rounded-lg hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
         >
           Not Now
         </button>

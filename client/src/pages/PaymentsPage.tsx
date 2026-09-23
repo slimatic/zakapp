@@ -68,14 +68,14 @@ export const PaymentsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Zakat Payments</h1>
-              <p className="text-gray-600 mt-2">
+              <h1 className="text-3xl font-bold text-foreground">Zakat Payments</h1>
+              <p className="text-muted-foreground mt-2">
                 Record and track your Zakat distributions to recipients
               </p>
             </div>
@@ -107,7 +107,7 @@ export const PaymentsPage: React.FC = () => {
           {/* Nisab Year Selector */}
           {(nisabRecords.length > 0 || allPayments.length > 0) && (
             <div className="mt-6">
-              <label htmlFor="nisab-record-select" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="nisab-record-select" className="block text-sm font-medium text-foreground/80 mb-2">
                 Filter by Nisab Year Record
               </label>
               <div className="w-full">
@@ -119,7 +119,7 @@ export const PaymentsPage: React.FC = () => {
                     setNisabRecordId(value === 'all' ? undefined : value);
                     setSearchParams(value === 'all' ? {} : { snapshot: value });
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
+                  className="w-full px-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-card"
                 >
                   <option value="all">All Payments ({allPayments.length})</option>
                   {nisabRecords.map((record) => {
@@ -146,14 +146,14 @@ export const PaymentsPage: React.FC = () => {
 
           {/* Warning for Orphaned Payments */}
           {!nisabRecordsLoading && allPayments.length > 0 && nisabRecords.length === 0 && (
-            <div className="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="mt-6 bg-warn-soft border border-warn/30 rounded-lg p-4">
               <div className="flex items-start">
-                <svg className="h-6 w-6 text-orange-600 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-6 w-6 text-warn-strong mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div>
-                  <h2 className="text-sm font-medium text-orange-800">Action Required: Payments Need Assignment</h2>
-                  <div className="mt-1 text-sm text-orange-700">
+                  <h2 className="text-sm font-medium text-warn-strong">Action Required: Payments Need Assignment</h2>
+                  <div className="mt-1 text-sm text-warn-strong">
                     <p>
                       You have {allPayments.length} payments, but no Nisab Year Records.
                       To calculate Zakat correctly, you must link these payments to a specific Nisab Year.
@@ -171,8 +171,8 @@ export const PaymentsPage: React.FC = () => {
 
           {/* No Nisab Years warning (Empty State only) */}
           {!nisabRecordsLoading && nisabRecords.length === 0 && allPayments.length === 0 && (
-            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-sm text-yellow-800">
+            <div className="mt-6 bg-warn-soft border border-warn/30 rounded-lg p-4">
+              <p className="text-sm text-warn-strong">
                 No Nisab Year Records found. Please create a Nisab Year Record first to record payments.
               </p>
               <Button
@@ -189,15 +189,15 @@ export const PaymentsPage: React.FC = () => {
         {/* Create Form Modal */}
         {showCreateForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 sm:p-6">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="bg-card rounded-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto shadow-xl">
               <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                     {editingPayment ? 'Edit Payment Record' : 'Record New Payment'}
                   </h2>
                   <button
                     onClick={handleFormClose}
-                    className="text-gray-400 hover:text-gray-600 p-1"
+                    className="text-muted-foreground hover:text-foreground p-1"
                     aria-label="Close modal"
                   >
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -230,18 +230,18 @@ export const PaymentsPage: React.FC = () => {
         />
 
         {/* Help Section */}
-        <div className="mt-12 bg-green-50 border border-green-200 rounded-lg p-6">
+        <div className="mt-12 bg-success-soft border border-success/30 rounded-lg p-6">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg className="h-6 w-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-6 w-6 text-success" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3">
-              <h2 className="text-sm font-medium text-green-800">
+              <h2 className="text-sm font-medium text-success">
                 About Zakat Payments & Recipients
               </h2>
-              <div className="text-sm text-green-700 mt-2 space-y-2">
+              <div className="text-sm text-success mt-2 space-y-2">
                 <p>
                   Islamic law specifies <strong>8 categories</strong> of eligible Zakat recipients as mentioned in Quran 9:60:
                 </p>

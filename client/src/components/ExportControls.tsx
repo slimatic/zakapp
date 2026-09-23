@@ -52,13 +52,13 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Data</h3>
+    <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+      <h3 className="text-lg font-semibold text-foreground mb-4">Export Data</h3>
 
       <div className="space-y-4">
         {/* Format Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground/80 mb-2">
             Export Format
           </label>
           <div className="space-y-2">
@@ -70,13 +70,13 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
                   value={format}
                   checked={selectedFormat === format}
                   onChange={(e) => setSelectedFormat(e.target.value as 'csv' | 'json' | 'pdf')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="h-4 w-4 text-secondary focus:ring-ring border-border-strong"
                 />
                 <div className="ml-3">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-foreground">
                     {formatLabels[format]}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     {formatDescriptions[format]}
                   </div>
                 </div>
@@ -90,14 +90,14 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
           <Button
             onClick={handleExport}
             disabled={isExporting}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            className="px-6 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/90 disabled:opacity-50"
           >
             {isExporting ? 'Exporting...' : `Export as ${selectedFormat.toUpperCase()}`}
           </Button>
         </div>
 
         {/* Additional Info */}
-        <div className="text-sm text-gray-500 border-t pt-4">
+        <div className="text-sm text-muted-foreground border-t pt-4">
           <p className="mb-2">
             <strong>Note:</strong> Exported data includes all your Zakat calculations and payment records.
           </p>

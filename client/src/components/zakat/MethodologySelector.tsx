@@ -240,7 +240,7 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
                         setShowInfoModal(null);
                         handleMethodologySelect(methodology.id);
                       }}
-                      className="bg-secondary hover:bg-secondary/90 text-white px-6 py-2 rounded-lg"
+                      className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-6 py-2 rounded-lg"
                     >
                       Select {methodology.name}
                     </Button>

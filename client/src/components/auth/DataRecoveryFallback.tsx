@@ -60,27 +60,27 @@ export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => 
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-            <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-6">
-                    <svg className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="min-h-screen flex items-center justify-center bg-muted px-4">
+            <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-8 text-center">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-warn-soft mb-6">
+                    <svg className="h-8 w-8 text-warn-strong" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                 </div>
 
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Decryption Failed</h2>
-                <p className="text-gray-600 mb-6">
+                <h2 className="text-xl font-bold text-foreground mb-2">Decryption Failed</h2>
+                <p className="text-muted-foreground mb-6">
                     Did you recently change your password?
                 </p>
 
-                <div className="text-left bg-amber-50 p-4 rounded-md mb-6 text-sm text-amber-800">
+                <div className="text-left bg-warn-soft p-4 rounded-md mb-6 text-sm text-warn-strong">
                     <p className="mb-2"><strong>Security Notice:</strong> Your data is encrypted with your password. When you change your password, your local data remains locked with the old one.</p>
                     <p>Please enter your <strong>OLD password</strong> below to unlock and migrate your data.</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="text-left">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Old Password</label>
+                        <label className="block text-sm font-medium text-foreground/80 mb-1">Old Password</label>
                         <Input
                             type="password"
                             value={password}
@@ -99,7 +99,7 @@ export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => 
                 <div className="mt-8 border-t pt-6">
                     <button
                         type="button"
-                        className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                        className="text-xs text-muted-foreground hover:text-danger transition-colors"
                         onClick={() => setShowNuclearOption(!showNuclearOption)}
                     >
                         I forgot my old password
@@ -107,7 +107,7 @@ export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => 
 
                     {showNuclearOption && (
                         <div className="mt-4 animate-fadeIn">
-                            <p className="text-xs text-red-600 mb-3">
+                            <p className="text-xs text-danger mb-3">
                                 If you cannot remember your old password, your encrypted data is permanently lost.
                                 You must reset your local database to use the app again.
                             </p>
@@ -115,7 +115,7 @@ export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => 
                                 variant="destructive"
                                 size="sm"
                                 onClick={handleResetData}
-                                className="w-full bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                                className="w-full bg-danger-soft text-danger hover:bg-danger-soft border-danger/30"
                             >
                                 Reset Local Data (Data Loss)
                             </Button>

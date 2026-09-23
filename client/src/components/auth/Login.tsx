@@ -64,7 +64,7 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-muted px-4 py-12">
       <Card className="w-full max-w-md shadow-2xl border-white/20">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-6">
@@ -72,25 +72,25 @@ export const Login: React.FC = () => {
               <Logo className="h-16 w-16" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-heading font-bold text-center text-gray-900">
+          <CardTitle className="text-3xl font-heading font-bold text-center text-foreground">
             Welcome Back
           </CardTitle>
-          <CardDescription className="text-center text-gray-500 text-lg">
+          <CardDescription className="text-center text-muted-foreground text-lg">
             Securely access your ZakApp vault
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {errorCode === 'EMAIL_NOT_VERIFIED' && (
-              <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">
-                <p className="text-amber-900">
+              <div className="mb-4 rounded-md border border-warn/30 bg-warn-soft p-3 text-sm">
+                <p className="text-warn-strong">
                   Your email hasn&apos;t been verified yet, so sign-in is blocked.
                 </p>
                 <button
                   type="button"
                   onClick={handleResend}
                   disabled={resendState === 'sending' || resendState === 'sent'}
-                  className="mt-2 font-medium text-amber-900 underline underline-offset-2 disabled:opacity-60"
+                  className="mt-2 font-medium text-warn-strong underline underline-offset-2 disabled:opacity-60"
                 >
                   {resendState === 'sending'
                     ? 'Sending…'
@@ -99,12 +99,12 @@ export const Login: React.FC = () => {
                       : 'Resend verification email'}
                 </button>
                 {resendMessage && (
-                  <p className="mt-1 text-amber-800" role="status">{resendMessage}</p>
+                  <p className="mt-1 text-warn-strong" role="status">{resendMessage}</p>
                 )}
               </div>
             )}
             {error && (
-              <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
+              <div className="p-3 text-sm text-danger bg-danger-soft border border-danger/30 rounded-md">
                 {error === 'Failed to fetch'
                   ? 'Unable to connect to server. Please check your network connection.'
                   : error}
@@ -117,15 +117,15 @@ export const Login: React.FC = () => {
                   error.includes('DB8') ||
                   error.includes('password') ||
                   error.includes('salt')) && (
-                    <div className="mt-4 p-3 bg-white/50 border border-red-100 rounded text-xs">
-                      <p className="font-bold text-red-800 mb-1">How to fix this:</p>
-                      <ol className="list-decimal list-inside space-y-1 text-red-700">
+                    <div className="mt-4 p-3 bg-card/50 border border-danger/20 rounded text-xs">
+                      <p className="font-bold text-danger mb-1">How to fix this:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-danger">
                         <li>Open your browser settings</li>
                         <li>Search for <strong>"Clear browsing data"</strong></li>
                         <li>Select <strong>"Cookies and other site data"</strong></li>
                         <li>Click <strong>"Clear data"</strong> and refresh this page</li>
                       </ol>
-                      <p className="mt-2 text-[10px] text-red-600 italic">
+                      <p className="mt-2 text-[10px] text-danger italic">
                         Note: Your cloud data is safe and will sync again after you log in.
                       </p>
                     </div>
@@ -134,7 +134,7 @@ export const Login: React.FC = () => {
             )}
 
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium leading-none text-gray-700">
+              <label htmlFor="username" className="text-sm font-medium leading-none text-foreground/80">
                 Username
               </label>
               <Input
@@ -147,12 +147,12 @@ export const Login: React.FC = () => {
                 disabled={isLoading}
                 autoComplete="username"
                 aria-required="true"
-                className="focus:ring-primary-500 border-gray-300"
+                className="focus:ring-ring border-border-strong"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium leading-none text-gray-700">
+              <label htmlFor="password" className="text-sm font-medium leading-none text-foreground/80">
                 Password
               </label>
               <div className="relative">
@@ -165,12 +165,12 @@ export const Login: React.FC = () => {
                   disabled={isLoading}
                   autoComplete="current-password"
                   aria-required="true"
-                  className="focus:ring-primary-500 border-gray-300 pr-10"
+                  className="focus:ring-ring border-border-strong pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -180,28 +180,28 @@ export const Login: React.FC = () => {
 
             <Button
               type="submit"
-              className="w-full bg-primary-700 hover:bg-primary-800 text-white shadow-lg shadow-primary-700/20 transition-all hover:scale-[1.02]"
+              className="w-full bg-primary hover:bg-warn-strong text-primary-foreground shadow-elev-2 transition-all hover:scale-[1.02]"
               disabled={isLoading || !username || !password}
             >
               {isLoading ? 'Decrypting Vault...' : 'Login'}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4 text-center text-sm text-gray-500">
+        <CardFooter className="flex flex-col space-y-4 text-center text-sm text-muted-foreground">
           <div className="flex gap-1 justify-center">
             <span>Don't have a vault?</span>
-            <Link to="/register" className="text-primary-700 hover:text-primary-800 hover:underline font-bold">
+            <Link to="/register" className="text-secondary hover:text-secondary/80 hover:underline font-bold">
               Create New Vault
             </Link>
           </div>
 
-          <div className="text-xs text-primary-600/60 mt-4 flex items-center justify-center gap-1 font-medium bg-primary-50 px-3 py-1 rounded-full w-fit mx-auto">
+          <div className="text-xs text-secondary/60 mt-4 flex items-center justify-center gap-1 font-medium bg-accent px-3 py-1 rounded-full w-fit mx-auto">
             <ShieldCheck className="w-3 h-3" />
             <span>End-to-End Encrypted on your device</span>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-gray-100 w-full flex flex-col items-center gap-2">
-            <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-300 hover:text-gray-400 transition-colors flex items-center justify-center gap-1">
+          <div className="mt-6 pt-4 border-t border-border w-full flex flex-col items-center gap-2">
+            <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className="text-xs text-tertiary hover:text-muted-foreground transition-colors flex items-center justify-center gap-1">
               <span>Made with ❤️ by</span>
               <span className="font-semibold">RST Labs</span>
             </a>
@@ -209,7 +209,7 @@ export const Login: React.FC = () => {
               href="https://github.com/slimatic/zakapp/releases"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[10px] text-gray-300 hover:text-primary-600 font-mono transition-colors"
+              className="text-[10px] text-tertiary hover:text-secondary font-mono transition-colors"
             >
               {__APP_VERSION__} ({__COMMIT_HASH__})
             </a>

@@ -412,17 +412,13 @@ describe('AssetSelectionTable', () => {
         />
       );
 
-      // Verify zakatable indicators have color classes (checked in integration)
-      const zakatableYes = container.querySelectorAll('.text-green-600');
-      const zakatableNo = container.querySelectorAll('.text-gray-600');
+      // Verify zakatable indicators use success token
+      const zakatableYes = container.querySelectorAll('.text-success');
+      // Non-zakatable uses muted foreground
+      const zakatableNo = container.querySelectorAll('.text-muted-foreground');
 
-      // Note: Component uses bg-green-100 text-green-800, so checking class contents logic might fail if classes changed
-      // Updating to match component classes: text-green-800
-      const zakatableYesActual = container.querySelectorAll('.text-green-800');
-      const zakatableNoActual = container.querySelectorAll('.text-gray-800');
-
-      expect(zakatableYesActual.length).toBeGreaterThan(0);
-      expect(zakatableNoActual.length).toBeGreaterThan(0);
+      expect(zakatableYes.length).toBeGreaterThan(0);
+      expect(zakatableNo.length).toBeGreaterThan(0);
     });
 
     it('should provide clear focus indicators', () => {
@@ -439,7 +435,7 @@ describe('AssetSelectionTable', () => {
       firstCheckbox.focus();
 
       // Verify focus ring is visible (Tailwind focus classes)
-      expect(firstCheckbox).toHaveClass('focus:ring-blue-500');
+      expect(firstCheckbox).toHaveClass('focus:ring-ring');
     });
   });
 

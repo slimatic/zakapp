@@ -9,45 +9,45 @@ export const PrivacyPolicyPage: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
                 <Link to="/" className="inline-block mb-8">
-                    <Logo className="h-12 w-12 text-emerald-600" />
+                    <Logo className="h-12 w-12 text-secondary" />
                 </Link>
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">Privacy Policy</h1>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                <h1 className="text-3xl font-bold text-foreground mb-4">Privacy Policy</h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                     We believe your spiritual obligations are between you and your Creator.
                     That's why we built ZakApp with a privacy-first architecture.
                 </p>
-                <p className="text-sm text-gray-400 mt-2">Last Updated: January 2026</p>
+                <p className="text-sm text-muted-foreground mt-2">Last Updated: January 2026</p>
             </div>
 
-            <div className="prose prose-emerald mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+            <div className="prose prose-emerald mx-auto bg-card p-8 rounded-2xl shadow-sm border border-border">
                 {/* Quick Summary Cards */}
                 <div className="not-prose grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-                        <Database className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-3 p-4 bg-accent rounded-lg border border-border">
+                        <Database className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
                         <div>
-                            <h4 className="font-semibold text-gray-900 text-sm">Local-First</h4>
-                            <p className="text-xs text-gray-600">Financial data stays on your device by default</p>
+                            <h4 className="font-semibold text-foreground text-sm">Local-First</h4>
+                            <p className="text-xs text-muted-foreground">Financial data stays on your device by default</p>
                         </div>
                     </div>
-                    <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-                        <Lock className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-3 p-4 bg-accent rounded-lg border border-border">
+                        <Lock className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
                         <div>
-                            <h4 className="font-semibold text-gray-900 text-sm">AES-256 Encrypted</h4>
-                            <p className="text-xs text-gray-600">Your data is encrypted with your password</p>
+                            <h4 className="font-semibold text-foreground text-sm">AES-256 Encrypted</h4>
+                            <p className="text-xs text-muted-foreground">Your data is encrypted with your password</p>
                         </div>
                     </div>
-                    <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-                        <Eye className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-3 p-4 bg-accent rounded-lg border border-border">
+                        <Eye className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
                         <div>
-                            <h4 className="font-semibold text-gray-900 text-sm">Open Source</h4>
-                            <p className="text-xs text-gray-600">Audit our code on GitHub anytime</p>
+                            <h4 className="font-semibold text-foreground text-sm">Open Source</h4>
+                            <p className="text-xs text-muted-foreground">Audit our code on GitHub anytime</p>
                         </div>
                     </div>
-                    <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-                        <Shield className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-3 p-4 bg-accent rounded-lg border border-border">
+                        <Shield className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
                         <div>
-                            <h4 className="font-semibold text-gray-900 text-sm">No Tracking</h4>
-                            <p className="text-xs text-gray-600">No ads, no analytics, no data selling</p>
+                            <h4 className="font-semibold text-foreground text-sm">No Tracking</h4>
+                            <p className="text-xs text-muted-foreground">No ads, no analytics, no data selling</p>
                         </div>
                     </div>
                 </div>
@@ -81,17 +81,17 @@ export const PrivacyPolicyPage: React.FC = () => {
                 </ul>
 
                 {/* Full Policy Link */}
-                <div className="not-prose mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="not-prose mt-8 p-4 bg-muted rounded-lg border border-border">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h4 className="font-semibold text-gray-900">Complete Privacy Policy</h4>
-                            <p className="text-sm text-gray-600">Read the full legal privacy policy with all details</p>
+                            <h4 className="font-semibold text-foreground">Complete Privacy Policy</h4>
+                            <p className="text-sm text-muted-foreground">Read the full legal privacy policy with all details</p>
                         </div>
                         <a
                             href="https://zakapp.org/privacy"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground text-sm font-medium rounded-lg hover:bg-secondary/90 transition-colors"
                         >
                             View Full Policy
                             <ExternalLink className="w-4 h-4" />
@@ -99,8 +99,8 @@ export const PrivacyPolicyPage: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-gray-100 flex justify-center">
-                    <Link to="/dashboard" className="text-emerald-600 hover:text-emerald-700 font-medium">
+                <div className="mt-8 pt-8 border-t border-border flex justify-center">
+                    <Link to="/dashboard" className="text-secondary hover:text-secondary/80 font-medium">
                         Return to Dashboard
                     </Link>
                 </div>

@@ -41,7 +41,7 @@ export const MaintenancePage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-50 px-4 py-12">
+        <div className="min-h-screen flex items-center justify-center bg-muted px-4 py-12">
             <Card className="w-full max-w-2xl glass-panel shadow-2xl">
                 <CardHeader className="space-y-6 text-center">
                     {/* Logo with subtle pulse animation */}
@@ -53,13 +53,13 @@ export const MaintenancePage: React.FC = () => {
 
                     {/* Islamic Greeting */}
                     <div className="space-y-2">
-                        <h1 className="text-2xl font-semibold text-emerald-700">
+                        <h1 className="text-2xl font-semibold text-secondary">
                             السلام عليكم
                         </h1>
-                        <p className="text-sm text-slate-600">Assalamu Alaykum (Peace be upon you)</p>
+                        <p className="text-sm text-muted-foreground">Assalamu Alaykum (Peace be upon you)</p>
                     </div>
 
-                    <CardTitle className="text-4xl font-heading font-bold text-slate-900">
+                    <CardTitle className="text-4xl font-heading font-bold text-foreground">
                         Scheduled Maintenance
                     </CardTitle>
                 </CardHeader>
@@ -67,10 +67,10 @@ export const MaintenancePage: React.FC = () => {
                 <CardContent className="space-y-8">
                     {/* Main Message */}
                     <div className="text-center space-y-4">
-                        <p className="text-lg text-slate-700 leading-relaxed">
+                        <p className="text-lg text-foreground leading-relaxed">
                             We're currently performing scheduled maintenance to enhance your ZakApp experience.
                         </p>
-                        <p className="text-md text-slate-600">
+                        <p className="text-md text-muted-foreground">
                             Your vault remains secure and encrypted. We appreciate your patience as we work to serve you better.
                         </p>
                     </div>
@@ -78,21 +78,21 @@ export const MaintenancePage: React.FC = () => {
                     {/* Status Indicators - Trust Signals */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="glass-card p-4 text-center space-y-2">
-                            <ShieldCheck className="h-8 w-8 mx-auto text-emerald-600" aria-hidden="true" />
-                            <h3 className="font-semibold text-slate-900">Your Data is Safe</h3>
-                            <p className="text-sm text-slate-600">Zero-knowledge encryption remains active</p>
+                            <ShieldCheck className="h-8 w-8 mx-auto text-secondary" aria-hidden="true" />
+                            <h3 className="font-semibold text-foreground">Your Data is Safe</h3>
+                            <p className="text-sm text-muted-foreground">Zero-knowledge encryption remains active</p>
                         </div>
 
                         <div className="glass-card p-4 text-center space-y-2">
-                            <Clock className="h-8 w-8 mx-auto text-amber-600" aria-hidden="true" />
-                            <h3 className="font-semibold text-slate-900">Brief Downtime</h3>
-                            <p className="text-sm text-slate-600">We'll be back shortly, insha'Allah</p>
+                            <Clock className="h-8 w-8 mx-auto text-warn-strong" aria-hidden="true" />
+                            <h3 className="font-semibold text-foreground">Brief Downtime</h3>
+                            <p className="text-sm text-muted-foreground">We'll be back shortly, insha'Allah</p>
                         </div>
 
                         <div className="glass-card p-4 text-center space-y-2">
-                            <RefreshCw className="h-8 w-8 mx-auto text-blue-600" aria-hidden="true" />
-                            <h3 className="font-semibold text-slate-900">Improvements Coming</h3>
-                            <p className="text-sm text-slate-600">Enhanced features and performance</p>
+                            <RefreshCw className="h-8 w-8 mx-auto text-secondary" aria-hidden="true" />
+                            <h3 className="font-semibold text-foreground">Improvements Coming</h3>
+                            <p className="text-sm text-muted-foreground">Enhanced features and performance</p>
                         </div>
                     </div>
 
@@ -107,17 +107,17 @@ export const MaintenancePage: React.FC = () => {
                             Check Status
                         </button>
 
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-muted-foreground">
                             Expected return: Check back in a few moments
                         </p>
                     </div>
 
                     {/* Footer Message - Quranic Verse for Patience */}
-                    <div className="pt-6 border-t border-slate-200 text-center">
-                        <p className="text-sm text-slate-600 italic leading-relaxed">
+                    <div className="pt-6 border-t border-border text-center">
+                        <p className="text-sm text-muted-foreground italic leading-relaxed">
                             "And be patient, for indeed, Allah does not allow to be lost the reward of those who do good."
                             <br />
-                            <span className="text-xs text-slate-500">— Quran 11:115</span>
+                            <span className="text-xs text-muted-foreground">— Quran 11:115</span>
                         </p>
                     </div>
 

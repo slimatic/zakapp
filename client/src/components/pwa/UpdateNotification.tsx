@@ -87,11 +87,11 @@ export const UpdateNotification: React.FC = () => {
   }
 
   return (
-    <div className="fixed top-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-96 bg-indigo-600 text-white rounded-lg shadow-2xl p-4 z-50 animate-slide-down">
+    <div className="fixed top-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-96 bg-secondary text-secondary-foreground rounded-lg shadow-elev-3 p-4 z-50 animate-slide-down">
       <div className="flex items-start gap-3">
         {/* Update Icon */}
-        <div className="flex-shrink-0 w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center">
-          <ArrowPathIcon className="w-5 h-5 text-white" />
+        <div className="flex-shrink-0 w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+          <ArrowPathIcon className="w-5 h-5 text-secondary-foreground" />
         </div>
 
         {/* Content */}
@@ -99,7 +99,7 @@ export const UpdateNotification: React.FC = () => {
           <h3 className="font-semibold mb-1">
             Update Available
           </h3>
-          <p className="text-sm text-indigo-100 mb-3">
+          <p className="text-sm text-muted-foreground mb-3">
             A new version of ZakApp is ready. Refresh to get the latest features and improvements.
           </p>
 
@@ -107,14 +107,14 @@ export const UpdateNotification: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={handleUpdate}
-              className="px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 transition-colors text-sm"
+              className="px-4 py-2 bg-card text-secondary font-medium rounded-lg hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors text-sm"
             >
               Update Now
             </button>
 
             <button
               onClick={handleDismiss}
-              className="px-4 py-2 border border-indigo-400 text-white font-medium rounded-lg hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 transition-colors text-sm"
+              className="px-4 py-2 border border-border text-secondary-foreground font-medium rounded-lg hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors text-sm"
             >
               Later
             </button>
@@ -124,7 +124,7 @@ export const UpdateNotification: React.FC = () => {
         {/* Close button */}
         <button
           onClick={handleDismiss}
-          className="flex-shrink-0 p-1 text-indigo-200 hover:text-white rounded-lg hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-white"
+          className="flex-shrink-0 p-1 text-muted-foreground hover:text-secondary rounded-lg hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
           aria-label="Dismiss update notification"
         >
           <XMarkIcon className="w-5 h-5" />

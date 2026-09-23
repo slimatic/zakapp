@@ -110,14 +110,14 @@ export const AnalyticsPage: React.FC = () => {
     const complianceRate = totalZakatDue > 0 ? (totalZakatPaid / totalZakatDue) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-              <p className="text-gray-600 mt-2">
+              <h1 className="text-3xl font-bold text-foreground">Analytics Dashboard</h1>
+              <p className="text-muted-foreground mt-2">
                 Comprehensive insights into your Zakat history and trends
               </p>
             </div>
@@ -127,36 +127,36 @@ export const AnalyticsPage: React.FC = () => {
 
         {/* Summary Statistics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
-            <p className="text-sm font-medium text-gray-500">Total Wealth</p>
-            <p className="text-2xl font-bold text-gray-900 mt-2">
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border transition-shadow hover:shadow-md">
+            <p className="text-sm font-medium text-muted-foreground">Total Wealth</p>
+            <p className="text-2xl font-bold text-foreground mt-2">
               {maskedCurrency(formatCurrency(totalWealth, userCurrency))}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
-            <p className="text-sm font-medium text-gray-500">Zakatable Wealth</p>
-            <p className="text-2xl font-bold text-gray-900 mt-2">
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border transition-shadow hover:shadow-md">
+            <p className="text-sm font-medium text-muted-foreground">Zakatable Wealth</p>
+            <p className="text-2xl font-bold text-foreground mt-2">
               {maskedCurrency(formatCurrency(totalZakatableWealth, userCurrency))}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
-            <p className="text-sm font-medium text-gray-500">Total Zakat Due</p>
-            <p className="text-2xl font-bold text-gray-900 mt-2">
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border transition-shadow hover:shadow-md">
+            <p className="text-sm font-medium text-muted-foreground">Total Zakat Due</p>
+            <p className="text-2xl font-bold text-foreground mt-2">
               {maskedCurrency(formatCurrency(totalZakatDue, userCurrency))}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 transition-shadow hover:shadow-md">
-            <p className="text-sm font-medium text-gray-500">Compliance Rate</p>
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border transition-shadow hover:shadow-md">
+            <p className="text-sm font-medium text-muted-foreground">Compliance Rate</p>
             <div className="mt-2 flex flex-col gap-2">
               <div className="flex justify-between items-baseline">
-                <p className="text-2xl font-bold text-gray-900">{complianceRate.toFixed(1)}%</p>
-                <span className="text-xs text-gray-500">
+                <p className="text-2xl font-bold text-foreground">{complianceRate.toFixed(1)}%</p>
+                <span className="text-xs text-muted-foreground">
                   {maskedCurrency(formatCurrency(totalZakatPaid, userCurrency))} Paid
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div className="w-full bg-muted rounded-full h-2.5">
                 <div
-                  className={`h-2.5 rounded-full ${complianceRate >= 100 ? 'bg-green-600' : 'bg-blue-600'}`}
+                  className={`h-2.5 rounded-full ${complianceRate >= 100 ? 'bg-success' : 'bg-secondary'}`}
                   style={{ width: `${Math.min(complianceRate, 100)}%` }}
                 ></div>
               </div>
@@ -165,15 +165,15 @@ export const AnalyticsPage: React.FC = () => {
         </div>
 
         {/* Timeframe Selector */}
-        <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="mb-8 bg-card rounded-lg shadow-sm border border-border p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Time Period:</label>
+            <label className="text-sm font-medium text-foreground/80 whitespace-nowrap">Time Period:</label>
             <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 hide-scrollbar scroll-smooth">
               <button
                 onClick={() => setSelectedTimeframe('last_year')}
                 className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${selectedTimeframe === 'last_year'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-success text-success-foreground'
+                  : 'bg-muted text-foreground/80 hover:bg-muted'
                   }`}
               >
                 Last Year
@@ -181,8 +181,8 @@ export const AnalyticsPage: React.FC = () => {
               <button
                 onClick={() => setSelectedTimeframe('last_3_years')}
                 className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${selectedTimeframe === 'last_3_years'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-success text-success-foreground'
+                  : 'bg-muted text-foreground/80 hover:bg-muted'
                   }`}
               >
                 Last 3 Years
@@ -190,8 +190,8 @@ export const AnalyticsPage: React.FC = () => {
               <button
                 onClick={() => setSelectedTimeframe('last_5_years')}
                 className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${selectedTimeframe === 'last_5_years'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-success text-success-foreground'
+                  : 'bg-muted text-foreground/80 hover:bg-muted'
                   }`}
               >
                 Last 5 Years
@@ -199,8 +199,8 @@ export const AnalyticsPage: React.FC = () => {
               <button
                 onClick={() => setSelectedTimeframe('all_time')}
                 className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${selectedTimeframe === 'all_time'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-success text-success-foreground'
+                  : 'bg-muted text-foreground/80 hover:bg-muted'
                   }`}
               >
                 All Time
@@ -212,22 +212,22 @@ export const AnalyticsPage: React.FC = () => {
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-transparent">
           {/* Wealth Trend (Full Width on mobile, half on desktop) */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <WealthTrendChart records={filteredNisabRecords} currency={userCurrency} />
           </div>
 
           {/* Asset Composition */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <AssetsBreakdownChart assets={assets} />
           </div>
 
           {/* Payment Distribution */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <PaymentDistributionChart payments={filteredPayments} currency={userCurrency} />
           </div>
 
           {/* Obligations */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <ZakatObligationsChart records={filteredNisabRecords} payments={filteredPayments} currency={userCurrency} />
           </div>
         </div>

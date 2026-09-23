@@ -83,10 +83,10 @@ export const ReminderNotification: React.FC<ReminderNotificationProps> = ({
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 border-red-500 text-red-800';
-      case 'medium': return 'bg-yellow-100 border-yellow-500 text-yellow-800';
-      case 'low': return 'bg-blue-100 border-blue-500 text-blue-800';
-      default: return 'bg-gray-100 border-gray-500 text-gray-800';
+      case 'high': return 'bg-danger-soft border-danger text-danger';
+      case 'medium': return 'bg-warn-soft border-warn text-warn-strong';
+      case 'low': return 'bg-accent border-primary text-secondary';
+      default: return 'bg-muted border-border-strong text-foreground';
     }
   };
 
@@ -136,7 +136,7 @@ export const ReminderNotification: React.FC<ReminderNotificationProps> = ({
           <div className="ml-4 flex-shrink-0 flex">
             <button
               onClick={() => onDismiss(currentReminder.id)}
-              className="inline-flex text-gray-400 hover:text-gray-500"
+              className="inline-flex text-muted-foreground hover:text-muted-foreground"
             >
               <span className="sr-only">Close</span>
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -156,27 +156,27 @@ export const ReminderNotification: React.FC<ReminderNotificationProps> = ({
         {selectedReminder && (
           <div className="space-y-4">
             <div>
-              <h4 className="text-sm font-medium text-gray-500">Type</h4>
-              <p className="text-sm text-gray-900">{getEventTypeLabel(selectedReminder.eventType)}</p>
+              <h4 className="text-sm font-medium text-muted-foreground">Type</h4>
+              <p className="text-sm text-foreground">{getEventTypeLabel(selectedReminder.eventType)}</p>
             </div>
 
             <div>
-              <h4 className="text-sm font-medium text-gray-500">Priority</h4>
+              <h4 className="text-sm font-medium text-muted-foreground">Priority</h4>
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(selectedReminder.priority)}`}>
                 {selectedReminder.priority.toUpperCase()}
               </span>
             </div>
 
             <div>
-              <h4 className="text-sm font-medium text-gray-500">Due Date</h4>
-              <p className="text-sm text-gray-900">
+              <h4 className="text-sm font-medium text-muted-foreground">Due Date</h4>
+              <p className="text-sm text-foreground">
                 {new Date(selectedReminder.triggerDate).toLocaleDateString()}
               </p>
             </div>
 
             <div>
-              <h4 className="text-sm font-medium text-gray-500">Message</h4>
-              <p className="text-sm text-gray-900">{selectedReminder.message}</p>
+              <h4 className="text-sm font-medium text-muted-foreground">Message</h4>
+              <p className="text-sm text-foreground">{selectedReminder.message}</p>
             </div>
 
             <div className="flex justify-end space-x-3 pt-4">
@@ -188,7 +188,7 @@ export const ReminderNotification: React.FC<ReminderNotificationProps> = ({
               </Button>
               <Button
                 onClick={handleAcknowledge}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
               >
                 Acknowledge
               </Button>

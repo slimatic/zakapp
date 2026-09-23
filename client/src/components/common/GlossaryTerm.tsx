@@ -15,7 +15,7 @@ export const GlossaryTerm: React.FC<GlossaryTermProps> = ({
     term,
     children,
     fallback,
-    className = "decoration-dotted decoration-gray-400 underline underline-offset-4 decoration-2 cursor-help"
+    className = "decoration-dotted decoration-border underline underline-offset-4 decoration-2 cursor-help"
 }) => {
     const glossaryItem = getGlossaryTerm(term);
 
@@ -26,15 +26,15 @@ export const GlossaryTerm: React.FC<GlossaryTermProps> = ({
 
     const tooltipContent = (
         <div className="space-y-2">
-            <div className="font-bold text-emerald-300 flex items-center gap-2">
+            <div className="font-bold text-success flex items-center gap-2">
                 {glossaryItem.display}
             </div>
-            <p className="text-gray-200">
+            <p className="text-foreground">
                 {glossaryItem.definition}
             </p>
             {glossaryItem.longDefinition && (
-                <div className="pt-2 mt-2 border-t border-gray-700 text-xs text-right">
-                    <Link to="/learn" className="text-emerald-400 hover:text-emerald-300 flex items-center justify-end gap-1">
+                <div className="pt-2 mt-2 border-t border-border text-xs text-right">
+                    <Link to="/learn" className="text-success hover:text-success/80 flex items-center justify-end gap-1">
                         <BookOpen size={12} />
                         Learn more
                     </Link>
