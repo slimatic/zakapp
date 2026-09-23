@@ -44,22 +44,22 @@ const REMINDER_ICONS = {
 
 const REMINDER_COLORS = {
   high: {
-    bg: 'bg-red-50',
-    border: 'border-red-200',
-    text: 'text-red-800',
-    button: 'text-red-600 hover:text-red-700'
+    bg: 'bg-danger-soft',
+    border: 'border-danger/30',
+    text: 'text-danger',
+    button: 'text-danger hover:text-danger/90'
   },
   medium: {
-    bg: 'bg-yellow-50',
-    border: 'border-yellow-200',
-    text: 'text-yellow-800',
-    button: 'text-yellow-600 hover:text-yellow-700'
+    bg: 'bg-warn-soft',
+    border: 'border-warn/30',
+    text: 'text-warn-strong',
+    button: 'text-warn-strong hover:text-warn-strong'
   },
   low: {
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
-    text: 'text-blue-800',
-    button: 'text-blue-600 hover:text-blue-700'
+    bg: 'bg-accent',
+    border: 'border-border',
+    text: 'text-secondary',
+    button: 'text-secondary hover:text-secondary/80'
   }
 };
 
@@ -154,12 +154,12 @@ export const ReminderBanner: React.FC<ReminderBannerProps> = ({
                           {reminder.message}
                         </div>
                       )}
-                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                      <div className="flex items-center space-x-4 mt-2 text-xs text-muted-foreground">
                         <span>
                           📅 Due: {formatGregorianDate(reminder.triggerDate)}
                         </span>
                         {reminder.priority === 'high' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-danger-soft text-danger font-medium">
                             🚨 High Priority
                           </span>
                         )}
@@ -190,7 +190,7 @@ export const ReminderBanner: React.FC<ReminderBannerProps> = ({
 
                 {/* Quick Actions */}
                 {!compact && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="mt-3 pt-3 border-t border-border">
                     <div className="flex space-x-2">
                       {reminder.eventType === 'calculation_overdue' && (
                           <Button
@@ -239,7 +239,7 @@ export const ReminderBanner: React.FC<ReminderBannerProps> = ({
               <button
                 onClick={handleDismissAll}
                 disabled={acknowledgeReminderMutation.isPending}
-                className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
+                className="text-xs text-muted-foreground hover:text-foreground hover:underline"
               >
                 Dismiss All ({sortedReminders.length})
               </button>

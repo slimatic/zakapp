@@ -116,7 +116,7 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h2 className="text-2xl font-bold text-foreground">
           Calculation Trends
         </h2>
 
@@ -124,7 +124,7 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
         <select
           value={selectedPeriod}
           onChange={(e) => onPeriodChange(e.target.value as typeof selectedPeriod)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+          className="px-4 py-2 border border-border-strong rounded-md shadow-sm focus:ring-ring focus:border-ring"
         >
           <option value="1month">Last Month</option>
           <option value="3months">Last 3 Months</option>
@@ -137,38 +137,38 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Calculations</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+        <div className="bg-card rounded-lg shadow p-6">
+          <p className="text-sm text-muted-foreground">Total Calculations</p>
+          <p className="text-3xl font-bold text-foreground mt-2">
             {combinedData.length}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Average Wealth</p>
-          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+        <div className="bg-card rounded-lg shadow p-6">
+          <p className="text-sm text-muted-foreground">Average Wealth</p>
+          <p className="text-3xl font-bold text-secondary mt-2">
             {formatCompactCurrency(averages.wealth)}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Average Zakat</p>
-          <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
+        <div className="bg-card rounded-lg shadow p-6">
+          <p className="text-sm text-muted-foreground">Average Zakat</p>
+          <p className="text-3xl font-bold text-success mt-2">
             {formatCompactCurrency(averages.zakat)}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Zakat</p>
-          <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
+        <div className="bg-card rounded-lg shadow p-6">
+          <p className="text-sm text-muted-foreground">Total Zakat</p>
+          <p className="text-3xl font-bold text-success mt-2">
             {formatCompactCurrency(totals.zakat)}
           </p>
         </div>
       </div>
 
       {/* Combined Trend Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-card rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">
           Wealth & Zakat Over Time
         </h3>
         <ResponsiveContainer width="100%" height={400}>
@@ -223,8 +223,8 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
       {methodologyData.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pie Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="bg-card rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
               Methodology Distribution
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -249,8 +249,8 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
           </div>
 
           {/* Bar Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="bg-card rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
               Calculations by Methodology
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -289,35 +289,35 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
       )}
 
       {/* Data Table Alternative for Accessibility */}
-      <details className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <summary className="text-lg font-semibold text-gray-900 dark:text-white cursor-pointer">
+      <details className="bg-card rounded-lg shadow p-6">
+        <summary className="text-lg font-semibold text-foreground cursor-pointer">
           View Data Table (Accessible Alternative)
         </summary>
         <div className="mt-4 overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <table className="min-w-full divide-y divide-border dark:divide-border-strong">
             <thead>
               <tr>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
                   Date
                 </th>
-                <th className="px-4 py-2 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-4 py-2 text-right text-sm font-medium text-muted-foreground">
                   Wealth
                 </th>
-                <th className="px-4 py-2 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-4 py-2 text-right text-sm font-medium text-muted-foreground">
                   Zakat
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-border dark:divide-border-strong">
               {combinedData.map((row, index) => (
                 <tr key={index}>
-                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                  <td className="px-4 py-2 text-sm text-foreground">
                     {row.date}
                   </td>
-                  <td className="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
+                  <td className="px-4 py-2 text-sm text-right text-foreground">
                     {formatCurrency(row.wealth)}
                   </td>
-                  <td className="px-4 py-2 text-sm text-right text-green-600 dark:text-green-400">
+                  <td className="px-4 py-2 text-sm text-right text-success">
                     {formatCurrency(row.zakat)}
                   </td>
                 </tr>
@@ -328,10 +328,10 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
       </details>
 
       {/* Educational Note */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+      <div className="bg-accent border border-border rounded-lg p-4">
         <div className="flex">
           <svg
-            className="h-5 w-5 text-blue-400 mr-3 flex-shrink-0"
+            className="h-5 w-5 text-secondary/80 mr-3 flex-shrink-0"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -342,7 +342,7 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
             />
           </svg>
           <div>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+            <p className="text-sm text-secondary">
               <strong>Understanding Your Trends:</strong> These trends show how your wealth and Zakat obligations have changed over time. Regular tracking helps you plan for your annual Zakat payment and understand your financial growth.
             </p>
           </div>

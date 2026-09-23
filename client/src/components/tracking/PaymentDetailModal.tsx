@@ -82,10 +82,10 @@ const PAYMENT_METHODS: Record<string, string> = {
 };
 
 const PAYMENT_STATUS: Record<string, { label: string; color: string }> = {
-  'pending': { label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
-  'completed': { label: 'Completed', color: 'bg-green-100 text-green-800' },
-  'failed': { label: 'Failed', color: 'bg-red-100 text-red-800' },
-  'cancelled': { label: 'Cancelled', color: 'bg-gray-100 text-gray-800' }
+  'pending': { label: 'Pending', color: 'bg-warn-soft text-warn-strong' },
+  'completed': { label: 'Completed', color: 'bg-success-soft text-success' },
+  'failed': { label: 'Failed', color: 'bg-danger-soft text-danger' },
+  'cancelled': { label: 'Cancelled', color: 'bg-muted text-foreground' }
 };
 
 const RECIPIENT_TYPES: Record<string, string> = {
@@ -119,13 +119,13 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
     >
       <div className="space-y-6">
         {/* Payment Amount Section */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-          <div className="text-sm font-medium text-green-800 mb-2">Payment Amount</div>
-          <div className="text-4xl font-bold text-green-600">
+        <div className="bg-success-soft border border-success/30 rounded-lg p-6 text-center">
+          <div className="text-sm font-medium text-success mb-2">Payment Amount</div>
+          <div className="text-4xl font-bold text-success">
             {maskedCurrency(formatCurrency(payment.amount, payment.currency as CurrencyCode))}
           </div>
           {payment.exchangeRate !== 1 && (
-            <div className="text-sm text-green-700 mt-2">
+            <div className="text-sm text-success mt-2">
               Exchange Rate: {payment.exchangeRate.toFixed(4)}
             </div>
           )}
@@ -133,25 +133,25 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
 
         {/* Recipient Information */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recipient Information</h3>
-          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Recipient Information</h3>
+          <div className="bg-muted rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-start">
-              <span className="text-sm font-medium text-gray-600">Name:</span>
-              <span className="text-sm text-gray-900 font-medium">{looksEncrypted(payment.recipientName) ? 'Encrypted recipient' : payment.recipientName}</span>
+              <span className="text-sm font-medium text-muted-foreground">Name:</span>
+              <span className="text-sm text-foreground font-medium">{looksEncrypted(payment.recipientName) ? 'Encrypted recipient' : payment.recipientName}</span>
             </div>
 
             <div className="flex justify-between items-start">
-              <span className="text-sm font-medium text-gray-600">Type:</span>
-              <span className="text-sm text-gray-900">{RECIPIENT_TYPES[payment.recipientType] || payment.recipientType}</span>
+              <span className="text-sm font-medium text-muted-foreground">Type:</span>
+              <span className="text-sm text-foreground">{RECIPIENT_TYPES[payment.recipientType] || payment.recipientType}</span>
             </div>
 
             <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-gray-600">Category:</span>
-              <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                <div className="text-sm font-semibold text-blue-900 mb-1">
+              <span className="text-sm font-medium text-muted-foreground">Category:</span>
+              <div className="bg-accent border border-border rounded p-3">
+                <div className="text-sm font-semibold text-secondary mb-1">
                   {recipientCategory?.label || payment.recipientCategory}
                 </div>
-                <div className="text-xs text-blue-700">
+                <div className="text-xs text-secondary">
                   {recipientCategory?.description || 'Eligible Zakat recipient category'}
                 </div>
               </div>
@@ -161,28 +161,28 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
 
         {/* Payment Details */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Details</h3>
-          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Payment Details</h3>
+          <div className="bg-muted rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-600">Payment Date:</span>
+              <span className="text-sm font-medium text-muted-foreground">Payment Date:</span>
               <div className="text-right">
-                <div className="text-sm text-gray-900 font-medium">
+                <div className="text-sm text-foreground font-medium">
                   {formatGregorianDate(new Date(payment.paymentDate))}
                 </div>
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-muted-foreground">
                   {hijriDate.hd} {HIJRI_MONTHS[hijriDate.hm - 1]} {hijriDate.hy} AH
                 </div>
               </div>
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-600">Payment Method:</span>
-              <span className="text-sm text-gray-900">{PAYMENT_METHODS[payment.paymentMethod] || payment.paymentMethod}</span>
+              <span className="text-sm font-medium text-muted-foreground">Payment Method:</span>
+              <span className="text-sm text-foreground">{PAYMENT_METHODS[payment.paymentMethod] || payment.paymentMethod}</span>
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-600">Status:</span>
-              <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${PAYMENT_STATUS[payment.status]?.color || 'bg-gray-100 text-gray-800'
+              <span className="text-sm font-medium text-muted-foreground">Status:</span>
+              <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${PAYMENT_STATUS[payment.status]?.color || 'bg-muted text-foreground'
                 }`}>
                 {PAYMENT_STATUS[payment.status]?.label || payment.status}
               </span>
@@ -190,18 +190,18 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
 
             {payment.receiptReference && (
               <div className="flex justify-between items-start">
-                <span className="text-sm font-medium text-gray-600">Receipt Reference:</span>
-                <span className="text-sm text-gray-900 font-mono">{payment.receiptReference}</span>
+                <span className="text-sm font-medium text-muted-foreground">Receipt Reference:</span>
+                <span className="text-sm text-foreground font-mono">{payment.receiptReference}</span>
               </div>
             )}
 
-            <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-gray-200">
+            <div className="flex justify-between items-center text-xs text-muted-foreground pt-2 border-t border-border">
               <span>Created:</span>
               <span>{new Date(payment.createdAt).toLocaleString()}</span>
             </div>
 
             {payment.updatedAt !== payment.createdAt && (
-              <div className="flex justify-between items-center text-xs text-gray-500">
+              <div className="flex justify-between items-center text-xs text-muted-foreground">
                 <span>Last Updated:</span>
                 <span>{new Date(payment.updatedAt).toLocaleString()}</span>
               </div>
@@ -212,21 +212,21 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
         {/* Nisab Year Context */}
         {nisabYear && (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Linked Nisab Year Record</h3>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Linked Nisab Year Record</h3>
+            <div className="bg-accent border border-border rounded-lg p-4 space-y-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <div className="text-sm font-medium text-blue-800 mb-1">Nisab Year</div>
-                  <div className="text-sm text-blue-900">
+                  <div className="text-sm font-medium text-secondary mb-1">Nisab Year</div>
+                  <div className="text-sm text-secondary">
                     {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
                   </div>
-                  <div className="text-xs text-blue-700 mt-1">
+                  <div className="text-xs text-secondary mt-1">
                     Calculated: {formatGregorianDate(new Date(nisabYear.calculationDate))}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium text-blue-800 mb-1">Total Zakat Due</div>
-                  <div className="text-lg font-bold text-blue-900">
+                  <div className="text-sm font-medium text-secondary mb-1">Total Zakat Due</div>
+                  <div className="text-lg font-bold text-secondary">
                     {maskedCurrency(formatCurrency(nisabYear.zakatAmount || 0))}
                   </div>
                 </div>
@@ -238,15 +238,15 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
         {/* Notes */}
         {payment.notes && (
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Notes</h3>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{payment.notes}</p>
+            <h3 className="text-lg font-semibold text-foreground mb-4">Notes</h3>
+            <div className="bg-muted rounded-lg p-4">
+              <p className="text-sm text-foreground/80 whitespace-pre-wrap">{payment.notes}</p>
             </div>
           </div>
         )}
 
         {/* Footer with Actions */}
-        <div className="mt-6 border-t border-gray-200 pt-6 flex items-center justify-end gap-3">
+        <div className="mt-6 border-t border-border pt-6 flex items-center justify-end gap-3">
           <Button variant="secondary" onClick={onClose}>
             Close
           </Button>
@@ -266,7 +266,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
                   onClose();
                 }
               }}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-danger hover:text-danger/90 hover:bg-danger-soft"
             >
               Delete Payment
             </Button>

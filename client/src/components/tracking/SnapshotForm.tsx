@@ -114,12 +114,12 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+    <div className="max-w-4xl mx-auto p-6 bg-card rounded-lg shadow-lg">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-foreground">
           {isEditMode ? 'Edit Snapshot' : 'Create New Snapshot'}
         </h2>
-        <p className="text-gray-600 mt-1">
+        <p className="text-muted-foreground mt-1">
           {isEditMode ? 'Update your Zakat calculation snapshot' : 'Record your annual Zakat calculation for historical tracking'}
         </p>
       </div>
@@ -132,7 +132,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Dual Calendar Section */}
-        <div className="bg-gray-50 p-6 rounded-lg">
+        <div className="bg-muted p-6 rounded-lg">
           <DualCalendarDatePicker
             label="Calculation Date"
             value={new Date(formData.gregorianYear, formData.gregorianMonth - 1, formData.gregorianDay)}
@@ -153,8 +153,8 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
         </div>
 
         {/* Financial Data Section */}
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Information</h3>
+        <div className="bg-muted p-6 rounded-lg">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Financial Information</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
@@ -224,13 +224,13 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground/80 mb-2">
                 Nisab Type
               </label>
               <select
                 value={formData.nisabType}
                 onChange={(e) => handleInputChange('nisabType', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="gold">Gold (87.48g)</option>
                 <option value="silver">Silver (612.36g)</option>
@@ -240,18 +240,18 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
         </div>
 
         {/* Methodology and Notes */}
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Calculation Details</h3>
+        <div className="bg-muted p-6 rounded-lg">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Calculation Details</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground/80 mb-2">
                 Methodology Used
               </label>
               <select
                 value={formData.methodologyUsed}
                 onChange={(e) => handleInputChange('methodologyUsed', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="Standard">Standard</option>
                 <option value="Hanafi">Hanafi</option>
@@ -266,16 +266,16 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 id="isPrimary"
                 checked={formData.isPrimary}
                 onChange={(e) => handleInputChange('isPrimary', e.target.checked)}
-                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                className="h-4 w-4 text-success focus:ring-ring border-border-strong rounded"
               />
-              <label htmlFor="isPrimary" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="isPrimary" className="ml-2 block text-sm text-foreground">
                 Set as primary snapshot for this year
               </label>
             </div>
           </div>
 
           <div className="mt-4">
-            <label htmlFor="userNotes" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="userNotes" className="block text-sm font-medium text-foreground/80 mb-2">
               Notes (Optional)
             </label>
             <textarea
@@ -283,14 +283,14 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
               value={formData.userNotes}
               onChange={(e) => handleInputChange('userNotes', e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               placeholder="Add any notes about this calculation..."
             />
           </div>
         </div>
 
         {/* Form Actions */}
-        <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+        <div className="flex justify-end gap-4 pt-6 border-t border-border">
           {onCancel && (
             <Button
               type="button"

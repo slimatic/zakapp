@@ -83,24 +83,24 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
   const methodLabel = PAYMENT_METHODS[payment.paymentMethod] || payment.paymentMethod;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3 hover:shadow-md transition-shadow">
+    <div className="bg-card border border-border rounded-lg p-2 sm:p-3 hover:shadow-md transition-shadow">
       {/* Mask encrypted-looking recipient names to avoid showing ciphertext to users */}
       <div className="flex flex-col gap-1.5 sm:gap-2">
         {/* Header with recipient and amount */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-3">
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-gray-900 text-sm truncate">
+            <h4 className="font-semibold text-foreground text-sm truncate">
               {looksEncrypted(payment.recipientName) ? 'Encrypted recipient' : payment.recipientName}
             </h4>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-muted-foreground">
               {categoryLabel}
             </p>
           </div>
           <div className="text-left sm:text-right flex-shrink-0">
-            <div className="text-base sm:text-lg font-bold text-green-600">
+            <div className="text-base sm:text-lg font-bold text-success">
                 {maskedCurrency(formatCurrency(safeAmount(payment), payment.currency as CurrencyCode))}
               </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-muted-foreground">
               {formatGregorianDate(new Date(payment.paymentDate))}
             </div>
           </div>
@@ -108,13 +108,13 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
 
         {/* Nisab Year Context */}
         {nisabYear && (
-          <div className="bg-blue-50 border border-blue-200 rounded p-1.5 sm:p-2">
+          <div className="bg-accent border border-border rounded p-1.5 sm:p-2">
             <div className="flex items-center justify-between gap-2 text-xs">
-              <span className="font-medium text-blue-800 truncate">
+              <span className="font-medium text-secondary truncate">
                 {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
               </span>
-                <span className="text-blue-700 whitespace-nowrap">
-                Due: <span className="font-semibold text-blue-900">{maskedCurrency(formatCurrency(Number(nisabYear.zakatAmount) || 0))}</span>
+                <span className="text-secondary whitespace-nowrap">
+                Due: <span className="font-semibold text-secondary">{maskedCurrency(formatCurrency(Number(nisabYear.zakatAmount) || 0))}</span>
               </span>
             </div>
           </div>
@@ -122,12 +122,12 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
 
         {/* Payment details */}
         {!compact && (
-          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-            <span className="px-2 py-0.5 bg-gray-100 rounded">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="px-2 py-0.5 bg-muted rounded">
               {methodLabel}
             </span>
             {payment.receiptReference && (
-              <span className="px-2 py-0.5 bg-gray-100 rounded">
+              <span className="px-2 py-0.5 bg-muted rounded">
                 Ref: {payment.receiptReference}
               </span>
             )}
@@ -136,19 +136,19 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
 
         {/* Notes */}
         {payment.notes && !compact && (
-          <div className="bg-gray-50 rounded-md p-2">
-            <p className="text-xs text-gray-600 italic">
+          <div className="bg-muted rounded-md p-2">
+            <p className="text-xs text-muted-foreground italic">
               {payment.notes}
             </p>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-0.5 sm:gap-1 pt-1 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-0.5 sm:gap-1 pt-1 border-t border-border">
           {onViewDetails && (
             <button
               onClick={() => onViewDetails(payment)}
-              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded"
             >
               Details
             </button>
@@ -157,7 +157,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
           {onEdit && (
             <button
               onClick={() => onEdit(payment)}
-              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-secondary hover:text-secondary/80 hover:bg-accent rounded"
             >
               Edit
             </button>
@@ -166,7 +166,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
           {onDelete && (
             <button
               onClick={() => onDelete(payment.id)}
-              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-danger hover:text-danger/90 hover:bg-danger-soft rounded"
             >
               Delete
             </button>

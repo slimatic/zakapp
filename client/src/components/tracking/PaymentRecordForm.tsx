@@ -234,10 +234,10 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
     <form onSubmit={handleSubmit(onSubmitForm as any)} className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground">
           {isEditing ? 'Edit Payment Record' : 'Add Payment Record'}
         </h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Record your Zakat payment according to Islamic guidelines
         </p>
       </div>
@@ -245,18 +245,18 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
       {/* Nisab Year Record selection */}
       {!shouldLockRecordSelection ? (
         <div>
-          <label htmlFor="snapshotId" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="snapshotId" className="block text-sm font-medium text-foreground/80 mb-2">
             Nisab Year Record *
           </label>
           {isLoadingNisabRecords ? (
-            <div className="flex items-center text-sm text-gray-500">
+            <div className="flex items-center text-sm text-muted-foreground">
               <LoadingSpinner size="sm" className="mr-2" />
               Loading Nisab Year Records...
             </div>
           ) : nisabRecords.length === 0 ? (
-            <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200">
-              <p className="text-sm text-yellow-800 mb-2">No active Nisab Year Records found.</p>
-              <p className="text-xs text-yellow-700 mb-3">You must create a Nisab Year Record to link this payment to.</p>
+            <div className="bg-warn-soft p-3 rounded-md border border-warn/30">
+              <p className="text-sm text-warn-strong mb-2">No active Nisab Year Records found.</p>
+              <p className="text-xs text-warn-strong mb-3">You must create a Nisab Year Record to link this payment to.</p>
               <Button type="button" variant="outline" size="sm" onClick={() => window.open('/nisab-records', '_blank')}>
                 Create Nisab Record (Opens in new tab)
               </Button>
@@ -266,7 +266,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
               <select
                 id="snapshotId"
                 {...register('snapshotId')}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.snapshotId ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring ${errors.snapshotId ? 'border-danger/40 focus:ring-danger' : 'border-border-strong'
                   }`}
                 disabled={isLoadingNisabRecords}
               >
@@ -278,26 +278,26 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
                 ))}
               </select>
               {errors.snapshotId?.message && (
-                <p className="mt-1 text-sm text-red-600">{errors.snapshotId.message}</p>
+                <p className="mt-1 text-sm text-danger">{errors.snapshotId.message}</p>
               )}
             </>
           )}
         </div>
       ) : (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-foreground/80 mb-2">
             Nisab Year Record
           </label>
           {/* Hidden input to ensure value is registered */}
           <input type="hidden" {...register('snapshotId')} />
-          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
+          <div className="px-3 py-2 bg-muted border border-border rounded-md text-sm text-foreground/80">
             <div className="flex items-center justify-between">
               <span>
                 {lockedNisabRecord?.gregorianYear
                   ? `${lockedNisabRecord.gregorianYear} Nisab Year`
                   : lockedNisabRecord?.name || 'Selected Nisab Year Record'}
               </span>
-              <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-5 w-5 text-success" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
             </div>
@@ -317,7 +317,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             onFocus={(e) => e.target.select()}
             {...register('amount')}
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Enter the amount in your local currency
           </p>
         </div>
@@ -334,13 +334,13 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
 
       {/* Recipient Category */}
       <div>
-        <label htmlFor="recipientCategory" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="recipientCategory" className="block text-sm font-medium text-foreground/80 mb-2">
           Zakat Recipient Category *
         </label>
         <select
           id="recipientCategory"
           {...register('recipientCategory')}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.recipientCategory ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'}`}
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring ${errors.recipientCategory ? 'border-danger focus:ring-danger' : 'border-border-strong'}`}
         >
           {ZAKAT_RECIPIENTS.map((category) => (
             <option key={category.value} value={category.value}>
@@ -348,11 +348,11 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             </option>
           ))}
         </select>
-        <p id="recipientCategory-desc" className="mt-1 text-xs text-gray-500">
+        <p id="recipientCategory-desc" className="mt-1 text-xs text-muted-foreground">
           {ZAKAT_RECIPIENTS.find(c => c.value === watch('recipientCategory'))?.description}
         </p>
         {errors.recipientCategory?.message && (
-          <p className="mt-1 text-sm text-red-600">{errors.recipientCategory.message}</p>
+          <p className="mt-1 text-sm text-danger">{errors.recipientCategory.message}</p>
         )}
       </div>
 
@@ -366,18 +366,18 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
             {...register('recipientName')}
           />
           {recipientDecryptionWarning && (
-            <p className="mt-1 text-xs text-yellow-700">{recipientDecryptionWarning}</p>
+            <p className="mt-1 text-xs text-warn-strong">{recipientDecryptionWarning}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="paymentMethod" className="block text-sm font-medium text-foreground/80 mb-2">
             Payment Method
           </label>
           <select
             id="paymentMethod"
             {...register('paymentMethod')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {PAYMENT_METHODS.map(method => (
               <option key={method.value} value={method.value}>{method.label}</option>
@@ -400,17 +400,17 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
 
       {/* Notes */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground/80 mb-2">
           Additional Notes
         </label>
         <textarea
           {...register('notes')}
           rows={3}
           placeholder="Any additional notes or context about this payment"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
         />
         {errors.notes?.message && (
-          <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>
+          <p className="mt-1 text-sm text-danger">{errors.notes.message}</p>
         )}
       </div>
 

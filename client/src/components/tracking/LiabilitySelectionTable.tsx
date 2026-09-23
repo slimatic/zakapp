@@ -95,12 +95,12 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
     };
 
     return (
-        <div className={clsx("rounded-lg border border-gray-200 bg-white overflow-hidden", className)}>
+        <div className={clsx("rounded-lg border border-border bg-card overflow-hidden", className)}>
             {/* Header & Filter */}
-            <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row gap-3 items-center justify-between">
+            <div className="p-4 border-b border-border bg-muted flex flex-col sm:flex-row gap-3 items-center justify-between">
                 <div>
-                    <h3 className="font-medium text-gray-900">Deductible Liabilities</h3>
-                    <p className="text-xs text-gray-500">Debts due within the coming lunar year (354 days) are deductible.</p>
+                    <h3 className="font-medium text-foreground">Deductible Liabilities</h3>
+                    <p className="text-xs text-muted-foreground">Debts due within the coming lunar year (354 days) are deductible.</p>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Button variant="secondary" size="sm" onClick={selectSuggested} type="button">
@@ -116,7 +116,7 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
             </div>
 
             {/* Mobile View: Stacked Cards */}
-            <div className="md:hidden max-h-[300px] overflow-y-auto p-2 space-y-2 bg-gray-50">
+            <div className="md:hidden max-h-[300px] overflow-y-auto p-2 space-y-2 bg-muted">
                 {filteredLiabilities.length > 0 ? (
                     filteredLiabilities.map((liability) => {
                         const isSelected = selectedLiabilityIds.includes(liability.id);
@@ -125,14 +125,14 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                                 key={liability.id}
                                 onClick={() => toggleSelection(liability.id)}
                                 className={clsx(
-                                    "p-3 rounded-lg border shadow-sm cursor-pointer transition-colors bg-white",
-                                    isSelected ? "border-blue-300 ring-1 ring-blue-300 bg-blue-50" : "border-gray-200"
+                                    "p-3 rounded-lg border shadow-sm cursor-pointer transition-colors bg-card",
+                                    isSelected ? "border-border-strong ring-1 ring-secondary/25 bg-accent" : "border-border"
                                 )}
                             >
                                 <div className="flex items-start gap-3">
                                     <input
                                         type="checkbox"
-                                        className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        className="mt-1 rounded border-border-strong text-secondary focus:ring-ring"
                                         checked={isSelected}
                                         onChange={() => toggleSelection(liability.id)}
                                         onClick={e => e.stopPropagation()}
@@ -140,30 +140,30 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <div className="font-medium text-sm text-gray-900 truncate">{liability.name}</div>
-                                                <div className="text-xs text-gray-500">{liability.type}</div>
+                                                <div className="font-medium text-sm text-foreground truncate">{liability.name}</div>
+                                                <div className="text-xs text-muted-foreground">{liability.type}</div>
                                             </div>
-                                            <div className="text-sm font-semibold text-gray-900">
+                                            <div className="text-sm font-semibold text-foreground">
                                                 {maskedCurrency(formatCurrency(liability.amount, liability.currency))}
                                             </div>
                                         </div>
 
                                         <div className="mt-2 flex justify-between items-end">
                                             <div>
-                                                <div className={clsx("text-xs font-medium", liability.isDeductible ? "text-gray-700" : "text-amber-600")}>
+                                                <div className={clsx("text-xs font-medium", liability.isDeductible ? "text-foreground/80" : "text-warn-strong")}>
                                                     Due: {format(liability.dueDateObj, 'MMM d, yyyy')}
                                                 </div>
-                                                <div className="text-[10px] text-gray-500">
+                                                <div className="text-[10px] text-muted-foreground">
                                                     {liability.daysUntilDue <= 0 ? 'Due/Overdue' : `${liability.daysUntilDue} days left`}
                                                 </div>
                                             </div>
 
                                             {liability.isDeductible ? (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-800">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-success-soft text-success">
                                                     Deductible
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-warn-soft text-warn-strong">
                                                     Long-term
                                                 </span>
                                             )}
@@ -174,7 +174,7 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                         );
                     })
                 ) : (
-                    <div className="p-4 text-center text-gray-500 text-sm">
+                    <div className="p-4 text-center text-muted-foreground text-sm">
                         No liabilities found.
                     </div>
                 )}
@@ -182,13 +182,13 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
 
             {/* Desktop View: Table */}
             <div className="hidden md:block overflow-x-auto max-h-[300px]">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50 sticky top-0">
+                <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-muted sticky top-0">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-10">
                                 <input
                                     type="checkbox"
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    className="rounded border-border-strong text-secondary focus:ring-ring"
                                     checked={filteredLiabilities.length > 0 && filteredLiabilities.every(l => selectedLiabilityIds.includes(l.id))}
                                     onChange={(e) => {
                                         if (e.target.checked) {
@@ -201,13 +201,13 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                                     }}
                                 />
                             </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Liability</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Liability</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-card divide-y divide-border">
                         {filteredLiabilities.length > 0 ? (
                             filteredLiabilities.map((liability) => {
                                 const isSelected = selectedLiabilityIds.includes(liability.id);
@@ -216,14 +216,14 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                                         key={liability.id}
                                         onClick={() => toggleSelection(liability.id)}
                                         className={clsx(
-                                            "cursor-pointer transition-colors hover:bg-gray-50",
-                                            isSelected ? "bg-blue-50/50" : ""
+                                            "cursor-pointer transition-colors hover:bg-muted",
+                                            isSelected ? "bg-accent/50" : ""
                                         )}
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <input
                                                 type="checkbox"
-                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                className="rounded border-border-strong text-secondary focus:ring-ring"
                                                 checked={isSelected}
                                                 onChange={() => toggleSelection(liability.id)}
                                                 // Stop propagation to prevent row click
@@ -231,27 +231,27 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                                             />
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-sm font-medium text-gray-900">{liability.name}</div>
-                                            <div className="text-xs text-gray-500">{liability.type}</div>
+                                            <div className="text-sm font-medium text-foreground">{liability.name}</div>
+                                            <div className="text-xs text-muted-foreground">{liability.type}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className={clsx("text-sm", liability.isDeductible ? "text-gray-900" : "text-amber-600")}>
+                                            <div className={clsx("text-sm", liability.isDeductible ? "text-foreground" : "text-warn-strong")}>
                                                 {format(liability.dueDateObj, 'MMM d, yyyy')}
                                             </div>
-                                            <div className="text-xs text-gray-500">
+                                            <div className="text-xs text-muted-foreground">
                                                 {liability.daysUntilDue <= 0 ? 'Due/Overdue' : `${liability.daysUntilDue} days`}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-foreground">
                                             {maskedCurrency(formatCurrency(liability.amount, liability.currency))}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
                                             {liability.isDeductible ? (
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-soft text-success">
                                                     Deductible
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800" title="Due > 354 days from now">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warn-soft text-warn-strong" title="Due > 354 days from now">
                                                     Long-term
                                                 </span>
                                             )}
@@ -261,7 +261,7 @@ export const LiabilitySelectionTable: React.FC<LiabilitySelectionTableProps> = (
                             })
                         ) : (
                             <tr>
-                                <td colSpan={5} className="px-6 py-8 text-center text-gray-500 text-sm">
+                                <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground text-sm">
                                     No liabilities found matching your filter.
                                 </td>
                             </tr>

@@ -71,50 +71,50 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
   const isUnlocked = record.status === 'UNLOCKED';
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-900">Zakat Obligation</h3>
+        <h3 className="font-semibold text-foreground">Zakat Obligation</h3>
         {isFinalized && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-soft text-success">
             Finalized
           </span>
         )}
         {isUnlocked && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warn-soft text-warn-strong">
             Unlocked
           </span>
         )}
         {isDraft && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent text-secondary">
             In Progress
           </span>
         )}
       </div>
 
       {/* Main Zakat Amount Display */}
-      <div className="mb-4 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-green-200">
-        <div className="text-sm text-gray-600 mb-1">Calculated Zakat Due</div>
-        <div className="text-3xl font-bold text-green-700 mb-2">
+      <div className="mb-4 p-3 bg-success-soft rounded-lg border border-success/30">
+        <div className="text-sm text-muted-foreground mb-1">Calculated Zakat Due</div>
+        <div className="text-3xl font-bold text-success mb-2">
           {maskedCurrency(formatCurrency(zirconAmount, currency))}
         </div>
 
         {/* Calculation breakdown */}
-        <div className="text-xs text-gray-600 space-y-1">
+        <div className="text-xs text-muted-foreground space-y-1">
           {totalWealth !== 0 && (
             <div className="flex justify-between">
               <span>Total Wealth:</span>
-              <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(totalWealth, currency))}</span>
+              <span className="font-medium text-foreground">{maskedCurrency(formatCurrency(totalWealth, currency))}</span>
             </div>
           )}
           <div className="flex justify-between">
             <span>Zakatable Wealth:</span>
-            <span className="font-medium text-gray-900">{maskedCurrency(formatCurrency(zirconableWealth, currency))}</span>
+            <span className="font-medium text-foreground">{maskedCurrency(formatCurrency(zirconableWealth, currency))}</span>
           </div>
           <div className="flex justify-between">
             <span>Zakat Rate:</span>
-            <span className="font-medium text-gray-900">{zirconRate.toFixed(1)}%</span>
+            <span className="font-medium text-foreground">{zirconRate.toFixed(1)}%</span>
           </div>
-          <div className="text-xs text-gray-500 italic mt-2">
+          <div className="text-xs text-muted-foreground italic mt-2">
             {zirconableWealth > 0
               ? `${maskedCurrency(formatCurrency(zirconableWealth, currency))} × 2.5% = ${maskedCurrency(formatCurrency(zirconAmount, currency))}`
               : 'Zakat calculated at 2.5% of wealth'}
@@ -124,33 +124,33 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
 
       {/* Status-specific information */}
       {isFinalized && (
-        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="text-sm font-medium text-blue-900 mb-1">
+        <div className="mb-4 p-3 bg-accent rounded-lg border border-border">
+          <div className="text-sm font-medium text-secondary mb-1">
             ✓ Record Finalized
           </div>
-          <div className="text-xs text-blue-800">
+          <div className="text-xs text-secondary">
             This Zakat amount has been locked and confirmed. The record can only be modified by unlocking it with a valid reason.
           </div>
         </div>
       )}
 
       {isDraft && (
-        <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-          <div className="text-sm font-medium text-amber-900 mb-1">
+        <div className="mb-4 p-3 bg-warn-soft rounded-lg border border-warn/30">
+          <div className="text-sm font-medium text-warn-strong mb-1">
             ⏱ Record in Progress
           </div>
-          <div className="text-xs text-amber-800">
+          <div className="text-xs text-warn-strong">
             This record is tracking your Hawl period. The Zakat amount will be finalized when the Hawl completes (≈354 days). You can update asset selections until finalization.
           </div>
         </div>
       )}
 
       {isUnlocked && (
-        <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
-          <div className="text-sm font-medium text-orange-900 mb-1">
+        <div className="mb-4 p-3 bg-warn-soft rounded-lg border border-warn/30">
+          <div className="text-sm font-medium text-warn-strong mb-1">
             🔓 Record Unlocked for Editing
           </div>
-          <div className="text-xs text-orange-800">
+          <div className="text-xs text-warn-strong">
             This record has been temporarily unlocked for corrections. You can update asset selections and re-finalize when ready.
           </div>
         </div>
@@ -162,7 +162,7 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
           <button
             onClick={onRefreshAssets}
             disabled={isLoadingAssets}
-            className="flex-1 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-3 py-2 text-sm font-medium text-secondary bg-accent hover:bg-accent rounded-lg border border-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoadingAssets ? 'Refreshing...' : 'Refresh Assets'}
           </button>
@@ -171,7 +171,7 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
         {(isDraft || isUnlocked) && onFinalize && (
           <button
             onClick={onFinalize}
-            className="flex-1 px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+            className="flex-1 px-3 py-2 text-sm font-medium text-white bg-success hover:bg-success/90 rounded-lg transition-colors"
           >
             {isDraft ? 'Finalize' : 'Re-Finalize'}
           </button>
@@ -179,8 +179,8 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
       </div>
 
       {/* Islamic guidance note */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="text-xs text-gray-600">
+      <div className="mt-4 pt-4 border-t border-border">
+        <div className="text-xs text-muted-foreground">
           <strong>Islamic Note:</strong> Zakat is 2.5% (1/40) of your total zakatable wealth when it equals or exceeds the Nisab threshold (minimum wealth) and a full lunar year (Hawl) has passed. This ensures fairness and compliance with Islamic principles.
         </div>
       </div>

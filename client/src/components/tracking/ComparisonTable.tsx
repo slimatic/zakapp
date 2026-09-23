@@ -126,13 +126,13 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
   if (!comparison?.snapshots || comparison.snapshots.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-400 mb-4">
+        <div className="text-muted-foreground mb-4">
           <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 00-2 2h-2a2 2 0 00-2-2z" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Nisab Year Records to compare</h3>
-        <p className="text-gray-600">Select multiple Nisab Year Records to see a side-by-side comparison.</p>
+        <h3 className="text-lg font-medium text-foreground mb-2">No Nisab Year Records to compare</h3>
+        <p className="text-muted-foreground">Select multiple Nisab Year Records to see a side-by-side comparison.</p>
       </div>
     );
   }
@@ -147,7 +147,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
           <h3 className={compact ? 'text-lg font-semibold' : 'text-xl font-bold'}>
             {title}
           </h3>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Comparing {snapshots.length} Nisab Year Records side by side
           </p>
         </div>
@@ -155,8 +155,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         {/* Summary Stats */}
         {comparison.summary && (
           <div className="text-right">
-            <div className="text-sm text-gray-600">Total Period Zakat</div>
-            <div className="text-lg font-bold text-green-600">
+            <div className="text-sm text-muted-foreground">Total Period Zakat</div>
+            <div className="text-lg font-bold text-success">
               {formatCurrency(comparison.summary.totalZakat)}
             </div>
           </div>
@@ -165,22 +165,22 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
 
       {/* Comparison Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-          <thead className="bg-gray-50">
+        <table className="min-w-full bg-card border border-border rounded-lg">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b">
+              <th className="px-4 py-3 text-left text-sm font-medium text-foreground/80 border-b">
                 Metric
               </th>
               {snapshots.map((snapshot: YearlySnapshot) => (
                 <th 
                   key={snapshot.id} 
-                  className="px-4 py-3 text-center text-sm font-medium text-gray-700 border-b min-w-32"
+                  className="px-4 py-3 text-center text-sm font-medium text-foreground/80 border-b min-w-32"
                 >
                   <div className="flex flex-col items-center">
                     <div className="font-semibold">
                       Year {snapshot.gregorianYear}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       {snapshot.isPrimary && '⭐ Primary'}
                       {snapshot.status === 'draft' && '🔄 Draft'}
                     </div>
@@ -189,13 +189,13 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-border">
             {COMPARISON_ROWS.map((row, rowIndex) => (
               <tr 
                 key={rowIndex}
-                className={`${row.highlight ? 'bg-green-50' : 'hover:bg-gray-50'}`}
+                className={`${row.highlight ? 'bg-success-soft' : 'hover:bg-muted'}`}
               >
-                <td className={`px-4 py-3 text-sm font-medium ${row.highlight ? 'text-green-800' : 'text-gray-700'}`}>
+                <td className={`px-4 py-3 text-sm font-medium ${row.highlight ? 'text-success' : 'text-foreground/80'}`}>
                   {row.label}
                 </td>
                 {snapshots.map((snapshot: YearlySnapshot) => {
@@ -211,7 +211,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                   return (
                     <td 
                       key={snapshot.id}
-                      className={`px-4 py-3 text-center text-sm ${row.highlight ? 'font-semibold text-green-700' : 'text-gray-600'}`}
+                      className={`px-4 py-3 text-center text-sm ${row.highlight ? 'font-semibold text-success' : 'text-muted-foreground'}`}
                     >
                       {value}
                     </td>
@@ -252,14 +252,14 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                 isPositive: zakatChange >= 0
               }
             ].map((change, index) => (
-              <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="text-sm font-medium text-gray-700 mb-1">
+              <div key={index} className="bg-card border border-border rounded-lg p-4">
+                <div className="text-sm font-medium text-foreground/80 mb-1">
                   {change.label}
                 </div>
-                <div className={`text-lg font-bold ${change.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`text-lg font-bold ${change.isPositive ? 'text-success' : 'text-danger'}`}>
                   {change.isPositive ? '+' : ''}{formatCurrency(change.value)}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {previous.gregorianYear} → {latest.gregorianYear}
                 </div>
               </div>
@@ -272,7 +272,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
       <div className="flex justify-end space-x-2 pt-4 border-t">
         <button 
           onClick={() => window.print()}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-4 py-2 text-sm font-medium text-foreground/80 bg-card border border-border-strong rounded-md hover:bg-muted"
         >
           Print Comparison
         </button>
@@ -281,7 +281,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
             // Export to CSV functionality would go here
             logger.debug('Export to CSV functionality not implemented yet');
           }}
-          className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700"
+          className="px-4 py-2 text-sm font-medium text-white bg-success border border-transparent rounded-md hover:bg-success/90"
         >
           Export to CSV
         </button>
@@ -289,9 +289,9 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
 
       {/* Additional Notes */}
       {comparison.notes && comparison.notes.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-800 mb-2">Comparison Notes</h4>
-          <ul className="text-sm text-blue-700 space-y-1">
+        <div className="bg-accent border border-border rounded-lg p-4">
+          <h4 className="text-sm font-medium text-secondary mb-2">Comparison Notes</h4>
+          <ul className="text-sm text-secondary space-y-1">
             {comparison.notes.map((note: string, index: number) => (
               <li key={index}>• {note}</li>
             ))}

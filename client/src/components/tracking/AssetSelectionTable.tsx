@@ -112,7 +112,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
 
   if (assets.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500" role="status">
+      <div className="text-center py-8 text-muted-foreground" role="status">
         <p>No assets found. Add assets to your portfolio first.</p>
       </div>
     );
@@ -121,13 +121,13 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">
+        <h3 className="text-lg font-medium text-foreground">
           Select Assets for Record
         </h3>
         <button
           type="button"
           onClick={handleSelectAll}
-          className="text-sm text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+          className="text-sm text-secondary hover:text-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded px-2 py-1"
           aria-label={selectedIds.size === assets.length ? 'Deselect all assets' : 'Select all assets'}
         >
           {selectedIds.size === assets.length ? 'Deselect All' : 'Select All'}
@@ -145,7 +145,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
             <div
               key={asset.id}
               onClick={() => handleToggle(asset.id)}
-              className={`p-4 rounded-lg border transition-colors cursor-pointer ${isSelected ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-200' : 'bg-white border-gray-200'}`}
+              className={`p-4 rounded-lg border transition-colors cursor-pointer ${isSelected ? 'bg-accent border-border ring-1 ring-secondary/25' : 'bg-card border-border'}`}
               role="button"
               aria-pressed={isSelected}
             >
@@ -156,26 +156,26 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                     checked={isSelected}
                     onChange={() => handleToggle(asset.id)}
                     onClick={(e) => e.stopPropagation()}
-                    className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-5 w-5 text-secondary focus:ring-ring border-border-strong rounded"
                     aria-label={`Select ${asset.name}`}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-1">
-                    <h4 className="font-semibold text-gray-900 truncate pr-2">{asset.name}</h4>
-                    <span className="font-bold text-gray-900 whitespace-nowrap">{formatCurrency(asset.value)}</span>
+                    <h4 className="font-semibold text-foreground truncate pr-2">{asset.name}</h4>
+                    <span className="font-bold text-foreground whitespace-nowrap">{formatCurrency(asset.value)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500 capitalize">{asset.type.replace(/_/g, ' ').toLowerCase()}</span>
-                    <span className="text-gray-600">Zakatable: {formatCurrency(displayZakatable)}</span>
+                    <span className="text-muted-foreground capitalize">{asset.type.replace(/_/g, ' ').toLowerCase()}</span>
+                    <span className="text-muted-foreground">Zakatable: {formatCurrency(displayZakatable)}</span>
                   </div>
                   <div className="mt-2 flex items-center gap-2">
                     {asset.zakatEligible ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-soft text-success">
                         Zakatable
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-foreground">
                         Exempt
                       </span>
                     )}
@@ -186,52 +186,52 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
           );
         })}
         {/* Mobile Totals Footer */}
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 space-y-2">
-          <h4 className="font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-2">Selected Totals</h4>
+        <div className="bg-muted p-4 rounded-lg border border-border mt-4 space-y-2">
+          <h4 className="font-semibold text-foreground border-b border-border pb-2 mb-2">Selected Totals</h4>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Total Wealth</span>
-            <span className="font-medium text-gray-900">{formatCurrency(totals.totalWealth)}</span>
+            <span className="text-muted-foreground">Total Wealth</span>
+            <span className="font-medium text-foreground">{formatCurrency(totals.totalWealth)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Zakatable Wealth</span>
-            <span className="font-medium text-gray-900">{formatCurrency(totals.zakatableWealth)}</span>
+            <span className="text-muted-foreground">Zakatable Wealth</span>
+            <span className="font-medium text-foreground">{formatCurrency(totals.zakatableWealth)}</span>
           </div>
-          <div className="flex justify-between font-bold pt-2 border-t border-gray-200">
-            <span className="text-gray-900">Zakat Due (2.5%)</span>
-            <span className="text-blue-600">{formatCurrency(totals.zakatAmount)}</span>
+          <div className="flex justify-between font-bold pt-2 border-t border-border">
+            <span className="text-foreground">Zakat Due (2.5%)</span>
+            <span className="text-secondary">{formatCurrency(totals.zakatAmount)}</span>
           </div>
         </div>
       </div>
 
       {/* Desktop View: Table */}
-      <div className="hidden md:block overflow-x-auto border border-gray-200 rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200" role="table">
-          <thead className="bg-gray-50">
+      <div className="hidden md:block overflow-x-auto border border-border rounded-lg">
+        <table className="min-w-full divide-y divide-border" role="table">
+          <thead className="bg-muted">
             <tr>
               <th scope="col" className="px-4 py-3 text-left">
                 <span className="sr-only">Select</span>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Name
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Type
               </th>
-              <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Value
               </th>
-              <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Zakatable
               </th>
-              <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Status
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-foreground/80 uppercase tracking-wider">
                 Added
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {assets.map((asset) => {
               const isSelected = selectedIds.has(asset.id);
               // Use core zakat calculator for accurate display
@@ -240,7 +240,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
               return (
                 <tr
                   key={asset.id}
-                  className={`hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}`}
+                  className={`hover:bg-muted ${isSelected ? 'bg-accent' : ''}`}
                   onClick={() => handleToggle(asset.id)}
                   role="row"
                   aria-selected={isSelected}
@@ -251,58 +251,58 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
                       checked={isSelected}
                       onChange={() => handleToggle(asset.id)}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                      className="h-4 w-4 text-secondary focus:ring-2 focus:ring-ring border-border-strong rounded cursor-pointer"
                       aria-label={`Select ${asset.name}`}
                     />
                   </td>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                  <td className="px-4 py-3 text-sm font-medium text-foreground">
                     {asset.name}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 capitalize">
+                  <td className="px-4 py-3 text-sm text-muted-foreground capitalize">
                     {asset.type.replace(/_/g, ' ').toLowerCase()}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
+                  <td className="px-4 py-3 text-sm text-foreground text-right font-medium">
                     {formatCurrency(asset.value)}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
+                  <td className="px-4 py-3 text-sm text-foreground text-right font-medium">
                     {formatCurrency(displayZakatable)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     {asset.zakatEligible ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-success-soft text-success">
                         <span className="sr-only">Zakatable: </span>Yes
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-foreground">
                         <span className="sr-only">Zakatable: </span>No
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
                     {formatDate(asset.createdAt || asset.updatedAt || new Date().toISOString())}
                   </td>
                 </tr>
               );
             })}
           </tbody>
-          <tfoot className="bg-gray-50 border-t-2 border-gray-300">
+          <tfoot className="bg-muted border-t-2 border-border-strong">
             <tr>
-              <td colSpan={3} className="px-4 py-3 text-sm font-bold text-gray-900">
+              <td colSpan={3} className="px-4 py-3 text-sm font-bold text-foreground">
                 Selected Assets Totals
               </td>
               <td colSpan={3} className="px-4 py-3">
                 <dl className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <dt className="font-medium text-gray-700">Total Wealth:</dt>
-                    <dd className="font-bold text-gray-900">{formatCurrency(totals.totalWealth)}</dd>
+                    <dt className="font-medium text-foreground/80">Total Wealth:</dt>
+                    <dd className="font-bold text-foreground">{formatCurrency(totals.totalWealth)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="font-medium text-gray-700">Zakatable Wealth:</dt>
-                    <dd className="font-bold text-gray-900">{formatCurrency(totals.zakatableWealth)}</dd>
+                    <dt className="font-medium text-foreground/80">Zakatable Wealth:</dt>
+                    <dd className="font-bold text-foreground">{formatCurrency(totals.zakatableWealth)}</dd>
                   </div>
-                  <div className="flex justify-between border-t border-gray-300 pt-1 mt-1">
-                    <dt className="font-bold text-gray-900">Zakat Amount (2.5%):</dt>
-                    <dd className="font-bold text-blue-600">{formatCurrency(totals.zakatAmount)}</dd>
+                  <div className="flex justify-between border-t border-border-strong pt-1 mt-1">
+                    <dt className="font-bold text-foreground">Zakat Amount (2.5%):</dt>
+                    <dd className="font-bold text-secondary">{formatCurrency(totals.zakatAmount)}</dd>
                   </div>
                 </dl>
               </td>
@@ -311,7 +311,7 @@ export const AssetSelectionTable: React.FC<AssetSelectionTableProps> = ({
         </table>
       </div>
 
-      <div className="text-sm text-gray-600" role="status" aria-live="polite" aria-label="Selection totals">
+      <div className="text-sm text-muted-foreground" role="status" aria-live="polite" aria-label="Selection totals">
         {selectedIds.size} of {assets.length} assets selected
       </div>
     </div>

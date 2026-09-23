@@ -271,10 +271,10 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           <h3 className={compact ? 'text-lg font-semibold' : 'text-xl font-bold'}>
             Payment Records
           </h3>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             {sortedAndFilteredPayments.length ? `${sortedAndFilteredPayments.length} payments` : 'Track your Zakat payments'}
             {hasActiveFilters && sortedAndFilteredPayments.length !== payments.length && (
-              <span className="text-sm text-gray-500"> (filtered from {payments.length})</span>
+              <span className="text-sm text-muted-foreground"> (filtered from {payments.length})</span>
             )}
           </p>
         </div>
@@ -338,30 +338,30 @@ export const PaymentList: React.FC<PaymentListProps> = ({
       {/* Summary Cards */}
       {!compact && sortedAndFilteredPayments.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="text-sm font-medium text-green-800">Total Paid</div>
-            <div className="text-2xl font-bold text-green-900">
+          <div className="bg-success-soft border border-success/30 rounded-lg p-4">
+            <div className="text-sm font-medium text-success">Total Paid</div>
+            <div className="text-2xl font-bold text-success">
               {maskedCurrency(formatCurrency(totalAmount))}
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="text-sm font-medium text-blue-800">Payment Count</div>
-            <div className="text-2xl font-bold text-blue-900">
+          <div className="bg-accent border border-border rounded-lg p-4">
+            <div className="text-sm font-medium text-secondary">Payment Count</div>
+            <div className="text-2xl font-bold text-secondary">
               {payments.length}
             </div>
           </div>
 
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <div className="text-sm font-medium text-purple-800">Categories Used</div>
-            <div className="text-2xl font-bold text-purple-900">
+          <div className="bg-accent border border-border rounded-lg p-4">
+            <div className="text-sm font-medium text-secondary">Categories Used</div>
+            <div className="text-2xl font-bold text-secondary">
               {Object.keys(categoryTotals).length}
             </div>
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <div className="text-sm font-medium text-orange-800">Average Payment</div>
-            <div className="text-2xl font-bold text-orange-900">
+          <div className="bg-warn-soft border border-warn/30 rounded-lg p-4">
+            <div className="text-sm font-medium text-warn-strong">Average Payment</div>
+            <div className="text-2xl font-bold text-warn-strong">
               {maskedCurrency(formatCurrency(sortedAndFilteredPayments.length > 0 ? new Decimal(totalAmount).dividedBy(sortedAndFilteredPayments.length).toNumber() : 0))}
             </div>
 
@@ -370,14 +370,14 @@ export const PaymentList: React.FC<PaymentListProps> = ({
       )}
 
       {/* Sorting Controls */}
-      <div className="flex flex-wrap items-center gap-3 bg-white border border-gray-200 rounded-lg p-3">
-        <span className="text-sm font-medium text-gray-700">Sort by:</span>
+      <div className="flex flex-wrap items-center gap-3 bg-card border border-border rounded-lg p-3">
+        <span className="text-sm font-medium text-foreground/80">Sort by:</span>
 
         <button
           onClick={() => handleSortChange('date')}
           className={`px-3 py-1.5 text-sm rounded-md transition-colors ${sortBy === 'date'
-            ? 'bg-green-100 text-green-800 font-medium'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-success-soft text-success font-medium'
+            : 'bg-muted text-foreground/80 hover:bg-muted'
             }`}
         >
           Payment Date
@@ -389,8 +389,8 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         <button
           onClick={() => handleSortChange('amount')}
           className={`px-3 py-1.5 text-sm rounded-md transition-colors ${sortBy === 'amount'
-            ? 'bg-green-100 text-green-800 font-medium'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-success-soft text-success font-medium'
+            : 'bg-muted text-foreground/80 hover:bg-muted'
             }`}
         >
           Amount
@@ -402,8 +402,8 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         <button
           onClick={() => handleSortChange('created')}
           className={`px-3 py-1.5 text-sm rounded-md transition-colors ${sortBy === 'created'
-            ? 'bg-green-100 text-green-800 font-medium'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-success-soft text-success font-medium'
+            : 'bg-muted text-foreground/80 hover:bg-muted'
             }`}
         >
           Created Date
@@ -412,23 +412,23 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           )}
         </button>
 
-        <div className="ml-auto text-sm text-gray-600">
+        <div className="ml-auto text-sm text-muted-foreground">
           {sortOrder === 'asc' ? 'Oldest first' : 'Newest first'}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-gray-50 p-4 rounded-lg">
+      <div className="bg-muted p-4 rounded-lg">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {/* Category Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground/80 mb-1">
               Category
             </label>
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+              className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm"
             >
               {ZAKAT_RECIPIENTS.map((category) => (
                 <option key={category.value} value={category.value}>
@@ -440,13 +440,13 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
           {/* Payment Method Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground/80 mb-1">
               Payment Method
             </label>
             <select
               value={filters.paymentMethod}
               onChange={(e) => handleFilterChange('paymentMethod', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+              className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm"
             >
               {PAYMENT_METHODS.map((method) => (
                 <option key={method.value} value={method.value}>
@@ -458,7 +458,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
           {/* Search */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground/80 mb-1">
               Search
             </label>
             <Input
@@ -471,7 +471,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
           {/* Date Range */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground/80 mb-1">
               From Date
             </label>
             <Input
@@ -482,7 +482,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground/80 mb-1">
               To Date
             </label>
             <Input
@@ -494,7 +494,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         </div>
 
         {hasActiveFilters && (
-          <div className="mt-3 pt-3 border-t border-gray-200">
+          <div className="mt-3 pt-3 border-t border-border">
             <Button variant="ghost" size="sm" onClick={clearFilters}>
               Clear All Filters
             </Button>
@@ -505,13 +505,13 @@ export const PaymentList: React.FC<PaymentListProps> = ({
       {/* Payment List */}
       {sortedAndFilteredPayments.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
+          <div className="text-muted-foreground mb-4">
             <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No payments found</h3>
-          <p className="text-gray-600 mb-4">
+          <h3 className="text-lg font-medium text-foreground mb-2">No payments found</h3>
+          <p className="text-muted-foreground mb-4">
             {hasActiveFilters
               ? 'No payments match your current filters.'
               : 'Start recording your Zakat payments to track your giving.'}
@@ -554,8 +554,8 @@ export const PaymentList: React.FC<PaymentListProps> = ({
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between pt-6 border-t border-gray-200">
-              <div className="text-sm text-gray-600 text-center sm:text-left">
+            <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between pt-6 border-t border-border">
+              <div className="text-sm text-muted-foreground text-center sm:text-left">
                 Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, sortedAndFilteredPayments.length)} of {sortedAndFilteredPayments.length} payments
               </div>
 
@@ -596,8 +596,8 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
                         className={`px-3 py-1 text-sm rounded ${currentPage === pageNum
-                          ? 'bg-green-600 text-white font-medium'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-success text-white font-medium'
+                          : 'bg-muted text-foreground/80 hover:bg-muted'
                           }`}
                       >
                         {pageNum}
@@ -607,7 +607,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                 </div>
 
                 {/* Mobile Page indicator */}
-                <span className="sm:hidden text-sm font-medium text-gray-700 flex items-center px-2">
+                <span className="sm:hidden text-sm font-medium text-foreground/80 flex items-center px-2">
                   {currentPage} / {totalPages}
                 </span>
 
