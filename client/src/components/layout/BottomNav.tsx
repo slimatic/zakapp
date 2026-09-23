@@ -47,7 +47,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 shadow-lg z-40 block md:hidden"
+      className="fixed bottom-0 inset-x-0 bg-card border-t border-border z-40 block md:hidden [box-shadow:var(--elev-2)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Bottom navigation"
     >
@@ -74,7 +74,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
               <button
                 key="more-button"
                 onClick={onMoreClick}
-                className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition-all active:scale-95"
+                className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-muted-foreground hover:text-foreground transition-all active:scale-95"
                 aria-label="Open more menu"
               >
                 {content}
@@ -93,10 +93,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
                 rounded-lg
                 transition-all duration-200
                 ${navActive || active
-                  ? 'text-primary-600 bg-primary-50/50'
-                  : 'text-gray-500 hover:text-gray-900'
+                  ? 'text-primary bg-warn-soft/60'
+                  : 'text-muted-foreground hover:text-foreground'
                 }
-                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
               `.trim()}
               aria-label={item.name}
               aria-current={active ? 'page' : undefined}

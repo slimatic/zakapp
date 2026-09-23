@@ -26,7 +26,7 @@ interface EncryptedBadgeProps {
 export function EncryptedBadge({ className }: EncryptedBadgeProps) {
     return (
         <div
-            className={cn("flex items-center gap-1 text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full border border-green-100", className)}
+            className={cn("flex items-center gap-1 text-xs text-success font-medium bg-success-soft px-2 py-1 rounded-full border border-success/20", className)}
             title="Data is encrypted on your device using AES-256 before saving."
         >
             <Lock className="w-3 h-3" />

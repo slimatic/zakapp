@@ -33,8 +33,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
   children,
   ...props
 }, ref) => {
-  const baseClasses = 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
-  const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : '';
+  const baseClasses = 'w-full px-3 py-2 border border-border-strong rounded-md shadow-sm bg-card focus:outline-none focus:ring-2 focus:ring-ring';
+  const errorClasses = error ? 'border-danger focus:ring-danger' : '';
   const classes = `${baseClasses} ${errorClasses} ${className}`;
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -45,16 +45,16 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
   return (
     <div className="space-y-1">
       {label && (
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           {label}
-          {props.required && <span className="text-red-500 ml-1">*</span>}
+          {props.required && <span className="text-danger ml-1">*</span>}
         </label>
       )}
       <select ref={ref} className={classes} onChange={handleChange} {...props}>
         {children}
       </select>
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-danger">{error}</p>
       )}
     </div>
   );

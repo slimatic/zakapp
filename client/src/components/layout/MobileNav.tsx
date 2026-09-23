@@ -109,7 +109,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
       {/* Hamburger Menu Button */}
       <button
         onClick={toggleMenu}
-        className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-600 w-12 h-12"
+        className="inline-flex items-center justify-center p-2 rounded-md text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring w-12 h-12"
         aria-expanded={isOpen}
         aria-controls="mobile-menu"
         aria-label="Toggle navigation menu"
@@ -158,18 +158,18 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
           <div
             ref={menuRef}
             id="mobile-menu"
-            className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-[60] transform transition-transform duration-300 ease-in-out"
+            className="fixed inset-y-0 left-0 w-64 bg-card shadow-elev-3 z-[60] transform transition-transform duration-300 ease-in-out"
             role="dialog"
             aria-modal="true"
             aria-label="Mobile navigation"
           >
             <div className="h-full flex flex-col">
               {/* Menu Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-secondary">Menu</h2>
                 <button
                   onClick={closeMenu}
-                  className="p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-600"
+                  className="p-2 rounded-md text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
                   aria-label="Close menu"
                 >
                   <svg

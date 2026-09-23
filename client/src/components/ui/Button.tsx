@@ -30,15 +30,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary-600 text-white hover:bg-primary-700 shadow-md hover:shadow-lg transition-all active:scale-[0.98]",
+        default: "bg-primary text-primary-foreground hover:bg-warn-strong shadow-elev-2 hover:shadow-elev-3 transition-all active:scale-[0.98]",
         destructive:
-          "bg-red-500 text-white hover:bg-red-600 shadow-sm",
+          "bg-danger text-danger-foreground hover:bg-danger/90 shadow-sm",
         outline:
-          "border border-primary-200 bg-white hover:bg-primary-50 hover:text-primary-900 text-primary-700",
+          "border border-border-strong bg-card hover:bg-muted text-foreground",
         secondary:
-          "bg-secondary-500 text-white hover:bg-secondary-600 shadow-sm",
-        ghost: "hover:bg-primary-50 hover:text-primary-900 text-slate-600",
-        link: "text-primary-600 underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm",
+        ghost: "hover:bg-muted hover:text-foreground text-muted-foreground",
+        link: "text-secondary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-11 px-6 py-2",

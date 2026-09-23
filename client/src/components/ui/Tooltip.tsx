@@ -120,10 +120,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
   };
 
   const arrowPositionClasses = {
-    top: 'top-full left-1/2 -translate-x-1/2 border-t-gray-900 border-l-transparent border-r-transparent border-b-transparent',
-    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-gray-900 border-l-transparent border-r-transparent border-t-transparent',
-    left: 'left-full top-1/2 -translate-y-1/2 border-l-gray-900 border-t-transparent border-b-transparent border-r-transparent',
-    right: 'right-full top-1/2 -translate-y-1/2 border-r-gray-900 border-t-transparent border-b-transparent border-l-transparent'
+    top: 'top-full left-1/2 -translate-x-1/2 border-t-secondary border-l-transparent border-r-transparent border-b-transparent',
+    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-secondary border-l-transparent border-r-transparent border-t-transparent',
+    left: 'left-full top-1/2 -translate-y-1/2 border-l-secondary border-t-transparent border-b-transparent border-r-transparent',
+    right: 'right-full top-1/2 -translate-y-1/2 border-r-secondary border-t-transparent border-b-transparent border-l-transparent'
   };
 
   return (
@@ -152,7 +152,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           role="tooltip"
         >
           {/* Added w-64 to force rectangular box shape instead of narrow column */}
-          <div className="bg-gray-900 text-white text-sm rounded-lg p-3 shadow-lg w-64">
+          <div className="bg-secondary text-secondary-foreground text-sm rounded-lg p-3 shadow-elev-2 w-64">
             {typeof content === 'string' ? (
               <p className="leading-relaxed">{content}</p>
             ) : (
@@ -177,7 +177,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 export const InfoIcon: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (
     <span
-      className={`inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-100 text-blue-600 text-xs font-bold ${className}`}
+      className={`inline-flex items-center justify-center w-4 h-4 rounded-full bg-accent text-accent-foreground text-xs font-bold ${className}`}
       aria-hidden="true"
     >
       ?

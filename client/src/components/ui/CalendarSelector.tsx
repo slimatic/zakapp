@@ -155,7 +155,7 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
     <div className={`calendar-selector ${className}`}>
       {/* Label */}
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           {label}
         </label>
       )}
@@ -168,8 +168,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
           disabled={disabled}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             localCalendarType === 'gregorian'
-              ? 'bg-blue-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+              ? 'bg-primary text-primary-foreground shadow-md'
+              : 'bg-muted text-foreground hover:bg-accent  '
           } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           aria-pressed={localCalendarType === 'gregorian'}
         >
@@ -181,8 +181,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
           disabled={disabled}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             localCalendarType === 'hijri'
-              ? 'bg-green-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+              ? 'bg-secondary text-secondary-foreground shadow-md'
+              : 'bg-muted text-foreground hover:bg-accent  '
           } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           aria-pressed={localCalendarType === 'hijri'}
         >
@@ -191,11 +191,11 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
       </div>
 
       {/* Date Input Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 p-4">
+      <div className="bg-card  rounded-lg border border-border-strong  p-4">
         {localCalendarType === 'gregorian' ? (
           /* Gregorian Date Picker */
           <div>
-            <label htmlFor="gregorian-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="gregorian-date" className="block text-sm font-medium text-foreground mb-2">
               Gregorian Date
             </label>
             <input
@@ -204,22 +204,22 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
               value={formatGregorianForInput(gregorianDate)}
               onChange={handleGregorianDateChange}
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                       bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                       focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              className="w-full px-3 py-2 border border-border-strong  rounded-lg 
+                       bg-card  text-foreground 
+                       focus:ring-2 focus:ring-ring focus:border-transparent
                        disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         ) : (
           /* Hijri Date Picker */
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Hijri Date
             </label>
             <div className="grid grid-cols-3 gap-3">
               {/* Day */}
               <div>
-                <label htmlFor="hijri-day" className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                <label htmlFor="hijri-day" className="block text-xs text-muted-foreground  mb-1">
                   Day
                 </label>
                 <input
@@ -230,16 +230,16 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
                   value={hijriDate.hd}
                   onChange={(e) => handleHijriDateChange('day', parseInt(e.target.value))}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                           bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent
+                  className="w-full px-3 py-2 border border-border-strong  rounded-lg 
+                           bg-card  text-foreground 
+                           focus:ring-2 focus:ring-ring focus:border-transparent
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
               {/* Month */}
               <div>
-                <label htmlFor="hijri-month" className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                <label htmlFor="hijri-month" className="block text-xs text-muted-foreground  mb-1">
                   Month
                 </label>
                 <select
@@ -247,9 +247,9 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
                   value={hijriDate.hm}
                   onChange={(e) => handleHijriDateChange('month', parseInt(e.target.value))}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                           bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent
+                  className="w-full px-3 py-2 border border-border-strong  rounded-lg 
+                           bg-card  text-foreground 
+                           focus:ring-2 focus:ring-ring focus:border-transparent
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {HIJRI_MONTHS.map((month, index) => (
@@ -262,7 +262,7 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
 
               {/* Year */}
               <div>
-                <label htmlFor="hijri-year" className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                <label htmlFor="hijri-year" className="block text-xs text-muted-foreground  mb-1">
                   Year
                 </label>
                 <input
@@ -273,9 +273,9 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
                   value={hijriDate.hy}
                   onChange={(e) => handleHijriDateChange('year', parseInt(e.target.value))}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                           bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent
+                  className="w-full px-3 py-2 border border-border-strong  rounded-lg 
+                           bg-card  text-foreground 
+                           focus:ring-2 focus:ring-ring focus:border-transparent
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
@@ -284,16 +284,16 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
         )}
 
         {/* Conversion Display */}
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-4 pt-4 border-t border-border ">
+          <p className="text-sm text-muted-foreground ">
             {localCalendarType === 'gregorian' ? (
               <span>
-                <strong className="text-gray-900 dark:text-gray-100">Hijri:</strong>{' '}
+                <strong className="text-foreground ">Hijri:</strong>{' '}
                 {formatHijriDate(hijriDate)} ({hijriDate.hd} {HIJRI_MONTHS[hijriDate.hm - 1]} {hijriDate.hy} AH)
               </span>
             ) : (
               <span>
-                <strong className="text-gray-900 dark:text-gray-100">Gregorian:</strong>{' '}
+                <strong className="text-foreground ">Gregorian:</strong>{' '}
                 {gregorianDate.toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
@@ -307,7 +307,7 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
       </div>
 
       {/* Educational Note */}
-      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+      <p className="mt-2 text-xs text-muted-foreground ">
         ℹ️ The Islamic calendar is lunar-based with 354-355 days per year. 
         Zakat is due after one Hijri year from your last payment.
       </p>

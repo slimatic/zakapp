@@ -25,13 +25,13 @@ const badgeVariants = cva(
         variants: {
             variant: {
                 default:
-                    "border-transparent bg-primary-100 text-primary-900", // Emerald
+                    "border-transparent bg-accent text-accent-foreground", // brand tonal
                 secondary:
-                    "border-transparent bg-secondary-100 text-secondary-900", // Gold
+                    "border-transparent bg-warn-soft text-warn-strong", // rationed amber chip
                 destructive:
-                    "border-transparent bg-red-100 text-red-900",
-                outline: "text-slate-950",
-                privacy: "border-transparent bg-slate-900 text-emerald-400 shadow-sm", // Privacy specific
+                    "border-transparent bg-danger-soft text-danger",
+                outline: "text-foreground border-border-strong",
+                privacy: "border-transparent bg-secondary text-secondary-foreground shadow-sm", // privacy = brand ink
             },
         },
         defaultVariants: {

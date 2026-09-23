@@ -87,7 +87,7 @@ export const Modal: React.FC<ModalProps> = ({
                     {showCloseButton && (
                       <button
                         type="button"
-                        className="rounded-md bg-transparent text-muted-foreground hover:text-card-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="rounded-md bg-transparent text-muted-foreground hover:text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                         onClick={onClose}
                       >
                         <span className="sr-only">Close</span>

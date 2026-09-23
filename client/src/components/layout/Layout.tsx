@@ -198,19 +198,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
+    <div className="min-h-screen bg-background relative">
       {/* Skip Link for keyboard navigation - positioned absolutely at top */}
       <SkipLink />
 
       {/* Navigation */}
-      <nav className="bg-white shadow-lg" role="navigation" aria-label="Main navigation">
+      <nav className="bg-card border-b border-border" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
                 <Link to="/dashboard" className="flex items-center gap-2" aria-label="ZakApp Home">
                   <Logo className="h-8 w-8" />
-                  <span className="hidden sm:inline-block text-xl font-bold text-gray-900">ZakApp</span>
+                  <span className="hidden sm:inline-block text-xl font-bold text-secondary">ZakApp</span>
                 </Link>
               </div>
               <div className="hidden md:block">
@@ -221,25 +221,25 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         <div className="relative">
                           <button
                             className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${group.items.some(item => isActive(item.href))
-                              ? 'bg-primary-50 text-primary-700'
-                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                              ? 'bg-accent text-accent-foreground'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                               }`}
                           >
                             {group.name}
-                            <svg className="ml-1 h-4 w-4 text-gray-400 group-hover:text-gray-500 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="ml-1 h-4 w-4 text-tertiary group-hover:text-muted-foreground transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
 
                           {/* Dropdown Menu */}
-                          <div className="absolute left-0 mt-0 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                          <div className="absolute left-0 mt-0 w-48 rounded-md shadow-elev-3 py-1 bg-popover ring-1 ring-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             {group.items.map((item) => (
                               <Link
                                 key={item.href}
                                 to={item.href}
                                 className={`block px-4 py-2 text-sm ${isActive(item.href)
-                                  ? 'bg-primary-50 text-primary-700'
-                                  : 'text-gray-700 hover:bg-gray-100'
+                                  ? 'bg-accent text-accent-foreground'
+                                  : 'text-muted-foreground hover:bg-muted'
                                   }`}
                               >
                                 {item.name}
@@ -251,8 +251,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         <Link
                           to={group.href || '#'}
                           className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(group.href || '')
-                            ? 'bg-primary-50 text-primary-700'
-                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                            ? 'bg-accent text-accent-foreground'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                             }`}
                           aria-current={isActive(group.href || '') ? 'page' : undefined}
                         >
@@ -274,7 +274,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
               <Link
                 to="/learn"
-                className="hidden sm:block p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+                className="hidden sm:block p-2 rounded-md text-muted-foreground hover:bg-muted transition-colors"
                 aria-label="Knowledge Hub"
                 title="Knowledge Hub"
               >
@@ -287,7 +287,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <button
                 type="button"
                 onClick={togglePrivacyMode}
-                className={`p-2 rounded-md transition-colors ${privacyMode ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                className={`p-2 rounded-md transition-colors ${privacyMode ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
                 aria-label={privacyMode ? 'Show amounts' : 'Hide amounts'}
                 title={privacyMode ? 'Show amounts' : 'Hide amounts for privacy'}
               >
@@ -318,7 +318,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <button
                     onClick={() => setIsOpen(!isOpen)}
                     onKeyDown={handleKeyDown}
-                    className="flex items-center gap-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 p-1 hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring p-1 hover:bg-muted transition-colors"
                     id="user-menu-button"
                     aria-expanded={isOpen}
                     aria-haspopup="true"
@@ -326,14 +326,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   >
                     {/* User Avatar with Initials */}
                     <div
-                      className="h-8 w-8 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white font-semibold text-sm shadow-sm"
+                      className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-semibold text-sm shadow-sm"
                       aria-hidden="true"
                     >
                       {getUserInitials(user)}
                     </div>
 
                     {/* User Name - Hidden on Mobile, Visible on Desktop */}
-                    <span className="hidden md:inline text-gray-700 text-sm font-medium max-w-[12rem] truncate align-middle">
+                    <span className="hidden md:inline text-foreground text-sm font-medium max-w-[12rem] truncate align-middle">
                       {user?.firstName || user?.username || user?.email?.split('@')[0]}
                     </span>
 
@@ -344,7 +344,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                     {/* Dropdown Chevron */}
                     <svg
-                      className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                      className={`h-4 w-4 text-tertiary transition-transform ${isOpen ? 'rotate-180' : ''}`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                       aria-hidden="true"
@@ -355,7 +355,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                   {isOpen && (
                     <div
-                      className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+                      className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-elev-3 py-1 bg-popover ring-1 ring-border focus:outline-none z-50"
                       role="menu"
                       aria-orientation="vertical"
                       aria-labelledby="user-menu-button"
@@ -363,7 +363,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       {/* Profile link extracted to Settings */}
                       <Link
                         to="/settings"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
+                        className="block px-4 py-2 text-sm text-foreground hover:bg-muted focus:bg-muted"
                         role="menuitem"
                         onClick={() => setIsOpen(false)}
                         tabIndex={0}
@@ -374,7 +374,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       {user?.isAdmin && (
                         <Link
                           to="/admin"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
+                          className="block px-4 py-2 text-sm text-foreground hover:bg-muted focus:bg-muted"
                           role="menuitem"
                           onClick={() => setIsOpen(false)}
                           tabIndex={0}
@@ -383,14 +383,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         </Link>
                       )}
 
-                      <div className="border-t border-gray-100 my-1"></div>
+                      <div className="border-t border-border my-1"></div>
 
                       <button
                         onClick={() => {
                           setIsOpen(false);
                           handleLogout();
                         }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted focus:bg-muted"
                         role="menuitem"
                         tabIndex={0}
                       >

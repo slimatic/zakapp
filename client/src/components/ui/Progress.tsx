@@ -34,7 +34,7 @@ export const Progress: React.FC<ProgressProps> = ({
   return (
     <div
       className={cn(
-        'relative h-4 w-full overflow-hidden rounded-full bg-gray-200',
+        'relative h-4 w-full overflow-hidden rounded-full bg-muted',
         className
       )}
       role="progressbar"
@@ -44,7 +44,7 @@ export const Progress: React.FC<ProgressProps> = ({
     >
       <div
         className={cn(
-          'h-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-300 ease-in-out',
+          'h-full bg-primary transition-all duration-300 ease-in-out',
           indicatorClassName
         )}
         style={{ width: `${clampedValue}%` }}

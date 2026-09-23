@@ -44,6 +44,7 @@ module.exports = {
         danger: {
           DEFAULT: "hsl(var(--danger))",
           soft: "hsl(var(--danger-soft))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
         tertiary: "hsl(var(--text-3))",
         'border-strong': "hsl(var(--border-strong))",

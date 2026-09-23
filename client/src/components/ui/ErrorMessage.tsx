@@ -46,16 +46,16 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   const errorMessage = getErrorMessage(error);
 
   return (
-    <div className={`bg-red-50 border border-red-200 rounded-lg p-6 ${className}`}>
+    <div className={`bg-danger-soft border border-danger/30 rounded-lg p-6 ${className}`}>
       <div className="flex items-start">
         <div className="flex-shrink-0">
-          <div className="text-red-400 text-xl">⚠️</div>
+          <div className="text-danger text-xl" aria-hidden="true">⚠</div>
         </div>
         <div className="ml-3 flex-1">
-          <h3 className="text-sm font-medium text-red-800">
+          <h3 className="text-sm font-medium text-danger">
             {title}
           </h3>
-          <div className="mt-2 text-sm text-red-700">
+          <div className="mt-2 text-sm text-danger/90">
             {errorMessage}
           </div>
           {onRetry && (
@@ -64,7 +64,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
                 variant="secondary"
                 size="sm"
                 onClick={onRetry}
-                className="bg-red-100 text-red-800 hover:bg-red-200 border-red-300"
+                className="bg-danger-soft text-danger hover:bg-danger/20 border-danger/40"
               >
                 Try again
               </Button>
