@@ -13,13 +13,23 @@ module.exports = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          // legacy numeric ramp: fixed Ikhlas hexes so ~100 unswept call sites
+          // keep rendering until their sweep batch converts them to tokens.
+          // Each key is deleted once grep for it returns zero (token-migration.md).
+          50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+          400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+          800: '#115e59', 900: '#134e4a', 950: '#042f2e',
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d',
+          400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309',
+          800: '#92400e', 900: '#78350f', 950: '#451a03',
         },
         surface: {
           DEFAULT: "hsl(var(--muted))",
+          50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 500: '#64748b', 900: '#0f172a',
         },
         // NEW semantic layer (the sweep-target vocabulary)
         success: {
