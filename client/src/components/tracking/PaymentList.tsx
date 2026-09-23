@@ -377,7 +377,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           onClick={() => handleSortChange('date')}
           className={`px-3 py-1.5 text-sm rounded-md transition-colors ${sortBy === 'date'
             ? 'bg-success-soft text-success font-medium'
-            : 'bg-muted text-foreground/80 hover:bg-muted'
+            : 'bg-muted text-foreground/80 hover:bg-foreground/5'
             }`}
         >
           Payment Date
@@ -390,7 +390,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           onClick={() => handleSortChange('amount')}
           className={`px-3 py-1.5 text-sm rounded-md transition-colors ${sortBy === 'amount'
             ? 'bg-success-soft text-success font-medium'
-            : 'bg-muted text-foreground/80 hover:bg-muted'
+            : 'bg-muted text-foreground/80 hover:bg-foreground/5'
             }`}
         >
           Amount
@@ -403,7 +403,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
           onClick={() => handleSortChange('created')}
           className={`px-3 py-1.5 text-sm rounded-md transition-colors ${sortBy === 'created'
             ? 'bg-success-soft text-success font-medium'
-            : 'bg-muted text-foreground/80 hover:bg-muted'
+            : 'bg-muted text-foreground/80 hover:bg-foreground/5'
             }`}
         >
           Created Date
@@ -596,8 +596,8 @@ export const PaymentList: React.FC<PaymentListProps> = ({
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
                         className={`px-3 py-1 text-sm rounded ${currentPage === pageNum
-                          ? 'bg-success text-white font-medium'
-                          : 'bg-muted text-foreground/80 hover:bg-muted'
+                          ? 'bg-success text-success-foreground font-medium'
+                          : 'bg-muted text-foreground/80 hover:bg-foreground/5'
                           }`}
                       >
                         {pageNum}

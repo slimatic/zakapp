@@ -34,6 +34,7 @@ module.exports = {
         // NEW semantic layer (the sweep-target vocabulary)
         success: {
           DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
           soft: "hsl(var(--success-soft))",
         },
         warn: {

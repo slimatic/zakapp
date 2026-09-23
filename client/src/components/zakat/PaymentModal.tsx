@@ -183,7 +183,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
 
   return (
-    <div className="fixed inset-0 bg-foreground/50 overflow-y-auto h-full w-full z-50">
+    <div className="fixed inset-0 bg-black/45 overflow-y-auto h-full w-full z-50">
       <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-card max-w-md">
         <div className="mt-3">
           {/* Header */}
@@ -379,7 +379,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-success hover:bg-success/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-success-foreground bg-success hover:bg-success/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <div className="flex items-center">

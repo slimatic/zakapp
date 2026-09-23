@@ -171,7 +171,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
             </p>
             <button
               onClick={() => window.location.reload()}
-              className={`text-sm underline mt-2 ${is429Error ? 'text-warn-strong hover:text-warn-strong' : 'text-danger hover:text-danger/90'}`}
+              className={`text-sm underline mt-2 ${is429Error ? 'text-warn-strong hover:text-warn' : 'text-danger hover:text-danger/90'}`}
             >
               Refresh page
             </button>

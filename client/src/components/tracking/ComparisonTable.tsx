@@ -281,7 +281,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
             // Export to CSV functionality would go here
             logger.debug('Export to CSV functionality not implemented yet');
           }}
-          className="px-4 py-2 text-sm font-medium text-white bg-success border border-transparent rounded-md hover:bg-success/90"
+          className="px-4 py-2 text-sm font-medium text-success-foreground bg-success border border-transparent rounded-md hover:bg-success/90"
         >
           Export to CSV
         </button>

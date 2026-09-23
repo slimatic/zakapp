@@ -48,7 +48,7 @@ New semantic variables (Nur):
 
 | Var | Mockup hex | HSL value |
 |---|---|---|
-| `--success` | `#1B7A4A` | `150 64% 29.2%` |
+| `--success` | `#1B7A4A` | `150 64% 29.2%` | — **success-foreground (batch-4 review addition):** white in Nur (7.13:1), deep ink #0E1524 / 221 44% 10% in Qamar (10.58:1); REQUIRED on all solid bg-success buttons — Qamar success is light green, white text fails at 1.72:1
 | `--success-soft` | `#E8F5EC` | `138 39% 93.5%` |
 | `--warn` | `#B45309` | `26 90% 37.1%` |
 | `--warn-soft` | `#FDF3E3` | `37 87% 94.1%` |

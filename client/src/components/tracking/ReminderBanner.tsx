@@ -53,7 +53,7 @@ const REMINDER_COLORS = {
     bg: 'bg-warn-soft',
     border: 'border-warn/30',
     text: 'text-warn-strong',
-    button: 'text-warn-strong hover:text-warn-strong'
+    button: 'text-warn-strong hover:text-warn'
   },
   low: {
     bg: 'bg-accent',

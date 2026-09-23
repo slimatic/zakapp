@@ -92,6 +92,7 @@
     --surface-2: 42 29% 93%;
     --border-strong: 41 21% 80%;
     --success: 150 64% 29%;
+    --success-foreground: 0 0% 100%;
     --success-soft: 138 39% 94%;
     --warn: 26 90% 37%;
     --warn-soft: 37 87% 94%;
@@ -145,6 +146,7 @@
     --surface-2: 221 39% 11%;
     --border-strong: 219 23% 29%;
     --success: 151 69% 58%;
+    --success-foreground: 221 44% 10%;
     --success-soft: 146 45% 13%;
     --warn: 42 71% 63%;
     --warn-soft: 39 33% 14%;

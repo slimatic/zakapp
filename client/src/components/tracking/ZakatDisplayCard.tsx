@@ -162,7 +162,7 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
           <button
             onClick={onRefreshAssets}
             disabled={isLoadingAssets}
-            className="flex-1 px-3 py-2 text-sm font-medium text-secondary bg-accent hover:bg-accent rounded-lg border border-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-3 py-2 text-sm font-medium text-secondary bg-accent hover:bg-foreground/5 rounded-lg border border-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoadingAssets ? 'Refreshing...' : 'Refresh Assets'}
           </button>
@@ -171,7 +171,7 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
         {(isDraft || isUnlocked) && onFinalize && (
           <button
             onClick={onFinalize}
-            className="flex-1 px-3 py-2 text-sm font-medium text-white bg-success hover:bg-success/90 rounded-lg transition-colors"
+            className="flex-1 px-3 py-2 text-sm font-medium text-success-foreground bg-success hover:bg-success/90 rounded-lg transition-colors"
           >
             {isDraft ? 'Finalize' : 'Re-Finalize'}
           </button>
