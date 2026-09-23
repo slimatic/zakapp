@@ -55,7 +55,7 @@ New semantic variables (Nur):
 | `--warn-strong` | `#92400E` (mockup accent-strong, used as warn chip text) | `23 82% 31.4%` |
 | `--danger` | `#B3372B` | `5 61% 43.5%` |
 | `--danger-soft` | `#FBEAE8` | `6 70% 94.7%` |
-| `--text-3` | `#9CA3AF` | `218 11% 64.9%` |
+| `--text-3` | `#9CA3AF` | `218 11% 64.9%` | — **usage gate (WCAG):** tertiary is below 4.5:1 for normal text in both themes; sweep may only apply it to disabled, decorative, or duplicated-elsewhere help text (never sole-label informational text)
 | `--border-strong` | `#D6CFC0` | `41 21% 79.6%` |
 | `--elev-1` | — | `0 1px 2px rgba(27,58,47,.08), 0 1px 3px rgba(27,58,47,.06)` |
 | `--elev-2` | — | `0 1px 2px rgba(27,58,47,.10), 0 2px 6px rgba(27,58,47,.08)` |
