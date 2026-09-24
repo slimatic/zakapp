@@ -70,7 +70,7 @@ export const SettingsPage: React.FC = () => {
                                     aria-current={activeTab === item.id ? 'page' : undefined}
                                 >
                                     <Icon
-                                        className={`flex-shrink-0 -ml-1 mr-3 h-5 w-5 ${activeTab === item.id ? 'text-secondary' : 'text-muted-foreground group-hover:text-muted-foreground'
+                                        className={`flex-shrink-0 [margin-inline-start:-0.25rem] me-3 h-5 w-5 ${activeTab === item.id ? 'text-secondary' : 'text-muted-foreground group-hover:text-muted-foreground'
                                             }`}
                                         aria-hidden="true"
                                     />
@@ -102,7 +102,7 @@ export const SettingsPage: React.FC = () => {
                                     hover:shadow-sm border border-border"
                                 >
                                     <LayoutDashboard
-                                        className="flex-shrink-0 -ml-1 mr-3 h-5 w-5 text-secondary"
+                                        className="flex-shrink-0 [margin-inline-start:-0.25rem] me-3 h-5 w-5 text-secondary"
                                         aria-hidden="true"
                                     />
                                     <span className="truncate font-bold text-secondary">

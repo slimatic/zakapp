@@ -180,7 +180,7 @@ export const DualCalendarDatePicker: React.FC<DualCalendarDatePickerProps> = ({
                     >
                         Hijri
                         {hijriAdjustment !== 0 && (
-                            <span className="ml-1 text-[10px] text-secondary bg-accent px-1 rounded">
+                            <span className="ms-1 text-[10px] text-secondary bg-accent px-1 rounded">
                                 {hijriAdjustment > 0 ? `+${hijriAdjustment}` : hijriAdjustment}
                             </span>
                         )}

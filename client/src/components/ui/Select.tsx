@@ -47,7 +47,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
       {label && (
         <label className="block text-sm font-medium text-foreground">
           {label}
-          {props.required && <span className="text-danger ml-1">*</span>}
+          {props.required && <span className="text-danger ms-1">*</span>}
         </label>
       )}
       <select ref={ref} className={classes} onChange={handleChange} {...props}>
