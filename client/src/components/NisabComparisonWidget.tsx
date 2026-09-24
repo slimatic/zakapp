@@ -160,6 +160,23 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   const statusBadge = isAbove ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger';
   const statusIcon = isAbove ? '✓' : '⚠';
 
+  // Label/value rows, matching the detail-panel vocabulary in the design.
+  // These were three fixed columns, which does not work: this card renders in
+  // the ~350px detail rail, and `lg:grid-cols-3` keys off the VIEWPORT, not the
+  // container - so on a desktop width three columns each got ~110px and the
+  // money strings ($153,561.38 / $91,920.60 / $11,985.63) ran into each other.
+  const comparisonRows = [
+    { label: 'Zakatable Wealth', value: displayWealth, emphasis: true },
+    {
+      label: 'Total Wealth',
+      value: record.totalWealth
+        ? Number(record.totalWealth)
+        : (liveHawlData?.currentTotalWealth ?? 0),
+      emphasis: false,
+    },
+    { label: 'Nisab Threshold', value: displayNisab, emphasis: false },
+  ];
+
   return (
     <div className={`nisab-comparison-widget ${className}`}>
       <div className={`rounded-lg border p-4 ${statusBg}`}>
@@ -177,37 +194,27 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
           </span>
         </div>
 
-        {/* Main comparison */}
-        <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-3 sm:gap-4">
-          {/* Zakatable Wealth */}
-          <div className="rounded-lg bg-card p-3 shadow-sm border border-border min-w-0">
-            <div className="text-xs font-medium text-muted-foreground mb-1 truncate">Zakatable Wealth</div>
-            <Tooltip content={formatMaskedCurrency(displayWealth)}>
-              <div className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate block">
-                {formatMaskedCurrency(displayWealth)}
-              </div>
-            </Tooltip>
-          </div>
-
-          {/* Total Wealth */}
-          <div className="rounded-lg bg-card p-3 shadow-sm border border-border min-w-0">
-            <div className="text-xs font-medium text-muted-foreground mb-1 truncate">Total Wealth</div>
-            <Tooltip content={formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}>
-              <div className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate block">
-                {formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}
-              </div>
-            </Tooltip>
-          </div>
-
-          {/* Nisab Threshold */}
-          <div className="rounded-lg bg-card p-3 shadow-sm border border-border min-w-0">
-            <div className="text-xs font-medium text-muted-foreground mb-1 truncate">Nisab Threshold</div>
-            <Tooltip content={formatMaskedCurrency(displayNisab)}>
-              <div className="text-base sm:text-lg font-bold text-foreground/80 tracking-tight truncate block">
-                {formatMaskedCurrency(displayNisab)}
-              </div>
-            </Tooltip>
-          </div>
+        {/* Main comparison - label/value rows, not fixed columns */}
+        <div className="mb-4 flex flex-col gap-1">
+          {comparisonRows.map((row) => (
+            <div
+              key={row.label}
+              className="flex items-baseline justify-between gap-3 py-1.5"
+            >
+              <span className="text-xs font-medium text-muted-foreground">
+                {row.label}
+              </span>
+              <Tooltip content={formatMaskedCurrency(row.value)}>
+                <span
+                  className={`shrink-0 text-sm font-bold tabular-nums tracking-tight ${
+                    row.emphasis ? 'text-foreground' : 'text-foreground/80'
+                  }`}
+                >
+                  {formatMaskedCurrency(row.value)}
+                </span>
+              </Tooltip>
+            </div>
+          ))}
         </div>
 
         {/* Visual bar chart */}

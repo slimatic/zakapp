@@ -215,12 +215,11 @@ export const AssetList: React.FC = () => {
         </div>
       )}
 
-      {/* Composition - supporting detail, below what the user came for */}
+      {/* Composition - supporting detail, below what the user came for.
+          No heading here: AssetsBreakdownChart renders its own title, and the
+          stacked pair read as a duplicated label. */}
       {assets.length > 1 && (
         <div className="rounded-lg border border-border bg-card p-5 shadow-elev-1">
-          <h2 className="mb-3 font-heading text-base font-semibold text-secondary">
-            Composition
-          </h2>
           <AssetsBreakdownChart assets={assets} />
         </div>
       )}
