@@ -8,7 +8,31 @@
   },
   "assets": {
     "yourAssets": "Your Assets",
-    "zakatable": "Zakatable"
+    "zakatable": "Zakatable",
+    "viewAll": "View all"
+  },
+  "hero": {
+    "greeting": "As-salamu alaykum",
+    "estimatedDue": "Estimated zakat due",
+    "seeCalculation": "See how this was calculated"
+  },
+  "hawl": {
+    "inProgress": "Hawl in progress",
+    "aboveNisab": "Above nisab",
+    "belowNisab": "Below nisab",
+    "openRecord": "Open hawl record",
+    "recordPayment": "Record a payment"
+  },
+  "quickActions": {
+    "title": "Quick actions",
+    "addAsset": "Add asset",
+    "addAssetHint": "Cash, gold, crypto, more",
+    "hawlRecords": "Hawl records",
+    "hawlRecordsHint": "Track your zakat year",
+    "calculator": "Calculator",
+    "calculatorHint": "Step-by-step estimate",
+    "learn": "Learn",
+    "learnHint": "Zakat guides & rulings"
   },
   "privacy": {
     "upgradeAvailable": "Privacy Upgrade Available",

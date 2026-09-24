@@ -23,15 +23,13 @@ import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
-import { DashboardHeader } from '../components/dashboard/DashboardHeader';
-import { ActiveRecordWidget } from '../components/dashboard/ActiveRecordWidget';
+import { DashboardHero, HawlCard, QuickActions, AssetRow } from '../components/dashboard/DashboardTop';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
 import { DashboardActionCards } from '../components/dashboard/DashboardActionCards';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
-import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
 import type { Asset } from '../types';
 import { useBestAction } from '../hooks/useBestAction';
@@ -197,7 +195,6 @@ export const Dashboard: React.FC = () => {
   const { t } = useTranslation('dashboard');
   const { user } = useAuth();
   const navigate = useNavigate();
-  const maskedCurrency = useMaskedCurrency();
   
   // Migration wizard state
   const { needsMigration } = useMigration();
@@ -276,7 +273,6 @@ export const Dashboard: React.FC = () => {
 
   // Get Nisab threshold (use live value for consistency with other pages)
   const nisabBasis = (activeRecord?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
-
   // Issue #310 (v0.15.2 regression): resolve currency from the local RxDB
   // settings store FIRST (baseCurrency) — the auth-context blob may lag or
   // still say USD for users who set their currency locally.
@@ -284,6 +280,59 @@ export const Dashboard: React.FC = () => {
   const userCurrency = display.currency;
   const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
   const nisabThreshold = nisabAmount || 5000; // Default fallback
+
+  /* ── Hero figures ──────────────────────────────────────────────────────── */
+
+  // Estimated zakat due. Prefer the active record's own figure (it is the
+  // authoritative calculation for the running hawl); otherwise estimate at
+  // 2.5% of zakatable wealth so the hero is never blank once assets exist.
+  const toNum = (v: unknown): number => {
+    const n = typeof v === 'string' ? parseFloat(v) : (v as number);
+    return Number.isFinite(n) ? (n as number) : 0;
+  };
+
+  const zakatDue = useMemo(() => {
+    if (activeRecord) {
+      const recorded = toNum(activeRecord.zakatAmount);
+      if (recorded > 0) return recorded;
+    }
+    return totalWealth * 0.025;
+  }, [activeRecord, totalWealth]);
+
+  // Hijri year for the hero note, when the record carries one.
+  const hijriYear = useMemo(() => {
+    const raw = (activeRecord as { hijriYear?: string | number } | null)?.hijriYear;
+    return raw ? String(raw) : undefined;
+  }, [activeRecord]);
+
+  /* ── Hawl progress ─────────────────────────────────────────────────────── */
+
+  const TOTAL_HAWL_DAYS = 354; // lunar year
+
+  const hawl = useMemo(() => {
+    const startStr = activeRecord?.hawlStartDate || activeRecord?.startDate;
+    let elapsed = toNum(activeRecord?.daysElapsed);
+    let remaining = toNum(activeRecord?.daysRemaining);
+
+    if (startStr) {
+      const start = new Date(startStr);
+      if (!Number.isNaN(start.getTime())) {
+        const diffDays = Math.floor((Date.now() - start.getTime()) / 86_400_000);
+        elapsed = Math.max(0, diffDays);
+        remaining = Math.max(0, TOTAL_HAWL_DAYS - elapsed);
+      }
+    }
+
+    const progress = Math.min(Math.max(elapsed / TOTAL_HAWL_DAYS, 0), 1);
+    const due = activeRecord?.hawlCompletionDate;
+    const dueDate = due
+      ? new Date(due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : undefined;
+
+    return { elapsed, remaining, progress, dueDate };
+  }, [activeRecord]);
+
+  const aboveNisab = totalWealth >= nisabThreshold;
 
   // Loading state
   if (assetsLoading || recordsLoading || paymentsLoading) {
@@ -316,13 +365,14 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6" id="main-content">
-      {/* Dashboard Header */}
-      <DashboardHeader
-        userName={user?.username}
-        hasAssets={hasAssets}
-        hasActiveRecord={hasActiveRecord}
+      {/* Hero: greeting + estimated zakat due (the page's focal figure) */}
+      <DashboardHero
+        userName={user?.firstName || user?.username}
+        zakatDue={zakatDue}
+        currency={userCurrency}
+        hijriYear={hijriYear}
       />
-      
+
       {/* Migration Banner */}
       {needsMigration && !showMigration && (
         <div className="bg-accent p-4 rounded-lg border border-border flex items-center justify-between gap-4 shadow-card">
@@ -366,14 +416,24 @@ export const Dashboard: React.FC = () => {
         />
       )}
 
+      {/* Hawl card - the moon arc is the signature component */}
+      {hasActiveRecord && activeRecord && (
+        <HawlCard
+          progress={hawl.progress}
+          daysElapsed={hawl.elapsed}
+          totalDays={354}
+          daysRemaining={hawl.remaining}
+          dueDate={hawl.dueDate}
+          aboveNisab={aboveNisab}
+        />
+      )}
+
+      {/* Quick actions */}
+      <QuickActions />
+
       {/* Main Content Area */}
       {hasAssets && (
         <div className="space-y-6">
-
-          {/* T023: Active Record Widget */}
-          {hasActiveRecord && activeRecord && (
-            <ActiveRecordWidget record={activeRecord} />
-          )}
 
           {/* Wealth and Breakdown Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -403,38 +463,17 @@ export const Dashboard: React.FC = () => {
               </Link>
             </div>
 
-            <div className="space-y-3">
+            <div>
               {assets.slice(0, 5).map((asset: Asset) => (
-                <div
+                <AssetRow
                   key={asset.id}
-                  className="flex items-center justify-between p-3 bg-surface-2 rounded-lg hover:bg-card transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-card rounded-lg">
-                      <svg className="w-5 h-5 text-accent-foreground" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium text-secondary">{asset.name}</p>
-                      <p className="text-sm text-muted-foreground capitalize">
-                        {asset.type.replace('_', ' ')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-end">
-                    <p className="font-semibold text-secondary">
-                      {maskedCurrency(new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: asset.currency || 'USD',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format(asset.value || 0))}
-                    </p>
-                    <span className="text-xs text-success font-medium">{t('assets.zakatable')}</span>
-                  </div>
-                </div>
+                  name={asset.name}
+                  type={asset.type || 'other'}
+                  value={asset.value || 0}
+                  currency={asset.currency}
+                  detail={asset.type ? asset.type.replace(/_/g, ' ') : undefined}
+                  zakatable={asset.zakatEligible !== false}
+                />
               ))}
 
               {assets.length === 0 && (

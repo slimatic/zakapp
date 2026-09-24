@@ -121,7 +121,8 @@ describe('Dashboard Redirection', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText(/Welcome back/i)).toBeInTheDocument();
+            // The dashboard's top section is the hero: greeting + zakat figure.
+            expect(screen.getByText(/As-salamu alaykum/i)).toBeInTheDocument();
         });
 
         expect(navigate).not.toHaveBeenCalledWith('/onboarding');
