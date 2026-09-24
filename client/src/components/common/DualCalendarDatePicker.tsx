@@ -34,6 +34,13 @@ export const DualCalendarDatePicker: React.FC<DualCalendarDatePickerProps> = ({
     // Parse initial value to Date object safely
     const parseDateValue = (v: Date | string) => {
         if (typeof v === 'string') {
+            // An EMPTY string takes the string branch below and yields an Invalid Date
+            // (`new Date('T00:00:00')`), and every consumer here - gregorianToHijri at
+            // init, formatDualCalendar at render - THROWS on an invalid date. So does a
+            // non-empty unparseable string. Fall back to today rather than throw.
+            if (!v || Number.isNaN(new Date(v.includes('T') ? v : `${v}T00:00:00`).getTime())) {
+                return new Date();
+            }
             // If it's just a date string date-only (YYYY-MM-DD), force it to local midnight
             // to prevent "UTC Midnight" being interpreted as "Previous Day" in Western timezones.
             if (!v.includes('T')) {
@@ -41,7 +48,8 @@ export const DualCalendarDatePicker: React.FC<DualCalendarDatePickerProps> = ({
             }
             return new Date(v);
         }
-        return v;
+        // A Date argument can still be Invalid (e.g. new Date('nonsense') upstream).
+        return v instanceof Date && !Number.isNaN(v.getTime()) ? v : new Date();
     };
 
     const dateValue = parseDateValue(value);
