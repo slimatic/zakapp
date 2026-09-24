@@ -20,7 +20,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Logo } from '../common/Logo';
+import { AuthLayout } from './AuthLayout';
 
 export const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -137,197 +137,152 @@ export const Register: React.FC = () => {
     // The backend validation errors are already handled by the error state
   };
 
+  const strengthRows: Array<[keyof typeof passwordStrength, string]> = [
+    ['length', 'At least 8 characters'],
+    ['uppercase', 'One uppercase letter (A-Z)'],
+    ['lowercase', 'One lowercase letter (a-z)'],
+    ['number', 'One number (0-9)'],
+    ['special', 'One special character (!@#$%^&*)']
+  ];
+
   return (
-    <main className="min-h-screen flex items-center justify-center bg-muted px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-card/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/40">
-        <div>
-          <div className="mx-auto flex justify-center">
-            <Logo className="h-16 w-16" />
-          </div>
-          <h1 className="mt-6 text-center text-4xl font-heading font-extrabold text-foreground tracking-tight">
-            Create your account
-          </h1>
-          <p className="mt-2 text-center text-lg text-muted-foreground">
-            Join ZakApp to calculate and track your Zakat
-          </p>
+    <AuthLayout
+      title="Create your vault"
+      subtitle="Everything is encrypted on your device before it syncs."
+      footer={
+        <>
+          Already have a vault?{' '}
+          <Link
+            to="/login"
+            className="font-medium text-primary hover:underline underline-offset-2"
+          >
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <Input
+          id="username"
+          name="username"
+          type="text"
+          placeholder="Username"
+          value={formData.username}
+          onChange={handleChange}
+          error={formErrors.username}
+          label="Username"
+        />
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            id="firstName"
+            name="firstName"
+            type="text"
+            required
+            placeholder="First name"
+            value={formData.firstName}
+            onChange={handleChange}
+            data-testid="first-name-input"
+            error={formErrors.firstName}
+            label="First name"
+          />
+
+          <Input
+            id="lastName"
+            name="lastName"
+            type="text"
+            required
+            placeholder="Last name"
+            value={formData.lastName}
+            onChange={handleChange}
+            data-testid="last-name-input"
+            error={formErrors.lastName}
+            label="Last name"
+          />
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <Input
-              id="username"
-              name="username"
-              type="text"
-              required
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleChange}
-              error={formErrors.username}
-              label="Username"
-              className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
-            />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          placeholder="you@example.com"
+          value={formData.email}
+          onChange={handleChange}
+          data-testid="email-input"
+          error={formErrors.email}
+          label="Email address"
+        />
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                id="firstName"
-                name="firstName"
-                type="text"
-                required
-                placeholder="First name"
-                value={formData.firstName}
-                onChange={handleChange}
-                data-testid="first-name-input"
-                error={formErrors.firstName}
-                label="First Name"
-                className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
-              />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          placeholder="Choose a password"
+          value={formData.password}
+          onChange={handleChange}
+          onFocus={() => setShowPasswordHints(true)}
+          error={formErrors.password}
+          label="Password"
+        />
 
-              <Input
-                id="lastName"
-                name="lastName"
-                type="text"
-                required
-                placeholder="Last name"
-                value={formData.lastName}
-                onChange={handleChange}
-                data-testid="last-name-input"
-                error={formErrors.lastName}
-                label="Last Name"
-                className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
-              />
-            </div>
-
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              placeholder="Email address"
-              value={formData.email}
-              onChange={handleChange}
-              data-testid="email-input"
-              error={formErrors.email}
-              label="Email Address"
-              className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
-            />
-
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              onFocus={() => setShowPasswordHints(true)}
-              error={formErrors.password}
-              label="Password"
-              className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
-            />
-
-            {/* Password requirements with live validation */}
-            {showPasswordHints && (
-              <div
-                className="text-xs space-y-1 mt-1 -mt-3 px-3 py-3 bg-accent/80 backdrop-blur-sm rounded-lg border border-border shadow-sm animate-fade-in"
-                onAnimationEnd={(e) => e.stopPropagation()}
-              >
-                <p className="font-semibold text-secondary mb-2">Password must include:</p>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.length ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
-                  <span>{passwordStrength.length ? '✓' : '○'}</span>
-                  <span>At least 8 characters</span>
-                </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.uppercase ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
-                  <span>{passwordStrength.uppercase ? '✓' : '○'}</span>
-                  <span>One uppercase letter (A-Z)</span>
-                </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.lowercase ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
-                  <span>{passwordStrength.lowercase ? '✓' : '○'}</span>
-                  <span>One lowercase letter (a-z)</span>
-                </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.number ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
-                  <span>{passwordStrength.number ? '✓' : '○'}</span>
-                  <span>One number (0-9)</span>
-                </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.special ? 'text-secondary font-medium' : 'text-muted-foreground'}`}>
-                  <span>{passwordStrength.special ? '✓' : '○'}</span>
-                  <span>One special character (!@#$%^&*)</span>
-                </div>
-              </div>
-            )}
-
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              placeholder="Confirm password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              data-testid="confirm-password-input"
-              error={formErrors.confirmPassword}
-              label="Confirm Password"
-              className="bg-card/50 backdrop-blur-sm focus:ring-ring border-border-strong"
-            />
+        {/* Live requirements — quiet list, not a shouting checklist */}
+        {showPasswordHints && (
+          <div className="rounded-md border border-border bg-surface-2 px-3 py-2.5 text-xs">
+            <p className="mb-1.5 font-medium text-foreground">Password must include:</p>
+            <ul className="space-y-1">
+              {strengthRows.map(([key, text]) => {
+                const met = passwordStrength[key];
+                return (
+                  <li
+                    key={key}
+                    className={`flex items-center gap-2 ${met ? 'text-success' : 'text-muted-foreground'}`}
+                  >
+                    <span aria-hidden="true">{met ? '✓' : '○'}</span>
+                    <span>{text}</span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
+        )}
 
-          {error && (
-            <div className="rounded-md bg-danger-soft p-4 border border-danger/20">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-danger/80" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-danger">
-                    {error || 'Registration failed. Please try again.'}
-                  </h3>
-                </div>
-              </div>
-            </div>
-          )}
+        <Input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          required
+          placeholder="Confirm password"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          data-testid="confirm-password-input"
+          error={formErrors.confirmPassword}
+          label="Confirm password"
+        />
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            isLoading={isLoading}
-            data-testid="register-button"
-            className="w-full bg-primary hover:bg-warn-strong text-primary-foreground shadow-elev-2 transition-all hover:scale-[1.02]"
-          >
-            Create account
-          </Button>
-
-          <div className="text-center">
-            <p className="text-sm text-foreground/80">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="font-medium text-secondary hover:text-secondary hover:underline transition-colors"
-              >
-                Sign in instead
-              </Link>
+        {error && (
+          <div className="rounded-md border border-danger/30 bg-danger-soft p-3 text-sm" role="alert">
+            <p className="font-medium text-danger">
+              {error || 'Registration failed. Please try again.'}
             </p>
-
-            <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-2">
-              <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 opacity-70 hover:opacity-100">
-                <span>Made with ❤️ by</span>
-                <span className="font-semibold">RST Labs</span>
-              </a>
-              <a
-                href="https://github.com/slimatic/zakapp/releases"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] text-tertiary hover:text-secondary font-mono transition-colors"
-              >
-                {__APP_VERSION__} ({__COMMIT_HASH__})
-              </a>
-            </div>
           </div>
-        </form>
-      </div>
-    </main>
+        )}
+
+        <Button
+          type="submit"
+          size="lg"
+          disabled={isLoading}
+          isLoading={isLoading}
+          data-testid="register-button"
+          className="w-full"
+        >
+          Create vault
+        </Button>
+      </form>
+    </AuthLayout>
   );
 };

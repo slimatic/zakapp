@@ -21,9 +21,20 @@ import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/Card';
-import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
-import { Logo } from '../common/Logo';
+import { Eye, EyeOff } from 'lucide-react';
+import { AuthLayout } from './AuthLayout';
+
+/** Error substrings that mean local encrypted storage is unusable. */
+const LOCAL_STORAGE_ERRORS = [
+  'vault',
+  'local data',
+  'encryption',
+  'site data',
+  'DB1',
+  'DB8',
+  'password',
+  'salt'
+];
 
 export const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -63,159 +74,130 @@ export const Login: React.FC = () => {
     await login(username, password);
   };
 
+  // Recovery steps show for the same error set as before the redesign; the
+  // list is unchanged so no auth-path behaviour shifts with the styling.
+  const showRecoverySteps =
+    !!error && LOCAL_STORAGE_ERRORS.some((frag) => error.includes(frag));
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted px-4 py-12">
-      <Card className="w-full max-w-md shadow-2xl border-white/20">
-        <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-6">
-            <div className="animate-fade-in" onAnimationEnd={(e) => e.stopPropagation()}>
-              <Logo className="h-16 w-16" />
-            </div>
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to your vault. Your data is decrypted on this device."
+      footer={
+        <>
+          New to ZakApp?{' '}
+          <Link
+            to="/register"
+            className="font-medium text-primary hover:underline underline-offset-2"
+          >
+            Create your vault
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {errorCode === 'EMAIL_NOT_VERIFIED' && (
+          <div className="rounded-md border border-warn/30 bg-warn-soft p-3 text-sm">
+            <p className="text-warn-strong">
+              Your email isn&apos;t verified yet, so sign-in is blocked.
+            </p>
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendState === 'sending' || resendState === 'sent'}
+              className="mt-1.5 font-medium text-warn-strong underline underline-offset-2 disabled:opacity-60"
+            >
+              {resendState === 'sending'
+                ? 'Sending...'
+                : resendState === 'sent'
+                  ? 'Verification email sent'
+                  : 'Resend verification email'}
+            </button>
+            {resendMessage && (
+              <p className="mt-1 text-warn-strong" role="status">{resendMessage}</p>
+            )}
           </div>
-          <CardTitle className="text-3xl font-heading font-bold text-center text-foreground">
-            Welcome Back
-          </CardTitle>
-          <CardDescription className="text-center text-muted-foreground text-lg">
-            Securely access your ZakApp vault
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {errorCode === 'EMAIL_NOT_VERIFIED' && (
-              <div className="mb-4 rounded-md border border-warn/30 bg-warn-soft p-3 text-sm">
-                <p className="text-warn-strong">
-                  Your email hasn&apos;t been verified yet, so sign-in is blocked.
+        )}
+
+        {error && (
+          <div
+            className="rounded-md border border-danger/30 bg-danger-soft p-3 text-sm text-danger"
+            role="alert"
+          >
+            {error === 'Failed to fetch'
+              ? 'Unable to reach the server. Check your connection and try again.'
+              : error}
+
+            {showRecoverySteps && (
+              <div className="mt-3 rounded border border-danger/20 bg-card/50 p-3 text-xs">
+                <p className="mb-1 font-medium">To fix this:</p>
+                <ol className="list-decimal list-inside space-y-0.5">
+                  <li>Open your browser settings</li>
+                  <li>Find <strong>Clear browsing data</strong></li>
+                  <li>Clear <strong>Cookies and other site data</strong></li>
+                  <li>Reload this page and sign in</li>
+                </ol>
+                <p className="mt-2 italic opacity-80">
+                  Your cloud data is safe and will sync again after you sign in.
                 </p>
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  disabled={resendState === 'sending' || resendState === 'sent'}
-                  className="mt-2 font-medium text-warn-strong underline underline-offset-2 disabled:opacity-60"
-                >
-                  {resendState === 'sending'
-                    ? 'Sending…'
-                    : resendState === 'sent'
-                      ? 'Verification email sent'
-                      : 'Resend verification email'}
-                </button>
-                {resendMessage && (
-                  <p className="mt-1 text-warn-strong" role="status">{resendMessage}</p>
-                )}
               </div>
             )}
-            {error && (
-              <div className="p-3 text-sm text-danger bg-danger-soft border border-danger/30 rounded-md">
-                {error === 'Failed to fetch'
-                  ? 'Unable to connect to server. Please check your network connection.'
-                  : error}
-                {/* Show instructions for vault/encryption/sync related errors */}
-                {(error.includes('vault') ||
-                  error.includes('local data') ||
-                  error.includes('encryption') ||
-                  error.includes('site data') ||
-                  error.includes('DB1') ||
-                  error.includes('DB8') ||
-                  error.includes('password') ||
-                  error.includes('salt')) && (
-                    <div className="mt-4 p-3 bg-card/50 border border-danger/20 rounded text-xs">
-                      <p className="font-bold text-danger mb-1">How to fix this:</p>
-                      <ol className="list-decimal list-inside space-y-1 text-danger">
-                        <li>Open your browser settings</li>
-                        <li>Search for <strong>"Clear browsing data"</strong></li>
-                        <li>Select <strong>"Cookies and other site data"</strong></li>
-                        <li>Click <strong>"Clear data"</strong> and refresh this page</li>
-                      </ol>
-                      <p className="mt-2 text-[10px] text-danger italic">
-                        Note: Your cloud data is safe and will sync again after you log in.
-                      </p>
-                    </div>
-                  )}
-              </div>
-            )}
+          </div>
+        )}
 
-            <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium leading-none text-foreground/80">
-                Username
-              </label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onBlur={() => setUsername(prev => prev.trim())}
-                disabled={isLoading}
-                autoComplete="username"
-                aria-required="true"
-                className="focus:ring-ring border-border-strong"
-              />
-            </div>
+        <div className="space-y-1.5">
+          <label htmlFor="username" className="block text-sm font-medium text-foreground">
+            Username
+          </label>
+          <Input
+            id="username"
+            type="text"
+            placeholder="Your username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onBlur={() => setUsername((prev) => prev.trim())}
+            disabled={isLoading}
+            autoComplete="username"
+            aria-required="true"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium leading-none text-foreground/80">
-                Password
-              </label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  autoComplete="current-password"
-                  aria-required="true"
-                  className="focus:ring-ring border-border-strong pe-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inline-end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-warn-strong text-primary-foreground shadow-elev-2 transition-all hover:scale-[1.02]"
-              disabled={isLoading || !username || !password}
+        <div className="space-y-1.5">
+          <label htmlFor="password" className="block text-sm font-medium text-foreground">
+            Password
+          </label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
+              autoComplete="current-password"
+              aria-required="true"
+              className="pe-11"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute end-3 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
-              {isLoading ? 'Decrypting Vault...' : 'Login'}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4 text-center text-sm text-muted-foreground">
-          <div className="flex gap-1 justify-center">
-            <span>Don't have a vault?</span>
-            <Link to="/register" className="text-secondary hover:text-secondary/80 hover:underline font-bold">
-              Create New Vault
-            </Link>
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
+        </div>
 
-          <div className="text-xs text-secondary/60 mt-4 flex items-center justify-center gap-1 font-medium bg-accent px-3 py-1 rounded-full w-fit mx-auto">
-            <ShieldCheck className="w-3 h-3" />
-            <span>End-to-End Encrypted on your device</span>
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-border w-full flex flex-col items-center gap-2">
-            <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className="text-xs text-tertiary hover:text-muted-foreground transition-colors flex items-center justify-center gap-1">
-              <span>Made with ❤️ by</span>
-              <span className="font-semibold">RST Labs</span>
-            </a>
-            <a
-              href="https://github.com/slimatic/zakapp/releases"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] text-tertiary hover:text-secondary font-mono transition-colors"
-            >
-              {__APP_VERSION__} ({__COMMIT_HASH__})
-            </a>
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={isLoading || !username || !password}
+        >
+          {isLoading ? 'Decrypting vault...' : 'Sign in'}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 };
