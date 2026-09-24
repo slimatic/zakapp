@@ -2,86 +2,75 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { DonationCTA } from '../donation/DonationCTA';
 
+/**
+ * Two groups, not three stacked sections.
+ *
+ * Previously: CTA / links / credits as three full-width sections separated by
+ * rules, each with its own py-8, and the links centred one-per-line. On a phone
+ * that was ~350px of mostly empty space under every page and the links read as
+ * a menu.
+ *
+ * Now: one row on desktop, two on mobile (links, then a single meta line),
+ * separated by middle dots instead of borders. The mockup has no footer at all
+ * - it ends with one muted caption - so the aim is to stay close to that:
+ * present, useful, never competing with the page.
+ */
 export const Footer: React.FC = () => {
+    const linkClass = 'transition-colors hover:text-secondary';
+    const dot = <span className="text-border-strong" aria-hidden="true">·</span>;
+
     return (
         <footer className="mt-auto border-t border-border bg-muted">
-            {/* Top Section: CTA */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex justify-center">
-                    <DonationCTA variant="footer" />
-                </div>
-            </div>
+            <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+                <div className="flex flex-col items-center gap-2.5 text-xs text-tertiary sm:flex-row sm:justify-between sm:gap-6">
 
-            {/* Middle Section: Links */}
-            <div className="border-t border-border">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 text-sm text-muted-foreground">
-                        <Link to="/privacy-policy" className="hover:text-secondary transition-colors">
-                            Privacy Policy
-                        </Link>
-                        {/* Placeholder for future links
-                        <Link to="/terms" className="hover:text-secondary transition-colors">
-                            Terms of Service
-                        </Link>
-                        <Link to="/support" className="hover:text-secondary transition-colors">
-                            Support
-                        </Link> 
-                        */}
-                        <a
-                            href="https://github.com/slimatic/zakapp"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:text-secondary transition-colors"
-                        >
-                            Open Source
+                    {/* Links. Wraps and stays on one or two lines rather than
+                        stacking one link per row. */}
+                    <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
+                        <DonationCTA variant="footer" />
+                        <span className="text-border-strong" aria-hidden="true">·</span>
+                        <Link to="/privacy-policy" className={linkClass}>Privacy</Link>
+                        <span className="text-border-strong" aria-hidden="true">·</span>
+                        <a href="https://github.com/slimatic/zakapp" target="_blank" rel="noopener noreferrer" className={linkClass}>
+                            Source
                         </a>
+                        <span className="text-border-strong" aria-hidden="true">·</span>
                         <a
                             href="https://github.com/slimatic/zakapp/issues"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:text-secondary transition-colors"
+                            className={linkClass}
+                            title="Report an issue on GitHub"
                         >
-                            Report an Issue
+                            Issues
                         </a>
-                    </div>
-                </div>
-            </div>
+                    </nav>
 
-            {/* Bottom Section: Copyright & Credits */}
-            <div className="bg-muted border-t border-border">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-tertiary">
-                        <div className="flex items-center gap-1">
-                            <span>© {new Date().getFullYear()} ZakApp.</span>
-                            <span className="hidden md:inline">All rights reserved.</span>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <a
-                                href="https://rstlabs.io"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 hover:text-foreground transition-colors group"
-                            >
-                                <span>Made with</span>
-                                <span
-                                    className="text-danger/70 group-hover:text-danger animate-pulse"
-                                    onAnimationEnd={(e) => e.stopPropagation()}
-                                >❤️</span>
-                                <span>by</span>
-                                <span className="font-semibold text-muted-foreground group-hover:text-foreground">RST Labs</span>
-                            </a>
-                            <div className="w-px h-3 bg-border-strong hidden md:block"></div>
-                            <a
-                                href="https://github.com/slimatic/zakapp/releases"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-mono opacity-70 hover:opacity-100 hover:text-secondary transition-all"
-                                title="Build Version"
-                            >
-                                v{__APP_VERSION__} ({__COMMIT_HASH__})
-                            </a>
-                        </div>
+                    {/* One meta line: brand, year, credit, build. "Made with" and
+                        the commit hash are desktop-only so this stays a single
+                        line on a phone. */}
+                    <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                        <span className="font-semibold text-muted-foreground">ZakApp</span>
+                        {dot}
+                        <span>© {new Date().getFullYear()}</span>
+                        {dot}
+                        <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className={`${linkClass} group flex items-center gap-1`}>
+                            <span className="hidden sm:inline">Made with</span>
+                            <span className="text-danger/70 group-hover:text-danger">❤️</span>
+                            <span className="hidden sm:inline">by</span>
+                            <span className="font-semibold text-muted-foreground group-hover:text-foreground">RST Labs</span>
+                        </a>
+                        {dot}
+                        <a
+                            href="https://github.com/slimatic/zakapp/releases"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono opacity-70 transition-opacity hover:text-secondary hover:opacity-100"
+                            title={`Build ${__COMMIT_HASH__}`}
+                        >
+                            v{__APP_VERSION__}
+                            <span className="hidden sm:inline"> ({__COMMIT_HASH__})</span>
+                        </a>
                     </div>
                 </div>
             </div>

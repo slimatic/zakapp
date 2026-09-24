@@ -14,6 +14,7 @@ Exit 1 = the defect is present (this is the expected result on the old build).
 """
 import sys
 from playwright.sync_api import sync_playwright
+from _login import open_session
 
 UID = "cmuerqpub000rpb3fulpxby7g"
 BASE = "http://localhost:4173"
@@ -42,18 +43,7 @@ MEASURE = """() => {
 
 with sync_playwright() as p:
     b = p.chromium.launch(headless=True)
-    ctx = b.new_context(viewport=VIEWPORT)
-    pg = ctx.new_page()
-
-    pg.goto(f"{BASE}/login", wait_until="networkidle")
-    pg.wait_for_timeout(1200)
-    pg.fill('#username', 'v1smoke')
-    pg.fill('#password', 'V1Smoke2026!')
-    pg.press('#password', 'Enter')
-    pg.wait_for_url("**/onboarding", timeout=25000)
-    pg.evaluate(
-        f"localStorage.setItem('zakapp_local_prefs_{UID}', JSON.stringify({{skipped:true}}))"
-    )
+    ctx, pg = open_session(b, VIEWPORT)
 
     # The detail rail needs an active hawl record to render at all.
     pg.goto(f"{BASE}/seeder", wait_until="networkidle")

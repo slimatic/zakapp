@@ -178,3 +178,6 @@ docs/archive/specs/*/lighthouse-report.json
 /ZAKAPP_AUDIT_*.md
 /*_READINESS_*.md
 /CURRENCY_MIGRATION_*.md
+
+# Python bytecode from the check scripts
+client/scripts/__pycache__/

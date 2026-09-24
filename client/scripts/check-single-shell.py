@@ -10,6 +10,7 @@ eyeballing screenshots for the two pages someone happened to open.
 """
 import sys
 from playwright.sync_api import sync_playwright
+from _login import open_session
 
 UID = "cmuerqpub000rpb3fulpxby7g"
 BASE = "http://localhost:4173"
@@ -30,17 +31,7 @@ COUNT = """() => ({
 
 with sync_playwright() as p:
     b = p.chromium.launch(headless=True)
-    ctx = b.new_context(viewport={"width": 1280, "height": 900})
-    pg = ctx.new_page()
-    pg.goto(f"{BASE}/login", wait_until="networkidle")
-    pg.wait_for_timeout(1200)
-    pg.fill('#username', 'v1smoke')
-    pg.fill('#password', 'V1Smoke2026!')
-    pg.press('#password', 'Enter')
-    pg.wait_for_url("**/onboarding", timeout=25000)
-    pg.evaluate(
-        f"localStorage.setItem('zakapp_local_prefs_{UID}', JSON.stringify({{skipped:true}}))"
-    )
+    ctx, pg = open_session(b, {"width": 1280, "height": 900})
 
     bad = []
     for route in ROUTES:
