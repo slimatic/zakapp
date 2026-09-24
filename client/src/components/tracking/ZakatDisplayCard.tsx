@@ -36,6 +36,7 @@ import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { NisabYearRecord, NisabYearRecordWithLiveTracking } from '../../types/nisabYearRecord';
 import { toNumber, toDecimal, Decimal } from '../../utils/precision';
 import { formatCurrency } from '../../utils/formatters';
+import { Money } from '../ui/Money';
 
 interface ZakatDisplayCardProps {
   record: NisabYearRecord | NisabYearRecordWithLiveTracking;
@@ -91,12 +92,10 @@ export const ZakatDisplayCard: React.FC<ZakatDisplayCardProps> = ({
         )}
       </div>
 
-      {/* Main Zakat Amount Display */}
-      <div className="mb-4 p-3 bg-success-soft rounded-lg border border-success/30">
+      {/* Main Zakat Amount Display - the hero figure on the dashboard */}
+      <div className="mb-4 p-4 bg-success-soft rounded-lg border border-success/30">
         <div className="text-sm text-muted-foreground mb-1">Calculated Zakat Due</div>
-        <div className="text-3xl font-bold text-success mb-2">
-          {maskedCurrency(formatCurrency(zirconAmount, currency))}
-        </div>
+        <Money value={zirconAmount} currency={currency} size="hero" tone="success" className="mb-2" />
 
         {/* Calculation breakdown */}
         <div className="text-xs text-muted-foreground space-y-1">
