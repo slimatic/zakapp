@@ -208,5 +208,19 @@ export default defineConfig(({ mode }) => {
         usePolling: true, // Recommended for Docker on some systems
       },
     },
+    // Local smoke-test preview: proxies /api to a reachable backend so the
+    // built client on :4173 can authenticate (vite preview has no proxy by default).
+    // Origin is rewritten because the backend CORS allowlist is prod-only.
+    preview: {
+      port: 4173,
+      proxy: {
+        '/api': {
+          target: process.env.VITE_PROXY_TARGET || 'http://192.168.86.242:3001',
+          changeOrigin: true,
+          secure: false,
+          headers: { Origin: 'https://app.zakapp.org' },
+        },
+      },
+    },
   };
 });
