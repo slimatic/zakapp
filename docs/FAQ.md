@@ -16,7 +16,8 @@ If sync failed (Red indicator) on the first device, data stayed local.
 ### Q: Can I use ZakApp on my phone?
 **A:** Yes, but with a caveat. ZakApp uses advanced cryptography (`window.crypto.subtle`) that browsers **block** on insecure (HTTP) connections.
 If you host it on your LAN (`http://192.168.x.x`), it will crash on mobile.
-**Workaround:** Use a tunnel like `ngrok` to get an HTTPS URL, or enable "Treat insecure origin as secure" in Chrome flags.
+**Workaround:** Use a tunnel like `ngrok` or `cloudflared` to get an HTTPS URL. `chrome://flags` is desktop-only and does **not** work on mobile browsers.
+**Full guide:** [Local Network Access](guides/DEVELOPMENT-NETWORK-ACCESS.md)
 
 ## 🔒 Security & Privacy
 
