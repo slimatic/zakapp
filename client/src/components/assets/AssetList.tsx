@@ -17,26 +17,64 @@
 
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, LayoutGrid, List as ListIcon } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { AssetCard } from './AssetCard';
 import { AssetsBreakdownChart } from '../dashboard/AssetsBreakdownChart';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { useUserSettingsRepository } from '../../hooks/useUserSettingsRepository';
 import { getAssetZakatableValue, ZakatMethodology } from '../../core/calculations/zakat';
 import { Button, Card } from '../ui';
-import { usePrivacy } from '../../contexts/PrivacyContext';
+import { Money } from '../ui/Money';
 import { useFxRates } from '../../services/apiHooks';
 import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 import { normalizeAssetsToCurrency, FxRates } from '../../utils/currencyNormalization';
 
+/**
+ * Assets page, composed like the mockup's assets page:
+ *
+ *   page head (title + one action)
+ *   summary strip (total, nisab position, count) - a bar, not a card
+ *   filter + list of dense rows
+ *   composition chart, moved BELOW the list
+ *
+ * The chart used to lead the page in a 2-of-3 column block, so the thing the
+ * user came to read (their assets) started halfway down. The grid/list toggle is
+ * gone: the list row now works at every width, so a second layout mode was a
+ * setting with no decision behind it.
+ */
+
+type FilterKey = 'all' | 'cash' | 'metals' | 'investments' | 'crypto' | 'property' | 'other';
+
+const FILTERS: Array<{ key: FilterKey; label: string; match: (t: string) => boolean }> = [
+  { key: 'all', label: 'All', match: () => true },
+  {
+    key: 'cash',
+    label: 'Cash',
+    match: (t) => ['cash', 'bank_account', 'expenses'].includes(t)
+  },
+  {
+    key: 'metals',
+    label: 'Gold & silver',
+    match: (t) => ['gold', 'silver'].includes(t)
+  },
+  {
+    key: 'investments',
+    label: 'Investments',
+    match: (t) =>
+      ['stock', 'stocks', 'investment_account', 'etf', 'mutual_fund', '401k', 'retirement', 'traditional_ira', 'roth_ira', 'pension'].includes(t)
+  },
+  { key: 'crypto', label: 'Crypto', match: (t) => ['crypto', 'cryptocurrency'].includes(t) },
+  { key: 'property', label: 'Property', match: (t) => ['property', 'real_estate'].includes(t) },
+  { key: 'other', label: 'Other', match: () => true }
+];
+
 export const AssetList: React.FC = () => {
   const navigate = useNavigate();
   const { assets, isLoading, error, removeAsset } = useAssetRepository();
-  const { privacyMode } = usePrivacy();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [filter, setFilter] = useState<FilterKey>('all');
 
   const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+    if (window.confirm(`Delete ${name}? This cannot be undone.`)) {
       await removeAsset(id);
     }
   };
@@ -47,9 +85,6 @@ export const AssetList: React.FC = () => {
 
   const { settings } = useUserSettingsRepository();
   const methodology = (settings?.preferredMethodology?.toUpperCase() || 'STANDARD') as ZakatMethodology;
-  // Currency resolution (#341): consolidated into useDisplayCurrency, which
-  // implements the #310 round 5 chain (local baseCurrency → auth settings →
-  // profile prefs → USD).
   const { currency: userCurrency } = useDisplayCurrency();
   const fxRatesQuery = useFxRates();
   const fxRates = fxRatesQuery?.data?.data?.rates as FxRates | undefined;
@@ -62,242 +97,131 @@ export const AssetList: React.FC = () => {
       const zVal = getAssetZakatableValue(asset, methodology);
       return sum + zVal;
     }, 0);
-    return {
-      totalAssets: total,
-      estimatedZakat: zakatable * 0.025
-    };
+    return { totalAssets: total, estimatedZakat: zakatable * 0.025 };
   }, [assets, methodology, userCurrency, fxRates]);
 
-  const formatCurrency = (value: number, currency?: string) => {
-    if (privacyMode) return '****';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || userCurrency,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  const visible = useMemo(() => {
+    if (filter === 'all') return assets;
+    const rule = FILTERS.find((f) => f.key === filter);
+    if (!rule || filter === 'other') return assets;
+    return assets.filter((a) =>
+      rule.match(String(a.type || '').toLowerCase().replace(/[\s-]/g, '_'))
+    );
+  }, [assets, filter]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-card-foreground">My Assets</h1>
-        <div className="flex items-center space-x-3">
-          <div className="bg-card border-border rounded-lg p-1 flex shadow-sm">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-muted text-card-foreground' : 'text-muted-foreground hover:text-card-foreground'}`}
-              aria-label="Grid View"
-              title="Grid View"
-            >
-              <LayoutGrid size={18} />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-muted text-card-foreground' : 'text-muted-foreground hover:text-card-foreground'}`}
-              aria-label="List View"
-              title="List View"
-            >
-              <ListIcon size={18} />
-            </button>
-          </div>
-          <Button onClick={() => navigate('/assets/new')}>
-            <Plus className="h-4 w-4 mr-2" /> Add Asset
-          </Button>
+    <div className="space-y-5">
+      {/* Page head */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
+            Assets
+          </h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Everything you own that counts toward zakat.
+          </p>
         </div>
+        <Button onClick={() => navigate('/assets/new')}>
+          <Plus className="me-1.5 h-4 w-4" /> Add asset
+        </Button>
       </div>
 
-      {/* Visualization Section - Only show if assets exist */}
+      {/* Summary strip */}
       {assets.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-          <div className="lg:col-span-2 bg-card rounded-lg border-border p-6 shadow-sm border">
-            <div className="h-full">
-              <AssetsBreakdownChart assets={assets} />
-            </div>
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3">
+          <div className="bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground">Total value</p>
+            <Money value={totalAssets} currency={userCurrency} size="lg" className="mt-0.5" />
           </div>
-
-          <div className="bg-muted rounded-lg border-border p-6 border flex flex-col justify-center">
-            <h2 className="text-lg font-semibold text-card-foreground mb-4">Summary</h2>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center border-b border-border pb-2">
-                <span className="text-muted-foreground">Total Assets</span>
-                <span className="font-bold text-lg text-card-foreground">
-                  {formatCurrency(totalAssets)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-card-foreground">{assets.length} items</span>
-              </div>
-              <div className="flex justify-between items-center pt-2 border-t border-border mt-2">
-                <span className="text-muted-foreground font-medium">Estimated Zakat</span>
-                <span className="font-bold text-secondary">
-                  {formatCurrency(estimatedZakat)}
-                </span>
-              </div>
-              <div className="pt-4 mt-2">
-                <div className="bg-success-soft text-success text-xs px-3 py-2 rounded-md">
-                  {privacyMode
-                    ? "Privacy Mode Enabled: Values are hidden."
-                    : "All values are legally owned by you and calculated locally."
-                  }
-                </div>
-              </div>
-            </div>
+          <div className="bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground">Estimated zakat</p>
+            <Money value={estimatedZakat} currency={userCurrency} size="lg" tone="success" className="mt-0.5" />
+          </div>
+          <div className="col-span-2 bg-card px-4 py-3 sm:col-span-1">
+            <p className="text-xs text-muted-foreground">Assets</p>
+            <p className="mt-0.5 font-heading text-lg font-semibold tabular-nums text-foreground">
+              {assets.length}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Assets List/Grid */}
+      {/* Filter */}
+      {assets.length > 0 && (
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter assets">
+          {FILTERS.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilter(key)}
+              aria-pressed={filter === key}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                filter === key
+                  ? 'bg-secondary text-secondary-foreground'
+                  : 'bg-accent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* List */}
       {isLoading ? (
-        /* Loading state — prevents the "No assets yet" flash before RxDB resolves */
         <Card className="p-12 text-center">
           <div className="flex justify-center py-4" role="status" aria-live="polite">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-muted-foreground"></div>
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-muted-foreground" />
           </div>
-          <p className="text-sm text-muted-foreground mt-2">Loading your assets…</p>
+          <p className="mt-2 text-sm text-muted-foreground">Loading your assets...</p>
         </Card>
       ) : error ? (
-        /* Error state — honest failure, with a retry path */
         <Card className="p-8 text-center">
-          <div className="w-16 h-16 bg-danger-soft rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">⚠️</span>
-          </div>
-          <h3 className="text-lg font-medium text-card-foreground mb-2">Couldn't load your assets</h3>
-          <p className="text-muted-foreground mb-6">{error.message || 'Something went wrong reading your local data.'}</p>
+          <h3 className="mb-2 text-lg font-medium text-foreground">Couldn't load your assets</h3>
+          <p className="mb-6 text-muted-foreground">
+            {error.message || 'Something went wrong reading your local data.'}
+          </p>
           <Button onClick={() => window.location.reload()} variant="outline">
             Retry
           </Button>
         </Card>
       ) : assets.length === 0 ? (
         <Card className="p-12 text-center">
-          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-            <Plus className="h-8 w-8 text-muted-foreground/70" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent">
+            <Plus className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-medium text-card-foreground mb-2">No assets yet</h3>
-          <p className="text-muted-foreground mb-6">Add your first asset to start tracking your wealth.</p>
-          <Button onClick={() => navigate('/assets/new')}>
-            Add Your First Asset
-          </Button>
+          <h3 className="mb-2 text-lg font-medium text-foreground">No assets yet</h3>
+          <p className="mb-6 text-muted-foreground">
+            Add your first asset to start tracking your wealth.
+          </p>
+          <Button onClick={() => navigate('/assets/new')}>Add your first asset</Button>
         </Card>
-      ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
-          {assets.map((asset) => (
-            <AssetCard
-              key={asset.id}
-              asset={asset}
-              onClick={() => navigate(`/assets/${asset.id}`)}
-              onEdit={() => handleEdit(asset.id)}
-              onDelete={() => handleDelete(asset.id, asset.name)}
-            />
-          ))}
-        </div>
       ) : (
-        <div className="animate-slide-up">
-          {/* Mobile List View: Stacked Cards */}
-          <div className="md:hidden space-y-3">
-            {assets.map((asset) => {
-              const isEligible = asset.zakatEligible !== false;
-              const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
-              const zakatableAmount = asset.value * modifier;
+        <div className="rounded-lg border border-border bg-card px-4 py-1 shadow-elev-1">
+          {visible.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              No assets in this category.
+            </p>
+          ) : (
+            visible.map((asset) => (
+              <AssetCard
+                key={asset.id}
+                asset={asset}
+                onEdit={() => handleEdit(asset.id)}
+                onDelete={() => handleDelete(asset.id, asset.name)}
+              />
+            ))
+          )}
+        </div>
+      )}
 
-              return (
-                <div
-                  key={asset.id}
-                  onClick={() => navigate(`/assets/${asset.id}`)}
-                  className="bg-card p-4 rounded-lg border-border shadow-sm active:bg-accent transition-colors border"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-semibold text-card-foreground">{asset.name}</h3>
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground uppercase tracking-wide">
-                        {asset.type.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                    <div className="text-end">
-                      <div className="font-bold text-card-foreground">{formatCurrency(asset.value, asset.currency)}</div>
-                      <div className="text-xs text-muted-foreground">Zakatable: {formatCurrency(zakatableAmount, asset.currency)}</div>
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-3 mt-3 pt-3 border-t border-border">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
-                      className="text-sm font-medium text-secondary px-3 py-1.5 bg-accent rounded"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(asset.id, asset.name); }}
-                      className="text-sm font-medium text-danger hover:text-danger px-3 py-1.5 bg-danger-soft rounded"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Desktop List View: Table */}
-          <div className="hidden md:block bg-card shadow-sm rounded-lg overflow-hidden border-border">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-border">
-                <thead className="bg-muted">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-muted-foreground uppercase tracking-wider">Asset Name</th>
-                    <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
-                    <th scope="col" className="px-6 py-3 text-end text-xs font-medium text-muted-foreground uppercase tracking-wider">Value</th>
-                    <th scope="col" className="px-6 py-3 text-end text-xs font-medium text-muted-foreground uppercase tracking-wider">Zakatable</th>
-                    <th scope="col" className="px-6 py-3 text-end text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-border">
-                  {assets.map((asset) => {
-                    const isEligible = asset.zakatEligible !== false;
-                    const modifier = isEligible ? ((asset as any)?.calculationModifier || 1.0) : 0;
-                    const zakatableAmount = asset.value * modifier;
-
-                    return (
-                      <tr
-                        key={asset.id}
-                        onClick={() => navigate(`/assets/${asset.id}`)}
-                        className="hover:bg-accent cursor-pointer transition-colors"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="text-sm font-medium text-card-foreground">{asset.name}</div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-card-foreground uppercase tracking-wide">
-                            {asset.type.replace(/_/g, ' ')}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-semibold text-card-foreground">
-                          {formatCurrency(asset.value, asset.currency)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm text-muted-foreground">
-                          {formatCurrency(zakatableAmount, asset.currency)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleEdit(asset.id); }}
-                            className="text-secondary hover:text-secondary/80 mr-4 font-medium"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleDelete(asset.id, asset.name); }}
-                            className="text-danger hover:text-danger font-medium"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+      {/* Composition - supporting detail, below what the user came for */}
+      {assets.length > 1 && (
+        <div className="rounded-lg border border-border bg-card p-5 shadow-elev-1">
+          <h2 className="mb-3 font-heading text-base font-semibold text-secondary">
+            Composition
+          </h2>
+          <AssetsBreakdownChart assets={assets} />
         </div>
       )}
     </div>

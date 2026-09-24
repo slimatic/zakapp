@@ -148,7 +148,7 @@ export const NisabYearRecordsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8" id="main-content">
+      <div className="space-y-6">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

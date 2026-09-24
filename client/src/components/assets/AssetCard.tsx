@@ -16,11 +16,25 @@
  */
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Landmark,
+  Coins,
+  TrendingUp,
+  Bitcoin,
+  Building2,
+  Package,
+  PiggyBank,
+  CircleDollarSign,
+  CreditCard,
+  Wallet,
+  MoreVertical,
+  type LucideIcon
+} from 'lucide-react';
 import { Asset } from '../../types';
-import { getModifierBadge, getModifierLabel } from '../../utils/assetModifiers';
-import { getAssetZakatableValue } from '../../core/calculations/zakat';
-import { usePrivacy } from '../../contexts/PrivacyContext';
-import { formatCurrency as canonicalCurrency } from '../../utils/formatters';
+import { getModifierLabel } from '../../utils/assetModifiers';
+import { getAssetZakatableValue, isAssetZakatable } from '../../core/calculations/zakat';
+import { Money } from '../ui/Money';
 
 interface AssetCardProps {
   asset: Asset;
@@ -30,158 +44,197 @@ interface AssetCardProps {
 }
 
 /**
- * AssetCard: Displays asset summary with privacy support
+ * AssetCard - one asset as a dense list row.
+ *
+ * This used to be a tall card that printed the value three times (asset value,
+ * zakatable, estimated zakat - so three "$0.00" rows for an exempt asset) and
+ * stamped a red-tinted explanation box on every single card. A screen of those
+ * was unreadable. This is the mockup's list row instead: icon chip, name, one
+ * muted sub-line carrying the zakat treatment, right-aligned money, and a single
+ * actions menu rather than two full-width buttons per row.
+ *
+ * Money rendering and privacy masking both go through <Money>, which resolves
+ * the display currency and applies the mask - so the local `****` guard is gone.
  */
+
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  cash: Landmark,
+  bank_account: Landmark,
+  gold: Coins,
+  silver: Coins,
+  stock: TrendingUp,
+  stocks: TrendingUp,
+  investment_account: TrendingUp,
+  etf: TrendingUp,
+  'mutual fund': TrendingUp,
+  '401k': PiggyBank,
+  retirement: PiggyBank,
+  'traditional ira': PiggyBank,
+  'roth ira': PiggyBank,
+  pension: PiggyBank,
+  business: Building2,
+  business_assets: Building2,
+  property: Building2,
+  real_estate: Building2,
+  crypto: Bitcoin,
+  cryptocurrency: Bitcoin,
+  debts: CircleDollarSign,
+  debts_owed_to_you: CircleDollarSign,
+  expenses: CreditCard,
+  liability: CreditCard,
+  other: Package
+};
+
+/**
+ * Human treatment label. Returns null for the plain, fully-zakatable case.
+ *
+ * `zakatable` comes from isAssetZakatable() rather than being re-derived here.
+ * An asset can have zakatEligible undefined AND a type the methodology does not
+ * recognise, which makes it non-zakatable while still looking "eligible" - that
+ * combination used to render as "Deferred until withdrawn", which is a
+ * different (and false) claim. The engine decides; the label just reports it.
+ */
+function treatmentLabel(
+  zakatable: boolean,
+  modifier: number,
+  options: { subCategory?: string; userMarkedExempt: boolean }
+): string | null {
+  if (!zakatable) {
+    // Distinguish the two reasons an asset carries no zakat: the user said so
+    // ("Exempt"), or the methodology does not count this asset type
+    // ("Not zakatable"). Collapsing them told users they had opted out when
+    // they had not.
+    if (options.subCategory === 'jewelry') return 'Exempt - jewelry';
+    return options.userMarkedExempt ? 'Exempt' : 'Not zakatable';
+  }
+  if (modifier === 1) return null;
+  if (modifier === 0) return 'Deferred until withdrawn';
+  if (modifier === 0.3) return '30% rule applies';
+  return getModifierLabel(modifier);
+}
+
 export const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, onEdit, onDelete }) => {
-  const { privacyMode } = usePrivacy();
-  const isEligible = asset.zakatEligible !== false; // Default to true
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
-  // Use core zakat calculation for accurate zakatable value
+  const isEligible = asset.zakatEligible !== false;
+  // The engine is the source of truth for whether zakat applies at all.
+  const zakatable = isAssetZakatable(asset, 'STANDARD');
+
   const zakatableAmount = getAssetZakatableValue(asset, 'STANDARD');
-  const effectiveModifier = asset.value > 0 ? zakatableAmount / asset.value : (isEligible ? 1.0 : 0);
+  const modifier =
+    asset.value > 0 ? zakatableAmount / asset.value : isEligible ? 1 : 0;
 
-  const modifierBadge = isEligible ? getModifierBadge(effectiveModifier) : { icon: '🚫', text: 'Exempt', color: 'bg-muted text-muted-foreground' };
-  const zakatOwed = zakatableAmount * 0.025; // Estimate at 2.5%
+  const key = String(asset.type || 'other').toLowerCase().replace(/[\s-]/g, '_');
+  const Icon = CATEGORY_ICONS[key] ?? Wallet;
 
-  const getCategoryIcon = (type: string): string => {
-    const icons: Record<string, string> = {
-      cash: '💰',
-      bank_account: '💰',
-      gold: '🥇',
-      silver: '🥈',
-      stock: '📈',
-      investment_account: '📈',
-      etf: '📊',
-      'mutual fund': '📑',
-      '401k': '🏦',
-      retirement: '🏦',
-      'traditional ira': '🏦',
-      'roth ira': '🏦',
-      pension: '🏦',
-      business: '🏢',
-      business_assets: '🏢',
-      property: '🏠',
-      real_estate: '🏠',
-      crypto: '₿',
-      cryptocurrency: '₿',
-      debts: '📝',
-      debts_owed_to_you: '📝',
-      expenses: '💳',
-      other: '📦'
-    };
-    return icons[type?.toLowerCase()] || '📊';
-  };
+  const treatment = treatmentLabel(zakatable, modifier, {
+    subCategory: asset.subCategory,
+    userMarkedExempt: asset.zakatEligible === false
+  });
+  const zakatOwed = Math.round(zakatableAmount * 0.025 * 100) / 100;
 
-  const formatCurrency = (value: number): string => {
-    // Guard preserved: privacy mode must mask, never format.
-    if (privacyMode) return '****';
-    return canonicalCurrency(value, asset.currency || 'USD');
-  };
+  const open = () => (onClick ? onClick() : navigate(`/assets/${asset.id}`));
+
+  const subtitle = [
+    asset.subCategory ? asset.subCategory.replace(/_/g, ' ') : null,
+    String(asset.type || '').replace(/_/g, ' ').toLowerCase(),
+    treatment
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <div
-      className="bg-card border-border rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 cursor-pointer"
-      onClick={onClick}
+      className="group flex items-center gap-3 border-b border-border py-3 last:border-b-0"
       role="article"
       aria-label={`Asset: ${asset.name}`}
     >
-      {/* Header: Icon, Name, and Modifier Badge */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-start gap-3 flex-1">
-          <span className="text-2xl" aria-hidden="true">
-            {getCategoryIcon(asset.type)}
-          </span>
-          <div className="flex-1">
-            <h3 className="font-semibold text-card-foreground text-sm md:text-base">
-              {asset.name}
-            </h3>
-            <p className="text-xs text-muted-foreground capitalize">
-              {asset.subCategory ? (
-                <span>
-                  {asset.subCategory.replace(/_/g, ' ')} • {asset.type.replace(/_/g, ' ').toLowerCase()}
-                </span>
-              ) : (
-                asset.type.replace(/_/g, ' ').toLowerCase()
-              )}
-            </p>
-          </div>
-        </div>
-
-        {/* Modifier Badge */}
-        <div
-          className={`px-2 py-1 rounded text-xs font-medium ${!isEligible ? 'bg-muted text-muted-foreground' : modifierBadge.color
-            } whitespace-nowrap ml-2`}
-          title={getModifierLabel(effectiveModifier)}
+      <button
+        type="button"
+        onClick={open}
+        className="flex min-w-0 flex-1 items-center gap-3 text-start"
+      >
+        <span
+          className="inline-flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] bg-accent text-secondary"
+          aria-hidden="true"
         >
-          <span aria-hidden="true">{!isEligible ? '🚫' : modifierBadge.icon}</span>{' '}
-          {!isEligible
-            ? (asset.subCategory === 'jewelry' ? 'Exempt (Jewelry)' : 'Exempt')
-            : modifierBadge.text}
-        </div>
-      </div>
+          <Icon className="h-[18px] w-[18px]" />
+        </span>
 
-      {/* Value Section */}
-      <div className="space-y-2 mb-4 border-t border-border pt-3">
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-muted-foreground">Asset Value:</span>
-          <span className="font-semibold text-card-foreground">{formatCurrency(asset.value)}</span>
-        </div>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-foreground">
+            {asset.name}
+          </span>
+          <span className="block truncate text-xs capitalize text-muted-foreground">
+            {subtitle}
+          </span>
+        </span>
 
-        {/* Zakatable Amount (only show if modifier applies) */}
-        {effectiveModifier !== 1.0 && (
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Zakatable:</span>
-            <span className="font-medium text-secondary">{formatCurrency(zakatableAmount)}</span>
-          </div>
-        )}
+        <span className="shrink-0 text-end">
+          <Money value={asset.value || 0} currency={asset.currency} size="sm" />
+          <span className="block text-xs text-muted-foreground">
+            {zakatOwed > 0 ? `${zakatOwed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} due` : 'No zakat due'}
+          </span>
+        </span>
+      </button>
 
-        {/* Estimated Zakat */}
-        <div className="flex justify-between items-center text-sm border-t border-border pt-2 mt-2">
-          <span className="font-medium text-card-foreground">Estimated Zakat:</span>
-          <span className="font-bold text-success">{formatCurrency(zakatOwed)}</span>
-        </div>
-      </div>
+      {(onEdit || onDelete) && (
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={`Actions for ${asset.name}`}
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </button>
 
-      {/* Modifier Info (if applicable) */}
-      {effectiveModifier !== 1.0 && (
-        <div className="text-xs text-muted-foreground bg-muted rounded px-2 py-2 mb-3">
-          <p className="font-medium mb-1">
-            {effectiveModifier === 0.3 ? '📊 30% Rule Applied' : effectiveModifier === 0.0 ? '⏸️ Deferred' : `◐ ${(effectiveModifier * 100).toFixed(1)}% Applied`}
-          </p>
-          <p>
-            {effectiveModifier === 0.3 && 'Passive investments contribute 30% of value to Zakat.'}
-            {effectiveModifier === 0.0 && 'Zakat-Deferred assets are exempt until withdrawal.'}
-          </p>
+          {menuOpen && (
+            <>
+              {/* Click-away layer: closes the menu without a document listener */}
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setMenuOpen(false)}
+                aria-hidden="true"
+              />
+              <div
+                className="absolute end-0 z-20 mt-1 w-40 rounded-lg border border-border bg-popover py-1 shadow-elev-3"
+                role="menu"
+              >
+                {onEdit && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onEdit();
+                    }}
+                    className="block w-full px-3 py-2 text-start text-sm text-foreground hover:bg-accent"
+                  >
+                    Edit
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDelete();
+                    }}
+                    className="block w-full px-3 py-2 text-start text-sm text-danger hover:bg-danger-soft"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
-
-      {/* Actions */}
-      <div className="flex gap-2 pt-3 border-t border-border">
-        {onEdit && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            className="flex-1 px-3 py-2 text-xs font-medium text-muted-foreground bg-muted hover:bg-accent rounded transition-colors"
-            aria-label={`Edit ${asset.name}`}
-          >
-            Edit
-          </button>
-        )}
-        {onDelete && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="flex-1 px-3 py-2 text-xs font-medium text-danger bg-danger-soft hover:bg-danger/20 rounded transition-colors"
-            aria-label={`Delete ${asset.name}`}
-          >
-            Delete
-          </button>
-        )}
-      </div>
     </div>
   );
 };

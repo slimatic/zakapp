@@ -337,7 +337,7 @@ export const Dashboard: React.FC = () => {
   // Loading state
   if (assetsLoading || recordsLoading || paymentsLoading) {
     return (
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="space-y-6">
         <div className="mb-6">
           <div className="h-8 bg-muted rounded animate-pulse w-1/3 mb-2" />
           <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
@@ -354,7 +354,7 @@ export const Dashboard: React.FC = () => {
   // Error state
   if (assetsError || recordsError) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div>
         <ErrorMessage
           error={assetsError || recordsError}
           title="Failed to load dashboard"
@@ -364,7 +364,7 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6" id="main-content">
+    <div className="space-y-4 sm:space-y-6">
       {/* Hero: greeting + estimated zakat due (the page's focal figure) */}
       <DashboardHero
         userName={user?.firstName || user?.username}

@@ -325,9 +325,23 @@ export const AssetDetails: React.FC = () => {
           {isAssetZakatable(safeAsset, 'STANDARD') ? (
             <>
               {effectiveModifier !== 1.0 && (
-                <p className="text-sm text-success">
-                  <span className="font-medium">Zakatable Value (after modifier {Math.round(effectiveModifier * 100)}%):</span> {formatCurrency(zakatableValue, safeAsset.currency)}
-                </p>
+                <>
+                  <p className="text-sm text-success">
+                    <span className="font-medium">Zakatable Value (after modifier {Math.round(effectiveModifier * 100)}%):</span> {formatCurrency(zakatableValue, safeAsset.currency)}
+                  </p>
+                  {/* Explanation moved here from the list row: a list of assets
+                      repeated this sentence on every card, which was noise. On
+                      the detail page (one asset, room to read) it belongs. */}
+                  <p className="text-sm text-muted-foreground">
+                    {effectiveModifier === 0.3 &&
+                      'Passive investments contribute 30% of value to Zakat.'}
+                    {effectiveModifier === 0 &&
+                      'Zakat-deferred assets are exempt until withdrawal.'}
+                    {effectiveModifier !== 0.3 &&
+                      effectiveModifier !== 0 &&
+                      `This asset contributes ${Math.round(effectiveModifier * 100)}% of its value to Zakat.`}
+                  </p>
+                </>
               )}
               {effectiveModifier === 1.0 && (
                 <p className="text-sm text-success">

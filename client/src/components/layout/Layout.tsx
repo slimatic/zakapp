@@ -26,30 +26,79 @@ import { SyncIndicator } from '../SyncIndicator';
 import { ThemeToggle } from './ThemeToggle';
 import { Logo } from '../common/Logo';
 import { Footer } from './Footer';
+import {
+  LayoutDashboard,
+  Wallet,
+  CreditCard,
+  Moon,
+  Calculator,
+  Banknote,
+  BarChart3,
+  BookOpen,
+  Settings,
+  Wrench,
+  KeyRound,
+  type LucideIcon
+} from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
+
+interface NavItem {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+/**
+ * Sidebar navigation, grouped the way the mockup groups it: the daily work
+ * first, then LEARN, then YOU. A persistent sidebar means the user can always
+ * see where they are instead of opening a dropdown to find out.
+ */
+const MAIN_NAV: NavItem[] = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Assets', href: '/assets', icon: Wallet },
+  { name: 'Liabilities', href: '/liabilities', icon: CreditCard },
+  { name: 'Hawl', href: '/nisab-records', icon: Moon },
+  { name: 'Calculator', href: '/calculator', icon: Calculator },
+  { name: 'Payments', href: '/payments', icon: Banknote },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 }
+];
+
+const LEARN_NAV: NavItem[] = [
+  { name: 'Knowledge Hub', href: '/learn', icon: BookOpen }
+];
+
+const YOU_NAV: NavItem[] = [
+  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Diagnostics', href: '/diagnostics', icon: Wrench },
+  { name: 'Admin', href: '/admin', icon: KeyRound }
+];
+
+/** Mobile tab bar: the four screens that matter on a phone, plus More. */
+const MOBILE_TABS: NavItem[] = [
+  { name: 'Home', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Assets', href: '/assets', icon: Wallet },
+  { name: 'Hawl', href: '/nisab-records', icon: Moon },
+  { name: 'Pay', href: '/payments', icon: Banknote }
+];
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const { privacyMode, togglePrivacyMode } = usePrivacy();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Helper function to get user initials for avatar
-  const getUserInitials = (user: any): string => {
-    if (!user) return '?';
-
-    const name = user.firstName || user.username || user.email?.split('@')[0] || 'User';
-
-    // Get first two initials (e.g., "John Test" → "JT", "johntest" → "JT")
+  const getUserInitials = (u: any): string => {
+    if (!u) return '?';
+    const name = u.firstName || u.username || u.email?.split('@')[0] || 'User';
     const words = name.split(' ');
     if (words.length >= 2) {
       return (words[0][0] + words[1][0]).toUpperCase();
     }
-    // Single word: take first two characters
     return name.substring(0, 2).toUpperCase();
   };
 
@@ -57,137 +106,25 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     await logout();
   };
 
-  const navigation = [
-    {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      )
-    },
-    {
-      name: 'Assets',
-      href: '/assets',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-      )
-    },
-    {
-      name: 'Liabilities',
-      href: '/liabilities',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Nisab',
-      href: '/nisab-records',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-      )
-    },
-    {
-      name: 'Payments',
-      href: '/payments',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a1 1 0 11-2 0 1 1 0 012 0z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Analytics',
-      href: '/analytics',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      )
-    },
-    {
-      name: 'Knowledge',
-      href: '/learn',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
-      )
-    },
-  ];
-
-  const desktopGroups = [
-    { name: 'Dashboard', href: '/dashboard' },
-    {
-      name: 'Wealth',
-      items: [
-        { name: 'Assets', href: '/assets' },
-        { name: 'Liabilities', href: '/liabilities' },
-        { name: 'Quick Calculator', href: '/calculator' },
-      ]
-    },
-    {
-      name: 'Records',
-      items: [
-        { name: 'Nisab Records', href: '/nisab-records' },
-        { name: 'Payments', href: '/payments' },
-      ]
-    },
-    { name: 'Analytics', href: '/analytics' },
-  ];
-
-  /* 
-   * CAUTION: 'navigation' array indices:
-   * 0: Dashboard
-   * 1: Assets
-   * 2: Liabilities
-   * 3: Nisab
-   * 4: Payments
-   * 5: Analytics
-   * 6: Knowledge (Hidden from main menus, accessible via top header)
-   */
-  // Re-define bottomNavItems to be safe with indices
-  const bottomNavReordered = [
-    navigation[0], // Dashboard
-    navigation[1], // Assets
-    navigation[3], // Nisab
-  ];
-
   const isActive = (href: string) => {
-    // For nisab-records route, also highlight when on nisab-year-records
+    // Nisab records have a legacy alias route.
     if (href === '/nisab-records') {
       return location.pathname === '/nisab-records' || location.pathname.startsWith('/nisab-year-records');
     }
     return location.pathname === href;
   };
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Close dropdown when clicking outside
+  // Close the user menu when clicking outside.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Handle keyboard navigation for dropdown
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
       setIsOpen(false);
@@ -197,237 +134,200 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
+  const renderNavList = (items: NavItem[]) =>
+    items.map(({ name, href, icon: Icon }) => {
+      const active = isActive(href);
+      return (
+        <Link
+          key={href}
+          to={href}
+          aria-current={active ? 'page' : undefined}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            active
+              ? 'bg-secondary text-secondary-foreground'
+              : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+          }`}
+        >
+          <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+          <span className="truncate">{name}</span>
+        </Link>
+      );
+    });
+
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Skip Link for keyboard navigation - positioned absolutely at top */}
+    <div className="min-h-screen bg-background">
       <SkipLink />
 
-      {/* Navigation */}
-      <nav className="bg-card border-b border-border" role="navigation" aria-label="Main navigation">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <Link to="/dashboard" className="flex items-center gap-2" aria-label="ZakApp Home">
-                  <Logo className="h-8 w-8" />
-                  <span className="hidden sm:inline-block text-xl font-bold text-secondary">ZakApp</span>
-                </Link>
-              </div>
-              <div className="hidden md:block">
-                <ul className="ms-10 flex items-center space-x-1 lg:space-x-4">
-                  {desktopGroups.map((group) => (
-                    <li key={group.name} className="relative group">
-                      {group.items ? (
-                        <div className="relative">
-                          <button
-                            className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${group.items.some(item => isActive(item.href))
-                              ? 'bg-accent text-accent-foreground'
-                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                              }`}
-                          >
-                            {group.name}
-                            <svg className="ms-1 h-4 w-4 text-tertiary group-hover:text-muted-foreground transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
+      {/* ── Top bar ───────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 border-b border-border bg-card">
+        <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
+          <Link to="/dashboard" className="flex items-center gap-2.5" aria-label="ZakApp home">
+            <Logo className="h-8 w-8" />
+            <span className="font-heading text-lg font-semibold text-secondary">ZakApp</span>
+            <span
+              className="font-arabic text-xl leading-none text-primary translate-y-[1px]"
+              aria-hidden="true"
+            >
+              زكاة
+            </span>
+          </Link>
 
-                          {/* Dropdown Menu */}
-                          <div className="absolute inline-start-0 mt-0 w-48 rounded-md shadow-elev-3 py-1 bg-popover ring-1 ring-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                            {group.items.map((item) => (
-                              <Link
-                                key={item.href}
-                                to={item.href}
-                                className={`block px-4 py-2 text-sm ${isActive(item.href)
-                                  ? 'bg-accent text-accent-foreground'
-                                  : 'text-muted-foreground hover:bg-muted'
-                                  }`}
-                              >
-                                {item.name}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <Link
-                          to={group.href || '#'}
-                          className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(group.href || '')
-                            ? 'bg-accent text-accent-foreground'
-                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                            }`}
-                          aria-current={isActive(group.href || '') ? 'page' : undefined}
-                        >
-                          {group.name}
-                        </Link>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+          <div className="flex-1" />
 
-            <div className="flex items-center gap-4">
-              {/* Theme Toggle (light/dark) */}
-              <ThemeToggle />
+          <ThemeToggle />
 
-              {/* Sync Status Indicator */}
-              <SyncIndicator />
+          <button
+            type="button"
+            onClick={togglePrivacyMode}
+            className={`rounded-md p-2 transition-colors ${
+              privacyMode ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent'
+            }`}
+            aria-label={privacyMode ? 'Show amounts' : 'Hide amounts'}
+            title={privacyMode ? 'Show amounts' : 'Hide amounts for privacy'}
+          >
+            {privacyMode ? (
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+            )}
+          </button>
 
-              <Link
-                to="/learn"
-                className="hidden sm:block p-2 rounded-md text-muted-foreground hover:bg-muted transition-colors"
-                aria-label="Knowledge Hub"
-                title="Knowledge Hub"
+          <SyncIndicator />
+
+          {/* Mobile menu trigger (sidebar is hidden below lg) */}
+          <div className="lg:hidden">
+            <MobileNav
+              items={[...MAIN_NAV, ...LEARN_NAV, ...YOU_NAV].map(({ name, href, icon: Icon }) => ({
+                name,
+                href,
+                icon: <Icon className="h-5 w-5" />
+              }))}
+              isOpen={isMobileMenuOpen}
+              onOpenChange={setIsMobileMenuOpen}
+            />
+          </div>
+
+          {/* User menu */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              onKeyDown={handleKeyDown}
+              className="flex items-center gap-2 rounded-full p-1 text-sm transition-colors hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              id="user-menu-button"
+              aria-expanded={isOpen}
+              aria-haspopup="true"
+              aria-label={`User menu for ${user?.firstName || user?.username || user?.email}`}
+            >
+              <span
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground"
+                aria-hidden="true"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </Link>
-
-              {/* Privacy Toggle - Global */}
-              <button
-                type="button"
-                onClick={togglePrivacyMode}
-                className={`p-2 rounded-md transition-colors ${privacyMode ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}
-                aria-label={privacyMode ? 'Show amounts' : 'Hide amounts'}
-                title={privacyMode ? 'Show amounts' : 'Hide amounts for privacy'}
+                {getUserInitials(user)}
+              </span>
+              <svg
+                className={`hidden h-4 w-4 text-muted-foreground transition-transform sm:block ${isOpen ? 'rotate-180' : ''}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
               >
-                {privacyMode ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                  </svg>
-                )}
-              </button>
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
 
-              {/* Mobile Navigation Hamburger (md:hidden) */}
-              <div className="md:hidden me-2">
-                <MobileNav
-                  items={navigation}
-                  isOpen={isMobileMenuOpen}
-                  onOpenChange={setIsMobileMenuOpen}
-                />
-              </div>
-
-              {/* User Dropdown Menu */}
-              <div className="flex-shrink-0" ref={dropdownRef}>
-                <div className="relative">
-                  <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    onKeyDown={handleKeyDown}
-                    className="flex items-center gap-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring p-1 hover:bg-muted transition-colors"
-                    id="user-menu-button"
-                    aria-expanded={isOpen}
-                    aria-haspopup="true"
-                    aria-label={`User menu for ${user?.firstName || user?.username || user?.email}`}
-                  >
-                    {/* User Avatar with Initials */}
-                    <div
-                      className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-semibold text-sm shadow-sm"
-                      aria-hidden="true"
-                    >
-                      {getUserInitials(user)}
-                    </div>
-
-                    {/* User Name - Hidden on Mobile, Visible on Desktop */}
-                    <span className="hidden md:inline text-foreground text-sm font-medium max-w-[12rem] truncate align-middle">
-                      {user?.firstName || user?.username || user?.email?.split('@')[0]}
-                    </span>
-
-                    {/* Screen Reader Only - Always announce full name */}
-                    <span className="sr-only">
-                      {user?.firstName || user?.username || user?.email?.split('@')[0]}
-                    </span>
-
-                    {/* Dropdown Chevron */}
-                    <svg
-                      className={`h-4 w-4 text-tertiary transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      aria-hidden="true"
-                    >
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-
-                  {isOpen && (
-                    <div
-                      className="origin-top-right absolute inline-end-0 mt-2 w-48 rounded-md shadow-elev-3 py-1 bg-popover ring-1 ring-border focus:outline-none z-50"
-                      role="menu"
-                      aria-orientation="vertical"
-                      aria-labelledby="user-menu-button"
-                    >
-                      {/* Profile link extracted to Settings */}
-                      <Link
-                        to="/settings"
-                        className="block px-4 py-2 text-sm text-foreground hover:bg-muted focus:bg-muted"
-                        role="menuitem"
-                        onClick={() => setIsOpen(false)}
-                        tabIndex={0}
-                      >
-                        Settings
-                      </Link>
-
-                      {user?.isAdmin && (
-                        <Link
-                          to="/admin"
-                          className="block px-4 py-2 text-sm text-foreground hover:bg-muted focus:bg-muted"
-                          role="menuitem"
-                          onClick={() => setIsOpen(false)}
-                          tabIndex={0}
-                        >
-                          Admin Dashboard
-                        </Link>
-                      )}
-
-                      <div className="border-t border-border my-1"></div>
-
-                      <button
-                        onClick={() => {
-                          setIsOpen(false);
-                          handleLogout();
-                        }}
-                        className="block w-full text-start px-4 py-2 text-sm text-foreground hover:bg-muted focus:bg-muted"
-                        role="menuitem"
-                        tabIndex={0}
-                      >
-                        Logout
-                      </button>
-                    </div>
+            {isOpen && (
+              <div
+                className="absolute end-0 z-50 mt-2 w-52 rounded-lg border border-border bg-popover py-1 shadow-elev-3 focus:outline-none"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="user-menu-button"
+              >
+                <div className="border-b border-border px-4 py-2">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {user?.firstName || user?.username || user?.email?.split('@')[0]}
+                  </p>
+                  {user?.email && (
+                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                   )}
                 </div>
+
+                <Link
+                  to="/settings"
+                  className="block px-4 py-2 text-sm text-foreground hover:bg-accent focus:bg-accent"
+                  role="menuitem"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Settings
+                </Link>
+
+                {user?.isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="block px-4 py-2 text-sm text-foreground hover:bg-accent focus:bg-accent"
+                    role="menuitem"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Admin dashboard
+                  </Link>
+                )}
+
+                <div className="my-1 border-t border-border" />
+
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleLogout();
+                  }}
+                  className="block w-full px-4 py-2 text-start text-sm text-foreground hover:bg-accent focus:bg-accent"
+                  role="menuitem"
+                >
+                  Log out
+                </button>
               </div>
-            </div>
+            )}
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* Main Content */}
-      <main id="main-content" className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 pb-20 md:pb-6" role="main">
-        <div className="px-4 py-6 sm:px-0">
+      {/* ── Shell: sidebar + page ─────────────────────────────────────────── */}
+      <div className="mx-auto flex w-full max-w-[1400px]">
+        <nav
+          className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 overflow-y-auto border-e border-border bg-card px-3 py-4 lg:block"
+          aria-label="Main navigation"
+        >
+          <div className="space-y-1">{renderNavList(MAIN_NAV)}</div>
+
+          <p className="px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Learn
+          </p>
+          <div className="space-y-1">{renderNavList(LEARN_NAV)}</div>
+
+          <p className="px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            You
+          </p>
+          <div className="space-y-1">{renderNavList(YOU_NAV)}</div>
+        </nav>
+
+        <main
+          id="main-content"
+          className="min-w-0 flex-1 px-4 pb-24 pt-5 sm:px-6 lg:pb-8"
+          role="main"
+        >
           {children}
-        </div>
-
-        {/* Footer */}
-        <Footer />
-      </main>
+          <Footer />
+        </main>
+      </div>
 
       <BottomNav
-        items={[
-          ...bottomNavReordered,
-          {
-            name: 'More',
-            href: '#',
-            icon: (
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )
-          }
-        ]}
+        items={MOBILE_TABS.map(({ name, href, icon: Icon }) => ({
+          name,
+          href,
+          icon: <Icon className="h-6 w-6" />
+        }))}
         onMoreClick={() => setIsMobileMenuOpen(true)}
       />
     </div>

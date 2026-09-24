@@ -10,7 +10,7 @@
 import { logger } from './logger';
 import { getDb } from '../db';
 import { v4 as uuidv4 } from 'uuid';
-import { AssetCategoryType } from '@zakapp/shared';
+import { AssetType } from '../types';
 
 // Helper to get random item from array
 const random = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
@@ -60,15 +60,30 @@ export class DataSeeder {
         logger.info(`🌱 Seeding ${count} assets for user ${userId}...`);
 
         const assets = [];
-        // Asset types matching enum, cast as strings if needed to match shared type exactly in runtime
-        const assetTypes: AssetCategoryType[] = ['cash', 'gold', 'silver', 'crypto', 'stocks', 'property', 'business'];
+        // The zakat engine matches asset.type against the AssetType enum, whose
+        // values are UPPERCASE ('CASH', 'GOLD', ...). Seeding lowercase strings
+        // ('cash') meant isAssetZakatable's `zakatableAssets.includes(type)`
+        // never matched, so every seeded asset silently reported "Not zakatable"
+        // and $0.00. Match the enum.
+        const assetTypes: AssetType[] = [
+            AssetType.CASH,
+            AssetType.GOLD,
+            AssetType.SILVER,
+            AssetType.CRYPTOCURRENCY,
+            AssetType.INVESTMENT_ACCOUNT,
+            AssetType.REAL_ESTATE,
+            AssetType.BUSINESS_ASSETS
+        ];
 
         for (let i = 0; i < count; i++) {
             const type = random(assetTypes);
             assets.push({
                 id: uuidv4(),
                 userId: userId,
-                name: `${type.charAt(0).toUpperCase() + type.slice(1)} Asset ${i + 1}`,
+                name: `${type
+                    .split('_')
+                    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+                    .join(' ')} Asset ${i + 1}`,
                 type: type,
                 value: randomFloat(100, 50000), // Converted from 'amount' to 'value' per schema
                 currency: 'USD',
