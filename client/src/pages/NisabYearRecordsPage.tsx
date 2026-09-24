@@ -196,7 +196,12 @@ export const NisabYearRecordsPage: React.FC = () => {
                 const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
                 import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
                   const generator = new ReportGenerator(userCurrency);
-                  generator.generateHawlStatement(record as any, allAssets, 'User', totalLiabilities);
+                  // Same identity fallback the rest of the app uses (Layout, Dashboard).
+                  // Was a hardcoded 'User', so every shared statement named the
+                  // recipient 'User'.
+                  const owner =
+                    user?.firstName || user?.username || user?.email?.split('@')[0] || 'User';
+                  generator.generateHawlStatement(record as any, allAssets, owner, totalLiabilities);
                 });
               }}
               onCreateRecord={() => setShowCreateModal(true)}
