@@ -31,8 +31,8 @@ export const NotificationSettings: React.FC = () => {
 
   if (!supported) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex items-center gap-2 text-yellow-800">
+      <div className="bg-accent border border-default rounded-lg p-4">
+        <div className="flex items-center gap-2 text-primary">
           <AlertCircle className="w-5 h-5" />
           <p className="text-sm">
             Push notifications are not supported in this browser. Please use a modern browser
@@ -48,13 +48,13 @@ export const NotificationSettings: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {subscribed ? (
-            <Bell className="w-5 h-5 text-green-600" />
+            <Bell className="w-5 h-5 text-primary" />
           ) : (
-            <BellOff className="w-5 h-5 text-gray-400" />
+            <BellOff className="w-5 h-5 text-muted-foreground" />
           )}
           <div>
-            <h3 className="text-sm font-medium text-gray-900">Push Notifications</h3>
-            <p className="text-sm text-gray-500">
+            <h3 className="text-sm font-medium text-primary">Push Notifications</h3>
+            <p className="text-sm text-muted-foreground">
               {subscribed
                 ? 'You will receive Zakat reminders 30, 7, and 1 day before due dates.'
                 : 'Get reminded when your Zakat is due.'}
