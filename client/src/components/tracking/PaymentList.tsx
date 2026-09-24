@@ -376,7 +376,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         >
           Payment Date
           {sortBy === 'date' && (
-            <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+            <span className="ms-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
           )}
         </button>
 
@@ -389,7 +389,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         >
           Amount
           {sortBy === 'amount' && (
-            <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+            <span className="ms-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
           )}
         </button>
 
@@ -402,7 +402,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         >
           Created Date
           {sortBy === 'created' && (
-            <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+            <span className="ms-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
           )}
         </button>
 

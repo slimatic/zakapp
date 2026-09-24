@@ -64,7 +64,7 @@ export const DataManagement: React.FC = () => {
     return (
         <div className="space-y-8">
             <div>
-                <h2 className="text-xl font-semibold text-primary mb-4">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
                     Data Management
                 </h2>
                 <p className="text-muted-foreground mb-6">
@@ -88,32 +88,32 @@ export const DataManagement: React.FC = () => {
 
             {/* Privacy Settings */}
             <div className="space-y-4">
-                <h3 className="text-lg font-medium text-primary">Privacy Preferences</h3>
+                <h3 className="text-lg font-medium text-foreground">Privacy Preferences</h3>
 
                 <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-accent rounded-lg">
                         <div>
-                            <p className="font-medium text-primary">Data Encryption</p>
+                            <p className="font-medium text-foreground/80">Data Encryption</p>
                             <p className="text-sm text-muted-foreground">All sensitive data is encrypted with AES-256</p>
                         </div>
                         <div className="flex items-center">
-                            <span className="text-primary font-medium">✅ Enabled</span>
+                            <span className="text-foreground/80 font-medium">✅ Enabled</span>
                         </div>
                     </div>
 
                     <div className="flex items-center justify-between p-4 bg-accent rounded-lg">
                         <div>
-                            <p className="font-medium text-primary">Local Data Storage</p>
+                            <p className="font-medium text-foreground/80">Local Data Storage</p>
                             <p className="text-sm text-muted-foreground">Your data is stored locally on your device</p>
                         </div>
                         <div className="flex items-center">
-                            <span className="text-primary font-medium">✅ Active</span>
+                            <span className="text-foreground/80 font-medium">✅ Active</span>
                         </div>
                     </div>
 
                     <div className="flex items-center justify-between p-4 bg-accent rounded-lg">
                         <div>
-                            <p className="font-medium text-primary" id="usage-stats-label">Anonymous Usage Statistics</p>
+                            <p className="font-medium text-foreground/80" id="usage-stats-label">Anonymous Usage Statistics</p>
                             <p className="text-sm text-muted-foreground">Help improve ZakApp by sharing anonymous usage data</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -134,12 +134,12 @@ export const DataManagement: React.FC = () => {
 
             {/* Data Retention */}
             <div className="border-t border-border pt-6">
-                <h3 className="text-lg font-medium text-primary mb-4">Data Retention</h3>
+                <h3 className="text-lg font-medium text-foreground mb-4">Data Retention</h3>
                 <div className="bg-accent border border-border rounded-lg p-4">
                     <div className="flex items-start">
-                        <span className="text-primary text-xl mr-3" aria-hidden="true">⏰</span>
+                        <span className="text-foreground/80 text-xl mr-3" aria-hidden="true">⏰</span>
                         <div>
-                            <p className="font-medium text-primary">Data Retention Policy</p>
+                            <p className="font-medium text-foreground/80">Data Retention Policy</p>
                             <p className="text-sm text-muted-foreground mt-1">
                                 Your data is retained indefinitely for calculation accuracy and historical tracking.
                                 You can delete your account at any time to remove all data permanently.

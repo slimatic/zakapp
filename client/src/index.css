@@ -73,7 +73,7 @@
     --secondary-foreground: 0 0% 100%;
 
     --muted: 42 29% 93%;
-    --muted-foreground: 220 9% 46%;
+    --muted-foreground: 220 9% 43%;
 
     /* shadcn accent = brand-soft tonal surface (NOT the amber) */
     --accent: 140 17% 93%;
@@ -94,12 +94,12 @@
     --success: 150 64% 29%;
     --success-foreground: 0 0% 100%;
     --success-soft: 138 39% 94%;
-    --warn: 26 90% 37%;
+    --warn: 26 90% 35%;
     --warn-soft: 37 87% 94%;
     --warn-strong: 23 82% 31%;
     --danger: 5 61% 44%;
     --danger-soft: 6 70% 95%;
-    --text-3: 218 11% 65%;
+    --text-3: 218 11% 42%;
     /* ── Categorical chart ramp ────────────────────────────────────────────
        Charts previously used the stock recharts palette (teal / cyan / indigo
        / violet / pink). Indigo and violet are the "AI gradient" fingerprint,
@@ -147,7 +147,7 @@
     --secondary-foreground: 221 44% 10%;
 
     --muted: 221 39% 11%;
-    --muted-foreground: 215 15% 66%;
+    --muted-foreground: 215 15% 68%;
 
     --accent: 43 33% 12%;
     --accent-foreground: 41 62% 56%;
@@ -170,7 +170,7 @@
     --warn-strong: 42 71% 63%;
     --danger: 7 82% 72%;
     --danger-soft: 358 34% 15%;
-    --text-3: 222 15% 49%;
+    --text-3: 222 15% 60%;
     /* Chart ramp, Qamar: lifted in lightness so the ramp keeps contrast on the
        navy surface. Same hue order as light so a series does not change
        identity between themes. */

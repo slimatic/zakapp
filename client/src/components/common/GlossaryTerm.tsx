@@ -52,7 +52,12 @@ export const GlossaryTerm: React.FC<GlossaryTermProps> = ({
     );
 
     return (
-        <Tooltip content={tooltipContent} maxWidth="280px" ariaLabel={`${glossaryItem.display} — definition`}>
+        <Tooltip
+            content={tooltipContent}
+            maxWidth="280px"
+            className="inline-affordance"
+            ariaLabel={`${glossaryItem.display} — definition`}
+        >
             <span className={className}>
                 {children || glossaryItem.display}
             </span>

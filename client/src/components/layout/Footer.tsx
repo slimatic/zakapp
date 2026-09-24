@@ -17,24 +17,24 @@ import { DonationCTA } from '../donation/DonationCTA';
  */
 export const Footer: React.FC = () => {
     const linkClass = 'transition-colors hover:text-secondary';
-    const dot = <span className="text-border-strong" aria-hidden="true">·</span>;
+    const dot = <span className="text-foreground/70" aria-hidden="true">·</span>;
 
     return (
         <footer className="mt-auto border-t border-border bg-muted">
             <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col items-center gap-2.5 text-xs text-tertiary sm:flex-row sm:justify-between sm:gap-6">
+                <div className="flex flex-col items-center gap-2.5 text-xs text-foreground/80 sm:flex-row sm:justify-between sm:gap-6">
 
                     {/* Links. Wraps and stays on one or two lines rather than
                         stacking one link per row. */}
                     <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
                         <DonationCTA variant="footer" />
-                        <span className="text-border-strong" aria-hidden="true">·</span>
+                        <span className="text-foreground/70" aria-hidden="true">·</span>
                         <Link to="/privacy-policy" className={linkClass}>Privacy</Link>
-                        <span className="text-border-strong" aria-hidden="true">·</span>
+                        <span className="text-foreground/70" aria-hidden="true">·</span>
                         <a href="https://github.com/slimatic/zakapp" target="_blank" rel="noopener noreferrer" className={linkClass}>
                             Source
                         </a>
-                        <span className="text-border-strong" aria-hidden="true">·</span>
+                        <span className="text-foreground/70" aria-hidden="true">·</span>
                         <a
                             href="https://github.com/slimatic/zakapp/issues"
                             target="_blank"
@@ -50,22 +50,22 @@ export const Footer: React.FC = () => {
                         the commit hash are desktop-only so this stays a single
                         line on a phone. */}
                     <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-                        <span className="font-semibold text-muted-foreground">ZakApp</span>
+                        <span className="font-semibold text-foreground/80">ZakApp</span>
                         {dot}
                         <span>© {new Date().getFullYear()}</span>
                         {dot}
                         <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className={`${linkClass} group flex items-center gap-1`}>
                             <span className="hidden sm:inline">Made with</span>
-                            <span className="text-danger/70 group-hover:text-danger">❤️</span>
+                            <span aria-hidden="true">❤️</span>
                             <span className="hidden sm:inline">by</span>
-                            <span className="font-semibold text-muted-foreground group-hover:text-foreground">RST Labs</span>
+                            <span className="font-semibold text-foreground/80 group-hover:text-foreground">RST Labs</span>
                         </a>
                         {dot}
                         <a
                             href="https://github.com/slimatic/zakapp/releases"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-mono opacity-70 transition-opacity hover:text-secondary hover:opacity-100"
+                            className="font-mono text-foreground/70 transition-colors hover:text-secondary"
                             title={`Build ${__COMMIT_HASH__}`}
                         >
                             v{__APP_VERSION__}

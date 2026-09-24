@@ -12,7 +12,7 @@ export const DonationCTA: React.FC<{ className?: string, variant?: 'sidebar' | '
                 href={donationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center gap-2 text-xs text-warn-strong hover:text-warn-strong/80 transition-colors ${className}`}
+                className={`inline-flex min-h-11 items-center gap-2 text-xs text-warn-strong hover:text-warn-strong/80 transition-colors ${className}`}
             >
                 <span>☕</span>
                 <span>Sustain ZakApp</span>

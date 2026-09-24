@@ -170,7 +170,7 @@ export const ZakatCalculator: React.FC = () => {
         </CardContent>
         <CardFooter className="flex justify-end">
           <Button onClick={() => setCurrentStep(1)} className="w-full sm:w-auto">
-            Next: Select Assets <ArrowRight className="ml-2 h-4 w-4" />
+            Next: Select Assets <ArrowRight className="ms-2 h-4 w-4" />
           </Button>
         </CardFooter>
       </Card>
@@ -301,8 +301,8 @@ export const ZakatCalculator: React.FC = () => {
         <div className="flex items-center space-x-2 bg-card px-3 py-1.5 rounded-full border border-border shadow-sm">
           <ShieldCheck className="h-4 w-4 text-success" />
           <span className="text-xs font-medium text-secondary">Local-First Architecture</span>
-          <Badge variant="privacy" className="ml-2">
-            <Lock className="h-3 w-3 mr-1" /> Encrypted
+          <Badge variant="privacy" className="ms-2">
+            <Lock className="h-3 w-3 me-1" /> Encrypted
           </Badge>
         </div>
       </div>
@@ -319,7 +319,7 @@ export const ZakatCalculator: React.FC = () => {
                    `}>
               {currentStep > step.id ? <ShieldCheck className="h-4 w-4" /> : step.id + 1}
             </div>
-            <span className={`ml-2 text-sm font-medium ${currentStep === step.id ? 'text-foreground' : 'text-muted-foreground'}`}>
+            <span className={`ms-2 text-sm font-medium ${currentStep === step.id ? 'text-foreground' : 'text-muted-foreground'}`}>
               {step.title}
             </span>
             {/* Connector: decorative, and the first thing to go on a narrow screen */}

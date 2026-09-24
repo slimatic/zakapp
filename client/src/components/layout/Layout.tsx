@@ -161,11 +161,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* ── Top bar ───────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-border bg-card">
         <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
-          <Link to="/dashboard" className="flex items-center gap-2.5" aria-label="ZakApp home">
+          <Link to="/dashboard" className="flex min-h-11 items-center gap-2.5" aria-label="ZakApp home">
             <Logo className="h-8 w-8" />
             <span className="font-heading text-lg font-semibold text-secondary">ZakApp</span>
             <span
-              className="font-arabic text-xl leading-none text-primary translate-y-[1px]"
+              className="font-arabic text-xl leading-none text-foreground/80 translate-y-[1px]"
               aria-hidden="true"
             >
               زكاة
@@ -179,7 +179,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <button
             type="button"
             onClick={togglePrivacyMode}
-            className={`rounded-md p-2 transition-colors ${
+            className={`flex h-11 w-11 items-center justify-center rounded-md transition-colors ${
               privacyMode ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent'
             }`}
             aria-label={privacyMode ? 'Show amounts' : 'Hide amounts'}
@@ -224,7 +224,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <button
               onClick={() => setIsOpen(!isOpen)}
               onKeyDown={handleKeyDown}
-              className="flex items-center gap-2 rounded-full p-1 text-sm transition-colors hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 items-center gap-2 rounded-full px-1 text-sm transition-colors hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               id="user-menu-button"
               aria-expanded={isOpen}
               aria-haspopup="true"

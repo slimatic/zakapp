@@ -53,7 +53,7 @@ export const NotificationSettings: React.FC = () => {
             <BellOff className="w-5 h-5 text-muted-foreground" />
           )}
           <div>
-            <h3 className="text-sm font-medium text-primary">Push Notifications</h3>
+            <h3 className="text-sm font-medium text-foreground">Push Notifications</h3>
             <p className="text-sm text-muted-foreground">
               {subscribed
                 ? 'You will receive Zakat reminders 30, 7, and 1 day before due dates.'

@@ -135,7 +135,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   };
 
   return (
-    <span className={`relative inline-block ${className}`}>
+    <span className="relative inline-block">
       <span
         ref={triggerRef}
         onMouseEnter={handleMouseEnter}
@@ -153,7 +153,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
         // definition. GlossaryTerm overrides this via ariaLabel.
         aria-label={ariaLabel}
         aria-describedby={isVisible ? tooltipId : undefined}
-        className="cursor-help inline"
+        className={`cursor-help inline ${className}`}
       >
         {children}
       </span>

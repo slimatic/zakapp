@@ -75,7 +75,7 @@ export const SecuritySettings: React.FC = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-primary mb-4">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
                     Security Settings
                 </h2>
                 <p className="text-muted-foreground mb-6">
@@ -94,11 +94,11 @@ export const SecuritySettings: React.FC = () => {
 
             {/* Change Password Section */}
             <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                <h3 className="text-lg font-medium text-primary">Change Password</h3>
+                <h3 className="text-lg font-medium text-foreground">Change Password</h3>
 
                 <div className="grid grid-cols-1 gap-6 max-w-md">
                     <div>
-                        <label htmlFor="currentPassword" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="currentPassword" className="block text-sm font-medium text-foreground mb-2">
                             Current Password
                         </label>
                         <input
@@ -115,7 +115,7 @@ export const SecuritySettings: React.FC = () => {
                     </div>
 
                     <div>
-                        <label htmlFor="newPassword" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="newPassword" className="block text-sm font-medium text-foreground mb-2">
                             New Password
                         </label>
                         <input
@@ -136,7 +136,7 @@ export const SecuritySettings: React.FC = () => {
                     </div>
 
                     <div>
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
                             Confirm New Password
                         </label>
                         <input
@@ -175,14 +175,14 @@ export const SecuritySettings: React.FC = () => {
 
             {/* Two-Factor Authentication */}
             <div className="border-t border-border pt-6">
-                <h3 className="text-lg font-medium text-primary mb-4">
+                <h3 className="text-lg font-medium text-foreground mb-4">
                     Two-Factor Authentication
                 </h3>
 
                 <div className="bg-accent rounded-lg p-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="font-medium text-primary">Authenticator App</p>
+                            <p className="font-medium text-foreground/80">Authenticator App</p>
                             <p className="text-sm text-muted-foreground">Use an authenticator app for codes</p>
                         </div>
                         <Button variant="secondary" size="sm" disabled>

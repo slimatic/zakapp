@@ -173,7 +173,7 @@ export const ProfileForm: React.FC = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-primary mb-4">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
                     Profile Information
                 </h2>
                 <p className="text-muted-foreground mb-6">
@@ -184,8 +184,8 @@ export const ProfileForm: React.FC = () => {
             {showSuccessMessage && (
                 <div className="bg-accent border border-border rounded-lg p-4 mb-6">
                     <div className="flex items-center">
-                        <span className="text-primary text-xl mr-3" aria-hidden="true">✅</span>
-                        <p className="text-primary font-medium">{showSuccessMessage}</p>
+                        <span className="text-foreground/80 text-xl me-3" aria-hidden="true">✅</span>
+                        <p className="text-foreground/80 font-medium">{showSuccessMessage}</p>
                     </div>
                 </div>
             )}
@@ -193,7 +193,7 @@ export const ProfileForm: React.FC = () => {
             <form onSubmit={handleProfileSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label htmlFor="firstName" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="firstName" className="block text-sm font-medium text-foreground mb-2">
                             First Name
                         </label>
                         <input
@@ -210,7 +210,7 @@ export const ProfileForm: React.FC = () => {
                     </div>
 
                     <div>
-                        <label htmlFor="lastName" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="lastName" className="block text-sm font-medium text-foreground mb-2">
                             Last Name
                         </label>
                         <input
@@ -226,7 +226,7 @@ export const ProfileForm: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label htmlFor="username" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="username" className="block text-sm font-medium text-foreground mb-2">
                             Username
                         </label>
                         <input
@@ -243,7 +243,7 @@ export const ProfileForm: React.FC = () => {
                     </div>
 
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
                             Email Address
                         </label>
                         <input
@@ -259,11 +259,11 @@ export const ProfileForm: React.FC = () => {
                         />
                         <div className="mt-1">
                             {user?.isVerified ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-primary">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-foreground/80">
                                     ✅ Verified
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-primary">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-foreground/80">
                                     ⚠️ Unverified - Please check your email
                                 </span>
                             )}
@@ -273,13 +273,13 @@ export const ProfileForm: React.FC = () => {
 
                 {/* Preferences Section */}
                 <div className="border-t border-border pt-6">
-                    <h3 className="text-lg font-medium text-primary mb-4">
+                    <h3 className="text-lg font-medium text-foreground mb-4">
                         Islamic Calculation Preferences
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label htmlFor="currency" className="block text-sm font-medium text-primary mb-2">
+                            <label htmlFor="currency" className="block text-sm font-medium text-foreground mb-2">
                                 Default Currency
                             </label>
                             <select
@@ -303,7 +303,7 @@ export const ProfileForm: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="zakatMethod" className="block text-sm font-medium text-primary mb-2">
+                            <label htmlFor="zakatMethod" className="block text-sm font-medium text-foreground mb-2">
                                 Preferred Zakat Methodology
                             </label>
                             <select
@@ -327,9 +327,9 @@ export const ProfileForm: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="calendarType" className="block text-sm font-medium text-primary mb-2">
+                            <label htmlFor="calendarType" className="block text-sm font-medium text-foreground mb-2">
                                 Calendar System
-                                <span className="ml-2 text-xs text-muted-foreground">
+                                <span className="ms-2 text-xs text-muted-foreground">
                                     (for Zakat calculation dates)
                                 </span>
                             </label>
@@ -356,7 +356,7 @@ export const ProfileForm: React.FC = () => {
 
                         {/* Hijri Adjustment Slider */}
                         <div>
-                            <label className="block text-sm font-medium text-primary mb-2">
+                            <label className="block text-sm font-medium text-foreground mb-2">
                                 Hijri Date Adjustment (Moon Sighting)
                             </label>
                             <div className="flex items-center gap-4">
@@ -369,7 +369,7 @@ export const ProfileForm: React.FC = () => {
                                     onChange={(e) => setHijriAdjustment(parseInt(e.target.value))}
                                     className="w-full h-2 bg-accent rounded-lg appearance-none cursor-pointer"
                                 />
-                                <span className="text-sm font-medium text-primary w-16 text-end">
+                                <span className="text-sm font-medium text-foreground/80 w-16 text-end">
                                     {hijriAdjustment > 0 ? `+${hijriAdjustment}` : hijriAdjustment} Days
                                 </span>
                             </div>
@@ -377,10 +377,10 @@ export const ProfileForm: React.FC = () => {
                             <div className="mt-3 p-3 bg-accent rounded-lg border border-border">
                                 <p className="text-xs text-muted-foreground mb-1">Today's Date Preview:</p>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm text-primary">
+                                    <span className="text-sm text-foreground/80">
                                         📅 {new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                     </span>
-                                    <span className="text-sm font-medium text-primary">
+                                    <span className="text-sm font-medium text-foreground/80">
                                         🌙 {formatHijriDate(gregorianToHijri(new Date(), hijriAdjustment))}
                                     </span>
                                 </div>
@@ -391,7 +391,7 @@ export const ProfileForm: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="language" className="block text-sm font-medium text-primary mb-2">
+                            <label htmlFor="language" className="block text-sm font-medium text-foreground mb-2">
                                 Language
                             </label>
                             <select
@@ -422,7 +422,7 @@ export const ProfileForm: React.FC = () => {
                         variant="default"
                         disabled={profileMutation.isPending}
                     >
-                        {profileMutation.isPending && <LoadingSpinner size="sm" className="mr-2" />}
+                        {profileMutation.isPending && <LoadingSpinner size="sm" className="me-2" />}
                         Save Changes
                     </Button>
                 </div>

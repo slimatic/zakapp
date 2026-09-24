@@ -53,7 +53,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
             ZakApp
           </span>
           <span
-            className="font-arabic text-xl leading-none text-primary translate-y-[1px]"
+            className="font-arabic text-xl leading-none text-foreground/80 translate-y-[1px]"
             aria-hidden="true"
           >
             زكاة
