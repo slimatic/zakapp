@@ -45,8 +45,17 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
     };
 
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+    /**
+     * `dueDate` is declared required on Liability but is not enforced at write
+     * time (the seeder and older records can omit it). Returns null for a
+     * missing or unparseable date so the caller can omit the line entirely -
+     * rendering "Due: Invalid Date" on every record is worse than saying nothing.
+     */
+    const formatDueDate = (dateString?: string): string | null => {
+        if (!dateString) return null;
+        const d = new Date(dateString);
+        if (Number.isNaN(d.getTime())) return null;
+        return d.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -76,7 +85,9 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
     return (
         <div className="bg-card shadow overflow-hidden sm:rounded-md border border-border">
             <ul className="divide-y divide-border">
-                {liabilities.map((liability) => (
+                {liabilities.map((liability) => {
+                    const dueLabel = formatDueDate(liability.dueDate);
+                    return (
                     <li key={liability.id}>
                         <div className="px-4 py-4 sm:px-6 hover:bg-muted transition-colors">
                             <div className="flex items-center justify-between">
@@ -88,7 +99,9 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
                                     <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-soft text-success">
                                         {maskedCurrency(formatCurrency(liability.amount, liability.currency))}
                                     </p>
-                                    <p className="text-xs text-muted-foreground mt-1">Due: {formatDate(liability.dueDate)}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        {dueLabel ? `Due: ${dueLabel}` : 'No due date'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="mt-2 sm:flex sm:justify-between sm:items-center">
@@ -131,7 +144,8 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
                             </div>
                         </div>
                     </li>
-                ))}
+                    );
+                })}
             </ul>
         </div>
     );
