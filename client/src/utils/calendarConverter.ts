@@ -372,3 +372,22 @@ export function getHijriMonthName(monthNumber: number): string {
   }
   return HIJRI_MONTHS[monthNumber - 1];
 }
+
+/**
+ * "1448H" / "2026/1448H" for a nisab year record, or '' when neither year is stored.
+ *
+ * `gregorianYear` and `hijriYear` are OPTIONAL on NisabYearRecord - they are not in the
+ * RxDB schema's `required` list - so a record can legitimately carry neither. Rendering
+ * them directly printed `undefined/1448H` to the user. Never fall back to the current
+ * year here: a record from an older year would silently be labelled with this one.
+ */
+export function formatNisabYearLabel(record?: {
+  gregorianYear?: number | string | null;
+  hijriYear?: number | string | null;
+} | null): string {
+  if (!record) return '';
+  const gy = record.gregorianYear;
+  const hy = record.hijriYear;
+  if (!gy && !hy) return '';
+  return gy && hy ? `${gy}/${hy}H` : gy ? `${gy}` : `${hy}H`;
+}

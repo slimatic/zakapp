@@ -32,6 +32,7 @@ import { formatGregorianDate } from '../../utils/calendarConverter';
 import { looksEncrypted } from '../../utils/encryption';
 import { Money } from '../ui/Money';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
+import { formatNisabYearLabel } from '../../utils/calendarConverter';
 
 interface PaymentCardProps {
   payment: PaymentRecord;
@@ -94,7 +95,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
   const subline = [
     categoryLabel,
     methodLabel,
-    nisabYear ? `${nisabYear.gregorianYear}/${nisabYear.hijriYear}H` : null,
+    formatNisabYearLabel(nisabYear) || null,
     !compact ? payment.receiptReference : null
   ]
     .filter(Boolean)

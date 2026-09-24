@@ -22,7 +22,7 @@
 
 import React from 'react';
 import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
-import { formatGregorianDate, gregorianToHijri, HIJRI_MONTHS } from '../../utils/calendarConverter';
+import { formatGregorianDate, formatNisabYearLabel, gregorianToHijri, HIJRI_MONTHS } from '../../utils/calendarConverter';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import { looksEncrypted } from '../../utils/encryption';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
@@ -124,9 +124,12 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
           <div className="text-4xl font-bold text-success">
             {maskedCurrency(formatCurrency(payment.amount, payment.currency as CurrencyCode))}
           </div>
-          {payment.exchangeRate !== 1 && (
+          {/* exchangeRate is OPTIONAL on PaymentRecord, and `undefined !== 1` is TRUE -
+              so this branch ran for every payment without a rate and .toFixed(4) on
+              undefined threw, taking the whole modal to the error boundary. Coerce first. */}
+          {Number(payment.exchangeRate || 1) !== 1 && (
             <div className="text-sm text-success mt-2">
-              Exchange Rate: {payment.exchangeRate.toFixed(4)}
+              Exchange Rate: {Number(payment.exchangeRate).toFixed(4)}
             </div>
           )}
         </div>
@@ -218,11 +221,17 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
                 <div>
                   <div className="text-sm font-medium text-secondary mb-1">Nisab Year</div>
                   <div className="text-sm text-secondary">
-                    {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
+                    {formatNisabYearLabel(nisabYear)}
                   </div>
-                  <div className="text-xs text-secondary mt-1">
-                    Calculated: {formatGregorianDate(new Date(nisabYear.calculationDate))}
-                  </div>
+                  {/* calculationDate is not in the RxDB schema's required list either.
+                      formatGregorianDate THROWS on an invalid date (by design - see its
+                      unit test), so an unguarded call here takes the whole modal down
+                      exactly like the exchangeRate crash. Omit the row instead. */}
+                  {nisabYear.calculationDate && (
+                    <div className="text-xs text-secondary mt-1">
+                      Calculated: {formatGregorianDate(new Date(nisabYear.calculationDate))}
+                    </div>
+                  )}
                 </div>
                 <div className="text-end">
                   <div className="text-sm font-medium text-secondary mb-1">Total Zakat Due</div>
