@@ -13,7 +13,6 @@ import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
 import toast from 'react-hot-toast';
 import { useDb } from '../db';
-import { Layout } from '../components/layout/Layout';
 
 export const SeederPage: React.FC = () => {
     const db = useDb();
@@ -80,7 +79,7 @@ export const SeederPage: React.FC = () => {
     };
 
     return (
-        <Layout>
+        <>
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-foreground">🌩️ Stress Test Control Center</h1>
@@ -207,6 +206,6 @@ export const SeederPage: React.FC = () => {
                     </Card>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 };

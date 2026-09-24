@@ -33,7 +33,9 @@ export const IdentityStep: React.FC = () => {
 
     const currencies = getSupportedCurrencies().map(code => ({
         code,
-        name: `${code} (${getCurrencySymbol(code)})`
+        // Symbol only: every template in this file already renders `{code} - ...`
+        // itself, so including the code here produced "USD - USD ($)".
+        name: getCurrencySymbol(code)
     }));
 
     return (

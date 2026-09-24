@@ -86,9 +86,11 @@ export const ProfileForm: React.FC = () => {
     // adding a currency anywhere else in the app would have silently omitted it
     // from the only place a user can set their display currency. Same pattern as
     // IdentityStep, AssetForm and LiabilityForm.
+    // `code` only, because the option template renders `{code} - ...` itself; naming
+    // this `${code} (${symbol})` made the option read "USD - USD ($)".
     const currencies = getSupportedCurrencies().map((code) => ({
         code,
-        name: `${code} (${getCurrencySymbol(code)})`,
+        name: getCurrencySymbol(code),
     }));
 
     const zakatMethods = [
