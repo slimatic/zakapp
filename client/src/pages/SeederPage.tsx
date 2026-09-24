@@ -159,6 +159,40 @@ export const SeederPage: React.FC = () => {
                                 </Button>
                             </div>
 
+                            <div className="flex gap-2">
+                                <Button
+                                    className="flex-1"
+                                    variant="outline"
+                                    onClick={() => handleAction('Seeding Active Hawl', () => DataSeeder.seedActiveHawl(207))}
+                                    disabled={isLoading}
+                                >
+                                    🌙 Active Hawl
+                                </Button>
+                                <Button
+                                    className="flex-1"
+                                    variant="outline"
+                                    onClick={() => handleAction('Seeding Liabilities', () => DataSeeder.seedLiabilities())}
+                                    disabled={isLoading}
+                                >
+                                    🏦 Liabilities
+                                </Button>
+                            </div>
+
+                            <Button
+                                className="w-full"
+                                variant="secondary"
+                                onClick={() => handleAction('Seeding Everything', async () => {
+                                    await DataSeeder.seedAssets(10);
+                                    await DataSeeder.seedPayments(40);
+                                    await DataSeeder.seedNisabHistory(5);
+                                    await DataSeeder.seedActiveHawl(207);
+                                    await DataSeeder.seedLiabilities();
+                                })}
+                                disabled={isLoading}
+                            >
+                                ✨ Seed a Full Demo Dataset
+                            </Button>
+
                             <hr className="my-4 border-border" />
 
                             <Button

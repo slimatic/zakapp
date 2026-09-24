@@ -11,7 +11,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 
 // The canonical hook is mocked so we can force a non-USD currency and prove
 // the component follows it. If a component ignores the hook, these fail.

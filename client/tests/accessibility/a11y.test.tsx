@@ -12,7 +12,7 @@
  *   keyboard: avoid keyboard trap, all interactive elements have focus indicators
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { render } from "@testing-library/react";
 import React from "react";
 import { MemoryRouter } from "react-router-dom";
@@ -252,6 +252,8 @@ vi.mock("../../src/utils/parseDecimal", () => ({
 }));
 vi.mock("../../src/core/calculations/zakat", () => ({
   getAssetZakatableValue: () => 100,
+  // AssetCard asks the engine whether zakat applies before labelling the row.
+  isAssetZakatable: () => true,
 }));
 
 // UI mocks

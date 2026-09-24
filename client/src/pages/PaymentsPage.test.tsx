@@ -117,8 +117,8 @@ describe('PaymentsPage', () => {
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
-      expect(screen.getByText('Zakat Payments')).toBeInTheDocument();
-      expect(screen.getByText(/Record and track your Zakat distributions/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Payments' })).toBeInTheDocument();
+      expect(screen.getByText(/Zakat you have distributed/i)).toBeInTheDocument();
     });
 
     it('renders payment list component', () => {
@@ -158,21 +158,28 @@ describe('PaymentsPage', () => {
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
-      const select = screen.getByLabelText(/Filter by Nisab Year Record/i);
+      const select = screen.getByLabelText(/Filter by Nisab year record/i);
       const options = within(select).getAllByRole('option');
       expect(options[0]).toHaveTextContent(/All Payments/i);
     });
   });
 
   describe('Empty State', () => {
-    it('shows warning when no Nisab Years exist', () => {
+    it('shows the empty state rather than a hawl warning when there is nothing at all', () => {
       mockUsePaymentRepository.mockReturnValue({ payments: [], isLoading: false });
       mockUseNisabRecordRepository.mockReturnValue({ records: [], isLoading: false });
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
-      expect(screen.getByText(/No Nisab Year Records found/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /go to dashboard/i })).toBeInTheDocument();
+      // With no payments AND no hawl record, "create a hawl record" would be
+      // the wrong next step - there is nothing to attach to it. The list's own
+      // empty state is the correct prompt. The hawl warning is reserved for the
+      // case that actually needs it: payments that exist but have nowhere to
+      // belong.
+      // PaymentList is mocked in this file, so assert on what the page itself
+      // controls: no hawl warning, and the page head still renders.
+      expect(screen.queryByText(/aren't linked to a hawl year/i)).not.toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Payments' })).toBeInTheDocument();
     });
 
     it('shows orphaned payments warning', () => {
@@ -181,7 +188,7 @@ describe('PaymentsPage', () => {
 
       render(<PaymentsPage />, { wrapper: createWrapper() });
 
-      expect(screen.getByText(/Payments Need Assignment/i)).toBeInTheDocument();
+      expect(screen.getByText(/aren't linked to a hawl year/i)).toBeInTheDocument();
     });
   });
 
@@ -195,7 +202,7 @@ describe('PaymentsPage', () => {
       // Click the mock button in PaymentList
       fireEvent.click(screen.getByTestId('mock-add-payment-btn'));
 
-      expect(await screen.findByText('Record New Payment')).toBeInTheDocument();
+      expect(await screen.findByText('Record a payment')).toBeInTheDocument();
       expect(screen.getByTestId('payment-form')).toBeInTheDocument();
     });
   });

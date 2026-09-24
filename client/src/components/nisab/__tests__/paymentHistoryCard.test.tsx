@@ -13,6 +13,23 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { PrivacyProvider } from '../../../contexts/PrivacyContext';
 import { PaymentHistoryCard } from '../PaymentHistoryCard';
 
+// PaymentHistoryCard lists payments via PaymentCard, which renders amounts
+// through <Money> -> useDisplayCurrency -> useAuth. Stub the hook so this test
+// stays about the card's own obligation/paid/remaining summary.
+vi.mock('../../../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({
+    currency: 'USD',
+    formatCurrency: (amount: number) =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        numberingSystem: 'latn'
+      }).format(amount)
+  })
+}));
+
 afterEach(cleanup);
 
 const baseProps = {

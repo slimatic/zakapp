@@ -34,7 +34,7 @@
 import React from 'react';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { NisabYearRecord, NisabYearRecordWithLiveTracking } from '../../types/nisabYearRecord';
-import { toNumber, toDecimal, Decimal } from '../../utils/precision';
+import { toNumber, toDecimal } from '../../utils/precision';
 import { formatCurrency } from '../../utils/formatters';
 import { Money } from '../ui/Money';
 

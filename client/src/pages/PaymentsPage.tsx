@@ -68,204 +68,157 @@ export const PaymentsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Zakat Payments</h1>
-              <p className="text-muted-foreground mt-2">
-                Record and track your Zakat distributions to recipients
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+    <div className="space-y-5">
+      {/* Page head */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
+            Payments
+          </h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Zakat you have distributed, and to which recipients.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
+                const generator = new ReportGenerator(userCurrency);
+                generator.generatePaymentSummary(allPayments);
+              });
+            }}
+          >
+            Export PDF
+          </Button>
+        </div>
+      </div>
 
-              <Button
-                variant="outline"
-                onClick={() => {
-                  import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
-                    const generator = new ReportGenerator(userCurrency);
-                    // Use filtered payments if filter is active, else all
-                    // Note: Logic to get accurate filtered list might need state access
-                    // For safety, we export ALL currently viewable payments
-                    // But 'allPayments' is available in scope
-                    generator.generatePaymentSummary(allPayments);
-                  });
-                }}
-                className="justify-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Export PDF
-              </Button>
-              <Button variant="secondary" onClick={() => navigate('/settings')} className="justify-center">Import / Export</Button>
-            </div>
-          </div>
+      {/* Nisab year filter */}
+      {(nisabRecords.length > 0 || allPayments.length > 0) && (
+        <div>
+          <label htmlFor="nisab-record-select" className="sr-only">
+            Filter by Nisab year record
+          </label>
+          <select
+            id="nisab-record-select"
+            value={nisabRecordId || 'all'}
+            onChange={(e) => {
+              const value = e.target.value;
+              setNisabRecordId(value === 'all' ? undefined : value);
+              setSearchParams(value === 'all' ? {} : { snapshot: value });
+            }}
+            className="w-full rounded-lg border border-border-strong bg-card px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-ring"
+          >
+            <option value="all">All payments ({allPayments.length})</option>
+            {nisabRecords.map((record) => {
+              const zakatAmount = parseDecimalNumber(String(record.zakatAmount || 0));
+              const displayAmount = zakatAmount > 0 ? ` (zakat: ${formatCurrency(zakatAmount)})` : '';
+              const recordPayments = allPayments.filter((p) => p.snapshotId === record.id).length;
+              return (
+                <option key={record.id} value={record.id}>
+                  {record.hawlStartDate
+                    ? new Date(record.hawlStartDate).getFullYear()
+                    : (record.gregorianYear || new Date(record.createdAt || new Date().toISOString()).getFullYear())}{' '}
+                  - {record.status} {displayAmount} ({recordPayments} payments)
+                </option>
+              );
+            })}
+            {allPayments.some((p) => !nisabRecords.find((r) => r.id === p.snapshotId)) && (
+              <option value="legacy-import" disabled>
+                -- Unassigned / imported ({allPayments.filter((p) => !nisabRecords.find((r) => r.id === p.snapshotId)).length}) --
+              </option>
+            )}
+          </select>
+        </div>
+      )}
 
-          {/* Nisab Year Selector */}
-          {(nisabRecords.length > 0 || allPayments.length > 0) && (
-            <div className="mt-6">
-              <label htmlFor="nisab-record-select" className="block text-sm font-medium text-foreground/80 mb-2">
-                Filter by Nisab Year Record
-              </label>
-              <div className="w-full">
-                <select
-                  id="nisab-record-select"
-                  value={nisabRecordId || 'all'}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setNisabRecordId(value === 'all' ? undefined : value);
-                    setSearchParams(value === 'all' ? {} : { snapshot: value });
-                  }}
-                  className="w-full px-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-card"
+      {/* Warnings - only when there is something genuinely wrong */}
+      {!nisabRecordsLoading && allPayments.length > 0 && nisabRecords.length === 0 && (
+        <div className="rounded-lg border border-warn/30 bg-warn-soft p-4">
+          <h2 className="text-sm font-medium text-warn-strong">
+            These payments aren't linked to a hawl year
+          </h2>
+          <p className="mt-1 text-sm text-warn-strong">
+            You have {allPayments.length} payments but no Nisab year records.
+            Zakat is calculated per completed lunar year, so payments need a hawl
+            to belong to.
+          </p>
+          <Button onClick={() => navigate('/nisab-records')} size="sm" className="mt-3">
+            Create a hawl record
+          </Button>
+        </div>
+      )}
+
+      {/* Create / edit modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 sm:p-6">
+          <div className="max-h-[85vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-card shadow-xl sm:max-h-[90vh]">
+            <div className="p-4 sm:p-6">
+              <div className="mb-4 flex items-center justify-between sm:mb-6">
+                <h2 className="text-lg font-semibold text-foreground sm:text-xl">
+                  {editingPayment ? 'Edit payment' : 'Record a payment'}
+                </h2>
+                <button
+                  onClick={handleFormClose}
+                  className="p-1 text-muted-foreground hover:text-foreground"
+                  aria-label="Close"
                 >
-                  <option value="all">All Payments ({allPayments.length})</option>
-                  {nisabRecords.map((record) => {
-                    const zakatAmount = parseDecimalNumber(String(record.zakatAmount || 0));
-                    const displayAmount = zakatAmount > 0
-                      ? ` (Zakat: ${formatCurrency(zakatAmount)})`
-                      : '';
-                    const recordPayments = allPayments.filter(p => p.snapshotId === record.id).length;
-                    return (
-                      <option key={record.id} value={record.id}>
-                        {record.hawlStartDate ? new Date(record.hawlStartDate).getFullYear() : (record.gregorianYear || new Date(record.createdAt || new Date().toISOString()).getFullYear())} - {record.status} {displayAmount} ({recordPayments} payments)
-                      </option>
-                    );
-                  })}
-                  {allPayments.some(p => !nisabRecords.find(r => r.id === p.snapshotId)) && (
-                    <option value="legacy-import" disabled>
-                      -- Unassigned / Imported ({allPayments.filter(p => !nisabRecords.find(r => r.id === p.snapshotId)).length}) --
-                    </option>
-                  )}
-                </select>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-            </div>
-          )}
-
-          {/* Warning for Orphaned Payments */}
-          {!nisabRecordsLoading && allPayments.length > 0 && nisabRecords.length === 0 && (
-            <div className="mt-6 bg-warn-soft border border-warn/30 rounded-lg p-4">
-              <div className="flex items-start">
-                <svg className="h-6 w-6 text-warn-strong mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <div>
-                  <h2 className="text-sm font-medium text-warn-strong">Action Required: Payments Need Assignment</h2>
-                  <div className="mt-1 text-sm text-warn-strong">
-                    <p>
-                      You have {allPayments.length} payments, but no Nisab Year Records.
-                      To calculate Zakat correctly, you must link these payments to a specific Nisab Year.
-                    </p>
-                    <div className="mt-3 flex gap-3">
-                      <Button onClick={() => navigate('/nisab-records')} variant="default" size="sm">
-                        Create Nisab Year Record
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* No Nisab Years warning (Empty State only) */}
-          {!nisabRecordsLoading && nisabRecords.length === 0 && allPayments.length === 0 && (
-            <div className="mt-6 bg-warn-soft border border-warn/30 rounded-lg p-4">
-              <p className="text-sm text-warn-strong">
-                No Nisab Year Records found. Please create a Nisab Year Record first to record payments.
-              </p>
-              <Button
-                variant="default"
-                onClick={() => navigate('/dashboard')}
-                className="mt-3"
-              >
-                Go to Dashboard
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Create Form Modal */}
-        {showCreateForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 sm:p-6">
-            <div className="bg-card rounded-lg max-w-4xl w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto shadow-xl">
-              <div className="p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-                    {editingPayment ? 'Edit Payment Record' : 'Record New Payment'}
-                  </h2>
-                  <button
-                    onClick={handleFormClose}
-                    className="text-muted-foreground hover:text-foreground p-1"
-                    aria-label="Close modal"
-                  >
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <PaymentRecordForm
-                  payment={editingPayment || undefined}
-                  nisabRecordId={nisabRecordId}
-                  onSuccess={() => {
-                    handleFormClose();
-                    // If this was the first payment, redirect to Dashboard for progress update
-                    if (allPayments.length === 0) {
-                      navigate('/dashboard');
-                    }
-                  }}
-                  onCancel={handleFormClose}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Payment List */}
-        <PaymentList
-          nisabRecordId={nisabRecordId}
-          onCreateNew={handleCreatePayment}
-          onEditPayment={handleEditPayment}
-        />
-
-        {/* Help Section */}
-        <div className="mt-12 bg-success-soft border border-success/30 rounded-lg p-6">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg className="h-6 w-6 text-success" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h2 className="text-sm font-medium text-success">
-                About Zakat Payments & Recipients
-              </h2>
-              <div className="text-sm text-success mt-2 space-y-2">
-                <p>
-                  Islamic law specifies <strong>8 categories</strong> of eligible Zakat recipients as mentioned in Quran 9:60:
-                </p>
-                <ol className="list-decimal list-inside space-y-1 mt-2 ml-2">
-                  <li><strong>Al-Fuqara (The Poor)</strong> - Those with little to no income or means</li>
-                  <li><strong>Al-Masakin (The Needy)</strong> - Those in need but not as destitute as the poor</li>
-                  <li><strong>Zakat Administrators</strong> - Those who collect and distribute Zakat</li>
-                  <li><strong>New Muslims</strong> - Recent converts who need support</li>
-                  <li><strong>Slaves/Captives</strong> - To free slaves (historically relevant)</li>
-                  <li><strong>Debtors</strong> - Those unable to pay off their debts</li>
-                  <li><strong>In the Path of Allah</strong> - For Islamic causes and propagation</li>
-                  <li><strong>Travelers</strong> - Stranded travelers in need of assistance</li>
-                </ol>
-                <p className="mt-3">
-                  <strong>Important:</strong> Zakat cannot be given to parents, grandparents, children, grandchildren,
-                  or spouses. It's recommended to give locally and to verify the legitimacy of recipients or organizations.
-                </p>
-              </div>
+              <PaymentRecordForm
+                payment={editingPayment || undefined}
+                nisabRecordId={nisabRecordId}
+                onSuccess={() => {
+                  handleFormClose();
+                  if (allPayments.length === 0) navigate('/dashboard');
+                }}
+                onCancel={handleFormClose}
+              />
             </div>
           </div>
         </div>
+      )}
 
+      {/* Payment list */}
+      <PaymentList
+        nisabRecordId={nisabRecordId}
+        onCreateNew={handleCreatePayment}
+        onEditPayment={handleEditPayment}
+      />
 
-      </div >
-    </div >
+      {/* Reference - collapsed by default. It was a full always-open panel with
+          the eight recipient categories and the wording of Quran 9:60 sitting
+          under every payment list. */}
+      <details className="rounded-lg border border-border bg-card px-4 py-3">
+        <summary className="cursor-pointer text-sm font-medium text-foreground">
+          Who can receive zakat?
+        </summary>
+        <div className="mt-3 space-y-2 text-sm text-muted-foreground">
+          <p>
+            Islamic law specifies <strong>eight categories</strong> of eligible
+            recipients (Quran 9:60):
+          </p>
+          <ol className="ms-5 list-decimal space-y-1">
+            <li><strong>Al-Fuqara</strong> - the poor</li>
+            <li><strong>Al-Masakin</strong> - the needy</li>
+            <li><strong>Al-Amilin</strong> - those who collect and distribute zakat</li>
+            <li><strong>Al-Muallafah</strong> - new Muslims needing support</li>
+            <li><strong>Ar-Riqab</strong> - freeing those in bondage</li>
+            <li><strong>Al-Gharimin</strong> - those unable to pay their debts</li>
+            <li><strong>Fi Sabilillah</strong> - in the path of Allah</li>
+            <li><strong>Ibn as-Sabil</strong> - the stranded traveller</li>
+          </ol>
+          <p className="pt-1">
+            Zakat cannot be given to your parents, grandparents, children,
+            grandchildren, or spouse. Give locally where you can, and verify the
+            legitimacy of recipients or organisations.
+          </p>
+        </div>
+      </details>
+    </div>
   );
 };

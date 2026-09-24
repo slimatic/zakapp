@@ -29,6 +29,7 @@ import {
 } from 'recharts';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { NisabYearRecord } from '../../types/nisabYearRecord';
+import { CHART_COLORS, CHART_AXIS_COLOR, CHART_GRID_COLOR } from '../../utils/chartPalette';
 
 interface ZakatObligationsChartProps {
     records: NisabYearRecord[];
@@ -149,21 +150,21 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
                         dataKey="name"
-                        stroke="#94a3b8"
+                        stroke={CHART_AXIS_COLOR}
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
                         dy={10} // Push labels down
                     />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
+                    <YAxis stroke={CHART_AXIS_COLOR} fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
                     <Tooltip
                         formatter={(value: any) => [formatTooltip(Number(value) || 0)]}
-                        cursor={{ fill: '#f1f5f9' }}
-                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                        cursor={{ fill: CHART_GRID_COLOR }}
+                        contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
                     />
                     <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                    <Bar dataKey="due" name="Total Due" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="paid" name="Paid" fill="#0f766e" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="due" name="Total Due" fill={CHART_COLORS[4]} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="paid" name="Paid" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
                 </BarChart>
             </ResponsiveContainer>
         </div>

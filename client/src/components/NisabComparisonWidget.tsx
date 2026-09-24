@@ -26,7 +26,6 @@
  * - Difference amount display
  */
 
-import { logger } from '../utils/logger';
 import React, { useMemo } from 'react';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useHawlStatus } from '../hooks/useHawlStatus';

@@ -16,16 +16,21 @@
  */
 
 /**
- * PaymentCard Component - T020
- * Individual payment card showing details with linked Nisab Year context
- * Memoized for performance optimization (T062)
+ * PaymentCard - one payment as a dense list row (memoized).
+ *
+ * Was a stacked card: recipient block, a tinted nisab-year box, a chip row, a
+ * full-width grey box for the notes (which is literally "Seeded payment" in
+ * demo data - a whole banner for three words), and a bordered action row. Fifty
+ * of those is a 10,000px page. This is the mockup's row: recipient and category
+ * on the left, amount and date on the right, and the record's own details behind
+ * Details/Edit rather than always expanded.
  */
 
 import React from 'react';
-import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
+import { MoreVertical } from 'lucide-react';
 import { formatGregorianDate } from '../../utils/calendarConverter';
 import { looksEncrypted } from '../../utils/encryption';
-import { useMaskedCurrency } from '../../contexts/PrivacyContext';
+import { Money } from '../ui/Money';
 import type { PaymentRecord, YearlySnapshot } from '@zakapp/shared/types/tracking';
 
 interface PaymentCardProps {
@@ -37,31 +42,35 @@ interface PaymentCardProps {
   compact?: boolean;
 }
 
-// Islamic recipient categories mapping
+// Islamic recipient categories
 const ZAKAT_RECIPIENTS: Record<string, string> = {
-  'fakir': 'Al-Fuqara (The Poor)',
-  'miskin': 'Al-Masakin (The Needy)',
-  'amil': 'Al-Amilin (Administrators)',
-  'muallaf': 'Al-Muallafah (New Muslims)',
-  'riqab': 'Ar-Riqab (Freeing Slaves)',
-  'gharimin': 'Al-Gharimin (Debt-ridden)',
-  'fisabilillah': 'Fi Sabilillah (In Allah\'s way)',
-  'ibnus_sabil': 'Ibn as-Sabil (Traveler)'
+  fakir: 'Al-Fuqara (The Poor)',
+  miskin: 'Al-Masakin (The Needy)',
+  amil: 'Al-Amilin (Administrators)',
+  muallaf: 'Al-Muallafah (New Muslims)',
+  riqab: 'Ar-Riqab (Freeing Slaves)',
+  gharimin: 'Al-Gharimin (Debt-ridden)',
+  fisabilillah: 'Fi Sabilillah (In Allah\'s way)',
+  ibnus_sabil: 'Ibn as-Sabil (Traveler)'
 };
 
 const PAYMENT_METHODS: Record<string, string> = {
-  'cash': 'Cash',
-  'bank_transfer': 'Bank Transfer',
-  'check': 'Check',
-  'online': 'Online Payment',
-  'cryptocurrency': 'Cryptocurrency',
-  'other': 'Other'
+  cash: 'Cash',
+  bank_transfer: 'Bank transfer',
+  check: 'Check',
+  online: 'Online',
+  cryptocurrency: 'Crypto',
+  other: 'Other'
 };
 
-/**
- * PaymentCard component with React.memo for performance
- * Only re-renders when payment data or callbacks change
- */
+/** Coerce a possibly-missing or non-numeric amount into a safe number. */
+const safeAmount = (p: PaymentRecord | any): number => {
+  const raw = p?.amount;
+  if (raw === null || raw === undefined) return 0;
+  const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
+  return Number.isFinite(num) ? num : 0;
+};
+
 export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
   payment,
   nisabYear,
@@ -70,109 +79,124 @@ export const PaymentCard: React.FC<PaymentCardProps> = React.memo(({
   onViewDetails,
   compact = false
 }) => {
-  const maskedCurrency = useMaskedCurrency();
-  // Helper to coerce possibly-missing or non-numeric amounts into a safe number
-  const safeAmount = (p: PaymentRecord | any) => {
-    const raw = p?.amount;
-    if (raw === null || raw === undefined) return 0;
-    const num = typeof raw === 'number' ? raw : parseFloat(String(raw));
-    return Number.isFinite(num) ? num : 0;
-  };
-  
+  const [menuOpen, setMenuOpen] = React.useState(false);
+
   const categoryLabel = ZAKAT_RECIPIENTS[payment.recipientCategory] || payment.recipientCategory;
-  const methodLabel = PAYMENT_METHODS[payment.paymentMethod] || payment.paymentMethod;
+  const methodLabel = payment.paymentMethod
+    ? PAYMENT_METHODS[payment.paymentMethod] || payment.paymentMethod
+    : null;
+
+  const recipient = looksEncrypted(payment.recipientName)
+    ? 'Encrypted recipient'
+    : payment.recipientName;
+
+  // Sub-line carries the context that used to occupy three separate blocks.
+  const subline = [
+    categoryLabel,
+    methodLabel,
+    nisabYear ? `${nisabYear.gregorianYear}/${nisabYear.hijriYear}H` : null,
+    !compact ? payment.receiptReference : null
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  const hasMenu = Boolean(onViewDetails || onEdit || onDelete);
 
   return (
-    <div className="bg-card border border-border rounded-lg p-2 sm:p-3 hover:shadow-md transition-shadow">
-      {/* Mask encrypted-looking recipient names to avoid showing ciphertext to users */}
-      <div className="flex flex-col gap-1.5 sm:gap-2">
-        {/* Header with recipient and amount */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-3">
-          <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-foreground text-sm truncate">
-              {looksEncrypted(payment.recipientName) ? 'Encrypted recipient' : payment.recipientName}
-            </h4>
-            <p className="text-xs text-muted-foreground">
-              {categoryLabel}
-            </p>
-          </div>
-          <div className="text-start sm:text-end flex-shrink-0">
-            <div className="text-base sm:text-lg font-bold text-success">
-                {maskedCurrency(formatCurrency(safeAmount(payment), payment.currency as CurrencyCode))}
+    <div
+      className="group flex items-center gap-3 border-b border-border py-3 last:border-b-0"
+      role="article"
+      aria-label={`Payment to ${recipient}`}
+    >
+      <button
+        type="button"
+        onClick={() => onViewDetails?.(payment)}
+        disabled={!onViewDetails}
+        className="flex min-w-0 flex-1 items-center gap-3 text-start disabled:cursor-default"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-foreground">
+            {recipient}
+          </span>
+          <span className="block truncate text-xs text-muted-foreground">{subline}</span>
+        </span>
+
+        <span className="shrink-0 text-end">
+          <Money value={safeAmount(payment)} currency={payment.currency} size="sm" tone="success" />
+          <span className="block text-xs text-muted-foreground tabular-nums">
+            {formatGregorianDate(new Date(payment.paymentDate))}
+          </span>
+        </span>
+      </button>
+
+      {hasMenu && (
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={`Actions for payment to ${recipient}`}
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </button>
+
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+              <div
+                className="absolute end-0 z-20 mt-1 w-40 rounded-lg border border-border bg-popover py-1 shadow-elev-3"
+                role="menu"
+              >
+                {onViewDetails && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onViewDetails(payment);
+                    }}
+                    className="block w-full px-3 py-2 text-start text-sm text-foreground hover:bg-accent"
+                  >
+                    Details
+                  </button>
+                )}
+                {onEdit && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onEdit(payment);
+                    }}
+                    className="block w-full px-3 py-2 text-start text-sm text-foreground hover:bg-accent"
+                  >
+                    Edit
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDelete(payment.id);
+                    }}
+                    className="block w-full px-3 py-2 text-start text-sm text-danger hover:bg-danger-soft"
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
-            <div className="text-xs text-muted-foreground">
-              {formatGregorianDate(new Date(payment.paymentDate))}
-            </div>
-          </div>
-        </div>
-
-        {/* Nisab Year Context */}
-        {nisabYear && (
-          <div className="bg-accent border border-border rounded p-1.5 sm:p-2">
-            <div className="flex items-center justify-between gap-2 text-xs">
-              <span className="font-medium text-secondary truncate">
-                {nisabYear.gregorianYear} / {nisabYear.hijriYear}H
-              </span>
-                <span className="text-secondary whitespace-nowrap">
-                Due: <span className="font-semibold text-secondary">{maskedCurrency(formatCurrency(Number(nisabYear.zakatAmount) || 0))}</span>
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Payment details */}
-        {!compact && (
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span className="px-2 py-0.5 bg-muted rounded">
-              {methodLabel}
-            </span>
-            {payment.receiptReference && (
-              <span className="px-2 py-0.5 bg-muted rounded">
-                Ref: {payment.receiptReference}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Notes */}
-        {payment.notes && !compact && (
-          <div className="bg-muted rounded-md p-2">
-            <p className="text-xs text-muted-foreground italic">
-              {payment.notes}
-            </p>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-0.5 sm:gap-1 pt-1 border-t border-border">
-          {onViewDetails && (
-            <button
-              onClick={() => onViewDetails(payment)}
-              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded"
-            >
-              Details
-            </button>
-          )}
-          
-          {onEdit && (
-            <button
-              onClick={() => onEdit(payment)}
-              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-secondary hover:text-secondary/80 hover:bg-accent rounded"
-            >
-              Edit
-            </button>
-          )}
-          
-          {onDelete && (
-            <button
-              onClick={() => onDelete(payment.id)}
-              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs text-danger hover:text-danger/90 hover:bg-danger-soft rounded"
-            >
-              Delete
-            </button>
+            </>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 });
+
+PaymentCard.displayName = 'PaymentCard';
+
+export default PaymentCard;

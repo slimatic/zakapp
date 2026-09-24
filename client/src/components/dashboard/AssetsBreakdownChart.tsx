@@ -19,6 +19,7 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Asset } from '../../types';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
+import { CHART_COLORS } from '../../utils/chartPalette';
 
 interface AssetsBreakdownChartProps {
     assets: Asset[];
@@ -44,16 +45,7 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
     const maskedCurrency = useMaskedCurrency();
 
     // Color palette for chart segments - optimized for "Islamic Fintech" aesthetic
-    const COLORS = [
-        '#0d9488', // Teal 600
-        '#0891b2', // Cyan 600
-        '#4f46e5', // Indigo 600
-        '#059669', // Emerald 600
-        '#7c3aed', // Violet 600
-        '#db2777', // Pink 600
-        '#d97706', // Amber 600 (use sparingly)
-        '#475569', // Slate 600
-    ];
+    const COLORS = CHART_COLORS;;
 
     // Process data for the chart
     const chartData = useMemo(() => {

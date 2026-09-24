@@ -26,22 +26,15 @@ import {
     Legend
 } from 'recharts';
 import { usePrivacy } from '../../contexts/PrivacyContext';
+import { CHART_COLORS } from '../../utils/chartPalette';
 
 interface PaymentDistributionChartProps {
     payments: any[];
     currency?: string;
 }
 
-const COLORS = [
-    '#0f766e', // Primary Teal
-    '#fbbf24', // Secondary Gold
-    '#3b82f6', // Blue
-    '#8b5cf6', // Violet
-    '#ec4899', // Pink
-    '#f97316', // Orange
-    '#22c55e', // Green
-    '#64748b', // Slate
-];
+// Shared categorical ramp (theme-aware); see utils/chartPalette.ts
+const COLORS = CHART_COLORS;
 
 const RECIPIENT_LABELS: { [key: string]: string } = {
     'poor': 'Fakir (Poor)',
@@ -118,7 +111,7 @@ export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> =
                     </Pie>
                     <Tooltip
                         formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Amount']}
-                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                        contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
                     />
                     <Legend
                         layout="vertical"

@@ -44,6 +44,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { formatCurrency, formatPercentage, formatCompactNumber } from '../../utils/formatters';
 import { formatChartData } from '../../utils/chartFormatters';
 import type { AnalyticsMetricType, VisualizationType } from '@zakapp/shared/types/tracking';
+import { CHART_COLORS, CHART_GRID_COLOR } from '../../utils/chartPalette';
 
 interface AnalyticsChartProps {
   metricType: AnalyticsMetricType;
@@ -55,22 +56,9 @@ interface AnalyticsChartProps {
 }
 
 // Chart color scheme
-const CHART_COLORS = [
-  '#10B981', // Green primary
-  '#3B82F6', // Blue
-  '#8B5CF6', // Purple
-  '#F59E0B', // Amber
-  '#EF4444', // Red
-  '#06B6D4', // Cyan
-  '#84CC16', // Lime
-  '#F97316'  // Orange
-];
 
-const PIE_COLORS = [
-  '#10B981', '#059669', '#047857', '#065F46',
-  '#3B82F6', '#2563EB', '#1D4ED8', '#1E40AF',
-  '#8B5CF6', '#7C3AED', '#6D28D9', '#5B21B6'
-];
+
+const PIE_COLORS = CHART_COLORS;
 
 export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
   metricType,
@@ -228,7 +216,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
         return (
           <ResponsiveContainer {...commonProps}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
               <XAxis 
                 dataKey="period" 
                 tickFormatter={formatXAxisLabel}
@@ -258,7 +246,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
         return (
           <ResponsiveContainer {...commonProps}>
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
               <XAxis 
                 dataKey="period" 
                 tickFormatter={formatXAxisLabel}
@@ -286,7 +274,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
         return (
           <ResponsiveContainer {...commonProps}>
             <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
               <XAxis 
                 dataKey="period" 
                 tickFormatter={formatXAxisLabel}
@@ -348,7 +336,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
                   return `${entry.name}: ${formatPercentage(value / total, 1, true)}`;
                 }}
                 outerRadius={compact ? 80 : 100}
-                fill="#8884d8"
+                fill={CHART_COLORS[3]}
                 dataKey="value"
               >
                 {pieData.map((entry, index) => (

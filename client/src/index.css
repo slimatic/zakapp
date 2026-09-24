@@ -100,6 +100,23 @@
     --danger: 5 61% 44%;
     --danger-soft: 6 70% 95%;
     --text-3: 218 11% 65%;
+    /* ── Categorical chart ramp ────────────────────────────────────────────
+       Charts previously used the stock recharts palette (teal / cyan / indigo
+       / violet / pink). Indigo and violet are the "AI gradient" fingerprint,
+       and none of it themed - the same hexes rendered on the cream and the
+       navy surface. This ramp stays inside the app's own hue families
+       (forest green -> sage, amber -> clay) so a chart reads as part of the
+       product, and it flips with the theme because it is token-backed.
+       Order matters: series 1 is the most common category and gets the
+       strongest hue, later series get progressively lighter/muted. */
+    --chart-1: 159 36% 27%;   /* forest  - the brand hue */
+    --chart-2: 26 74% 42%;    /* amber   - the accent hue */
+    --chart-3: 152 22% 48%;   /* sage    */
+    --chart-4: 33 45% 55%;    /* clay    */
+    --chart-5: 173 24% 40%;   /* teal-green (not cyan) */
+    --chart-6: 12 45% 52%;    /* terracotta */
+    --chart-axis: 220 9% 46%;
+    --chart-grid: 41 24% 87%;
     --elev-1: 0 1px 2px rgba(27,58,47,.08), 0 1px 3px rgba(27,58,47,.06);
     --elev-2: 0 1px 2px rgba(27,58,47,.10), 0 2px 6px rgba(27,58,47,.08);
     --elev-3: 0 2px 4px rgba(27,58,47,.10), 0 8px 20px rgba(27,58,47,.10);
@@ -154,6 +171,17 @@
     --danger: 7 82% 72%;
     --danger-soft: 358 34% 15%;
     --text-3: 222 15% 49%;
+    /* Chart ramp, Qamar: lifted in lightness so the ramp keeps contrast on the
+       navy surface. Same hue order as light so a series does not change
+       identity between themes. */
+    --chart-1: 41 62% 56%;    /* gold    */
+    --chart-2: 159 30% 52%;   /* green   */
+    --chart-3: 43 45% 66%;    /* pale gold */
+    --chart-4: 173 30% 52%;   /* teal-green */
+    --chart-5: 33 50% 60%;    /* clay    */
+    --chart-6: 152 25% 60%;   /* sage    */
+    --chart-axis: 216 20% 62%;
+    --chart-grid: 219 23% 29%;
     --elev-1: 0 1px 2px rgba(0,0,0,.35);
     --elev-2: 0 2px 6px rgba(0,0,0,.40);
     --elev-3: 0 4px 10px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.35);

@@ -208,4 +208,127 @@ export class DataSeeder {
             throw e;
         }
     }
+
+    /**
+     * Seed an ACTIVE (DRAFT) hawl record - the in-progress zakat year.
+     *
+     * seedNisabHistory only writes FINALIZED records, so the dashboard's hawl
+     * card and its moon arc had nothing to render: `activeRecord` is defined as
+     * status === 'DRAFT', so a history-only database shows no hawl at all. This
+     * is the record that makes the signature component visible.
+     *
+     * Start date is backdated to `daysElapsed` ago so the arc lands mid-year
+     * (the design was drawn at ~58% of a 354-day lunar year).
+     */
+    static async seedActiveHawl(daysElapsed: number = 207) {
+        const db = await getDb();
+        if (!db) throw new Error('DB not initialized');
+
+        const userId = getSeedUserId();
+        const TOTAL_DAYS = 354; // lunar year
+
+        const start = new Date();
+        start.setDate(start.getDate() - daysElapsed);
+        const completion = new Date(start);
+        completion.setDate(completion.getDate() + TOTAL_DAYS);
+
+        const totalWealth = randomFloat(60000, 140000);
+        const zakatableWealth = totalWealth * 0.92;
+
+        const record = {
+            id: uuidv4(),
+            userId,
+            hijriYear: 1448,
+            gregorianYear: start.getFullYear(),
+            hawlStartDate: start.toISOString(),
+            hawlCompletionDate: completion.toISOString(),
+            nisabBasis: 'GOLD' as const,
+            nisabThresholdAtStart: 6145.30,
+            totalWealth,
+            zakatableWealth,
+            zakatAmount: zakatableWealth * 0.025,
+            status: 'DRAFT' as const,
+            assetBreakdown: JSON.stringify({
+                cash: totalWealth * 0.42,
+                gold: totalWealth * 0.3,
+                stock: totalWealth * 0.28
+            }),
+            calculationDetails: JSON.stringify({ method: 'standard', notes: 'seeded active hawl' }),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        const result = await db.nisab_year_records.insert(record);
+        if (result.error) {
+            console.error('❌ Active hawl seed failed:', JSON.stringify(result.error, null, 2));
+            throw new Error('Failed to insert active hawl record.');
+        }
+        logger.info(`✅ Active hawl created: day ${daysElapsed} of ${TOTAL_DAYS}`);
+    }
+
+    /**
+     * Seed liabilities.
+     *
+     * There was no liability seeder at all, so the Liabilities page could only
+     * ever be reviewed as an empty state.
+     *
+     * Deliberately includes both kinds, because they are treated differently:
+     * a long-term mortgage is excluded from net wealth under most positions,
+     * a credit card due this month is deducted.
+     */
+    static async seedLiabilities() {
+        const db = await getDb();
+        if (!db) throw new Error('DB not initialized');
+
+        const userId = getSeedUserId();
+
+        const dueSoon = new Date();
+        dueSoon.setDate(dueSoon.getDate() + 12);
+
+        const liabilities = [
+            {
+                id: uuidv4(),
+                userId,
+                name: 'Mortgage - primary residence',
+                type: 'long_term',
+                amount: 18400,
+                currency: 'USD',
+                description: 'Balance due 2049. Excluded from net wealth as a long-term obligation.',
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: uuidv4(),
+                userId,
+                name: 'Credit card',
+                type: 'short_term',
+                amount: 640.20,
+                currency: 'USD',
+                description: `Statement balance, due ${dueSoon.toISOString().slice(0, 10)}. Deducted from net wealth.`,
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: uuidv4(),
+                userId,
+                name: 'Business payable - supplier invoice',
+                type: 'business_payable',
+                amount: 1285.50,
+                currency: 'USD',
+                description: 'Owed to supplier, netted against business inventory.',
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }
+        ];
+
+        const result = await db.liabilities.bulkInsert(liabilities);
+        if (result.error && result.error.length > 0) {
+            console.error('❌ Liability seed failed:', JSON.stringify(result.error[0], null, 2));
+            throw new Error(`Failed to insert ${result.error.length} liabilities.`);
+        }
+        logger.info(`✅ ${result.success.length} liabilities created`);
+    }
 }

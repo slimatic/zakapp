@@ -18,6 +18,7 @@
 import React from 'react';
 import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 import { getCurrencySymbol, type CurrencyCode } from '../../utils/formatters';
+import { CHART_COLORS, CHART_GRID_COLOR, CHART_AXIS_COLOR } from '../../utils/chartPalette';
 import {
  LineChart,
  Line,
@@ -56,11 +57,13 @@ interface CalculationTrendsProps {
  onPeriodChange: (period: '1month' | '3months' | '6months' | '1year' | '2years' | 'all') => void;
 }
 
+// Methodology is a categorical series like any other: use the shared ramp
+// rather than inventing a blue/green/purple trio that fights the palette.
 const METHODOLOGY_COLORS = {
- standard: '#3B82F6', // Blue
- hanafi: '#10B981', // Green
- shafii: '#8B5CF6', // Purple
- custom: '#6B7280' // Gray
+  standard: CHART_COLORS[0],
+  hanafi: CHART_COLORS[1],
+  shafii: CHART_COLORS[2],
+  custom: CHART_COLORS[4]
 };
 
 const METHODOLOGY_NAMES: Record<string, string> = {
@@ -173,14 +176,14 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
  </h3>
  <ResponsiveContainer width="100%" height={400}>
  <LineChart data={combinedData}>
- <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+ <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
  <XAxis
  dataKey="date"
- stroke="#9CA3AF"
+ stroke={CHART_AXIS_COLOR}
  style={{ fontSize: '12px' }}
  />
  <YAxis
- stroke="#9CA3AF"
+ stroke={CHART_AXIS_COLOR}
  style={{ fontSize: '12px' }}
  tickFormatter={formatCompactCurrency}
  />
@@ -189,10 +192,10 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
  formatCompactCurrency(value),
  name === 'wealth' ? 'Total Wealth' : 'Zakat Due'
  ]}
- labelStyle={{ color: '#111827' }}
+ labelStyle={{ color: 'hsl(var(--foreground))' }}
  contentStyle={{
- backgroundColor: '#F9FAFB',
- border: '1px solid #D1D5DB',
+ backgroundColor: 'hsl(var(--card))',
+ border: '1px solid hsl(var(--border))',
  borderRadius: '8px'
  }}
  />
@@ -200,20 +203,20 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
  <Line
  type="monotone"
  dataKey="wealth"
- stroke="#3B82F6"
+ stroke={CHART_COLORS[0]}
  strokeWidth={3}
  name="Total Wealth"
- dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
- activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
+ dot={{ fill: CHART_COLORS[0], strokeWidth: 2, r: 4 }}
+ activeDot={{ r: 6, stroke: CHART_COLORS[0], strokeWidth: 2 }}
  />
  <Line
  type="monotone"
  dataKey="zakat"
- stroke="#10B981"
+ stroke={CHART_COLORS[1]}
  strokeWidth={3}
  name="Zakat Due"
- dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
- activeDot={{ r: 6, stroke: '#10B981', strokeWidth: 2 }}
+ dot={{ fill: CHART_COLORS[1], strokeWidth: 2, r: 4 }}
+ activeDot={{ r: 6, stroke: CHART_COLORS[1], strokeWidth: 2 }}
  />
  </LineChart>
  </ResponsiveContainer>
@@ -236,7 +239,7 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
  labelLine={false}
  label={(entry: any) => `${entry.name}: ${(entry.percent * 100).toFixed(0)}%`}
  outerRadius={80}
- fill="#8884d8"
+ fill={CHART_COLORS[3]}
  dataKey="value"
  >
  {methodologyData.map((entry, index) => (
@@ -255,26 +258,26 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
  </h3>
  <ResponsiveContainer width="100%" height={300}>
  <BarChart data={methodologyData}>
- <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+ <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
  <XAxis
  dataKey="name"
- stroke="#9CA3AF"
+ stroke={CHART_AXIS_COLOR}
  style={{ fontSize: '12px' }}
  angle={-15}
  textAnchor="end"
  height={80}
  />
  <YAxis
- stroke="#9CA3AF"
+ stroke={CHART_AXIS_COLOR}
  style={{ fontSize: '12px' }}
  allowDecimals={false}
  />
  <Tooltip
  contentStyle={{
- backgroundColor: '#1F2937',
- border: '1px solid #374151',
+ backgroundColor: 'hsl(var(--popover))',
+ border: '1px solid hsl(var(--border))',
  borderRadius: '0.5rem',
- color: '#F9FAFB'
+ color: 'hsl(var(--popover-foreground))'
  }}
  />
  <Bar dataKey="value" name="Calculations">

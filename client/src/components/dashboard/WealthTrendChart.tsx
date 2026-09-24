@@ -28,6 +28,7 @@ import {
 } from 'recharts';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { NisabYearRecord } from '../../types/nisabYearRecord';
+import { CHART_COLORS, CHART_AXIS_COLOR } from '../../utils/chartPalette';
 
 interface WealthTrendChartProps {
     records: NisabYearRecord[];
@@ -132,33 +133,33 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
                 >
                     <defs>
                         <linearGradient id="colorWealth" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#0f766e" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#0f766e" stopOpacity={0} />
+                            <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={CHART_COLORS[0]} stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="colorZakat" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#fbbf24" stopOpacity={0} />
+                            <stop offset="5%" stopColor={CHART_COLORS[1]} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={CHART_COLORS[1]} stopOpacity={0} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
                         dataKey="name"
-                        stroke="#94a3b8"
+                        stroke={CHART_AXIS_COLOR}
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
                         dy={10} // Push labels down slightly
                     />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
+                    <YAxis stroke={CHART_AXIS_COLOR} fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
                     <Tooltip
                         formatter={(value: any) => [formatTooltip(Number(value) || 0)]}
-                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                        contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
                     />
                     <Area
                         type="monotone"
                         dataKey="totalWealth"
                         name="Total Wealth"
-                        stroke="#0f766e"
+                        stroke={CHART_COLORS[0]}
                         fillOpacity={1}
                         fill="url(#colorWealth)"
                     />
@@ -166,7 +167,7 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
                         type="monotone"
                         dataKey="zakatDue"
                         name="Zakat Due"
-                        stroke="#fbbf24"
+                        stroke={CHART_COLORS[1]}
                         fillOpacity={1}
                         fill="url(#colorZakat)"
                     />

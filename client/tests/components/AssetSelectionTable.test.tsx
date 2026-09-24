@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AssetSelectionTable } from '../../src/components/tracking/AssetSelectionTable';
 
@@ -424,7 +424,7 @@ describe('AssetSelectionTable', () => {
     it('should provide clear focus indicators', () => {
       const onSelectionChange = jest.fn();
 
-      const { container } = render(
+      render(
         <AssetSelectionTable
           assets={mockAssets}
           onSelectionChange={onSelectionChange}

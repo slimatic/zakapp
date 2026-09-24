@@ -15,7 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 import { formatCurrency } from '../utils/formatters';

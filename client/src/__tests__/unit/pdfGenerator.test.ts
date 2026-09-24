@@ -20,7 +20,6 @@
  * Tests PDF generation for annual Zakat summaries
  */
 
-import jsPDF from 'jspdf';
 import { generateAnnualSummaryPDF, generatePaymentReceiptPDF, type PDFOptions } from '../../utils/pdfGenerator';
 import type { YearlySnapshot, PaymentRecord } from '@zakapp/shared/types/tracking';
 

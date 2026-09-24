@@ -29,9 +29,8 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { Input } from '../ui/Input';
 import { PaymentCard } from './PaymentCard';
+import { Money } from '../ui/Money';
 import { PaymentDetailModal } from './PaymentDetailModal';
-import { formatCurrency } from '../../utils/formatters';
-import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import type { PaymentRecord } from '@zakapp/shared/types/tracking';
 import { Decimal } from 'decimal.js';
 
@@ -76,7 +75,6 @@ export const PaymentList: React.FC<PaymentListProps> = ({
   onDeletePayment,
   compact = false
 }) => {
-  const maskedCurrency = useMaskedCurrency();
 
   // Filters state
   const [filters, setFilters] = useState({
@@ -335,36 +333,32 @@ export const PaymentList: React.FC<PaymentListProps> = ({
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary strip - was four tinted cards (green, teal, teal, amber) */}
       {!compact && sortedAndFilteredPayments.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-success-soft border border-success/30 rounded-lg p-4">
-            <div className="text-sm font-medium text-success">Total Paid</div>
-            <div className="text-2xl font-bold text-success">
-              {maskedCurrency(formatCurrency(totalAmount))}
-            </div>
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-4">
+          <div className="bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground">Total paid</p>
+            <Money value={totalAmount} size="lg" tone="success" className="mt-0.5" />
           </div>
-
-          <div className="bg-accent border border-border rounded-lg p-4">
-            <div className="text-sm font-medium text-secondary">Payment Count</div>
-            <div className="text-2xl font-bold text-secondary">
+          <div className="bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground">Payments</p>
+            <p className="mt-0.5 font-heading text-lg font-semibold tabular-nums text-foreground">
               {payments.length}
-            </div>
+            </p>
           </div>
-
-          <div className="bg-accent border border-border rounded-lg p-4">
-            <div className="text-sm font-medium text-secondary">Categories Used</div>
-            <div className="text-2xl font-bold text-secondary">
+          <div className="bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground">Categories used</p>
+            <p className="mt-0.5 font-heading text-lg font-semibold tabular-nums text-foreground">
               {Object.keys(categoryTotals).length}
-            </div>
+            </p>
           </div>
-
-          <div className="bg-warn-soft border border-warn/30 rounded-lg p-4">
-            <div className="text-sm font-medium text-warn-strong">Average Payment</div>
-            <div className="text-2xl font-bold text-warn-strong">
-              {maskedCurrency(formatCurrency(sortedAndFilteredPayments.length > 0 ? new Decimal(totalAmount).dividedBy(sortedAndFilteredPayments.length).toNumber() : 0))}
-            </div>
-
+          <div className="bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground">Average</p>
+            <Money
+              value={sortedAndFilteredPayments.length > 0 ? totalAmount / sortedAndFilteredPayments.length : 0}
+              size="lg"
+              className="mt-0.5"
+            />
           </div>
         </div>
       )}
