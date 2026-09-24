@@ -439,12 +439,16 @@ function App() {
                       }
                     />
 
-                    {/* Privacy Policy - Publicly accessible */}
+                    {/* Privacy Policy - public, but inside the shell so it reads
+                        as part of the app rather than a detached document.
+                        /help, /learn and /diagnostics are public + Layout too. */}
                     <Route
                       path="/privacy-policy"
                       element={
                         <Suspense fallback={<PageLoadingFallback />}>
-                          <PrivacyPolicyPage />
+                          <Layout>
+                            <PrivacyPolicyPage />
+                          </Layout>
                         </Suspense>
                       }
                     />

@@ -1,110 +1,149 @@
 import React from 'react';
-import { Logo } from '../components/common/Logo';
 import { Link } from 'react-router-dom';
 import { GlossaryTerm } from '../components/common/GlossaryTerm';
 import { ExternalLink, Shield, Database, Lock, Eye } from 'lucide-react';
 
+/**
+ * Privacy policy.
+ *
+ * Rendered inside the app shell (see App.tsx - every other in-app route is, and
+ * this one used to be the exception). It previously drew its own centred Logo
+ * and no chrome, which made a page you reach from the app footer look like a
+ * detached document. No page-level container here either: the shell already
+ * provides max-width and padding, so adding them double-padded the page.
+ *
+ * Also dropped `prose prose-emerald`, which hardcoded `--tw-prose-links:
+ * #059669` (Emerald 600) - the one colour on the page that was not a theme
+ * token, so it stayed green in Qamar and matched nothing else in the app.
+ *
+ * Copy note: claims here describe the shipped architecture (local-first, AES-256
+ * with your password, no analytics). Change them only alongside a code change
+ * that makes them true.
+ */
+
+const SUMMARY = [
+    { icon: Database, title: 'Local-first', body: 'Financial data stays on your device by default' },
+    { icon: Lock, title: 'AES-256 encrypted', body: 'Your data is encrypted with your password' },
+    { icon: Eye, title: 'Open source', body: 'Audit our code on GitHub anytime' },
+    { icon: Shield, title: 'No tracking', body: 'No ads, no analytics, no data selling' },
+];
+
 export const PrivacyPolicyPage: React.FC = () => {
     return (
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-                <Link to="/" className="inline-block mb-8">
-                    <Logo className="h-12 w-12 text-secondary" />
-                </Link>
-                <h1 className="text-3xl font-bold text-foreground mb-4">Privacy Policy</h1>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    We believe your spiritual obligations are between you and your Creator.
-                    That's why we built ZakApp with a privacy-first architecture.
+        <div className="space-y-6">
+            {/* Page header - same shape as the other in-app pages */}
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold text-foreground">Privacy Policy</h1>
+                <p className="mt-2 max-w-2xl text-muted-foreground">
+                    We believe your spiritual obligations are between you and your Creator. That's why
+                    we built ZakApp with a privacy-first architecture.
                 </p>
-                <p className="text-sm text-muted-foreground mt-2">Last Updated: January 2026</p>
+                <p className="mt-3 text-sm text-tertiary">Last updated January 2026</p>
             </div>
 
-            <div className="prose prose-emerald mx-auto bg-card p-8 rounded-2xl shadow-sm border border-border">
-                {/* Quick Summary Cards */}
-                <div className="not-prose grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <div className="flex items-start gap-3 p-4 bg-accent rounded-lg border border-border">
-                        <Database className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
-                        <div>
-                            <h4 className="font-semibold text-foreground text-sm">Local-First</h4>
-                            <p className="text-xs text-muted-foreground">Financial data stays on your device by default</p>
+            {/* Summary: a list, not four equal cards. The old grid of identical
+                tinted boxes is the most generic dashboard pattern there is, and
+                it buried a short list of four facts in a lot of chrome. */}
+            <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+                <h2 className="text-lg font-semibold text-foreground">At a glance</h2>
+                <dl className="mt-5 grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2">
+                    {SUMMARY.map(({ icon: Icon, title, body }) => (
+                        <div key={title} className="flex items-start gap-3">
+                            <Icon className="mt-0.5 h-4 w-4 shrink-0 text-secondary" aria-hidden="true" />
+                            <div>
+                                <dt className="text-sm font-semibold text-foreground">{title}</dt>
+                                <dd className="text-sm text-muted-foreground">{body}</dd>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 bg-accent rounded-lg border border-border">
-                        <Lock className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
-                        <div>
-                            <h4 className="font-semibold text-foreground text-sm">AES-256 Encrypted</h4>
-                            <p className="text-xs text-muted-foreground">Your data is encrypted with your password</p>
-                        </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 bg-accent rounded-lg border border-border">
-                        <Eye className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
-                        <div>
-                            <h4 className="font-semibold text-foreground text-sm">Open Source</h4>
-                            <p className="text-xs text-muted-foreground">Audit our code on GitHub anytime</p>
-                        </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 bg-accent rounded-lg border border-border">
-                        <Shield className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
-                        <div>
-                            <h4 className="font-semibold text-foreground text-sm">No Tracking</h4>
-                            <p className="text-xs text-muted-foreground">No ads, no analytics, no data selling</p>
-                        </div>
-                    </div>
-                </div>
+                    ))}
+                </dl>
+            </section>
 
-                <h3><GlossaryTerm term="local-first" /> Architecture</h3>
-                <p>
-                    ZakApp operates on a "<GlossaryTerm term="local-first" />" principle. This means:
-                </p>
-                <ul>
-                    <li><strong>Your Data Stays With You:</strong> The details of your assets, liabilities, and calculated <GlossaryTerm term="zakat" /> are stored securely on your device.</li>
-                    <li><strong>Offline Calculations:</strong> All <GlossaryTerm term="zakat" /> calculations happen in your browser. We don't need to see your numbers.</li>
-                    <li><strong>End-to-End Encryption:</strong> Your data is encrypted before syncing to our servers.</li>
+            <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+                <h2 className="text-lg font-semibold text-foreground">
+                    <GlossaryTerm term="local-first" /> architecture
+                </h2>
+                <ul className="mt-4 space-y-3 text-sm text-foreground/80">
+                    <li>
+                        <strong className="font-semibold text-foreground">Your data stays with you.</strong>{' '}
+                        The details of your assets, liabilities, and calculated{' '}
+                        <GlossaryTerm term="zakat" /> are stored securely on your device.
+                    </li>
+                    <li>
+                        <strong className="font-semibold text-foreground">Offline calculations.</strong>{' '}
+                        All <GlossaryTerm term="zakat" /> calculations happen in your browser. We don't
+                        need to see your numbers.
+                    </li>
+                    <li>
+                        <strong className="font-semibold text-foreground">End-to-end encryption.</strong>{' '}
+                        Your data is encrypted before syncing to our servers.
+                    </li>
                 </ul>
+            </section>
 
-                <h3>What We Store on Our Servers</h3>
-                <p>When you create an account, we store:</p>
-                <ul>
-                    <li>Your email address (for login and password recovery)</li>
+            <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+                <h2 className="text-lg font-semibold text-foreground">What we store on our servers</h2>
+                <p className="mt-4 text-sm text-foreground/80">When you create an account, we store:</p>
+                <ul className="mt-3 space-y-2 text-sm text-foreground/80">
+                    <li>Your email address, for login and password recovery</li>
                     <li>Your encrypted profile (name, preferences)</li>
                     <li>Session data for security purposes</li>
                 </ul>
-                <p>
-                    Your detailed financial data (assets, payments, calculations) remains <strong>local only</strong> unless you explicitly enable cloud sync.
+                <p className="mt-4 text-sm text-foreground/80">
+                    Your detailed financial data — assets, payments, calculations — remains{' '}
+                    <strong className="font-semibold text-foreground">local only</strong> unless you
+                    explicitly enable cloud sync.
                 </p>
+            </section>
 
-                <h3>Your Rights</h3>
-                <ul>
-                    <li><strong>Export:</strong> Download all your data anytime via Settings</li>
-                    <li><strong>Delete:</strong> Remove local or synced data via Settings → Danger Zone</li>
-                    <li><strong>Audit:</strong> Review our <a href="https://github.com/slimatic/zakapp" target="_blank" rel="noopener noreferrer">open source code</a></li>
-                </ul>
-
-                {/* Full Policy Link */}
-                <div className="not-prose mt-8 p-4 bg-muted rounded-lg border border-border">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h4 className="font-semibold text-foreground">Complete Privacy Policy</h4>
-                            <p className="text-sm text-muted-foreground">Read the full legal privacy policy with all details</p>
-                        </div>
+            <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+                <h2 className="text-lg font-semibold text-foreground">Your rights</h2>
+                <ul className="mt-4 space-y-3 text-sm text-foreground/80">
+                    <li>
+                        <strong className="font-semibold text-foreground">Export.</strong> Download all
+                        your data anytime via Settings.
+                    </li>
+                    <li>
+                        <strong className="font-semibold text-foreground">Delete.</strong> Remove local
+                        or synced data via Settings → Danger Zone.
+                    </li>
+                    <li>
+                        <strong className="font-semibold text-foreground">Audit.</strong> Review our{' '}
                         <a
-                            href="https://zakapp.org/privacy"
+                            href="https://github.com/slimatic/zakapp"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground text-sm font-medium rounded-lg hover:bg-secondary/90 transition-colors"
+                            className="font-medium text-secondary underline-offset-2 hover:underline"
                         >
-                            View Full Policy
-                            <ExternalLink className="w-4 h-4" />
+                            open source code
                         </a>
-                    </div>
-                </div>
+                        .
+                    </li>
+                </ul>
 
-                <div className="mt-8 pt-8 border-t border-border flex justify-center">
-                    <Link to="/dashboard" className="text-secondary hover:text-secondary/80 font-medium">
-                        Return to Dashboard
-                    </Link>
+                <div className="mt-6 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-muted-foreground">
+                        The full legal policy has the complete detail.
+                    </p>
+                    <a
+                        href="https://zakapp.org/privacy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/90"
+                    >
+                        Read the full policy
+                        <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                    </a>
                 </div>
-            </div>
+            </section>
+
+            <p className="pb-2 text-sm text-muted-foreground">
+                Questions about this policy?{' '}
+                <Link to="/help" className="font-medium text-secondary hover:underline">
+                    Visit help
+                </Link>
+                .
+            </p>
         </div>
     );
 };
