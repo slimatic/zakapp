@@ -1,7 +1,7 @@
 # Multi-stage production Dockerfile
 
 # Base stage for package definitions
-FROM node:20-slim AS base
+FROM node:25-slim AS base
 WORKDIR /app
 ARG GIT_COMMIT_HASH
 ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
@@ -18,7 +18,7 @@ COPY client/package*.json ./client/
 # Runs on the BUILDPLATFORM (e.g., amd64) to ensure fast Vite builds
 # even when targeting arm64.
 # ----------------------------------------
-FROM --platform=$BUILDPLATFORM node:20-slim AS client-builder
+FROM --platform=$BUILDPLATFORM node:25-slim AS client-builder
 WORKDIR /app
 # Re-declare ARG and ENV as they don't persist across stages automatically
 ARG GIT_COMMIT_HASH
@@ -49,7 +49,7 @@ RUN cd client && npm run build
 # Runs on the TARGETPLATFORM to ensure native modules (better-sqlite3)
 # are built for the correct architecture.
 # ----------------------------------------
-FROM node:20-slim AS server-builder
+FROM node:25-slim AS server-builder
 WORKDIR /app
 # Re-declare ARG and ENV as they don't persist across stages automatically
 ARG GIT_COMMIT_HASH
@@ -106,7 +106,7 @@ CMD ["nginx", "-g", "daemon off;"]
 # ----------------------------------------
 # Production Stage - Backend (Node.js)
 # ----------------------------------------
-FROM node:20-slim AS backend-production
+FROM node:25-slim AS backend-production
 
 WORKDIR /app
 
