@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Dashboard } from './Dashboard';
 import { MemoryRouter } from 'react-router-dom';
+// Initialise i18n with its bundles - without this every t() returns the raw key,
+// so the education assertions below would be testing nothing.
+import '../i18n';
 import * as router from 'react-router-dom';
 
 // Mock hooks
@@ -126,6 +130,42 @@ describe('Dashboard Redirection', () => {
         });
 
         expect(navigate).not.toHaveBeenCalledWith('/onboarding');
+    });
+
+    it('renders education headings as text, never raw i18n keys', async () => {
+        // Regression: <Trans> without ns= looked in the unregistered
+        // `translation` namespace, so the module rendered "education.whatIsZakat"
+        // as a visible heading for every user.
+        (useAssetRepository as any).mockReturnValue({
+            assets: [{ id: '1', value: 100, type: 'cash' }],
+            isLoading: false,
+            error: null,
+        });
+        (useNisabRecordRepository as any).mockReturnValue({
+            activeRecord: null,
+            isLoading: false,
+            error: null,
+        });
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Dashboard />
+                </MemoryRouter>
+            </QueryClientProvider>
+        );
+
+        // The module is collapsed by default; expand it.
+        await screen.findByRole('button', { name: /expand educational content/i });
+        await userEvent.click(screen.getByRole('button', { name: /expand educational content/i }));
+
+        expect(document.body.textContent).not.toMatch(/education\.[a-zA-Z]+/);
+
+        const body = document.body.textContent || '';
+        // Regression: JSX drops the space at a line break that ends with an
+        // element, so this rendered as "beforeZakat".
+        expect(body).not.toMatch(/beforeZakat/);
+        expect(body).toMatch(/before\s+Zakat\s+becomes obligatory/);
     });
 
     it('does NOT redirect if local prefs exist for user', async () => {

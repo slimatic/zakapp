@@ -34,7 +34,15 @@ export const GlossaryTerm: React.FC<GlossaryTermProps> = ({
             </p>
             {glossaryItem.longDefinition && (
                 <div className="pt-2 mt-2 border-t border-border text-xs text-end">
-                    <Link to="/learn" className="text-success hover:text-success/80 flex items-center justify-end gap-1">
+                    {/* target="_self" so the tooltip's click-outside handler sees
+                        the click leave: client-side routing kept the pointer
+                        "outside" the trigger and the popover stayed mounted over
+                        the new page. */}
+                    <Link
+                        to="/learn"
+                        target="_self"
+                        className="text-success hover:text-success/80 flex items-center justify-end gap-1"
+                    >
                         <BookOpen size={12} />
                         Learn more
                     </Link>
@@ -44,7 +52,7 @@ export const GlossaryTerm: React.FC<GlossaryTermProps> = ({
     );
 
     return (
-        <Tooltip content={tooltipContent} maxWidth="280px">
+        <Tooltip content={tooltipContent} maxWidth="280px" ariaLabel={`${glossaryItem.display} — definition`}>
             <span className={className}>
                 {children || glossaryItem.display}
             </span>

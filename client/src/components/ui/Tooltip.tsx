@@ -22,7 +22,7 @@
  * throughout the application with keyboard accessibility.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 
 export interface TooltipProps {
   content: string | React.ReactNode;
@@ -31,6 +31,12 @@ export interface TooltipProps {
   maxWidth?: string;
   className?: string;
   trigger?: 'hover' | 'click' | 'both';
+  /**
+   * Override the accessible name of the trigger. Omit it and the trigger's own
+   * text is the name, which is what you want for a glossary term ("Zakat") -
+   * the definition then rides along as a description, not a replacement.
+   */
+  ariaLabel?: string;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -39,12 +45,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
   position = 'top',
   maxWidth = '300px',
   className = '',
-  trigger = 'hover'
+  trigger = 'hover',
+  ariaLabel
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  const tooltipId = useId();
 
   // Handle click outside to close tooltip
   useEffect(() => {
@@ -138,7 +146,13 @@ export const Tooltip: React.FC<TooltipProps> = ({
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="button"
-        aria-label="Show tooltip"
+        // No aria-label here. A label REPLACES the element's accessible name, so
+        // aria-label="Show tooltip" made every glossary term announce as "Show
+        // tooltip, button" and the word itself (Zakat, Nisab, Hawl) was never
+        // read. The visible word is the name; aria-describedby carries the
+        // definition. GlossaryTerm overrides this via ariaLabel.
+        aria-label={ariaLabel}
+        aria-describedby={isVisible ? tooltipId : undefined}
         className="cursor-help inline"
       >
         {children}
@@ -147,6 +161,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       {isVisible && (
         <div
           ref={tooltipRef}
+          id={tooltipId}
           className={`absolute z-50 ${positionClasses[position]} animate-fadeIn`}
           style={{ maxWidth }}
           role="tooltip"

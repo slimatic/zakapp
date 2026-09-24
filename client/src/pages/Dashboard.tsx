@@ -109,39 +109,46 @@ const EducationalModule: React.FC = () => {
         <div className="space-y-4">
           <div>
             <h3 className="font-semibold text-secondary mb-2">
-              <Trans i18nKey="education.whatIsZakat" components={{ glossary: <GlossaryTerm term="zakat" /> }} />
+              <Trans ns="dashboard" i18nKey="education.whatIsZakat" components={{ glossary: <GlossaryTerm term="zakat" /> }} />
             </h3>
             <p className="text-sm text-foreground leading-relaxed">
-              <GlossaryTerm term="zakat" /> is one of the Five Pillars of Islam and is an obligatory act of charity. It requires Muslims
-              who meet specific wealth criteria to donate 2.5% of their qualifying wealth annually to those in need.
-              <GlossaryTerm term="zakat" /> purifies wealth and helps create a more equitable society.
+              <GlossaryTerm term="zakat" /> is one of the Five Pillars of Islam and is an
+              obligatory act of charity. It requires Muslims who meet specific wealth criteria
+              to donate 2.5% of their qualifying wealth annually to those in need.{' '}
+              <GlossaryTerm term="zakat" /> purifies wealth and helps create a more equitable
+              society.
             </p>
           </div>
 
           <div>
             <h3 className="font-semibold text-secondary mb-2">
-              <Trans i18nKey="education.whatIsNisab" components={{ glossary: <GlossaryTerm term="nisab" /> }} />
+              <Trans ns="dashboard" i18nKey="education.whatIsNisab" components={{ glossary: <GlossaryTerm term="nisab" /> }} />
             </h3>
             <p className="text-sm text-foreground leading-relaxed">
-              <GlossaryTerm term="nisab" /> is the minimum threshold of wealth a Muslim must possess for one lunar year (<GlossaryTerm term="hawl" />) before
-              <GlossaryTerm term="zakat" /> becomes obligatory. The <GlossaryTerm term="nisab" /> can be calculated based on the value of gold (85 grams) or
-              silver (595 grams). ZakApp helps you track your wealth and determine when you've reached the <GlossaryTerm term="nisab" /> threshold.
+              <GlossaryTerm term="nisab" /> is the minimum threshold of wealth a Muslim
+              must possess for one lunar year (<GlossaryTerm term="hawl" />) before{' '}
+              <GlossaryTerm term="zakat" /> becomes obligatory. The <GlossaryTerm term="nisab" />{' '}
+              can be calculated based on the value of gold (85 grams) or silver (595 grams).
+              ZakApp helps you track your wealth and determine when you've reached the{' '}
+              <GlossaryTerm term="nisab" /> threshold.
             </p>
           </div>
 
           <div>
             <h3 className="font-semibold text-secondary mb-2">
-              <Trans i18nKey="education.hawlPeriod" components={{ glossary: <GlossaryTerm term="hawl" /> }} />
+              <Trans ns="dashboard" i18nKey="education.hawlPeriod" components={{ glossary: <GlossaryTerm term="hawl" /> }} />
             </h3>
             <p className="text-sm text-foreground leading-relaxed">
-              The <GlossaryTerm term="hawl" /> is the Islamic lunar year period (354 days) during which your wealth must remain above
-              the <GlossaryTerm term="nisab" /> threshold for <GlossaryTerm term="zakat" /> to be due. ZakApp's Nisab Year Record feature helps you track this
-              period automatically and alerts you when <GlossaryTerm term="zakat" /> payment is due.
+              The <GlossaryTerm term="hawl" /> is the Islamic lunar year period (354 days)
+              during which your wealth must remain above the{' '}
+              <GlossaryTerm term="nisab" /> threshold for <GlossaryTerm term="zakat" /> to be
+              due. ZakApp's Nisab Year Record feature helps you track this period
+              automatically and alerts you when <GlossaryTerm term="zakat" /> payment is due.
             </p>
           </div>
 
           <div className="pt-4 border-t border-border">
-            <h3 className="font-semibold text-secondary mb-3">Learn More</h3>
+            <h3 className="font-semibold text-secondary mb-3">{t('education.learnMore')}</h3>
             <div className="space-y-2">
               <Link
                 to="/learn"
