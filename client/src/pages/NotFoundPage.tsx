@@ -42,19 +42,19 @@ export function NotFoundPage() {
  <nav className="flex flex-wrap gap-3 justify-center" aria-label="Helpful links">
  <Link
  to="/dashboard"
- className="px-4 py-2 rounded bg-secondary text-secondary-foreground text-sm font-medium hover:bg-secondary/90"
+ className="inline-flex min-h-[44px] items-center rounded bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
  >
  Go to Dashboard
  </Link>
  <Link
  to="/nisab-records"
- className="px-4 py-2 rounded border border-border-strong text-foreground/80 text-sm font-medium hover:bg-muted :bg-muted"
+ className="inline-flex min-h-[44px] items-center rounded border border-border-strong px-4 text-sm font-medium text-foreground/80 hover:bg-muted"
  >
  Nisab Records
  </Link>
  <Link
  to="/calculator"
- className="px-4 py-2 rounded border border-border-strong text-foreground/80 text-sm font-medium hover:bg-muted :bg-muted"
+ className="inline-flex min-h-[44px] items-center rounded border border-border-strong px-4 text-sm font-medium text-foreground/80 hover:bg-muted"
  >
  Quick Calculator
  </Link>

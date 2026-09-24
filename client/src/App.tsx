@@ -458,13 +458,18 @@ function App() {
 
 
 
-                    {/* 404 catch-all — must stay last */}
+                    {/* 404 catch-all — must stay last. Wrapped in <Layout> like
+                        every other page: drawn outside the shell it rendered no
+                        header, footer or #main-content, so the skip link pointed
+                        at a target that did not exist. */}
                     <Route
                       path="*"
                       element={
-                        <Suspense fallback={<PageLoadingFallback />}>
-                          <NotFoundPage />
-                        </Suspense>
+                        <Layout>
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <NotFoundPage />
+                          </Suspense>
+                        </Layout>
                       }
                     />
 

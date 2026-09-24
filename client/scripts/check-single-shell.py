@@ -18,6 +18,10 @@ BASE = "http://localhost:4173"
 ROUTES = [
     "/dashboard", "/assets", "/liabilities", "/nisab-records", "/payments",
     "/analytics", "/calculator", "/settings", "/learn", "/diagnostics", "/seeder",
+    # The catch-all. It was the ONE route drawn outside the shell, which is how it
+    # escaped this check for its whole life: every URL tested here was a real route.
+    # Any bogus path reaches the 404, and it must render the shell like everything else.
+    "/this-route-does-not-exist",
 ]
 
 # A shell is recognisable by its chrome. Count navigations, headers and footers.
@@ -50,6 +54,15 @@ with sync_playwright() as p:
             problems.append(f'{c["headers"]}x header')
         if c["footers"] > 1:
             problems.append(f'{c["footers"]}x footer')
+        # ZERO chrome is the opposite failure: the page was drawn OUTSIDE the shell
+        # entirely. This check originally only looked for duplicated chrome, so a page
+        # with header=0 footer=0 reported "ok" - which is exactly how the 404 route sat
+        # outside the shell unnoticed, with a skip link pointing at a #main-content
+        # that was never rendered. A shell can be missing, not just doubled.
+        if c["headers"] == 0:
+            problems.append("no header - page rendered outside the shell")
+        if c["footers"] == 0:
+            problems.append("no footer - page rendered outside the shell")
         status = "FAIL" if problems else "ok"
         print(f"  {status:4} {route:16} nav={c['navs']} header={c['headers']} "
               f"footer={c['footers']} aside={c['sidebars']} copyright={c['copyright']}")

@@ -16,7 +16,10 @@ from _login import open_session
 UID = "cmuerqpub000rpb3fulpxby7g"
 BASE = "http://localhost:4173"
 ROUTES = ["/dashboard", "/assets", "/liabilities", "/nisab-records", "/payments",
-          "/analytics", "/calculator", "/settings", "/learn"]
+          "/analytics", "/calculator", "/settings", "/learn",
+          # the 404: it rendered outside the shell, so it had a skip link pointing at
+          # a #main-content that did not exist. Only a bogus URL reaches it.
+          "/no-such-route"]
 
 PROBE = """() => ({
   hOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
