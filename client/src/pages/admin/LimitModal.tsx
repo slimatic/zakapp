@@ -1,4 +1,5 @@
 
+import toast from 'react-hot-toast';
 import React, { useState, useEffect } from 'react';
 import { User, adminService } from '../../services/adminService';
 import { DEFAULT_LIMITS } from '../../constants/limits';
@@ -44,10 +45,10 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
                 onSave(user.id, limits);
                 onClose();
             } else {
-                alert(res.message || 'Failed to update limits');
+                toast.error(res.message || 'Failed to update limits');
             }
         } catch (error) {
-            alert('Error updating limits');
+            toast.error('Could not update limits. Please try again.');
         } finally {
             setLoading(false);
         }

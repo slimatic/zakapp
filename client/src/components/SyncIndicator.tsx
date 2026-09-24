@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from 'react';
 import { syncService } from '../services/SyncService';
 import { CheckCircle, RefreshCcw, AlertCircle } from 'lucide-react';
@@ -52,12 +53,12 @@ export const SyncIndicator: React.FC = () => {
             const ms = Date.now() - start;
             if (res.ok) {
                 const info = await res.json();
-                alert(`✅ CONNECTION SUCCESS\nTime: ${ms}ms\nURL: ${url}\nCouchDB Version: ${info.version}\n\nSync Status: ${status.active ? 'Active' : 'Idle'}\nPending: ${status.pending?.length || 0}`);
+                toast.success(`Connected in ${ms}ms - CouchDB ${info.version}`);
             } else {
-                alert(`⚠️ CONNECTION ERROR\nStatus: ${res.status}\nURL: ${url}\n(Note: Some endpoints are restricted to admins)`);
+                toast.error(`CouchDB returned ${res.status}. Some endpoints are admin-only.`);
             }
         } catch (err: any) {
-            alert(`❌ CONNECTION FAILED\nURL: ${url}\nError: ${err.message}\n\nEnsure CouchDB is running and accessible or check CORS settings.`);
+            toast.error(`Cannot reach CouchDB at ${url}: ${err.message}`);
         }
     };
 

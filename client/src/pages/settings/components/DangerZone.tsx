@@ -16,6 +16,7 @@
  */
 
 
+import toast from 'react-hot-toast';
 import { forceResetDatabase } from '../../../db';
 import { useMutation } from '@tanstack/react-query';
 import { apiService } from '../../../services/api';
@@ -90,7 +91,7 @@ export const DangerZone: React.FC = () => {
                 window.location.reload();
             } catch (error) {
                 console.error('Failed to reset database:', error);
-                alert('Failed to reset database. Please check console.');
+                toast.error('Failed to reset the database. Please check the console.');
             }
         }
     };

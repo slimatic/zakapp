@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useState, useEffect } from 'react';
 import { adminService, User } from '../../services/adminService';
 import { LimitModal } from '../../pages/admin/LimitModal';
@@ -52,10 +53,10 @@ export const UserManagement: React.FC = () => {
             if (res.success) {
                 setUsers(users.filter(u => u.id !== userId));
             } else {
-                alert(res.message || 'Failed to delete user');
+                toast.error(res.message || 'Failed to delete user');
             }
         } catch (err) {
-            alert('Error deleting user');
+            toast.error('Could not delete the user. Please try again.');
         }
     };
 
@@ -68,10 +69,10 @@ export const UserManagement: React.FC = () => {
             if (res.success) {
                 setUsers(users.map(u => u.id === userId ? { ...u, userType: newRole } : u));
             } else {
-                alert(res.message || 'Failed to update user role');
+                toast.error(res.message || 'Failed to update the user role');
             }
         } catch (err) {
-            alert('Error updating user role');
+            toast.error('Could not update the user role. Please try again.');
         }
     };
 
@@ -82,10 +83,10 @@ export const UserManagement: React.FC = () => {
             if (res.success) {
                 setUsers(users.map(u => u.id === userId ? { ...u, isVerified: true } : u));
             } else {
-                alert(res.message || 'Failed to verify user');
+                toast.error(res.message || 'Failed to verify the user');
             }
         } catch (err) {
-            alert('Error verifying user');
+            toast.error('Could not verify the user. Please try again.');
         }
     };
 
