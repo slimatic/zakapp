@@ -19,7 +19,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { Link, useLocation } from 'react-router-dom';
-import { SkipLink } from '../common/SkipLink';
 import { MobileNav } from './MobileNav';
 import { BottomNav } from './BottomNav';
 import { SyncIndicator } from '../SyncIndicator';
@@ -156,7 +155,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SkipLink />
+      {/* No <SkipLink> here - App.tsx renders one at the app root, and two of
+          them gave keyboard users a duplicated "Skip to main content". */}
 
       {/* ── Top bar ───────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-border bg-card">
@@ -197,7 +197,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             )}
           </button>
 
-          <SyncIndicator />
+          {/* Sync status is chrome, not content. At 390px the header row
+              (logo 147 + spacer + two 36px icons + this chip 40 + a 48px menu
+              slot + avatar 40) came to 435px and pushed the whole page 45px
+              wide, so the chip is desktop-only. SyncErrors are still reported
+              on the diagnostics page and in the sync manager. */}
+          <div className="hidden sm:block">
+            <SyncIndicator />
+          </div>
 
           {/* Mobile menu trigger (sidebar is hidden below lg) */}
           <div className="lg:hidden">

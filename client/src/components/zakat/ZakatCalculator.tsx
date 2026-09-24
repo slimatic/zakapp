@@ -307,8 +307,9 @@ export const ZakatCalculator: React.FC = () => {
         </div>
       </div>
 
-      {/* Steps Indicator */}
-      <div className="flex items-center justify-center space-x-4 mb-8">
+      {/* Steps Indicator. Wraps and centres: three steps plus two 48px
+          connectors exceed a 390px phone, and `space-x-4` does not wrap. */}
+      <div className="mb-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-3 sm:space-x-4">
         {steps.map((step) => (
           <div key={step.id} className="flex items-center">
             <div className={`
@@ -321,7 +322,10 @@ export const ZakatCalculator: React.FC = () => {
             <span className={`ml-2 text-sm font-medium ${currentStep === step.id ? 'text-foreground' : 'text-muted-foreground'}`}>
               {step.title}
             </span>
-            {step.id !== steps.length - 1 && <div className="w-12 h-px bg-border-strong mx-4" />}
+            {/* Connector: decorative, and the first thing to go on a narrow screen */}
+            {step.id !== steps.length - 1 && (
+              <div className="mx-4 hidden h-px w-12 bg-border-strong sm:block" />
+            )}
           </div>
         ))}
       </div>

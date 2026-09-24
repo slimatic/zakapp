@@ -74,9 +74,14 @@ export const KnowledgeHub: React.FC = () => {
                 </p>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex justify-center border-b border-border mb-8">
-                <nav className="flex space-x-8" aria-label="Tabs">
+            {/* Navigation Tabs. Scrolls horizontally on a narrow screen rather
+                than widening the page - four tabs with icons and `space-x-8`
+                exceed a 390px phone. */}
+            <div className="-mx-4 mb-8 flex justify-start border-b border-border px-4 sm:mx-0 sm:justify-center sm:px-0">
+                <nav
+                    className="flex gap-6 overflow-x-auto sm:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    aria-label="Tabs"
+                >
                     <button
                         onClick={() => setActiveTab('faqs')}
                         className={`${activeTab === 'faqs' ? 'border-secondary text-secondary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
