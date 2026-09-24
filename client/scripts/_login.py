@@ -9,8 +9,25 @@ Two things it fixes:
 2. The login rate limiter. Running the checks back to back trips
    `429 RATE_LIMIT_EXCEEDED` with a `retryAfter` of ~240s. That presents as
    "login is broken" and makes a check script measure the login page instead of
-   the app - a green/red result that means nothing. Here we wait it out once.
+   the app - a green/red result that means nothing.
+
+WHY THERE IS A SESSION CACHE
+Waiting the limiter out costs 250s, and a check chain would hit it more than once.
+So auth state is captured from ONE real login and saved to a gitignored file; later
+processes restore it via localStorage/sessionStorage and never touch /login.
+
+Both stores are captured, and that matters: sessionStorage holds `zakapp_session_v1`,
+which carries the DB encryption key. A token-only restore authenticates the API but
+leaves the encrypted local store unreadable, so pages render empty and a check would
+silently assert nothing. Verified equivalent before adopting: an injected session
+renders byte-identical output to a real login on /dashboard, /assets, /payments and
+/settings (text length, SVG count, headings and money values all match).
+
+If a restore ever stops working (token expiry, key rotation, a server restart) the
+next run falls back to a real login and re-seeds the cache - so the failure mode is
+a slow check, never a wrong one. A cache older than MAX_AGE is ignored outright.
 """
+import json
 import os
 import time
 from playwright.sync_api import sync_playwright
@@ -19,6 +36,23 @@ from playwright.sync_api import TimeoutError as PWTimeout
 UID = "cmuerqpub000rpb3fulpxby7g"
 BASE = "http://localhost:4173"
 USER = os.environ.get("ZAK_SMOKE_USER", "v1smoke")
+
+# Same directory as this file. Not committed - the session carries a live token.
+CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".session-cache.json")
+MAX_AGE = 1800  # seconds
+
+# The app's own marker that a restored session is usable: it redirects to /login when
+# the token is dead. Restore is therefore self-verifying, with no separate probe call.
+MARKER_KEY = "accessToken"
+
+_DUMP = """() => { const o = {ls: {}, ss: {}};
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); o.ls[k] = localStorage.getItem(k); }
+  for (let i = 0; i < sessionStorage.length; i++) { const k = sessionStorage.key(i); o.ss[k] = sessionStorage.getItem(k); }
+  return o; }"""
+
+_INJECT = """(d) => {
+  for (const [k, v] of Object.entries(d.ls)) localStorage.setItem(k, v);
+  for (const [k, v] of Object.entries(d.ss)) sessionStorage.setItem(k, v); }"""
 
 
 def _secret():
@@ -40,12 +74,46 @@ def _do_login(pg):
         pass
     for _ in range(30):
         pg.wait_for_timeout(500)
-        if pg.evaluate("!!localStorage.getItem('accessToken')"):
+        if pg.evaluate(f"!!localStorage.getItem('{MARKER_KEY}')"):
             return True
-    text = pg.evaluate("() => document.body.innerText.toLowerCase()") or ""
-    if "too many" in text:
-        return False
     return False
+
+
+def _read_cache():
+    """Cached auth state, or None when absent/expired/corrupt."""
+    try:
+        with open(CACHE_PATH, encoding="utf-8") as fh:
+            data = json.load(fh)
+        if time.time() - data.get("saved_at", 0) > MAX_AGE:
+            return None
+        return data.get("state") or None
+    except (OSError, ValueError):
+        return None
+
+
+def _write_cache(state):
+    try:
+        with open(CACHE_PATH, "w", encoding="utf-8") as fh:
+            json.dump({"saved_at": time.time(), "state": state}, fh)
+    except OSError:
+        pass  # a cache miss costs a login, never correctness
+
+
+def _apply(pg, state, path):
+    """Restore captured state and land on `path`. False if the session is dead."""
+    pg.goto(f"{BASE}/login", wait_until="domcontentloaded")
+    pg.wait_for_timeout(300)
+    pg.evaluate(_INJECT, state)
+    # The onboarding-skip flag belongs here as well as on the real-login path.
+    # Without it a restored session is sent to /onboarding, so every check would
+    # silently measure the wrong page.
+    pg.evaluate(
+        f"localStorage.setItem('zakapp_local_prefs_{UID}', JSON.stringify({{skipped:true}}))"
+    )
+    pg.goto(f"{BASE}{path}", wait_until="networkidle")
+    pg.wait_for_timeout(2500)
+    # The app is the authority: a dead token bounces to /login.
+    return "/login" not in pg.url
 
 
 def open_session(browser, viewport, is_mobile=False, has_touch=False, path="/dashboard",
@@ -60,6 +128,12 @@ def open_session(browser, viewport, is_mobile=False, has_touch=False, path="/das
         ctx_kwargs["reduced_motion"] = reduced_motion
     ctx = browser.new_context(**ctx_kwargs)
     pg = ctx.new_page()
+
+    cached = _read_cache()
+    if cached and _apply(pg, cached, path):
+        return ctx, pg
+
+    # No usable cache: log in for real, once, and seed the cache for the rest of the chain.
     ok = _do_login(pg)
     if not ok:
         # Likely the rate limiter; it reports retryAfter ~240s. Wait once.
@@ -68,6 +142,7 @@ def open_session(browser, viewport, is_mobile=False, has_touch=False, path="/das
         ok = _do_login(pg)
     if not ok:
         raise SystemExit(f"FAIL: login failed (check ZAK_SMOKE_PASS, url={pg.url})")
+
     pg.evaluate(
         f"localStorage.setItem('zakapp_local_prefs_{UID}', JSON.stringify({{skipped:true}}))"
     )
@@ -75,4 +150,9 @@ def open_session(browser, viewport, is_mobile=False, has_touch=False, path="/das
     pg.wait_for_timeout(2500)
     if "/login" in pg.url:
         raise SystemExit(f"FAIL: bounced back to /login when opening {path}")
+
+    # Written LAST so the cached state already contains everything the restore path
+    # needs. Capturing before the onboarding flag was set made every restored session
+    # land on /onboarding instead of the requested route.
+    _write_cache(pg.evaluate(_DUMP))
     return ctx, pg

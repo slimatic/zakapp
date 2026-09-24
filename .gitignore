@@ -181,3 +181,7 @@ docs/archive/specs/*/lighthouse-report.json
 
 # Python bytecode from the check scripts
 client/scripts/__pycache__/
+
+# Cached smoke-test auth state (_login.py). Carries a LIVE token and the DB
+# encryption key - must never be committed to this public repo.
+client/scripts/.session-cache.json
