@@ -35,7 +35,7 @@ export const HelpSupport = () => {
                         to="/diagnostics"
                         className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-warn-strong h-10 px-4 py-2"
                     >
-                        <Activity className="mr-2 h-4 w-4" />
+                        <Activity className="me-2 h-4 w-4" />
                         Run System Diagnostics
                     </Link>
                 </CardContent>

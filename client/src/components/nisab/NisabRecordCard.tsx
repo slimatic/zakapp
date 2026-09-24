@@ -116,12 +116,12 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
         <div className="flex flex-col gap-1 text-xs text-muted-foreground">
           <div>
             Started: <span className="text-card-foreground font-medium">{startDateFormatted}</span>
-            <span className="text-muted-foreground ml-1">({formatHijriDate(gregorianToHijri(startDate))})</span>
+            <span className="text-muted-foreground ms-1">({formatHijriDate(gregorianToHijri(startDate))})</span>
           </div>
           {record.hawlCompletionDate && (
             <div>
               Ends: <span className="text-card-foreground font-medium">{new Date(record.hawlCompletionDate).toLocaleDateString()}</span>
-              <span className="text-muted-foreground ml-1">({formatHijriDate(gregorianToHijri(new Date(record.hawlCompletionDate)))})</span>
+              <span className="text-muted-foreground ms-1">({formatHijriDate(gregorianToHijri(new Date(record.hawlCompletionDate)))})</span>
             </div>
           )}
         </div>

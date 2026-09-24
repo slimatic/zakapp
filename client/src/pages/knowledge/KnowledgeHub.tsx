@@ -157,7 +157,7 @@ export const KnowledgeHub: React.FC = () => {
                             <h3 className="text-xl font-semibold text-foreground mb-6">Simple Zakat Guide Series</h3>
                             <div className="aspect-w-16 aspect-h-9 bg-muted rounded-xl overflow-hidden shadow-lg relative" style={{ paddingBottom: '56.25%' }}>
                                 <iframe
-                                    className="absolute top-0 inline-start-0 w-full h-full"
+                                    className="absolute top-0 start-0 w-full h-full"
                                     src={`https://www.youtube.com/embed/videoseries?list=${VIDEO_PLAYLIST_ID}`}
                                     title="Zakat Guide Playlist"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

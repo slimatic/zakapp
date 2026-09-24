@@ -250,7 +250,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
           </label>
           {isLoadingNisabRecords ? (
             <div className="flex items-center text-sm text-muted-foreground">
-              <LoadingSpinner size="sm" className="mr-2" />
+              <LoadingSpinner size="sm" className="me-2" />
               Loading Nisab Year Records...
             </div>
           ) : nisabRecords.length === 0 ? (
@@ -423,7 +423,7 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
         >
           {isSubmitting ? (
             <>
-              <LoadingSpinner size="sm" className="mr-2" />
+              <LoadingSpinner size="sm" className="me-2" />
               {isEditing ? 'Updating...' : 'Saving...'}
             </>
           ) : (

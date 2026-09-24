@@ -158,7 +158,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
           <div
             ref={menuRef}
             id="mobile-menu"
-            className="fixed inset-y-0 inline-start-0 w-64 bg-card shadow-elev-3 z-[60] transform transition-transform duration-300 ease-in-out"
+            className="fixed inset-y-0 start-0 w-64 bg-card shadow-elev-3 z-[60] transform transition-transform duration-300 ease-in-out"
             role="dialog"
             aria-modal="true"
             aria-label="Mobile navigation"

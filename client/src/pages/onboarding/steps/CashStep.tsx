@@ -31,7 +31,7 @@ export const CashStep: React.FC = () => {
                             Bank Accounts (Checking/Savings)
                         </label>
                         <div className="relative rounded-md shadow-sm">
-                            <div className="pointer-events-none absolute inset-y-0 inline-start-0 flex items-center ps-3">
+                            <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                                 <span className="text-muted-foreground sm:text-sm">{currencySymbol}</span>
                             </div>
                             <input
@@ -50,7 +50,7 @@ export const CashStep: React.FC = () => {
                             Cash on Hand
                         </label>
                         <div className="relative rounded-md shadow-sm">
-                            <div className="pointer-events-none absolute inset-y-0 inline-start-0 flex items-center ps-3">
+                            <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                                 <span className="text-muted-foreground sm:text-sm">{currencySymbol}</span>
                             </div>
                             <input

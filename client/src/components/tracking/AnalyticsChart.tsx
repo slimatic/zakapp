@@ -145,7 +145,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
     return (
       <div className={`border rounded-lg p-6 ${is429Error ? 'bg-warn-soft border-warn/30' : 'bg-danger-soft border-danger/30'}`} style={{ minHeight: compact ? 200 : height }}>
         <div className="flex items-start">
-          <svg className={`h-6 w-6 mr-3 flex-shrink-0 ${is429Error ? 'text-warn-strong' : 'text-danger'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className={`h-6 w-6 me-3 flex-shrink-0 ${is429Error ? 'text-warn-strong' : 'text-danger'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>

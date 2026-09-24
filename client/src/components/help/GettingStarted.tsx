@@ -39,7 +39,7 @@ export const GettingStarted: React.FC = () => {
                 1
               </div>
             </div>
-            <div className="ml-4">
+            <div className="ms-4">
               <h3 className="text-lg font-medium text-foreground">Add Your Assets</h3>
               <p className="text-muted-foreground mb-2">
                 Start by adding all your zakatable assets including cash, bank accounts, gold, silver, 
@@ -58,7 +58,7 @@ export const GettingStarted: React.FC = () => {
                 2
               </div>
             </div>
-            <div className="ml-4">
+            <div className="ms-4">
               <h3 className="text-lg font-medium text-foreground">Calculate Your Zakat</h3>
               <p className="text-muted-foreground mb-2">
                 Use our comprehensive calculator to determine your Zakat obligation based on 
@@ -77,7 +77,7 @@ export const GettingStarted: React.FC = () => {
                 3
               </div>
             </div>
-            <div className="ml-4">
+            <div className="ms-4">
               <h3 className="text-lg font-medium text-foreground">Track Your History</h3>
               <p className="text-muted-foreground mb-2">
                 Keep records of your calculations and payments for better financial planning 

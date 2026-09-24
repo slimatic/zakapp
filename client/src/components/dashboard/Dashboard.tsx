@@ -78,11 +78,11 @@ export const Dashboard: React.FC = () => {
         </div>
         <div className="flex gap-3">
           <Button onClick={() => navigate('/assets/new')} variant="outline">
-            <Wallet className="h-4 w-4 mr-2" />
+            <Wallet className="h-4 w-4 me-2" />
             Add Asset
           </Button>
           <Button onClick={() => navigate('/calculate')} variant="default" className="shadow-lg shadow-elev-2">
-            <Calculator className="h-4 w-4 mr-2" />
+            <Calculator className="h-4 w-4 me-2" />
             Calculate Zakat
           </Button>
         </div>
@@ -91,7 +91,7 @@ export const Dashboard: React.FC = () => {
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Assets */}
-        <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-secondary">
+        <Card className="hover:shadow-md transition-shadow duration-300 border-s-4 border-s-secondary">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Assets Value
@@ -111,7 +111,7 @@ export const Dashboard: React.FC = () => {
         </Card>
 
         {/* Zakatable Assets */}
-        <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-warn">
+        <Card className="hover:shadow-md transition-shadow duration-300 border-s-4 border-s-warn">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Zakatable Assets
@@ -129,7 +129,7 @@ export const Dashboard: React.FC = () => {
         </Card>
 
         {/* Zakat Due (Placeholder/Estimated) */}
-        <Card className="hover:shadow-md transition-shadow duration-300 border-l-4 border-l-border">
+        <Card className="hover:shadow-md transition-shadow duration-300 border-s-4 border-s-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Last Calculation

@@ -570,16 +570,16 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
               className="rounded border-border-strong text-secondary shadow-sm focus:border-ring focus:ring-2 focus:ring-ring"
               aria-describedby="zakat-help"
             />
-            <span className="ml-2 text-sm text-foreground">
+            <span className="ms-2 text-sm text-foreground">
               This asset is eligible for Zakat calculation
             </span>
             {formData.isEligibilityManual && (
-              <span className="ml-2 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded border border-border">
+              <span className="ms-2 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded border border-border">
                 Manual Override
               </span>
             )}
           </label>
-          <p id="zakat-help" className="mt-1 ml-6 text-xs text-muted-foreground">
+          <p id="zakat-help" className="mt-1 ms-6 text-xs text-muted-foreground">
             Check this if the asset should be included in Zakat calculations
           </p>
 

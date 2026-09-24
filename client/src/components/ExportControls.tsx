@@ -72,7 +72,7 @@ export const ExportControls: React.FC<ExportControlsProps> = ({
                   onChange={(e) => setSelectedFormat(e.target.value as 'csv' | 'json' | 'pdf')}
                   className="h-4 w-4 text-secondary focus:ring-ring border-border-strong"
                 />
-                <div className="ml-3">
+                <div className="ms-3">
                   <div className="text-sm font-medium text-foreground">
                     {formatLabels[format]}
                   </div>

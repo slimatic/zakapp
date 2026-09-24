@@ -70,7 +70,7 @@ export const MaintenancePage: React.FC = () => {
                         <p className="text-lg text-foreground leading-relaxed">
                             We're currently performing scheduled maintenance to enhance your ZakApp experience.
                         </p>
-                        <p className="text-md text-muted-foreground">
+                        <p className="text-base text-muted-foreground">
                             Your vault remains secure and encrypted. We appreciate your patience as we work to serve you better.
                         </p>
                     </div>

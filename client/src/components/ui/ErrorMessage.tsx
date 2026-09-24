@@ -51,7 +51,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
         <div className="flex-shrink-0">
           <div className="text-danger text-xl" aria-hidden="true">⚠</div>
         </div>
-        <div className="ml-3 flex-1">
+        <div className="ms-3 flex-1">
           <h3 className="text-sm font-medium text-danger">
             {title}
           </h3>

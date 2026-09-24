@@ -209,7 +209,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'GOLD' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border'}`}>
                   <div className="flex items-center">
-                    <input type="radio" name="nisab" checked={nisabBasis === 'GOLD'} onChange={() => setNisabBasis('GOLD')} className="mr-3 h-4 w-4 text-secondary" />
+                    <input type="radio" name="nisab" checked={nisabBasis === 'GOLD'} onChange={() => setNisabBasis('GOLD')} className="me-3 h-4 w-4 text-secondary" />
                     <div>
                       <span className="block font-medium text-card-foreground">Gold Standard</span>
                       <span className="text-xs text-muted-foreground">For Wealthy/Safer</span>
@@ -219,7 +219,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
                 </label>
                 <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'SILVER' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border'}`}>
                   <div className="flex items-center">
-                    <input type="radio" name="nisab" checked={nisabBasis === 'SILVER'} onChange={() => setNisabBasis('SILVER')} className="mr-3 h-4 w-4 text-secondary" />
+                    <input type="radio" name="nisab" checked={nisabBasis === 'SILVER'} onChange={() => setNisabBasis('SILVER')} className="me-3 h-4 w-4 text-secondary" />
                     <div>
                       <span className="block font-medium text-card-foreground">Silver Standard</span>
                       <span className="text-xs text-muted-foreground">For Low Income</span>

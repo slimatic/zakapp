@@ -334,7 +334,7 @@ export const CalculationTrendsChart: React.FC<CalculationTrendsProps> = ({
  <div className="bg-accent border border-border rounded-lg p-4">
  <div className="flex">
  <svg
- className="h-5 w-5 text-secondary/80 mr-3 flex-shrink-0"
+ className="h-5 w-5 text-secondary/80 me-3 flex-shrink-0"
  fill="currentColor"
  viewBox="0 0 20 20"
  >

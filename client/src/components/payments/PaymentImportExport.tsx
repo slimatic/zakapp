@@ -316,7 +316,7 @@ export const PaymentImportExport: React.FC = () => {
 
         <div className="mb-6">
           <label className="block">
-            <input type="file" accept=".csv,.json" onChange={handleImport} disabled={importing} className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent disabled:opacity-50" />
+            <input type="file" accept=".csv,.json" onChange={handleImport} disabled={importing} className="block w-full text-sm text-muted-foreground file:me-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent disabled:opacity-50" />
           </label>
           <p className="mt-1 text-xs text-muted-foreground">Supported formats: CSV, JSON (max 10MB). CSV requires headers: Payment Date,Amount,Currency,Snapshot ID,Recipient Name</p>
         </div>

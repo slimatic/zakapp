@@ -97,7 +97,7 @@ export const AssetRulingExplanation: React.FC<{
 
           {/* Override explanation */}
           {ruling.override && (
-            <div className="border-l-2 border-border-strong bg-accent/70 rounded-r-md px-3 py-2" data-testid="override-block">
+            <div className="border-s-2 border-border-strong bg-accent/70 rounded-r-md px-3 py-2" data-testid="override-block">
               <p className="font-medium text-secondary">{ruling.override.ruling}</p>
               <p className="text-secondary mt-0.5">{ruling.override.reasoning}</p>
             </div>

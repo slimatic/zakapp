@@ -58,10 +58,10 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
             <InformationCircleIcon className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
             <h4 className="font-medium text-foreground text-sm">What you can do:</h4>
           </div>
-          <ul className="space-y-1.5 ml-7">
+          <ul className="space-y-1.5 ms-7">
             {recoverySteps.map((step, index) => (
               <li key={index} className="text-sm text-foreground/80 flex items-start">
-                <span className="mr-2">•</span>
+                <span className="me-2">•</span>
                 <span>{step}</span>
               </li>
             ))}

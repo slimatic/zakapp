@@ -218,7 +218,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
             className={`inline-flex items-center justify-center px-4 py-2 font-medium ${btnFg} rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${btnClass} whitespace-nowrap w-full sm:w-auto`}
           >
             {bestAction.label}
-            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="ms-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </Link>
@@ -369,7 +369,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                         className={getButtonStyles(step.variant)}
                       >
                         {/* Icon for Urgent/Warning */}
-                        {step.variant === 'urgent' && <span className="mr-2">⚠️</span>}
+                        {step.variant === 'urgent' && <span className="me-2">⚠️</span>}
                         {step.action}
                         {/* Standard arrow if not button-like */}
                         {!(step.variant?.match(/urgent|warning/)) && " →"}

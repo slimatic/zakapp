@@ -91,7 +91,7 @@ export const History: React.FC = () => {
                   </svg>
                 </div>
               </div>
-              <div className="ml-5 w-0 flex-1">
+              <div className="ms-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-muted-foreground truncate">Total Calculations</dt>
                   <dd className="text-lg font-medium text-foreground">{snapshots.length}</dd>
@@ -111,7 +111,7 @@ export const History: React.FC = () => {
                   </svg>
                 </div>
               </div>
-              <div className="ml-5 w-0 flex-1">
+              <div className="ms-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-muted-foreground truncate">Total Zakat Calculated</dt>
                   <dd className="text-lg font-medium text-foreground">
@@ -136,7 +136,7 @@ export const History: React.FC = () => {
                   </svg>
                 </div>
               </div>
-              <div className="ml-5 w-0 flex-1">
+              <div className="ms-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-muted-foreground truncate">Latest Year</dt>
                   <dd className="text-lg font-medium text-foreground">

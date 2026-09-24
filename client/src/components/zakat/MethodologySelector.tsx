@@ -197,7 +197,7 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
                             {methodology.practicalExample.calculation}
                           </p>
                         </div>
-                        <div className="bg-card rounded p-3 border-l-4 border-primary">
+                        <div className="bg-card rounded p-3 border-s-4 border-primary">
                           <p className="font-bold text-secondary">Result: {methodology.practicalExample.result}</p>
                         </div>
                       </div>

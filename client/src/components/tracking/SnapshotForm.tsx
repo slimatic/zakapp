@@ -268,7 +268,7 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 onChange={(e) => handleInputChange('isPrimary', e.target.checked)}
                 className="h-4 w-4 text-success focus:ring-ring border-border-strong rounded"
               />
-              <label htmlFor="isPrimary" className="ml-2 block text-sm text-foreground">
+              <label htmlFor="isPrimary" className="ms-2 block text-sm text-foreground">
                 Set as primary snapshot for this year
               </label>
             </div>

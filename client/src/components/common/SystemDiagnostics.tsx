@@ -50,7 +50,7 @@ export const SystemDiagnostics: React.FC = () => {
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold tracking-tight">System Diagnostics</h2>
                 <Button onClick={runDiagnostics} disabled={loading} variant="outline" size="sm">
-                    {loading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                    {loading ? <RefreshCw className="me-2 h-4 w-4 animate-spin" /> : <RefreshCw className="me-2 h-4 w-4" />}
                     Run Diagnostics
                 </Button>
             </div>

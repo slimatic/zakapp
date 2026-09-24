@@ -95,7 +95,7 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
                                     <p className="text-sm font-medium text-secondary truncate">{liability.name}</p>
                                     <p className="text-xs text-muted-foreground">{liability.creditor ? `Creditor: ${liability.creditor}` : 'No creditor specified'}</p>
                                 </div>
-                                <div className="ml-2 flex-shrink-0 flex flex-col items-end">
+                                <div className="ms-2 flex-shrink-0 flex flex-col items-end">
                                     <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-soft text-success">
                                         {maskedCurrency(formatCurrency(liability.amount, liability.currency))}
                                     </p>
@@ -132,7 +132,7 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
                                     ) : (
                                         <button
                                             onClick={() => setDeleteId(liability.id)}
-                                            className="text-muted-foreground hover:text-danger transition-colors ml-2"
+                                            className="text-muted-foreground hover:text-danger transition-colors ms-2"
                                             title="Delete"
                                         >
                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

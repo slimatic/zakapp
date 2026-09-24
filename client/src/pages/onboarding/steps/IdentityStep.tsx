@@ -53,7 +53,7 @@ export const IdentityStep: React.FC = () => {
                                     <span className="block truncate">
                                         {currencies.find(c => c.code === selectedCurrency)?.code} - {currencies.find(c => c.code === selectedCurrency)?.name}
                                     </span>
-                                    <span className="pointer-events-none absolute inset-y-0 inline-end-0 flex items-center pe-2">
+                                    <span className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-2">
                                         <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                                     </span>
                                 </Listbox.Button>
@@ -79,7 +79,7 @@ export const IdentityStep: React.FC = () => {
                                                             {currency.code} - {currency.name}
                                                         </span>
                                                         {selected ? (
-                                                            <span className="absolute inset-y-0 inline-start-0 flex items-center ps-3 text-secondary">
+                                                            <span className="absolute inset-y-0 start-0 flex items-center ps-3 text-secondary">
                                                                 <CheckIcon className="h-5 w-5" aria-hidden="true" />
                                                             </span>
                                                         ) : null}

@@ -234,25 +234,25 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Total Wealth:</span>
-              <span className="font-medium text-foreground ml-2">
+              <span className="font-medium text-foreground ms-2">
                 {formatCurrency(snapshot.totalWealth, userCurrency as any)}
               </span>
             </div>
             <div>
               <span className="text-muted-foreground">Total Liabilities:</span>
-              <span className="font-medium text-foreground ml-2">
+              <span className="font-medium text-foreground ms-2">
                 {formatCurrency(snapshot.totalLiabilities, userCurrency as any)}
               </span>
             </div>
             <div>
               <span className="text-muted-foreground">Methodology:</span>
-              <span className="font-medium text-foreground ml-2">
+              <span className="font-medium text-foreground ms-2">
                 {snapshot.methodologyUsed}
               </span>
             </div>
             <div>
               <span className="text-muted-foreground">Nisab ({snapshot.nisabType}):</span>
-              <span className="font-medium text-foreground ml-2">
+              <span className="font-medium text-foreground ms-2">
                 {formatCurrency(snapshot.nisabThreshold, userCurrency as any)}
               </span>
             </div>
@@ -278,12 +278,12 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
           >
             {isExporting ? (
               <>
-                <LoadingSpinner size="sm" className="mr-2" />
+                <LoadingSpinner size="sm" className="me-2" />
                 Generating PDF...
               </>
             ) : (
               <>
-                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 me-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Export PDF
@@ -296,7 +296,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
             onClick={handleShare}
             size={compact ? 'sm' : 'default'}
           >
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 me-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
             </svg>
             Share
@@ -307,7 +307,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
             onClick={() => window.print()}
             size={compact ? 'sm' : 'default'}
           >
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 me-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
             Print
@@ -324,7 +324,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
-            <div className="ml-3">
+            <div className="ms-3">
               <h4 className="text-sm font-medium text-success">
                 Islamic Compliance Note
               </h4>

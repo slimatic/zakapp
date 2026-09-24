@@ -210,7 +210,7 @@ export const ZakatSetupStep: React.FC = () => {
                     Have you already paid any Zakat for this period?
                 </label>
                 <div className="relative rounded-md shadow-sm max-w-md mx-auto">
-                    <div className="absolute inset-y-0 inline-start-0 ps-3 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
                         <span className="text-muted-foreground sm:text-sm">{currencySymbol}</span>
                     </div>
                     <input

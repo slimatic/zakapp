@@ -75,7 +75,7 @@ export const DataManagement: React.FC = () => {
             {showSuccessMessage && (
                 <div className="bg-success-soft border border-success/30 rounded-lg p-4 mb-6">
                     <div className="flex items-center">
-                        <span className="text-success text-xl mr-3" aria-hidden="true">✅</span>
+                        <span className="text-success text-xl me-3" aria-hidden="true">✅</span>
                         <p className="text-success font-medium">{showSuccessMessage}</p>
                     </div>
                 </div>
@@ -126,7 +126,7 @@ export const DataManagement: React.FC = () => {
                                 role="switch"
                                 aria-checked={privacySettings.anonymousUsageStats}
                             />
-                            <div className="w-11 h-6 bg-accent peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:inline-start-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            <div className="w-11 h-6 bg-accent peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                     </div>
                 </div>
@@ -137,7 +137,7 @@ export const DataManagement: React.FC = () => {
                 <h3 className="text-lg font-medium text-foreground mb-4">Data Retention</h3>
                 <div className="bg-accent border border-border rounded-lg p-4">
                     <div className="flex items-start">
-                        <span className="text-foreground/80 text-xl mr-3" aria-hidden="true">⏰</span>
+                        <span className="text-foreground/80 text-xl me-3" aria-hidden="true">⏰</span>
                         <div>
                             <p className="font-medium text-foreground/80">Data Retention Policy</p>
                             <p className="text-sm text-muted-foreground mt-1">

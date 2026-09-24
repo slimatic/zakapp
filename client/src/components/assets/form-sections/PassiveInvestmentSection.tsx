@@ -15,7 +15,7 @@ export const PassiveInvestmentSection: React.FC<PassiveInvestmentSectionProps> =
     onChange
 }) => {
     return (
-        <div className="border-l-4 border-border-strong bg-accent p-4 rounded">
+        <div className="border-s-4 border-border-strong bg-accent p-4 rounded">
             <label className="flex items-start">
                 <input
                     type="checkbox"
@@ -27,7 +27,7 @@ export const PassiveInvestmentSection: React.FC<PassiveInvestmentSectionProps> =
                     aria-describedby="passive-help"
                     aria-disabled={isRestrictedAccount || !zakatEligible}
                 />
-                <span className="ml-3">
+                <span className="ms-3">
                     <span className="text-sm font-medium text-foreground block">
                         Passive Investment (30% Rule)
                     </span>
@@ -37,19 +37,19 @@ export const PassiveInvestmentSection: React.FC<PassiveInvestmentSectionProps> =
                 </span>
             </label>
             {isRestrictedAccount && (
-                <p className="mt-2 text-xs text-danger font-medium ml-6">
+                <p className="mt-2 text-xs text-danger font-medium ms-6">
                     ⚠️ Cannot be marked as both passive and restricted
                 </p>
             )}
             {isPassiveInvestment && (
-                <div className="mt-2 ml-6 p-2 bg-accent rounded">
+                <div className="mt-2 ms-6 p-2 bg-accent rounded">
                     <p className="text-xs text-secondary">
                         📊 Modifier Applied: {getModifierBadge(0.3).text}
                     </p>
                 </div>
             )}
             {!zakatEligible && (
-                <p className="mt-2 text-xs text-muted-foreground ml-6">
+                <p className="mt-2 text-xs text-muted-foreground ms-6">
                     ⚠️ Passive investments can only be marked when the asset is eligible for Zakat
                 </p>
             )}

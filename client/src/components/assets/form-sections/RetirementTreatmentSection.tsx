@@ -123,7 +123,7 @@ export const RetirementTreatmentSection: React.FC<RetirementTreatmentSectionProp
                     </span>
 
                     {methodology === 'collectible_value' && (
-                        <div className="mt-3 space-y-3 ps-2 border-l-2 border-border-strong">
+                        <div className="mt-3 space-y-3 ps-2 border-s-2 border-border-strong">
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-xs font-medium text-foreground mb-1">

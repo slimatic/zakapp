@@ -86,7 +86,7 @@ export const SecuritySettings: React.FC = () => {
             {showSuccessMessage && (
                 <div className="bg-success-soft border border-success/30 rounded-lg p-4 mb-6">
                     <div className="flex items-center">
-                        <span className="text-success text-xl mr-3" aria-hidden="true">✅</span>
+                        <span className="text-success text-xl me-3" aria-hidden="true">✅</span>
                         <p className="text-success font-medium">{showSuccessMessage}</p>
                     </div>
                 </div>
@@ -159,7 +159,7 @@ export const SecuritySettings: React.FC = () => {
                             variant="default"
                             disabled={passwordMutation.isPending}
                         >
-                            {passwordMutation.isPending && <LoadingSpinner size="sm" className="mr-2" />}
+                            {passwordMutation.isPending && <LoadingSpinner size="sm" className="me-2" />}
                             Change Password
                         </Button>
                     </div>

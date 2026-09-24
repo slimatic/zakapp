@@ -157,7 +157,7 @@ export const AssetCategories: React.FC = () => {
       {selectedCategoryData && (
         <div className="bg-card rounded-lg border border-border p-8">
           <div className="flex items-center mb-6">
-            <div className="text-5xl mr-4">{selectedCategoryData.icon}</div>
+            <div className="text-5xl me-4">{selectedCategoryData.icon}</div>
             <div>
               <h2 className="text-2xl font-bold text-foreground">
                 {selectedCategoryData.name}
@@ -249,15 +249,15 @@ export const AssetCategories: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Asset Value:</span>
-                <span className="ml-2 font-semibold">{formatCurrency(10000)}</span>
+                <span className="ms-2 font-semibold">{formatCurrency(10000)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Zakat Rate:</span>
-                <span className="ml-2 font-semibold">{selectedCategoryData.zakatRate}%</span>
+                <span className="ms-2 font-semibold">{selectedCategoryData.zakatRate}%</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Zakat Due:</span>
-                <span className="ml-2 font-semibold text-success">
+                <span className="ms-2 font-semibold text-success">
                   {formatCurrency(10000 * (selectedCategoryData.zakatRate / 100))}
                 </span>
               </div>
