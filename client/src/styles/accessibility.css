@@ -177,6 +177,41 @@ select:focus-visible,
   }
 }
 
+/* Reduced motion, applied to the motion actually in use.
+   The blocks above only covered .skip-link, focus transitions and
+   .loading-spinner. Everything else still moved: Tailwind's animate-pulse (29
+   call sites, skeleton loaders) and animate-spin (17), the custom fadeIn (11),
+   and the animate-in / fade-in / slide entrances.
+   Kept, deliberately: opacity fades stay (they aid comprehension and are not
+   vestibular triggers), and loaders freeze mid-state instead of vanishing so a
+   spinner does not read as "nothing happened". */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-spin,
+  .loading-spinner {
+    animation: none !important;
+    /* freeze the ring rather than removing the element */
+    opacity: 1;
+  }
+
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  .animate-fadeIn,
+  .animate-slide {
+    animation: none !important;
+  }
+}
+
 /* Keyboard-only focus (hide focus ring for mouse users) */
 .js-focus-visible :focus:not(.focus-visible) {
   outline: none;

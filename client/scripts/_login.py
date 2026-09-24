@@ -48,13 +48,17 @@ def _do_login(pg):
     return False
 
 
-def open_session(browser, viewport, is_mobile=False, has_touch=False, path="/dashboard"):
+def open_session(browser, viewport, is_mobile=False, has_touch=False, path="/dashboard",
+                 reduced_motion=None):
     """A context whose page is logged in and sitting on `path`.
 
     Raises if login genuinely fails, rather than returning the login page for
     the caller to measure by mistake.
     """
-    ctx = browser.new_context(viewport=viewport, is_mobile=is_mobile, has_touch=has_touch)
+    ctx_kwargs = dict(viewport=viewport, is_mobile=is_mobile, has_touch=has_touch)
+    if reduced_motion:
+        ctx_kwargs["reduced_motion"] = reduced_motion
+    ctx = browser.new_context(**ctx_kwargs)
     pg = ctx.new_page()
     ok = _do_login(pg)
     if not ok:

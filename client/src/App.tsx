@@ -41,6 +41,7 @@ import { SkipLink } from './components/common/SkipLink';
 import { useSyncManager } from './hooks/useSyncManager';
 import { useMaintenanceMode } from './hooks/useMaintenanceMode';
 import { ToastProvider } from './components/ui/ToastProvider';
+import { MotionConfig } from 'framer-motion';
 import { MaintenancePage } from './pages/MaintenancePage';
 
 /**
@@ -125,6 +126,7 @@ function App() {
 
   // Normal app flow
   return (
+    <MotionConfig reducedMotion="user">
     <ToastProvider>
       <QueryProvider>
         <AuthProvider>
@@ -481,6 +483,7 @@ function App() {
         </AuthProvider>
       </QueryProvider>
     </ToastProvider>
+    </MotionConfig>
   );
 }
 
