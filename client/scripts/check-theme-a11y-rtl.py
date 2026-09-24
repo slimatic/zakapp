@@ -33,6 +33,18 @@ MIN_CONTRAST_NORMAL = 4.5
 MIN_CONTRAST_LARGE = 3.0
 MIN_TARGET = 44
 
+
+def _js(src):
+    """Fill the probe's thresholds from the constants above.
+
+    The two page probes are JS strings with their own copies of these numbers, so
+    editing a constant here did nothing at all. Interpolating keeps ONE source of
+    truth: change MIN_CONTRAST_NORMAL and the browser sees it.
+    """
+    return (src.replace("__MIN_NORMAL__", str(MIN_CONTRAST_NORMAL))
+               .replace("__MIN_LARGE__", str(MIN_CONTRAST_LARGE))
+               .replace("__MIN_TARGET__", str(MIN_TARGET)))
+
 CONTRAST = r"""() => {
   const lum = (r,g,b) => {
     const f = c => { c /= 255; return c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); };
@@ -78,7 +90,7 @@ CONTRAST = r"""() => {
     const size = parseFloat(t.cs.fontSize);
     const weight = parseInt(t.cs.fontWeight) || 400;
     const large = size >= 24 || (size >= 18.66 && weight >= 700);
-    const min = large ? 3.0 : 4.5;
+    const min = large ? __MIN_LARGE__ : __MIN_NORMAL__;
     if (ratio < min) bad.push({text:t.own, ratio:Math.round(ratio*100)/100, min,
                                color:t.cs.color, bg:`rgb(${bg.r},${bg.g},${bg.b})`, size});
   }
@@ -101,7 +113,7 @@ TARGETS = r"""() => {
     const inSentence = el.closest('p, li, dd, dt, h1, h2, h3') &&
                        (el.tagName === 'A' || el.getAttribute('role') === 'button');
     if (inSentence) return;
-    if (r.width < 44 || r.height < 44) {
+    if (r.width < __MIN_TARGET__ || r.height < __MIN_TARGET__) {
       out.push({tag:el.tagName, w:Math.round(r.width), h:Math.round(r.height),
                 label:(el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g,' ').trim().slice(0,34),
                 cls:(typeof el.className === 'string' ? el.className : '').slice(0,46)});
@@ -142,7 +154,7 @@ def run(theme, mobile):
         for route in ROUTES:
             pg.goto(f"http://localhost:4173{route}", wait_until="networkidle")
             pg.wait_for_timeout(2200)
-            c = pg.evaluate(CONTRAST)
+            c = pg.evaluate(_js(CONTRAST))
             if c:
                 bad_contrast += len(c)
                 for x in c[:2]:
@@ -150,7 +162,7 @@ def run(theme, mobile):
                           f"{x['color']} on {x['bg']}  \"{x['text']}\"")
                 problems.append(f"{label} {route}: {len(c)} low-contrast text node(s)")
             if mobile:
-                t = pg.evaluate(TARGETS)
+                t = pg.evaluate(_js(TARGETS))
                 if t:
                     bad_targets += len(t)
                     for x in t[:2]:
@@ -196,9 +208,13 @@ def main():
         for x in problems:
             print(f"FAIL {x}")
         print(f"\n{len(problems)} issue group(s)")
-    else:
-        print("PASS: dark mode legible, targets >=44px, RTL mirrors without overflow.")
+        return 1
+    print("PASS: dark mode legible, targets >=44px, RTL mirrors without overflow.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    # This script printed FAIL and the issue count but exited 0 for its whole life, so
+    # nothing that ran it could tell a pass from a failure. Every probe here must exit
+    # non-zero on a finding, or its verdict is cosmetic.
+    sys.exit(main())
