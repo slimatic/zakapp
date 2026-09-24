@@ -418,6 +418,14 @@
 body {
   @apply bg-background text-foreground font-sans antialiased selection:bg-warn-soft selection:text-warn-strong;
   font-family: 'Inter', system-ui, sans-serif;
+  /* Tabular numerals app-wide.
+     ZakApp displays aligned money everywhere (tables, list rows, card totals),
+     and in proportional figures a column of amounts reads as misaligned or
+     misadded. The mockup declares this as .num and Money.tsx already applied it
+     per-component - but 33 components render amounts without it, so it belongs
+     on the base rather than on each call site. Costs nothing: text stays
+     proportional for letters, only digits become fixed-width. */
+  font-variant-numeric: tabular-nums;
 }
 
 h1,
