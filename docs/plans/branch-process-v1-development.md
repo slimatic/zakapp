@@ -1,7 +1,10 @@
 # Branch Process — v1.0 development line and release isolation
 
-**Status:** proposed 2026-09-24; awaiting Salim's go on the push step.
-**Current:** `feature/v1-design-overhaul`, LOCAL ONLY, push-guarded by `.git/hooks/pre-push`.
+**Status:** EXECUTED 2026-09-24 (Salim approved the push in chat).
+**Current:** `develop` on origin, 54 commits ahead of `main`; `main` untouched at `d99df7a4`.
+The push was preceded by a secret scan of the full 54-commit diff (no credentials; the only
+literal is the smoke-test user ID, an identifier rather than a key). The blanket pre-push
+block was replaced with a `main`-only block, verified by a dry-run push to `main`.
 
 ## The naming, settled
 

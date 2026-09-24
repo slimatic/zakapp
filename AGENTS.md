@@ -44,8 +44,15 @@ bd sync               # Sync with git
 5. **Clean up** - Clear stashes
 6. **Verify** - PR is created and checks are running
 
+**BRANCH MODEL (v1.0+):** `develop` is the long-lived integration line for v1.0 work.
+Every v1.0 change lands on `develop` first. `main` receives ONLY merged PRs and stays the
+production line. A `hotfix/<name>` for production branches FROM `main`, never from
+`develop`, or it will not cherry-pick cleanly (the v1.0 line uses tokens `main` lacks).
+
 **CRITICAL RULES:**
 - **NO DIRECT PUSHES TO MAIN.** Always use a PR.
+- **v1.0 work goes to `develop`** — push there freely; open a PR into `main` only at release.
+- **Never open a PR into `main` for in-progress v1.0 work.**
 - Work is NOT complete until the PR is created (or updated).
 - If you have permissions and the task is complete, merge the PR: `gh pr merge --squash --delete-branch`.
 
