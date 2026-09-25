@@ -101,7 +101,7 @@ npm start
 
 ## 🛠 Tech Stack
 
-- **Frontend**: React 18, Vite, Tailwind CSS, shadcn/ui
+- **Frontend**: React 19, Vite, Tailwind CSS, shadcn/ui
 - **Backend**: Node.js, Express, Prisma (SQLite)
 - **Sync**: CouchDB for multi-device sync
 - **Security**: Client-side AES-GCM (256-bit) powered by Web Crypto API

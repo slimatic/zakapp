@@ -56,8 +56,10 @@ SINK = re.compile(
 ALLOW = (
     "process.env", "os.environ", "getenv", "_secret(", "${", "{{",
     "not.a.real", "example", "placeholder", "changeme", "change-me", "dummy",
-    "redacted", "your-", "xxxx", "****", "<", ">", "password", "passwd", "test-",
+    "redacted", "your-", "your_", "xxxx", "****", "<", ">", "password", "passwd", "test-",
     "fake", "sample", "todo",
+    # ALL-CAPS placeholder idiom in setup guides: YOUR_SUPER_SECRET_CHANGE_THIS
+    "change_this", "replace_me", "changeme", "insert_your", "add_your",
 )
 
 # Exact values that are conventional TEST FIXTURES, matched in full rather than as
@@ -123,7 +125,16 @@ def is_reference(value: str, after: str) -> bool:
     return after.lstrip().startswith("+")
 
 CODE_EXT = (".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".sh", ".yml", ".yaml",
-            ".json", ".env", ".tf", ".toml", ".cfg", ".ini")
+            ".json", ".env", ".tf", ".toml", ".cfg", ".ini",
+            # Markdown is scanned because the gitleaks allowlist excludes ALL .md and
+            # ALL of docs/, which is a blind zone: setup guides are exactly where
+            # someone pastes a real value while "just showing an example".
+            ".md", ".mdx")
+
+# History, not guidance. docs/archive/ intentionally preserves old instructions,
+# including a fixture password from a superseded test plan. Excluding the archive
+# is a narrow exemption, unlike gitleaks' `docs/` catch-all.
+SKIP_PATHS = ("docs/archive/", "archive/", "CHANGELOG.md")
 
 
 def is_allowed(value: str, rel: str = "", after: str = "") -> bool:
@@ -165,6 +176,8 @@ def tracked_files(root: str):
         if not rel.endswith(CODE_EXT):
             continue
         if any(part in rel for part in ("node_modules/", "dist/", "build/", ".git/")):
+            continue
+        if rel.startswith(SKIP_PATHS):
             continue
         abs_path = os.path.join(root, rel)
         if os.path.isfile(abs_path):

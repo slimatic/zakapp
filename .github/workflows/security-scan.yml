@@ -608,11 +608,47 @@ jobs:
             echo "" >> security-report.md
           fi
           
-          echo "## Islamic Compliance Security" >> security-report.md
-          echo "- ✅ Financial data encryption validated" >> security-report.md
-          echo "- ✅ Zakat calculation integrity verified" >> security-report.md
-          echo "- ✅ User privacy protection confirmed" >> security-report.md
-          echo "" >> security-report.md
+          # Honesty over reassurance. This section previously printed three
+          # unconditional "validated / verified / confirmed" lines - including
+          # under the heading "Islamic Compliance Security" - deriving nothing
+          # from any scan output. They appeared even when upstream jobs were
+          # skipped or soft-failed, so the report asserted religious and
+          # cryptographic compliance the pipeline had not tested. A security
+          # report that cannot fail is decoration.
+          #
+          # Each control now reports pass / FAIL / not run from the actual job
+          # result. "not run" and "soft-failed" are reported as such, never as a
+          # pass, because an unchecked control is UNKNOWN.
+          control() {  # $1=label  $2=result
+            case "$2" in
+              success) echo "- ✅ $1 — scan ran, no blocking findings" ;;
+              failure) echo "- ❌ $1 — scan FAILED; see job output" ;;
+              skipped|cancelled) echo "- ⬜ $1 — NOT RUN (job $2)" ;;
+              *)       echo "- ⚠️ $1 — status unknown (\`$2\`); treat as NOT VERIFIED" ;;
+            esac
+          }
+          {
+            echo "## Control status"
+            echo ""
+            echo "Derived from job results, not asserted. A control that did not run is"
+            echo "reported as not run — an unchecked control is unknown, not passing."
+            echo ""
+            control "Secret detection (gitleaks)"          "${{ needs.secret-scan.result }}"
+            control "Dependency vulnerabilities"           "${{ needs.dependency-scan.result }}"
+            control "Static code analysis (CodeQL/Semgrep)" "${{ needs.code-analysis.result }}"
+            control "Container scan (Trivy)"               "${{ needs.container-scan.result }}"
+            echo ""
+            echo "### Not covered by this pipeline"
+            echo ""
+            echo "Stated so the absence is explicit rather than mistaken for a pass:"
+            echo "- Payment-field encryption (AES-GCM, PBKDF2) is not exercised here."
+            echo "- Zakat calculation correctness is not verified here; it is covered by"
+            echo "  client/src/core/calculations/__tests__/zakatMath.regression.test.ts."
+            echo "- Sharia/methodology correctness is a scholarly review, not a scan"
+            echo "  result, and is not claimed by this workflow."
+            echo "- Logout revocation durability is not tested here."
+            echo ""
+          } >> security-report.md
           
           echo "## Recommendations" >> security-report.md
           echo "1. Review and address any critical vulnerabilities immediately" >> security-report.md
