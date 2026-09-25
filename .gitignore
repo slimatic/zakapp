@@ -178,3 +178,7 @@ docs/archive/specs/*/lighthouse-report.json
 /ZAKAPP_AUDIT_*.md
 /*_READINESS_*.md
 /CURRENCY_MIGRATION_*.md
+
+# Python bytecode (scripts/ helpers are run directly)
+__pycache__/
+*.pyc
