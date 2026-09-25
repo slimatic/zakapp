@@ -64,14 +64,15 @@ export const ZakatObligationsChart: React.FC<ZakatObligationsChartProps> = ({ re
                 label = date.getFullYear().toString();
             }
 
-            // Sum payments linked to this record ID (assuming payment has nisabYearId) 
-            // OR fallback: sum payments within the date range of the hawl
-            // For simplicity/robustness in this phase, we'll try match by ID logic if available, 
-            // or just mock it as "Total vs Paid" aggregate if ID linking isn't fully enforced yet.
-            // Let's assume payments track 'nisabYearRecordId'.
-
+            // Sum payments linked to this record. The link key on a payment
+            // record is `snapshotId` (PaymentRecordSchema in
+            // client/src/db/schema/paymentRecord.schema.ts, and PaymentRecord in
+            // shared/src/types/tracking.ts); `nisabYearId` is not a field on a
+            // payment at all, so the old filter never matched and the "Paid"
+            // series was permanently 0 while "remaining" showed the full
+            // obligation.
             const paidForYear = payments
-                .filter(p => p.nisabYearId === recordId) // Direct link
+                .filter(p => p.snapshotId === recordId)
                 .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
             const due = typeof record.zakatAmount === 'number' ? record.zakatAmount : parseFloat(record.zakatAmount as string || '0');

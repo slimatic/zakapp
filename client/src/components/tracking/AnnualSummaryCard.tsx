@@ -50,7 +50,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
   const { payments } = usePaymentRepository({ snapshotId: snapshot.id });
 
   // Calculate summary statistics
-  const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalPaid = payments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
   const remainingZakat = Math.max(0, snapshot.zakatAmount - totalPaid);
   const paymentProgress = snapshot.zakatAmount > 0 ? (totalPaid / snapshot.zakatAmount) * 100 : 0;
   const netWorth = snapshot.totalWealth - snapshot.totalLiabilities;
@@ -59,7 +59,7 @@ export const AnnualSummaryCard: React.FC<AnnualSummaryCardProps> = ({
 
   // Payment distribution by category
   const paymentsByCategory = payments.reduce((acc, payment) => {
-    acc[payment.recipientCategory] = (acc[payment.recipientCategory] || 0) + payment.amount;
+    acc[payment.recipientCategory] = (acc[payment.recipientCategory] || 0) + (Number(payment.amount) || 0);
     return acc;
   }, {} as Record<string, number>);
 

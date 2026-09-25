@@ -111,7 +111,7 @@ export function generateAnnualSummaryPDF(
   doc.text('Zakat Calculation', 14, yPosition);
   yPosition += 8;
 
-  const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+  const totalPaid = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   const outstanding = snapshot.zakatAmount - totalPaid;
   const completionPercentage = snapshot.zakatAmount > 0 
     ? ((totalPaid / snapshot.zakatAmount) * 100).toFixed(1) 

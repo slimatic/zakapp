@@ -150,7 +150,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(p =>
-        p.recipientName.toLowerCase().includes(searchLower) ||
+        (p.recipientName || '').toLowerCase().includes(searchLower) ||
         (p.notes || '').toLowerCase().includes(searchLower) ||
         (p.receiptReference || '').toLowerCase().includes(searchLower)
       );
