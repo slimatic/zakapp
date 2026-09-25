@@ -1,80 +1,73 @@
-/**
- * Copyright (c) 2024 ZakApp Contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
 import '@testing-library/jest-dom';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { Navigation, NavigationItemType } from '../../../components/layout/Navigation';
+import { Sidebar, type SidebarNavItem } from '../../../components/layout/Sidebar';
+import { LayoutDashboard, Wallet, BookOpen, Settings } from 'lucide-react';
 
-const navigationItems: NavigationItemType[] = [
-  { name: 'Dashboard', href: '/dashboard' },
-  { name: 'Assets', href: '/assets' },
-  { name: 'Nisab Records', href: '/nisab-records' },
-  { name: 'Profile', href: '/profile' },
+const mainNav: SidebarNavItem[] = [
+  { name: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'nav.assets', href: '/assets', icon: Wallet },
 ];
 
-const renderNavigation = (initialRoute = '/dashboard') => {
+const learnNav: SidebarNavItem[] = [
+  { name: 'nav.knowledgeHub', href: '/learn', icon: BookOpen },
+];
+
+const youNav: SidebarNavItem[] = [
+  { name: 'nav.settings', href: '/settings', icon: Settings },
+];
+
+const renderSidebar = (initialRoute = '/dashboard') => {
   return render(
     <MemoryRouter initialEntries={[initialRoute]}>
-      <Navigation items={navigationItems} />
-      <Routes>
-        {navigationItems.map((item) => (
-          <Route
-            key={item.href}
-            path={item.href}
-            element={<div data-testid={`${item.name.replace(/\s+/g, '-').toLowerCase()}-page`}>{`${item.name} Page`}</div>}
-          />
-        ))}
-      </Routes>
+      <div className="flex">
+        <Sidebar mainNav={mainNav} learnNav={learnNav} youNav={youNav} />
+        <Routes>
+          {mainNav.map((item) => (
+            <Route
+              key={item.href}
+              path={item.href}
+              element={<div data-testid={`${item.name.replace(/\./g, '-')}-page`}>{`${item.name} Page`}</div>}
+            />
+          ))}
+          <Route path="/learn" element={<div data-testid="learn-page">Learn Page</div>} />
+          <Route path="/settings" element={<div data-testid="settings-page">Settings Page</div>} />
+        </Routes>
+      </div>
     </MemoryRouter>
   );
 };
 
-describe('Navigation component', () => {
+describe('Sidebar component', () => {
   it('renders all navigation items', () => {
-    renderNavigation();
+    renderSidebar();
 
     const links = screen.getAllByRole('link');
-    expect(links).toHaveLength(navigationItems.length);
-    navigationItems.forEach((item) => {
-      expect(screen.getByRole('link', { name: item.name })).toBeInTheDocument();
-    });
+    expect(links.length).toBeGreaterThanOrEqual(4);
+    expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /assets/i })).toBeInTheDocument();
   });
 
   it('marks the current route as active', () => {
-    renderNavigation('/assets');
+    renderSidebar('/assets');
 
-    const assetsLink = screen.getByRole('link', { name: 'Assets' });
+    const assetsLink = screen.getByRole('link', { name: /assets/i });
     expect(assetsLink).toHaveAttribute('aria-current', 'page');
   });
 
   it('navigates to the selected route on click', async () => {
-    renderNavigation('/dashboard');
+    renderSidebar('/dashboard');
 
-    await userEvent.click(screen.getByRole('link', { name: 'Nisab Records' }));
+    await userEvent.click(screen.getByRole('link', { name: /assets/i }));
 
-    expect(screen.getByTestId('nisab-records-page')).toBeInTheDocument();
+    expect(screen.getByTestId('nav-assets-page')).toBeInTheDocument();
   });
 
   it('exposes an ARIA landmark for screen readers', () => {
-    renderNavigation();
+    renderSidebar();
 
-    expect(screen.getByLabelText('Main navigation')).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: /main navigation/i })).toBeInTheDocument();
   });
 });

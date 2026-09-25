@@ -5,9 +5,9 @@ import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { MobileNav } from '../../../src/components/layout/MobileNav';
-import { NavigationItemType } from '../../../src/components/layout/Navigation';
+import { type MobileNavItem } from '../../../src/components/layout/MobileNav';
 
-const navigationItems: NavigationItemType[] = [
+const navigationItems: MobileNavItem[] = [
   { name: 'Dashboard', href: '/dashboard' },
   { name: 'Assets', href: '/assets' },
   { name: 'Nisab Records', href: '/nisab-records' },

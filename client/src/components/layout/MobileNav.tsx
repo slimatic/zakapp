@@ -15,20 +15,24 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router-dom';
-import { NavigationItem } from './NavigationItem';
-import { NavigationItemType } from './Navigation';
+import { useLocation, NavLink } from 'react-router-dom';
+
+export interface MobileNavItem {
+  name: string;
+  href: string;
+  icon?: React.ReactNode;
+}
 
 interface MobileNavProps {
-  items: NavigationItemType[];
+  items: MobileNavItem[];
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
 export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledIsOpen, onOpenChange }) => {
-    const { t } = useTranslation('common');
+  const { t } = useTranslation('common');
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
@@ -41,7 +45,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
   };
 
   const location = useLocation();
-  const menuRef = useRef<HTMLDivElement>(null);
 
   /**
    * Determines if a navigation item is currently active
@@ -107,7 +110,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
   }, [isOpen]);
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       {/* Hamburger Menu Button */}
       <button
         onClick={toggleMenu}
@@ -116,7 +119,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
         aria-controls="mobile-menu"
         aria-label={t('a11y.toggleNavMenu')}
       >
-        {/* Hamburger icon (3 horizontal lines) */}
         <svg
           className="h-6 w-6"
           xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +128,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
           aria-hidden="true"
         >
           {isOpen ? (
-            // X icon when menu is open
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -134,7 +135,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
               d="M6 18L18 6M6 6l12 12"
             />
           ) : (
-            // Hamburger icon when menu is closed
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -158,7 +158,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
 
           {/* Slide-in Menu Panel */}
           <div
-            ref={menuRef}
             id="mobile-menu"
             className="fixed inset-y-0 start-0 w-64 bg-card shadow-elev-3 z-[60] transform transition-transform duration-300 ease-in-out"
             role="dialog"
@@ -194,17 +193,30 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
               {/* Navigation Items */}
               <nav className="flex-1 overflow-y-auto p-4" aria-label={t('a11y.mobileNavMenu')}>
                 <ul className="space-y-2">
-                  {items.map((item) => (
-                    <li key={item.href}>
-                      <NavigationItem
-                        name={item.name}
-                        href={item.href}
-                        icon={item.icon}
-                        isActive={isActive(item.href)}
-                        className="w-full justify-start px-4 py-3"
-                      />
-                    </li>
-                  ))}
+                  {items.map((item) => {
+                    const active = isActive(item.href);
+                    return (
+                      <li key={item.href}>
+                        <NavLink
+                          to={item.href}
+                          className={({ isActive: navActive }) =>
+                            `inline-flex items-center justify-start gap-2 px-4 py-3 rounded-md text-sm font-medium transition-colors duration-150 min-h-[44px] min-w-[44px] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring w-full ${
+                              navActive || active
+                                ? 'bg-accent text-accent-foreground'
+                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                            }`
+                          }
+                          aria-current={active ? 'page' : undefined}
+                          onClick={closeMenu}
+                        >
+                          <span className="flex-shrink-0 inline-flex w-5 h-5" aria-hidden="true">
+                            {item.icon}
+                          </span>
+                          <span className="truncate">{item.name}</span>
+                        </NavLink>
+                      </li>
+                    );
+                  })}
                 </ul>
               </nav>
             </div>

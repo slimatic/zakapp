@@ -19,9 +19,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePrivacy } from '../../contexts/PrivacyContext';
-import { Link, useLocation } from 'react-router-dom';
-import { MobileNav } from './MobileNav';
+import { Link } from 'react-router-dom';
+import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
+import { MobileNav } from './MobileNav';
 import { SyncIndicator } from '../SyncIndicator';
 import { ThemeToggle } from './ThemeToggle';
 import { Logo } from '../common/Logo';
@@ -51,44 +52,37 @@ interface NavItem {
   icon: LucideIcon;
 }
 
-/**
- * Sidebar navigation, grouped the way the mockup groups it: the daily work
- * first, then LEARN, then YOU. A persistent sidebar means the user can always
- * see where they are instead of opening a dropdown to find out.
- */
 const MAIN_NAV: NavItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Assets', href: '/assets', icon: Wallet },
-  { name: 'Liabilities', href: '/liabilities', icon: CreditCard },
-  { name: 'Hawl', href: '/nisab-records', icon: Moon },
-  { name: 'Calculator', href: '/calculator', icon: Calculator },
-  { name: 'Payments', href: '/payments', icon: Banknote },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 }
+  { name: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'nav.assets', href: '/assets', icon: Wallet },
+  { name: 'nav.liabilities', href: '/liabilities', icon: CreditCard },
+  { name: 'nav.hawl', href: '/nisab-records', icon: Moon },
+  { name: 'nav.calculator', href: '/calculator', icon: Calculator },
+  { name: 'nav.payments', href: '/payments', icon: Banknote },
+  { name: 'nav.analytics', href: '/analytics', icon: BarChart3 }
 ];
 
 const LEARN_NAV: NavItem[] = [
-  { name: 'Knowledge Hub', href: '/learn', icon: BookOpen }
+  { name: 'nav.knowledgeHub', href: '/learn', icon: BookOpen }
 ];
 
 const YOU_NAV: NavItem[] = [
-  { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'Diagnostics', href: '/diagnostics', icon: Wrench },
-  { name: 'Admin', href: '/admin', icon: KeyRound }
+  { name: 'nav.settings', href: '/settings', icon: Settings },
+  { name: 'nav.diagnostics', href: '/diagnostics', icon: Wrench },
+  { name: 'nav.admin', href: '/admin', icon: KeyRound }
 ];
 
-/** Mobile tab bar: the four screens that matter on a phone, plus More. */
 const MOBILE_TABS: NavItem[] = [
-  { name: 'Home', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Assets', href: '/assets', icon: Wallet },
-  { name: 'Hawl', href: '/nisab-records', icon: Moon },
-  { name: 'Pay', href: '/payments', icon: Banknote }
+  { name: 'nav.home', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'nav.assets', href: '/assets', icon: Wallet },
+  { name: 'nav.hawl', href: '/nisab-records', icon: Moon },
+  { name: 'nav.pay', href: '/payments', icon: Banknote }
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { t: tCommon } = useTranslation('common');
   const { user, logout } = useAuth();
   const { privacyMode, togglePrivacyMode } = usePrivacy();
-  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -105,14 +99,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleLogout = async () => {
     await logout();
-  };
-
-  const isActive = (href: string) => {
-    // Nisab records have a legacy alias route.
-    if (href === '/nisab-records') {
-      return location.pathname === '/nisab-records' || location.pathname.startsWith('/nisab-year-records');
-    }
-    return location.pathname === href;
   };
 
   // Close the user menu when clicking outside.
@@ -135,31 +121,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
-  const renderNavList = (items: NavItem[]) =>
-    items.map(({ name, href, icon: Icon }) => {
-      const active = isActive(href);
-      return (
-        <Link
-          key={href}
-          to={href}
-          aria-current={active ? 'page' : undefined}
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-            active
-              ? 'bg-secondary text-secondary-foreground'
-              : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-          }`}
-        >
-          <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-          <span className="truncate">{tCommon(name)}</span>
-        </Link>
-      );
-    });
-
   return (
     <div className="min-h-screen bg-background">
-      {/* No <SkipLink> here - App.tsx renders one at the app root, and two of
-          them gave keyboard users a duplicated "Skip to main content". */}
-
       {/* ── Top bar ───────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-border bg-card">
         <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
@@ -199,11 +162,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             )}
           </button>
 
-          {/* Sync status is chrome, not content. At 390px the header row
-              (logo 147 + spacer + two 36px icons + this chip 40 + a 48px menu
-              slot + avatar 40) came to 435px and pushed the whole page 45px
-              wide, so the chip is desktop-only. SyncErrors are still reported
-              on the diagnostics page and in the sync manager. */}
           <div className="hidden sm:block">
             <SyncIndicator />
           </div>
@@ -212,7 +170,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="lg:hidden">
             <MobileNav
               items={[...MAIN_NAV, ...LEARN_NAV, ...YOU_NAV].map(({ name, href, icon: Icon }) => ({
-                name,
+                name: tCommon(name),
                 href,
                 icon: <Icon className="h-5 w-5" />
               }))}
@@ -304,22 +262,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* ── Shell: sidebar + page ─────────────────────────────────────────── */}
       <div className="mx-auto flex w-full max-w-[1400px]">
-        <nav
-          className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 overflow-y-auto border-e border-border bg-card px-3 py-4 lg:block"
-          aria-label={tCommon('a11y.mainNavigation')}
-        >
-          <div className="space-y-1">{renderNavList(MAIN_NAV)}</div>
-
-          <p className="px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {tCommon('nav.learn')}
-          </p>
-          <div className="space-y-1">{renderNavList(LEARN_NAV)}</div>
-
-          <p className="px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {tCommon('nav.you')}
-          </p>
-          <div className="space-y-1">{renderNavList(YOU_NAV)}</div>
-        </nav>
+        <Sidebar
+          mainNav={MAIN_NAV}
+          learnNav={LEARN_NAV}
+          youNav={YOU_NAV}
+        />
 
         <main
           id="main-content"
