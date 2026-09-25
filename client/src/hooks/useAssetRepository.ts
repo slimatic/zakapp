@@ -189,7 +189,10 @@ export function useAssetRepository() {
             ...safePayload,
             id: safePayload.id || crypto.randomUUID(),
             userId: user.id, // Inject Real User ID
-            createdAt: new Date().toISOString(),
+            // Preserve a supplied createdAt so a restored backup keeps its real dates.
+            // The form never sends one, so normal creation is unaffected - but an
+            // import does, and overwriting it reset every record's age. See #age.
+            createdAt: safePayload.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             isActive: safePayload.isActive ?? true,
             // Ensure defaults

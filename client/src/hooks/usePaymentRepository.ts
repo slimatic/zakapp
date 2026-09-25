@@ -119,7 +119,8 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
         const newPayment = {
             ...payment,
             id: payment.id || crypto.randomUUID(),
-            createdAt: new Date().toISOString(),
+            // Preserve a supplied createdAt (backup restore); see useAssetRepository.
+            createdAt: payment.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             // Ensure required fields have valid defaults if missing
             status: payment.status || 'recorded',
