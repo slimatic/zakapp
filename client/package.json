@@ -70,7 +70,9 @@
     "lighthouse:pwa": "lighthouse http://localhost:3000 --only-categories=pwa --view",
     "verify:source": "python3 scripts/run-source-checks.py",
     "verify:browser": "python3 scripts/run-browser-checks.py",
-    "verify:ui": "npm run verify:source && npm run verify:browser"
+    "verify:ui": "npm run verify:source && npm run verify:browser",
+    "inject:config": "python3 scripts/inject-app-config.py",
+    "build:local": "npm run build && npm run inject:config"
   },
   "eslintConfig": {
     "extends": [
