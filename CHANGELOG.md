@@ -5,6 +5,63 @@
 _Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
 See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
+## [0.17.1] - 2026-09-25
+
+### 13 Rabi al-Thani 1448 — waxing gibbous, 98% lit
+
+A patch release for the upgrade path itself. Shipping v0.17.0 with a backup that
+silently corrupted money would have made every pre-upgrade export untrustworthy —
+which is the one thing the cadence asks users to do first. Off-cadence by design,
+under "a security or data-safety fix is verified and waiting".
+
+**Export/import**
+
+- Amounts could come back as a **wrong number rather than an error.** A parser
+  stripped non-digits from a value, so ciphertext (`ZK1:…`) became a plausible
+  integer. Import now rejects anything carrying the `ZK1:` marker and every
+  unparseable amount, instead of falling back to `|| 0` and writing a silent zero.
+- **Profile settings were exported as ciphertext**, so restoring them
+  double-encrypted the values and made them permanently unreadable. Settings now
+  export as plaintext like the other four collections.
+- Backups are **not encrypted**, deliberately: a backup that needs the original
+  vault key is a backup you cannot restore after losing it. The export screen now
+  says so, and so do the export and import confirmations.
+- A preflight refuses to write a backup at all if any money field still holds
+  ciphertext — better to fail loudly than to emit a file that zero-fills on restore.
+- Payload version `2.5 → 3.0`; `1.x` and `2.x` files still import.
+- Cross-version test pins a real v0.17.0 → v1.0.0 upgrade path.
+
+**Session**
+
+- **Logout did nothing.** It awaited `navigator.serviceWorker.ready`, which never
+  settles when no worker is registered, so the session was never cleared. Local
+  tokens, cookies and storage are now cleared *first*, and network and database
+  teardown are bounded by timeouts — a stalled cleanup can no longer strand a user
+  in an active session.
+
+**Asset provenance**
+
+- **"Asset Age" reset on import.** Two separate causes: every repository stamped
+  `createdAt` *after* spreading the imported payload, overwriting the preserved
+  value; and the age was computed from `createdAt` (when the row was typed in)
+  rather than `acquisitionDate`. Imported records now keep their original
+  timestamps, age is measured from the acquisition date, and both dates are shown.
+  This matters beyond tidiness — ḥawl is a lunar year of *ownership*, so a reset
+  date makes an old holding look new.
+
+**Admin & settings**
+
+- The admin tab strip **scrolled the whole page sideways on a phone**: four tabs
+  measure 511px inside a 358px container at 390px wide, pushing the document to
+  527px. The strip now scrolls within itself. Desktop is unchanged.
+- Stat card icons were emoji (inconsistent across platforms, read aloud as words);
+  now decorative SVG with the label carrying the meaning.
+- Help & Support reused the Profile icon, so two nav rows looked identical.
+- The settings tab moved into the URL (`?tab=data`), so a section survives a
+  refresh and can be linked to directly.
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.17.0...v0.17.1
+
 ## [0.17.0] - 2026-09-21
 
 ### 10 Rabi al-Thani 1448 — waxing gibbous, 74% lit
