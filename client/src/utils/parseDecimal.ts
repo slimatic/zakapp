@@ -10,6 +10,14 @@
 import { Decimal } from 'decimal.js';
 
 /**
+ * Prefix for a zero-knowledge ciphertext blob (see CryptoService.ZK_PREFIX).
+ * Duplicated as a plain string rather than imported so this module stays free of
+ * the crypto service's dependencies - it is used in import paths where pulling in
+ * the whole key-management stack would be wrong.
+ */
+const ZK_PREFIX = 'ZK1:';
+
+/**
  * Safely parse a string/number input into a Decimal for financial calculations.
  * Falls back to 0 on invalid input to prevent NaN propagation.
  *
@@ -40,6 +48,86 @@ export function parseDecimalNumber(value: string | number | undefined | null): n
 }
 
 /**
+ * Import-path variant of parseAmountFromImport: reject rather than record a wrong
+ * amount.
+ *
+ * Use this anywhere a value from a user-supplied file becomes a money field. A
+ * backup restore is the one flow where the user has ALREADY lost data once, so a
+ * silent zero or a plausible-looking wrong figure is the worst possible outcome -
+ * nothing appears broken and they stop looking for the real problem.
+ *
+ * Callers that must tolerate junk (a CSV column that is sometimes blank) should
+ * keep using parseAmountFromImport and handle the NaN themselves.
+ */
+export function requireImportedAmount(value: unknown, context: string): number {
+  if (value === undefined || value === null || value === '') return 0;
+
+  const parsed = parseAmountFromImport(value);
+  if (Number.isFinite(parsed)) return parsed;
+
+  const encrypted = typeof value === 'string' && value.startsWith(ZK_PREFIX);
+  throw new Error(
+    encrypted
+      ? context + ': value is still encrypted (ZK1). Unlock the vault with the original password ' +
+        'and re-export - importing this would record a wrong amount.'
+      : context + ': not a valid amount (got ' + JSON.stringify(value) + '). ' +
+        'Import stopped rather than record a wrong value.'
+  );
+}
+
+/**
+ * True when a value looks like an un-decrypted vault blob. Export paths check this
+ * so a backup can never quietly ship ciphertext where a number should be.
+ */
+export function looksEncrypted(value: unknown): boolean {
+  return typeof value === 'string' && value.startsWith(ZK_PREFIX);
+}
+
+/**
+ * Field names whose value must be a plain number in a backup.
+ *
+ * A leak here means a MONEY field went out un-decrypted, which restores into a
+ * wrong balance. Deliberately NOT every encrypted field: `user_settings` keeps
+ * profileName/firstName/lastName/email encrypted by design and that repository
+ * never decrypts them, so flagging those would block every export on earth
+ * while protecting nothing financial.
+ */
+const MONEY_FIELDS = new Set([
+  'value', 'amount', 'deductibleAmount',
+  'totalWealth', 'totalLiabilities', 'zakatableWealth', 'zakatAmount',
+  'nisabThreshold', 'netWorth', 'totalAssets', 'calculationModifier',
+  'exchangeRate', 'zakatRate',
+]);
+
+/**
+ * Scan an export payload for ciphertext sitting in a money field.
+ *
+ * The export path reads collections that decrypt lazily, so a lock-state or a
+ * failed decryption can leave a ZK1 blob where an amount belongs. Shipping that
+ * in a "backup" is how a user ends up with a file that restores into broken
+ * numbers - and they only discover it when they need the backup.
+ *
+ * @returns offending "path" strings; empty means the export is safe to write.
+ */
+export function findEncryptedLeaks(payload: unknown, path = ''): string[] {
+  if (Array.isArray(payload)) {
+    return payload.flatMap((item, i) => findEncryptedLeaks(item, `${path}[${i}]`));
+  }
+  if (payload && typeof payload === 'object') {
+    return Object.entries(payload as Record<string, unknown>).flatMap(([k, v]) => {
+      const here = path ? `${path}.${k}` : k;
+      if (MONEY_FIELDS.has(k) && looksEncrypted(v)) return [here];
+      return findEncryptedLeaks(v, here);
+    });
+  }
+  // No bare-value fallback on purpose. Without a field name we cannot tell a
+  // leaked ciphertext from a legitimately encrypted string (asset `name`, a
+  // receipt reference, a profile field), and a false positive here blocks the
+  // user's export entirely - the opposite of the goal. Money fields are named.
+  return [];
+}
+
+/**
  * Parse an amount that may have been written by ANY past version of this app.
  *
  * Older exports wrote formatted strings (`$1,234,567.89`, `IDR 15.750.000`,
@@ -60,6 +148,12 @@ export function parseAmountFromImport(value: unknown): number {
 
   let s = String(value).replace(/"/g, '').trim();
   if (s === '') return NaN;
+
+  // A ciphertext blob is NOT an amount. Without this the symbol-stripping below
+  // turns base64 into a believable number: 'ZK1:xG9kLm2nPq:8fJ2kL9mQ3vX' -> 1928293.
+  // A wrong-but-plausible figure is far more dangerous than a rejection, because
+  // nothing about it looks broken. Callers decide what to do with NaN.
+  if (s.startsWith(ZK_PREFIX)) return NaN;
 
   // Drop a leading ISO code (USD, IDR, SAR…) then any remaining symbols.
   s = s.replace(/^[A-Za-z]{2,3}\s*/, '').replace(/[^\d.,\-+]/g, '');

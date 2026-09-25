@@ -6,9 +6,28 @@ import type { User } from '../../types';
 import toast from 'react-hot-toast';
 import { setAuthToken } from '../../utils/auth';
 import { unsubscribeCurrentDevice } from '../pushService';
+import { withTimeout } from '../../utils/withTimeout';
 
 const logger = new Logger('AuthService');
 const SESSION_STORAGE_KEY = 'zakapp_session_v1';
+
+/**
+ * How long logout waits for the RxDB handle to close before giving up on it.
+ *
+ * The session is already cleared by then, so this only bounds the cleanup: a DB
+ * that is mid-creation must not keep the user on a screen they have left.
+ */
+const DB_CLOSE_TIMEOUT_MS = 3000;
+
+/**
+ * Bound on the push-unsubscribe step during logout.
+ *
+ * Generous vs the ~ms it normally takes, because the cost of being wrong is
+ * asymmetric: too short and a real unsubscribe is abandoned (the server keeps
+ * the endpoint, which the user can fix by toggling notifications), too long or
+ * unbounded and logout appears broken and the user stays signed in.
+ */
+const PUSH_TEARDOWN_TIMEOUT_MS = 4000;
 
 export interface SessionData {
     user: User;
@@ -335,18 +354,39 @@ export const authService = {
         // server-side unsubscribe is an authenticated request, so doing it
         // after this point would leave the endpoint registered and the
         // logged-out device would keep receiving notifications. See #383.
+        //
+        // Bounded on purpose. A try/catch is not enough here: a teardown step
+        // that never SETTLES (not rejects) would park this await forever and
+        // leave the user signed in. That is a real reported bug, not a
+        // hypothetical - see the note on pushService.
         try {
-            await unsubscribeCurrentDevice();
+            await withTimeout(unsubscribeCurrentDevice(), PUSH_TEARDOWN_TIMEOUT_MS, false);
         } catch (e) {
             logger.warn('Push unsubscribe on logout failed (non-fatal)', e);
         }
 
+        // Everything below is LOCAL teardown and must not be skippable. If any
+        // step hangs, the user stays logged in on what they believe is a
+        // logged-out device - so the clears happen FIRST and can never be
+        // stranded behind an await.
         cryptoService.clearSession();
         sessionStorage.removeItem(SESSION_STORAGE_KEY);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         setAuthToken(null);
-        await closeDb();
+
+        // Closing the DB is cleanup, not a gate: it can wait on an in-progress
+        // database creation (`closeDb` awaits it), and a logged-out client must
+        // not be held hostage by that. Destroying the handle matters less than
+        // the session actually ending - and the next login recreates it.
+        try {
+            await Promise.race([
+                closeDb(),
+                new Promise(resolve => setTimeout(resolve, DB_CLOSE_TIMEOUT_MS)),
+            ]);
+        } catch (e) {
+            logger.warn('DB close on logout failed (non-fatal)', e);
+        }
     },
 
     /**
