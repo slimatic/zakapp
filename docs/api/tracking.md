@@ -981,8 +981,8 @@ curl -X POST http://localhost:3000/api/v1/tracking/comparison \
 
 For API issues or questions:
 - **GitHub Issues:** [zakapp/issues](https://github.com/zakapp/zakapp/issues)
-- **Email:** support@zakapp.com
-- **Documentation:** [docs.zakapp.com](https://docs.zakapp.com)
+- **Email:** support@zakapp.org
+- **Documentation:** [docs.zakapp.org](https://docs.zakapp.org)
 
 ---
 

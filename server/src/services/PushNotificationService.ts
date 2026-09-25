@@ -58,7 +58,7 @@ const REMINDER_WINDOW_DAYS = 30;
 // In production, these should be environment variables
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@zakapp.com';
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@zakapp.org';
 
 function configureVapid(): void {
   if (webpush && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {

@@ -14,13 +14,13 @@ info:
   version: 1.0.0
   contact:
     name: ZakApp Support
-    email: support@zakapp.com
+    email: support@zakapp.org
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: https://api.zakapp.com/v1
+  - url: https://api.zakapp.org/v1
     description: Production server
   - url: http://localhost:3001/v1
     description: Local development server (API server default)

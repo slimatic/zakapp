@@ -137,7 +137,7 @@ npm run build
 # Generate with: npx web-push generate-vapid-keys
 VAPID_PUBLIC_KEY=YOUR_PUBLIC_KEY
 VAPID_PRIVATE_KEY=YOUR_PRIVATE_KEY
-VAPID_SUBJECT=mailto:admin@zakapp.com
+VAPID_SUBJECT=mailto:admin@zakapp.org
 ```
 
 ### Generate VAPID Keys

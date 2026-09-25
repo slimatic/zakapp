@@ -42,7 +42,7 @@ The Tracking & Analytics feature in ZakApp helps you track your Zakat obligation
 ### Prerequisites
 
 Before using the Tracking feature, ensure you:
-1. ✅ Have a ZakApp account (sign up at [zakapp.com](https://zakapp.com))
+1. ✅ Have a ZakApp account (sign up at [zakapp.org](https://zakapp.org))
 2. ✅ Have completed the Zakat calculator for current year
 3. ✅ Know your total wealth, liabilities, and Zakat due
 4. ✅ Have selected your preferred Zakat calculation methodology
@@ -1317,7 +1317,7 @@ A: Go to Settings > Account > Delete Account. All data is permanently erased.
 ### Islamic Guidance
 
 **Q: Where can I learn more about Zakat?**  
-A: Check our [Islamic Resources](https://zakapp.com/resources) page. Consult with qualified scholars for personal situations.
+A: Check our [Islamic Resources](https://zakapp.org/resources) page. Consult with qualified scholars for personal situations.
 
 **Q: Is ZakApp endorsed by Islamic scholars?**  
 A: ZakApp follows established Islamic principles. Always verify calculations with a qualified scholar.
@@ -1334,11 +1334,11 @@ A: Currently focused on Zakat. Features for Sadaqah, Fitrah, and more coming soo
 
 Need help? We're here for you:
 
-📧 **Email:** support@zakapp.com  
-💬 **Live Chat:** Available on zakapp.com  
-📚 **Knowledge Base:** [docs.zakapp.com](https://docs.zakapp.com)  
+📧 **Email:** support@zakapp.org  
+💬 **Live Chat:** Available on zakapp.org  
+📚 **Knowledge Base:** [docs.zakapp.org](https://docs.zakapp.org)  
 🐛 **Bug Reports:** [github.com/zakapp/issues](https://github.com/zakapp/zakapp/issues)  
-🤝 **Community:** [community.zakapp.com](https://community.zakapp.com)
+🤝 **Community:** [community.zakapp.org](https://community.zakapp.org)
 
 ---
 

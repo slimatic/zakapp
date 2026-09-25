@@ -602,8 +602,8 @@ ZakApp Milestone 6 (UI/UX Enhancements) has been **successfully completed** with
 ### For Developers
 
 - **GitHub Issues**: [github.com/slimatic/zakapp/issues](https://github.com/slimatic/zakapp/issues)
-- **Documentation**: [zakapp.com/docs](https://zakapp.com/docs)
-- **API Reference**: [zakapp.com/api](https://zakapp.com/api)
+- **Documentation**: [zakapp.org/docs](https://zakapp.org/docs)
+- **API Reference**: [zakapp.org/api](https://zakapp.org/api)
 
 ---
 

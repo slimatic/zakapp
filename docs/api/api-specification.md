@@ -1200,7 +1200,7 @@ Check export processing status.
   "data": {
     "exportId": "export_123456",
     "status": "completed",
-    "downloadUrl": "https://api.zakapp.com/downloads/export_123456.zip",
+    "downloadUrl": "https://api.zakapp.org/downloads/export_123456.zip",
     "expiresAt": "2025-10-27T10:00:00.000Z",
     "fileSize": 2457600
   }

@@ -33,7 +33,7 @@ npm run dev:client
 ### 2. Prepare Test Data
 
 **Option A: Use existing test account**
-- Email: `test@zakapp.com`
+- Email: `test@zakapp.org`
 - Password: `TestPassword123!`
 
 **Option B: Create fresh test accounts**

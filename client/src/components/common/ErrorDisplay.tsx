@@ -82,7 +82,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         
         {showSupport && (
           <a
-            href="mailto:support@zakapp.com"
+            href="mailto:support@zakapp.org"
             className="px-4 py-2 border border-danger/40 text-danger text-sm font-medium rounded-lg hover:bg-danger-soft focus:outline-none focus:ring-2 focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
           >
             Contact Support
