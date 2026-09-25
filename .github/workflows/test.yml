@@ -49,6 +49,14 @@ jobs:
       env:
         CI: true
 
+    # Secrets: gitleaks (security-scan.yml) only matches PROVIDER KEY FORMATS - AWS AKIA...,
+    # GitHub ghp_..., PEM blocks. It reported "no leaks found" on the full history while a
+    # plaintext password sat in three committed scripts (`pg.fill('#password', 'V1Smoke...')`),
+    # because a typed password matches no provider format. This step covers that gap by
+    # matching credential-shaped names and fill() sinks instead. No dependencies, no build.
+    - name: Reject committed credential literals
+      run: python3 client/scripts/check-no-committed-credentials.py
+
     # Coverage thresholds in each vitest config fail the run on a regression, so
     # these steps are the gate itself. The reports are uploaded purely so the
     # numbers are visible when a build does fail.
