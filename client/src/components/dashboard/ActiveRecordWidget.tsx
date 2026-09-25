@@ -16,6 +16,7 @@
  */
 
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
@@ -46,6 +47,7 @@ interface ActiveRecordWidgetProps {
  * @param record - Active Nisab Year Record (null if none exists)
  */
 export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }) => {
+  const { t } = useTranslation('dashboard');
   // Single source of truth for the display currency + masked formatting
   // (#310 / #341). Resolves local RxDB settings → auth settings → prefs → USD.
   const { currency: userCurrency, formatCurrency } = useDisplayCurrency();
@@ -225,14 +227,14 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
       {/* Wealth Comparison */}
       <div className="mb-4 p-4 bg-card rounded-md border border-border">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-muted-foreground">Current Wealth</span>
+          <span className="text-sm text-muted-foreground">{t('widget.currentWealth')}</span>
           <span className="text-lg font-bold text-foreground">
             {formatCurrency(currentWealth)}
           </span>
         </div>
 
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-muted-foreground">Nisab Threshold</span>
+          <span className="text-sm text-muted-foreground">{t('widget.nisabThreshold')}</span>
           <span className="text-sm font-medium text-foreground/80">
             {formatCurrency(nisabThreshold)}
           </span>
@@ -240,7 +242,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
 
         <div className="pt-2 border-t border-border">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground/80">Difference</span>
+            <span className="text-sm font-medium text-foreground/80">{t('widget.difference')}</span>
             <span className={`text-sm font-bold ${statusColors.text}`}>
               {formatCurrency(wealthDifference)}
               {' '}({differencePercentage >= 0 ? '+' : ''}{differencePercentage.toFixed(1)}%)
@@ -253,15 +255,15 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
       <div className="mb-4 p-4 bg-muted rounded-md border border-border">
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
-            <div className="text-xs text-muted-foreground">Zakat Due</div>
+            <div className="text-xs text-muted-foreground">{t('widget.zakatDue')}</div>
             <div className="text-lg font-bold text-success">{formatCurrency(zakatDue)}</div>
           </div>
           <div>
-            <div className="text-xs text-muted-foreground">Payments Made</div>
+            <div className="text-xs text-muted-foreground">{t('widget.paymentsMade')}</div>
             <div className="text-lg font-bold text-foreground">{formatCurrency(totalPaid)}</div>
           </div>
           <div>
-            <div className="text-xs text-muted-foreground">Payments Remaining</div>
+            <div className="text-xs text-muted-foreground">{t('widget.paymentsRemaining')}</div>
             <div className="text-lg font-bold text-danger">{formatCurrency(zakatRemaining)}</div>
           </div>
         </div>
@@ -272,7 +274,7 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
         to={`/nisab-records`}
         className="block w-full text-center px-4 py-2 bg-success text-success-foreground rounded-md hover:bg-success/90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
       >
-        View Detailed Record
+        {t('widget.viewDetailedRecord')}
       </Link>
     </div>
   );

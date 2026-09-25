@@ -9,19 +9,29 @@
   "assets": {
     "yourAssets": "Your Assets",
     "zakatable": "Zakatable",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "exempt": "Exempt"
   },
   "hero": {
     "greeting": "As-salamu alaykum",
     "estimatedDue": "Estimated zakat due",
-    "seeCalculation": "See how this was calculated"
+    "seeCalculation": "See how this was calculated",
+    "estimatedDueWith": "Estimated zakat due {{qualifiers}}",
+    "notCalculated": "Not calculated",
+    "notCalculatedHint": "We could not calculate your zakat yet",
+    "calculateNow": "Calculate it now",
+    "hijriYear": "for {{year}}"
   },
   "hawl": {
     "inProgress": "Hawl in progress",
     "aboveNisab": "Above nisab",
     "belowNisab": "Below nisab",
     "openRecord": "Open hawl record",
-    "recordPayment": "Record a payment"
+    "recordPayment": "Record a payment",
+    "nisabUnknown": "Nisab unknown",
+    "progress": "Day <b>{{elapsed}}</b> of {{total}} · {{percent}}% complete · <b>{{days}} days</b> until due",
+    "progressWithDate": "Day <b>{{elapsed}}</b> of {{total}} · {{percent}}% complete · <b>{{days}} days</b> until due ({{date}})",
+    "arcLabel": "Hawl {{percent}}% complete, day {{elapsed}} of {{total}}"
   },
   "quickActions": {
     "title": "Quick actions",
@@ -37,5 +47,92 @@
   "privacy": {
     "upgradeAvailable": "Privacy Upgrade Available",
     "upgradeHint": "Upgrade to zero-knowledge encryption for maximum privacy"
-  }
+  },
+  "widget": {
+    "wealthSummary": "Wealth Summary",
+    "totalWealth": "Total Wealth",
+    "currentWealth": "Current Wealth",
+    "nisabThreshold": "Nisab Threshold",
+    "difference": "Difference",
+    "zakatDue": "Zakat Due",
+    "paymentsMade": "Payments Made",
+    "paymentsRemaining": "Payments Remaining",
+    "viewDetailedRecord": "View Detailed Record",
+    "belowNisabNoObligation": "Your wealth is below the Nisab threshold. No Zakat obligation at this time."
+  },
+  "charts": {
+    "assetComposition": "Asset Composition",
+    "assetCompositionSubtitle": "Portfolio Breakdown by Asset Category",
+    "noZakatableAssets": "No zakatable assets found. Add assets to see breakdown.",
+    "category": "Category",
+    "value": "Value",
+    "percentage": "Percentage",
+    "paymentDistribution": "Payment Distribution",
+    "noPaymentData": "No payment data available",
+    "wealthTrend": "Wealth Trend",
+    "noHistoricalData": "No historical data available. Finalize a Nisab Year to see trends.",
+    "zakatObligations": "Zakat Obligations",
+    "noObligationHistory": "No obligation history available.",
+    "hijri": "Hijri",
+    "gregorian": "Gregorian"
+  },
+  "actions": {
+    "addFirstAssetTitle": "Add Your First Asset",
+    "addFirstAssetBody": "Begin your Zakat journey by adding cash, gold, investments, or other assets to track your wealth.",
+    "addAssetLabel": "Add Asset",
+    "startTrackingTitle": "Start Nisab Year Tracking",
+    "startTrackingBody": "Create a Nisab Year Record to begin tracking your Hawl period (354 days) for Zakat calculations.",
+    "createRecordLabel": "Create Nisab Record",
+    "paymentDueTitle": "Zakat Payment Due",
+    "paymentDueBody": "You have Zakat owed: {{amount}} remaining to complete your obligation.",
+    "makePaymentLabel": "Make Payment",
+    "wealthAtGlance": "Your Wealth at a Glance",
+    "paymentHistory": "Payment History",
+    "statTotalAssets": "Total Assets",
+    "statActiveRecord": "Active Record",
+    "statPaymentsMade": "Payments Made",
+    "statTrackingStatus": "Tracking Status",
+    "statusActive": "Active"
+  },
+  "guide": {
+    "journeyTitle": "Your Zakat Journey",
+    "intro": "Follow these steps to track your Zakat obligations. We'll highlight what needs attention.",
+    "restartJourney": "Restart Onboarding Journey",
+    "viewLearningGuide": "View Learning Guide",
+    "addMoreAssets": "Add more assets",
+    "addLiabilities": "Add liabilities",
+    "createAnotherRecord": "Create another record",
+    "recordAnotherPayment": "Record another payment",
+    "progress": "Progress",
+    "completedOf": "{{done}} of {{total}} completed",
+    "progressLabel": "Onboarding progress: {{done}} of {{total}} steps completed",
+    "restartJourneyShort": "Restart Journey",
+    "learningGuide": "Learning Guide",
+    "clickToExpand": "Click to expand"
+  },
+  "title": "Dashboard",
+  "subtitle": "Welcome to your secure, local-first Zakat vault.",
+  "addAsset": "Add Asset",
+  "calculateZakat": "Calculate Zakat",
+  "totalAssetsValue": "Total Assets Value",
+  "zakatableAssets": "Zakatable Assets",
+  "assetsEligible": "Assets eligible for Zakat",
+  "lastCalculation": "Last Calculation",
+  "viewHistory": "View History",
+  "recentAssets": "Recent Assets",
+  "noAssetsYet": "No assets tracked yet.",
+  "addFirstAsset": "Add your first asset",
+  "zakatableBadge": "Zakatable",
+  "viewAllAssets": "View All Assets",
+  "whyLocalFirst": "Why Local-First?",
+  "featZeroKnowledge": "Zero-Knowledge Architecture",
+  "featOffline": "Offline Capability",
+  "featClientSideEncryption": "Client-Side Encryption (AES-GCM)",
+  "learnMoreGithub": "Learn More on GitHub",
+  "acrossAssets": "Across {{count}} tracked assets",
+  "updatingRates": "Updating exchange rates…",
+  "sendFeedback": "Send Feedback via Email",
+  "feedback": "Feedback",
+  "reassess": "Re-assess",
+  "localFirstBody": "To protect your financial privacy, ZakApp calculates everything<b> on your device</b>. Your asset data never leaves your browser unencrypted."
 }

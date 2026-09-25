@@ -22,6 +22,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import {
   Wallet,
   Moon,
@@ -73,7 +74,11 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
   methodology,
   calculationHref = '/calculator'
 }) => {
-  const today = new Date().toLocaleDateString('en-US', {
+  const { t, i18n } = useTranslation('dashboard');
+  // Locale-aware date. This was pinned to 'en-US', which rendered an English
+  // date order inside an otherwise right-to-left Arabic layout - the exact
+  // inconsistency the branch's own RTL work exists to remove.
+  const today = new Date().toLocaleDateString(i18n.language, {
     weekday: 'long',
     month: 'short',
     day: 'numeric'
@@ -82,7 +87,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
   // Build the note from whichever qualifiers we actually have, so it never
   // renders "for · · See how".
   const qualifiers = [
-    hijriYear ? `for ${hijriYear}` : null,
+    hijriYear ? t('hero.hijriYear', { year: hijriYear }) : null,
     methodology || null
   ].filter(Boolean);
 
@@ -91,7 +96,8 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
   return (
     <section className="text-start">
       <p className="text-[13px] font-medium text-muted-foreground">
-        As-salamu alaykum{userName ? `, ${userName}` : ''} · <span className="tabular-nums">{today}</span>
+        {t('hero.greeting')}
+        {userName ? `, ${userName}` : ''} · <span className="tabular-nums">{today}</span>
       </p>
 
       {notCalculated ? (
@@ -101,7 +107,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
           className="mt-1 text-2xl font-semibold text-secondary"
           aria-describedby="hero-zakat-status"
         >
-          Not calculated
+          {t('hero.notCalculated')}
         </p>
       ) : (
         <Money
@@ -116,16 +122,19 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
       <p id="hero-zakat-status" className="mt-1 text-[13px] text-muted-foreground">
         {notCalculated ? (
           <>
-            We could not calculate your zakat yet{' '}
+            {t('hero.notCalculatedHint')}{' '}
             <Link to={calculationHref} className="text-primary hover:underline underline-offset-2">
-              Calculate it now
+              {t('hero.calculateNow')}
             </Link>
           </>
         ) : (
           <>
-            Estimated zakat due{qualifiers.length ? ` ${qualifiers.join(' · ')}` : ''} ·{' '}
+            {qualifiers.length
+              ? t('hero.estimatedDueWith', { qualifiers: qualifiers.join(' · ') })
+              : t('hero.estimatedDue')}{' '}
+            ·{' '}
             <Link to={calculationHref} className="text-primary hover:underline underline-offset-2">
-              See how this was calculated
+              {t('hero.seeCalculation')}
             </Link>
           </>
         )}
@@ -163,8 +172,9 @@ export const HawlCard: React.FC<HawlCardProps> = ({
   hawlHref = '/nisab-records',
   paymentHref = '/payments'
 }) => {
+  const { t } = useTranslation('dashboard');
   const pct = Math.round(progress * 1000) / 10;
-  const arcLabel = `Hawl ${pct}% complete, day ${daysElapsed} of ${totalDays}`;
+  const arcLabel = t('hawl.arcLabel', { percent: pct, elapsed: daysElapsed, total: totalDays });
 
   return (
     <section
@@ -180,7 +190,7 @@ export const HawlCard: React.FC<HawlCardProps> = ({
         <div className="flex-1 w-full">
           <div className="flex items-center gap-2 flex-wrap">
             <strong className="font-heading font-semibold text-[15px] text-foreground">
-              Hawl in progress
+              {t('hawl.inProgress')}
             </strong>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -201,14 +211,30 @@ export const HawlCard: React.FC<HawlCardProps> = ({
                 }`}
                 aria-hidden="true"
               />
-              {aboveNisab === null ? 'Nisab unknown' : aboveNisab ? 'Above nisab' : 'Below nisab'}
+              {aboveNisab === null
+                ? t('hawl.nisabUnknown')
+                : aboveNisab
+                  ? t('hawl.aboveNisab')
+                  : t('hawl.belowNisab')}
             </span>
           </div>
 
           <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-            Day <strong className="text-foreground">{daysElapsed}</strong> of {totalDays} ·{' '}
-            {pct}% complete · <strong className="text-foreground">{daysRemaining} days</strong>{' '}
-            until due{dueDate ? ` (${dueDate})` : ''}
+            {dueDate ? (
+              <Trans
+                ns="dashboard"
+                i18nKey="hawl.progressWithDate"
+                values={{ elapsed: daysElapsed, total: totalDays, percent: pct, days: daysRemaining, date: dueDate }}
+                components={{ b: <strong className="text-foreground" /> }}
+              />
+            ) : (
+              <Trans
+                ns="dashboard"
+                i18nKey="hawl.progress"
+                values={{ elapsed: daysElapsed, total: totalDays, percent: pct, days: daysRemaining }}
+                components={{ b: <strong className="text-foreground" /> }}
+              />
+            )}
           </p>
 
           <div className="mt-3 flex flex-wrap gap-2.5">
@@ -216,13 +242,13 @@ export const HawlCard: React.FC<HawlCardProps> = ({
               to={hawlHref}
               className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors min-h-[40px]"
             >
-              Open hawl record
+              {t('hawl.openRecord')}
             </Link>
             <Link
               to={paymentHref}
               className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-primary hover:underline underline-offset-2 transition-colors min-h-[40px]"
             >
-              Record a payment
+              {t('hawl.recordPayment')}
             </Link>
           </div>
         </div>
@@ -242,11 +268,19 @@ interface QuickAction {
   tone: 'teal' | 'amber' | 'green';
 }
 
-const ACTIONS: QuickAction[] = [
-  { to: '/assets', icon: Wallet, title: 'Add asset', subtitle: 'Cash, gold, crypto, more', tone: 'teal' },
-  { to: '/nisab-records', icon: Moon, title: 'Hawl records', subtitle: 'Track your zakat year', tone: 'amber' },
-  { to: '/calculator', icon: Calculator, title: 'Calculator', subtitle: 'Step-by-step estimate', tone: 'green' },
-  { to: '/learn', icon: BookOpen, title: 'Learn', subtitle: 'Zakat guides & rulings', tone: 'teal' }
+// i18n keys, not literals. Resolved inside QuickActions so the array stays a
+// plain constant instead of being rebuilt on every render.
+const ACTIONS: Array<{
+  to: string;
+  icon: typeof Wallet;
+  titleKey: string;
+  subtitleKey: string;
+  tone: 'teal' | 'amber' | 'green';
+}> = [
+  { to: '/assets', icon: Wallet, titleKey: 'quickActions.addAsset', subtitleKey: 'quickActions.addAssetHint', tone: 'teal' },
+  { to: '/nisab-records', icon: Moon, titleKey: 'quickActions.hawlRecords', subtitleKey: 'quickActions.hawlRecordsHint', tone: 'amber' },
+  { to: '/calculator', icon: Calculator, titleKey: 'quickActions.calculator', subtitleKey: 'quickActions.calculatorHint', tone: 'green' },
+  { to: '/learn', icon: BookOpen, titleKey: 'quickActions.learn', subtitleKey: 'quickActions.learnHint', tone: 'teal' }
 ];
 
 const CHIP_TONES = {
@@ -255,13 +289,15 @@ const CHIP_TONES = {
   green: 'bg-success-soft text-success'
 } as const;
 
-export const QuickActions: React.FC = () => (
+export const QuickActions: React.FC = () => {
+  const { t } = useTranslation('dashboard');
+  return (
   <>
     <h2 className="font-heading font-semibold text-base text-secondary mt-7 mb-3">
-      Quick actions
+      {t('quickActions.title')}
     </h2>
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-      {ACTIONS.map(({ to, icon: Icon, title, subtitle, tone }) => (
+      {ACTIONS.map(({ to, icon: Icon, titleKey, subtitleKey, tone }) => (
         <Link
           key={to}
           to={to}
@@ -273,13 +309,14 @@ export const QuickActions: React.FC = () => (
           >
             <Icon className="h-[18px] w-[18px]" />
           </span>
-          <span className="font-semibold text-[13px] text-foreground">{title}</span>
-          <span className="text-xs text-muted-foreground">{subtitle}</span>
+          <span className="font-semibold text-[13px] text-foreground">{t(titleKey)}</span>
+          <span className="text-xs text-muted-foreground">{t(subtitleKey)}</span>
         </Link>
       ))}
     </div>
   </>
-);
+  );
+};
 
 /* ──────────────────────── asset row (for the wealth list) ─────────────────── */
 

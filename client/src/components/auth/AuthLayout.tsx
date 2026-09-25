@@ -25,6 +25,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Logo } from '../common/Logo';
 
 export interface AuthLayoutProps {
@@ -43,6 +44,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
   footer
 }) => {
+  const { t } = useTranslation('common');
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Slim brand bar - matches the mockup's topbar, minus app navigation */}
@@ -50,7 +52,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="flex items-center gap-2.5">
           <Logo className="h-9 w-9" />
           <span className="font-heading font-semibold text-lg text-secondary">
-            ZakApp
+            {t('auth.brand')}
           </span>
           <span
             className="font-arabic text-xl leading-none text-foreground/80 translate-y-[1px]"
@@ -84,10 +86,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
       <footer className="px-5 py-5 text-center">
         <p className="text-xs text-muted-foreground">
-          <span aria-hidden="true">🔒</span> End-to-end encrypted on your device
+          <span aria-hidden="true">🔒</span> {t('auth.encryptedOnDevice')}
         </p>
         <p className="mt-1.5 text-[11px] text-muted-foreground/70">
-          Made by{' '}
+          {t('auth.madeBy')}{' '}
           <a
             href="https://rstlabs.io"
             target="_blank"

@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 import { NavigationItemType } from './Navigation';
 
@@ -25,6 +26,7 @@ interface BottomNavProps {
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
+    const { t } = useTranslation('common');
   const location = useLocation();
 
   const isActive = (item: NavigationItemType): boolean => {
@@ -49,7 +51,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
     <nav
       className="fixed bottom-0 inset-x-0 bg-card border-t border-border z-40 block md:hidden [box-shadow:var(--elev-2)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      aria-label="Bottom navigation"
+      aria-label={t('a11y.bottomNavigation')}
     >
       <div className="flex justify-around items-center h-16 px-2">
         {items.map((item) => {
@@ -75,7 +77,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
                 key="more-button"
                 onClick={onMoreClick}
                 className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-muted-foreground hover:text-foreground transition-all active:scale-95"
-                aria-label="Open more menu"
+                aria-label={t('a11y.openMoreMenu')}
               >
                 {content}
               </button>

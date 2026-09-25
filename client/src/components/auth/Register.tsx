@@ -17,12 +17,14 @@
 
 import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { AuthLayout } from './AuthLayout';
 
 export const Register: React.FC = () => {
+  const { t } = useTranslation('common');
   const [formData, setFormData] = useState({
     username: '',
     firstName: '',
@@ -147,16 +149,16 @@ export const Register: React.FC = () => {
 
   return (
     <AuthLayout
-      title="Create your vault"
-      subtitle="Everything is encrypted on your device before it syncs."
+      title={t('auth.registerTitle')}
+      subtitle={t('auth.registerSubtitle')}
       footer={
         <>
-          Already have a vault?{' '}
+          {t('auth.alreadyHaveVault')}{' '}
           <Link
             to="/login"
             className="font-medium text-primary hover:underline underline-offset-2"
           >
-            Sign in
+            {t('auth.signIn')}
           </Link>
         </>
       }
@@ -166,11 +168,11 @@ export const Register: React.FC = () => {
           id="username"
           name="username"
           type="text"
-          placeholder="Username"
+          placeholder={t('auth.username')}
           value={formData.username}
           onChange={handleChange}
           error={formErrors.username}
-          label="Username"
+          label={t('auth.username')}
         />
 
         <div className="grid grid-cols-2 gap-3">
@@ -179,12 +181,12 @@ export const Register: React.FC = () => {
             name="firstName"
             type="text"
             required
-            placeholder="First name"
+            placeholder={t('auth.firstName')}
             value={formData.firstName}
             onChange={handleChange}
             data-testid="first-name-input"
             error={formErrors.firstName}
-            label="First name"
+            label={t('auth.firstName')}
           />
 
           <Input
@@ -192,12 +194,12 @@ export const Register: React.FC = () => {
             name="lastName"
             type="text"
             required
-            placeholder="Last name"
+            placeholder={t('auth.lastName')}
             value={formData.lastName}
             onChange={handleChange}
             data-testid="last-name-input"
             error={formErrors.lastName}
-            label="Last name"
+            label={t('auth.lastName')}
           />
         </div>
 
@@ -207,12 +209,12 @@ export const Register: React.FC = () => {
           type="email"
           autoComplete="email"
           required
-          placeholder="you@example.com"
+          placeholder={t('auth.emailPlaceholder')}
           value={formData.email}
           onChange={handleChange}
           data-testid="email-input"
           error={formErrors.email}
-          label="Email address"
+          label={t('auth.emailAddress')}
         />
 
         <Input
@@ -221,18 +223,18 @@ export const Register: React.FC = () => {
           type="password"
           autoComplete="new-password"
           required
-          placeholder="Choose a password"
+          placeholder={t('auth.choosePassword')}
           value={formData.password}
           onChange={handleChange}
           onFocus={() => setShowPasswordHints(true)}
           error={formErrors.password}
-          label="Password"
+          label={t('auth.password')}
         />
 
         {/* Live requirements — quiet list, not a shouting checklist */}
         {showPasswordHints && (
           <div className="rounded-md border border-border bg-surface-2 px-3 py-2.5 text-xs">
-            <p className="mb-1.5 font-medium text-foreground">Password must include:</p>
+            <p className="mb-1.5 font-medium text-foreground">{t('auth.passwordMustInclude')}</p>
             <ul className="space-y-1">
               {strengthRows.map(([key, text]) => {
                 const met = passwordStrength[key];
@@ -256,12 +258,12 @@ export const Register: React.FC = () => {
           type="password"
           autoComplete="new-password"
           required
-          placeholder="Confirm password"
+          placeholder={t('auth.confirmPassword')}
           value={formData.confirmPassword}
           onChange={handleChange}
           data-testid="confirm-password-input"
           error={formErrors.confirmPassword}
-          label="Confirm password"
+          label={t('auth.confirmPassword')}
         />
 
         {error && (
@@ -280,7 +282,7 @@ export const Register: React.FC = () => {
           data-testid="register-button"
           className="w-full"
         >
-          Create vault
+          {t('auth.createVaultButton')}
         </Button>
       </form>
     </AuthLayout>

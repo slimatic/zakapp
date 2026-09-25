@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { DonationCTA } from '../donation/DonationCTA';
 
@@ -16,6 +17,7 @@ import { DonationCTA } from '../donation/DonationCTA';
  * present, useful, never competing with the page.
  */
 export const Footer: React.FC = () => {
+    const { t } = useTranslation('common');
     const linkClass = 'transition-colors hover:text-secondary';
     const dot = <span className="text-foreground/70" aria-hidden="true">·</span>;
 
@@ -26,13 +28,13 @@ export const Footer: React.FC = () => {
 
                     {/* Links. Wraps and stays on one or two lines rather than
                         stacking one link per row. */}
-                    <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
+                    <nav aria-label={t('a11y.footer')} className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
                         <DonationCTA variant="footer" />
                         <span className="text-foreground/70" aria-hidden="true">·</span>
-                        <Link to="/privacy-policy" className={linkClass}>Privacy</Link>
+                        <Link to="/privacy-policy" className={linkClass}>{t('footer.privacy')}</Link>
                         <span className="text-foreground/70" aria-hidden="true">·</span>
                         <a href="https://github.com/slimatic/zakapp" target="_blank" rel="noopener noreferrer" className={linkClass}>
-                            Source
+                            {t('footer.source')}
                         </a>
                         <span className="text-foreground/70" aria-hidden="true">·</span>
                         <a
@@ -40,9 +42,9 @@ export const Footer: React.FC = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             className={linkClass}
-                            title="Report an issue on GitHub"
+                            title={t('footer.reportIssue')}
                         >
-                            Issues
+                            {t('footer.issues')}
                         </a>
                     </nav>
 
@@ -55,9 +57,9 @@ export const Footer: React.FC = () => {
                         <span>© {new Date().getFullYear()}</span>
                         {dot}
                         <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className={`${linkClass} group flex items-center gap-1`}>
-                            <span className="hidden sm:inline">Made with</span>
+                            <span className="hidden sm:inline">{t('footer.madeWith')}</span>
                             <span aria-hidden="true">❤️</span>
-                            <span className="hidden sm:inline">by</span>
+                            <span className="hidden sm:inline">{t('footer.by')}</span>
                             <span className="font-semibold text-foreground/80 group-hover:text-foreground">RST Labs</span>
                         </a>
                         {dot}
@@ -66,7 +68,7 @@ export const Footer: React.FC = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="font-mono text-foreground/70 transition-colors hover:text-secondary"
-                            title={`Build ${__COMMIT_HASH__}`}
+                            title={t('footer.build', { hash: __COMMIT_HASH__ })}
                         >
                             v{__APP_VERSION__}
                             <span className="hidden sm:inline"> ({__COMMIT_HASH__})</span>

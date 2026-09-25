@@ -17,6 +17,7 @@
 
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     PieChart,
     Pie,
@@ -49,6 +50,7 @@ const RECIPIENT_LABELS: { [key: string]: string } = {
 };
 
 export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> = ({ payments, currency = 'USD' }) => {
+  const { t } = useTranslation('dashboard');
     const { privacyMode } = usePrivacy();
 
     // Group payments by category
@@ -86,14 +88,14 @@ export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> =
     if (data.length === 0) {
         return (
             <div className="h-[300px] flex items-center justify-center text-muted-foreground bg-muted rounded-lg border border-dashed border-border">
-                No payment data available
+                {t('charts.noPaymentData')}
             </div>
         );
     }
 
     return (
         <div className="h-[320px] w-full">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Payment Distribution</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">{t('charts.paymentDistribution')}</h3>
             <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie

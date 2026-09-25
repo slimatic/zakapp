@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { Asset, ZakatPayment } from '../../types';
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
@@ -45,6 +46,7 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
   activeNisabRecord,
   payments,
 }) => {
+  const { t } = useTranslation('dashboard');
   const { formatCurrency } = useDisplayCurrency();
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeNisabRecord !== null;
@@ -76,15 +78,15 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
       return (
         <ActionCard
           variant="primary"
-          title="Add Your First Asset"
-          description="Begin your Zakat journey by adding cash, gold, investments, or other assets to track your wealth."
+          title={t('actions.addFirstAssetTitle')}
+          description={t('actions.addFirstAssetBody')}
           icon={
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
           }
           href="/assets/new"
-          label="Add Asset"
+          label={t('actions.addAssetLabel')}
         />
       );
     }
@@ -94,15 +96,15 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
       return (
         <ActionCard
           variant="warning"
-          title="Start Nisab Year Tracking"
-          description="Create a Nisab Year Record to begin tracking your Hawl period (354 days) for Zakat calculations."
+          title={t('actions.startTrackingTitle')}
+          description={t('actions.startTrackingBody')}
           icon={
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           }
           href="/nisab-records"
-          label="Create Nisab Record"
+          label={t('actions.createRecordLabel')}
         />
       );
     }
@@ -114,15 +116,15 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
       return (
         <ActionCard
           variant="urgent"
-          title="Zakat Payment Due"
-          description={`You have Zakat owed: ${remainingText} remaining to complete your obligation.`}
+          title={t('actions.paymentDueTitle')}
+          description={t('actions.paymentDueBody', { amount: remainingText })}
           icon={
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2.5S10.343 13 12 13s3 .895 3 2.5S13.657 18 12 18s-3-.895-3-2.5S10.343 13 12 13zm0-6a1 1 0 110 2 1 1 0 010-2z" />
             </svg>
           }
           href="/payments"
-          label="Make Payment"
+          label={t('actions.makePaymentLabel')}
         />
       );
     }
@@ -138,24 +140,24 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-foreground mb-2">
-              Your Wealth at a Glance
+              {t('actions.wealthAtGlance')}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
               <StatItem
-                label="Total Assets"
+                label={t('actions.statTotalAssets')}
                 value={assets.length.toString()}
               />
               <StatItem
-                label="Active Record"
+                label={t('actions.statActiveRecord')}
                 value={activeNisabRecord?.year || 'N/A'}
               />
               <StatItem
-                label="Payments Made"
+                label={t('actions.statPaymentsMade')}
                 value={payments.length.toString()}
               />
               <StatItem
-                label="Tracking Status"
-                value="Active"
+                label={t('actions.statTrackingStatus')}
+                value={t('actions.statusActive')}
                 className="text-success font-semibold"
               />
             </div>
@@ -164,7 +166,7 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
                 to="/assets"
                 className="inline-flex items-center text-sm font-medium text-success hover:text-success/80 hover:underline"
               >
-                View All Assets
+                {t('viewAllAssets')}
                 <svg className="w-4 h-4 ms-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -173,7 +175,7 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
                 to="/payments"
                 className="inline-flex items-center text-sm font-medium text-success hover:text-success/80 hover:underline"
               >
-                Payment History
+                {t('actions.paymentHistory')}
                 <svg className="w-4 h-4 ms-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>

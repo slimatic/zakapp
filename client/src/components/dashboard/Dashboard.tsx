@@ -16,6 +16,8 @@
  */
 
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
@@ -28,6 +30,7 @@ import { useFxRates } from '../../services/apiHooks';
 import { sumAssetsInCurrency, FxRates } from '../../utils/currencyNormalization';
 
 export const Dashboard: React.FC = () => {
+  const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const { user } = useAuth();
   const userCurrency = (user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD';
@@ -71,19 +74,19 @@ export const Dashboard: React.FC = () => {
       {/* Dashboard Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-card-foreground tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-card-foreground tracking-tight">{t('title')}</h1>
           <p className="mt-1 text-muted-foreground">
-            Welcome to your secure, local-first Zakat vault.
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex gap-3">
           <Button onClick={() => navigate('/assets/new')} variant="outline">
             <Wallet className="h-4 w-4 me-2" />
-            Add Asset
+            {t('addAsset')}
           </Button>
           <Button onClick={() => navigate('/calculate')} variant="default" className="shadow-lg shadow-elev-2">
             <Calculator className="h-4 w-4 me-2" />
-            Calculate Zakat
+            {t('calculateZakat')}
           </Button>
         </div>
       </div>
@@ -94,7 +97,7 @@ export const Dashboard: React.FC = () => {
         <Card className="hover:shadow-md transition-shadow duration-300 border-s-4 border-s-secondary">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Assets Value
+              {t('totalAssetsValue')}
             </CardTitle>
             <Wallet className="h-4 w-4 text-secondary" />
           </CardHeader>
@@ -104,8 +107,8 @@ export const Dashboard: React.FC = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {converted
-                ? `Across ${assets.length} tracked assets`
-                : 'Updating exchange rates…'}
+                ? t('acrossAssets', { count: assets.length })
+                : t('updatingRates')}
             </p>
           </CardContent>
         </Card>
@@ -114,7 +117,7 @@ export const Dashboard: React.FC = () => {
         <Card className="hover:shadow-md transition-shadow duration-300 border-s-4 border-s-warn">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Zakatable Assets
+              {t('zakatableAssets')}
             </CardTitle>
             <TrendingUp className="h-4 w-4 text-warn" />
           </CardHeader>
@@ -123,7 +126,7 @@ export const Dashboard: React.FC = () => {
               {zakatableAssets}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Assets eligible for Zakat
+              {t('assetsEligible')}
             </p>
           </CardContent>
         </Card>
@@ -132,7 +135,7 @@ export const Dashboard: React.FC = () => {
         <Card className="hover:shadow-md transition-shadow duration-300 border-s-4 border-s-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Last Calculation
+              {t('lastCalculation')}
             </CardTitle>
             <History className="h-4 w-4 text-muted-foreground/70" />
           </CardHeader>
@@ -141,7 +144,7 @@ export const Dashboard: React.FC = () => {
               --
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              <Link to="/history" className="text-secondary hover:underline">View History</Link>
+              <Link to="/history" className="text-secondary hover:underline">{t('viewHistory')}</Link>
             </p>
           </CardContent>
         </Card>
@@ -152,14 +155,14 @@ export const Dashboard: React.FC = () => {
         {/* Recent Assets */}
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Recent Assets</CardTitle>
+            <CardTitle>{t('recentAssets')}</CardTitle>
           </CardHeader>
           <CardContent>
             {assets.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Wallet className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                <p>No assets tracked yet.</p>
-                <Button variant="link" onClick={() => navigate('/assets/new')}>Add your first asset</Button>
+                <p>{t('noAssetsYet')}</p>
+                <Button variant="link" onClick={() => navigate('/assets/new')}>{t('addFirstAsset')}</Button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -176,7 +179,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <div className="text-end">
                       <p className="font-semibold text-card-foreground">{formatCurrency(asset.value, asset.currency)}</p>
-                      {isAssetZakatable(asset, 'STANDARD') && <Badge variant="secondary" className="text-[10px] h-5">Zakatable</Badge>}
+                      {isAssetZakatable(asset, 'STANDARD') && <Badge variant="secondary" className="text-[10px] h-5">{t('zakatableBadge')}</Badge>}
                     </div>
                   </div>
                 ))}
@@ -186,7 +189,7 @@ export const Dashboard: React.FC = () => {
           {assets.length > 0 && (
             <CardFooter className="bg-muted/50 border-t border-border p-3">
               <Link to="/assets" className="w-full text-center text-sm text-secondary hover:text-secondary font-medium flex items-center justify-center gap-1">
-                View All Assets <ArrowRight className="h-3 w-3" />
+                {t('viewAllAssets')} <ArrowRight className="h-3 w-3" />
               </Link>
             </CardFooter>
           )}
@@ -195,25 +198,28 @@ export const Dashboard: React.FC = () => {
         {/* Quick Guide / Help */}
         <Card className="col-span-1 bg-secondary text-secondary-foreground border-none shadow-elev-3">
           <CardHeader>
-            <CardTitle className="text-secondary-foreground">Why Local-First?</CardTitle>
+            <CardTitle className="text-secondary-foreground">{t('whyLocalFirst')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-secondary-foreground/90 leading-relaxed">
-              To protect your financial privacy, ZakApp calculates everything
-              <strong> on your device</strong>. Your asset data never leaves your browser unencrypted.
+              <Trans
+                ns="dashboard"
+                i18nKey="localFirstBody"
+                components={{ b: <strong /> }}
+              />
             </p>
             <ul className="space-y-2 text-sm text-secondary-foreground/80">
               <li className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-secondary-foreground"></span>
-                Zero-Knowledge Architecture
+                {t('featZeroKnowledge')}
               </li>
               <li className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-secondary-foreground"></span>
-                Offline Capability
+                {t('featOffline')}
               </li>
               <li className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-secondary-foreground"></span>
-                Client-Side Encryption (AES-GCM)
+                {t('featClientSideEncryption')}
               </li>
             </ul>
             <Button
@@ -221,7 +227,7 @@ export const Dashboard: React.FC = () => {
               className="w-full mt-4 bg-secondary-foreground/10 hover:bg-secondary-foreground/20 text-secondary-foreground border-0 backdrop-blur-sm"
               onClick={() => window.open('https://github.com/zakapp/project-ikhlas', '_blank')}
             >
-              Learn More on GitHub
+              {t('learnMoreGithub')}
             </Button>
           </CardContent>
         </Card>

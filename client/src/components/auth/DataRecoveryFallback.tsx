@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => {
+  const { t } = useTranslation('common');
     const { recoverData } = useAuth();
     const [password, setPassword] = useState('');
     const [isRecovering, setIsRecovering] = useState(false);
@@ -68,24 +70,36 @@ export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => 
                     </svg>
                 </div>
 
-                <h2 className="text-xl font-bold text-foreground mb-2">Decryption Failed</h2>
+                <h2 className="text-xl font-bold text-foreground mb-2">{t('recovery.decryptionFailed')}</h2>
                 <p className="text-muted-foreground mb-6">
-                    Did you recently change your password?
+                    {t('recovery.changedPassword')}
                 </p>
 
                 <div className="text-start bg-warn-soft p-4 rounded-md mb-6 text-sm text-warn-strong">
-                    <p className="mb-2"><strong>Security Notice:</strong> Your data is encrypted with your password. When you change your password, your local data remains locked with the old one.</p>
-                    <p>Please enter your <strong>OLD password</strong> below to unlock and migrate your data.</p>
+                    <p className="mb-2">
+                        <Trans
+                            ns="common"
+                            i18nKey="recovery.securityNotice"
+                            components={{ b: <strong /> }}
+                        />
+                    </p>
+                    <p>
+                        <Trans
+                            ns="common"
+                            i18nKey="recovery.enterOldPassword"
+                            components={{ b: <strong /> }}
+                        />
+                    </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="text-start">
-                        <label className="block text-sm font-medium text-foreground/80 mb-1">Old Password</label>
+                        <label className="block text-sm font-medium text-foreground/80 mb-1">{t('recovery.oldPassword')}</label>
                         <Input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your previous password"
+                            placeholder={t('recovery.enterPreviousPassword')}
                             required
                             disabled={isRecovering}
                         />
@@ -102,7 +116,7 @@ export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => 
                         className="text-xs text-muted-foreground hover:text-danger transition-colors"
                         onClick={() => setShowNuclearOption(!showNuclearOption)}
                     >
-                        I forgot my old password
+                        {t('recovery.forgotOldPassword')}
                     </button>
 
                     {showNuclearOption && (
@@ -117,7 +131,7 @@ export const DataRecoveryFallback: React.FC<Props> = ({ onReset: _onReset }) => 
                                 onClick={handleResetData}
                                 className="w-full bg-danger-soft text-danger hover:bg-danger-soft border-danger/30"
                             >
-                                Reset Local Data (Data Loss)
+                                {t('recovery.resetLocalData')}
                             </Button>
                         </div>
                     )}

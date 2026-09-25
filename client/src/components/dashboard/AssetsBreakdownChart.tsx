@@ -16,6 +16,7 @@
  */
 
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Asset } from '../../types';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
@@ -42,6 +43,7 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
     assets,
     currency = 'USD'
 }) => {
+  const { t } = useTranslation('dashboard');
     const maskedCurrency = useMaskedCurrency();
 
     // Color palette for chart segments - optimized for "Islamic Fintech" aesthetic
@@ -71,9 +73,9 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
     if (chartData.length === 0) {
         return (
             <div className="h-[320px] w-full">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Asset Composition</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">{t('charts.assetComposition')}</h3>
                 <div className="h-[280px] flex items-center justify-center text-muted-foreground bg-muted rounded-lg border border-dashed border-border">
-                    No zakatable assets found. Add assets to see breakdown.
+                    {t('charts.noZakatableAssets')}
                 </div>
             </div>
         );
@@ -108,7 +110,7 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
 
     return (
         <div className="h-[320px] w-full">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Asset Composition</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">{t('charts.assetComposition')}</h3>
             <div className="h-[280px] sm:h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -150,12 +152,12 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
             {/* Screen Reader Table Summary (Hidden visually but accessible) */}
             <div className="sr-only">
                 <table>
-                    <caption>Portfolio Breakdown by Asset Category</caption>
+                    <caption>{t('charts.assetCompositionSubtitle')}</caption>
                     <thead>
                         <tr>
-                            <th scope="col">Category</th>
-                            <th scope="col">Value</th>
-                            <th scope="col">Percentage</th>
+                            <th scope="col">{t('charts.category')}</th>
+                            <th scope="col">{t('charts.value')}</th>
+                            <th scope="col">{t('charts.percentage')}</th>
                         </tr>
                     </thead>
                     <tbody>

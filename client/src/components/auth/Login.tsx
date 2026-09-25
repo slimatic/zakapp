@@ -17,6 +17,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../services/api';
 import { Button } from '../ui/Button';
@@ -37,6 +38,7 @@ const LOCAL_STORAGE_ERRORS = [
 ];
 
 export const Login: React.FC = () => {
+  const { t } = useTranslation('common');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -81,16 +83,16 @@ export const Login: React.FC = () => {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to your vault. Your data is decrypted on this device."
+      title={t('auth.loginTitle')}
+      subtitle={t('auth.loginSubtitle')}
       footer={
         <>
-          New to ZakApp?{' '}
+          {t('auth.newToApp')}{' '}
           <Link
             to="/register"
             className="font-medium text-primary hover:underline underline-offset-2"
           >
-            Create your vault
+            {t('auth.createVault')}
           </Link>
         </>
       }
@@ -130,15 +132,15 @@ export const Login: React.FC = () => {
 
             {showRecoverySteps && (
               <div className="mt-3 rounded border border-danger/20 bg-card/50 p-3 text-xs">
-                <p className="mb-1 font-medium">To fix this:</p>
+                <p className="mb-1 font-medium">{t('auth.toFixThis')}</p>
                 <ol className="list-decimal list-inside space-y-0.5">
-                  <li>Open your browser settings</li>
-                  <li>Find <strong>Clear browsing data</strong></li>
-                  <li>Clear <strong>Cookies and other site data</strong></li>
-                  <li>Reload this page and sign in</li>
+                  <li>{t('auth.fixOpenSettings')}</li>
+                  <li>{t('auth.fixFind')} <strong>{t('auth.fixClearBrowsingData')}</strong></li>
+                  <li>{t('auth.fixClear')} <strong>{t('auth.fixCookies')}</strong></li>
+                  <li>{t('auth.fixReload')}</li>
                 </ol>
                 <p className="mt-2 italic opacity-80">
-                  Your cloud data is safe and will sync again after you sign in.
+                  {t('auth.cloudDataSafe')}
                 </p>
               </div>
             )}
@@ -147,12 +149,12 @@ export const Login: React.FC = () => {
 
         <div className="space-y-1.5">
           <label htmlFor="username" className="block text-sm font-medium text-foreground">
-            Username
+            {t('auth.username')}
           </label>
           <Input
             id="username"
             type="text"
-            placeholder="Your username"
+            placeholder={t('auth.usernamePlaceholder')}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onBlur={() => setUsername((prev) => prev.trim())}
@@ -164,13 +166,13 @@ export const Login: React.FC = () => {
 
         <div className="space-y-1.5">
           <label htmlFor="password" className="block text-sm font-medium text-foreground">
-            Password
+            {t('auth.password')}
           </label>
           <div className="relative">
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Your password"
+              placeholder={t('auth.passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}

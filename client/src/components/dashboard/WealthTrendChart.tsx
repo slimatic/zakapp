@@ -17,6 +17,7 @@
 
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     AreaChart,
     Area,
@@ -36,6 +37,7 @@ interface WealthTrendChartProps {
 }
 
 export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, currency = 'USD' }) => {
+  const { t } = useTranslation('dashboard');
     const { privacyMode } = usePrivacy();
     const [calendarFormat, setCalendarFormat] = React.useState<'hijri' | 'gregorian'>('hijri');
 
@@ -90,7 +92,7 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
     if (data.length === 0) {
         return (
             <div className="h-[300px] flex items-center justify-center text-muted-foreground bg-muted rounded-lg border border-dashed border-border">
-                No historical data available. Finalize a Nisab Year to see trends.
+                {t('charts.noHistoricalData')}
             </div>
         );
     }
@@ -98,7 +100,7 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
     return (
         <div className="h-[320px] w-full">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-foreground">Wealth Trend</h3>
+                <h3 className="text-lg font-semibold text-foreground">{t('charts.wealthTrend')}</h3>
                 <div className="flex bg-muted p-0.5 rounded-lg">
                     <button
                         onClick={() => setCalendarFormat('hijri')}
@@ -107,7 +109,7 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
                                 : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        Hijri
+                        {t('charts.hijri')}
                     </button>
                     <button
                         onClick={() => setCalendarFormat('gregorian')}
@@ -116,7 +118,7 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
                                 : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        Gregorian
+                        {t('charts.gregorian')}
                     </button>
                 </div>
             </div>

@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 interface OnboardingGuideProps {
@@ -53,6 +54,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
   bestAction,
   isOnboardingComplete = false
 }) => {
+  const { t } = useTranslation('dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Base definition of steps
@@ -248,7 +250,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
               />
             </svg>
           </div>
-          <h2 className="text-lg font-bold text-foreground">Your Zakat Journey</h2>
+          <h2 className="text-lg font-bold text-foreground">{t('guide.journeyTitle')}</h2>
         </div>
 
         {/* Toggle Button */}
@@ -280,14 +282,14 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <p className="text-sm text-foreground/80">
-              Follow these steps to track your Zakat obligations. We'll highlight what needs attention.
+              {t('guide.intro')}
             </p>
             <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
               <Link
                 to="/onboarding"
                 className="p-2 text-muted-foreground hover:text-secondary hover:bg-accent rounded-full transition-colors"
-                title="Restart Onboarding Journey"
-                aria-label="Restart Onboarding Journey"
+                title={t('guide.restartJourney')}
+                aria-label={t('guide.restartJourney')}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
@@ -297,8 +299,8 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
               <Link
                 to="/learn"
                 className="p-2 text-muted-foreground hover:text-secondary hover:bg-accent rounded-full transition-colors"
-                title="View Learning Guide"
-                aria-label="View Learning Guide"
+                title={t('guide.viewLearningGuide')}
+                aria-label={t('guide.viewLearningGuide')}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -388,14 +390,14 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                               to={step.href}
                               className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                             >
-                              Add more assets
+                              {t('guide.addMoreAssets')}
                             </Link>
                             <span className="text-tertiary">|</span>
                             <Link
                               to="/liabilities"
                               className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                             >
-                              Add liabilities
+                              {t('guide.addLiabilities')}
                             </Link>
                           </>
                         )}
@@ -404,7 +406,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                             to={step.href}
                             className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                           >
-                            Create another record
+                            {t('guide.createAnotherRecord')}
                           </Link>
                         )}
                         {step.number === 3 && (
@@ -412,7 +414,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                             to={step.href}
                             className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                           >
-                            Record another payment
+                            {t('guide.recordAnotherPayment')}
                           </Link>
                         )}
                       </div>
@@ -426,9 +428,9 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
           {/* Progress Indicator */}
           <div className="pt-4 border-t border-border">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Progress</span>
+              <span className="text-muted-foreground">{t('guide.progress')}</span>
               <span className="font-medium text-foreground">
-                {completedSteps.length} of {steps.length} completed
+                {t('guide.completedOf', { done: completedSteps.length, total: steps.length })}
               </span>
             </div>
             <div className="w-full bg-muted rounded-full h-2 mt-2">
@@ -439,7 +441,7 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
                 aria-valuenow={(completedSteps.length / steps.length) * 100}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label={`Onboarding progress: ${completedSteps.length} of ${steps.length} steps completed`}
+                aria-label={t('guide.progressLabel', { done: completedSteps.length, total: steps.length })}
               />
             </div>
           </div>
@@ -456,14 +458,14 @@ export const OnboardingGuide: React.FC<OnboardingGuideProps> = ({
             </p>
             <div className="flex items-center gap-3">
               <Link to="/onboarding" className="text-xs font-medium text-muted-foreground hover:text-secondary">
-                Restart Journey
+                {t('guide.restartJourneyShort')}
               </Link>
               <span className="text-tertiary">|</span>
               <Link to="/learn" className="text-xs font-medium text-muted-foreground hover:text-secondary">
-                Learning Guide
+                {t('guide.learningGuide')}
               </Link>
             </div>
-            <span className="text-xs text-secondary font-medium cursor-pointer" onClick={toggleCollapsed}>Click to expand</span>
+            <span className="text-xs text-secondary font-medium cursor-pointer" onClick={toggleCollapsed}>{t('guide.clickToExpand')}</span>
           </div>
         )
       }

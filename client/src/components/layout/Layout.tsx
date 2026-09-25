@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { Link, useLocation } from 'react-router-dom';
@@ -84,6 +85,7 @@ const MOBILE_TABS: NavItem[] = [
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const { t: tCommon } = useTranslation('common');
   const { user, logout } = useAuth();
   const { privacyMode, togglePrivacyMode } = usePrivacy();
   const location = useLocation();
@@ -148,7 +150,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           }`}
         >
           <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-          <span className="truncate">{name}</span>
+          <span className="truncate">{tCommon(name)}</span>
         </Link>
       );
     });
@@ -161,7 +163,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* ── Top bar ───────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 border-b border-border bg-card">
         <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
-          <Link to="/dashboard" className="flex min-h-11 items-center gap-2.5" aria-label="ZakApp home">
+          <Link to="/dashboard" className="flex min-h-11 items-center gap-2.5" aria-label={tCommon('a11y.brandHome')}>
             <Logo className="h-8 w-8" />
             <span className="font-heading text-lg font-semibold text-secondary">ZakApp</span>
             <span
@@ -182,8 +184,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             className={`flex h-11 w-11 items-center justify-center rounded-md transition-colors ${
               privacyMode ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent'
             }`}
-            aria-label={privacyMode ? 'Show amounts' : 'Hide amounts'}
-            title={privacyMode ? 'Show amounts' : 'Hide amounts for privacy'}
+            aria-label={privacyMode ? tCommon('a11y.showAmounts') : tCommon('a11y.hideAmounts')}
+            title={privacyMode ? tCommon('a11y.showAmounts') : tCommon('a11y.hideAmountsForPrivacy')}
           >
             {privacyMode ? (
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,7 +270,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   role="menuitem"
                   onClick={() => setIsOpen(false)}
                 >
-                  Settings
+                  {tCommon('nav.settings')}
                 </Link>
 
                 {user?.isAdmin && (
@@ -278,7 +280,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     role="menuitem"
                     onClick={() => setIsOpen(false)}
                   >
-                    Admin dashboard
+                    {tCommon('nav.adminDashboard')}
                   </Link>
                 )}
 
@@ -292,7 +294,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className="block w-full px-4 py-2 text-start text-sm text-foreground hover:bg-accent focus:bg-accent"
                   role="menuitem"
                 >
-                  Log out
+                  {tCommon('nav.logout')}
                 </button>
               </div>
             )}
@@ -304,17 +306,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="mx-auto flex w-full max-w-[1400px]">
         <nav
           className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 overflow-y-auto border-e border-border bg-card px-3 py-4 lg:block"
-          aria-label="Main navigation"
+          aria-label={tCommon('a11y.mainNavigation')}
         >
           <div className="space-y-1">{renderNavList(MAIN_NAV)}</div>
 
           <p className="px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Learn
+            {tCommon('nav.learn')}
           </p>
           <div className="space-y-1">{renderNavList(LEARN_NAV)}</div>
 
           <p className="px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            You
+            {tCommon('nav.you')}
           </p>
           <div className="space-y-1">{renderNavList(YOU_NAV)}</div>
         </nav>
@@ -331,7 +333,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <BottomNav
         items={MOBILE_TABS.map(({ name, href, icon: Icon }) => ({
-          name,
+          name: tCommon(name),
           href,
           icon: <Icon className="h-6 w-6" />
         }))}

@@ -32,8 +32,10 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import enOnboarding from './locales/en/onboarding.json';
 import enDashboard from './locales/en/dashboard.json';
+import enCommon from './locales/en/common.json';
 import arOnboarding from './locales/ar/onboarding.json';
 import arDashboard from './locales/ar/dashboard.json';
+import arCommon from './locales/ar/common.json';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', dir: 'ltr' },
@@ -62,14 +64,22 @@ void i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    // Resources are bundled JSON, not fetched, so there is nothing to wait for.
+    // Without this i18next initialises asynchronously and any synchronous render
+    // that happens first gets the KEY back from t() instead of the translation -
+    // which is exactly what made component tests assert against
+    // "dashboard.viewAllAssets". Async init buys nothing here.
+    initAsync: false,
     resources: {
       en: {
         onboarding: enOnboarding,
-        dashboard: enDashboard
+        dashboard: enDashboard,
+        common: enCommon
       },
       ar: {
         onboarding: arOnboarding,
-        dashboard: arDashboard
+        dashboard: arDashboard,
+        common: arCommon
       },
       // Skeleton locales: no bundles yet — fall back to English until the
       // community/follow-up translations land.

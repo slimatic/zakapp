@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatGregorianDate, gregorianToHijri, formatHijriDate } from '../../utils/calendarConverter';
 import { getFeedbackEmail } from '../../config';
@@ -49,6 +50,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   hasAssets,
   hasActiveRecord,
 }) => {
+  const { t } = useTranslation('dashboard');
   const { user } = useAuth();
   const hijriAdjustment = (user as any)?.settings?.hijriAdjustment || 0;
   const feedbackEmail = getFeedbackEmail();
@@ -111,12 +113,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <a
             href={`mailto:${feedbackEmail}`}
             className="flex items-center gap-2 px-3 py-1.5 bg-card/50 rounded-lg border border-border backdrop-blur-sm text-muted-foreground text-sm font-medium hover:text-secondary hover:bg-card hover:border-border-strong transition-all shadow-sm group"
-            title="Send Feedback via Email"
+            title={t('sendFeedback')}
           >
             <svg className="w-4 h-4 text-muted-foreground group-hover:text-secondary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            <span className="hidden sm:inline">Feedback</span>
+            <span className="hidden sm:inline">{t('feedback')}</span>
           </a>
         )}
 
@@ -129,13 +131,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             }
           }}
           className="flex items-center gap-2 px-3 py-1.5 bg-card/50 rounded-lg border border-border backdrop-blur-sm text-muted-foreground text-sm font-medium hover:text-secondary hover:bg-card hover:border-secondary/50 transition-all shadow-sm group"
-          title="Re-assess"
-          aria-label="Re-assess"
+          title="{t('reassess')}"
+          aria-label="{t('reassess')}"
         >
           <svg className="w-4 h-4 text-muted-foreground group-hover:text-warn transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
           </svg>
-          <span className="hidden sm:inline">Re-assess</span>
+          <span className="hidden sm:inline">{t('reassess')}</span>
         </button>
 
         {/* Date Display Widget */}

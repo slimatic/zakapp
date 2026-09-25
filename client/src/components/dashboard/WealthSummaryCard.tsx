@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
 
@@ -50,6 +51,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
   nisabThreshold,
   currency = 'USD',
 }) => {
+  const { t } = useTranslation('dashboard');
   // Unknown threshold (loading, or metal prices unavailable) must not be treated
   // as a comparison. Previously the caller substituted 5,000 and this card then
   // printed a confident "Above Nisab" — a claim about the user's obligation
@@ -74,7 +76,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
     <div className="bg-card rounded-lg shadow-md p-4 sm:p-6 border border-border">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Wealth Summary</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t('widget.wealthSummary')}</h2>
 
         {/* Status Icon */}
         <div className={`p-2 rounded-full ${isAboveNisab ? 'bg-success-soft' : 'bg-danger-soft'}`}>
@@ -116,7 +118,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
 
       {/* Total Wealth - Large Display */}
       <div className="mb-4">
-        <p className="text-sm text-muted-foreground mb-1">Total Wealth</p>
+        <p className="text-sm text-muted-foreground mb-1">{t('widget.totalWealth')}</p>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
           {fmt(totalWealth)}
         </p>
@@ -161,7 +163,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
             ? 'We could not load the current nisab threshold, so we cannot say whether zakat is due. Try again shortly.'
             : isAboveNisab
               ? 'Your wealth meets the Nisab threshold. Zakat may be due after one lunar year (Hawl).'
-              : 'Your wealth is below the Nisab threshold. No Zakat obligation at this time.'}
+              : t('widget.belowNisabNoObligation')}
         </p>
       </div>
     </div>
