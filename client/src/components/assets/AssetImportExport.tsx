@@ -21,7 +21,7 @@ import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { Asset, AssetType } from '../../types';
 import { Button, LoadingSpinner } from '../ui';
 import { isAssetZakatable } from '../../core/calculations/zakat';
-import { parseAmountFromImport } from '../../utils/parseDecimal';
+import { requireImportedAmount, findEncryptedLeaks } from '../../utils/parseDecimal';
 
 interface ImportResult {
   success: number;
@@ -174,7 +174,11 @@ export const AssetImportExport: React.FC = () => {
             // Tolerant: accepts raw numbers AND formatted strings written by
             // older exports ('$1,234.56', 'Rp 1.500.000'). parseFloat alone
             // silently produced 0 for those.
-            asset.value = parseAmountFromImport(value) || 0;
+            //
+            // Must NOT degrade to 0: a row we cannot read is a row we must not
+            // invent. Reject it so the user sees the problem instead of a
+            // silently wrong portfolio.
+            asset.value = requireImportedAmount(value, 'Row ' + (index + 2) + ' column "value"');
             break;
           case 'currency':
             asset.currency = value || 'USD';
