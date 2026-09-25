@@ -23,6 +23,7 @@
  */
 
 import { getAuthToken } from '../utils/auth';
+import { withTimeout, TIMED_OUT } from '../utils/withTimeout';
 
 export const VAPID_KEY_URL = '/api/push/vapid-key';
 export const SUBSCRIBE_URL = '/api/push/subscribe';
@@ -46,7 +47,12 @@ export async function getVapidPublicKey(): Promise<string> {
 }
 
 export async function subscribe(vapidKey: string): Promise<PushSubscription> {
-  const reg = await navigator.serviceWorker.ready;
+  // Bounded for the same reason as the unsubscribe path: `ready` never settles
+  // when no worker reaches "active", and this is called straight from a user
+  // tapping "Enable notifications". Unbounded, the toggle spins forever with no
+  // error. Here we want a real failure, so throw rather than resolve a fallback.
+  const reg = await withTimeout(navigator.serviceWorker.ready, SW_READY_TIMEOUT_MS, null);
+  if (!reg) throw new Error('Service worker not ready');
   return reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(vapidKey),
@@ -101,12 +107,24 @@ export function pushSupported(): boolean {
  *
  * @returns true if a server-side unsubscribe was performed.
  */
+/** How long to wait for the service worker before giving up on push teardown. */
+const SW_READY_TIMEOUT_MS = 1500;
+/** How long to wait for the server-side unsubscribe before abandoning it. */
+const UNSUBSCRIBE_TIMEOUT_MS = 3000;
+
 export async function unsubscribeCurrentDevice(): Promise<boolean> {
   if (!pushSupported()) return false;
 
   let sub: PushSubscription | null = null;
   try {
-    const reg = await navigator.serviceWorker.ready;
+    // `navigator.serviceWorker.ready` NEVER settles when no worker reaches
+    // "active". It does not reject, it simply never resolves - so the try/catch
+    // below cannot help, and the await hangs the caller forever. On a PWA whose
+    // worker is mid-registration, or that was never registered at all, this is
+    // what kept users logged in: AuthService awaits this before clearing the
+    // session, so the logout never completed and the menu item appeared dead.
+    const reg = await withTimeout(navigator.serviceWorker.ready, SW_READY_TIMEOUT_MS, null);
+    if (!reg) return false;
     sub = await reg.pushManager.getSubscription();
   } catch {
     return false; // no SW / not ready — nothing to detach
@@ -115,14 +133,16 @@ export async function unsubscribeCurrentDevice(): Promise<boolean> {
 
   let serverOk = false;
   try {
-    await persistUnsubscribe(sub);
-    serverOk = true;
+    // A wedged request must not block logout either. The token is still valid
+    // here (#383), so a hang is a network problem, not an auth one.
+    const result = await withTimeout<unknown>(persistUnsubscribe(sub), UNSUBSCRIBE_TIMEOUT_MS, TIMED_OUT);
+    serverOk = result !== TIMED_OUT;
   } catch {
     // Non-fatal: still tear down the browser subscription below.
   }
 
   try {
-    await sub.unsubscribe();
+    await withTimeout(sub.unsubscribe(), UNSUBSCRIBE_TIMEOUT_MS, undefined);
   } catch {
     /* ignore */
   }
