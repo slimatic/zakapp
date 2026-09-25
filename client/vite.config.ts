@@ -220,6 +220,18 @@ export default defineConfig(({ mode }) => {
           secure: false,
           headers: { Origin: 'https://app.zakapp.org' },
         },
+        // CouchDB MUST be proxied too. APP_CONFIG advertises COUCHDB_URL=/couchdb,
+        // and without this rule vite serves the SPA's own index.html for that path
+        // - a 200 text/html response that looks like success. RxDB then parses HTML
+        // as a CouchDB reply and the sync never completes, so login hangs forever on
+        // "Decrypting vault..." with no error in the console. Same-origin proxy also
+        // sidesteps CORS, which the :5984 backend does not allow from this origin.
+        '/couchdb': {
+          target: process.env.VITE_COUCHDB_TARGET || 'http://192.168.86.242:5984',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path: string) => path.replace(/^\/couchdb/, ''),
+        },
       },
     },
   };

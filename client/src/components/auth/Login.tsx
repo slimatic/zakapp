@@ -22,7 +22,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ShieldAlert } from 'lucide-react';
 import { AuthLayout } from './AuthLayout';
 
 /** Error substrings that mean local encrypted storage is unusable. */
@@ -37,6 +37,24 @@ const LOCAL_STORAGE_ERRORS = [
   'salt'
 ];
 
+/**
+ * Browsers expose `crypto.subtle` only in a secure context: https, or http on
+ * localhost/127.0.0.1. On any other plain-http origin it is `undefined`, and the
+ * app cannot derive a key or decrypt the vault.
+ *
+ * Without this check the failure mode is silent and awful: the sign-in button
+ * spins on "Decrypting vault..." forever. CryptoService logs the reason to the
+ * console, then continues into `window.crypto.subtle.importKey` and throws a
+ * TypeError that the login path never surfaces. The user sees a hang, not an
+ * error, and reasonably concludes the app is broken or their password is wrong.
+ *
+ * Detect it up front and say what to do instead.
+ */
+const insecureCryptoContext = (): boolean => {
+  if (typeof window === 'undefined' || typeof crypto === 'undefined') return false;
+  return !crypto.subtle;
+};
+
 export const Login: React.FC = () => {
   const { t } = useTranslation('common');
   const [username, setUsername] = useState('');
@@ -45,6 +63,9 @@ export const Login: React.FC = () => {
   const { isAuthenticated, login, isLoading, error, errorCode } = useAuth();
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
   const [resendMessage, setResendMessage] = useState<string>('');
+  // Set only on an attempt that could never succeed, so the message is a
+  // response to the user's action rather than a banner shown on arrival.
+  const [blockedByInsecureContext, setBlockedByInsecureContext] = useState(false);
 
   // Reset the resend affordance whenever a new login attempt is made.
   useEffect(() => {
@@ -73,6 +94,12 @@ export const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) return;
+    // Refuse to start a login that cannot possibly succeed. See the note on
+    // insecureCryptoContext: this otherwise hangs on "Decrypting vault...".
+    if (insecureCryptoContext()) {
+      setBlockedByInsecureContext(true);
+      return;
+    }
     await login(username, password);
   };
 
@@ -98,6 +125,20 @@ export const Login: React.FC = () => {
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5">
+        {blockedByInsecureContext && (
+          <div
+            role="alert"
+            className="rounded-md border border-warn/30 bg-warn-soft p-3 text-sm"
+          >
+            <p className="flex items-center gap-2 font-medium text-warn-strong">
+              <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {t('auth.insecureContextTitle')}
+            </p>
+            <p className="mt-1.5 text-warn-strong/90">
+              {t('auth.insecureContextBody', { origin: window.location.origin })}
+            </p>
+          </div>
+        )}
         {errorCode === 'EMAIL_NOT_VERIFIED' && (
           <div className="rounded-md border border-warn/30 bg-warn-soft p-3 text-sm">
             <p className="text-warn-strong">

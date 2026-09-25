@@ -65,7 +65,9 @@
     "fixClear": "Clear",
     "fixCookies": "Cookies and other site data",
     "fixReload": "Reload this page and sign in",
-    "cloudDataSafe": "Your cloud data is safe and will sync again after you sign in."
+    "cloudDataSafe": "Your cloud data is safe and will sync again after you sign in.",
+    "insecureContextTitle": "Vault encryption is unavailable at this address",
+    "insecureContextBody": "{{origin}} is served over plain HTTP on a non-local address, so the browser disables the Web Crypto API ZakApp uses to encrypt and decrypt your vault, and sign-in cannot work. Open the app on localhost or over HTTPS instead."
   },
   "footer": {
     "privacy": "Privacy",
