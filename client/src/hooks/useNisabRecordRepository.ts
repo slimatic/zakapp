@@ -121,7 +121,8 @@ export function useNisabRecordRepository() {
             ...record,
             id: record.id || crypto.randomUUID(),
             userId: user.id, // Inject authenticated user ID
-            createdAt: new Date().toISOString(),
+            // Preserve a supplied createdAt (backup restore); see useAssetRepository.
+            createdAt: record.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
 

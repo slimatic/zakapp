@@ -114,7 +114,7 @@ export class MigrationService {
                 paymentMethod: raw.paymentMethod || 'cash',
                 status: raw.status || 'recorded',
                 exchangeRate: 1.0,
-                createdAt: new Date().toISOString(),
+                createdAt: raw.createdAt || new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
 
