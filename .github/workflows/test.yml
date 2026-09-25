@@ -27,14 +27,12 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    # Install: `npm ci` where the lockfile is verified in sync with package.json
-    # (shared, server, client), `npm install` where it is not (root, cli).
-    # Measured with `npm ci --dry-run`: root and cli are out of sync, so forcing
-    # `npm ci` across all five projects - as the audit recommended - would fail
-    # the build. Sync those lockfiles deliberately (their own change), then
-    # switch them to `npm ci`.
+    # Install: `npm ci` for all five projects. Root and cli lockfiles were
+    # previously out of sync with their package.json, so they used `npm install`;
+    # both are now verified in sync (`npm ci --dry-run` exits 0), so every
+    # project installs strictly from its lockfile.
     - name: Install root dependencies
-      run: npm install
+      run: npm ci
 
     - name: Install shared dependencies
       run: cd shared && npm ci
@@ -49,7 +47,7 @@ jobs:
       run: cd client && npm ci --legacy-peer-deps
 
     - name: Install CLI dependencies
-      run: cd cli && npm install
+      run: cd cli && npm ci
 
     - name: Run server tests (with coverage gate)
       run: cd server && npm run test:coverage
