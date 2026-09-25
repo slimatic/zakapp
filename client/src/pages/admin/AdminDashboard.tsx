@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Users, UserCheck, UserMinus, HardDrive } from 'lucide-react';
 import { adminService, AdminStats } from '../../services/adminService';
 import { PageLoadingFallback } from '../../components/common/LoadingFallback';
 import { ErrorDisplay } from '../../components/common/ErrorDisplay';
@@ -63,7 +64,14 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="border-b border-border">
+            <div className="border-b border-border overflow-x-auto">
+                {/*
+                    overflow-x-auto is load-bearing, not decoration: four tabs with
+                    `whitespace-nowrap` and `space-x-8` measure ~511px, which is wider
+                    than a 390px phone. Without it the strip pushed the whole document
+                    to 527px, so every admin page scrolled sideways on a phone. The
+                    strip scrolls within itself instead.
+                */}
                 <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                     <button
                         onClick={() => setActiveTab('overview')}
@@ -117,11 +125,11 @@ export const AdminDashboard: React.FC = () => {
                 {activeTab === 'overview' && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
                         {/* Stats Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <StatCard title="Total Users" value={stats?.totalUsers || 0} icon="👥" color="bg-accent text-secondary" />
-                            <StatCard title="Active Users (30d)" value={stats?.activeUsers || 0} icon="🟢" color="bg-accent text-secondary" />
-                            <StatCard title="Dormant Users" value={stats?.dormantUsers || 0} icon="💤" color="bg-warn-soft text-warn-strong" />
-                            <StatCard title="Storage Used" value={stats?.storageUsed || 'N/A'} icon="💾" color="bg-accent text-secondary" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <StatCard title="Total Users" value={stats?.totalUsers || 0} icon={Users} color="bg-accent text-secondary" />
+                            <StatCard title="Active Users (30d)" value={stats?.activeUsers || 0} icon={UserCheck} color="bg-accent text-secondary" />
+                            <StatCard title="Dormant Users" value={stats?.dormantUsers || 0} icon={UserMinus} color="bg-warn-soft text-warn-strong" />
+                            <StatCard title="Storage Used" value={stats?.storageUsed || 'N/A'} icon={HardDrive} color="bg-accent text-secondary" />
                         </div>
 
                         {/* Quick Actions or Recent Activity could go here */}
@@ -156,14 +164,23 @@ export const AdminDashboard: React.FC = () => {
     );
 };
 
-const StatCard = ({ title, value, icon, color }: { title: string, value: string | number, icon: string, color: string }) => (
-    <div className="bg-card p-6 rounded-xl shadow-sm border border-border flex items-start justify-between hover:shadow-md transition-shadow">
-        <div>
+/**
+ * `icon` is a component, not a string: these were emoji, which render
+ * inconsistently across platforms and read aloud as words to a screen reader. SVG icons are decorative here - the label carries the meaning - so they
+ * are marked aria-hidden.
+ *
+ * The title wraps rather than truncating, and min-w-0 lets it: at 390px a
+ * two-column grid gives each card ~170px, and "Active Users (30d)" does not fit
+ * on one line.
+ */
+const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string | number, icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>, color: string }) => (
+    <div className="bg-card p-6 rounded-xl shadow-sm border border-border flex items-start justify-between gap-3 hover:shadow-md transition-shadow min-w-0">
+        <div className="min-w-0">
             <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
             <h3 className="text-2xl font-bold text-foreground">{value}</h3>
         </div>
-        <div className={`p-3 rounded-lg ${color} text-xl`}>
-            {icon}
+        <div className={`p-3 rounded-lg shrink-0 ${color}`}>
+            <Icon className="h-5 w-5" aria-hidden={true} />
         </div>
     </div>
 );
