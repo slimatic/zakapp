@@ -25,6 +25,7 @@ import { useNisabRecordRepository } from '../../hooks/useNisabRecordRepository';
 import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
 import { useUserSettingsRepository } from '../../hooks/useUserSettingsRepository';
 import { MigrationService } from '../../services/migrationService';
+import { findEncryptedLeaks } from '../../utils/parseDecimal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDataCleanup } from '../../hooks/useDataCleanup';
 import { Modal } from '../ui/Modal';
@@ -56,7 +57,11 @@ export const UnifiedImportExport: React.FC = () => {
         setExporting(true);
         try {
             const data = {
-                version: "2.5",
+                // Bumped to 3.0 with the v1.0 release. The importer accepts 1.x,
+                // 2.x and 3.x, so a backup taken on v0.17.0 before upgrading still
+                // restores afterwards. Do not bump this without extending the
+                // importer in the same change.
+                version: "3.0",
                 exportDate: new Date().toISOString(),
                 stats: {
                     assets: assets.length,
@@ -74,6 +79,21 @@ export const UnifiedImportExport: React.FC = () => {
             };
 
             const jsonContent = JSON.stringify(data, null, 2);
+
+            // A backup that quietly ships ciphertext where a number belongs is
+            // worse than no backup: the user only finds out when they need it.
+            // Fail loudly here instead.
+            const leaks = findEncryptedLeaks(data);
+            if (leaks.length > 0) {
+                console.error('Backup contains encrypted values', leaks);
+                toast.error(
+                    `Backup not created: ${leaks.length} field(s) are still encrypted. ` +
+                    `Unlock your vault, then export again.`,
+                    { duration: 8000 }
+                );
+                return;
+            }
+
             const blob = new Blob([jsonContent], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
