@@ -271,7 +271,7 @@ export const UnifiedImportExport: React.FC = () => {
                                     which means saying it here rather than after they have downloaded it.
                                 */}
                                 <p className="text-xs text-muted-foreground mt-3 flex items-start gap-1.5 text-left">
-                                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-warn-strong" aria-hidden="true" />
+                                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-700" aria-hidden="true" />
                                     <span>
                                         Not encrypted. Your amounts and details are readable in this file without
                                         your password, so anyone who gets it can read them. That is why it can be

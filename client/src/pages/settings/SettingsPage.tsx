@@ -16,9 +16,9 @@
  */
 
 
-import React, { useState } from 'react';
+import React from 'react';
 import { LanguageSwitcher } from '../../components/settings/LanguageSwitcher';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ProfileForm } from './components/ProfileForm';
 import { SecuritySettings } from './components/SecuritySettings';
@@ -26,21 +26,34 @@ import { DataManagement } from './components/DataManagement';
 import { DangerZone } from './components/DangerZone';
 import { HelpSupport } from './components/HelpSupport';
 import { NotificationSettings } from './components/NotificationSettings';
-import { User, Lock, Database, AlertOctagon, LayoutDashboard, Bell } from 'lucide-react';
+import { User, Lock, Database, AlertOctagon, LayoutDashboard, Bell, HelpCircle } from 'lucide-react';
 
 type SettingsTab = 'profile' | 'security' | 'notifications' | 'data' | 'help' | 'danger';
+
+const TAB_IDS: SettingsTab[] = ['profile', 'security', 'notifications', 'data', 'help', 'danger'];
 
 export const SettingsPage: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+    // The open tab lives in the URL so it survives a refresh, works with the back
+    // button, and can be linked to directly (/settings?tab=data). Previously it was
+    // component state only, so every visit landed on Profile no matter which section
+    // the user came for.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const requested = searchParams.get('tab') as SettingsTab | null;
+    const activeTab: SettingsTab = requested && TAB_IDS.includes(requested) ? requested : 'profile';
+
+    const setActiveTab = (tab: SettingsTab) => {
+        // replace: switching tabs should not fill the history stack with entries.
+        setSearchParams(tab === 'profile' ? {} : { tab }, { replace: true });
+    };
 
     const navigation = [
         { id: 'profile', name: 'Profile Information', icon: User },
         { id: 'security', name: 'Security', icon: Lock },
         { id: 'notifications', name: 'Notifications', icon: Bell },
         { id: 'data', name: 'Data Management', icon: Database },
-        { id: 'help', name: 'Help & Support', icon: User },
+        { id: 'help', name: 'Help & Support', icon: HelpCircle },
         { id: 'danger', name: 'Danger Zone', icon: AlertOctagon },
     ];
 
