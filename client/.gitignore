@@ -22,3 +22,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 client_test_log.txt
+
+# Self-signed cert for the local TLS preview front (scripts/serve-preview-tls.py)
+.tls/
