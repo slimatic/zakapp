@@ -101,7 +101,12 @@ export const UnifiedImportExport: React.FC = () => {
             link.download = `zakapp-backup-${new Date().toISOString().split('T')[0]}.json`;
             link.click();
             URL.revokeObjectURL(url);
-            toast.success('Backup downloaded successfully');
+            // Reinforce at the moment of download, not just on the card: this is the
+            // last point where the user still has the file's contents in mind.
+            toast.success(
+                'Backup downloaded. It is NOT encrypted - anyone who opens the file can read it, so store it safely.',
+                { duration: 8000 }
+            );
         } catch (error) {
             console.error('Export failed', error);
             toast.error('Failed to export data');
@@ -205,6 +210,13 @@ export const UnifiedImportExport: React.FC = () => {
 
                 if (errors.length === 0) {
                     toast.success(`Successfully restored all data collections.`);
+                    // The plaintext file on disk is now redundant, and it is the most
+                    // exposed copy of this data that exists. Say so while the user is
+                    // still in the flow.
+                    toast(
+                        'Your imported data is now encrypted in your vault. You can delete the backup file you just used.',
+                        { icon: '🔒', duration: 9000 }
+                    );
                 } else {
                     toast.error(`Import completed with ${errors.length} errors.`);
                 }
@@ -251,6 +263,22 @@ export const UnifiedImportExport: React.FC = () => {
                                 <Button onClick={handleExport} disabled={exporting} variant="outline" className="w-full">
                                     {exporting ? <LoadingSpinner size="sm" /> : 'Download JSON Backup'}
                                 </Button>
+
+                                {/*
+                                    The file is plaintext by design, so the user can restore it without the
+                                    vault key - the one moment they need a backup is the moment they may no
+                                    longer have the password. That trade-off is theirs to make knowingly,
+                                    which means saying it here rather than after they have downloaded it.
+                                */}
+                                <p className="text-xs text-muted-foreground mt-3 flex items-start gap-1.5 text-left">
+                                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-warn-strong" aria-hidden="true" />
+                                    <span>
+                                        Not encrypted. Your amounts and details are readable in this file without
+                                        your password, so anyone who gets it can read them. That is why it can be
+                                        restored even if you forget your password. Keep it somewhere safe, and
+                                        delete it once you have imported it.
+                                    </span>
+                                </p>
                             </div>
                         </div>
 
@@ -259,7 +287,7 @@ export const UnifiedImportExport: React.FC = () => {
                             <div className="text-center">
                                 <h3 className="font-medium text-card-foreground">Restore / Import</h3>
                                 <p className="text-xs text-muted-foreground mb-3">
-                                    Accepts legacy v1.0 and new v2.0 backups
+                                    Accepts backups from any previous version (1.x, 2.x, 3.x)
                                 </p>
                                 <div className="relative">
                                     <Button disabled={importing} variant="default" className="w-full">
