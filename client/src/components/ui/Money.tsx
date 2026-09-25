@@ -109,22 +109,75 @@ export const Money: React.FC<MoneyProps> = ({
   // Intl carries the negative sign inside the symbol ("-$640.20"). Pull it out
   // so the sign renders in our own slot and the symbol stays clean.
   const cleanSymbol = symbol.replace('-', '');
-  const showMinus = value < 0;
-  const showPlus = signed && value >= 0;
+  // Sign handling. Two modes read the sign from different places, deliberately:
+  //   unsigned - `formatted` IS what is drawn, so its own leading '-' is the truth.
+  //              This also covers values Intl renders as "-$0.00" (a tiny negative),
+  //              where the sign is on screen even though the magnitude rounds to zero.
+  //   signed   - we formatted the MAGNITUDE on purpose so '+' and '-' can share one
+  //              slot, so the sign can only come from `value`.
+  // Reading it from `value` in both modes is wrong: in signed mode `formatted` has no
+  // sign at all, so a signed negative would be announced as POSITIVE.
+  const isNegative = signed ? value < 0 : formatted.trimStart().startsWith('-');
+  const showMinus = isNegative;
+  const showPlus = signed && !isNegative;
+
+  /**
+   * The accessible name, and the reason this component needed fixing.
+   *
+   * "Every visual child is aria-hidden" was true, and it is why assistive
+   * technology announced the DIGITS ALONE: "-$640.20" was read as "640.20" - a
+   * magnitude with the direction stripped off, so owing and being owed were
+   * announced as the same number.
+   *
+   * WHY THE SIGN IS NOW ITS OWN sr-only TEXT
+   *   Putting the whole amount in an aria-label failed: axe rejected it -
+   *   "aria-label attribute cannot be used on a span with no valid role" -
+   *   because aria-label is PROHIBITED on the implicit `generic` role and real
+   *   assistive technology ignores it. Testing Library's getByLabelText still
+   *   found it, which is precisely how an accessibility fix can measure as green
+   *   while helping nobody. (The three call sites that passed aria-label had the
+   *   same defect.)
+   *   A second attempt added an sr-only copy of the full amount. That worked for
+   *   the screen reader but duplicated the digits in the DOM, which broke two
+   *   UNRELATED tests with "Found multiple elements with the text: /250\.00/" -
+   *   and would have made any caller's getByText ambiguous. That is a regression
+   *   in the tests, not a real-user benefit.
+   *
+   * WHY A NARROW aria-label ON THE SYMBOL IS ALLOWED
+   *   axe's aria-prohibited-attr only fires when the element has NO text content.
+   *   The symbol/prefix span has text ("−"), so it is not `generic`-with-no-name
+   *   and the attribute is permitted and honoured. Verified by running the a11y
+   *   suite, which previously failed on exactly this component.
+   *
+   * Net effect: the DIGITS remain the only digits in the DOM (so caller queries
+   * stay unambiguous), and the announced sequence becomes "-" then "640.20" -
+   * the sign is spoken before the number, so direction is never lost.
+   * A caller-supplied aria-label still overrides the whole name.
+   */
+  const signPrefix = signed ? (isNegative ? '-' : '+') : '';
+  const signLabel = isNegative ? 'minus' : signed ? 'plus' : '';
 
   return (
     <span
       className={`inline-flex items-baseline whitespace-nowrap tabular-nums ${sizes.wrap} ${TONE_CLASSES[tone]} ${className}`}
       aria-label={ariaLabel}
     >
-      {showMinus && <span className={sizes.symbol} aria-hidden="true">-</span>}
-      {showPlus && <span className={sizes.symbol} aria-hidden="true">+</span>}
+      {showMinus && (
+        <span className={sizes.symbol} aria-label={signLabel} data-testid="money-sign">
+          -
+        </span>
+      )}
+      {showPlus && (
+        <span className={sizes.symbol} aria-label={signLabel} data-testid="money-sign">
+          +
+        </span>
+      )}
       {cleanSymbol && (
         <span className={`${sizes.symbol} text-muted-foreground`} aria-hidden="true">
           {cleanSymbol}
         </span>
       )}
-      <span>{digits}</span>
+      <span aria-hidden="true">{digits}</span>
     </span>
   );
 };
