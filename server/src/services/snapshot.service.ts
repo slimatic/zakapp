@@ -17,6 +17,7 @@
 
 import { PrismaClient, Asset } from '@prisma/client';
 import { EncryptionService } from './EncryptionService';
+import { NisabService } from './NisabService';
 import {
   CalculationSnapshot,
   CalculationSnapshotDetail,
@@ -26,6 +27,7 @@ import {
 } from '@zakapp/shared';
 
 const prisma = new PrismaClient();
+const nisabService = new NisabService();
 
 /**
  * CalculationSnapshotService - Handles immutable snapshots of Zakat calculations
@@ -89,10 +91,24 @@ export class CalculationSnapshotService {
     }
 
     // Calculate totals
+    // NOTE: this sums raw asset values. It is NOT a zakat base - it applies no
+    // zakatability rules, no liability deduction and no currency normalization.
     const totalWealth = assets.reduce((sum, asset) => sum + asset.value, 0);
 
-    // Get nisab threshold (simplified - should use NisabService)
-    const nisabThreshold = 7500; // Placeholder - should be calculated based on methodology
+    // Nisab threshold, from the canonical service and the snapshot's own
+    // methodology. This replaces `const nisabThreshold = 7500; // Placeholder`,
+    // which invented a threshold and then persisted a zakatDue computed from it.
+    // If the price fetch fails, refuse the snapshot rather than store a guess.
+    const nisabInfo = await nisabService.calculateNisab(methodology.toString());
+    const nisabThreshold = nisabInfo.effectiveNisab;
+
+    if (!nisabThreshold || nisabThreshold <= 0) {
+      throw new Error(
+        `Cannot create a zakat snapshot: the nisab threshold for methodology ` +
+        `'${methodology}' could not be determined. A snapshot built on an assumed ` +
+        `threshold would store a wrong zakatDue.`
+      );
+    }
 
     // Calculate zakat due
     const zakatDue = totalWealth >= nisabThreshold ? totalWealth * 0.025 : 0;

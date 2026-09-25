@@ -22,6 +22,7 @@ CHECKS = [
     "check-no-credential-logging.py",
     "check-pdf-theme.py",
     "check-sender-domain-resolves.py",
+    "check-snapshot-nisab.py",
 ]
 
 def main() -> int:
