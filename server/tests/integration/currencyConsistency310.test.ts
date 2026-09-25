@@ -125,13 +125,18 @@ describe('issue #310 — client call-sites use the user currency', () => {
     });
   }
 
-  it('AssetList formatCurrency falls back to userCurrency, not USD', () => {
+  it('AssetList derives its currency from user display settings, never USD', () => {
     const src = fs.readFileSync(
       path.join(clientRoot, 'client/src/components/assets/AssetList.tsx'),
       'utf-8'
     );
-    expect(src).toMatch(/currency:\s*currency \|\| userCurrency/);
-    expect(src).not.toMatch(/formatCurrency = \(value: number,\s*currency = 'USD'/);
+    // Assert the invariant, not one implementation shape: currency is sourced
+    // from the user's display settings, money is normalised/rendered with it,
+    // and no USD fallback survives anywhere in the file.
+    expect(src).toMatch(/useDisplayCurrency\(\)/);
+    expect(src).toMatch(/normalizeAssetsToCurrency\(assets,\s*userCurrency/);
+    expect(src).toMatch(/currency=\{userCurrency\}/);
+    expect(src).not.toMatch(/'USD'/);
   });
 });
 
