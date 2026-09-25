@@ -1,8 +1,25 @@
+/**
+ * Copyright (c) 2024 ZakApp Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
 import '@testing-library/jest-dom';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import i18n from '../../../i18n';
 import { Sidebar, type SidebarNavItem } from '../../../components/layout/Sidebar';
 import { LayoutDashboard, Wallet, BookOpen, Settings } from 'lucide-react';
 
@@ -41,13 +58,29 @@ const renderSidebar = (initialRoute = '/dashboard') => {
 };
 
 describe('Sidebar component', () => {
-  it('renders all navigation items', () => {
+  it('renders every navigation item, exactly', () => {
     renderSidebar();
 
-    const links = screen.getAllByRole('link');
-    expect(links.length).toBeGreaterThanOrEqual(4);
-    expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /assets/i })).toBeInTheDocument();
+    // Count the sidebar's own links, not every link in the render tree. The
+    // previous version used a bare getAllByRole('link') with a `>= 4` bound,
+    // which passes even if items silently vanish - the exact regression this
+    // file exists to catch.
+    const nav = screen.getByRole('navigation', { name: /main navigation/i });
+    const links = within(nav).getAllByRole('link');
+
+    // HARDCODED, deliberately. Deriving this from mainNav/learnNav/youNav would
+    // make the test self-referential: deleting an item would delete it from the
+    // expectation too, and the test would still pass. It must state the truth
+    // independently of the input.
+    expect(links).toHaveLength(4);
+
+    // And each one must be present by its *rendered* label, so a missing or
+    // unresolvable i18n key fails here rather than shipping a raw key.
+    for (const key of ['nav.dashboard', 'nav.assets', 'nav.knowledgeHub', 'nav.settings']) {
+      const label = i18n.t(key, { ns: 'common' });
+      if (label === key) throw new Error(`${key} does not resolve in en; the nav would render a raw key`);
+      expect(within(nav).getByRole('link', { name: label })).toBeInTheDocument();
+    }
   });
 
   it('marks the current route as active', () => {

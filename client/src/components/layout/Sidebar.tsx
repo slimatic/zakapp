@@ -53,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mainNav, learnNav, youNav }) =
           aria-current={active ? 'page' : undefined}
           className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
             active
-              ? 'bg-secondary text-secondary-foreground dark:text-accent'
+              ? 'bg-secondary text-secondary-foreground'
               : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground'
           }`}
         >

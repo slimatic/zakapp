@@ -85,7 +85,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
         })}
         <button
           onClick={onMoreClick}
-          className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-muted-foreground hover:text-foreground transition-all active:scale-95"
+          className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-muted-foreground hover:text-foreground transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           aria-label={t('a11y.openMoreMenu')}
         >
           <span className="w-6 h-6 flex items-center justify-center" aria-hidden="true">
