@@ -2,7 +2,7 @@
   "name": "zakapp",
   "version": "0.17.0",
   "description": "A user-friendly, self-hosted Zakat application with modern UI",
-  "main": "server/index.js",
+  "main": "server/dist/server/src/app.js",
   "scripts": {
     "dev": "concurrently --kill-others-on-fail \"npm run server:dev\" \"npm run client:dev\"",
     "start": "npm run dev",
@@ -20,7 +20,8 @@
     "test:client": "cd client && npm test",
     "test:cli": "cd cli && npm test",
     "test:e2e": "echo 'Playwright tests removed'",
-    "normalize:payments": "cd server && npx ts-node ./scripts/normalize-payments.ts"
+    "normalize:payments": "cd server && npx ts-node ./scripts/normalize-payments.ts",
+    "verify:source": "cd client && python3 scripts/run-source-checks.py"
   },
   "keywords": [
     "zakat",

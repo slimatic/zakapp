@@ -98,7 +98,7 @@ export const SettingsPage: React.FC = () => {
                                 <button
                                     onClick={() => navigate('/admin')}
                                     className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 
-                                    bg-muted text-secondary 
+                                    bg-muted text-secondary
                                     hover:shadow-sm border border-border"
                                 >
                                     <LayoutDashboard

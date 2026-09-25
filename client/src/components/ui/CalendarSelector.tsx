@@ -204,8 +204,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
               value={formatGregorianForInput(gregorianDate)}
               onChange={handleGregorianDateChange}
               disabled={disabled}
-              className="w-full px-3 py-2 border border-border-strong rounded-lg 
-                       bg-card text-foreground 
+              className="w-full px-3 py-2 border border-border-strong rounded-lg
+                       bg-card text-foreground
                        focus:ring-2 focus:ring-ring focus:border-transparent
                        disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -230,8 +230,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
                   value={hijriDate.hd}
                   onChange={(e) => handleHijriDateChange('day', parseInt(e.target.value))}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-border-strong rounded-lg 
-                           bg-card text-foreground 
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg
+                           bg-card text-foreground
                            focus:ring-2 focus:ring-ring focus:border-transparent
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 />
@@ -247,8 +247,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
                   value={hijriDate.hm}
                   onChange={(e) => handleHijriDateChange('month', parseInt(e.target.value))}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-border-strong rounded-lg 
-                           bg-card text-foreground 
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg
+                           bg-card text-foreground
                            focus:ring-2 focus:ring-ring focus:border-transparent
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -273,8 +273,8 @@ export const CalendarSelector: React.FC<CalendarSelectorProps> = ({
                   value={hijriDate.hy}
                   onChange={(e) => handleHijriDateChange('year', parseInt(e.target.value))}
                   disabled={disabled}
-                  className="w-full px-3 py-2 border border-border-strong rounded-lg 
-                           bg-card text-foreground 
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg
+                           bg-card text-foreground
                            focus:ring-2 focus:ring-ring focus:border-transparent
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 />

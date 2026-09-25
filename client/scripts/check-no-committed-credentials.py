@@ -74,23 +74,91 @@ FIXTURE_VALUES = frozenset({
     "changeme123",
 })
 
+# Exact (path, value) pairs that are known test fixtures.
+#
+# WHY A REGISTRY AND NOT A DIRECTORY RULE
+#   "Skip everything under tests/" is a broad bypass, and the leak this guard
+#   exists for WAS a fresh script - the shape a directory rule would blind us to.
+#   Each entry names ONE file and ONE exact value, so:
+#     * any different value in the same file still FAILS (a live password pasted
+#       into a test file is caught),
+#     * the registry is auditable - every entry is a decision someone made.
+#   Values are compared lowercased.
+FIXTURES = frozenset({
+    ("cli/tests/setup-keys.test.ts", "existing-jwt-secret"),
+    ("server/src/__tests__/integration/assets.api.test.ts", "testpass123$"),
+    ("server/src/__tests__/integration/assets.eligibility.test.ts", "testpass123$"),
+    ("server/test/setupEnv.ts", "supersecret"),
+    ("server/test/setupEnv.ts", "supersecret-refresh"),
+    ("server/tests/integration/passwordReset.test.ts", "newstrong456!"),
+    ("server/tests/integration/passwordReset.test.ts", "oldpass123!"),
+    ("server/tests/integration/passwordReset.test.ts", "whatever123!"),
+    ("server/tests/integration/passwordReset.test.ts", "whatever19!"),
+    ("server/tests/integration/passwordReset.test.ts", "reuseblock1!"),
+    ("server/tests/integration/passwordReset.test.ts", "anotherpass78!"),
+    ("server/tests/integration/passwordReset.test.ts", "weak"),
+    ("server/tests/integration/userControllerHonesty.test.ts", "honesty!test123"),
+    ("server/tests/unit/encryptionContract.test.ts", "sensitive balance 98765"),
+    ("server/tests/unit/encryptionContract.test.ts", "super-secret-value-98765"),
+    ("server/tests/unit/encryptionContract.test.ts", "leak-check-abcdef"),
+})
+
+
+def is_reference(value: str, after: str) -> bool:
+    """True when the literal is not a secret at all, but a reference or a prefix.
+
+    Two shapes, both of which are CORRECT code that a naive name-match flags:
+
+    shell expansion   JWT_SECRET="$JWT_SECRET"     - refers to an existing shell
+                                                     variable; the secret itself
+                                                     was generated elsewhere
+                                                     (`openssl rand -base64 32`).
+    concatenation     authToken = 'Bearer ' + mint()  - the literal is a scheme
+                                                     prefix, the credential is on
+                                                     the right of the '+'.
+    """
+    if "$" in value or value.startswith("$"):
+        return True
+    # `after` is the remainder of the line after the closing quote.
+    return after.lstrip().startswith("+")
+
 CODE_EXT = (".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".sh", ".yml", ".yaml",
             ".json", ".env", ".tf", ".toml", ".cfg", ".ini")
 
 
-def is_allowed(value: str) -> bool:
+def is_allowed(value: str, rel: str = "", after: str = "") -> bool:
     low = value.lower()
     if low in FIXTURE_VALUES:
+        return True
+    if (rel, low) in FIXTURES:
+        return True
+    if is_reference(value, after):
         return True
     return any(a in low for a in ALLOW)
 
 
-def tracked_files():
+def repo_root() -> str:
+    """Absolute path to the work-tree root.
+
+    REQUIRED for correctness, not tidiness. `git ls-files` prints paths relative
+    to the CURRENT DIRECTORY, so running this script from a subdirectory made
+    every `os.path.isfile()` check fail against a doubled path and the scan
+    silently examined NOTHING - exiting 0. Proved: with a planted credential it
+    still printed PASS when invoked from client/scripts, and FAIL from the root.
+    A guard whose result depends on the shell's cwd is worse than no guard.
+    """
+    return subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+
+
+def tracked_files(root: str):
     # -c cached (tracked) + -o others (new, not yet added) + --exclude-standard honours
     # .gitignore. Using `git ls-files` alone would MISS a brand-new file - which is exactly
     # how the original leak arrived, a fresh script committed with the password inside it.
     out = subprocess.run(
-        ["git", "ls-files", "-co", "--exclude-standard"],
+        ["git", "-C", root, "ls-files", "-co", "--exclude-standard"],
         capture_output=True, text=True, check=True,
     )
     for rel in out.stdout.splitlines():
@@ -98,15 +166,17 @@ def tracked_files():
             continue
         if any(part in rel for part in ("node_modules/", "dist/", "build/", ".git/")):
             continue
-        if os.path.isfile(rel):
-            yield rel
+        abs_path = os.path.join(root, rel)
+        if os.path.isfile(abs_path):
+            yield rel, abs_path
 
 
 def findings():
     found = []
-    for rel in tracked_files():
+    root = repo_root()
+    for rel, abs_path in tracked_files(root):
         try:
-            with open(rel, encoding="utf-8", errors="replace") as fh:
+            with open(abs_path, encoding="utf-8", errors="replace") as fh:
                 for n, line in enumerate(fh, 1):
                     stripped = line.lstrip()
                     # A comment describing a credential is not a credential.
@@ -117,10 +187,13 @@ def findings():
                         if not m:
                             continue
                         value = m.group(grp)
+                        # Remainder of the line after the literal, so `is_reference` can
+                        # see a concatenation operator.
+                        after = line[m.end():]
                         # Judge ONLY the captured value. Testing the whole line would match
                         # the word 'password' in the field selector and suppress every hit -
                         # a guard that can never fire.
-                        if is_allowed(value):
+                        if is_allowed(value, rel, after):
                             continue
                         found.append((rel, n, line.strip()[:100]))
         except OSError:

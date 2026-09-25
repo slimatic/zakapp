@@ -19,6 +19,7 @@ import { Response, NextFunction } from 'express';
 import { jwtService } from '../services/JWTService';
 import { AuthenticatedRequest } from '../types';
 import { prisma } from '../utils/prisma';
+import { logger } from '../utils/logger';
 
 /**
  * Authentication middleware for ZakApp API endpoints
@@ -43,7 +44,11 @@ export class AuthMiddleware {
     try {
       // Extract Authorization header
       const authHeader = req.headers.authorization;
-      console.error('AuthMiddleware - Header:', authHeader);
+      // NEVER log authHeader: it is the bearer credential itself. Central logs,
+      // crash captures and support bundles all preserve it, which turns a debug
+      // line into a token-disclosure path. The boolean below is all the
+      // diagnostic value the line ever had.
+      logger.debug('AuthMiddleware: authorization header present:', Boolean(authHeader));
 
       if (!authHeader) {
         res.status(401).json({

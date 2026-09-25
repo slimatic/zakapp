@@ -188,7 +188,7 @@ export const MethodologyCard: React.FC<MethodologyCardProps> = ({
  {/* Learn More Button */}
  <button
  onClick={handleLearnMoreClick}
- className="w-full mt-4 py-2 px-4 border border-primary text-secondary 
+ className="w-full mt-4 py-2 px-4 border border-primary text-secondary
  rounded-lg hover:bg-accent transition-colors
  font-medium text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
  disabled={disabled}

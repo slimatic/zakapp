@@ -1334,9 +1334,9 @@ A: Currently focused on Zakat. Features for Sadaqah, Fitrah, and more coming soo
 
 Need help? We're here for you:
 
-📧 **Email:** support@zakapp.org  
-💬 **Live Chat:** Available on zakapp.org  
-📚 **Knowledge Base:** [docs.zakapp.org](https://docs.zakapp.org)  
+📧 **Email:** support@zakapp.org
+💬 **Live Chat:** Available on zakapp.org
+📚 **Knowledge Base:** [docs.zakapp.org](https://docs.zakapp.org)
 🐛 **Bug Reports:** [github.com/zakapp/issues](https://github.com/zakapp/zakapp/issues)  
 🤝 **Community:** [community.zakapp.org](https://community.zakapp.org)
 

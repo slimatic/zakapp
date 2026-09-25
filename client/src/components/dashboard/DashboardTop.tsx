@@ -46,8 +46,15 @@ import { MoonArc } from '../tracking/MoonArc';
 export interface DashboardHeroProps {
   /** Used for the greeting. Falls back to a neutral address. */
   userName?: string;
-  /** Estimated zakat due, in the display currency. */
-  zakatDue: number;
+  /**
+   * Zakat due in the display currency, or `null` when it cannot be determined
+   * yet (still loading, prices unavailable, or no calculation).
+   *
+   * `null` is NOT zero and NOT "no assets": zero is a real, reportable result
+   * (wealth below nisab). When null the hero states that the figure is not
+   * calculated instead of showing a fabricated estimate.
+   */
+  zakatDue: number | null;
   /** Currency the figure is denominated in, when it differs from display. */
   currency?: string;
   /** Hijri year label, e.g. '1448'. Omitted when unknown. */
@@ -79,25 +86,49 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
     methodology || null
   ].filter(Boolean);
 
+  const notCalculated = zakatDue === null;
+
   return (
     <section className="text-start">
       <p className="text-[13px] font-medium text-muted-foreground">
         As-salamu alaykum{userName ? `, ${userName}` : ''} · <span className="tabular-nums">{today}</span>
       </p>
 
-      <Money
-        value={zakatDue}
-        currency={currency}
-        size="hero"
-        tone="default"
-        className="mt-1 text-primary"
-      />
+      {notCalculated ? (
+        // No canonical figure available. Showing 2.5% of every asset here would
+        // present an invented number as a financial obligation, so we say so.
+        <p
+          className="mt-1 text-2xl font-semibold text-secondary"
+          aria-describedby="hero-zakat-status"
+        >
+          Not calculated
+        </p>
+      ) : (
+        <Money
+          value={zakatDue}
+          currency={currency}
+          size="hero"
+          tone="default"
+          className="mt-1 text-primary"
+        />
+      )}
 
-      <p className="mt-1 text-[13px] text-muted-foreground">
-        Estimated zakat due{qualifiers.length ? ` ${qualifiers.join(' · ')}` : ''} ·{' '}
-        <Link to={calculationHref} className="text-primary hover:underline underline-offset-2">
-          See how this was calculated
-        </Link>
+      <p id="hero-zakat-status" className="mt-1 text-[13px] text-muted-foreground">
+        {notCalculated ? (
+          <>
+            We could not calculate your zakat yet{' '}
+            <Link to={calculationHref} className="text-primary hover:underline underline-offset-2">
+              Calculate it now
+            </Link>
+          </>
+        ) : (
+          <>
+            Estimated zakat due{qualifiers.length ? ` ${qualifiers.join(' · ')}` : ''} ·{' '}
+            <Link to={calculationHref} className="text-primary hover:underline underline-offset-2">
+              See how this was calculated
+            </Link>
+          </>
+        )}
       </p>
     </section>
   );
@@ -113,8 +144,11 @@ export interface HawlCardProps {
   daysRemaining: number;
   /** Human-readable due date, e.g. 'Mar 4, 2027'. */
   dueDate?: string;
-  /** Whether current wealth is at or above nisab. */
-  aboveNisab: boolean;
+  /** Whether current wealth is at or above nisab; `null` when the nisab
+   *  threshold is not known yet (loading, or prices unavailable). An unknown
+   *  state must never render as "Below nisab" — that is a claim about the
+   *  user's obligation, not a placeholder. */
+  aboveNisab: boolean | null;
   hawlHref?: string;
   paymentHref?: string;
 }
@@ -150,16 +184,24 @@ export const HawlCard: React.FC<HawlCardProps> = ({
             </strong>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                aboveNisab
-                  ? 'bg-success-soft text-success'
-                  : 'bg-warn-soft text-warn-strong'
+                aboveNisab === null
+                  ? 'bg-muted text-muted-foreground'
+                  : aboveNisab
+                    ? 'bg-success-soft text-success'
+                    : 'bg-warn-soft text-warn-strong'
               }`}
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full ${aboveNisab ? 'bg-success' : 'bg-warn'}`}
+                className={`h-1.5 w-1.5 rounded-full ${
+                  // bg-muted-foreground is NOT a Tailwind class here (it is a text
+                  // colour only), so an unknown state reuses the warn dot rather
+                  // than rendering an unstyled element. The label carries the
+                  // meaning; the dot only needs to be visible.
+                  aboveNisab === null || !aboveNisab ? 'bg-warn' : 'bg-success'
+                }`}
                 aria-hidden="true"
               />
-              {aboveNisab ? 'Above nisab' : 'Below nisab'}
+              {aboveNisab === null ? 'Nisab unknown' : aboveNisab ? 'Above nisab' : 'Below nisab'}
             </span>
           </div>
 

@@ -21,7 +21,9 @@ import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
 
 interface WealthSummaryCardProps {
   totalWealth: number;
-  nisabThreshold: number;
+  /** Nisab threshold in `currency`, or `null` while unknown (loading / no metal
+   *  prices). `null` renders an explicit unknown state, never a comparison. */
+  nisabThreshold: number | null;
   currency?: string;
 }
 
@@ -48,9 +50,16 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
   nisabThreshold,
   currency = 'USD',
 }) => {
-  const isAboveNisab = totalWealth >= nisabThreshold;
-  const difference = Math.abs(totalWealth - nisabThreshold);
-  const differencePercentage = ((totalWealth - nisabThreshold) / nisabThreshold) * 100;
+  // Unknown threshold (loading, or metal prices unavailable) must not be treated
+  // as a comparison. Previously the caller substituted 5,000 and this card then
+  // printed a confident "Above Nisab" — a claim about the user's obligation
+  // derived from an arbitrary number.
+  const nisabKnown = nisabThreshold !== null && nisabThreshold > 0;
+  const isAboveNisab = nisabKnown && totalWealth >= nisabThreshold;
+  const difference = nisabKnown ? Math.abs(totalWealth - nisabThreshold) : 0;
+  const differencePercentage = nisabKnown
+    ? ((totalWealth - nisabThreshold) / nisabThreshold) * 100
+    : 0;
   const maskedCurrency = useMaskedCurrency();
 
   // Issue #310 (v0.15.2 regression): amounts were hardcoded to `$` while the
@@ -115,32 +124,44 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
       </div>
 
       {/* Nisab Threshold Comparison */}
-      <div className={`p-3 sm:p-4 rounded-md ${isAboveNisab ? 'bg-success-soft border border-success/30' : 'bg-danger-soft border border-danger/30'}`}>
+      <div className={`p-3 sm:p-4 rounded-md ${
+        !nisabKnown
+          ? 'bg-muted border border-border'
+          : isAboveNisab
+            ? 'bg-success-soft border border-success/30'
+            : 'bg-danger-soft border border-danger/30'
+      }`}>
         <div className="flex items-start justify-between mb-2">
           <div>
-            <p className={`text-sm font-medium ${isAboveNisab ? 'text-success' : 'text-danger'}`}>
-              {isAboveNisab ? 'Above Nisab' : 'Below Nisab'}
+            <p className={`text-sm font-medium ${
+              !nisabKnown ? 'text-muted-foreground' : isAboveNisab ? 'text-success' : 'text-danger'
+            }`}>
+              {!nisabKnown ? 'Nisab unknown' : isAboveNisab ? 'Above Nisab' : 'Below Nisab'}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Nisab: {fmt(nisabThreshold)}
+              {nisabKnown ? `Nisab: ${fmt(nisabThreshold)}` : 'Nisab: not available'}
             </p>
           </div>
 
-          <div className="text-end">
-            <p className={`text-lg font-bold ${isAboveNisab ? 'text-success' : 'text-danger'}`}>
-              {`${isAboveNisab ? '+' : '-'}${fmt(difference)}`}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {isAboveNisab ? '+' : ''}{differencePercentage.toFixed(1)}%
-            </p>
-          </div>
+          {nisabKnown && (
+            <div className="text-end">
+              <p className={`text-lg font-bold ${isAboveNisab ? 'text-success' : 'text-danger'}`}>
+                {`${isAboveNisab ? '+' : '-'}${fmt(difference)}`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {isAboveNisab ? '+' : ''}{differencePercentage.toFixed(1)}%
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Status Message */}
         <p className="text-xs text-foreground/80 mt-2">
-          {isAboveNisab
-            ? 'Your wealth meets the Nisab threshold. Zakat may be due after one lunar year (Hawl).'
-            : 'Your wealth is below the Nisab threshold. No Zakat obligation at this time.'}
+          {!nisabKnown
+            ? 'We could not load the current nisab threshold, so we cannot say whether zakat is due. Try again shortly.'
+            : isAboveNisab
+              ? 'Your wealth meets the Nisab threshold. Zakat may be due after one lunar year (Hawl).'
+              : 'Your wealth is below the Nisab threshold. No Zakat obligation at this time.'}
         </p>
       </div>
     </div>

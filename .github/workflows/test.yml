@@ -16,6 +16,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        # Full history so the whitespace and credential checks can compare
+        # against the base branch rather than only the tip.
+        fetch-depth: 0
 
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
@@ -23,17 +27,29 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
+    # Install: `npm ci` where the lockfile is verified in sync with package.json
+    # (shared, server, client), `npm install` where it is not (root, cli).
+    # Measured with `npm ci --dry-run`: root and cli are out of sync, so forcing
+    # `npm ci` across all five projects - as the audit recommended - would fail
+    # the build. Sync those lockfiles deliberately (their own change), then
+    # switch them to `npm ci`.
     - name: Install root dependencies
       run: npm install
 
+    - name: Install shared dependencies
+      run: cd shared && npm ci
+
     - name: Install server dependencies
-      run: cd server && npm install
+      run: cd server && npm ci
 
     - name: Generate Prisma client
       run: cd server && npx prisma generate
 
     - name: Install client dependencies
-      run: cd client && npm install --legacy-peer-deps
+      run: cd client && npm ci --legacy-peer-deps
+
+    - name: Install CLI dependencies
+      run: cd cli && npm install
 
     - name: Run server tests (with coverage gate)
       run: cd server && npm run test:coverage
@@ -49,13 +65,51 @@ jobs:
       env:
         CI: true
 
-    # Secrets: gitleaks (security-scan.yml) only matches PROVIDER KEY FORMATS - AWS AKIA...,
-    # GitHub ghp_..., PEM blocks. It reported "no leaks found" on the full history while a
-    # plaintext password sat in three committed scripts (`pg.fill('#password', 'V1Smoke...')`),
-    # because a typed password matches no provider format. This step covers that gap by
-    # matching credential-shaped names and fill() sinks instead. No dependencies, no build.
-    - name: Reject committed credential literals
-      run: python3 client/scripts/check-no-committed-credentials.py
+    # Previously untested in CI even though the v1.0 branch changes both lockfiles.
+    - name: Run shared and CLI tests
+      run: |
+        cd shared && npm test --if-present
+        cd ../cli && npm test --if-present
+
+    - name: Build client
+      run: cd client && npm run build
+
+    - name: Build server
+      run: cd server && npm run build
+
+    - name: Build shared and CLI
+      run: |
+        cd shared && npm run build --if-present
+        cd ../cli && npm run build --if-present
+
+    # Runs after the client build on purpose: check-dead-classes.py reads the
+    # generated dist/assets/*.css, so it would report false failures without it.
+    #
+    # Why a custom check exists at all: gitleaks (security-scan.yml) only matches
+    # PROVIDER KEY FORMATS - AWS AKIA..., GitHub ghp_..., PEM blocks. It reported
+    # "no leaks found" across the full history while a plaintext password sat in
+    # three committed scripts, because a typed password matches no provider
+    # format. check-no-committed-credentials.py covers that gap, and
+    # check-no-credential-logging.py covers bearer/body values written to logs.
+    - name: Run source checks (verify:source)
+      run: cd client && npm run verify:source
+
+    # Hygiene gate. Keeps generated output and stray edits out of the branch.
+    - name: Reject trailing whitespace in the diff
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          BASE="origin/${{ github.base_ref }}"
+        else
+          BASE="${{ github.event.before }}"
+        fi
+        git fetch origin "$BASE" --depth=1 2>/dev/null || true
+        OUT=$(git diff --check "$BASE"...HEAD 2>&1 || true)
+        if [ -n "$OUT" ]; then
+          echo "$OUT"
+          echo "::error::Trailing whitespace or conflict markers in the diff."
+          exit 1
+        fi
+        echo "No trailing whitespace in the diff."
 
     # Coverage thresholds in each vitest config fail the run on a regression, so
     # these steps are the gate itself. The reports are uploaded purely so the
@@ -76,15 +130,12 @@ jobs:
         path: client/coverage/
         retention-days: 7
 
-    - name: Build client
-      run: cd client && npm run build
-
-    - name: Build server
-      run: cd server && npm run build
-
+    # Browser checks (check-mobile-integrity, check-single-shell, check-footer,
+    # check-nisab-rows, check-money-alignment, check-reduced-motion,
+    # check-theme-a11y-rtl) are NOT wired here yet: they need a served preview
+    # plus smoke-test credentials. Run them locally with:
+    #   npx vite preview --port 4173 && npm run verify:browser
+    # Wiring them into CI requires the seed credential as a repository secret.
     # Note: Secret scanning, dependency vulnerability scanning, static code
     # analysis, and container security scanning are handled by the dedicated
-    # security-scan.yml workflow, which uses professional tools (gitleaks,
-    # Snyk, CodeQL, Semgrep, Trivy) and runs conditionally based on changed
-    # paths. No need to duplicate them here.
-
+    # security-scan.yml workflow (gitleaks, Snyk, CodeQL, Semgrep, Trivy).

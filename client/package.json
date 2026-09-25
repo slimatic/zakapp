@@ -67,7 +67,10 @@
     "lighthouse:ci": "lhci autorun --config=lighthouserc.json",
     "lighthouse:desktop": "lighthouse http://localhost:3000 --preset=desktop --view",
     "lighthouse:mobile": "lighthouse http://localhost:3000 --preset=mobile --view",
-    "lighthouse:pwa": "lighthouse http://localhost:3000 --only-categories=pwa --view"
+    "lighthouse:pwa": "lighthouse http://localhost:3000 --only-categories=pwa --view",
+    "verify:source": "python3 scripts/run-source-checks.py",
+    "verify:browser": "python3 scripts/run-browser-checks.py",
+    "verify:ui": "npm run verify:source && npm run verify:browser"
   },
   "eslintConfig": {
     "extends": [

@@ -23,6 +23,9 @@ import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
+import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
+import { useUserSettingsRepository } from '../hooks/useUserSettingsRepository';
+import { calculateZakat } from '../core/calculations/zakat';
 import { DashboardHero, HawlCard, QuickActions, AssetRow } from '../components/dashboard/DashboardTop';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
@@ -211,6 +214,8 @@ export const Dashboard: React.FC = () => {
   const { assets, isLoading: assetsLoading, error: assetsError } = useAssetRepository();
   const { activeRecord, isLoading: recordsLoading, error: recordsError } = useNisabRecordRepository();
   const { payments, isLoading: paymentsLoading } = usePaymentRepository();
+  const { liabilities, isLoading: liabilitiesLoading } = useLiabilityRepository();
+  const { settings } = useUserSettingsRepository();
 
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeRecord !== null;
@@ -285,26 +290,99 @@ export const Dashboard: React.FC = () => {
   // still say USD for users who set their currency locally.
   const display = useDisplayCurrency();
   const userCurrency = display.currency;
-  const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
-  const nisabThreshold = nisabAmount || 5000; // Default fallback
+  const {
+    nisabAmount,
+    goldPrice,
+    silverPrice,
+    isLoading: nisabLoading,
+    error: nisabError,
+  } = useNisabThreshold(userCurrency, nisabBasis);
 
-  /* ── Hero figures ──────────────────────────────────────────────────────── */
+  /* ── Hero figures: canonical calculation, never a guess ───────────────────
+   *
+   * The nisab threshold and the zakat figure are the two numbers on this page a
+   * user may act on financially, so both come from the canonical engine or from
+   * an explicit unknown state. Nothing here fabricates a plausible number.
+   *
+   * Previously this page did two things that produced confident untruths:
+   *   nisabThreshold = nisabAmount || 5000   -> an arbitrary USD threshold used
+   *       to print "Above nisab" while loading, on error, and for users whose
+   *       real nisab is nothing like 5,000 (e.g. an IDR account).
+   *   zakatDue = totalWealth * 0.025         -> 2.5% of EVERY asset, including
+   *       exempt ones, ignoring liabilities and the user's madhab, and replacing
+   *       a legitimate zero with an invented positive.
+   *
+   * `calculateZakat` is the canonical engine (client/src/core/calculations/
+   * zakat.ts). The record's own zakatAmount is used only when the record can be
+   * trusted to be that same calculation: it carries a nisabBasis and a positive
+   * figure. A zero is a real result, not an absence, so it is never replaced.
+   */
 
-  // Estimated zakat due. Prefer the active record's own figure (it is the
-  // authoritative calculation for the running hawl); otherwise estimate at
-  // 2.5% of zakatable wealth so the hero is never blank once assets exist.
+  // The canonical basis: methodology decides nisab source, jewelry exemption and
+  // which liabilities are deductible. Read from the same store the rest of the
+  // app uses, defaulting to STANDARD only when the user has never chosen.
+  const methodology = ((settings?.preferredMethodology || 'STANDARD').toUpperCase()) as
+    | 'STANDARD'
+    | 'HANAFI'
+    | 'SHAFII'
+    | 'MALIKI'
+    | 'HANBALI';
+
   const toNum = (v: unknown): number => {
     const n = typeof v === 'string' ? parseFloat(v) : (v as number);
     return Number.isFinite(n) ? (n as number) : 0;
   };
 
-  const zakatDue = useMemo(() => {
-    if (activeRecord) {
-      const recorded = toNum(activeRecord.zakatAmount);
-      if (recorded > 0) return recorded;
-    }
-    return totalWealth * 0.025;
-  }, [activeRecord, totalWealth]);
+  // Real metal prices -> the nisab pair the engine expects. Undefined prices must
+  // NOT become zero: a zero nisab would mark every user as "Above nisab".
+  const nisabPrices = useMemo(
+    () =>
+      goldPrice !== undefined && silverPrice !== undefined
+        ? { gold: goldPrice * 87.48, silver: silverPrice * 612.36 }
+        : null,
+    [goldPrice, silverPrice]
+  );
+
+  const calculation = useMemo(() => {
+    if (!nisabPrices) return null;
+    return calculateZakat(assets, liabilities, nisabPrices, methodology);
+  }, [assets, liabilities, nisabPrices, methodology]);
+
+  /**
+   * Unknown / not-yet-calculated state. Distinguishes "still loading" from
+   * "cannot be determined", because the UI must say different things.
+   */
+  const heroState: 'loading' | 'ready' | 'unavailable' =
+    assetsLoading || recordsLoading || liabilitiesLoading || nisabLoading
+      ? 'loading'
+      : !nisabPrices || nisabError || !calculation
+        ? 'unavailable'
+        : 'ready';
+
+  // A record's own figure is authoritative for the running hawl, but only once we
+  // have a real basis. Zero is honoured; the record must also carry a nisabBasis
+  // so we can tell which threshold produced it.
+  const recordedZakat = useMemo(() => {
+    if (!activeRecord?.nisabBasis) return null;
+    const raw = activeRecord.zakatAmount;
+    if (raw === null || raw === undefined || raw === '') return null;
+    const n = toNum(raw);
+    return Number.isFinite(n) ? n : null;
+  }, [activeRecord]);
+
+  const zakatDue: number | null =
+    heroState !== 'ready'
+      ? null
+      : recordedZakat !== null
+        ? recordedZakat
+        : (calculation?.zakatDue ?? null);
+
+  // Total paid against the current obligation. Extracted from an inline
+  // `payments.reduce(...)` that each render re-computed.
+  const paymentsTotal = useMemo(
+    () => payments.reduce((sum, p) => sum + (p.amount || 0), 0),
+    [payments]
+  );
 
   // Hijri year for the hero note, when the record carries one.
   const hijriYear = useMemo(() => {
@@ -339,7 +417,11 @@ export const Dashboard: React.FC = () => {
     return { elapsed, remaining, progress, dueDate };
   }, [activeRecord]);
 
-  const aboveNisab = totalWealth >= nisabThreshold;
+  // Undefined until the threshold is known — the UI renders "nisab unknown"
+  // rather than guessing a comparison against a fabricated 5,000.
+  const nisabThreshold: number | null = nisabAmount ?? null;
+  const aboveNisab: boolean | null =
+    nisabThreshold === null || heroState !== 'ready' ? null : totalWealth >= nisabThreshold;
 
   // Loading state
   if (assetsLoading || recordsLoading || paymentsLoading) {
@@ -408,7 +490,15 @@ export const Dashboard: React.FC = () => {
 
       {/* Dashboard Action Cards - Show when dashboard is empty or needs action */}
       {/* Replaces OnboardingGuide for simple "Next Best Action" prompts */}
-      {(!hasAssets || !hasActiveRecord || (activeRecord && payments.reduce((sum, p) => sum + (p.amount || 0), 0) < (assets.reduce((sum, a) => sum + (a.value || 0), 0) * 0.025))) ? (
+      {/* Was `assets.reduce(...) * 0.025` — the same 2.5%-of-every-asset
+          fabrication the hero used, inlined into a render condition. It decided
+          whether to nudge the user to pay using an invented obligation, and
+          summed assets twice (line 486 and again at line 411). Now the nudge is
+          driven by the canonical figure; when it is unknown, we show the action
+          cards, because prompting the user to check is the safe direction. */}
+      {(!hasAssets ||
+        !hasActiveRecord ||
+        (activeRecord && paymentsTotal < (zakatDue ?? Number.POSITIVE_INFINITY))) ? (
         <DashboardActionCards
           assets={assets}
           activeNisabRecord={activeRecord}

@@ -132,7 +132,7 @@ export const AssetCategories: React.FC = () => {
             key={category.id}
             className={`bg-card rounded-lg border-2 p-6 cursor-pointer transition-all duration-200 hover:shadow-md ${
               selectedCategory === category.id 
-                ? 'border-secondary ring-2 ring-secondary/25' 
+                ? 'border-secondary ring-2 ring-secondary/25'
                 : 'border-border hover:border-border-strong'
             }`}
             onClick={() => setSelectedCategory(category.id)}
