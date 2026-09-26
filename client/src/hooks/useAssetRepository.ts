@@ -27,7 +27,11 @@ import { cryptoService } from '../services/CryptoService';
 const ALLOWED_SCHEMA_FIELDS = [
     'id', 'userId', 'name', 'type', 'value', 'currency', 'description',
     'metadata', 'isActive', 'createdAt', 'updatedAt', 'acquisitionDate',
-    'notes', 'calculationModifier', 'isPassiveInvestment', 'isRestrictedAccount'
+    'notes', 'calculationModifier', 'isPassiveInvestment', 'isRestrictedAccount',
+    // The user's own zakatability answer, and the marker saying they gave it.
+    // Both must survive a save: without the marker the next read cannot tell a
+    // real override from the flag the onboarding wizard wrote on their behalf.
+    'zakatEligible', 'isEligibilityManual'
 ];
 
 export function useAssetRepository() {

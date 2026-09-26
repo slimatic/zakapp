@@ -17,6 +17,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { calculateWealth } from '../wealthCalculator';
+import { isAssetZakatable } from '../zakat';
 import { Asset, AssetType, Liability } from '../../../types';
 
 describe('wealthCalculator', () => {
@@ -84,15 +85,16 @@ describe('wealthCalculator', () => {
             {
                 id: '1',
                 name: 'Rental Unit',
-                type: AssetType.REAL_ESTATE, // Not in POTENTIAL_ZAKATABLE_TYPES list? Let's check logic.
-                // Wait, REAL_ESTATE is NOT in the default list in wealthCalculator.ts
-                // So it depends on zakatEligible flag.
+                type: AssetType.REAL_ESTATE,
+                // REAL_ESTATE is in no school's zakatableAssets list, so eligibility
+                // here comes from the user's own answer — which isEligibilityManual marks.
                 value: 100000,
                 isActive: true,
                 currency: 'USD',
                 createdAt: '',
                 updatedAt: '',
                 zakatEligible: true,
+                isEligibilityManual: true,
                 calculationModifier: 1.0
             },
             {
@@ -133,6 +135,36 @@ describe('wealthCalculator', () => {
 
         const result = calculateWealth(assets);
         expect(result.zakatableWealth).toBe(5000);
+    });
+
+    it('agrees with isAssetZakatable for an asset with no explicit answer', () => {
+        // Regression: calculateWealth() used to keep its own allow-list, so a
+        // BANK_ACCOUNT with no flag was EXCLUDED there but INCLUDED by
+        // isAssetZakatable (BANK_ACCOUNT is in every school's list). Two answers
+        // for one asset. Both paths must now agree.
+        // SHAFII additionally exempts jewelry, so GOLD is the case where the
+        // selected school changes the answer — and the two must still match.
+        const cases: Asset[] = [
+            {
+                id: 'bank', name: 'Bank Account', type: AssetType.BANK_ACCOUNT, value: 10000,
+                currency: 'USD', isActive: true, createdAt: '', updatedAt: ''
+            },
+            {
+                id: 'gold', name: 'Gold', type: AssetType.GOLD, value: 10000,
+                currency: 'USD', isActive: true, createdAt: '', updatedAt: ''
+            }
+        ];
+
+        for (const methodology of ['STANDARD', 'SHAFII'] as const) {
+            for (const a of cases) {
+                const zakatable = isAssetZakatable(a, methodology);
+                const { zakatableWealth } = calculateWealth([a], [], new Date(), methodology);
+                expect(
+                    zakatableWealth,
+                    `${a.type} under ${methodology}: calculateWealth=${zakatableWealth}, isAssetZakatable=${zakatable}`
+                ).toBe(zakatable ? a.value : 0);
+            }
+        }
     });
 
     describe('liability deduction', () => {

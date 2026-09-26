@@ -39,6 +39,11 @@ export interface AssetRulingExplanationProps {
 const STATUS_LABELS: Record<RulingStatus, { label: string; classes: string }> = {
   zakatable: { label: 'Zakatable', classes: 'bg-success-soft text-success border-success/30' },
   exempt: { label: 'Exempt', classes: 'bg-muted text-foreground/80 border-border' },
+  // The app's own default for this asset type — the user did not choose this,
+  // so it must not read as their decision. The default is a setting they can
+  // change, unlike an override.
+  'default-zakatable': { label: 'Zakatable (app default)', classes: 'bg-success-soft text-success border-success/30' },
+  'default-exempt': { label: 'Exempt (app default)', classes: 'bg-muted text-foreground/80 border-border' },
   'override-zakatable': { label: 'Zakatable (your override)', classes: 'bg-accent text-secondary border-border' },
   'override-exempt': { label: 'Exempt (your override)', classes: 'bg-accent text-secondary border-border' },
 };

@@ -34,6 +34,7 @@ const mockAssets = [
     value: 8000,
     currency: 'USD',
     zakatEligible: true, // override vs Shafi'i default (exempt)
+    isEligibilityManual: true, // the user set this, not the onboarding wizard
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

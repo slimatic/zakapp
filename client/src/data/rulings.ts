@@ -51,7 +51,8 @@ export interface RulingExplanation {
   citations: Citation[];
 }
 
-export type RulingStatus = 'zakatable' | 'exempt' | 'override-zakatable' | 'override-exempt';
+/** How an asset's zakatability was decided — the reason shown to the user, not a verdict. */
+export type RulingStatus = 'zakatable' | 'exempt' | 'default-zakatable' | 'default-exempt' | 'override-zakatable' | 'override-exempt';
 
 export interface AssetRuling {
   status: RulingStatus;
@@ -487,7 +488,7 @@ const ASSET_LABELS: Record<AssetType, string> = {
  * Resolve the full ruling explanation for an asset under a methodology,
  * mirroring the decision chain of isAssetZakatable in core/calculations:
  *
- * 1. zakatEligible === true  → override-zakatable (madhabDefault explains the default)
+ * 1. zakatEligible === true  → override-zakatable (an explicit user choice)
  * 2. zakatEligible === false → override-exempt
  * 3. type default zakatable  → zakatable
  * 4. jewelryExempt && GOLD|SILVER (no override) → exempt with jewelry ruling
@@ -497,6 +498,12 @@ export function getAssetRuling(
   asset: {
     type: AssetType;
     zakatEligible?: boolean | null;
+    /**
+     * Whether the user actually made the call. Data written before the flag was
+     * tri-state has `zakatEligible: true` that nobody chose, and this is the
+     * only surviving signal that distinguishes it from a real override.
+     */
+    isEligibilityManual?: boolean;
     name?: string;
   },
   methodologyName: MethodologyName | string
@@ -512,8 +519,21 @@ export function getAssetRuling(
 
   const citations = defaultRuling.citations;
 
-  // 1. Explicit override: user forced zakatable
-  if (asset.zakatEligible === true) {
+  /**
+   * A flag is only an "override" when the user set it. Legacy rows carry
+   * `zakatEligible: true` written by the onboarding wizard without the user ever
+   * being asked; calling that an override credited them with a choice they did
+   * not make — and hid the fact that the school's ruling was never applied.
+   *
+   * Anything not explicitly manual is reported as the app default.
+   */
+  const isGenuineOverride = asset.isEligibilityManual === true;
+  const zakatability = asset.zakatEligible ?? null;
+
+  // 1. Explicit override: the user forced zakatable. A `true` the user did not
+  // set (the onboarding wizard wrote one for every asset it created, #521) is
+  // not an override — fall through and let the school rule instead.
+  if (isGenuineOverride && zakatability === true) {
     return {
       status: 'override-zakatable',
       madhabDefault: defaultRuling,
@@ -526,8 +546,9 @@ export function getAssetRuling(
     };
   }
 
-  // 2. Explicit override: user forced exempt
-  if (asset.zakatEligible === false) {
+  // 2. Explicit override: user forced exempt (mirrors isAssetZakatable, which
+  // honours an exemption unconditionally — the wizard only ever wrote `true`).
+  if (zakatability === false) {
     return {
       status: 'override-exempt',
       madhabDefault: defaultRuling,
@@ -556,10 +577,11 @@ export function getAssetRuling(
     };
   }
 
-  // 3/5. Type default
+  // 3/5. Type default — no user override involved, so say so. Labelling this
+  // "your override" told the user they had made a choice they never made.
   const inList = config.zakatableAssets.includes(assetType);
   return {
-    status: inList ? 'zakatable' : 'exempt',
+    status: inList ? 'default-zakatable' : 'default-exempt',
     madhabDefault: defaultRuling,
     citations,
   };

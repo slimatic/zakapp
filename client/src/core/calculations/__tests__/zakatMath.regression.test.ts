@@ -150,9 +150,20 @@ describe('zakat math — jewelry exemption is a SCHOOL difference, not an opinio
 
   it('an EXPLICIT zakatEligible=true overrides the school exemption', () => {
     // Rule: the user's own classification wins - the school default is a default, not a trap.
-    const goldAsInvestment = asset(AssetType.GOLD, 10000, { zakatEligible: true } as never);
+    // "Explicit" means the user set it, which isEligibilityManual records. Without
+    // that marker a `true` is the flag the onboarding wizard wrote for every asset
+    // it created (#521), and the school must still rule.
+    const goldAsInvestment = asset(AssetType.GOLD, 10000, {
+      zakatEligible: true, isEligibilityManual: true,
+    } as never);
     expect(isAssetZakatable(goldAsInvestment, 'SHAFII')).toBe(true);
     expect(getAssetZakatableValue(goldAsInvestment, 'SHAFII')).toBeCloseTo(10000, 6);
+  });
+
+  it('a zakatEligible=true the user never set does NOT override the school', () => {
+    // The onboarding-wizard case: flag present, marker absent.
+    const wizardGold = asset(AssetType.GOLD, 10000, { zakatEligible: true } as never);
+    expect(isAssetZakatable(wizardGold, 'SHAFII')).toBe(false);
   });
 
   it('an EXPLICIT zakatEligible=false overrides a school that would tax it', () => {
