@@ -135,7 +135,7 @@ ssh user@192.168.1.100
 cd ~/zakapp
 
 # 3. Stop old deployment
-docker compose -f docker-compose.local.yml down
+docker compose -f docker-compose.yml down
 
 # 4. Run new easy deployment
 ./deploy-easy.sh

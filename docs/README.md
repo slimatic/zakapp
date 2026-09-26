@@ -104,9 +104,9 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 
 **Repository maintenance:**
 
-- **[Code Analysis Findings](../CODE_ANALYSIS_FINDINGS.md)** - Comprehensive code analysis
-- **[Cleanup Summary](../CLEANUP_SUMMARY.md)** - Documentation cleanup tracking
-- **[Before/After Visualization](../BEFORE_AFTER_VISUALIZATION.md)** - Visual impact of cleanup
+- **[Code Analysis Findings](reports/CODE_ANALYSIS_FINDINGS.md)** - Comprehensive code analysis
+- **[Cleanup Summary](reports/CLEANUP_SUMMARY.md)** - Documentation cleanup tracking
+- **[Before/After Visualization](reports/BEFORE_AFTER_VISUALIZATION.md)** - Visual impact of cleanup
 
 ---
 
@@ -114,36 +114,36 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 
 ### For New Contributors
 1. Start with [Main README](../README.md)
-2. Follow [Developer Onboarding](../DEVELOPER_ONBOARDING.md)
-3. Set up environment: [Development Setup](../DEVELOPMENT_SETUP.md)
-4. Learn workflow: [Development Guide](../DEVELOPMENT.md)
-5. Understand structure: [Project Structure](../project-structure.md)
+2. Follow [Developer Onboarding](reports/DEVELOPER_ONBOARDING.md)
+3. Set up environment: [Development Setup](reports/DEVELOPMENT_SETUP.md)
+4. Learn workflow: [Development Guide](reports/DEVELOPMENT.md)
+5. Understand structure: [Project Structure](project-structure.md)
 
 ### For Backend Developers
-1. Review [API Specification](../api-specification.md)
+1. Review [API Specification](api/api-specification.md)
 2. Study [Database Schema](../server/prisma/schema.prisma)
-3. Check [Security Guide](../security.md)
+3. Check [Security Guide](security.md)
 4. Understand [Islamic Zakat methodologies](methodology-guide.md)
 5. Run [Tests](../server/tests/)
 
 ### For Frontend Developers
 1. See [Component Library](../client/src/components/)
-2. Review [API Specification](../api-specification.md)
-3. Check [User Stories](../user-stories.md)
-4. Study Islamic UI requirements in [Principles](../principles.md)
+2. Review [API Specification](api/api-specification.md)
+3. Check [User Stories](user-stories.md)
+4. Study Islamic UI requirements in [Principles](principles.md)
 
 ### For DevOps/SRE
-1. Read [Deployment Guide](../deployment-guide.md)
+1. Read [Deployment Guide](deployment-guide.md)
 2. Review [Production Setup](guides/PHASE2_PRODUCTION_SETUP_GUIDE.md)
 3. Configure [CI/CD](guides/CI-CD-SETUP.md)
 4. Set up [Cloudflare Tunnels](guides/CLOUDFLARE_TUNNEL_SETUP.md)
-5. Learn [Database Management](../DATABASE_MANAGEMENT.md)
+5. Learn [Database Management](reports/DATABASE_MANAGEMENT.md)
 
 ### For QA/Testing
 1. Follow [Manual Testing Guide](guides/MANUAL_TESTING_GUIDE.md)
 2. Run automated [Test Suite](../server/tests/)
 3. Review [Performance Tests](../performance-tests/)
-4. Check [User Stories](../user-stories.md) for acceptance criteria
+4. Check [User Stories](user-stories.md) for acceptance criteria
 
 ---
 
@@ -164,7 +164,7 @@ When adding or updating documentation:
 
 - **Issues**: [GitHub Issues](https://github.com/slimatic/zakapp/issues)
 - **Questions**: Review [FAQ sections](../README.md#-troubleshooting) in main README
-- **Security**: See [Security Policy](../security.md)
+- **Security**: See [Security Policy](security.md)
 
 ---
 

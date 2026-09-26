@@ -331,11 +331,11 @@ echo "=== Recent Logs ===" && docker compose logs --tail=20
 
 ## Migration from Traditional Setup
 
-If you're using the old `docker-compose.local.yml`:
+If you're using the old `docker-compose.yml`:
 
 ```bash
 # 1. Stop old deployment
-docker compose -f docker-compose.local.yml down
+docker compose -f docker-compose.yml down
 
 # 2. Run easy deployment
 ./deploy-easy.sh

@@ -41,7 +41,7 @@ COUCHDB_URL=http://couchdb:5984
 
 Restart ZakApp:
 ```bash
-docker compose -f docker-compose.local.yml restart
+docker compose -f docker-compose.yml restart
 ```
 
 ### Step 2: Add Proxy Host in NPM
@@ -171,7 +171,7 @@ If you have Pi-hole or AdGuard Home:
 ## Troubleshooting
 
 ### "Bad Gateway" Error
-- Check ZakApp is running: `docker compose -f docker-compose.local.yml ps`
+- Check ZakApp is running: `docker compose -f docker-compose.yml ps`
 - Verify IP address in NPM matches your ZakApp server
 - Make sure ports 3005, 3001, 5984 are accessible from NPM
 
@@ -202,7 +202,7 @@ proxy_set_header Connection "upgrade";
 If NPM is running in Docker on the same host:
 
 ```yaml
-# Add to docker-compose.local.yml
+# Add to docker-compose.yml
 services:
   frontend:
     # ... existing config
