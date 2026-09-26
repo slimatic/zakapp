@@ -18,17 +18,37 @@ const random = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 const randomFloat = (min: number, max: number) => parseFloat((Math.random() * (max - min) + min).toFixed(2));
 
-// Helper to get current user ID strictly for seeding purposes
+/**
+ * Resolve the id to stamp on seeded rows.
+ *
+ * This previously read `localStorage['auth-storage']`, a key nothing in the app
+ * writes — auth lives in sessionStorage under `zakapp_session_v1`. So the lookup
+ * always missed and every seeded row was stamped with the literal
+ * `test_user_id`, an owner no real account matches. The seed then looked
+ * successful (documents really were inserted and replicated) while every query
+ * filtered them straight back out.
+ *
+ * Kept as a session read rather than a parameter so existing callers are
+ * unchanged; the fallback is kept only so seeding still works on a page with no
+ * session at all, and it now warns, because a silent dummy owner is what made
+ * this hard to see in the first place.
+ */
 const getSeedUserId = (): string => {
     try {
-        const storage = localStorage.getItem('auth-storage');
-        if (storage) {
-            const parsed = JSON.parse(storage);
-            if (parsed?.state?.user?.id) return parsed.state.user.id;
+        const raw = sessionStorage.getItem('zakapp_session_v1');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            // Shape written by AuthService.login(): { user: {...}, jwk: {...} }
+            const id = parsed?.user?.id ?? parsed?.state?.user?.id;
+            if (id) return id;
         }
     } catch (e) {
-        console.warn('Could not read auth storage', e);
+        console.warn('DataSeeder: could not read session', e);
     }
+    console.warn(
+        'DataSeeder: no signed-in user; stamping rows with the placeholder owner. ' +
+        'Seeded data will not be visible to any real account.'
+    );
     return 'test_user_id';
 };
 

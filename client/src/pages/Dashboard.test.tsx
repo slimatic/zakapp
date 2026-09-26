@@ -168,6 +168,45 @@ describe('Dashboard Redirection', () => {
         expect(body).toMatch(/before\s+Zakat\s+becomes obligatory/);
     });
 
+    it('does NOT redirect when assets exist, even with isSetupCompleted false', async () => {
+        // The path #494 exercises against a real browser and the one no test covered:
+        // isSetupCompleted is genuinely false (it lives in the RxDB user_settings
+        // collection, created client-side as false), so the guard falls through to
+        // the data checks. With assets present the user must land on the dashboard,
+        // not onboarding — otherwise a populated account is told to start over.
+        (useAssetRepository as any).mockReturnValue({
+            assets: [{
+                id: 'a1', type: 'CASH', name: 'Smoke Cash', value: 1000,
+                currency: 'USD', isActive: true,
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
+            }],
+            isLoading: false,
+            error: null,
+        });
+        (useNisabRecordRepository as any).mockReturnValue({
+            activeRecord: null,
+            isLoading: false,
+            error: null,
+        });
+        (usePaymentRepository as any).mockReturnValue({
+            payments: [],
+            isLoading: false,
+            error: null,
+        });
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Dashboard />
+                </MemoryRouter>
+            </QueryClientProvider>
+        );
+
+        await new Promise(r => setTimeout(r, 100));
+        expect(navigate).not.toHaveBeenCalledWith('/onboarding');
+    });
+
     it('does NOT redirect if local prefs exist for user', async () => {
         // Mock existing prefs
         localStorage.setItem('zakapp_local_prefs_test-user', '{"skipped": true}');
