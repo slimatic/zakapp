@@ -33,7 +33,7 @@ SEED_LABEL = "Seed a Full Demo Dataset"
 
 def dashboard_renders(pg):
     """The acceptance criterion: /dashboard must NOT bounce to /onboarding."""
-    pg.goto(f"{BASE}/dashboard", wait_until="networkidle")
+    pg.goto(f"{BASE}/dashboard", wait_until="domcontentloaded")
     pg.wait_for_timeout(3000)
     return "/onboarding" not in pg.url and "/login" not in pg.url
 

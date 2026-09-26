@@ -92,13 +92,15 @@ def _secret():
 
 
 def _do_login(pg):
-    pg.goto(f"{BASE}/login", wait_until="networkidle")
+    pg.goto(f"{BASE}/login", wait_until="domcontentloaded")
     pg.wait_for_timeout(1200)
     pg.fill('#username', USER)
     pg.fill('#password', _secret())
     pg.evaluate("document.querySelector('#password').closest('form').requestSubmit()")
     try:
-        pg.wait_for_load_state("networkidle", timeout=30000)
+        # NOT networkidle: live sync holds a permanent _changes connection, so the
+        # network is never idle and this would always time out.
+        pg.wait_for_load_state("domcontentloaded", timeout=30000)
     except PWTimeout:
         pass
     for _ in range(30):
@@ -139,7 +141,9 @@ def _apply(pg, state, path):
     pg.evaluate(
         f"localStorage.setItem('zakapp_local_prefs_{UID}', JSON.stringify({{skipped:true}}))"
     )
-    pg.goto(f"{BASE}{path}", wait_until="networkidle")
+    # domcontentloaded, not networkidle — see the login path above.
+    pg.goto(f"{BASE}{path}", wait_until="domcontentloaded")
+    pg.wait_for_timeout(4000)  # let RxDB finish its initial pull
     pg.wait_for_timeout(2500)
     # The app is the authority: a dead token bounces to /login.
     return "/login" not in pg.url
@@ -175,7 +179,9 @@ def open_session(browser, viewport, is_mobile=False, has_touch=False, path="/das
     pg.evaluate(
         f"localStorage.setItem('zakapp_local_prefs_{UID}', JSON.stringify({{skipped:true}}))"
     )
-    pg.goto(f"{BASE}{path}", wait_until="networkidle")
+    # domcontentloaded, not networkidle — see the login path above.
+    pg.goto(f"{BASE}{path}", wait_until="domcontentloaded")
+    pg.wait_for_timeout(4000)  # let RxDB finish its initial pull
     pg.wait_for_timeout(2500)
     if "/login" in pg.url:
         raise SystemExit(f"FAIL: bounced back to /login when opening {path}")
