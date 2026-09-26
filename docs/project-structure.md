@@ -149,8 +149,6 @@ zakapp/
 │   ├── setup.sh                    # Development environment setup
 │   ├── build.sh                    # Build script
 │   ├── test.sh                     # Test execution script
-│   ├── deploy.sh                   # Deployment script
-│   └── backup.sh                   # Data backup script
 ├── tests/                          # Test files
 │   ├── e2e/                        # End-to-end tests
 │   ├── integration/                # Integration tests
