@@ -19,6 +19,24 @@ import { Request, Response, NextFunction } from 'express';
 import { VALID_ASSET_CATEGORY_VALUES } from '@zakapp/shared';
 
 /**
+ * Is `value` one of the valid asset categories, ignoring case?
+ *
+ * The list holds UPPERCASE values ('CASH', 'BANK_ACCOUNT'). Two call sites used
+ * to lowercase the input and compare against that uppercase list, which no input
+ * can ever satisfy — so every asset was rejected with "Category must be one of:
+ * CASH, BANK_ACCOUNT, …" no matter what was sent.
+ *
+ * Case-folding BOTH sides is the fix. It has to happen in one place: the same
+ * broken comparison existed twice and would drift again.
+ */
+function isValidAssetCategory(value: string): boolean {
+  const target = value.trim().toLowerCase();
+  return (VALID_ASSET_CATEGORY_VALUES as readonly string[]).some(
+    (c) => c.toLowerCase() === target
+  );
+}
+
+/**
  * Validation result interface
  */
 export interface ValidationResult {
@@ -43,7 +61,7 @@ export class SimpleValidation {
     if (!isPartial || data.category !== undefined) {
       if (!data.category || typeof data.category !== 'string') {
         errors.push('Category is required and must be a string');
-      } else if (!VALID_ASSET_CATEGORY_VALUES.includes(data.category.toLowerCase() as any)) {
+      } else if (!isValidAssetCategory(data.category)) {
         errors.push(`Category must be one of: ${VALID_ASSET_CATEGORY_VALUES.join(', ')}`);
       } else {
         validatedData.category = data.category;
@@ -166,7 +184,7 @@ export class SimpleValidation {
     if (!currency) errors.push('Currency is required');
 
     // Validate asset type using shared constant
-    if (type && !VALID_ASSET_CATEGORY_VALUES.includes(type.toLowerCase() as any)) {
+    if (type && !isValidAssetCategory(type)) {
       errors.push(`Invalid asset type. Must be one of: ${VALID_ASSET_CATEGORY_VALUES.join(', ')}`);
     }
 
