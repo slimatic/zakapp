@@ -164,7 +164,7 @@ def run(theme, mobile):
         bad_contrast = bad_targets = 0
         examined_total = 0
         for route in ROUTES:
-            pg.goto(f"http://localhost:4173{route}", wait_until="networkidle")
+            pg.goto(f"http://localhost:4173{route}", wait_until="domcontentloaded")
             pg.wait_for_timeout(2200)
             c = pg.evaluate(_js(CONTRAST)) or {}
             bad = c.get("bad") or []
@@ -216,7 +216,7 @@ def main():
             label = f"rtl/{'mobile' if mobile else 'desktop'}"
             print(f"\n=== {label} ===")
             for route in ROUTES:
-                pg.goto(f"http://localhost:4173{route}", wait_until="networkidle")
+                pg.goto(f"http://localhost:4173{route}", wait_until="domcontentloaded")
                 pg.wait_for_timeout(2200)
                 r = pg.evaluate(RTL_PROBE)
                 if r["dir"] != "rtl":
