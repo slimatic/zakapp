@@ -136,9 +136,41 @@ WORKDIR /app/server
 # Create data directory
 RUN mkdir -p /app/server/prisma/data
 
+# ---------------------------------------------------------------------------
+# Drop root.
+#
+# This container previously ran as uid 0. The live production instance was
+# confirmed running as root, so any RCE in the API — or a dependency compromise
+# in the Node process — held root inside the container, with full write access
+# to the mounted SQLite database and every environment secret in the process.
+#
+# Ownership is set explicitly on the paths the process actually writes:
+#   /app/server/prisma/data  the SQLite database and its WAL sidecars
+#   /app/server              Prisma CLI output, migrate logs, node_modules
+#   /app/shared              the shared build output read at startup
+#
+# The container is chowned rather than creating a user first, because the files
+# arrive from the builder stages owned by root and the process needs to write
+# them. The `node` image already ships a uid 1000 user named `node`, so no new
+# account is added.
+#
+# The entrypoint still runs as root deliberately: it validates secrets and runs
+# migrations, and the operator's bind-mounted volume needs a chown before the
+# app can write to it. It hands off with `setpriv` at the end. The migrations
+# and the server therefore run as `node`, not root.
+# ---------------------------------------------------------------------------
+RUN chown -R node:node /app/server /app/shared
+
+# No privilege-drop helper is installed: `setpriv` ships with util-linux and is
+# already present in node:20-slim (verified in the built image). `su-exec` is an
+# Alpine package and is NOT available in Debian — attempting to install it fails
+# the build outright.
+
 # Expose port
 EXPOSE 3001
 
 # Start via the entrypoint (validates secrets, then migrates, then runs CMD)
+# ENTRYPOINT stays as root so the entrypoint can chown the data volume;
+# the entrypoint execs the CMD as `node`.
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "start"]

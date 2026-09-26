@@ -54,7 +54,7 @@ jobs:
     # numbers are visible when a build does fail.
     - name: Upload server coverage report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-server
         path: server/coverage/
@@ -62,7 +62,7 @@ jobs:
 
     - name: Upload client coverage report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-client
         path: client/coverage/

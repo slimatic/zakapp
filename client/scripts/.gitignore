@@ -1,0 +1,3 @@
+
+# Playwright session state - contains live JWTs. NEVER commit.
+.session-cache.json

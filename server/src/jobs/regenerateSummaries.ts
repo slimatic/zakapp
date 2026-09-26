@@ -28,6 +28,11 @@
 
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '../utils/logger';
+import { readEncryptedAmount } from '../utils/encryptedNumbers';
+
+// Re-exported so existing imports of this module keep working. The implementation
+// now lives in utils/encryptedNumbers.ts, shared with the live Hawl tracking path.
+export { readEncryptedAmount };
 
 const logger = new Logger('SummaryRegeneration');
 const prisma = new PrismaClient();
@@ -91,28 +96,46 @@ export async function regenerateAnnualSummaries(): Promise<{
 
     for (const snapshot of recentlyUpdatedSnapshots) {
       try {
-        // Calculate summary statistics
-        const totalPaid = snapshot.payments.reduce(
-          (sum, payment) => sum + Number(payment.amount),
-          0
-        );
+        // Decrypt before aggregating.
+        //
+        // These columns hold ciphertext, so `Number(...)` on them yields NaN and the
+        // NaN propagates into every total below. Each amount is decrypted on its own
+        // so one unreadable payment fails that snapshot loudly rather than quietly
+        // poisoning the whole summary.
+        const encryptionKey = process.env.ENCRYPTION_KEY || '';
+
+        const paymentAmounts: number[] = [];
+        for (const payment of snapshot.payments) {
+          paymentAmounts.push(await readEncryptedAmount(payment.amount, encryptionKey));
+        }
+
+        const totalPaid = paymentAmounts.reduce((sum, amount) => sum + amount, 0);
         const paymentCount = snapshot.payments.length;
 
         // Group payments by recipient type
         const paymentsByType: Record<string, number> = {};
-        for (const payment of snapshot.payments) {
-          const type = payment.recipientType || 'other';
-          paymentsByType[type] = (paymentsByType[type] || 0) + Number(payment.amount);
+        for (let i = 0; i < snapshot.payments.length; i++) {
+          const type = snapshot.payments[i].recipientType || 'other';
+          paymentsByType[type] = (paymentsByType[type] || 0) + paymentAmounts[i];
         }
 
         // Calculate outstanding zakat
-        const zakatAmount = Number(snapshot.zakatAmount);
+        const zakatAmount = await readEncryptedAmount(snapshot.zakatAmount, encryptionKey);
         const outstandingZakat = Math.max(0, zakatAmount - totalPaid);
 
         // Prepare encrypted data fields (NOTE: These should be encrypted in production)
         const recipientSummary = JSON.stringify(paymentsByType);
+        // nisabThreshold is ALSO an encrypted column, so Number() on it yielded NaN
+        // and JSON.stringify turned that into `threshold: null` — silently losing the
+        // threshold rather than erroring. Prefer the non-deprecated
+        // nisabThresholdAtStart, and fall back to the older column for snapshots
+        // written before the rename.
+        const nisabThresholdValue = await readEncryptedAmount(
+          snapshot.nisabThresholdAtStart ?? snapshot.nisabThreshold,
+          encryptionKey
+        );
         const nisabInfo = JSON.stringify({
-          threshold: Number(snapshot.nisabThreshold),
+          threshold: nisabThresholdValue,
           type: snapshot.nisabType,
         });
 

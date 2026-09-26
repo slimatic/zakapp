@@ -19,7 +19,7 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { Button, LoadingSpinner } from '../ui';
-import { parseAmountFromImport } from '../../utils/parseDecimal';
+import { requireImportedAmount } from '../../utils/parseDecimal';
 
 interface ImportResult {
   success: number;
@@ -169,7 +169,7 @@ export const PaymentImportExport: React.FC = () => {
           case 'amount':
             // Tolerant: see AssetImportExport — older exports wrote formatted
             // strings, which parseFloat turned into 0.
-            payment.amount = parseAmountFromImport(value) || 0;
+            payment.amount = requireImportedAmount(value, 'Payment row "amount"');
             break;
           case 'currency':
             payment.currency = value || 'USD';

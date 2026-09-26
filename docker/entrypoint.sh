@@ -171,6 +171,33 @@ if [ "$MIGRATIONS_NEEDED" = true ]; then
     fi
 fi
 
+# ---------------------------------------------------------------------------
+# 3. Volume ownership
+# ---------------------------------------------------------------------------
+# The image chowns its own layers to `node` at build time, but the SQLite data
+# directory is almost always a BIND MOUNT or a fresh named volume supplied by
+# the operator. A fresh volume is owned by root, and a bind mount carries the
+# host's ownership, so neither is guaranteed writable by `node`.
+#
+# SQLite needs write access to BOTH the database file and its directory — it
+# creates `-wal` and `-shm` sidecars next to the database. A container that
+# cannot write the directory fails at the first write rather than at startup,
+# which is a worse failure mode than refusing to boot.
+#
+# This is why the entrypoint still runs as root. It fixes ownership, then
+# hands off. `chown` is best-effort: on a read-only or already-correct mount it
+# may fail, and that must not prevent startup.
+# ---------------------------------------------------------------------------
+if [ "$(id -u)" = "0" ]; then
+    DATA_DIR=$(dirname "$DB_PATH")
+    if [ -d "$DATA_DIR" ]; then
+        chown -R node:node "$DATA_DIR" 2>/dev/null || \
+            echo "   ⚠️  Could not chown $DATA_DIR (read-only mount?) — continuing."
+    fi
+    # Prisma writes its query engine and migration state under here.
+    chown -R node:node /app/server/prisma 2>/dev/null || true
+fi
+
 # Verify database is accessible
 echo "🔍 Verifying database connection..."
 if npx prisma db execute --stdin < /dev/null > /dev/null 2>&1; then
@@ -197,5 +224,18 @@ if [ ! -f /app/shared/dist/constants/index.js ]; then
     exit 1
 fi
 
-# Execute the main command
-exec "$@"
+# Execute the main command.
+#
+# Runs as `node` when the entrypoint is root, so migrations and the server
+# itself do not hold uid 0. `setpriv` is used because it ships with util-linux
+# (already in node:20-slim) and execs directly — no TTY, no fork, no parent
+# process. PID 1 therefore receives SIGTERM from `docker stop` itself, instead
+# of a wrapper swallowing it and forcing a 10s SIGKILL.
+#
+# The `exec` form is preserved in both branches so nothing sits between Docker
+# and the Node server.
+if [ "$(id -u)" = "0" ] && command -v setpriv > /dev/null 2>&1; then
+    exec setpriv --reuid=node --regid=node --init-groups "$@"
+else
+    exec "$@"
+fi

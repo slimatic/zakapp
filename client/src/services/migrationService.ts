@@ -17,12 +17,47 @@
 
 import { Asset, AssetType } from '../types';
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
+import { parseAmountFromImport } from '../utils/parseDecimal';
 
 
 export interface MigrationResult {
     assets: { success: number; failed: number; errors: string[] };
     payments: { success: number; failed: number; errors: string[] };
     isFullSuccess: boolean;
+}
+
+/**
+ * Coerce a value from a backup file into an amount, refusing to guess.
+ *
+ * A backup restore is the last line of defence: the user is here because they
+ * already lost data once. Writing a wrong number is worse than failing, because
+ * nothing looks broken afterwards.
+ *
+ * Two silent-corruption paths existed here:
+ *   1. `Number('ZK1:...')` is NaN, so `|| 0` wrote ZERO into a real amount.
+ *   2. `parseAmountFromImport('ZK1:...')` strips non-digits from base64 and
+ *      produced a PLAUSIBLE WRONG NUMBER (e.g. 1928293), which is worse still.
+ *
+ * A missing amount is tolerated (older exports may omit optional fields) and
+ * becomes 0. A present-but-unreadable one is an error and stops the import.
+ */
+function requireAmount(raw: any, field: string, context: string): number {
+    if (raw === undefined || raw === null || raw === '') return 0;
+
+    const parsed = parseAmountFromImport(raw);
+    if (!Number.isFinite(parsed)) {
+        // Distinguish the alarming case in the message: an encrypted field means
+        // the backup came from a locked vault, not that the file is corrupt.
+        const isCipher = typeof raw === 'string' && raw.startsWith('ZK1:');
+        throw new Error(
+            isCipher
+                ? `${context}: ${field} is still encrypted (ZK1). Unlock the vault with the original ` +
+                  `password, or re-export from an unlocked session - importing this would write a wrong amount.`
+                : `${context}: ${field} is not a valid amount (got ${JSON.stringify(raw)}). ` +
+                  `Import stopped rather than record a wrong value.`
+        );
+    }
+    return parsed;
 }
 
 /**
@@ -44,7 +79,7 @@ export class MigrationService {
                 userId: userId,
                 name: raw.name || 'Untitled Asset',
                 type: type,
-                value: Number(raw.value) || 0,
+                value: requireAmount(raw.value, "value", "Asset"),
                 currency: raw.currency || 'USD',
                 description: raw.description || '',
                 // Legacy imports often lack acquisitionDate, use createdAt or now
@@ -70,7 +105,7 @@ export class MigrationService {
                 id: raw.id || crypto.randomUUID(), // Preserve ID
                 userId: userId,
                 snapshotId: raw.snapshotId || raw.snapshot || defaultSnapshotId || 'legacy-import',
-                amount: Number(raw.amount) || 0,
+                amount: requireAmount(raw.amount, "amount", "Payment"),
                 currency: raw.currency || 'USD',
                 paymentDate: raw.paymentDate || new Date().toISOString(),
                 recipientName: raw.recipientName || 'Unknown Recipient',
@@ -79,7 +114,7 @@ export class MigrationService {
                 paymentMethod: raw.paymentMethod || 'cash',
                 status: raw.status || 'recorded',
                 exchangeRate: 1.0,
-                createdAt: new Date().toISOString(),
+                createdAt: raw.createdAt || new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
 
@@ -131,9 +166,9 @@ export class MigrationService {
                 hawlCompletionDate: raw.hawlCompletionDate || raw.endDate,
                 hijriYear: raw.hijriYear || 1445,
                 nisabBasis: raw.nisabBasis || 'GOLD',
-                totalWealth: Number(raw.totalWealth) || 0,
-                zakatableWealth: Number(raw.zakatableWealth) || 0,
-                zakatAmount: Number(raw.zakatAmount) || 0,
+                totalWealth: requireAmount(raw.totalWealth, "totalWealth", "Nisab record"),
+                zakatableWealth: requireAmount(raw.zakatableWealth, "zakatableWealth", "Nisab record"),
+                zakatAmount: requireAmount(raw.zakatAmount, "zakatAmount", "Nisab record"),
                 currency: raw.currency || 'USD',
                 status: raw.status || 'DRAFT',
                 createdAt: raw.createdAt || new Date().toISOString(),
@@ -152,7 +187,7 @@ export class MigrationService {
                 userId: userId,
                 name: raw.name || 'Untitled Liability',
                 type: raw.type || 'short_term',
-                amount: Number(raw.amount) || 0,
+                amount: requireAmount(raw.amount, "amount", "Liability"),
                 currency: raw.currency || 'USD',
                 description: raw.description || '',
                 metadata: raw.metadata || '',

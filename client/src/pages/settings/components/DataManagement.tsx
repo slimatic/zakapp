@@ -64,10 +64,10 @@ export const DataManagement: React.FC = () => {
     return (
         <div className="space-y-8">
             <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                <h2 className="text-xl font-semibold text-primary mb-4">
                     Data Management
                 </h2>
-                <p className="text-gray-600 mb-6">
+                <p className="text-muted-foreground mb-6">
                     Import, export, and manage your data privacy settings
                 </p>
             </div>
@@ -88,33 +88,33 @@ export const DataManagement: React.FC = () => {
 
             {/* Privacy Settings */}
             <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Privacy Preferences</h3>
+                <h3 className="text-lg font-medium text-primary">Privacy Preferences</h3>
 
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-accent rounded-lg">
                         <div>
-                            <p className="font-medium text-gray-900">Data Encryption</p>
-                            <p className="text-sm text-gray-600">All sensitive data is encrypted with AES-256</p>
+                            <p className="font-medium text-primary">Data Encryption</p>
+                            <p className="text-sm text-muted-foreground">All sensitive data is encrypted with AES-256</p>
                         </div>
                         <div className="flex items-center">
-                            <span className="text-green-600 font-medium">✅ Enabled</span>
+                            <span className="text-primary font-medium">✅ Enabled</span>
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-accent rounded-lg">
                         <div>
-                            <p className="font-medium text-gray-900">Local Data Storage</p>
-                            <p className="text-sm text-gray-600">Your data is stored locally on your device</p>
+                            <p className="font-medium text-primary">Local Data Storage</p>
+                            <p className="text-sm text-muted-foreground">Your data is stored locally on your device</p>
                         </div>
                         <div className="flex items-center">
-                            <span className="text-green-600 font-medium">✅ Active</span>
+                            <span className="text-primary font-medium">✅ Active</span>
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-accent rounded-lg">
                         <div>
-                            <p className="font-medium text-gray-900" id="usage-stats-label">Anonymous Usage Statistics</p>
-                            <p className="text-sm text-gray-600">Help improve ZakApp by sharing anonymous usage data</p>
+                            <p className="font-medium text-primary" id="usage-stats-label">Anonymous Usage Statistics</p>
+                            <p className="text-sm text-muted-foreground">Help improve ZakApp by sharing anonymous usage data</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -126,21 +126,21 @@ export const DataManagement: React.FC = () => {
                                 role="switch"
                                 aria-checked={privacySettings.anonymousUsageStats}
                             />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            <div className="w-11 h-6 bg-accent peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-default after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                     </div>
                 </div>
             </div>
 
             {/* Data Retention */}
-            <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Data Retention</h3>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="border-t border-default pt-6">
+                <h3 className="text-lg font-medium text-primary mb-4">Data Retention</h3>
+                <div className="bg-accent border border-default rounded-lg p-4">
                     <div className="flex items-start">
-                        <span className="text-yellow-600 text-xl mr-3" aria-hidden="true">⏰</span>
+                        <span className="text-primary text-xl mr-3" aria-hidden="true">⏰</span>
                         <div>
-                            <p className="font-medium text-yellow-800">Data Retention Policy</p>
-                            <p className="text-sm text-yellow-700 mt-1">
+                            <p className="font-medium text-primary">Data Retention Policy</p>
+                            <p className="text-sm text-muted-foreground mt-1">
                                 Your data is retained indefinitely for calculation accuracy and historical tracking.
                                 You can delete your account at any time to remove all data permanently.
                             </p>

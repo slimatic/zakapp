@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
 import { useMaskedCurrency } from '../../../contexts/PrivacyContext';
+import { formatCurrency as formatCurrencyCanonical } from '../../../utils/formatters';
 
 export const MetalsStep: React.FC = () => {
   const { t } = useTranslation('onboarding');
@@ -39,7 +40,7 @@ export const MetalsStep: React.FC = () => {
     };
 
     const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: data.settings?.currency || 'USD' }).format(val);
+        return formatCurrencyCanonical(val, data.settings?.currency || 'USD');
     };
 
     return (

@@ -1,6 +1,6 @@
 {
   "name": "@zakapp/shared",
-  "version": "0.17.0",
+  "version": "0.17.2",
   "description": "Shared types and utilities for zakapp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -64,5 +64,7 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "license": "AGPL-3.0-or-later",
+  "private": true
 }
