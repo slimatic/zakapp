@@ -85,7 +85,7 @@
     "typescript": "^5.5.4",
     "unplugin-swc": "^1.5.1",
     "vite": "^6.4.1",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.1"
   },
   "directories": {
     "test": "tests"
