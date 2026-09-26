@@ -119,10 +119,10 @@ export const DangerZone: React.FC = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-red-700 mb-4">
+                <h2 className="text-xl font-semibold text-destructive mb-4">
                     Danger Zone
                 </h2>
-                <p className="text-gray-600 mb-6">
+                <p className="text-muted-foreground mb-6">
                     Irreversible and destructive actions for your account
                 </p>
             </div>
@@ -213,7 +213,7 @@ export const DangerZone: React.FC = () => {
                         </div>
                     </div>
 
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                         Your account settings and profile will be preserved. Are you sure you want to continue?
                     </p>
 
@@ -254,7 +254,7 @@ export const DangerZone: React.FC = () => {
                         </p>
                     </div>
 
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                         Your local data on this device will NOT be deleted. You can re-enable sync later to upload a fresh copy.
                     </p>
 
@@ -295,7 +295,7 @@ export const DangerZone: React.FC = () => {
                     </div>
 
                     <div className="space-y-4 pt-2">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                             Please enter your password to confirm deletion.
                         </p>
 

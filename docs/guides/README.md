@@ -22,6 +22,11 @@ This directory contains specialized setup, configuration, and deployment guides 
 ### 🔧 Configuration Guides
 
 #### Network & Ports
+- **[Local Network Access (DEVELOPMENT-NETWORK-ACCESS.md)](DEVELOPMENT-NETWORK-ACCESS.md)**
+  - Access your dev server from another device by IP
+  - Fix the Web Crypto `importKey` crash on HTTP / non-localhost origins
+  - Chrome flags vs HTTPS tunnel vs local certificate
+
 - **[Port Configuration Guide (PORT_CONFIGURATION_GUIDE.md)](PORT_CONFIGURATION_GUIDE.md)**
   - Configure custom ports for backend and frontend
   - Fix "Failed to fetch" errors
@@ -96,6 +101,11 @@ This directory contains specialized setup, configuration, and deployment guides 
 1. Check [Port Configuration Guide](PORT_CONFIGURATION_GUIDE.md)
 2. Verify environment variables match in backend and frontend
 3. Review [Troubleshooting section](../../README.md#-troubleshooting) in main README
+
+### "Login crashes when I open the app from my phone or another device"
+1. Check [Local Network Access Guide](DEVELOPMENT-NETWORK-ACCESS.md)
+2. Confirm `window.isSecureContext` is `true` on the client device
+3. Use an HTTPS tunnel for phones — `chrome://flags` is desktop-only
 
 ### "I need to set up a staging environment"
 1. Follow [Staging Deployment Guide](STAGING_DEPLOYMENT_GUIDE.md)

@@ -2,135 +2,160 @@
 
 ## [Unreleased]
 
-### Documentation hygiene — public/private boundary
+_Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
+See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
-Tracked documentation had accumulated operational detail that does not belong in a
-public repository. Removed:
+## [0.17.2] - 2026-09-26
 
-- **Personal email addresses** from registration walkthroughs and fix reports
-  (8 files, both `docs/reports/` and its duplicate `docs/archive/reports/` tree).
-  Examples now use the IANA-reserved `example.com` domain.
-- **Operator-specific install paths** (`~/<app-platform-dir>/<user>/services/...`) replaced with
-  the documented placeholder `<ZAKAPP_INSTALL_DIR>`, with a new preamble explaining
-  that the path is wherever *you* installed ZakApp.
-- **Production service hostnames** (frontend, API, sync endpoints) replaced with
-  `<YOUR_APP_HOST>` / `<YOUR_API_HOST>` / `<YOUR_SYNC_HOST>`. The project's reference
-  deployment is publicly linked as a demo; its internal service topology is not
-  documented here.
-- **A private IP on the maintainer's LAN subnet** in `IMPLEMENTATION-SUMMARY.md` and
-  `docs/NGINX-PROXY-MANAGER.md`, replaced with a neutral RFC1918 example.
-- **The maintainer's name** in registration examples and release-plan attributions.
+### 15 Rabi al-Thani 1448 — full moon, 99.8% lit
 
-Added `docs/PUBLIC-PRIVATE-BOUNDARY.md`: the rule, the never-commit table, the
-synthetic-test-data convention, and grep checks to run before pushing.
+The push-notification fix was merged to `main` but never reached a deployment. The published
+`0.17.1` image was built 3h20m before the fix landed, and since production pins an explicit
+semver rather than `:latest`, a newer image cannot arrive on its own. Shipped off-anchor under
+the cadence's "a security or data-safety fix is verified and waiting" exception.
 
-> Note: this repo is the open-source software; `zakapp.org` is one deployment of it.
-> They are related but distinct, and documentation must not conflate them.
+**Correctness**
 
-## [0.17.0] - 2026-10-12
+- **Web-push notifications could never be displayed.** The handlers existed on disk but were in
+  no branch and never in the bundle: `.gitignore`'s blanket `*.js` rule matched
+  `client/public/sw.js`, and workbox's `generateSW` mode writes its own `dist/sw.js` and
+  discards any hand-written one. The service worker registered twice as well. The served worker
+  contained **zero** push listeners while VAPID was configured and the subscribe UI worked —
+  so it failed silently. Handlers now live in `public/push-sw.js`, that path is explicitly
+  un-ignored, and workbox pulls them in via `importScripts` so the tuned `navigateFallback`
+  and `runtimeCaching` rules stay intact.
+- **Deleted an unreachable PDF that asserted unverified fiqh claims.** It was reachable from
+  nowhere but shipped in the bundle, and stated a fixed "Silver Standard" and a "Default:
+  Hanafi" that would have contradicted the user's own madhab setting, plus an unattributed
+  "(Majority Opinion)". A document that misdescribes its own calculation is worse than no
+  document.
 
-### Jumada al-Ula 1448 — currency correctness, import safety, logging hygiene
+**Maintenance**
 
-**Currency formatting consolidated**
+- Removed a dead parallel payment API: 7 routes, a controller and a service, 868 lines total,
+  with no client caller. The `ZakatPayment` table is **not** removed — three live readers use it
+  (user data export, backup payload, migration detection), so dropping it would have silently
+  changed what a user's backup contains.
 
-Both currency formatters in the client were wrong, in different ways, so the same
-amount could render differently depending on which screen you were on.
+**Testing**
 
-- **SAR and EGP rendered Arabic-Indic digits.** An English-UI user saw
-  `١٬٢٣٤٫٥٦ ر.س.‏` for a Saudi riyal amount. The canonical formatter now pins
-  `numberingSystem: 'latn'` while keeping each currency's own symbol, placement and
-  grouping.
-- **IDR showed the code instead of the symbol** (`IDR 15,750,000`), and the
-  dashboard's hardcoded `$` could appear above a `Rp` figure on the same screen.
-  IDR now renders `Rp 15.750.000`.
-- **Decimals are now strict per currency** — USD always 2, IDR/JPY/KRW 0 — rather
-  than a 0–2 range that let `$1,234.5` and `$1,500,000` appear side by side.
-- `useDisplayCurrency` now delegates to the canonical `formatCurrency`, so the two
-  cannot drift apart again.
-- **28 duplicate `formatCurrency` definitions removed** across three passes. Eleven
-  were byte-identical for USD; eleven hardcoded USD with no currency source; five
-  read a record's own currency. Where a wrapper carried a guard — `privacyMode`
-  masking in `AssetCard`, the `NaN` guard in `FinalizationModal` — the wrapper was
-  kept as a thin delegate so no guard could be lost.
+- 15 guard assertions across two files, each verified by mutation: removing the
+  `importScripts` wiring, the `.gitignore` negation, or re-introducing the fabricated claims
+  all fail the suite. The push path is additionally verified behaviourally — a real `push`
+  event dispatched into the built worker in Chromium produces a notification.
 
-> **Non-Latin locales:** if your display currency uses comma grouping, the separator
-> changes. `1,500,000` now renders `1.500.000` for IDR. The digits are unchanged;
-> only the grouping mark follows the currency's locale.
+## [0.17.1] - 2026-09-25
 
-**Export/import no longer destroys amounts**
+### 13 Rabi al-Thani 1448 — waxing gibbous, 98% lit
 
-- CSV export wrote *formatted* values (`$1,234,567.89`) while the importers parsed
-  with `parseFloat`, which returns `NaN` on both `$` and `,`. Combined with a `|| 0`
-  fallback, **every amount silently became zero on re-import.** Export now writes raw
-  numbers with currency in its own column, and import accepts both raw values and
-  every formatted shape older releases produced — including id-ID grouping, where
-  `1.500.000` means one and a half million and must not parse as `1.5`.
-- Importers now return `NaN` on unparseable input instead of silently writing `0`.
+A patch release for the upgrade path itself. Shipping v0.17.0 with a backup that
+silently corrupted money would have made every pre-upgrade export untrustworthy —
+which is the one thing the cadence asks users to do first. Off-cadence by design,
+under "a security or data-safety fix is verified and waiting".
+
+**Export/import**
+
+- Amounts could come back as a **wrong number rather than an error.** A parser
+  stripped non-digits from a value, so ciphertext (`ZK1:…`) became a plausible
+  integer. Import now rejects anything carrying the `ZK1:` marker and every
+  unparseable amount, instead of falling back to `|| 0` and writing a silent zero.
+- **Profile settings were exported as ciphertext**, so restoring them
+  double-encrypted the values and made them permanently unreadable. Settings now
+  export as plaintext like the other four collections.
+- Backups are **not encrypted**, deliberately: a backup that needs the original
+  vault key is a backup you cannot restore after losing it. The export screen now
+  says so, and so do the export and import confirmations.
+- A preflight refuses to write a backup at all if any money field still holds
+  ciphertext — better to fail loudly than to emit a file that zero-fills on restore.
+- Payload version `2.5 → 3.0`; `1.x` and `2.x` files still import.
+- Cross-version test pins a real v0.17.0 → v1.0.0 upgrade path.
+
+**Session**
+
+- **Logout did nothing.** It awaited `navigator.serviceWorker.ready`, which never
+  settles when no worker is registered, so the session was never cleared. Local
+  tokens, cookies and storage are now cleared *first*, and network and database
+  teardown are bounded by timeouts — a stalled cleanup can no longer strand a user
+  in an active session.
+
+**Asset provenance**
+
+- **"Asset Age" reset on import.** Two separate causes: every repository stamped
+  `createdAt` *after* spreading the imported payload, overwriting the preserved
+  value; and the age was computed from `createdAt` (when the row was typed in)
+  rather than `acquisitionDate`. Imported records now keep their original
+  timestamps, age is measured from the acquisition date, and both dates are shown.
+  This matters beyond tidiness — ḥawl is a lunar year of *ownership*, so a reset
+  date makes an old holding look new.
+
+**Admin & settings**
+
+- The admin tab strip **scrolled the whole page sideways on a phone**: four tabs
+  measure 511px inside a 358px container at 390px wide, pushing the document to
+  527px. The strip now scrolls within itself. Desktop is unchanged.
+- Stat card icons were emoji (inconsistent across platforms, read aloud as words);
+  now decorative SVG with the label carrying the meaning.
+- Help & Support reused the Profile icon, so two nav rows looked identical.
+- The settings tab moved into the URL (`?tab=data`), so a section survives a
+  refresh and can be linked to directly.
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.17.0...v0.17.1
+
+## [0.17.0] - 2026-09-21
+
+### 10 Rabi al-Thani 1448 — waxing gibbous, 74% lit
+
+Trust in the numbers and the data: every figure displayed is one the app can justify, and
+the upgrade path was tested against a real production database before tagging.
+
+**Data safety**
+
+- Backups are validated by content (WAL checkpoint, SHA-256, `PRAGMA integrity_check`) instead of file size — an empty DB with live WAL sidecars passed the old check.
+- Startup re-encryption decrypts each rewritten value and compares it to the original before committing, and detects the wrong-key fail-open case that would double-encrypt a row.
+- Fixed the migration skipping `payment_records.amount` while reporting "no migration needed". Verified 10/10 values preserved on a production copy.
+- Added `scripts/ops/restore-backup.sh`, an interactive restore with row-count checks.
+
+**Money correctness**
+
+- Exchange rates were hardcoded to 2023 values, understating non-USD wealth by 42% (EGP) and 77% (TRY) and misreporting nisab status. Now live, 1-hour cache, non-direct pairs solved through USD.
+- Payment amounts under 1,000,000 returned `NaN` from a base64 length check; now parse raw and defer to authenticated decryption, failing loudly instead.
+- `parseFloat` was run on encrypted columns in six places — ~1 ciphertext in 6 starts with a digit, so it returned a small *wrong* number rather than `NaN`. All six now decrypt first.
+- Saved calculations record the rate used (`fxRateUsed`), and `/rate-staleness` flags drift ≥1% without rewriting history.
+- Amounts display in their recorded currency. An IDR asset no longer shows `$` in its retirement preview, and 11 sites building their own `en-US` formatter now use the canonical one (`Rp 50.000.000`, not `IDR 50,000,000.00`). Fixed Arabic-Indic digits for SAR/EGP.
+
+**Export/import**
+
+- CSV export wrote formatted values (`$1,234.56`) that `parseFloat` read as `NaN`; with a `|| 0` fallback every amount became zero on re-import. Export now writes raw numbers; import accepts every legacy format.
 
 **Security**
 
-- The `allowRegistration` gate and the verification-email handling from the 0.16.x
-  maintenance line are present on `main`; a build from this tree can no longer ship
-  open public signups.
-
-**Fabricated data paths removed from Zakat and auth surfaces**
-
-- `NisabService.getHistoricalNisab()` generated its "historical" nisab values with
-  `Math.random()`. Presented as trend data these are indistinguishable from real
-  prices. The method has **no callers**, so nothing shipped broken — but it was a
-  loaded gun in a religious-finance codebase. It now throws until a real historical
-  price source is integrated.
-- `useCompareSnapshots()` resolved a hard-coded all-zero comparison (`assetGrowth: 0`,
-  `differences: []`). `SnapshotComparison.tsx` binds those fields with `|| 0`
-  fallbacks, so wiring that screen up would have rendered a complete
-  **"$0.00 change / 0.0%"** table for any two records — visually identical to a
-  genuine no-change result. It now rejects, and the component shows an explicit
-  "not available" state. **Neither component is reachable from any route today**;
-  this removes a trap for the next developer rather than changing current behaviour.
-- `AuthMiddleware.authorize()` hard-coded `const userPermissions: string[] = []`
-  ahead of an `every()` check, so any future `authorize(['x'])` call would have
-  403'd for every user regardless of role. It now returns
-  `501 AUTHORIZATION_NOT_IMPLEMENTED` rather than pretending. No caller passes a
-  non-empty list today.
-
-**Logging**
-
-- The server logger's `info()` wrote straight to the container log with no
-  environment gate; the client sibling already gated on `NODE_ENV` and the two had
-  drifted. Now consistent.
-- **58 `console.log` sites across 24 production files** now route through the
-  per-workspace logger — lifecycle events to `info`, diagnostics to `debug`. Test,
-  story and mock occurrences are deliberately untouched.
+- **Containers no longer run as root.** The app ran as uid 0; it now starts root only to chown the data volume, then hands off with `setpriv`. Verified on a named volume and a bind mount.
+- Registration was gated in a route file the app never loaded, so disabling signups didn't disable them. Both paths now fail closed.
+- Reconnected the commented-out error handler that had collapsed 54 `AppError` statuses into a flat 500.
+- Backup/restore/session/audit/privacy endpoints returned hardcoded payloads (`restore` reported success, restoring nothing). They now read real data or return `501`.
+- Removed invented data paths (`Math.random()` "historical" nisab prices, a fabricated all-zero comparison); unreachable today, but a trap for the next developer.
+- Scrubbed personal emails, operator paths, production hostnames and a LAN IP from tracked docs.
 
 **Maintainability**
 
-- `server/src/routes/auth.ts` split from **1,251 lines into a 62-line facade** over
-  six focused modules. All nine Express routes were compared byte-for-byte before
-  and after. An unimported duplicate auth directory was removed — it was the reason
-  a security fix once landed in a file the app never loaded.
-- Removed the orphaned root `tests/` directory (25 files, last touched 2026-05-18).
-  It was referenced by **no CI job and no npm script** and could not run from the
-  repo root.
-- Added `server/tests/contract/payments.contract.test.ts` — a real contract test for
-  the shipping API covering auth rejection, validation failure and ownership checks.
+- Removed 113 unreachable files (28,729 lines) found with `knip` — 35 server, 78 client.
+- Split `server/src/routes/auth.ts` from 1,251 lines to a 62-line facade over 7 modules, routes compared byte-for-byte.
+- Removed a dead payment subsystem, the legacy root `tests/` directory, and an unimported duplicate auth directory.
+- Added `knip.json` to both workspaces so this stays checkable.
 
-**Dark mode**
+**Tests**
 
-- Gradient stops, focus rings and `border-gray-500` were unmapped in the dark theme,
-  leaving skeleton shimmers flashing bright and focus rings invisible. Mapped, with a
-  static test that fails if an unmapped `gray-*` utility is introduced.
+- Suites: server **507 → 753**, client **605 → 622**; server coverage **25.6% → 38.8%**, with CI gates added.
+- New coverage for the calculation engine (2.9% → 62.4%), encryption round-trips, 11-currency precision, the backup verifier against real SQLite files, and both ciphertext formats.
+- Replaced tests that mocked the code under test with ones that run it against real files.
 
-**Public/private boundary**
+**Release cadence**
 
-- Removed personal email addresses, operator install paths, production hostnames and
-  a private LAN IP from tracked documentation. Examples now use `example.com` and
-  RFC1918 ranges. Added `docs/PUBLIC-PRIVATE-BOUNDARY.md`, which states the rule, the
-  never-commit table, and the grep checks to run before pushing.
+- `docs/RELEASE-CADENCE.md`: one release per Hijri month, aimed at a lunar anchor (crescent or waxing gibbous). Anchors are a preference, not a contract — a verified security or data-safety fix ships when it is ready.
 
-**Suites:** server **507 pass** (53 files); client **605 pass / 1 skipped** (76 files).
-TypeScript clean across all workspaces.
+**Note:** no breaking changes. Non-Latin currencies now group differently — IDR renders `1.500.000` where it previously showed `1,500,000`.
 
-**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.3...v0.17.0
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v0.16.8...v0.17.0
 
 ## [0.16.6] - 2026-09-20
 

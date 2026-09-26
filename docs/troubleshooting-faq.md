@@ -67,6 +67,31 @@ Error: Authentication failed
 4. Try resetting your password
 5. Check if your browser is blocking cookies
 
+#### Login Fails With "Cannot read properties of undefined (reading 'importKey')"
+
+**Symptoms:** login immediately crashes when the app is opened from **another device** —
+a phone or second computer — using the server's IP address (e.g.
+`http://192.168.1.50:3000`) instead of `localhost`.
+
+**Cause:** browsers only expose the Web Crypto API (`window.crypto.subtle`) in a secure
+context. `localhost` and `127.0.0.1` are trusted; **a plain-HTTP IP address is not**, even on
+your own LAN. ZakApp encrypts in the browser, so the first crypto call fails. The error names
+`importKey`, not the real cause.
+
+**Fixes (in order of effort):**
+1. **Desktop browser:** open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, add
+   the exact origin *including port*, set **Enabled**, and relaunch the browser.
+2. **Phone / Firefox / Safari:** use an HTTPS tunnel (`cloudflared tunnel --url http://localhost:3000`).
+3. **Stable and off the public internet:** use a local HTTPS certificate (`mkcert`).
+
+Confirm the fix in DevTools (select `top` in the console context):
+```js
+window.isSecureContext        // → true
+typeof window.crypto.subtle   // → "object"
+```
+
+**Full guide, caveats and a symptom table:** [Local Network Access](guides/DEVELOPMENT-NETWORK-ACCESS.md)
+
 #### Session Expired Error
 ```
 Error: Your session has expired. Please log in again.
@@ -145,6 +170,12 @@ Error: Invalid CSV format
 **"Invalid credentials"**
 - Your email or password is incorrect
 - Account may be locked due to security policy
+
+**"Cannot read properties of undefined (reading 'importKey')"**
+- The page is not in a secure context — Web Crypto is unavailable
+- Typical when accessing by IP over HTTP from another device (`http://192.168.1.50:3000`)
+- `localhost` and `127.0.0.1` are secure contexts; a LAN IP is **not**
+- See [Local Network Access](guides/DEVELOPMENT-NETWORK-ACCESS.md)
 
 **"Account not verified"**
 - Check your email for verification link

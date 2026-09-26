@@ -1,0 +1,35 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/app.ts",
+    "src/server.ts",
+    "tests/**/*.test.ts",
+    "tests/setup.ts",
+    "tests/globalSetup.ts"
+  ],
+  "project": ["src/**/*.ts", "tests/**/*.ts"],
+  "ignore": [
+    "dist/**",
+    "coverage/**",
+    "prisma/**",
+    "**/*.d.ts"
+  ],
+  "ignoreDependencies": [
+    "tsconfig-paths",
+    "nodemon"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "files": "error",
+    "dependencies": "warn",
+    "devDependencies": "warn",
+    "unlisted": "error",
+    "binaries": "warn",
+    "unresolved": "error",
+    "exports": "warn",
+    "types": "warn",
+    "duplicates": "error",
+    "enumMembers": "off",
+    "classMembers": "off"
+  }
+}

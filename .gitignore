@@ -104,9 +104,15 @@ couchdb-data/
 *.couch
 
 # Build artifacts
+# NOTE: the blanket `*.js` below also swallowed real source files. A service
+# worker in public/ is copied into the build verbatim and can never be
+# generated, so it must stay committable — that is what broke #383: the push
+# handlers existed on disk, were ignored by git, and were absent from every
+# branch. Negations must come after the rule they override.
 dist/
 *.d.ts
 *.js
+!client/public/push-sw.js
 *.js.map
 *.d.ts.map
 *.tsbuildinfo
@@ -178,3 +184,7 @@ docs/archive/specs/*/lighthouse-report.json
 /ZAKAPP_AUDIT_*.md
 /*_READINESS_*.md
 /CURRENCY_MIGRATION_*.md
+
+# Python bytecode (scripts/ helpers are run directly)
+__pycache__/
+*.pyc

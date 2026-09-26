@@ -18,6 +18,7 @@
 import { YearlySnapshotModel } from '../models/YearlySnapshot';
 import { PaymentRecordModel } from '../models/PaymentRecord';
 import { YearlySnapshot } from '@zakapp/shared';
+import { readEncryptedAmount, decryptNumericFields } from '../utils/encryptedNumbers';
 
 /**
  * ComparisonService - Business logic for multi-snapshot analysis
@@ -60,19 +61,49 @@ export class ComparisonService {
       current: number;
     };
     insights: string[];
+    /**
+     * Fields that could not be read. Present so the caller can tell a genuine
+     * "no trend" from "we could not read the numbers". Empty in the normal case.
+     */
+    unreadableFields: string[];
   }> {
     if (snapshotIds.length < 2) {
       throw new Error('At least 2 snapshots are required for comparison');
     }
 
-    // Fetch all snapshots
+    // Fetch all snapshots.
+    //
+    // IMPORTANT: `YearlySnapshotModel.findById` returns the RAW Prisma row, so
+    // totalWealth / zakatableWealth / zakatAmount / nisabThreshold arrive as
+    // CIPHERTEXT. Every arithmetic operation below used to run on those strings:
+    //
+    //   Math.min(...ciphertexts)      -> NaN
+    //   Math.max(...ciphertexts)      -> NaN
+    //   sum + ciphertext              -> string concatenation
+    //   (NaN - NaN) / NaN / years     -> NaN
+    //   s.zakatableWealth >= s.nisab  -> string comparison, both sides ciphertext
+    //
+    // So the comparison response carried NaN in every numeric field, and the
+    // generated insights told the user their wealth "remained relatively stable"
+    // because the decreasing-branch was never reached. Decrypt first.
     const snapshots: YearlySnapshot[] = [];
+    const unreadableFields: string[] = [];
+
     for (const id of snapshotIds) {
       const snapshot = await YearlySnapshotModel.findById(id, userId);
       if (!snapshot) {
         throw new Error(`Snapshot ${id} not found`);
       }
-      snapshots.push(snapshot);
+
+      const { row, unreadable } = await decryptNumericFields(
+        snapshot as unknown as Record<string, unknown>,
+        ['totalWealth', 'zakatableWealth', 'zakatAmount', 'nisabThreshold'],
+        this.encryptionKey
+      );
+      for (const field of unreadable) {
+        unreadableFields.push(`${id}.${field}`);
+      }
+      snapshots.push(row as unknown as YearlySnapshot);
     }
 
     // Sort by year
@@ -90,7 +121,7 @@ export class ComparisonService {
     const firstWealth = snapshots[0].totalWealth;
     const lastWealth = snapshots[snapshots.length - 1].totalWealth;
     const years = snapshots[snapshots.length - 1].gregorianYear - snapshots[0].gregorianYear;
-    const averageGrowthRate = years > 0
+    const averageGrowthRate = years > 0 && firstWealth > 0
       ? ((lastWealth - firstWealth) / firstWealth / years) * 100
       : 0;
 
@@ -119,7 +150,8 @@ export class ComparisonService {
       averageGrowthRate,
       totalWealth,
       totalZakat,
-      insights
+      insights,
+      unreadableFields
     };
   }
 
@@ -164,27 +196,47 @@ export class ComparisonService {
     const data = [];
 
     for (let i = 0; i < snapshots.data.length; i++) {
-      const snapshot = snapshots.data[i];
-      
-      // Get payments for this snapshot
-      const payments = await PaymentRecordModel.findBySnapshot(snapshot.id, userId);
-      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+      // findByUser returns raw Prisma rows — decrypt before doing arithmetic.
+      // Without this, totalPaid was a concatenation of ciphertext strings, the
+      // year-over-year subtractions were NaN, and JSON turned every NaN into null.
+      const { row: snapshot } = await decryptNumericFields(
+        snapshots.data[i] as unknown as Record<string, unknown>,
+        ['totalWealth', 'zakatableWealth', 'zakatAmount', 'nisabThreshold'],
+        this.encryptionKey
+      );
 
-      const yearData: any = {
-        year: snapshot.gregorianYear,
-        totalWealth: snapshot.totalWealth,
-        zakatableWealth: snapshot.zakatableWealth,
-        zakatAmount: snapshot.zakatAmount,
-        nisabThreshold: snapshot.nisabThreshold,
+      // Get payments for this snapshot.
+      // findBySnapshot also returns raw rows, so each amount must be decrypted
+      // individually — `sum + ciphertext` concatenates rather than throwing.
+      const payments = await PaymentRecordModel.findBySnapshot(
+        (snapshot as { id: string }).id,
+        userId
+      );
+      let totalPaid = 0;
+      for (const payment of payments) {
+        totalPaid += await readEncryptedAmount(payment.amount, this.encryptionKey);
+      }
+
+      const yearData: Record<string, unknown> = {
+        year: (snapshot as { gregorianYear: number }).gregorianYear,
+        totalWealth: (snapshot as { totalWealth: number }).totalWealth,
+        zakatableWealth: (snapshot as { zakatableWealth: number }).zakatableWealth,
+        zakatAmount: (snapshot as { zakatAmount: number }).zakatAmount,
+        nisabThreshold: (snapshot as { nisabThreshold: number }).nisabThreshold,
         totalPaid,
         paymentCount: payments.length
       };
 
       // Calculate changes from previous year
       if (i > 0) {
-        const previousSnapshot = snapshots.data[i - 1];
-        yearData.wealthChangeFromPrevious = snapshot.totalWealth - previousSnapshot.totalWealth;
-        yearData.zakatChangeFromPrevious = snapshot.zakatAmount - previousSnapshot.zakatAmount;
+        const previousSnapshot = data[i - 1] as {
+          totalWealth: number;
+          zakatAmount: number;
+        };
+        yearData.wealthChangeFromPrevious =
+          (snapshot as { totalWealth: number }).totalWealth - previousSnapshot.totalWealth;
+        yearData.zakatChangeFromPrevious =
+          (snapshot as { zakatAmount: number }).zakatAmount - previousSnapshot.zakatAmount;
       }
 
       data.push(yearData);
@@ -226,16 +278,32 @@ export class ComparisonService {
     });
 
     const years = [];
-    for (const snapshot of snapshots.data) {
-      const payments = await PaymentRecordModel.findBySnapshot(snapshot.id, userId);
-      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-      const completionRate = snapshot.zakatAmount > 0
-        ? (totalPaid / snapshot.zakatAmount) * 100
+    for (const rawSnapshot of snapshots.data) {
+      // Raw Prisma rows — decrypt before comparing or dividing.
+      const { row: snapshot } = await decryptNumericFields(
+        rawSnapshot as unknown as Record<string, unknown>,
+        ['zakatAmount', 'totalWealth', 'zakatableWealth', 'nisabThreshold'],
+        this.encryptionKey
+      );
+      const snap = snapshot as unknown as {
+        id: string;
+        gregorianYear: number;
+        zakatAmount: number;
+      };
+
+      const payments = await PaymentRecordModel.findBySnapshot(snap.id, userId);
+      let totalPaid = 0;
+      for (const payment of payments) {
+        totalPaid += await readEncryptedAmount(payment.amount, this.encryptionKey);
+      }
+
+      const completionRate = snap.zakatAmount > 0
+        ? (totalPaid / snap.zakatAmount) * 100
         : 0;
 
       years.push({
-        year: snapshot.gregorianYear,
-        zakatCalculated: snapshot.zakatAmount,
+        year: snap.gregorianYear,
+        zakatCalculated: snap.zakatAmount,
         totalPaid,
         completionRate,
         numberOfPayments: payments.length
@@ -283,7 +351,19 @@ export class ComparisonService {
 
   /**
    * Generates insights from comparison data
-   * @param snapshots - Snapshots being compared
+   *
+   * NOTE ON THE PROSE. These strings are shown to the user as statements of fact
+   * about their finances. They used to be derived from comparisons between
+   * CIPHERTEXT strings, and because every comparison against NaN (or between two
+   * ciphertexts) is false, only the "stable" branches could ever be reached — the
+   * app confidently told a user their wealth "remained relatively stable" no matter
+   * what the numbers were.
+   *
+   * Now that the inputs are decrypted, the branches are meaningful. The
+   * "all above nisab" insight additionally requires finite values, so an unreadable
+   * comparison stays silent rather than asserting compliance it cannot verify.
+   *
+   * @param snapshots - Snapshots being compared (decrypted numeric fields)
    * @param wealthTrend - Wealth trend direction
    * @param zakatTrend - Zakat trend direction
    * @param growthRate - Average growth rate
@@ -313,8 +393,19 @@ export class ComparisonService {
       insights.push('Your Zakat obligations have been decreasing over time.');
     }
 
-    // Nisab compliance
-    const allAboveNisab = snapshots.every(s => s.zakatableWealth >= s.nisabThreshold);
+    // Nisab compliance.
+    // Require finite values before claiming compliance — an unverifiable comparison
+    // must not produce an assertion of correctness.
+    const comparable = snapshots.every(
+      s =>
+        Number.isFinite(Number(s.zakatableWealth)) &&
+        Number.isFinite(Number(s.nisabThreshold)) &&
+        Number(s.nisabThreshold) > 0
+    );
+    const allAboveNisab =
+      comparable &&
+      snapshots.every(s => Number(s.zakatableWealth) >= Number(s.nisabThreshold));
+
     if (allAboveNisab) {
       insights.push('You have consistently maintained wealth above the nisab threshold across all years.');
     }

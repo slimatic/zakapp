@@ -612,6 +612,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({ asset, onSuccess, onCancel
           <RetirementTreatmentSection
             retirementConfig={retirementConfig}
             value={formData.value}
+            currency={formData.currency}
             onConfigChange={setRetirementConfig}
           />
         )}

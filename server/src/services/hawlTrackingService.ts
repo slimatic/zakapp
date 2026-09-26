@@ -39,6 +39,7 @@ import type {
   LiveHawlData,
   HawlInterruptionEvent,
 } from '@zakapp/shared';
+import { readEncryptedAmount, decryptNumericFields } from '../utils/encryptedNumbers';
 
 export class HawlTrackingService {
   private readonly HAWL_DURATION_DAYS = 354; // Lunar year
@@ -170,8 +171,17 @@ export class HawlTrackingService {
         }
 
         if (existingRecord) {
-          // Check for interruption
-          const nisabThresholdAtStart = parseFloat(existingRecord.nisabThresholdAtStart || existingRecord.nisabThreshold);
+          // Check for interruption.
+          //
+          // nisabThresholdAtStart is an ENCRYPTED column. The previous code called
+          // parseFloat() on the raw ciphertext, which yields NaN — and `currentWealth
+          // < NaN` is always false, so this entire branch silently never ran. A user
+          // whose wealth genuinely fell to absolute zero would have kept an active
+          // Hawl instead of the record being interrupted.
+          const nisabThresholdAtStart = await readEncryptedAmount(
+            existingRecord.nisabThresholdAtStart ?? existingRecord.nisabThreshold,
+            process.env.ENCRYPTION_KEY || ''
+          );
 
           if (currentWealth < nisabThresholdAtStart) {
             // According to 'Nurturing Mountains', the Hawl is only broken if wealth drops to absolute zero.
@@ -386,11 +396,18 @@ export class HawlTrackingService {
       hawlCompletionDate: recordData.hawlCompletionDate,
       hawlCompletionDateHijri: recordData.hawlCompletionDateHijri,
       nisabBasis: recordData.nisabBasis,
-      nisabThresholdAtStart: parseFloat(recordData.nisabThresholdAtStart),
-      currentNisabThreshold: parseFloat(recordData.nisabThreshold),
-      wealthAtStart: parseFloat(recordData.totalWealth),
+      // Already decrypted to numbers by the caller — see the note on
+      // calculateLiveHawlData. Do NOT parseFloat here: these arrive from encrypted
+      // columns, and parseFloat on ciphertext yielded NaN, which JSON-serialised to
+      // null and made the live-tracking payload meaningless.
+      nisabThresholdAtStart: recordData.nisabThresholdAtStart,
+      currentNisabThreshold: recordData.nisabThreshold,
+      wealthAtStart: recordData.totalWealth,
       currentWealth,
-      minimumWealthDuringPeriod: Math.min(parseFloat(recordData.totalWealth), currentWealth),
+      minimumWealthDuringPeriod:
+        typeof recordData.totalWealth === 'number'
+          ? Math.min(recordData.totalWealth, currentWealth)
+          : currentWealth,
       daysElapsed,
       daysRemaining: Math.max(0, daysRemaining),
       hawlProgress: Math.min(100, Math.max(0, hawlProgress)),
@@ -401,18 +418,46 @@ export class HawlTrackingService {
   }
 
   /**
-   * Calculate live Hawl data for real-time display
-   * 
-   * @param recordData - NisabYearRecord
-   * @param currentWealth - Current wealth
+   * Calculate live Hawl data for real-time display.
+   *
+   * ASYNC, AND WHY IT HAD TO BECOME SO
+   *
+   * `recordData` is a raw `yearlySnapshot` row, so `nisabThresholdAtStart`,
+   * `nisabThreshold` and `totalWealth` all arrive as CIPHERTEXT. This method used to
+   * call `parseFloat()` on them, which yields NaN, and:
+   *
+   *   · `isAboveNisab = currentWealth >= NaN`  -> always false
+   *   · `percentageOfNisab = (wealth / NaN)*100` -> always NaN
+   *   · `estimatedZakat`                        -> always 0
+   *
+   * So the live-tracking panel a user sees while a Hawl is running reported
+   * BELOW_NISAB with 0 estimated zakat regardless of their actual position. It
+   * cannot be fixed by parsing differently — the values must be decrypted, which is
+   * asynchronous, so the signature changed from sync to async.
+   *
+   * Note the same file already had correct decrypting code in `_mapToResponse`; this
+   * path simply never used it.
+   *
+   * @param recordData - yearlySnapshot row (encrypted fields are decrypted here)
+   * @param currentWealth - current wealth, already numeric
    * @returns LiveHawlData with real-time metrics
    */
-  calculateLiveHawlData(recordData: any, currentWealth: number): LiveHawlData {
-    const state = this.calculateHawlTrackingState(recordData, currentWealth);
-    const nisabThreshold = parseFloat(recordData.nisabThresholdAtStart);
+  async calculateLiveHawlData(recordData: any, currentWealth: number): Promise<LiveHawlData> {
+    const encryptionKey = process.env.ENCRYPTION_KEY || '';
+
+    // Decrypt a copy so the caller's object is not mutated underneath it.
+    const { row: decrypted } = await decryptNumericFields(
+      { ...recordData },
+      ['nisabThresholdAtStart', 'nisabThreshold', 'totalWealth', 'zakatAmount'],
+      encryptionKey
+    );
+
+    const state = this.calculateHawlTrackingState(decrypted, currentWealth);
+    const nisabThreshold = Number(decrypted.nisabThresholdAtStart ?? 0);
 
     const isAboveNisab = currentWealth >= nisabThreshold;
-    const percentageOfNisab = (currentWealth / nisabThreshold) * 100;
+    const percentageOfNisab =
+      nisabThreshold > 0 ? (currentWealth / nisabThreshold) * 100 : 0;
 
     return {
       recordId: recordData.id,

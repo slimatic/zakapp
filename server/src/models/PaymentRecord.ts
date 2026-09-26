@@ -24,6 +24,7 @@ import {
   PaymentStatus
 } from '@zakapp/shared';
 import { prisma } from '../utils/prisma';
+import { readEncryptedAmount } from '../utils/encryptedNumbers';
 
 /**
  * PaymentRecord Model - Manages Zakat payment distribution records
@@ -372,10 +373,16 @@ export class PaymentRecordModel {
   static async getTotalPaidForSnapshot(snapshotId: string, userId: string): Promise<number> {
     try {
       const payments = await this.findBySnapshot(snapshotId, userId);
-      return payments.reduce((sum, payment) => {
-        const amount = parseFloat(payment.amount as unknown as string);
-        return sum + (amount * payment.exchangeRate);
-      }, 0);
+      // `amount` is an encrypted column and findBySnapshot returns raw rows, so
+      // parseFloat on it yielded NaN and this returned NaN rather than a total.
+      // Decrypt before multiplying by the (plain) exchangeRate.
+      const encryptionKey = process.env.ENCRYPTION_KEY || '';
+      let total = 0;
+      for (const payment of payments) {
+        const amount = await readEncryptedAmount(payment.amount, encryptionKey);
+        total += amount * payment.exchangeRate;
+      }
+      return total;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Failed to calculate total paid: ${errorMessage}`);
@@ -401,10 +408,15 @@ export class PaymentRecordModel {
       const payments = await prisma.paymentRecord.findMany({ where });
 
       const stats: Record<string, { count: number; total: number }> = {};
+      const encryptionKey = process.env.ENCRYPTION_KEY || '';
 
-      payments.forEach((payment: any) => {
-        const category = payment.recipientCategory;
-        const amount = parseFloat(payment.amount) * payment.exchangeRate;
+      // Sequential rather than forEach — decryption is async, so forEach could not
+      // await it and every total would have been NaN regardless of the encryption.
+      for (const payment of payments as unknown as Array<Record<string, unknown>>) {
+        const category = payment.recipientCategory as string;
+        const amount =
+          (await readEncryptedAmount(payment.amount, encryptionKey)) *
+          Number(payment.exchangeRate ?? 1);
 
         if (!stats[category]) {
           stats[category] = { count: 0, total: 0 };
@@ -412,7 +424,7 @@ export class PaymentRecordModel {
 
         stats[category].count++;
         stats[category].total += amount;
-      });
+      }
 
       return stats;
     } catch (error) {
