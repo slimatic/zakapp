@@ -184,4 +184,6 @@ client/scripts/__pycache__/
 
 # Cached smoke-test auth state (_login.py). Carries a LIVE token and the DB
 # encryption key - must never be committed to this public repo.
-client/scripts/.session-cache.json
+# `**/` rather than the exact path: an earlier run wrote one at the repo root,
+# where the old rule did not reach it.
+**/.session-cache.json
