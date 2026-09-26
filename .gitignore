@@ -110,6 +110,9 @@ couchdb-data/
 # handlers existed on disk, were ignored by git, and were absent from every
 # branch. Negations must come after the rule they override.
 dist/
+dist.prev/
+dist.prev2/
+dist.next/
 *.d.ts
 *.js
 !client/public/push-sw.js

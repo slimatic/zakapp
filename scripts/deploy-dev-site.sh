@@ -50,6 +50,8 @@ git pull -q --ff-only origin "$BRANCH" || die "could not fast-forward $BRANCH"
 HEAD_SHA="$(git rev-parse --short HEAD)"
 log "branch: $BRANCH at $HEAD_SHA — $(git log -1 --format=%s | cut -c1-56)"
 
+cd client
+
 # ── 3. Build into a temporary directory, then swap ───────────────
 #
 # WHY NOT `npm run build` DIRECTLY
@@ -70,7 +72,12 @@ log "branch: $BRANCH at $HEAD_SHA — $(git log -1 --format=%s | cut -c1-56)"
 BUILD_DIR="dist.next"
 rm -rf "$BUILD_DIR"
 log "building into $BUILD_DIR..."
-if ! npx vite build --outDir "$BUILD_DIR" --emptyOutDir >/tmp/zakapp-devbuild.log 2>&1; then
+# Use the LOCAL vite binary and run tsc first, mirroring the package's own
+# `build` script (`tsc && vite build`). Two reasons:
+#  - `npx vite build` can resolve a different global vite (rolldown), which failed
+#    with "Cannot resolve entry module index.html".
+#  - dropping tsc would publish a build that never type-checked.
+if ! { npx tsc && ./node_modules/.bin/vite build --outDir "$BUILD_DIR" --emptyOutDir; } >/tmp/zakapp-devbuild.log 2>&1; then
   tail -20 /tmp/zakapp-devbuild.log | sed 's/^/    /'
   rm -rf "$BUILD_DIR"
   die "build failed (full log: /tmp/zakapp-devbuild.log)" 2
