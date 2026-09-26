@@ -15,14 +15,14 @@ jobs:
         node-version: [20.x]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         # Full history so the whitespace and credential checks can compare
         # against the base branch rather than only the tip.
         fetch-depth: 0
 
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
@@ -132,7 +132,7 @@ jobs:
     # numbers are visible when a build does fail.
     - name: Upload server coverage report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-server
         path: server/coverage/
@@ -140,7 +140,7 @@ jobs:
 
     - name: Upload client coverage report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-client
         path: client/coverage/
