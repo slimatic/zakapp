@@ -206,6 +206,30 @@ router.post('/calculate',
         netWorth,
         nisabThreshold: result.result.nisab.effectiveNisab
       };
+
+      // ---------------------------------------------------------------------
+      // Determine the currency the STORED totals are denominated in.
+      //
+      // This is not the display currency. The stored totals are raw sums of
+      // `asset.value`, and every asset carries its own `currency`. For a
+      // single-currency portfolio the denomination is unambiguous. For a mixed
+      // one there is no single denomination at all, and the sum is not a quantity
+      // of anything (see tests/unit/crossCurrencyAggregation.test.ts).
+      //
+      // We therefore:
+      //   · record the single currency when every asset agrees (or there are none);
+      //   · fall back to the user's working currency when they do not, and record
+      //     the mixture in the breakdown so the ambiguity is visible rather than
+      //     silently resolved.
+      // ---------------------------------------------------------------------
+      const currencyBreakdown: Record<string, number> = {};
+      for (const asset of result.result.assets as Array<{ value?: number; currency?: string }>) {
+        const code = (asset.currency || 'USD').toUpperCase();
+        currencyBreakdown[code] = (currencyBreakdown[code] || 0) + (asset.value || 0);
+      }
+      const distinctCurrencies = Object.keys(currencyBreakdown);
+      const storedCurrency =
+        distinctCurrencies.length === 1 ? distinctCurrencies[0] : displayCurrency;
       let fxRate = 1.0;
       if (displayCurrency !== 'USD') {
         try {
@@ -239,7 +263,34 @@ router.post('/calculate',
           isZakatObligatory: result.result.meetsNisab,
           zakatAmount: result.result.totals.totalZakatDue,
           zakatRate: result.methodology.zakatRate,
-          breakdown: JSON.stringify(result.breakdown),
+          // Record the currency these amounts are denominated in.
+          //
+          // The stored totals above are RAW asset values, not the fx-converted
+          // `presentation` figures, so the denomination is the base currency the
+          // assets were entered in. Assets carry their own `currency` column and
+          // totals are summed across them, so a mixed portfolio has no single
+          // denomination — in that case we record the currency the user is
+          // working in and flag the mixture separately (see `currencyBreakdown`
+          // below and docs/CURRENCY-DISPLAY-RULE.md).
+          //
+          // Every record in production today is USD, so this is a faithful label
+          // for existing data and a correct one going forward.
+          currency: storedCurrency,
+          // Record which rate produced the converted figures. Null-safe: when no
+          // conversion was needed the rate is 1, and the source is still reported so
+          // a later comparison can tell "no conversion" from "unknown provenance".
+          //
+          // This is what makes the recalculation nudge possible at all — without it a
+          // record computed at a stale rate is byte-identical to a correct one.
+          fxRateUsed: fxRate,
+          fxRateSource: currencyService.getRateSource(),
+          breakdown: JSON.stringify({
+            ...result.breakdown,
+            // Retain the mixture so a later cross-currency fix has the data it
+            // needs rather than having to guess.
+            currencyBreakdown: currencyBreakdown ?? null,
+            recordedCurrency: storedCurrency,
+          }),
           assetsIncluded: JSON.stringify(result.result.assets),
           liabilitiesIncluded: JSON.stringify(liabilityData.liabilities),
           regionalAdjustments: null
@@ -268,7 +319,10 @@ router.post('/calculate',
             totalLiabilities: liabilityData.total
           },
           zakatYearStart: zakatYear.startDate,
-          zakatYearEnd: zakatYear.endDate
+          zakatYearEnd: zakatYear.endDate,
+          // Record the denomination so history can display in the currency it
+          // was recorded in, not the user's current display currency.
+          currency: storedCurrency
         });
       } catch {
         // Log error but don't fail the calculation
@@ -674,6 +728,131 @@ router.get('/history',
       res.status(500).json(response);
     }
   })
+);
+
+/**
+* GET /api/zakat/calculations/:id/rate-staleness
+*
+* Compares the exchange rate a saved calculation actually used against the current
+* rate, so the UI can offer a recalculation instead of silently presenting figures
+* computed at a rate that has since moved.
+*
+* WHY THIS IS NEEDED
+*
+* Until this release, `CurrencyService` supplied rates from a table hardcoded in
+* 2023. A saved calculation carried no record of which rate produced it, so a
+* record computed with the stale table was byte-identical to a correct one. Users
+* holding such a record had no way to know their zakat figure was affected.
+*
+* THE APPROACH, DELIBERATELY CONSERVATIVE
+*
+* The stored record is never modified and no recalculation happens here. This
+* endpoint only reports whether the inputs have moved enough to be worth the
+* user's attention, and returns the numbers so the client can decide how to
+* present it.
+*
+* Provenance is reported rather than assumed:
+*   · a record with no recorded rate returns `unknown` provenance — an honest
+*     "we cannot tell" for rows written before these columns existed, NOT a claim
+*     that the record was correct
+*   · the threshold exists because FX drifts continuously; a 0.4% move is noise
+*     and nagging about it would train users to ignore the prompt
+*/
+router.get(
+'/calculations/:id/rate-staleness',
+authenticate,
+asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const calculation = await prisma.zakatCalculation.findFirst({
+    where: { id: req.params.id, userId: req.userId! },
+    select: {
+      id: true,
+      currency: true,
+      calculationDate: true,
+      fxRateUsed: true,
+      fxRateSource: true,
+    },
+  });
+
+  if (!calculation) {
+    const response = createResponse(false, undefined, {
+      code: 'CALCULATION_NOT_FOUND',
+      message: 'Calculation not found',
+    });
+    res.status(404).json(response);
+    return;
+  }
+
+  // No recorded rate: provenance is genuinely unknown. Report that as its own
+  // state rather than assuming the record was fine or flagging it as stale.
+  if (calculation.fxRateUsed === null || calculation.fxRateUsed === undefined) {
+    res.status(200).json(
+      createResponse(true, {
+        calculationId: calculation.id,
+        currency: calculation.currency,
+        calculationDate: calculation.calculationDate,
+        provenance: 'unknown',
+        rateUsed: null,
+        currentRate: null,
+        driftPercent: null,
+        // Not actionable — the client must not promise accuracy either way.
+        shouldRecalculate: false,
+        reason:
+          'This calculation predates rate tracking, so the rate it used cannot be ' +
+          'determined. Recalculating will record the rate from now on.',
+      })
+    );
+    return;
+  }
+
+  const currencyService = new CurrencyService();
+  let currentRate: number;
+  try {
+    currentRate = await currencyService.getExchangeRate('USD', calculation.currency);
+  } catch (error) {
+    // Cannot compare without a current rate. Say so explicitly instead of
+    // returning a fabricated drift of zero, which would read as "all good".
+    res.status(200).json(
+      createResponse(true, {
+        calculationId: calculation.id,
+        currency: calculation.currency,
+        calculationDate: calculation.calculationDate,
+        provenance: calculation.fxRateSource ?? 'unknown',
+        rateUsed: calculation.fxRateUsed,
+        currentRate: null,
+        driftPercent: null,
+        shouldRecalculate: false,
+        reason: `Current rate unavailable for ${calculation.currency}, so staleness cannot be assessed.`,
+      })
+    );
+    return;
+  }
+
+  const rateUsed = calculation.fxRateUsed;
+  const drift = rateUsed > 0 ? ((currentRate - rateUsed) / rateUsed) * 100 : 0;
+  const absDrift = Math.abs(drift);
+
+  // 1% is the point at which the change is worth surfacing without being noise.
+  const THRESHOLD_PERCENT = 1;
+
+  res.status(200).json(
+    createResponse(true, {
+      calculationId: calculation.id,
+      currency: calculation.currency,
+      calculationDate: calculation.calculationDate,
+      provenance: calculation.fxRateSource ?? 'unknown',
+      rateUsed,
+      currentRate,
+      driftPercent: Number(drift.toFixed(4)),
+      shouldRecalculate: absDrift >= THRESHOLD_PERCENT,
+      reason:
+        absDrift >= THRESHOLD_PERCENT
+          ? `The exchange rate for ${calculation.currency} has moved ${drift.toFixed(1)}% since this calculation. The saved figures are unchanged; recalculating would apply the current rate.`
+          : `The exchange rate for ${calculation.currency} has moved ${drift.toFixed(2)}%, which is within normal drift.`,
+      reasonCode:
+        absDrift >= THRESHOLD_PERCENT ? 'RATE_MOVED' : 'RATE_STABLE',
+    })
+  );
+})
 );
 
 export default router;

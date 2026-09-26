@@ -52,7 +52,9 @@ export default defineConfig(({ mode }) => {
           'offline.html',
           'config.js',
           'logo.svg',
-          'sw.js',
+          // NOTE: 'sw.js' was listed here. It is not an asset to include —
+          // workbox GENERATES dist/sw.js, and listing it here was part of why
+          // the custom worker in public/ was mistaken for the live one (#383).
         ],
         manifest: {
           id: '/',
@@ -91,6 +93,13 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff}'],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+          // Issue #383: web-push handlers live in public/push-sw.js and are
+          // pulled into THIS generated worker. workbox stays in generateSW
+          // mode because the navigateFallback rule and the runtimeCaching
+          // below are tuned and are not worth rebuilding by hand in an
+          // injectManifest worker.
+          importScripts: ['push-sw.js'],
+
           // Issue #310 (round 4, PWA): the app shell (index.html) is precached,
           // so navigations must fall back to IT — never to offline.html. With
           // offline.html here, any transient index fetch failure served the

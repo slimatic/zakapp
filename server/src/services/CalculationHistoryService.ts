@@ -35,6 +35,13 @@ export interface SaveCalculationRequest {
   zakatYearStart: Date;
   zakatYearEnd: Date;
   methodologyConfigId?: string;
+  /**
+   * The currency `totalWealth`, `nisabThreshold` and `zakatDue` are denominated
+   * in. Recorded so history can display in the currency it was recorded in,
+   * rather than whatever the user's display currency happens to be later.
+   * Defaults to USD, which is accurate for every pre-existing record.
+   */
+  currency?: string;
 }
 
 export interface CalculationHistoryFilters {
@@ -69,8 +76,9 @@ export class CalculationHistoryService {
       metadata,
       zakatYearStart,
       zakatYearEnd,
-      methodologyConfigId
-    } = request;
+      methodologyConfigId,
+      currency = 'USD'
+      } = request;
 
     // Encrypt sensitive data
     const encryptedTotalWealth = await EncryptionService.encrypt(totalWealth.toString(), ENCRYPTION_KEY);
@@ -95,7 +103,10 @@ export class CalculationHistoryService {
         assetBreakdown: encryptedAssetBreakdown,
         notes: encryptedNotes,
         metadata: encryptedMetadata,
-        methodologyConfigId
+        methodologyConfigId,
+        // Plaintext on purpose: needed to render the encrypted amounts above,
+        // and not itself sensitive.
+        currency
       }
     });
 

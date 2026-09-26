@@ -171,19 +171,19 @@ export const ProfileForm: React.FC = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                <h2 className="text-xl font-semibold text-primary mb-4">
                     Profile Information
                 </h2>
-                <p className="text-gray-600 mb-6">
+                <p className="text-muted-foreground mb-6">
                     Update your personal information and calculation preferences
                 </p>
             </div>
 
             {showSuccessMessage && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div className="bg-accent border border-default rounded-lg p-4 mb-6">
                     <div className="flex items-center">
-                        <span className="text-green-600 text-xl mr-3" aria-hidden="true">✅</span>
-                        <p className="text-green-800 font-medium">{showSuccessMessage}</p>
+                        <span className="text-primary text-xl mr-3" aria-hidden="true">✅</span>
+                        <p className="text-primary font-medium">{showSuccessMessage}</p>
                     </div>
                 </div>
             )}
@@ -191,7 +191,7 @@ export const ProfileForm: React.FC = () => {
             <form onSubmit={handleProfileSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="firstName" className="block text-sm font-medium text-primary mb-2">
                             First Name
                         </label>
                         <input
@@ -202,13 +202,13 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 firstName: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="lastName" className="block text-sm font-medium text-primary mb-2">
                             Last Name
                         </label>
                         <input
@@ -219,12 +219,12 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 lastName: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
                     <div>
-                        <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="username" className="block text-sm font-medium text-primary mb-2">
                             Username
                         </label>
                         <input
@@ -235,13 +235,13 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 username: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="email" className="block text-sm font-medium text-primary mb-2">
                             Email Address
                         </label>
                         <input
@@ -252,16 +252,16 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 email: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                         <div className="mt-1">
                             {user?.isVerified ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-primary">
                                     ✅ Verified
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-primary">
                                     ⚠️ Unverified - Please check your email
                                 </span>
                             )}
@@ -270,14 +270,14 @@ export const ProfileForm: React.FC = () => {
                 </div>
 
                 {/* Preferences Section */}
-                <div className="border-t border-gray-200 pt-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                <div className="border-t border-default pt-6">
+                    <h3 className="text-lg font-medium text-primary mb-4">
                         Islamic Calculation Preferences
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="currency" className="block text-sm font-medium text-primary mb-2">
                                 Default Currency
                             </label>
                             <select
@@ -290,7 +290,7 @@ export const ProfileForm: React.FC = () => {
                                         currency: e.target.value
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 {currencies.map((currency) => (
                                     <option key={currency.code} value={currency.code}>
@@ -301,7 +301,7 @@ export const ProfileForm: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="zakatMethod" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="zakatMethod" className="block text-sm font-medium text-primary mb-2">
                                 Preferred Zakat Methodology
                             </label>
                             <select
@@ -314,7 +314,7 @@ export const ProfileForm: React.FC = () => {
                                         zakatMethod: e.target.value
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 {zakatMethods.map((method) => (
                                     <option key={method.value} value={method.value}>
@@ -325,9 +325,9 @@ export const ProfileForm: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="calendarType" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="calendarType" className="block text-sm font-medium text-primary mb-2">
                                 Calendar System
-                                <span className="ml-2 text-xs text-gray-500">
+                                <span className="ml-2 text-xs text-muted-foreground">
                                     (for Zakat calculation dates)
                                 </span>
                             </label>
@@ -341,12 +341,12 @@ export const ProfileForm: React.FC = () => {
                                         calendarType: e.target.value as 'lunar' | 'solar'
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 <option value="lunar">Hijri (Islamic Lunar Calendar - 354 days/year)</option>
                                 <option value="solar">Gregorian (Solar Calendar - 365 days/year)</option>
                             </select>
-                            <p className="mt-1 text-xs text-gray-500">
+                            <p className="mt-1 text-xs text-muted-foreground">
                                 💡 Zakat is due after one lunar year (Hijri) from your last payment.
                                 Using the Hijri calendar is more Islamically accurate.
                             </p>
@@ -354,7 +354,7 @@ export const ProfileForm: React.FC = () => {
 
                         {/* Hijri Adjustment Slider */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-primary mb-2">
                                 Hijri Date Adjustment (Moon Sighting)
                             </label>
                             <div className="flex items-center gap-4">
@@ -365,31 +365,31 @@ export const ProfileForm: React.FC = () => {
                                     step="1"
                                     value={hijriAdjustment}
                                     onChange={(e) => setHijriAdjustment(parseInt(e.target.value))}
-                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    className="w-full h-2 bg-accent rounded-lg appearance-none cursor-pointer"
                                 />
-                                <span className="text-sm font-medium text-gray-900 w-16 text-right">
+                                <span className="text-sm font-medium text-primary w-16 text-right">
                                     {hijriAdjustment > 0 ? `+${hijriAdjustment}` : hijriAdjustment} Days
                                 </span>
                             </div>
                             {/* Live Date Preview */}
-                            <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                <p className="text-xs text-gray-500 mb-1">Today's Date Preview:</p>
+                            <div className="mt-3 p-3 bg-accent rounded-lg border border-default">
+                                <p className="text-xs text-muted-foreground mb-1">Today's Date Preview:</p>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-700">
+                                    <span className="text-sm text-primary">
                                         📅 {new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                     </span>
-                                    <span className="text-sm font-medium text-green-700">
+                                    <span className="text-sm font-medium text-primary">
                                         🌙 {formatHijriDate(gregorianToHijri(new Date(), hijriAdjustment))}
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-xs text-gray-500 mt-2">
+                            <p className="text-xs text-muted-foreground mt-2">
                                 Adjust by +/- days to align with your local moon sighting.
                             </p>
                         </div>
 
                         <div>
-                            <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="language" className="block text-sm font-medium text-primary mb-2">
                                 Language
                             </label>
                             <select
@@ -402,7 +402,7 @@ export const ProfileForm: React.FC = () => {
                                         language: e.target.value
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 <option value="en">English (US)</option>
                                 <option value="ar" disabled>العربية (Arabic) - Coming Soon</option>

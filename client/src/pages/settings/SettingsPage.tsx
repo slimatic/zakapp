@@ -16,9 +16,9 @@
  */
 
 
-import React, { useState } from 'react';
+import React from 'react';
 import { LanguageSwitcher } from '../../components/settings/LanguageSwitcher';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ProfileForm } from './components/ProfileForm';
 import { SecuritySettings } from './components/SecuritySettings';
@@ -26,29 +26,42 @@ import { DataManagement } from './components/DataManagement';
 import { DangerZone } from './components/DangerZone';
 import { HelpSupport } from './components/HelpSupport';
 import { NotificationSettings } from './components/NotificationSettings';
-import { User, Lock, Database, AlertOctagon, LayoutDashboard, Bell } from 'lucide-react';
+import { User, Lock, Database, AlertOctagon, LayoutDashboard, Bell, HelpCircle } from 'lucide-react';
 
 type SettingsTab = 'profile' | 'security' | 'notifications' | 'data' | 'help' | 'danger';
+
+const TAB_IDS: SettingsTab[] = ['profile', 'security', 'notifications', 'data', 'help', 'danger'];
 
 export const SettingsPage: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+    // The open tab lives in the URL so it survives a refresh, works with the back
+    // button, and can be linked to directly (/settings?tab=data). Previously it was
+    // component state only, so every visit landed on Profile no matter which section
+    // the user came for.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const requested = searchParams.get('tab') as SettingsTab | null;
+    const activeTab: SettingsTab = requested && TAB_IDS.includes(requested) ? requested : 'profile';
+
+    const setActiveTab = (tab: SettingsTab) => {
+        // replace: switching tabs should not fill the history stack with entries.
+        setSearchParams(tab === 'profile' ? {} : { tab }, { replace: true });
+    };
 
     const navigation = [
         { id: 'profile', name: 'Profile Information', icon: User },
         { id: 'security', name: 'Security', icon: Lock },
         { id: 'notifications', name: 'Notifications', icon: Bell },
         { id: 'data', name: 'Data Management', icon: Database },
-        { id: 'help', name: 'Help & Support', icon: User },
+        { id: 'help', name: 'Help & Support', icon: HelpCircle },
         { id: 'danger', name: 'Danger Zone', icon: AlertOctagon },
     ];
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-6xl">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-                <p className="text-gray-600 mt-2">
+                <h1 className="text-3xl font-bold text-primary">Settings</h1>
+                <p className="text-muted-foreground mt-2">
                     Manage your account preferences and data
                 </p>
             </div>
@@ -64,13 +77,13 @@ export const SettingsPage: React.FC = () => {
                                     key={item.id}
                                     onClick={() => setActiveTab(item.id as SettingsTab)}
                                     className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === item.id
-                                        ? 'bg-blue-50 text-blue-700'
-                                        : 'text-gray-900 hover:bg-gray-50 hover:text-gray-900'
+                                        ? 'bg-accent text-primary'
+                                        : 'text-primary hover:bg-accent hover:text-primary'
                                         }`}
                                     aria-current={activeTab === item.id ? 'page' : undefined}
                                 >
                                     <Icon
-                                        className={`flex-shrink-0 -ml-1 mr-3 h-5 w-5 ${activeTab === item.id ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                                        className={`flex-shrink-0 -ml-1 mr-3 h-5 w-5 ${activeTab === item.id ? 'text-primary' : 'text-muted-foreground group-hover:text-muted-foreground'
                                             }`}
                                         aria-hidden="true"
                                     />
@@ -80,8 +93,8 @@ export const SettingsPage: React.FC = () => {
                         })}
 
                         {/* Language Selection (#338) */}
-                        <div className="mt-6 pt-6 border-t border-gray-200">
-                            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                        <div className="mt-6 pt-6 border-t border-default">
+                            <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                                 Language
                             </h3>
                             <div className="px-3">
@@ -91,21 +104,21 @@ export const SettingsPage: React.FC = () => {
 
                         {/* Admin Dashboard Link - Separated */}
                         {user?.isAdmin && (
-                            <div className="mt-6 pt-6 border-t border-gray-200">
-                                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                            <div className="mt-6 pt-6 border-t border-default">
+                                <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                                     Administration
                                 </h3>
                                 <button
                                     onClick={() => navigate('/admin')}
                                     className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 
-                                    bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 
-                                    hover:from-emerald-100 hover:to-teal-100 hover:shadow-sm border border-emerald-100"
+                                    bg-accent text-primary 
+                                    hover:bg-accent/80 hover:shadow-sm border border-default"
                                 >
                                     <LayoutDashboard
-                                        className="flex-shrink-0 -ml-1 mr-3 h-5 w-5 text-emerald-600"
+                                        className="flex-shrink-0 -ml-1 mr-3 h-5 w-5 text-primary"
                                         aria-hidden="true"
                                     />
-                                    <span className="truncate font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
+                                    <span className="truncate font-bold text-primary">
                                         Admin Dashboard
                                     </span>
                                 </button>
@@ -115,7 +128,7 @@ export const SettingsPage: React.FC = () => {
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 bg-white rounded-lg shadow min-h-[500px]">
+                <div className="flex-1 bg-surface rounded-lg shadow min-h-[500px]">
                     <div className="p-6 md:p-8">
                         {activeTab === 'profile' && <ProfileForm />}
                         {activeTab === 'security' && <SecuritySettings />}

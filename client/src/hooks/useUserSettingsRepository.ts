@@ -18,7 +18,20 @@
 import { useState, useEffect } from 'react';
 import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
-import { map } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
+import { cryptoService } from '../services/CryptoService';
+
+/**
+ * Fields the zero-knowledge plugin encrypts on write, so they must be decrypted on
+ * read like every other repository does.
+ *
+ * This repo was the only one that never decrypted. The consequence was not cosmetic:
+ * `settings` is part of the backup, so an export carried `ZK1:...` ciphertext for
+ * these instead of readable values. A backup has to be readable WITHOUT the vault key
+ * or it is not a backup - that is the whole point of asking users to export before an
+ * upgrade. Decrypting here also means the ciphertext never reaches the export scan.
+ */
+const ENCRYPTED_SETTINGS_FIELDS = ['profileName', 'firstName', 'lastName', 'email'];
 
 export interface UserSettings {
     id: string; // userId
@@ -51,7 +64,31 @@ export function useUserSettingsRepository() {
 
         const sub = db.user_settings.findOne(user.id).$
             .pipe(
-                map((doc: any) => doc ? doc.toJSON() : null)
+                switchMap(async (doc: any) => {
+                    if (!doc) return null;
+                    const data = { ...doc.toJSON() };
+
+                    // Decrypt the encrypted fields, mirroring the other repositories.
+                    // A failure here must not blank the value silently: the user would
+                    // see an empty profile and never learn why.
+                    for (const field of ENCRYPTED_SETTINGS_FIELDS) {
+                        const value = data[field];
+                        if (typeof value !== 'string' || !cryptoService.isEncrypted(value)) continue;
+                        try {
+                            const packed = cryptoService.unpackEncrypted(value);
+                            if (packed) {
+                                data[field] = await cryptoService.decrypt(packed.ciphertext, packed.iv);
+                            }
+                        } catch (e) {
+                            console.warn(`[useUserSettingsRepository] could not decrypt ${field}`, e);
+                            // Leave the value as-is rather than replacing it with ''.
+                            // The backup export scan will then refuse the file and say
+                            // why, instead of quietly exporting a blank profile.
+                        }
+                    }
+
+                    return data as UserSettings;
+                })
             )
             .subscribe({
                 next: (data: UserSettings | null) => {

@@ -306,38 +306,6 @@ export class UserService {
   }
 
   /**
-   * Request data export
-   */
-  async requestDataExport(userId: string, format: 'JSON' | 'CSV' = 'JSON') {
-    const requestId = `export-${Date.now()}-${userId.substring(0, 8)}`;
-
-    // Simulate export process
-    return {
-      requestId,
-      status: 'COMPLETED',
-      format,
-      estimatedCompletionTime: 'Completed',
-      downloadUrl: `/api/user/export-data/${requestId}`
-    };
-  }
-
-  /**
-   * Get export status
-   */
-  async getExportStatus(userId: string, requestId: string) {
-    // Simulate export status
-    return {
-      requestId,
-      status: 'COMPLETED',
-      requestedAt: new Date(),
-      completedAt: new Date(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      fileSize: 1024,
-      downloadUrl: `/api/user/export-data/${requestId}`
-    };
-  }
-
-  /**
    * Delete user account (soft delete)
    */
   async deleteAccount(userId: string, password: string) {
@@ -445,14 +413,39 @@ export class UserService {
    * Get privacy settings
    */
   async getPrivacySettings(userId: string) {
-    const settings = await this.getSettings(userId);
+    type StoredPrivacySettings = {
+      privacy?: {
+        analyticsEnabled?: boolean;
+        crashReportingEnabled?: boolean;
+        encryptionLevel?: unknown;
+        dataRetentionPeriod?: unknown;
+      };
+      notifications?: boolean;
+      privacyLevel?: unknown;
+    };
+
+    const settings = (await this.getSettings(userId)) as StoredPrivacySettings;
+    const privacy = settings.privacy ?? {};
+
+    // Read the values that updatePrivacySettings actually persists. The previous
+    // version returned analyticsOptIn/thirdPartySharing/dataRetentionPeriod as
+    // hardcoded constants and never consulted `settings.privacy`, so a saved
+    // preference was written to the database and then silently ignored on read —
+    // the toggle reverted on reload.
+    const analyticsEnabled = privacy.analyticsEnabled === true;
 
     return {
       privacyLevel: settings.privacyLevel || 'STANDARD',
       notifications: settings.notifications !== false,
-      dataRetentionPeriod: '2 years',
+      analyticsEnabled,
+      crashReportingEnabled: privacy.crashReportingEnabled === true,
+      encryptionLevel: privacy.encryptionLevel,
+      // Only report a retention period that is actually configured; do not assert
+      // a policy on the user's behalf.
+      dataRetentionPeriod: privacy.dataRetentionPeriod ?? null,
       thirdPartySharing: false,
-      analyticsOptIn: false
+      // Kept for callers using the older key name.
+      analyticsOptIn: analyticsEnabled,
     };
   }
 
@@ -521,13 +514,21 @@ export class UserService {
   }
 
   /**
-   * Restore user data from backup
+   * NOTE: a `restoreFromBackup()` stub used to live here. It returned
+   * `{ success: true, message: 'Data restored successfully from backup' }` and
+   * touched no data at all.
+   *
+   * It had no callers, so nothing was misled by it in practice — but it sat one
+   * `await userService.restoreFromBackup(...)` away from telling a user their data
+   * was recovered when nothing had happened. That is the most dangerous shape a
+   * stub can take, because a user who believes a restore succeeded stops worrying
+   * about their data.
+   *
+   * The endpoint that would have called it (`POST /api/user/restore`) already
+   * returns 501 NOT_IMPLEMENTED. Restore is now unimplemented in exactly one
+   * obvious way rather than two contradictory ones.
+   *
+   * If restore is ever built, it belongs here as a real implementation with tests
+   * over the entity list and conflict semantics — not as a success-shaped return.
    */
-  async restoreFromBackup(userId: string, backupData: any) {
-    return {
-      success: true,
-      message: 'Data restored successfully from backup',
-      restoredAt: new Date()
-    };
-  }
 }

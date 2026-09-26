@@ -232,14 +232,21 @@ export const AssetDetails: React.FC = () => {
         {/* Asset Age */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Asset Age</h3>
+          {/*
+            Measured from acquisitionDate, not createdAt. "Asset Age" means how long
+            the asset has been held, which is what matters for hawl - createdAt is
+            only when the row was typed in, and reading the label off createdAt made
+            a five-year-old holding look brand new. Imported assets already carry the
+            right acquisitionDate; this is the half that was displaying it as age 0.
+          */}
           <p className="text-2xl font-bold text-blue-600">
-            {Math.floor(
-              (new Date().getTime() - new Date(safeAsset.createdAt).getTime()) /
+            {Math.max(0, Math.floor(
+              (new Date().getTime() - new Date(safeAsset.acquisitionDate || safeAsset.createdAt).getTime()) /
               (1000 * 60 * 60 * 24)
-            )} days
+            ))} days
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            Added on {formatDate(safeAsset.createdAt)}
+            Acquired {formatDate(safeAsset.acquisitionDate || safeAsset.createdAt)}
           </p>
         </div>
       </div>
@@ -282,6 +289,12 @@ export const AssetDetails: React.FC = () => {
               Timestamps
             </h4>
             <dl className="space-y-3">
+              <div>
+                <dt className="text-sm font-medium text-gray-900">Acquired</dt>
+                <dd className="text-sm text-gray-700">
+                  {formatDate(safeAsset.acquisitionDate || safeAsset.createdAt)}
+                </dd>
+              </div>
               <div>
                 <dt className="text-sm font-medium text-gray-900">Created</dt>
                 <dd className="text-sm text-gray-700">{formatDate(safeAsset.createdAt)}</dd>

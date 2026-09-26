@@ -102,7 +102,8 @@ export function useLiabilityRepository() {
             ...liability,
             id: liability.id || crypto.randomUUID(),
             userId: user.id,
-            createdAt: new Date().toISOString(),
+            // Preserve a supplied createdAt (backup restore); see useAssetRepository.
+            createdAt: liability.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             isActive: liability.isActive ?? true,
             currency: liability.currency || 'USD'

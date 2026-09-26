@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Decimal } from 'decimal.js';
 import type { RetirementMethodology, RetirementConfig } from '../../../types/asset.types';
+import { formatCurrency } from '../../../utils/formatters';
 
 interface RetirementTreatmentSectionProps {
     retirementConfig?: RetirementConfig;
     value: string;
+    /**
+     * The asset's own currency. Required, not optional — see the note on the preview
+     * block below for why defaulting this was the bug.
+     */
+    currency: string;
     onConfigChange: (config: RetirementConfig | undefined) => void;
 }
 
@@ -31,6 +37,7 @@ const PENALTY_OPTIONS = [
 export const RetirementTreatmentSection: React.FC<RetirementTreatmentSectionProps> = ({
     retirementConfig,
     value,
+    currency,
     onConfigChange
 }) => {
     const [methodology, setMethodology] = useState<RetirementMethodology>(
@@ -197,13 +204,19 @@ export const RetirementTreatmentSection: React.FC<RetirementTreatmentSectionProp
             {value && numericValue > 0 && (
                 <div className="mt-4 pt-4 border-t border-blue-100">
                     <div className="bg-emerald-50 rounded-lg p-3 space-y-2">
+                        {/* All three figures render in the ASSET'S currency.
+                            They previously used a hardcoded "$" and
+                            toLocaleString('en-US'), so an asset recorded in IDR had its
+                            values labelled and grouped as US dollars — "Rp 50,000,000"
+                            displayed as "$50,000,000". The asset's currency is stored
+                            correctly; only the preview was wrong. */}
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Original Balance:</span>
-                            <span className="font-medium text-gray-900">${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                            <span className="font-medium text-gray-900">{formatCurrency(numericValue, currency)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Zakatable Amount:</span>
-                            <span className="font-bold text-blue-600">${zatakatableValue.toNumber().toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                            <span className="font-bold text-blue-600">{formatCurrency(zatakatableValue.toNumber(), currency)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Zakat Rate:</span>
@@ -211,7 +224,7 @@ export const RetirementTreatmentSection: React.FC<RetirementTreatmentSectionProp
                         </div>
                         <div className="flex justify-between text-sm border-t border-emerald-200 pt-2">
                             <span className="font-medium text-gray-900">Zakat Due:</span>
-                            <span className="font-bold text-emerald-600">${zatakatDue.toNumber().toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                            <span className="font-bold text-emerald-600">{formatCurrency(zatakatDue.toNumber(), currency)}</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-2 pt-2 border-t border-emerald-200">
                             💡 {explanation}
