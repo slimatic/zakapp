@@ -19,6 +19,21 @@ import { Request, Response, NextFunction } from 'express';
 import { VALID_ASSET_CATEGORY_VALUES } from '@zakapp/shared';
 
 /**
+ * Is `value` one of the valid asset categories, ignoring case?
+ *
+ * The list holds UPPERCASE values ('CASH', 'BANK_ACCOUNT', ...), so comparing
+ * `value.toLowerCase()` against it could never match - every category was
+ * rejected and POST /api/assets was unusable. Case-insensitive comparison,
+ * same contract, no other behaviour change.
+ */
+function isValidAssetCategory(value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  return VALID_ASSET_CATEGORY_VALUES.some(
+    (c) => c.toLowerCase() === value.toLowerCase()
+  );
+}
+
+/**
  * Validation result interface
  */
 export interface ValidationResult {
@@ -43,7 +58,7 @@ export class SimpleValidation {
     if (!isPartial || data.category !== undefined) {
       if (!data.category || typeof data.category !== 'string') {
         errors.push('Category is required and must be a string');
-      } else if (!VALID_ASSET_CATEGORY_VALUES.includes(data.category.toLowerCase() as any)) {
+      } else if (!isValidAssetCategory(data.category)) {
         errors.push(`Category must be one of: ${VALID_ASSET_CATEGORY_VALUES.join(', ')}`);
       } else {
         validatedData.category = data.category;
@@ -166,7 +181,7 @@ export class SimpleValidation {
     if (!currency) errors.push('Currency is required');
 
     // Validate asset type using shared constant
-    if (type && !VALID_ASSET_CATEGORY_VALUES.includes(type.toLowerCase() as any)) {
+    if (type && !isValidAssetCategory(type)) {
       errors.push(`Invalid asset type. Must be one of: ${VALID_ASSET_CATEGORY_VALUES.join(', ')}`);
     }
 
