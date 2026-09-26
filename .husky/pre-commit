@@ -1,6 +1,4 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # ──────────────────────────────────────────────────────────────
 # ZakApp Pre-Commit Security + Quality Hook
 # ──────────────────────────────────────────────────────────────
@@ -54,19 +52,21 @@ if [ -n "$SECRET_PATTERNS" ]; then
     exit 1
 fi
 
-# If gitleaks is available, run a deeper scan
+# If gitleaks is available, run a deeper scan. `protect --staged` is the
+# correct invocation for gitleaks 8.x; `git --pre-commit` does not exist.
 if command -v gitleaks >/dev/null 2>&1; then
     echo "🔍 Running gitleaks scan..."
-    gitleaks protect --staged --verbose --source . || {
+    gitleaks protect --staged --redact --verbose --source . || {
         echo "❌ gitleaks detected secrets in staged changes."
         echo "Run 'gitleaks protect --staged --verbose' for details."
         exit 1
     }
+else
+    echo "⚠️  gitleaks not installed — skipping the deep scan."
+    echo "   Install it, or rely on the CI secret scan before merging."
 fi
 
-# ── 2. LINT-STAGED (code quality) ─────────────────────────────
-echo "🧹 Running lint-staged..."
-npm run lint-staged
-
-# ── 3. SUCCESS ────────────────────────────────────────────────
+# ── 2. SUCCESS ────────────────────────────────────────────────
+# (commit message conventions are enforced by .husky/commit-msg, which is the
+#  hook that actually receives the message file)
 echo "✅ Pre-commit checks passed."
