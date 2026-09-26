@@ -50,21 +50,45 @@ git pull -q --ff-only origin "$BRANCH" || die "could not fast-forward $BRANCH"
 HEAD_SHA="$(git rev-parse --short HEAD)"
 log "branch: $BRANCH at $HEAD_SHA — $(git log -1 --format=%s | cut -c1-56)"
 
-# ── 3. Build ─────────────────────────────────────────────────────
-cd client
-log "building..."
-if ! npm run build >/tmp/zakapp-devbuild.log 2>&1; then
+# ── 3. Build into a temporary directory, then swap ───────────────
+#
+# WHY NOT `npm run build` DIRECTLY
+#   `vite build` empties `outDir` first (`emptyOutDir` defaults to true when the
+#   out directory is inside the project root). The preview serves `dist/`
+#   directly, so the hashed assets are deleted partway through the build, before
+#   the new ones exist. Any request in that window gets the SPA fallback: HTTP 200
+#   with an HTML body. A module script served as text/html is the blank page —
+#   the document loads and the script is refused with "Expected a JavaScript
+#   module script but the server responded with MIME type text/html".
+#
+#   MEASURED, not assumed. Polling the asset `index.html` names every 500ms across
+#   a deploy: the old build serves 16 x text/html over a 9-second window. Building
+#   into `dist.next` and swapping gives 0.
+#
+#   Note the shell never fails — the fallback answers every URL with 200 — which is
+#   why a plain `curl /` looks healthy while the app is broken.
+BUILD_DIR="dist.next"
+rm -rf "$BUILD_DIR"
+log "building into $BUILD_DIR..."
+if ! npx vite build --outDir "$BUILD_DIR" --emptyOutDir >/tmp/zakapp-devbuild.log 2>&1; then
   tail -20 /tmp/zakapp-devbuild.log | sed 's/^/    /'
+  rm -rf "$BUILD_DIR"
   die "build failed (full log: /tmp/zakapp-devbuild.log)" 2
 fi
-log "built $(ls -la --time-style=+%H:%M dist/index.html | awk '{print $6}')"
 
-# ── 4. Verify: the hash baked into dist must equal HEAD ──────────
-# This is the check that would have caught both stale-dist incidents.
-BAKED="$(grep -ohE "\"$HEAD_SHA\"" dist/assets/index-*.js 2>/dev/null | head -1 | tr -d '"' || true)"
+# Verify BEFORE it goes live, so a bad build is discarded rather than published.
+BAKED="$(grep -ohE "\"$HEAD_SHA\"" "$BUILD_DIR"/assets/index-*.js 2>/dev/null | head -1 | tr -d '"' || true)"
 if [ "$BAKED" != "$HEAD_SHA" ]; then
-  die "dist/ does not carry $HEAD_SHA (found: ${BAKED:-nothing}) — build is stale" 3
+  rm -rf "$BUILD_DIR"
+  die "$BUILD_DIR does not carry $HEAD_SHA (found: ${BAKED:-nothing}) — build is stale" 3
 fi
+
+# Keep the two most recent builds as rollback targets before replacing the live one.
+rm -rf dist.prev2
+[ -d dist.prev ] && mv dist.prev dist.prev2
+[ -d dist ] && mv dist dist.prev
+mv "$BUILD_DIR" dist
+log "swapped in $(ls -la --time-style=+%H:%M dist/index.html | awk '{print $6}') (previous kept in dist.prev)"
 log "dist carries $HEAD_SHA"
 
 # ── 5. Verify: what the URL actually serves matches ──────────────
