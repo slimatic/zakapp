@@ -75,7 +75,19 @@ const migrationStrategiesV5 = {
 const migrationStrategiesV6 = {
     ...migrationStrategiesV5,
     6: (doc: any) => {
-        doc.preferredNisabStandard = 'GOLD';
+        // Only supply the value when the document has none.
+        //
+        // This used to assign unconditionally, so every document running the
+        // v6 migration had its saved basis replaced with GOLD — a user who
+        // had chosen SILVER silently lost the setting. A migration exists to
+        // carry data forward, not to overwrite it.
+        //
+        // Uppercase on purpose: the consumers type this as 'GOLD' | 'SILVER'
+        // and the schema's lowercase 'gold' default was a third spelling of
+        // the same idea (see #521).
+        if (!doc.preferredNisabStandard) {
+            doc.preferredNisabStandard = 'GOLD';
+        }
         return doc;
     }
 };

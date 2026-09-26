@@ -20,6 +20,7 @@ CHECKS = [
     "check-no-alerts.py",
     "check-no-committed-credentials.py",
     "check-no-credential-logging.py",
+    "check-payment-vocabulary.py",
     "check-pdf-theme.py",
     "check-runtime-config.py",
     "check-sender-domain-resolves.py",
