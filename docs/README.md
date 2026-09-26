@@ -92,14 +92,6 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 
 **Archive of completed work:**
 
-- **[Documentation Archive Index](archive/ARCHIVE_INDEX.md)** - Comprehensive index of archived documentation
-- **[Completion Reports](archive/completion-reports/)** - Feature and phase completion reports
-- **[Fix Reports](archive/fix-reports/)** - Bug fixes and issue resolutions
-- **[Phase Reports](archive/phase-reports/)** - Development phase tracking
-- **[Task Reports](archive/task-reports/)** - T-numbered task completion reports
-- **[Technical Reports](archive/technical-reports/)** - TypeScript migration, Docker, database reports
-- **[Session Reports](archive/session-reports/)** - Development session summaries
-
 ### 🔍 Code Quality & Analysis
 
 **Repository maintenance:**
@@ -154,7 +146,7 @@ When adding or updating documentation:
 1. **Keep it organized** - Use the structure above
 2. **Link related docs** - Add navigation between related documents
 3. **Update this index** - Add new docs to the appropriate section
-4. **Archive old docs** - Move historical docs to [archive/](archive/)
+4. **Archive old docs** - Historical docs are recorded in git history rather than kept as live files
 5. **Use clear titles** - Make it easy to find information
 6. **Add examples** - Include code samples and use cases
 
