@@ -69,16 +69,9 @@ initPerformanceMonitoring();
 // Initialize background sync for offline requests
 initializeBackgroundSync();
 
-// Register custom service worker (#383)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then(() => logger.info('[SW] Registered'))
-      .catch(err => console.warn('[SW] Registration failed:', err));
-  });
-}
-
-// Register custom service worker (#383)
+// Register the service worker (#383).
+// NOTE: registered once. This block previously appeared twice, so the worker
+// was registered twice on every load.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
