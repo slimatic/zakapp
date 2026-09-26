@@ -125,6 +125,8 @@ and why.
 | Release | Tagged | Lunar anchor | Anchor held? |
 |---|---|---|---|
 | v0.17.0 | 2026-09-21 | 10 Rabi al-Thani 1448, waxing gibbous 74% | **No** — see below |
+| v0.17.1 | 2026-09-25 | 13 Rabi al-Thani 1448, waxing gibbous 98% | **No** — data-safety patch |
+| v0.17.2 | 2026-09-26 | 15 Rabi al-Thani 1448, full moon 99.8% | **No** — fix merged but undeployable |
 
 **v0.17.0 was released off-anchor, deliberately.** The work was finished and verified: the
 full suite green, and the upgrade path proven against a copy of a live production database
@@ -135,6 +137,14 @@ is recorded here rather than hidden.
 
 That is the cadence working, not bending. What would have been a deviation from the spirit
 is shipping with the suite red or the upgrade path untested; neither applied.
+
+**v0.17.1 was released off-anchor as a data-safety patch.** The cadence's own rule allows
+this: *not every patch waits for a lunar boundary.* v0.17.0 shipped a backup pipeline that
+could corrupt money on restore — a value containing the `ZK1:` ciphertext marker was parsed
+into a plausible wrong number, and unparseable amounts became silent zeros. Since the
+documented pre-upgrade step is "export first", a release that made the export untrustworthy
+threatened the very safety net the next release depends on. Holding it for 2026-10-12 would
+have left a second month of exports corrupted. Verified, so it shipped.
 
 ## Versioning
 
