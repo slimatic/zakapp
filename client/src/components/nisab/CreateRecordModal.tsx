@@ -16,6 +16,7 @@ import { Modal } from '../ui/Modal';
 import { DualCalendarDatePicker } from '../common/DualCalendarDatePicker';
 import { calculateWealth } from '../../core/calculations/wealthCalculator';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
+import { getNisabSource } from '../../core/calculations/nisab';
 import { parseDecimalNumber } from '../../utils/parseDecimal';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -31,7 +32,14 @@ export interface CreateRecordModalProps {
   }) => Promise<void>;
   allAssets: any[];
   allLiabilities: any[];
+  /**
+   * @deprecated The basis is not chosen independently — each school carries its
+   * own `nisabSource` and the calculation follows it (`getNisabSource`). Kept
+   * only so callers compile; the value is ignored. See #521.
+   */
   defaultNisabBasis: 'GOLD' | 'SILVER';
+  /** The user's preferred methodology, which decides the basis. */
+  methodology?: string;
   userCurrency: string;
 }
 
@@ -42,12 +50,26 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
   allAssets,
   allLiabilities,
   defaultNisabBasis,
+  methodology,
   userCurrency,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [selectedLiabilityIds, setSelectedLiabilityIds] = useState<string[]>([]);
-  const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>(defaultNisabBasis);
+
+  /**
+   * The nisab basis follows the chosen school, which is the recorded decision
+   * on #521: Hanafi uses the silver threshold, the other three use gold.
+   *
+   * The modal used to offer a Gold/Silver radio that the calculator IGNORED —
+   * `calculateNisabThreshold` derives the basis from the methodology
+   * (`getNisabSource`), so a user picking Silver under a school that uses gold
+   * saw one threshold on this screen and a different one was applied. The two
+   * now read from the same place, so they cannot disagree.
+   */
+  const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>(
+    () => getNisabSource(methodology ?? 'standard')
+  );
   const [creationDate, setCreationDate] = useState<Date>(new Date());
 
   const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
@@ -56,7 +78,8 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
   useEffect(() => {
     if (open) {
       setStep(1);
-      setNisabBasis(defaultNisabBasis);
+      // Follow the school, not a separate preference — see the note above.
+      setNisabBasis(getNisabSource(methodology ?? 'standard'));
       setCreationDate(new Date());
       if (allAssets.length > 0) {
         const potentialZakatableTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS_ASSETS', 'INVESTMENT_ACCOUNT', 'STOCKS'];
@@ -205,28 +228,44 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-card-foreground">Select Nisab Standard</label>
+              {/*
+                Shown, not chosen. The basis comes from the selected school
+                (Hanafi silver, the others gold) and the calculation reads the
+                same source, so a radio here would offer a choice that does not
+                change the number. Previously it did exactly that: picking Silver
+                under a gold-based school displayed one threshold and applied
+                another. See #521.
+              */}
+              <label className="block text-sm font-medium text-card-foreground">Nisab Standard</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'GOLD' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border'}`}>
+                <div className={`flex items-center justify-between p-4 rounded border ${nisabBasis === 'GOLD' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border opacity-60'}`}>
                   <div className="flex items-center">
-                    <input type="radio" name="nisab" checked={nisabBasis === 'GOLD'} onChange={() => setNisabBasis('GOLD')} className="me-3 h-4 w-4 text-secondary" />
+                    <div className="me-3">
+                      {nisabBasis === 'GOLD'
+                        ? <span aria-hidden="true" className="block h-4 w-4 rounded-full border-4 border-secondary bg-card" />
+                        : <span aria-hidden="true" className="block h-4 w-4 rounded-full border border-border" />}
+                    </div>
                     <div>
                       <span className="block font-medium text-card-foreground">Gold Standard</span>
-                      <span className="text-xs text-muted-foreground">For Wealthy/Safer</span>
+                      <span className="text-xs text-muted-foreground">Used by Shafi'i, Maliki and Hanbali</span>
                     </div>
                   </div>
                   <span className="text-xs font-mono bg-warn-soft text-warn-strong px-2 py-1 rounded">87.48g</span>
-                </label>
-                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'SILVER' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border'}`}>
+                </div>
+                <div className={`flex items-center justify-between p-4 rounded border ${nisabBasis === 'SILVER' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border opacity-60'}`}>
                   <div className="flex items-center">
-                    <input type="radio" name="nisab" checked={nisabBasis === 'SILVER'} onChange={() => setNisabBasis('SILVER')} className="me-3 h-4 w-4 text-secondary" />
+                    <div className="me-3">
+                      {nisabBasis === 'SILVER'
+                        ? <span aria-hidden="true" className="block h-4 w-4 rounded-full border-4 border-secondary bg-card" />
+                        : <span aria-hidden="true" className="block h-4 w-4 rounded-full border border-border" />}
+                    </div>
                     <div>
                       <span className="block font-medium text-card-foreground">Silver Standard</span>
-                      <span className="text-xs text-muted-foreground">For Low Income</span>
+                      <span className="text-xs text-muted-foreground">Used by Hanafi</span>
                     </div>
                   </div>
                   <span className="text-xs font-mono bg-muted text-muted-foreground px-2 py-1 rounded">612.36g</span>
-                </label>
+                </div>
               </div>
             </div>
 

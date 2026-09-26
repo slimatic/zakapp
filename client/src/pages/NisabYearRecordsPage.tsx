@@ -48,6 +48,17 @@ export const NisabYearRecordsPage: React.FC = () => {
 
   const { user } = useAuth();
   const { currency: userCurrency, formatCurrency } = useDisplayCurrency();
+
+  /**
+   * The nisab basis is NOT an independent preference — it follows the school
+   * (Hanafi silver, the others gold), which is the recorded decision on #521.
+   * `calculateNisabThreshold` already derives it from the methodology, so the
+   * modal is given the methodology rather than a stored basis; keeping both is
+   * how the displayed threshold and the applied one were able to disagree.
+   *
+   * `defaultNisabBasis` is still passed for backwards compatibility, but the
+   * modal ignores it.
+   */
   const defaultNisabBasis = (user?.settings?.preferredNisabStandard as 'GOLD' | 'SILVER') || 'GOLD';
 
   // Issue #310 (round 4): assets may be stored in mixed currencies (e.g. USD
@@ -247,6 +258,7 @@ export const NisabYearRecordsPage: React.FC = () => {
         allAssets={allAssets}
         allLiabilities={allLiabilities}
         defaultNisabBasis={defaultNisabBasis}
+        methodology={userMethodology}
         userCurrency={userCurrency}
       />
 
