@@ -51,10 +51,17 @@ def resolve_uid(pg):
     """
     got = pg.evaluate(
         """() => {
-            for (const k of Object.keys(localStorage)) {
-                const m = k.match(/^zakapp_local_prefs_(.+)$/);
-                if (m) return m[1];
-            }
+            // The session AuthService.login() writes: { user: {...}, jwk: {...} }
+            try {
+                const s = JSON.parse(sessionStorage.getItem('zakapp_session_v1') || 'null');
+                const id = s && s.user && s.user.id;
+                if (id) return id;
+            } catch (e) { /* fall through */ }
+            // Fallbacks for other shapes we have seen.
+            const prefs = Object.keys(localStorage).find((k) =>
+                k.startsWith('zakapp_local_prefs_')
+            );
+            if (prefs) return prefs.replace('zakapp_local_prefs_', '');
             try {
                 const u = JSON.parse(localStorage.getItem('user') || 'null');
                 if (u && u.id) return u.id;
@@ -63,6 +70,8 @@ def resolve_uid(pg):
         }"""
     )
     return got or UID
+
+
 BASE = "http://localhost:4173"
 USER = os.environ.get("ZAK_SMOKE_USER", "v1smoke")
 
@@ -138,8 +147,11 @@ def _apply(pg, state, path):
     # The onboarding-skip flag belongs here as well as on the real-login path.
     # Without it a restored session is sent to /onboarding, so every check would
     # silently measure the wrong page.
+    _uid = resolve_uid(pg)
+    if _uid == UID and os.environ.get("ZAK_SMOKE_UID") is None:
+        print(f"WARN: could not read the session id; using fallback {UID}")
     pg.evaluate(
-        f"localStorage.setItem('zakapp_local_prefs_{UID}', JSON.stringify({{skipped:true}}))"
+        f"localStorage.setItem('zakapp_local_prefs_{_uid}', JSON.stringify({{skipped:true}}))"
     )
     # domcontentloaded, not networkidle — see the login path above.
     pg.goto(f"{BASE}{path}", wait_until="domcontentloaded")
@@ -176,8 +188,11 @@ def open_session(browser, viewport, is_mobile=False, has_touch=False, path="/das
     if not ok:
         raise SystemExit(f"FAIL: login failed (check ZAK_SMOKE_PASS, url={pg.url})")
 
+    _uid = resolve_uid(pg)
+    if _uid == UID and os.environ.get("ZAK_SMOKE_UID") is None:
+        print(f"WARN: could not read the session id; using fallback {UID}")
     pg.evaluate(
-        f"localStorage.setItem('zakapp_local_prefs_{UID}', JSON.stringify({{skipped:true}}))"
+        f"localStorage.setItem('zakapp_local_prefs_{_uid}', JSON.stringify({{skipped:true}}))"
     )
     # domcontentloaded, not networkidle — see the login path above.
     pg.goto(f"{BASE}{path}", wait_until="domcontentloaded")

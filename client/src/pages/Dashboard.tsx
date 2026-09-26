@@ -221,7 +221,16 @@ export const Dashboard: React.FC = () => {
   const hasActiveRecord = activeRecord !== null;
   const hasPayments = payments.length > 0;
 
-  // Redirect to onboarding if setup is incomplete
+  // Is the local database still loading its first pull?
+  //
+  // The redirect below reads "no assets" as "nothing set up". Before RxDB has
+  // finished its initial replication that is indistinguishable from an empty
+  // database: assets is [] and isLoading is true. Deciding during that window
+  // bounces a fully populated account to /onboarding on every cold load — and
+  // because the redirect unmounts the dashboard, the repositories that would
+  // have loaded the data are torn down, so the emptiness is self-confirming.
+  const reposLoading = assetsLoading || recordsLoading;
+
   // Redirect to onboarding if setup is incomplete
   useEffect(() => {
     // Check if user explicitly skipped via local prefs (fallback for robust UX)
@@ -236,12 +245,18 @@ export const Dashboard: React.FC = () => {
       }
     }
 
-    // Only redirect if NOT complete AND NOT skipped AND NO ASSETS/RECORDS
+    // Only redirect if NOT complete AND NOT skipped AND NO ASSETS/RECORDS.
     // (Legacy users or partially synced users might have assets but isSetupCompleted=false)
+    //
+    // Never decide while a repository is still loading: an unfinished initial
+    // pull looks exactly like an empty account, and redirecting on it tears the
+    // page down before the data can arrive.
+    if (reposLoading) return;
+
     if (user && user.isSetupCompleted === false && !hasSkipped && !hasAssets && !hasActiveRecord) {
       navigate('/onboarding');
     }
-  }, [user, navigate, hasAssets, hasActiveRecord]);
+  }, [user, navigate, hasAssets, hasActiveRecord, reposLoading]);
 
   // Calculate total wealth
   const totalWealth = assets.reduce((sum: number, asset: Asset) => {

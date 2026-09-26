@@ -17,10 +17,17 @@ Ponytail: contrast is computed from getComputedStyle colours plus the nearest
 opaque ancestor background - not from a screenshot - because that reports the
 actual token values and the failing element, instead of a pixel coordinate.
 """
+import os
 import sys
 from playwright.sync_api import sync_playwright
 
-sys.path.insert(0, "/home/chuwi_agent/zakapp/client/scripts")
+# Resolve _login from THIS file's directory. It used to be an absolute path into
+# a different checkout (/home/chuwi_agent/zakapp/client/scripts), which is the
+# sibling worktree of this one — so running the checker here silently imported
+# the other worktree's stale `_login.py` and none of the fixes in this file's
+# directory took effect. Same failure class as the hardcoded user id: an
+# environment detail baked into a script.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _login import open_session  # noqa: E402
 
 ROUTES = [

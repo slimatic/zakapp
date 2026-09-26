@@ -13,10 +13,11 @@ animation is inert, before and after.
 Ponytail: asserts on animation PLAY state, not duration. A 0.01ms animation
 still reports a name, so duration alone would pass while elements still animate.
 """
+import os
 import sys
 from playwright.sync_api import sync_playwright
 
-sys.path.insert(0, "/home/chuwi_agent/zakapp/client/scripts")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _login import open_session, BASE  # noqa: E402
 
 ROUTES = ["/dashboard", "/assets", "/payments", "/nisab-records", "/analytics", "/learn"]

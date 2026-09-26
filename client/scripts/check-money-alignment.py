@@ -12,10 +12,11 @@ component.
 Ponytail: samples rendered numerals via getComputedStyle instead of walking all
 33 files, because the regression that matters is what the user sees.
 """
+import os
 import sys
 from playwright.sync_api import sync_playwright
 
-sys.path.insert(0, "/home/chuwi_agent/zakapp/client/scripts")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _login import open_session, BASE  # noqa: E402
 
 # Pages whose content is predominantly money.
