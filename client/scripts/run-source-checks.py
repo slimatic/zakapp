@@ -21,6 +21,7 @@ CHECKS = [
     "check-no-committed-credentials.py",
     "check-no-credential-logging.py",
     "check-pdf-theme.py",
+    "check-runtime-config.py",
     "check-sender-domain-resolves.py",
     "check-snapshot-nisab.py",
 ]
