@@ -126,6 +126,7 @@ and why.
 |---|---|---|---|
 | v0.17.0 | 2026-09-21 | 10 Rabi al-Thani 1448, waxing gibbous 74% | **No** — see below |
 | v0.17.1 | 2026-09-25 | 13 Rabi al-Thani 1448, waxing gibbous 98% | **No** — data-safety patch |
+| v0.17.2 | 2026-09-26 | 15 Rabi al-Thani 1448, full moon 99.8% | **No** — fix merged but undeployable |
 
 **v0.17.0 was released off-anchor, deliberately.** The work was finished and verified: the
 full suite green, and the upgrade path proven against a copy of a live production database
