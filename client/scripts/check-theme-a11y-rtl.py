@@ -78,9 +78,11 @@ CONTRAST = r"""() => {
     textNodes.push({el, own: own.map(n => n.textContent.trim()).join(' ').slice(0,40), cs});
   });
   const bad = [];
+  let checked = 0;
   for (const t of textNodes) {
     const fg = parse(t.cs.color);
     if (!fg) continue;
+    checked++;
     const bg = bgOf(t.el);
     // composite fg over bg if it has alpha
     const f = a => ({ r: fg.r*a + bg.r*(1-a), g: fg.g*a + bg.g*(1-a), b: fg.b*a + bg.b*(1-a) });
@@ -96,16 +98,22 @@ CONTRAST = r"""() => {
   }
   // dedupe by text+color
   const seen = new Set();
-  return bad.filter(b => { const k = b.text+b.color; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 6);
+  const uniq = bad.filter(b => { const k = b.text+b.color; if (seen.has(k)) return false; seen.add(k); return true; });
+  // Report how many text nodes were actually measured. Without this, a page the
+  // probe could not read and a page with nothing wrong both come back empty, so
+  // a green result may mean "verified" or "saw nothing" (#494).
+  return { bad: uniq.slice(0, 6), examined: checked };
 }"""
 
 TARGETS = r"""() => {
   const out = [];
+  let measured = 0;
   document.querySelectorAll('button, a, [role=button], input[type=checkbox], select').forEach(el => {
     const cs = getComputedStyle(el);
     if (cs.display === 'none' || cs.visibility === 'hidden') return;
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) return;
+    measured++;
     // Skip in-sentence targets: WCAG 2.5.8 Target Size (Minimum) exempts them,
     // and the app marks them .inline-affordance so the (pointer: coarse) min-44px
     // rule does not blow up an inline word into a 44px box.
@@ -120,7 +128,10 @@ TARGETS = r"""() => {
     }
   });
   const seen = new Set();
-  return out.filter(o => { const k = o.tag+o.w+o.h+o.cls; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8);
+  const uniq = out.filter(o => { const k = o.tag+o.w+o.h+o.cls; if (seen.has(k)) return false; seen.add(k); return true; });
+  // Same reason as CONTRAST: an empty list must not be able to mean "no targets
+  // on the page" when it could also mean "no targets were measurable" (#494).
+  return { bad: uniq.slice(0, 8), examined: measured };
 }"""
 
 RTL_PROBE = r"""() => {
@@ -151,24 +162,40 @@ def run(theme, mobile):
         label = f"{theme}/{'mobile' if mobile else 'desktop'}"
         print(f"\n=== {label} ===")
         bad_contrast = bad_targets = 0
+        examined_total = 0
         for route in ROUTES:
             pg.goto(f"http://localhost:4173{route}", wait_until="networkidle")
             pg.wait_for_timeout(2200)
-            c = pg.evaluate(_js(CONTRAST))
-            if c:
-                bad_contrast += len(c)
-                for x in c[:2]:
+            c = pg.evaluate(_js(CONTRAST)) or {}
+            bad = c.get("bad") or []
+            examined = c.get("examined", 0)
+            examined_total += examined
+            if bad:
+                bad_contrast += len(bad)
+                for x in bad[:2]:
                     print(f"  CONTRAST {route}: {x['ratio']}:1 (min {x['min']}) "
                           f"{x['color']} on {x['bg']}  \"{x['text']}\"")
-                problems.append(f"{label} {route}: {len(c)} low-contrast text node(s)")
+                problems.append(f"{label} {route}: {len(bad)} low-contrast text node(s)")
+            elif examined == 0:
+                # The probe read nothing on this route. That is not a pass — it
+                # means the check could not see the page at all, which is what
+                # makes a green result trustworthy only when it is non-empty.
+                problems.append(f"{label} {route}: not checked (0 text nodes measured)")
+                print(f"  UNCHECKED {route}: 0 text nodes measured")
             if mobile:
-                t = pg.evaluate(_js(TARGETS))
-                if t:
-                    bad_targets += len(t)
-                    for x in t[:2]:
+                t = pg.evaluate(_js(TARGETS)) or {}
+                tb = t.get("bad") or []
+                tex = t.get("examined", 0)
+                if tb:
+                    bad_targets += len(tb)
+                    for x in tb[:2]:
                         print(f"  TARGET   {route}: {x['w']}x{x['h']} <{x['tag']}> \"{x['label']}\"")
-                    problems.append(f"{label} {route}: {len(t)} undersized target(s)")
-        print(f"  totals: {bad_contrast} contrast, {bad_targets} targets")
+                    problems.append(f"{label} {route}: {len(tb)} undersized target(s)")
+                elif tex == 0:
+                    problems.append(f"{label} {route}: targets not checked (0 measurable)")
+                    print(f"  UNCHECKED {route}: 0 targets measured")
+        print(f"  totals: {bad_contrast} contrast, {bad_targets} targets, "
+              f"{examined_total} text node(s) examined")
         ctx.close()
         b.close()
     return problems
