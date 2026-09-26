@@ -15,6 +15,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { getMethodology, type MethodologyName } from './methodology';
+
 export interface NisabData {
     goldPrice: number;
     silverPrice: number;
@@ -29,22 +31,31 @@ export const DEFAULT_NISAB_DATA: NisabData = {
     silverNisabGrams: 612.36
 };
 
+/**
+ * The nisab threshold for a methodology.
+ *
+ * The basis is NOT chosen independently: each school carries its own
+ * `nisabSource` (Hanafi the silver threshold, the others gold), and this
+ * follows it. There used to be a second switch here that re-implemented that
+ * mapping by hand — it spelled `'SHAFI'` while the registry key is `SHAFII`, so
+ * a caller passing the registry's own key silently got the Standard rule.
+ * Keeping one source of truth removes the chance to disagree.
+ */
 export function calculateNisabThreshold(
     nisabData: NisabData,
-    methodology: 'STANDARD' | 'HANAFI' | 'SHAFI'
+    methodology: MethodologyName | string
 ): number {
     const goldNisabValue = nisabData.goldPrice * nisabData.goldNisabGrams;
     const silverNisabValue = nisabData.silverPrice * nisabData.silverNisabGrams;
 
-    switch (methodology) {
-        case 'HANAFI':
-            // Hanafi uses Silver Nisab (lower threshold, more people pay)
-            return silverNisabValue;
-        case 'SHAFI':
-        default:
-            // Standard/Shafi uses Gold Nisab (higher threshold)
-            return goldNisabValue;
-    }
+    return getMethodology(methodology).nisabSource === 'SILVER'
+        ? silverNisabValue
+        : goldNisabValue;
+}
+
+/** Which basis a methodology uses — for display, so the UI need not guess. */
+export function getNisabSource(methodology: MethodologyName | string): 'GOLD' | 'SILVER' {
+    return getMethodology(methodology).nisabSource;
 }
 
 /** A price as the server sends it: `{ pricePerGram: 133.89, ... }`. */

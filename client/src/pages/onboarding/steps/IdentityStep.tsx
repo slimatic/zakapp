@@ -4,6 +4,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
+import { getMethodology } from '../../../core/calculations/methodology';
 import { getSupportedCurrencies, getCurrencySymbol, formatCurrency as formatCurrencyCanonical } from '../../../utils/formatters';
 
 
@@ -17,11 +18,21 @@ export const IdentityStep: React.FC = () => {
 
     const handleMadhabChange = (madhab: 'hanafi' | 'shafii' | 'standard') => {
         updateData('methodology', { madhab });
+        // The nisab basis follows the school (Hanafi silver, others gold), so
+        // keep the stored value in step with the choice rather than leaving a
+        // stale one that disagrees with what the calculator will actually apply.
+        updateData('nisab', { standard: nisabSourceFor(madhab) });
     };
 
     const handleNisabChange = (standard: 'gold' | 'silver') => {
         updateData('nisab', { standard });
     };
+
+    /** The wizard's school ids map onto the registry's methodology names. */
+    const nisabSourceFor = (madhab: 'hanafi' | 'shafii' | 'standard'): 'gold' | 'silver' =>
+        getMethodology(madhab === 'shafii' ? 'SHAFII' : madhab.toUpperCase()).nisabSource === 'SILVER'
+            ? 'silver'
+            : 'gold';
 
     const handleCurrencyChange = (currency: string) => {
         updateData('settings', { currency });
@@ -128,6 +139,11 @@ export const IdentityStep: React.FC = () => {
 
             <div className="border-t border-border pt-6">
                 <h3 className="text-xl font-semibold text-foreground mb-2">{t('steps.identity.nisabThreshold')}</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                    Your nisab basis follows the school you chose above — Hanafi uses the silver
+                    threshold, the others gold. Shown here so you can see which applies; change the
+                    school to change this.
+                </p>
                 <p className="text-sm text-muted-foreground mb-4">
                     The minimum wealth required before Zakat is due. Updated automatically with live market prices.
                 </p>
