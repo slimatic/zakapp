@@ -38,15 +38,31 @@ router.post('/login',
     const { email, username, password } = req.body;
 
     try {
-      // Find user in database by either email or username
-      let user;
+      // Resolve the account from whichever identifier the client sent.
+      //
+      // The web client always sends this value as `username`
+      // (client/src/services/api.ts: `username: credentials.username || credentials.email`),
+      // while registration stores `username` ONLY when the caller supplied one and
+      // always lowercases the email. So for any account registered without a
+      // username — the normal path — the old `findFirst({ where: { username } })`
+      // matched nothing and login could never succeed for this client.
+      //
+      // Either field is therefore treated as "an identifier that may be an email
+      // or a username", and the email branch matches lowercased to mirror what
+      // registration stored.
+      const identifier = (email || username || '').trim();
 
-      if (email) {
-        // Try to find by email (unique)
-        user = await getPrismaClient().user.findUnique({ where: { email } });
-      } else if (username) {
-        // Find by username using findFirst since username is not a unique field in the schema
-        user = await getPrismaClient().user.findFirst({ where: { username } });
+      let user;
+      if (identifier) {
+        const normalized = identifier.toLowerCase();
+        user = await getPrismaClient().user.findFirst({
+          where: {
+            OR: [
+              { email: normalized },
+              { username: identifier },
+            ],
+          },
+        });
       }
 
       if (!user) {

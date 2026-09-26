@@ -95,8 +95,24 @@ router.post('/register',
       // Also check if username is already taken (if provided)
 
       if (username) {
-        // Use findFirst to check for an existing username (schema may not mark username as unique)
-        const existingUsername = await getPrismaClient().user.findFirst({ where: { username } });
+        // A username must not collide with ANY identifier, in either direction:
+        //   - another account's username
+        //   - another account's email
+        //
+        // The email case matters because login resolves an identifier against both
+        // columns (`routes/auth/login.ts`). If a username could equal a different
+        // user's email, that single identifier would match two rows and `findFirst`
+        // would hand back a nondeterministic one — in the worst case letting the
+        // wrong account's password unlock the other.
+        const normalizedUsername = username.toLowerCase();
+        const existingUsername = await getPrismaClient().user.findFirst({
+          where: {
+            OR: [
+              { username },
+              { email: normalizedUsername },
+            ],
+          },
+        });
 
         if (existingUsername) {
           res.status(409).json({
