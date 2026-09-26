@@ -72,7 +72,7 @@ def resolve_uid(pg):
     return got or UID
 
 
-BASE = "http://localhost:4173"
+BASE = os.environ.get("ZAK_BASE", "http://localhost:4173")
 USER = os.environ.get("ZAK_SMOKE_USER", "v1smoke")
 
 # Same directory as this file. Not committed - the session carries a live token.

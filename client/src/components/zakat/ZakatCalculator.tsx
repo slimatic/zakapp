@@ -25,7 +25,7 @@ import { MethodologySelector } from './MethodologySelector';
 // Local-First Imports
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { calculateZakat } from '../../core/calculations/zakat';
-import { calculateNisabThreshold, DEFAULT_NISAB_DATA } from '../../core/calculations/nisab';
+import { calculateNisabThreshold, DEFAULT_NISAB_DATA, normalizeNisabPayload, type NisabData } from '../../core/calculations/nisab';
 import { getAssetRuling, type AssetRuling } from '../../data/rulings';
 import { AssetRulingExplanation } from './AssetRulingExplanation';
 
@@ -42,7 +42,7 @@ export const ZakatCalculator: React.FC = () => {
   const { user } = useAuth();
   const userCurrency = ((user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD').toUpperCase();
 
-  const [nisabInfo, setNisabInfo] = useState<NisabInfo | null>(null);
+  const [nisabInfo, setNisabInfo] = useState<NisabData | null>(null);
   const [selectedMethodology, setSelectedMethodology] = useState<string>('standard');
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [calculation, setCalculation] = useState<any | null>(null);
@@ -62,17 +62,23 @@ export const ZakatCalculator: React.FC = () => {
   }, [assets]);
 
   const loadNisabData = async () => {
+    // The server sends nested price objects (`goldPrice: { pricePerGram }`) while
+    // this component needs per-gram numbers. Reading the object as a number gave
+    // `object * grams` = NaN, and `total >= NaN` is false — so an above-nisab
+    // portfolio reported "$0.00 / Below Nisab Threshold ($NaN)" with no error.
+    // Normalise at the boundary so everything downstream has real numbers.
+    const fallback = normalizeNisabPayload(null);
     try {
       // Issue #310: pass the user's currency explicitly so the nisab comes
       // back in the currency this page displays.
       const nisabResponse = await apiService.getNisab(userCurrency);
       if (nisabResponse.success && nisabResponse.data) {
-        setNisabInfo(nisabResponse.data);
+        setNisabInfo(normalizeNisabPayload(nisabResponse.data as any));
       } else {
-        setNisabInfo({ ...DEFAULT_NISAB_DATA, goldNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, silverNisab: DEFAULT_NISAB_DATA.silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams, effectiveNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, currency: 'USD', lastUpdated: new Date().toISOString() });
+        setNisabInfo(fallback);
       }
     } catch (err) {
-      setNisabInfo({ ...DEFAULT_NISAB_DATA, goldNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, silverNisab: DEFAULT_NISAB_DATA.silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams, effectiveNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, currency: 'USD', lastUpdated: new Date().toISOString() });
+      setNisabInfo(fallback);
     }
   };
 
@@ -83,7 +89,6 @@ export const ZakatCalculator: React.FC = () => {
 
       const goldPrice = nisabInfo?.goldPrice || DEFAULT_NISAB_DATA.goldPrice;
       const silverPrice = nisabInfo?.silverPrice || DEFAULT_NISAB_DATA.silverPrice;
-
       let nisabValue = calculateNisabThreshold({
         goldPrice,
         silverPrice,
