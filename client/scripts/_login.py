@@ -33,7 +33,36 @@ import time
 from playwright.sync_api import sync_playwright
 from playwright.sync_api import TimeoutError as PWTimeout
 
-UID = "cmuerqpub000rpb3fulpxby7g"
+# The smoke user's id, used for the `zakapp_local_prefs_<id>` onboarding-skip
+# flag. This MUST come from the environment being tested, not a constant: it was
+# hardcoded to the production account (cmuerqpub...), so against any other
+# backend the flag was written under a key the app never reads — the skip was
+# silently ignored and every check measured /onboarding instead of the page it
+# named. Falls back to the production id only when unset, to keep the existing
+# prod workflow working.
+UID = os.environ.get("ZAK_SMOKE_UID", "cmuerqpub000rpb3fulpxby7g")
+
+
+def resolve_uid(pg):
+    """Read the signed-in user's real id from the app, so callers need not know it.
+
+    Cheaper and more robust than requiring ZAK_SMOKE_UID: the id is already in
+    localStorage once the session exists.
+    """
+    got = pg.evaluate(
+        """() => {
+            for (const k of Object.keys(localStorage)) {
+                const m = k.match(/^zakapp_local_prefs_(.+)$/);
+                if (m) return m[1];
+            }
+            try {
+                const u = JSON.parse(localStorage.getItem('user') || 'null');
+                if (u && u.id) return u.id;
+            } catch (e) { /* fall through */ }
+            return null;
+        }"""
+    )
+    return got or UID
 BASE = "http://localhost:4173"
 USER = os.environ.get("ZAK_SMOKE_USER", "v1smoke")
 

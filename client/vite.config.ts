@@ -210,7 +210,16 @@ export default defineConfig(({ mode }) => {
     },
     // Local smoke-test preview: proxies /api to a reachable backend so the
     // built client on :4173 can authenticate (vite preview has no proxy by default).
-    // Origin is rewritten because the backend CORS allowlist is prod-only.
+    //
+    // The Origin header is overridden because the production backend's CORS
+    // allowlist is prod-only. That override must NOT apply when the target is a
+    // local dev backend: in NODE_ENV=development the server allows localhost and
+    // LAN origins and REJECTS everything else, and a rejected origin surfaces as
+    // a 500 ("Not allowed by CORS") rather than a 403 — so a local run against a
+    // dev backend fails on every request with an opaque internal error.
+    //
+    // With VITE_PROXY_TARGET pointing at a local backend we therefore send no
+    // Origin at all, which the server treats as a non-browser client and allows.
     preview: {
       port: 4173,
       proxy: {
@@ -218,7 +227,9 @@ export default defineConfig(({ mode }) => {
           target: process.env.VITE_PROXY_TARGET || 'http://192.168.86.242:3001',
           changeOrigin: true,
           secure: false,
-          headers: { Origin: 'https://app.zakapp.org' },
+          ...(process.env.VITE_PROXY_TARGET
+            ? {}
+            : { headers: { Origin: 'https://app.zakapp.org' } }),
         },
         // CouchDB MUST be proxied too. APP_CONFIG advertises COUCHDB_URL=/couchdb,
         // and without this rule vite serves the SPA's own index.html for that path
