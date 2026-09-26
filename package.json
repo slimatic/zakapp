@@ -21,7 +21,8 @@
     "test:cli": "cd cli && npm test",
     "test:e2e": "echo 'Playwright tests removed'",
     "normalize:payments": "cd server && npx ts-node ./scripts/normalize-payments.ts",
-    "verify:source": "cd client && python3 scripts/run-source-checks.py"
+    "verify:source": "cd client && python3 scripts/run-source-checks.py",
+    "prepare": "husky"
   },
   "keywords": [
     "zakat",
@@ -37,6 +38,7 @@
     "@types/supertest": "6.0.3",
     "concurrently": "^8.2.2",
     "express-validator": "^7.3.1",
+    "husky": "^9.1.7",
     "supertest": "7.1.4",
     "typescript": "^5.2.2"
   },
