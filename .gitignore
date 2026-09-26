@@ -113,6 +113,7 @@ dist/
 *.d.ts
 *.js
 !client/public/push-sw.js
+!client/public/config.js
 *.js.map
 *.d.ts.map
 *.tsbuildinfo
