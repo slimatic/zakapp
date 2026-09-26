@@ -2,7 +2,7 @@
 """Fail if a credential literal is committed into the source tree.
 
 WHY THIS EXISTS
-    A real password ('V1Smoke2026!') sat in three smoke-test scripts and reached the public
+    A real password literal sat in three smoke-test scripts and reached the public
     remote. Neither the repo's `Secret Detection Scan` (GitGuardian) nor a full-history
     `gitleaks detect` flagged it: both match PROVIDER KEY FORMATS (AWS AKIA..., GitHub
     ghp_..., PEM blocks) and a password typed into `pg.fill('#password', '...')` matches no
