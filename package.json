@@ -40,7 +40,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@prisma/client": "6.16.2",
+    "@prisma/client": "7.10.0",
     "@zakapp/shared": "file:shared",
     "prisma": "6.16.2",
     "js-sha256": "^0.10.0"
