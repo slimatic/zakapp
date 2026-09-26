@@ -21,15 +21,20 @@ import { VALID_ASSET_CATEGORY_VALUES } from '@zakapp/shared';
 /**
  * Is `value` one of the valid asset categories, ignoring case?
  *
- * The list holds UPPERCASE values ('CASH', 'BANK_ACCOUNT'). Two call sites used
- * to lowercase the input and compare against that uppercase list, which no input
- * can ever satisfy — so every asset was rejected with "Category must be one of:
- * CASH, BANK_ACCOUNT, …" no matter what was sent.
+ * The list holds UPPERCASE values ('CASH', 'BANK_ACCOUNT'), so comparing
+ * `value.toLowerCase()` against it could never match — every asset was rejected
+ * with "Category must be one of: CASH, BANK_ACCOUNT, …" no matter what was sent.
+ * The check was unsatisfiable, not strict, and POST /api/assets was unusable.
  *
- * Case-folding BOTH sides is the fix. It has to happen in one place: the same
- * broken comparison existed twice and would drift again.
+ * Case-folding BOTH sides is the fix, and it has to live in one place: the same
+ * broken comparison existed at two call sites and would drift again.
+ *
+ * `unknown` rather than `string` because the caller checks `typeof` separately
+ * for the error message; taking a non-string here would throw instead of
+ * returning a validation failure.
  */
-function isValidAssetCategory(value: string): boolean {
+function isValidAssetCategory(value: unknown): boolean {
+  if (typeof value !== 'string') return false;
   const target = value.trim().toLowerCase();
   return (VALID_ASSET_CATEGORY_VALUES as readonly string[]).some(
     (c) => c.toLowerCase() === target
