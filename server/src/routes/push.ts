@@ -32,7 +32,8 @@ import { Logger } from '../utils/logger';
 import {
   subscribePush,
   unsubscribePush,
-  getVapidPublicKey
+  getVapidPublicKey,
+  isPushConfigured
 } from '../services/PushNotificationService';
 
 const logger = new Logger('PushRoutes');
@@ -52,9 +53,14 @@ const unsubscribeSchema = z.object({
   endpoint: z.string().max(2048)
 });
 
-// Public VAPID key so browsers can subscribe before auth-dependent flows
+// Public VAPID key so browsers can subscribe before auth-dependent flows.
+//
+// `configured` is the honest half: the client can hold a valid subscription
+// against a server that can never sign for it. Production was serving a public
+// key while VAPID_PRIVATE_KEY was unset, so the UI reported "notifications on"
+// and nothing ever arrived. The client uses this to say so rather than lie.
 router.get('/vapid-key', (_req, res: Response) => {
-  res.json({ publicKey: getVapidPublicKey() });
+  res.json({ publicKey: getVapidPublicKey(), configured: isPushConfigured() });
 });
 
 router.post('/subscribe', authMiddleware, validateSchema(subscribeSchema), async (req: AuthenticatedRequest, res: Response) => {

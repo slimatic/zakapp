@@ -64,9 +64,16 @@ jobs:
         CI: true
 
     # Previously untested in CI even though the v1.0 branch changes both lockfiles.
+    #
+    # `--if-present` only skips a MISSING script; it does not tolerate a script
+    # that runs and finds nothing. `shared` has a `test` script and jest
+    # installed but no test files, so plain `jest` exits 1 ("No tests found")
+    # and failed this step on every run. `--passWithNoTests` is the right
+    # relaxation: a project with no tests yet is not a failure, and a project
+    # WITH tests still reports their real result.
     - name: Run shared and CLI tests
       run: |
-        cd shared && npm test --if-present
+        cd shared && npm test --if-present -- --passWithNoTests
         cd ../cli && npm test --if-present
 
     - name: Build client
