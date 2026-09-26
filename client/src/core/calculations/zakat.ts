@@ -45,24 +45,43 @@ export interface CalculationResult {
 }
 
 // AssetZakatable Logic
+/**
+ * Decide whether an asset is zakatable.
+ *
+ * `zakatEligible` is the user's own answer, so honour it in this order:
+ *   true      → explicit zakatable (a deliberate choice)
+ *   false     → explicit exempt (e.g. a car for personal use)
+ *   null      → the user answered "leave it to the methodology" → consult it
+ *   undefined → never asked → consult the methodology
+ *
+ * Only an *answer* overrides the school. Treating `undefined` as "zakatable"
+ * made the methodology's ruling unreachable for every asset created before the
+ * question was ever put to the user.
+ */
 export function isAssetZakatable(asset: Asset, methodologyName: ZakatMethodology): boolean {
     const config = getMethodology(methodologyName);
 
-    // Check Explicit Overrides First
-    // User explicitly marked it as Zakatable (e.g. Investment Property)
-    if (asset.zakatEligible === true) return true;
-
-    // User explicitly marked it as Exempt (e.g. Personal Use Car)
+    // An exemption is always honoured. The onboarding wizard only ever stamped
+    // `true` (#521), so a `false` is either the user's own answer or a
+    // methodology-derived one — both mean "not zakatable".
     if (asset.zakatEligible === false) return false;
 
-    // Fallback to Type defaults if no explicit setting
+    // A `true` counts only when the user actually said so. The wizard wrote
+    // `true` for every asset it created without asking, which overrode the
+    // school for each one.
+    //
+    // ponytail: pre-fix rows a user DID set by hand also lack the marker, so they
+    // fall back to the methodology until AssetForm next writes them. The
+    // distinction was never recorded, so there is nothing to backfill from.
+    const manual = (asset as { isEligibilityManual?: boolean }).isEligibilityManual === true;
+    if (asset.zakatEligible === true && manual) return true;
+
+    // No genuine answer: let the school decide.
     const inList = config.zakatableAssets.includes(asset.type);
     if (!inList) return false;
 
     // Default Logic for Jewelry (Gold/Silver)
     if (config.jewelryExempt && (asset.type === AssetType.GOLD || asset.type === AssetType.SILVER)) {
-        // If methodology exempts jewelry and user hasn't explicitly said "It is zakatable",
-        // then we assume it's personal jewelry and EXEMPT it.
         return false;
     }
 

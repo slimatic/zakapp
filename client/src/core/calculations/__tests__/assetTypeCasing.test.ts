@@ -50,7 +50,10 @@ describe('asset type casing is load-bearing', () => {
   });
 
   it('honours an explicit user inclusion for a normally-excluded type', () => {
-    const asset = { ...base, type: AssetType.REAL_ESTATE, zakatEligible: true } as never;
+    // isEligibilityManual marks it as the user's own call (#521).
+    const asset = {
+      ...base, type: AssetType.REAL_ESTATE, zakatEligible: true, isEligibilityManual: true,
+    } as never;
     expect(isAssetZakatable(asset, 'STANDARD')).toBe(true);
   });
 });

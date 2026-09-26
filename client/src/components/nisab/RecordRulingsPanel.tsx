@@ -40,6 +40,8 @@ export interface RecordRulingsPanelProps {
     /** Client AssetType (CASH, GOLD, ...) when available */
     type?: string;
     zakatEligible?: boolean | null;
+    /** True only when the user set zakatEligible themselves. Legacy rows omit it. */
+    isEligibilityManual?: boolean;
   }>;
   /** User's preferred methodology (STANDARD, HANAFI, SHAFII, MALIKI, HANBALI — any case) */
   methodologyName: string;
@@ -100,7 +102,12 @@ export const RecordRulingsPanel: React.FC<RecordRulingsPanelProps> = ({
         {assets.map(asset => {
           const assetType = (asset.type as AssetType) || categoryToAssetType(asset.category);
           const ruling = getAssetRuling(
-            { type: assetType, zakatEligible: asset.zakatEligible, name: asset.name },
+            {
+              type: assetType,
+              zakatEligible: asset.zakatEligible,
+              isEligibilityManual: asset.isEligibilityManual,
+              name: asset.name,
+            },
             methodologyName
           );
           return (

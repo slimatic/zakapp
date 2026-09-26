@@ -62,7 +62,12 @@ describe('AssetRulingExplanation', () => {
   });
 
   it('renders override block when user overrode the madhab default', () => {
-    const ruling = getAssetRuling({ ...baseAsset, zakatEligible: true }, 'SHAFII');
+    // isEligibilityManual is what makes it the USER's override rather than a
+    // flag written on their behalf (#521).
+    const ruling = getAssetRuling(
+      { ...baseAsset, zakatEligible: true, isEligibilityManual: true },
+      'SHAFII'
+    );
     const { getByRole, getByText } = render(
       <AssetRulingExplanation ruling={ruling} assetName="Wedding Gold Set" />
     );

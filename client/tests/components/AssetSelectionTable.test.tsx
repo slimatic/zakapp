@@ -20,6 +20,7 @@ const mockAssets = [
     value: 5000,
     currency: 'USD',
     zakatEligible: true,
+    isEligibilityManual: true,
     addedAt: '2025-01-15T10:00:00Z',
   },
   {
@@ -30,6 +31,7 @@ const mockAssets = [
     value: 3000,
     currency: 'USD',
     zakatEligible: true,
+    isEligibilityManual: true,
     addedAt: '2025-02-01T14:30:00Z',
   },
   {
@@ -50,6 +52,7 @@ const mockAssets = [
     value: 2500,
     currency: 'USD',
     zakatEligible: true,
+    isEligibilityManual: true,
     addedAt: '2025-03-20T16:45:00Z',
   },
 ];
@@ -220,7 +223,7 @@ describe('AssetSelectionTable', () => {
       const onSelectionChange = jest.fn();
       const assetsWithModifier = [
         ...mockAssets,
-        { id: 'asset-5', name: 'Passive Fund', type: 'STOCKS', category: 'stocks', value: 6000, currency: 'USD', zakatEligible: true, addedAt: '2025-04-01T00:00:00Z', calculationModifier: 0.3, zakatableValue: 1800 },
+        { id: 'asset-5', name: 'Passive Fund', type: 'STOCKS', category: 'stocks', value: 6000, currency: 'USD', zakatEligible: true, isEligibilityManual: true, addedAt: '2025-04-01T00:00:00Z', calculationModifier: 0.3, zakatableValue: 1800 },
       ];
 
       render(
@@ -462,6 +465,7 @@ describe('AssetSelectionTable', () => {
         value: 0,
         currency: 'USD',
         zakatEligible: true,
+        isEligibilityManual: true,
         addedAt: '2025-04-01T10:00:00Z',
       };
 
@@ -487,6 +491,7 @@ describe('AssetSelectionTable', () => {
         value: 9999999.99,
         currency: 'USD',
         zakatEligible: true,
+        isEligibilityManual: true,
         addedAt: '2025-01-01T00:00:00Z',
       };
 

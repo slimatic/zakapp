@@ -33,6 +33,8 @@ export interface DetailAssetLike {
   category?: string;
   type?: string;
   zakatEligible?: boolean | null;
+  /** True only when the user set zakatEligible themselves. Absent on legacy rows. */
+  isEligibilityManual?: boolean;
   isActive?: boolean;
   [key: string]: unknown;
 }
@@ -77,6 +79,9 @@ export const RecordDetailPanel: React.FC<RecordDetailPanelProps> = ({
           category: a.category,
           type: a.type,
           zakatEligible: a.zakatEligible,
+          // Without this the panel cannot tell a user's override from the flag
+          // the onboarding wizard wrote on the user's behalf (#517).
+          isEligibilityManual: a.isEligibilityManual,
         }))}
         methodologyName={methodologyName}
       />

@@ -186,6 +186,10 @@ export const ReviewStep: React.FC = () => {
                         subCategory = 'bitcoin'; // Generic default
                     }
 
+                    if (asset.zakatEligible === undefined) {
+                        asset.zakatEligible = null; // defer to the selected methodology
+                    }
+
                     assetsToSave.push({
                         type: type.toUpperCase(),
                         name,
@@ -196,7 +200,14 @@ export const ReviewStep: React.FC = () => {
                         isRestrictedAccount: asset.isRestricted,
                         acquisitionDate: new Date().toISOString(),
                         metadata: JSON.stringify(metadata),
-                        zakatEligible: true,
+                        // Only an answer the user actually gave survives. Anything
+                        // they were never asked about defers to the methodology —
+                        // writing `true` here silenced the school's ruling (e.g.
+                        // Shafi'i exempting personal jewelry) for every asset.
+                        zakatEligible: asset.zakatEligible ?? null,
+                        // The wizard asks nothing about per-asset zakatability, so
+                        // record that the user did NOT make this call.
+                        isEligibilityManual: false,
                         subCategory: subCategory
                     });
                 }
