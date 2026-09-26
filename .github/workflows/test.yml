@@ -71,9 +71,20 @@ jobs:
     # and failed this step on every run. `--passWithNoTests` is the right
     # relaxation: a project with no tests yet is not a failure, and a project
     # WITH tests still reports their real result.
+    # `cli` imports @zakapp/shared, whose "main" is dist/index.js — so the shared
+    # build must exist BEFORE cli's tests run. It was a separate step 11 lines
+    # below this one, so cli's tests failed with:
+    #
+    #     Failed to resolve entry for package "@zakapp/shared"
+    #
+    # Building shared here closes that gap without moving the client/server
+    # builds, which are independent of it. cli's own build stays where it is:
+    # `cli`'s tests import src/ directly, but its build emits dist/, so building
+    # it after its tests is the correct order.
     - name: Run shared and CLI tests
       run: |
-        cd shared && npm test --if-present -- --passWithNoTests
+        cd shared && npm run build --if-present
+        npm test --if-present -- --passWithNoTests
         cd ../cli && npm test --if-present
 
     - name: Build client
