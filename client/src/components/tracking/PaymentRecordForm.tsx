@@ -42,11 +42,13 @@ const paymentRecordFormSchema = z.object({
   paymentDate: z.string().min(1, 'Payment date is required'),
   recipientName: z.string().min(1, 'Recipient name is required').max(200),
   snapshotId: z.string().min(1, 'Please select a Nisab Year Record'),
-  recipientCategory: z.enum(['poor', 'orphans', 'widows', 'education', 'healthcare', 'infrastructure', 'general', 'fakir', 'miskin', 'amil', 'muallaf', 'riqab', 'gharimin', 'fisabilillah', 'ibnus_sabil', 'other'], {
+  // Canonical asnaf only — the server rejects anything else with a 500, so
+  // offering a wider list here would let a payment be saved that cannot sync.
+  recipientCategory: z.enum(['fakir', 'miskin', 'amil', 'muallaf', 'riqab', 'gharimin', 'fisabilillah', 'ibnus_sabil'], {
     errorMap: () => ({ message: 'Please select a valid recipient category' })
   }),
-  recipientType: z.enum(['individual', 'organization', 'charity', 'mosque', 'family', 'other']).default('individual'),
-  paymentMethod: z.enum(['cash', 'bank_transfer', 'check', 'crypto', 'other']).default('cash'),
+  recipientType: z.enum(['individual', 'organization', 'charity', 'institution']).default('individual'),
+  paymentMethod: z.enum(['cash', 'bank_transfer', 'check', 'online', 'other']).default('cash'),
   notes: z.string().max(1000).optional(),
   receiptReference: z.string().max(200).optional(),
   currency: z.string().length(3).default('USD'),
@@ -63,14 +65,32 @@ interface PaymentRecordFormProps {
   onCancel?: () => void;
 }
 
+/**
+ * The eight recipient categories of Surah at-Tawbah 9:60.
+ *
+ * WHY THE VALUES ARE THESE EXACT STRINGS
+ *   The server validates this field against its own canonical list
+ *   (`server/src/models/PaymentRecord.ts`) and throws
+ *   "Invalid recipient category" for anything else. The payment route turns that
+ *   throw into a 500, so a payment saved with a non-canonical value was recorded
+ *   locally and then LOST on sync.
+ *
+ *   This list used to hold seven values — poor, orphans, widows, education,
+ *   healthcare, infrastructure, general — none of which the server accepts, so
+ *   every payment recorded through this form failed to sync. Several of them
+ *   were also a different idea wearing a category's name: "orphans", "widows",
+ *   "healthcare" and "infrastructure" are programmes, not asnaf. The programme a
+ *   payment supports belongs in the notes, where it already goes.
+ */
 const ZAKAT_RECIPIENTS = [
-  { value: 'poor', label: 'Poor & Needy (Fuqara & Masakin)', description: 'Those in need (owning less than Nisab)' },
-  { value: 'orphans', label: 'Orphans', description: 'Children without support' },
-  { value: 'widows', label: 'Widows', description: 'Women who have lost their husbands' },
-  { value: 'education', label: 'Education (Fi Sabilillah)', description: 'Students of knowledge' },
-  { value: 'healthcare', label: 'Healthcare', description: 'Medical assistance for the needy' },
-  { value: 'infrastructure', label: 'Infrastructure', description: 'Mosques, schools, public benefit' },
-  { value: 'general', label: 'General / Other', description: 'General welfare' },
+  { value: 'fakir', label: 'Al-Fuqara (The poor)', description: 'Those with no means of support' },
+  { value: 'miskin', label: 'Al-Masakin (The needy)', description: 'Those whose means fall short of their need' },
+  { value: 'amil', label: 'Al-Amilina (Zakat administrators)', description: 'Those employed to collect and distribute it' },
+  { value: 'muallaf', label: 'Al-Muallafah Qulubuhum (Those whose hearts are reconciled)', description: 'Those newly inclined towards Islam' },
+  { value: 'riqab', label: "Ar-Riqab (Those in bondage)", description: 'Freeing those in slavery or captivity' },
+  { value: 'gharimin', label: 'Al-Gharimin (Those in debt)', description: 'Those overwhelmed by debt' },
+  { value: 'fisabilillah', label: "Fi Sabilillah (In the cause of Allah)", description: 'Charitable welfare for the sake of Allah' },
+  { value: 'ibnus_sabil', label: 'Ibn as-Sabil (The wayfarer)', description: 'The stranded traveller' },
 ];
 
 const PAYMENT_METHODS = [
@@ -98,10 +118,41 @@ export const PaymentRecordForm: React.FC<PaymentRecordFormProps> = ({
   const [recipientDecryptionWarning, setRecipientDecryptionWarning] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Helper to map legacy/backend values to schema
-  const getInitialCategory = (val?: string) => {
-    if (!val) return 'poor';
-    return val;
+  /**
+   * Map a stored category to one the form accepts.
+   *
+   * WHY THIS MAPPING IS HERE AND NOT IN THE SCHEMA
+   *   Payments saved before the vocabulary was reconciled can carry values the
+   *   server never accepted ('general', 'poor', 'education', ...). Those rows
+   *   exist locally, so editing one must not dead-end: the form has to offer a
+   *   canonical starting point the user can then correct.
+   *
+   *   The default was 'poor' — itself a non-canonical value, so a NEW payment
+   *   pre-filled a category the server rejects and, once the schema was
+   *   narrowed, silently failed validation. Defaulting to a canonical category
+   *   is the fix; the legacy map keeps old rows editable.
+   *
+   *   Several legacy values collapse onto fisabilillah because that is the
+   *   canonical category for general charitable welfare, and a programme name
+   *   ("education", "healthcare") says what the money funded, not which asnaf
+   *   received it. Guessing a more precise category would be inventing one.
+   */
+  const LEGACY_CATEGORY_MAP: Record<string, string> = {
+    // Direct synonyms for the poor and needy.
+    poor: 'fakir',
+    orphans: 'fakir',
+    widows: 'fakir',
+    // General welfare — the user must refine this if they know the recipient.
+    general: 'fisabilillah',
+    other: 'fisabilillah',
+    education: 'fisabilillah',
+    healthcare: 'fisabilillah',
+    infrastructure: 'fisabilillah',
+  };
+
+  const getInitialCategory = (val?: string): string => {
+    if (!val) return 'fakir';
+    return LEGACY_CATEGORY_MAP[val] ?? val;
   };
 
   // React Hook Form

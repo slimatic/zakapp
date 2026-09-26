@@ -113,14 +113,24 @@ export const ZakatSetupStep: React.FC = () => {
 
             // 2. Record Payment if entered
             if (zakatPaid > 0 && record) {
+                // The wizard asks only for an amount, so it knows nothing about
+                // who received it. `fisabilillah` is the canonical category that
+                // covers a general charitable payment — 'general' was not one of
+                // the eight the server accepts, so this payment was stored
+                // locally and then REJECTED on sync (see #521).
+                //
+                // recipientName stays as the sender's own description because no
+                // recipient was named; the user can correct it in the payment
+                // record, which is better than inventing a recipient here.
                 await addPayment({
                     amount: zakatPaid,
                     paymentDate: new Date().toISOString(),
                     paymentMethod: 'other',
-                    notes: 'Initial payment recorded during setup',
+                    notes: 'Initial payment recorded during setup. Recipient not specified — recorded under fisabilillah (in the cause of Allah). Edit this record if you know the recipient.',
                     snapshotId: record.id,
                     recipientName: 'Self-Reported',
-                    recipientCategory: 'general'
+                    recipientType: 'individual' as const,
+                    recipientCategory: 'fisabilillah' as const
                 });
             }
 
