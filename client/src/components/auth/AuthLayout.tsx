@@ -27,6 +27,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Logo } from '../common/Logo';
+import { ThemeToggle } from '../layout/ThemeToggle';
 
 export interface AuthLayoutProps {
   /** Page heading. Sentence case, calm tone, no exclamation. */
@@ -61,6 +62,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
             زكاة
           </span>
         </div>
+        {/* Theme control on the way in: someone who needs low-contrast or dark
+            should not have to sign in to find out the app supports it. */}
+        <ThemeToggle />
       </header>
 
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
