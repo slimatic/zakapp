@@ -190,7 +190,7 @@ export const Login: React.FC = () => {
 
         <div className="space-y-1.5">
           <label htmlFor="username" className="block text-sm font-medium text-foreground">
-            {t('auth.username')}
+            {t('auth.usernameOrEmail')}
           </label>
           <Input
             id="username"

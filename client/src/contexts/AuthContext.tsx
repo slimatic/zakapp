@@ -95,7 +95,8 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 };
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<boolean>;
+  /** `identifier` is a username or an email — the server resolves either. */
+  login: (identifier: string, password: string) => Promise<boolean>;
   register: (userData: any) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -144,10 +145,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (identifier: string, password: string): Promise<boolean> => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      const user = await authService.login(email, password);
+      const user = await authService.login(identifier, password);
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       return true;
     } catch (error) {
