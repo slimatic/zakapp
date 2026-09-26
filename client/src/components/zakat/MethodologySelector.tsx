@@ -17,6 +17,7 @@
 
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { apiService } from '../../services/api';
 import { Button } from '../ui';
 import { MethodologyCard } from './MethodologyCard';
 import { getAllMethodologies, getMethodology, DISCLAIMER } from '../../data/methodologies';
@@ -43,21 +44,18 @@ export const MethodologySelector: React.FC<MethodologySelectorProps> = ({
 
   const handleMethodologySelect = async (methodologyId: string) => {
     onMethodologyChange(methodologyId);
-    
-    // Save preference to backend
+
+    // Persist through the api service, which attaches the auth header from the
+    // key the session actually writes (`accessToken`). This previously read
+    // `localStorage.getItem('token')` — a key nothing writes — so it sent
+    // `Authorization: Bearer null` and the server answered 401, which surfaced
+    // as "Failed to save methodology preference" on every selection.
     try {
-      const response = await fetch('/api/user/settings', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          preferredMethodology: methodologyId
-        })
+      const result = await apiService.updateSettings({
+        preferredMethodology: methodologyId,
       });
-      
-      if (!response.ok) {
+
+      if (!result?.success) {
         toast.error('Failed to save methodology preference');
       }
     } catch (error) {
