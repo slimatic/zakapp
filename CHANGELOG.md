@@ -5,6 +5,45 @@
 _Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
 See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
+## [0.17.2] - 2026-09-26
+
+### 15 Rabi al-Thani 1448 — full moon, 99.8% lit
+
+The push-notification fix was merged to `main` but never reached a deployment. The published
+`0.17.1` image was built 3h20m before the fix landed, and since production pins an explicit
+semver rather than `:latest`, a newer image cannot arrive on its own. Shipped off-anchor under
+the cadence's "a security or data-safety fix is verified and waiting" exception.
+
+**Correctness**
+
+- **Web-push notifications could never be displayed.** The handlers existed on disk but were in
+  no branch and never in the bundle: `.gitignore`'s blanket `*.js` rule matched
+  `client/public/sw.js`, and workbox's `generateSW` mode writes its own `dist/sw.js` and
+  discards any hand-written one. The service worker registered twice as well. The served worker
+  contained **zero** push listeners while VAPID was configured and the subscribe UI worked —
+  so it failed silently. Handlers now live in `public/push-sw.js`, that path is explicitly
+  un-ignored, and workbox pulls them in via `importScripts` so the tuned `navigateFallback`
+  and `runtimeCaching` rules stay intact.
+- **Deleted an unreachable PDF that asserted unverified fiqh claims.** It was reachable from
+  nowhere but shipped in the bundle, and stated a fixed "Silver Standard" and a "Default:
+  Hanafi" that would have contradicted the user's own madhab setting, plus an unattributed
+  "(Majority Opinion)". A document that misdescribes its own calculation is worse than no
+  document.
+
+**Maintenance**
+
+- Removed a dead parallel payment API: 7 routes, a controller and a service, 868 lines total,
+  with no client caller. The `ZakatPayment` table is **not** removed — three live readers use it
+  (user data export, backup payload, migration detection), so dropping it would have silently
+  changed what a user's backup contains.
+
+**Testing**
+
+- 15 guard assertions across two files, each verified by mutation: removing the
+  `importScripts` wiring, the `.gitignore` negation, or re-introducing the fabricated claims
+  all fail the suite. The push path is additionally verified behaviourally — a real `push`
+  event dispatched into the built worker in Chromium produces a notification.
+
 ## [0.17.1] - 2026-09-25
 
 ### 13 Rabi al-Thani 1448 — waxing gibbous, 98% lit
