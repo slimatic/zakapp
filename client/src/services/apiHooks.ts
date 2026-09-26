@@ -245,15 +245,6 @@ export const useUpdateCalendarPreference = () => {
   });
 };
 
-// Payment tracking hooks
-export const useZakatPayments = () => {
-  return useQuery({
-    queryKey: ['zakat', 'payments'],
-    queryFn: () => apiService.getZakatPayments(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-};
-
 export const useRecordPayment = () => {
   const queryClient = useQueryClient();
 

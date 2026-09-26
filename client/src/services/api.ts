@@ -592,21 +592,6 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getZakatPayments(filters?: { year?: number; page?: number; limit?: number }): Promise<ApiResponse> {
-    const params = new URLSearchParams();
-    if (filters?.year) params.append('year', filters.year.toString());
-    if (filters?.page) params.append('page', filters.page.toString());
-    if (filters?.limit) params.append('limit', filters.limit.toString());
-
-    const url = params.toString()
-      ? `${API_BASE_URL}/zakat/payments?${params.toString()}`
-      : `${API_BASE_URL}/zakat/payments`;
-
-    const response = await fetch(url, {
-      headers: this.getAuthHeaders()
-    });
-    return this.handleResponse(response);
-  }
 
   async saveCalculation(data: any): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/zakat/save-calculation`, {

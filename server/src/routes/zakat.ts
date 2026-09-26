@@ -26,9 +26,7 @@ import { CurrencyService } from '../services/currencyService';
 import { CalendarService } from '../services/calendarService';
 import { NisabService } from '../services/NisabService';
 import { UserService } from '../services/UserService';
-import { PaymentRecordService } from '../services/payment-record.service';
 import { CalculationHistoryService } from '../services/CalculationHistoryService';
-import { PaymentRecordsController } from '../controllers/payment-records.controller';
 import { Logger } from '../utils/logger';
 
 // Issue #310: currencies the platform supports for display/conversion.
@@ -135,12 +133,9 @@ const groupAssetsByCategory = (assets: any[]): any[] => {
 const currencyService = new CurrencyService();
 const calendarService = new CalendarService();
 const nisabService = new NisabService();
-const paymentService = new PaymentRecordService();
 const calculationHistoryService = new CalculationHistoryService();
 const zakatEngine = new ZakatEngine(currencyService, calendarService, nisabService);
 
-// Initialize controllers
-const paymentRecordsController = new PaymentRecordsController();
 
 /**
  * POST /api/zakat/calculate
@@ -569,120 +564,6 @@ router.get('/methodologies', async (req, res: Response) => {
     res.status(500).json(response);
   }
 });
-
-/**
- * POST /api/zakat/payments
- * Record a new Zakat payment
- */
-router.post('/payments',
-  authenticate,
-  validateSchema(z.object({
-    calculationId: z.string().optional(),
-    amount: z.number().positive(),
-    paymentDate: z.string(),
-    recipient: z.string().optional(),
-    notes: z.string().optional()
-  })),
-  paymentRecordsController.createPayment
-);
-
-/**
- * GET /api/zakat/payments
- * Get user's payment records with optional filtering
- */
-router.get('/payments',
-  authenticate,
-  paymentRecordsController.getPayments
-);
-
-/**
- * GET /api/zakat/payments/:id
- * Get a specific payment record
- */
-router.get('/payments/:id',
-  authenticate,
-  paymentRecordsController.getPayment
-);
-
-/**
- * PUT /api/zakat/payments/:id
- * Update a payment record
- */
-router.put('/payments/:id',
-  authenticate,
-  validateSchema(z.object({
-    amount: z.number().positive().optional(),
-    paymentDate: z.string().optional(),
-    recipient: z.string().optional(),
-    notes: z.string().optional(),
-    snapshotId: z.string().optional()
-  })),
-  paymentRecordsController.updatePayment
-);
-
-/**
- * DELETE /api/zakat/payments/:id
- * Delete a payment record
- */
-router.delete('/payments/:id',
-  authenticate,
-  paymentRecordsController.deletePayment
-);
-
-/**
- * GET /api/zakat/payments/:id/receipt
- * Generate payment receipt
- */
-router.get('/payments/:id/receipt',
-  authenticate,
-  paymentRecordsController.getReceipt
-);
-
-/**
- * GET /api/receipts/:token
- * Get payment receipt by token (public access)
- */
-router.get('/receipts/:token',
-  async (req: Request, res: Response) => {
-    try {
-      const { token } = req.params;
-      const tokenStr = token as string;
-
-      // Verify token
-      const decoded = jwt.verify(tokenStr, getJwtSecret()) as unknown as { paymentId: string; userId: string };
-
-      const payment = await paymentService.getPayment(decoded.userId, decoded.paymentId);
-
-      if (!payment) {
-        const response = createResponse(false, undefined, {
-          code: 'RECEIPT_NOT_FOUND',
-          message: 'Payment receipt not found'
-        });
-        return res.status(404).json(response);
-      }
-
-      const response = createResponse(true, {
-        receipt: {
-          paymentId: payment.id,
-          amount: payment.amount,
-          paymentDate: payment.paymentDate,
-          recipient: payment.recipient,
-          notes: payment.notes,
-          calculationId: payment.calculationId,
-          generatedAt: new Date().toISOString()
-        }
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      const response = createResponse(false, undefined, {
-        code: 'RECEIPT_ACCESS_ERROR',
-        message: 'Invalid or expired receipt link',
-        details: [error instanceof Error ? error.message : 'Unknown error']
-      });
-      res.status(400).json(response);
-    }
-  }
-);
 
 /**
  * GET /api/zakat/history
