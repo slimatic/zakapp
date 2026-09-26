@@ -67,6 +67,24 @@ function configureVapid(): void {
 }
 configureVapid();
 
+/**
+ * Whether this process can actually sign a push.
+ *
+ * Both halves are required: web-push throws "Public key is not valid for
+ * specified curve" on every send when only the public key is configured, which
+ * is the state production was in.
+ */
+export function isPushConfigured(): boolean {
+  return Boolean(webpush && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+}
+
+/**
+ * How a send ended. Pruning hangs off this, not off success/failure: only a
+ * subscription the push service has declared dead is the device's fault, and
+ * only that should be removed.
+ */
+export type PushSendResult = 'sent' | 'expired' | 'failed' | 'unconfigured';
+
 export interface PushSubscription {
   endpoint: string;
   keys: {
@@ -89,29 +107,36 @@ export interface NotificationPayload {
 }
 
 /**
- * Send push notification to a single subscription
+ * Send push notification to a single subscription.
+ *
+ * Returns how it ended rather than a boolean, because the caller has to
+ * distinguish "this subscription is dead, remove it" from "the send failed,
+ * leave it alone". A boolean cannot carry that, and the previous code read
+ * every failure as the first — see sendPushToUser.
  */
 export async function sendPushNotification(
   subscription: PushSubscription,
   payload: NotificationPayload
-): Promise<boolean> {
+): Promise<PushSendResult> {
   try {
     if (!webpush) {
       logger.warn('⚠️ web-push unavailable — notification skipped');
-      return false;
+      return 'unconfigured';
     }
     await webpush.sendNotification(subscription, JSON.stringify(payload));
     logger.info('✅ Push notification sent successfully');
-    return true;
+    return 'sent';
   } catch (error: any) {
-    if (error.statusCode === 410) {
-      // Subscription expired or unsubscribed
+    // 404 and 410 are the push service's own verdict that the subscription is
+    // gone. Anything else (network, auth, malformed key) is our problem, not
+    // the subscription's.
+    if (error.statusCode === 410 || error.statusCode === 404) {
       logger.warn('⚠️ Push subscription expired:', error.endpoint);
-      return false;
+      return 'expired';
     }
 
     logger.error('❌ Failed to send push notification:', error);
-    return false;
+    return 'failed';
   }
 }
 
@@ -130,12 +155,19 @@ export async function sendPushToUser(
     logger.info(`📤 Sending push notification to user ${userId} (${subscriptions.length} subscription(s))`);
 
     for (const sub of subscriptions) {
-      const success = await sendPushNotification(
+      const result = await sendPushNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         payload
       );
-      if (!success) {
-        // Subscription expired (410) or send failed unrecoverably — prune it
+      // Prune ONLY on the push service's own verdict that the subscription is
+      // gone. Every other outcome leaves it in place.
+      //
+      // This used to delete on any failure, so a single misconfiguration —
+      // VAPID_PRIVATE_KEY unset in production — silently destroyed every
+      // subscription row the first time a reminder ran. The user's device then
+      // had no record server-side, so the reminder could never reach it again
+      // even after the key was restored.
+      if (result === 'expired') {
         await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => undefined);
       }
     }
@@ -317,4 +349,5 @@ export default {
   sendAssetUpdateReminder,
   scheduleZakatReminders,
   getVapidPublicKey,
+  isPushConfigured,
 };
