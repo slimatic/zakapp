@@ -42,7 +42,7 @@
   "dependencies": {
     "@prisma/client": "6.16.2",
     "@zakapp/shared": "file:shared",
-    "prisma": "6.16.2",
+    "prisma": "7.10.0",
     "js-sha256": "^0.10.0"
   }
 }
