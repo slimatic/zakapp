@@ -50,7 +50,6 @@ server/prisma/data
 .git
 .gitignore
 .github
-.beads
 **/.DS_Store
 **/*.swp
 **/.idea
