@@ -59,7 +59,6 @@ export const NisabYearRecordsPage: React.FC = () => {
    * `defaultNisabBasis` is still passed for backwards compatibility, but the
    * modal ignores it.
    */
-  const defaultNisabBasis = (user?.settings?.preferredNisabStandard as 'GOLD' | 'SILVER') || 'GOLD';
 
   // Issue #310 (round 4): assets may be stored in mixed currencies (e.g. USD
   // seed data + an IDR car). Normalize everything into the user's display
@@ -257,7 +256,6 @@ export const NisabYearRecordsPage: React.FC = () => {
         onSubmit={handleCreateSubmit}
         allAssets={allAssets}
         allLiabilities={allLiabilities}
-        defaultNisabBasis={defaultNisabBasis}
         methodology={userMethodology}
         userCurrency={userCurrency}
       />

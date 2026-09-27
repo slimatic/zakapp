@@ -142,8 +142,7 @@ export const ZakatSetupStep: React.FC = () => {
                     ...user?.settings,
                     preferredMethodology: data.methodology.madhab,
                     preferredCalendar: data.methodology.calendar === 'lunar' ? 'hijri' : 'gregorian',
-                    currency: data.settings.currency,
-                    preferredNisabStandard: data.nisab.standard.toUpperCase() as 'GOLD' | 'SILVER'
+                    currency: data.settings.currency
                 }
             });
 

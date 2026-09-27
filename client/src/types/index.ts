@@ -83,7 +83,6 @@ export interface User {
   settings?: {
     preferredCalendar?: 'gregorian' | 'hijri';
     preferredMethodology?: 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom';
-    preferredNisabStandard?: 'GOLD' | 'SILVER';
     hijriAdjustment?: number;
     currency?: string;
   };

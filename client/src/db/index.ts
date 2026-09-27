@@ -74,20 +74,31 @@ const migrationStrategiesV5 = {
 
 const migrationStrategiesV6 = {
     ...migrationStrategiesV5,
-    6: (doc: any) => {
-        // Only supply the value when the document has none.
-        //
-        // This used to assign unconditionally, so every document running the
-        // v6 migration had its saved basis replaced with GOLD — a user who
-        // had chosen SILVER silently lost the setting. A migration exists to
-        // carry data forward, not to overwrite it.
-        //
-        // Uppercase on purpose: the consumers type this as 'GOLD' | 'SILVER'
-        // and the schema's lowercase 'gold' default was a third spelling of
-        // the same idea (see #521).
-        if (!doc.preferredNisabStandard) {
-            doc.preferredNisabStandard = 'GOLD';
-        }
+    // v6 used to seed `preferredNisabStandard`, a preference the calculation never
+    // consulted — the basis follows the school (see #521). The field has since
+    // been removed entirely, so this step now only carries documents forward.
+    // It is kept as a no-op rather than deleted: the strategy chain is keyed by
+    // from-version, and removing a key breaks migration for anything still at v5.
+    6: (doc: any) => doc
+};
+
+export const migrationStrategiesV7 = {
+    ...migrationStrategiesV6,
+    /**
+     * Drop `preferredNisabStandard`, which no longer decides anything.
+     *
+     * It was written by the onboarding wizard, patched on profile update, and read
+     * only by code that passed it to a modal which ignored it. `getNisabSource`
+     * derives the basis from the chosen school, so a stored value could only ever
+     * disagree with the real rule — the trap #536 named: the next person adding
+     * nisab logic finds a field that looks authoritative and trusts it.
+     *
+     * The property is deleted rather than set to a default. A default keeps the
+     * trap. The schema no longer declares the field, so any value that survives
+     * here is dead weight on every document.
+     */
+    7: (doc: any) => {
+        delete doc.preferredNisabStandard;
         return doc;
     }
 };
@@ -149,7 +160,7 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
                 liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
                 nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
-                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV6 }
+                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV7 }
             });
         }
 

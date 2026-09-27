@@ -45,7 +45,7 @@ vi.mock("../../src/contexts/AuthContext", () => ({
       username: "testuser",
       email: "test@example.com",
       isAdmin: false,
-      settings: { currency: "USD", preferredNisabStandard: "GOLD" },
+      settings: { currency: "USD" },
     },
     logout: vi.fn(),
   }),
