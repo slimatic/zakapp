@@ -1,4 +1,5 @@
 import { cryptoService, CryptoService } from '../CryptoService';
+import { checkVaultKey } from '../VaultRekey';
 import { getDb, forceResetDatabase, closeDb } from '../../db';
 import { Logger } from '../../utils/logger';
 import { apiService as api } from '../api';
@@ -239,6 +240,42 @@ export const authService = {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             });
+        } else {
+            // The vault key is derived from the password. When it does not match what this
+            // device's rows were written with, every decrypt fails - and every repository
+            // swallows that failure, so the values stay `ZK1:...` and the UI renders NaN or
+            // blanks with nothing on the wire to explain it. The user's only clue is "my
+            // data looks like a mess".
+            //
+            // The verifier exists for exactly this and was never read (see checkVaultKey).
+            // This REPORTS and backfills; it never blocks, because refusing a login would
+            // lock out whoever holds the correct password whenever the verifier is stale.
+            const storedVerifier = userDoc.get('securityProfile')?.verifier;
+            try {
+                const status = await checkVaultKey(storedVerifier, await cryptoService.hash(keyString));
+
+                if (status === 'mismatch') {
+                    logger.warn(
+                        'Vault key does not match this device\'s stored verifier; ' +
+                        'encrypted rows may be unreadable with this password.'
+                    );
+                    toast.error(
+                        'Your data was encrypted with a different key. ' +
+                        'Sign in with the password you used before, or recover your data.',
+                        { duration: 8000 }
+                    );
+                } else if (status === 'unknown') {
+                    // Vault predates verifiers, or a recovery did not set one. Backfill so
+                    // the next login can actually be checked.
+                    logger.info('No verifier stored for this vault; backfilling.');
+                    await userDoc.incrementalPatch({
+                        securityProfile: { salt, verifier: await cryptoService.hash(keyString) }
+                    });
+                }
+            } catch (verifierError) {
+                // A diagnostic must never be the reason a login fails.
+                logger.warn('Could not verify the vault key', verifierError);
+            }
         }
 
         // 5. Construct User Object
