@@ -208,24 +208,50 @@ export default defineConfig(({ mode }) => {
       allowedHosts: allowedHosts,
       proxy: {
         '/api': {
-          // `backend` is the compose service name; outside Docker it does not
-          // resolve, so every API call through the dev server fails and the app
-          // looks like a login bug. Override with VITE_PROXY_TARGET when running
-          // the client against a host-run API.
-          target: env.VITE_PROXY_TARGET || 'http://backend:3001',
+          target: 'http://backend:3001',
           changeOrigin: true,
           secure: false,
-        },
-        // CouchDB LiveSync — same host-vs-Docker split.
-        '/couchdb': {
-          target: env.VITE_COUCHDB_TARGET || 'http://couchdb:5984',
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path.replace(/^\/couchdb/, ''),
         },
       },
       watch: {
         usePolling: true, // Recommended for Docker on some systems
+      },
+    },
+    // Local smoke-test preview: proxies /api to a reachable backend so the
+    // built client on :4173 can authenticate (vite preview has no proxy by default).
+    //
+    // The Origin header is overridden because the production backend's CORS
+    // allowlist is prod-only. That override must NOT apply when the target is a
+    // local dev backend: in NODE_ENV=development the server allows localhost and
+    // LAN origins and REJECTS everything else, and a rejected origin surfaces as
+    // a 500 ("Not allowed by CORS") rather than a 403 — so a local run against a
+    // dev backend fails on every request with an opaque internal error.
+    //
+    // With VITE_PROXY_TARGET pointing at a local backend we therefore send no
+    // Origin at all, which the server treats as a non-browser client and allows.
+    preview: {
+      port: 4173,
+      proxy: {
+        '/api': {
+          target: process.env.VITE_PROXY_TARGET || 'http://192.168.86.242:3001',
+          changeOrigin: true,
+          secure: false,
+          ...(process.env.VITE_PROXY_TARGET
+            ? {}
+            : { headers: { Origin: 'https://app.zakapp.org' } }),
+        },
+        // CouchDB MUST be proxied too. APP_CONFIG advertises COUCHDB_URL=/couchdb,
+        // and without this rule vite serves the SPA's own index.html for that path
+        // - a 200 text/html response that looks like success. RxDB then parses HTML
+        // as a CouchDB reply and the sync never completes, so login hangs forever on
+        // "Decrypting vault..." with no error in the console. Same-origin proxy also
+        // sidesteps CORS, which the :5984 backend does not allow from this origin.
+        '/couchdb': {
+          target: process.env.VITE_COUCHDB_TARGET || 'http://192.168.86.242:5984',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path: string) => path.replace(/^\/couchdb/, ''),
+        },
       },
     },
   };
