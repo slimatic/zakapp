@@ -8,6 +8,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 /**
  * The behaviour under test is the one that silently lost data: a password
@@ -25,7 +30,13 @@ const state: {
 const makeDoc = (fields: Record<string, unknown>) => ({
     primary: fields.id,
     get: (k: string) => fields[k],
-    atomicPatch: vi.fn(async (patch: Record<string, unknown>) => {
+    // The ONLY write method the real RxDocument exposes for a partial update in
+    // rxdb 16 is `incrementalPatch`, which routes through `_runHooks('pre',
+    // 'save')` where the encryption plugin re-encrypts. An earlier version of
+    // this mock invented `atomicPatch`; the production code called that name,
+    // every test passed against the mock, and the real call would have thrown.
+    // Assert the name exists on the real library below so that cannot recur.
+    incrementalPatch: vi.fn(async (patch: Record<string, unknown>) => {
         for (const [k, v] of Object.entries(patch)) {
             // Stand in for the preSave hook: re-encrypt under the session key.
             if (state.encryptedPaths.includes(k) && state.sessionKey) {
@@ -226,5 +237,34 @@ describe('reencryptVault (password change must not lose data)', () => {
         const res = await reencryptVault(oldKey);
         expect(res.reencrypted).toBe(1);
         expect(res.unreadable).toBe(1);
+    });
+
+    /**
+     * The mock above stands in for a real RxDocument, so it can only prove the
+     * logic. This asserts the write method VaultRekey actually calls exists in
+     * the installed RxDB, and that it is the write path that runs the
+     * encryption hook. An invented method name stays invisible to the mock and
+     * would only surface when a user changes their password and the vault is
+     * not re-encrypted.
+     */
+    it('calls a write method the installed RxDB actually defines, on the hook path', () => {
+        const rxdbDoc = readFileSync(
+            path.join(path.dirname(require.resolve('rxdb')), 'rx-document.js'),
+            'utf8'
+        );
+
+        const source = readFileSync(
+            path.join(process.cwd(), 'src/services/VaultRekey.ts'),
+            'utf8'
+        );
+        const call = source.match(/\(doc as any\)\.(\w+)\(updates\)/);
+        expect(call, 'VaultRekey should write via a named method').toBeTruthy();
+
+        // The method must exist on the real document prototype, and the write
+        // must route through `_runHooks('pre', 'save')` — where
+        // zeroKnowledgePlugin re-encrypts. If either stops holding, the re-key
+        // writes plaintext or throws mid-password-change.
+        expect(rxdbDoc).toContain(`${call![1]}(`);
+        expect(rxdbDoc).toContain("_runHooks('pre', 'save'");
     });
 });
