@@ -5,6 +5,46 @@
 _Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
 See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
+## [0.17.4] - 2026-09-27
+
+### 16 Rabi al-Thani 1448 — released hours after v0.17.3
+
+A hotfix, not a cycle release. Three defects found in production within hours of
+v0.17.3 going live.
+
+**Reliability**
+
+- **After a deploy, the app can now recover itself instead of showing "Something went
+  wrong".** A deploy replaces the hashed chunk filenames; a browser still holding the
+  previous document asks for the old ones, so every lazily-loaded route — `/admin`,
+  `/assets`, the dashboard — threw and the error boundary took over. The recovery was
+  dead code in production: it looked for webpack's wording (`Loading chunk`,
+  `ChunkLoadError`) but this client is built with Vite, which reports *"Failed to fetch
+  dynamically imported module"*. Nothing matched, so no recovery was ever attempted.
+
+  A plain reload would not have fixed it either. The service worker answers navigation
+  from its own precached `index.html`, so reloading re-served the same stale document
+  with the same dead chunk names — the retry failed, cleared its flag, and gave up.
+  Recovery now drops the service worker and its caches **before** reloading, so the
+  document comes from the network. The reload is in a `finally`: a failed cleanup still
+  recovers the user.
+
+**Data safety**
+
+- **A failed password change can no longer be a lie.** Changing the password wrote the
+  new hash, then invalidated sessions, as two separate writes. When the second failed the
+  API returned 500 while the new password was **already committed** — so the user was told
+  the change failed and retried against a password that had in fact already moved. Since
+  the vault key is derived from the password, that is how someone gets locked out of their
+  own encrypted data with no reason to suspect the password change caused it. Both writes
+  now run in one transaction: a 500 means nothing changed.
+
+**Interface**
+
+- **The unreleased two-factor row is gone from Settings → Security.** It advertised an
+  authenticator-app capability with no planned work behind it; a disabled "Coming Soon"
+  control in a security panel reads as "this is planned".
+
 ## [0.17.3] - 2026-09-27
 
 ### 16 Rabi al-Thani 1448 — full moon, 99.7% lit
