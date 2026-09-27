@@ -5,6 +5,35 @@
 _Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
 See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
+## [0.17.6] - 2026-09-27
+
+### Third release of the day, and the shortest
+
+**Fixes**
+
+- **The admin dashboard loads again.** `/admin` was showing "Unexpected Error" while
+  the rest of the app was perfectly healthy — you could log in, log out, view assets, and
+  change your password. The stats request was even returning HTTP 200, so nothing looked
+  wrong from the outside.
+
+  The cause was a response shape that had drifted. `/admin/stats` was the only admin
+  endpoint that returned its payload at the top level rather than under `data`:
+
+  ```
+  /admin/stats          -> { success, stats }      <- the odd one out
+  /admin/settings       -> { success, data }
+  /admin/system/status  -> { success, data }
+  /admin/users          -> { success, data }
+  ```
+
+  The app reads one convention, so a payload outside `data` simply vanished, and the page
+  fell back to its error state. Fixed on the server — three of the four endpoints already
+  used `data`, so conforming the outlier keeps one convention working everywhere rather
+  than teaching the app to special-case it.
+
+  Nothing else in the admin area was affected; the other tabs read both shapes and were
+  working correctly.
+
 ## [0.17.5] - 2026-09-27
 
 ### 16 Rabi al-Thani 1448 — same day as v0.17.4
