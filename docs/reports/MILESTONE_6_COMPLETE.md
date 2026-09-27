@@ -314,7 +314,7 @@ ZakApp Milestone 6 (UI/UX Enhancements) has been **successfully completed** with
 
 3. **Deploy to staging**
    ```bash
-   ./deploy-staging.sh
+   ./deploy-staging.sh *(removed — the staging compose it used was postgres-based; ZakApp is SQLite)*
    ```
 
 4. **Smoke test staging**

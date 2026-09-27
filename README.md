@@ -89,15 +89,19 @@ npm start
 
 ## 📚 Documentation
 
-| Guide | Description |
-|-------|-------------|
-| [EASY-DEPLOY.md](EASY-DEPLOY.md) | **Quick start guide** - Complete easy deployment instructions |
-| [SELF-HOSTING.md](SELF-HOSTING.md) | Production deployment with custom domains |
-| [QUICKSTART.md](QUICKSTART.md) | Alternative deployment methods |
-| [FAQs.md](FAQs.md) | Islamic finance questions answered |
-| [Deployment Guide](docs/deployment-guide.md) | Advanced deployment options |
-| [Troubleshooting](docs/troubleshooting-faq.md) | Common issues and solutions |
-| [API Reference](docs/api/api-specification.md) | REST API documentation |
+**[Documentation Hub](docs/README.md)** — a guided index if you are not sure where to start.
+
+| Guide | For |
+|-------|-----|
+| [EASY-DEPLOY.md](EASY-DEPLOY.md) | **Start here to install** — one script, auto-HTTPS |
+| [QUICKSTART.md](QUICKSTART.md) | The 3-command version |
+| [SELF-HOSTING.md](SELF-HOSTING.md) | Your own server, custom domain |
+| [DEPLOY.md](DEPLOY.md) | Production architecture |
+| [Troubleshooting](docs/troubleshooting-faq.md) | When something breaks |
+| [FAQs.md](FAQs.md) | Zakat and Islamic finance questions |
+| [API Reference](docs/api/api-specification.md) | REST API |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contributing code |
+| [SECURITY.md](SECURITY.md) / [PRIVACY.md](PRIVACY.md) | Security model and data handling |
 
 ## 🛠 Tech Stack
 

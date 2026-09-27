@@ -14,7 +14,6 @@ This directory contains specialized setup, configuration, and deployment guides 
   - Monitoring and logging setup
   
 #### Staging & Testing
-- **[Staging Deployment Guide (STAGING_DEPLOYMENT_GUIDE.md)](STAGING_DEPLOYMENT_GUIDE.md)**
   - Staging environment setup
   - Testing procedures
   - Pre-production validation
@@ -108,7 +107,7 @@ This directory contains specialized setup, configuration, and deployment guides 
 3. Use an HTTPS tunnel for phones — `chrome://flags` is desktop-only
 
 ### "I need to set up a staging environment"
-1. Follow [Staging Deployment Guide](STAGING_DEPLOYMENT_GUIDE.md)
+1. Deploy with `./deploy-easy.sh` (see [EASY-DEPLOY.md](../../EASY-DEPLOY.md))
 2. Review [Manual Testing Guide](MANUAL_TESTING_GUIDE.md) for validation
 3. Set up [CI/CD](CI-CD-SETUP.md) for automated deployments
 
