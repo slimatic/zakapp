@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
@@ -241,30 +241,52 @@ describe('reencryptVault (password change must not lose data)', () => {
 
     /**
      * The mock above stands in for a real RxDocument, so it can only prove the
-     * logic. This asserts the write method VaultRekey actually calls exists in
-     * the installed RxDB, and that it is the write path that runs the
-     * encryption hook. An invented method name stays invisible to the mock and
-     * would only surface when a user changes their password and the vault is
-     * not re-encrypted.
+     * logic. This sweeps the whole client source for RxDocument write methods
+     * and asserts each one exists in the installed RxDB, and that the write path
+     * that runs the encryption hook is still there. An invented method name
+     * passes every mock and only surfaces when a user's data is not encrypted.
+     *
+     * `atomicPatch` shipped in two places that way: this module, and
+     * AuthService's cleartext-migration path, where it threw on every login and
+     * left legacy plaintext unencrypted.
      */
-    it('calls a write method the installed RxDB actually defines, on the hook path', () => {
-        const rxdbDoc = readFileSync(
-            path.join(path.dirname(require.resolve('rxdb')), 'rx-document.js'),
-            'utf8'
-        );
+    it('only calls write methods the installed RxDB defines, on the hook path', () => {
+        const rxdbDir = path.dirname(require.resolve('rxdb'));
+        const rxdbJs = readdirSync(rxdbDir)
+            .filter((f) => f.endsWith('.js') && !f.endsWith('.map'))
+            .map((f) => readFileSync(path.join(rxdbDir, f), 'utf8'))
+            .join('\n');
 
-        const source = readFileSync(
-            path.join(process.cwd(), 'src/services/VaultRekey.ts'),
-            'utf8'
-        );
-        const call = source.match(/\(doc as any\)\.(\w+)\(updates\)/);
-        expect(call, 'VaultRekey should write via a named method').toBeTruthy();
+        // Every `doc.<method>(` call in the client, ignoring test doubles.
+        const files: string[] = [];
+        const walk = (dir: string) => {
+            for (const entry of readdirSync(dir, { withFileTypes: true })) {
+                const p = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    if (entry.name !== '__tests__' && entry.name !== 'node_modules') walk(p);
+                } else if (/\.tsx?$/.test(entry.name)) {
+                    files.push(p);
+                }
+            }
+        };
+        walk(path.join(process.cwd(), 'src'));
 
-        // The method must exist on the real document prototype, and the write
-        // must route through `_runHooks('pre', 'save')` — where
-        // zeroKnowledgePlugin re-encrypts. If either stops holding, the re-key
-        // writes plaintext or throws mid-password-change.
-        expect(rxdbDoc).toContain(`${call![1]}(`);
-        expect(rxdbDoc).toContain("_runHooks('pre', 'save'");
+        const RXDOC_METHODS = ['incrementalPatch', 'incrementalModify', 'incrementalUpdate',
+            'atomicPatch', 'patch', 'modify', 'update', 'remove', 'incrementalRemove'];
+        const offenders: string[] = [];
+        for (const file of files) {
+            const src = readFileSync(file, 'utf8');
+            for (const m of RXDOC_METHODS) {
+                // `doc.<m>(` / `document.<m>(` — a real write on a document.
+                const re = new RegExp(String.raw`\b(?:doc|document)\.${m}\s*\(`, 'g');
+                for (const match of src.matchAll(re)) {
+                    const decl = new RegExp(String.raw`${m}\s*[:(=]`).test(rxdbJs);
+                    if (!decl) offenders.push(`${path.relative(process.cwd(), file)}: ${match[0]}`);
+                }
+            }
+        }
+        expect(offenders, 'these call methods rxdb does not define').toEqual([]);
+
+        expect(rxdbJs).toContain("_runHooks('pre', 'save'");
     });
 });
