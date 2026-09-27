@@ -72,7 +72,7 @@ export const SecuritySettings: React.FC = () => {
 
             let summary;
             try {
-                summary = await reencryptVault(oldKey);
+                summary = await reencryptVault(oldKey, { strict: true });
             } catch (err) {
                 // Put the working key back so the user is not left holding a
                 // session that cannot read their own vault.
