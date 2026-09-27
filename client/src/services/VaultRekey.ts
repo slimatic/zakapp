@@ -50,6 +50,8 @@ export interface ReencryptResult {
     reencrypted: number;
     /** Docs that failed and were left untouched. */
     failed: number;
+    /** Values that could not be read under the supplied key. */
+    unreadable: number;
     /** Per-collection counts, for diagnostics. */
     byCollection: Record<string, number>;
 }
@@ -72,9 +74,25 @@ const getEncryptedPaths = (collection: any): string[] => {
  * key are left alone, which makes a second run a no-op rather than a
  * corruption.
  */
-export const reencryptVault = async (fromKey: CryptoKey): Promise<ReencryptResult> => {
+export const reencryptVault = async (
+    fromKey: CryptoKey,
+    opts: { strict?: boolean } = {}
+): Promise<ReencryptResult> => {
+    // Strict mode throws instead of writing a partial result, which is what a
+    // password change needs. Recovery leaves it off so a salvageable vault is
+    // salvaged and the caller is told the unreadable count.
+    const strict = opts.strict ?? false;
     const db = await getDb();
-    const result: ReencryptResult = { reencrypted: 0, failed: 0, byCollection: {} };
+    const result: ReencryptResult = { reencrypted: 0, failed: 0, unreadable: 0, byCollection: {} };
+
+    // Phase 1 — decrypt everything first, writing nothing.
+    //
+    // If a value cannot be read under `fromKey`, the re-key cannot be completed.
+    // Strict mode (password change) stops here rather than writing a partial
+    // result: a half-re-keyed vault reported as success is the exact failure this
+    // change exists to prevent. Recovery stays tolerant — someone rescuing a
+    // vault wants whatever can be salvaged, and is told the count.
+    const pending: Array<{ name: string; doc: any; updates: Record<string, unknown> }> = [];
 
     for (const name of COLLECTIONS) {
         const collection = (db as any)[name];
@@ -95,7 +113,7 @@ export const reencryptVault = async (fromKey: CryptoKey): Promise<ReencryptResul
                 if (!cryptoService.isEncrypted(raw)) continue;
 
                 const packed = cryptoService.unpackEncrypted(raw);
-                if (!packed) continue;
+                if (!packed) { result.unreadable += 1; continue; }
 
                 try {
                     const plain = await cryptoService.decryptWithKey(
@@ -105,29 +123,46 @@ export const reencryptVault = async (fromKey: CryptoKey): Promise<ReencryptResul
                     );
                     if (plain !== undefined && plain !== null) updates[path] = plain;
                 } catch {
-                    // Not readable under `fromKey` either — this row was written
-                    // under some third key. Leave it exactly as it is; rewriting
-                    // it would destroy the only copy.
+                    // Written under some third key. Rewriting it would destroy the
+                    // only copy, so it is reported rather than touched.
+                    result.unreadable += 1;
                 }
             }
 
-            if (Object.keys(updates).length === 0) continue;
-
-            try {
-                updates.updatedAt = new Date().toISOString();
-                // `preSave` re-encrypts each of these with the session key.
-                await (doc as any).atomicPatch(updates);
-                result.reencrypted += 1;
-                result.byCollection[name] = (result.byCollection[name] || 0) + 1;
-            } catch (err) {
-                result.failed += 1;
-                logger.error(`Re-encrypt failed for ${name}/${doc.primary}`, err);
-            }
+            if (Object.keys(updates).length > 0) pending.push({ name, doc, updates });
         }
     }
 
+    if (strict && result.unreadable > 0) {
+        throw new Error(
+            `${result.unreadable} encrypted value${result.unreadable === 1 ? '' : 's'} could not be ` +
+            `read with that password, so nothing was changed.`
+        );
+    }
+
+    // Phase 2 — write. `preSave` re-encrypts each field with the session key.
+    for (const { name, doc, updates } of pending) {
+        try {
+            updates.updatedAt = new Date().toISOString();
+            await (doc as any).atomicPatch(updates);
+            result.reencrypted += 1;
+            result.byCollection[name] = (result.byCollection[name] || 0) + 1;
+        } catch (err) {
+            result.failed += 1;
+            logger.error(`Re-encrypt failed for ${name}/${doc.primary}`, err);
+        }
+    }
+
+    if (strict && result.failed > 0) {
+        throw new Error(
+            `${result.failed} record${result.failed === 1 ? '' : 's'} could not be rewritten. ` +
+            `Retry before changing your password.`
+        );
+    }
+
     logger.info(
-        `Vault re-encrypt: ${result.reencrypted} rewritten, ${result.failed} failed`,
+        `Vault re-encrypt: ${result.reencrypted} rewritten, ${result.failed} failed, ` +
+        `${result.unreadable} unreadable`,
         result.byCollection
     );
     return result;
