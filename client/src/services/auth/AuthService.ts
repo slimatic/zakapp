@@ -402,10 +402,10 @@ export const authService = {
                 let migratedCount = 0;
                 for (const doc of assets) {
                     if (doc.get('name') && !cryptoService.isEncrypted(doc.get('name'))) {
-                        await doc.atomicPatch({ updatedAt: new Date().toISOString() });
+                        await doc.incrementalPatch({ updatedAt: new Date().toISOString() });
                         migratedCount++;
                     } else if (doc.get('value') && !cryptoService.isEncrypted(doc.get('value'))) {
-                        await doc.atomicPatch({ updatedAt: new Date().toISOString() });
+                        await doc.incrementalPatch({ updatedAt: new Date().toISOString() });
                         migratedCount++;
                     }
                 }
