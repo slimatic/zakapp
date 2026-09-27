@@ -49,7 +49,7 @@ This guide explains how to deploy ZakApp in a production environment using Docke
 ## Architecture Notes
 
 - **Frontend**: Served by Nginx. Static files are built with `npm run build` in a separate stage.
-    - **Runtime Config**: `client/public/config.js` is a committed source file that sets `window.APP_CONFIG` (currently `{ API_BASE_URL: '/api' }`). The value is relative on purpose so it survives port and host changes; a guard (`client/scripts/check-runtime-config.py`) fails CI if it goes missing or is re-ignored.
+    - **Runtime Config**: the frontend image replaces nginx's entrypoint with `docker/nginx-entrypoint.sh`, which writes `/usr/share/nginx/html/config.js` at container start from `REACT_APP_*` env vars. That is why `docker-compose.yml` can set `REACT_APP_API_BASE_URL=/api` and change it without a rebuild. The checked-in `client/public/config.js` is the *build-time* config for the local/dev path, and `client/scripts/check-runtime-config.py` guards it; under Docker the entrypoint file wins.
 - **Backend**: Node.js app using `better-sqlite3` (default) or configured database.
     - **Persistence**: Data is stored in the `backend_data` volume (SQLite) and `couchdb_data` volume (CouchDB).
 - **CouchDB**: Used for syncing user data across devices.
