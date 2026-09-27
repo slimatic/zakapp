@@ -230,17 +230,23 @@ export class UserService {
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(passwordData.newPassword, 12);
 
-    // Update password
-    await prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash: hashedNewPassword }
-    });
-
-    // Invalidate all sessions
-    await prisma.userSession.updateMany({
-      where: { userId },
-      data: { isActive: false }
-    });
+    // Update the password and retire the old sessions in ONE transaction.
+    //
+    // These used to be two separate writes. If the session invalidation failed, the
+    // handler threw, the API returned 500, and the password had ALREADY been changed -
+    // so the user was told the change failed and retried, while the vault key had moved
+    // to the new password. That is exactly how a user ends up locked out of their own
+    // encrypted data believing nothing happened. Both writes succeed or neither does.
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { passwordHash: hashedNewPassword }
+      }),
+      prisma.userSession.updateMany({
+        where: { userId },
+        data: { isActive: false }
+      })
+    ]);
 
     return { success: true };
   }
