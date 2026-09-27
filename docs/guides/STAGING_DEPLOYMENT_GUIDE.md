@@ -562,10 +562,10 @@ DEBUG=pw:api npx playwright test
 ## 📚 Additional Resources
 
 ### Related Documentation
-- [API Specification](./docs/api-specification.md)
-- [Security Guide](./security.md)
-- [Database Schema](./server/prisma/schema.prisma)
-- [Constitutional Principles](./.specify/memory/constitution.md)
+- [API Specification](../api/api-specification.md)
+- [Security Guide](../security.md)
+- [Database Schema](../../server/prisma/schema.prisma)
+- Constitutional Principles
 
 ### Test Reports
 - Contract Tests: `tests/contract/` (68/68 passing)

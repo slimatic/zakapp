@@ -116,5 +116,5 @@ Yes, but fix tests first. Staging deployment is low-risk.
 
 **Contact:** QA Architect & Security Specialist  
 **Documents:** 
-- [QA Summary Report](./QA_SUMMARY_V0.10.0.md)
-- [Security Audit Report](./SECURITY_AUDIT_V0.10.0.md)
+- QA Summary Report
+- Security Audit Report

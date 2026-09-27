@@ -14,7 +14,7 @@
 
 ZakApp re-imagines the wealth purification experience by prioritizing user privacy, Fiqh precision, and modern design. Unlike other tools that send your Net Worth to a cloud server, ZakApp performs all calculations locally.
 
-[![Sustain ZakApp](https://img.shields.io/badge/Sustain-ZakApp-teal?style=for-the-badge&logo=kofi)](website/donate.html)
+[![Sustain ZakApp](https://img.shields.io/badge/Sustain-ZakApp-teal?style=for-the-badge&logo=kofi)](client/public/donate.html)
 
 ## 🔒 Privacy First
 
@@ -97,7 +97,7 @@ npm start
 | [FAQs.md](FAQs.md) | Islamic finance questions answered |
 | [Deployment Guide](docs/deployment-guide.md) | Advanced deployment options |
 | [Troubleshooting](docs/troubleshooting-faq.md) | Common issues and solutions |
-| [API Reference](docs/api-specification.md) | REST API documentation |
+| [API Reference](docs/api/api-specification.md) | REST API documentation |
 
 ## 🛠 Tech Stack
 
