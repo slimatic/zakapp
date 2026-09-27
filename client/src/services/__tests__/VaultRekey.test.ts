@@ -161,6 +161,7 @@ describe('reencryptVault (password change must not lose data)', () => {
 
         expect(res.reencrypted).toBe(0);
         expect(res.failed).toBe(0);
+        expect(res.unreadable).toBe(1);
         // The ciphertext is untouched — still the only copy of that value.
         expect(state.docs[0].get('name')).toBe(original);
     });
@@ -178,5 +179,52 @@ describe('reencryptVault (password change must not lose data)', () => {
 
         expect(first.reencrypted).toBe(1);
         expect(second.reencrypted).toBe(0);
+    });
+
+    it('strict mode refuses rather than writing a half-re-keyed vault', async () => {
+        const salt = 'salt-abc';
+        const oldKey = await keyFromPassword('OldPass123!', salt);
+        const strangerKey = await keyFromPassword('SomeThirdKey!', salt);
+        const newKey = await keyFromPassword('NewPass456!', salt);
+
+        // One row readable under the old key, one not — a partial write here
+        // would rotate the password over a vault that is only half re-keyed.
+        state.docs = [
+            makeDoc({ id: 'ok', name: await realEncrypt('Fine', oldKey) }),
+            makeDoc({ id: 'bad', name: await realEncrypt('Stranded', strangerKey) }),
+        ];
+        state.sessionKey = newKey;
+
+        await expect(reencryptVault(oldKey, { strict: true })).rejects.toThrow(/could not be read/);
+        // Nothing was written: the readable row is still the OLD ciphertext.
+        expect(state.docs[0].get('name')).toContain('ZK1:');
+        expect(await (async () => {
+            const packed = (state.docs[0].get('name') as string).substring(4).split(':');
+            try {
+                await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: Uint8Array.from(Buffer.from(packed[0], 'base64')) as any },
+                    oldKey,
+                    Uint8Array.from(Buffer.from(packed[1], 'base64')) as any
+                );
+                return true;
+            } catch { return false; }
+        })()).toBe(true);
+    });
+
+    it('non-strict mode still salvages what it can (recovery path)', async () => {
+        const salt = 'salt-abc';
+        const oldKey = await keyFromPassword('OldPass123!', salt);
+        const strangerKey = await keyFromPassword('SomeThirdKey!', salt);
+        const newKey = await keyFromPassword('NewPass456!', salt);
+
+        state.docs = [
+            makeDoc({ id: 'ok', name: await realEncrypt('Fine', oldKey) }),
+            makeDoc({ id: 'bad', name: await realEncrypt('Stranded', strangerKey) }),
+        ];
+        state.sessionKey = newKey;
+
+        const res = await reencryptVault(oldKey);
+        expect(res.reencrypted).toBe(1);
+        expect(res.unreadable).toBe(1);
     });
 });
