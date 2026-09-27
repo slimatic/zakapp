@@ -34,13 +34,21 @@ export const getStats = async (req: Request, res: Response) => {
         // Storage stats would require querying CouchDB or disk
         // For now, returning placeholder or basic DB stats if possible
 
+        // The stats payload belongs under `data`, like every other admin endpoint
+        // (settings, system/status, users all return `res.json({ success, data })`).
+        // This one alone returned a top-level `stats`, so the client's
+        // `statsRes.data?.stats` resolved to undefined and /admin rendered
+        // "Unexpected Error" with the app otherwise healthy. Keeping the envelope
+        // uniform is what makes one client convention work for all of them.
         res.json({
             success: true,
-            stats: {
-                totalUsers,
-                activeUsers,
-                dormantUsers,
-                storageUsed: 'N/A' // Placeholder
+            data: {
+                stats: {
+                    totalUsers,
+                    activeUsers,
+                    dormantUsers,
+                    storageUsed: 'N/A' // Placeholder
+                }
             }
         });
     } catch (error) {

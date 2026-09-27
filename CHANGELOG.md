@@ -5,6 +5,105 @@
 _Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
 See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
+## [0.17.6] - 2026-09-27
+
+### Third release of the day, and the shortest
+
+**Fixes**
+
+- **The admin dashboard loads again.** `/admin` was showing "Unexpected Error" while
+  the rest of the app was perfectly healthy — you could log in, log out, view assets, and
+  change your password. The stats request was even returning HTTP 200, so nothing looked
+  wrong from the outside.
+
+  The cause was a response shape that had drifted. `/admin/stats` was the only admin
+  endpoint that returned its payload at the top level rather than under `data`:
+
+  ```
+  /admin/stats          -> { success, stats }      <- the odd one out
+  /admin/settings       -> { success, data }
+  /admin/system/status  -> { success, data }
+  /admin/users          -> { success, data }
+  ```
+
+  The app reads one convention, so a payload outside `data` simply vanished, and the page
+  fell back to its error state. Fixed on the server — three of the four endpoints already
+  used `data`, so conforming the outlier keeps one convention working everywhere rather
+  than teaching the app to special-case it.
+
+  Nothing else in the admin area was affected; the other tabs read both shapes and were
+  working correctly.
+
+## [0.17.5] - 2026-09-27
+
+### 16 Rabi al-Thani 1448 — same day as v0.17.4
+
+The other half of the vault story. v0.17.3 stopped the password change from orphaning your
+data; this makes a wrong key *say so* instead of showing you a broken app.
+
+**Diagnostics**
+
+- **A vault key that does not match your data is now reported, not silent.** The app has
+  stored a `verifier` — a SHA-256 of your derived key, beside the salt — since the vault was
+  first built, and never once read it. So when a key did not match the stored rows, every
+  screen swallowed its own decryption failure and kept the encrypted text: amounts became
+  `NaN`, rows rendered blank, and nothing reached you or the network to say why. The closest
+  thing to an error was a console message no one opens. A mismatch now raises a visible
+  warning naming the cause.
+
+  Deliberately a warning, not a refusal: the verifier is written by the browser and was not
+  updated on password change before this release, so a stored value can legitimately be out
+  of date. Blocking a login on it would lock out whoever holds the correct password — turning
+  a display problem into a lost account.
+
+- **The verifier now moves with the key.** Re-keying your vault refreshes it. Without this,
+  the next login would derive the new, correct key, compare it against the old verifier, and
+  wrongly tell you your data was unreachable. Refreshing is best-effort: if it fails you get a
+  warning on a later login rather than a failed password change.
+
+- **Vaults without a verifier are repaired rather than flagged.** Older vaults get one
+  written on first login, so the check becomes meaningful instead of raising a false alarm.
+
+## [0.17.4] - 2026-09-27
+
+### 16 Rabi al-Thani 1448 — released hours after v0.17.3
+
+A hotfix, not a cycle release. Three defects found in production within hours of
+v0.17.3 going live.
+
+**Reliability**
+
+- **After a deploy, the app can now recover itself instead of showing "Something went
+  wrong".** A deploy replaces the hashed chunk filenames; a browser still holding the
+  previous document asks for the old ones, so every lazily-loaded route — `/admin`,
+  `/assets`, the dashboard — threw and the error boundary took over. The recovery was
+  dead code in production: it looked for webpack's wording (`Loading chunk`,
+  `ChunkLoadError`) but this client is built with Vite, which reports *"Failed to fetch
+  dynamically imported module"*. Nothing matched, so no recovery was ever attempted.
+
+  A plain reload would not have fixed it either. The service worker answers navigation
+  from its own precached `index.html`, so reloading re-served the same stale document
+  with the same dead chunk names — the retry failed, cleared its flag, and gave up.
+  Recovery now drops the service worker and its caches **before** reloading, so the
+  document comes from the network. The reload is in a `finally`: a failed cleanup still
+  recovers the user.
+
+**Data safety**
+
+- **A failed password change can no longer be a lie.** Changing the password wrote the
+  new hash, then invalidated sessions, as two separate writes. When the second failed the
+  API returned 500 while the new password was **already committed** — so the user was told
+  the change failed and retried against a password that had in fact already moved. Since
+  the vault key is derived from the password, that is how someone gets locked out of their
+  own encrypted data with no reason to suspect the password change caused it. Both writes
+  now run in one transaction: a 500 means nothing changed.
+
+**Interface**
+
+- **The unreleased two-factor row is gone from Settings → Security.** It advertised an
+  authenticator-app capability with no planned work behind it; a disabled "Coming Soon"
+  control in a security panel reads as "this is planned".
+
 ## [0.17.3] - 2026-09-27
 
 ### 16 Rabi al-Thani 1448 — full moon, 99.7% lit
