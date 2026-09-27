@@ -144,7 +144,11 @@ export const reencryptVault = async (
     for (const { name, doc, updates } of pending) {
         try {
             updates.updatedAt = new Date().toISOString();
-            await (doc as any).atomicPatch(updates);
+            // `incrementalPatch` runs the collection's `pre save` hooks, which is
+            // where `zeroKnowledgePlugin` re-encrypts each field with the session
+            // key. RxDB 16 exposes no `atomicPatch` — calling it threw and, in
+            // strict mode, failed the password change.
+            await (doc as any).incrementalPatch(updates);
             result.reencrypted += 1;
             result.byCollection[name] = (result.byCollection[name] || 0) + 1;
         } catch (err) {
