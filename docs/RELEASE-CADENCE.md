@@ -127,6 +127,7 @@ and why.
 | v0.17.0 | 2026-09-21 | 10 Rabi al-Thani 1448, waxing gibbous 74% | **No** — see below |
 | v0.17.1 | 2026-09-25 | 13 Rabi al-Thani 1448, waxing gibbous 98% | **No** — data-safety patch |
 | v0.17.2 | 2026-09-26 | 15 Rabi al-Thani 1448, full moon 99.8% | **No** — fix merged but undeployable |
+| v0.17.3 | 2026-09-27 | 16 Rabi al-Thani 1448, full moon 99.7% | **No** — data-safety patch |
 
 **v0.17.0 was released off-anchor, deliberately.** The work was finished and verified: the
 full suite green, and the upgrade path proven against a copy of a live production database
@@ -145,6 +146,17 @@ into a plausible wrong number, and unparseable amounts became silent zeros. Sinc
 documented pre-upgrade step is "export first", a release that made the export untrustworthy
 threatened the very safety net the next release depends on. Holding it for 2026-10-12 would
 have left a second month of exports corrupted. Verified, so it shipped.
+
+**v0.17.3 was released off-anchor the next day, as a data-safety patch.** Changing your
+password left the vault unreadable: the encryption key is derived from the password, and
+nothing re-encrypted the existing rows when the password rotated. The data survived — the
+ciphertext was intact and the salt is stored server-side — but nothing could decrypt it.
+This shipped immediately for two reasons. The failure is silent and self-inflicted by an
+ordinary user action, so every passing day risked another account locked out. And the
+recovery path depended on this fix: production's recovery covered only three of the five
+encrypted collections, so recovering *without* it would have appeared to succeed and left
+`liabilities` and `nisab_year_records` behind. Shipping the two-day-old monthly release
+first would have made the damage worse, not better.
 
 ## Versioning
 
