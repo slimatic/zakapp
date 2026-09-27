@@ -231,6 +231,10 @@ export default defineConfig(({ mode }) => {
     // Origin at all, which the server treats as a non-browser client and allows.
     preview: {
       port: 4173,
+      // `server` sets this but `preview` did not, so serving the built client to
+      // anyone but localhost was rejected with "This host is not allowed" — which
+      // is what a tunnel or LAN address hits. Same host set, same reasoning.
+      allowedHosts: allowedHosts,
       proxy: {
         '/api': {
           target: process.env.VITE_PROXY_TARGET || 'http://192.168.86.242:3001',
