@@ -5,6 +5,36 @@
 _Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
 See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
+## [0.17.5] - 2026-09-27
+
+### 16 Rabi al-Thani 1448 — same day as v0.17.4
+
+The other half of the vault story. v0.17.3 stopped the password change from orphaning your
+data; this makes a wrong key *say so* instead of showing you a broken app.
+
+**Diagnostics**
+
+- **A vault key that does not match your data is now reported, not silent.** The app has
+  stored a `verifier` — a SHA-256 of your derived key, beside the salt — since the vault was
+  first built, and never once read it. So when a key did not match the stored rows, every
+  screen swallowed its own decryption failure and kept the encrypted text: amounts became
+  `NaN`, rows rendered blank, and nothing reached you or the network to say why. The closest
+  thing to an error was a console message no one opens. A mismatch now raises a visible
+  warning naming the cause.
+
+  Deliberately a warning, not a refusal: the verifier is written by the browser and was not
+  updated on password change before this release, so a stored value can legitimately be out
+  of date. Blocking a login on it would lock out whoever holds the correct password — turning
+  a display problem into a lost account.
+
+- **The verifier now moves with the key.** Re-keying your vault refreshes it. Without this,
+  the next login would derive the new, correct key, compare it against the old verifier, and
+  wrongly tell you your data was unreachable. Refreshing is best-effort: if it fails you get a
+  warning on a later login rather than a failed password change.
+
+- **Vaults without a verifier are repaired rather than flagged.** Older vaults get one
+  written on first login, so the check becomes meaningful instead of raising a false alarm.
+
 ## [0.17.4] - 2026-09-27
 
 ### 16 Rabi al-Thani 1448 — released hours after v0.17.3

@@ -129,6 +129,7 @@ and why.
 | v0.17.2 | 2026-09-26 | 15 Rabi al-Thani 1448, full moon 99.8% | **No** — fix merged but undeployable |
 | v0.17.3 | 2026-09-27 | 16 Rabi al-Thani 1448, full moon 99.7% | **No** — data-safety patch |
 | v0.17.4 | 2026-09-27 | 16 Rabi al-Thani 1448, full moon 99.7% | **No** — hotfix, hours later |
+| v0.17.5 | 2026-09-27 | 16 Rabi al-Thani 1448, full moon 99.7% | **No** — diagnostics patch |
 
 **v0.17.0 was released off-anchor, deliberately.** The work was finished and verified: the
 full suite green, and the upgrade path proven against a copy of a live production database
