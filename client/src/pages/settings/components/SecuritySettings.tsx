@@ -23,6 +23,9 @@ import { apiService } from '../../../services/api';
 import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
+import { cryptoService } from '../../../services/CryptoService';
+import { reencryptVault, resolveVaultSalt } from '../../../services/VaultRekey';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface PasswordChangeData {
     currentPassword: string;
@@ -31,6 +34,7 @@ interface PasswordChangeData {
 }
 
 export const SecuritySettings: React.FC = () => {
+    const { user } = useAuth();
     const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
     const [passwordData, setPasswordData] = useState<PasswordChangeData>({
         currentPassword: '',
@@ -41,17 +45,70 @@ export const SecuritySettings: React.FC = () => {
     // Change password mutation
     const passwordMutation = useMutation({
         mutationFn: async (data: PasswordChangeData) => {
+            // Order matters, and this is the whole fix.
+            //
+            // The vault key is PBKDF2(password, salt). The old key is only
+            // derivable while we still know the old password, so the vault has
+            // to be re-encrypted BEFORE the server retires it. Doing it after —
+            // or not at all, which is what happened before — leaves every
+            // encrypted row readable only by a key nothing can rebuild.
+            //
+            // `currentPassword` is still valid here because the API call below
+            // has not run yet.
+            const salt = await resolveVaultSalt(user?.id ?? '', user as any);
+            if (!salt) {
+                throw new Error(
+                    'Could not determine your vault salt, so your data cannot be re-encrypted. ' +
+                    'Password not changed.'
+                );
+            }
+
+            const oldKey = await cryptoService.deriveTemporaryKey(data.currentPassword, salt);
+
+            // Point the session at the NEW key first: writes re-encrypt through
+            // the session key, so this is what the re-encrypted rows get written
+            // with. Nothing reads through this key until the pages reload below.
+            await cryptoService.deriveKey(data.newPassword, salt);
+
+            let summary;
+            try {
+                summary = await reencryptVault(oldKey);
+            } catch (err) {
+                // Put the working key back so the user is not left holding a
+                // session that cannot read their own vault.
+                await cryptoService.deriveKey(data.currentPassword, salt);
+                throw new Error(
+                    'Your data could not be re-encrypted, so the password was NOT changed. ' +
+                    (err instanceof Error ? err.message : String(err))
+                );
+            }
+
+            // Only now retire the old password. `reencrypted: true` tells the
+            // server the vault has already been re-keyed.
             const response = await apiService.changePassword({
                 currentPassword: data.currentPassword,
-                newPassword: data.newPassword
+                newPassword: data.newPassword,
+                reencrypted: true
             });
-            return response;
+
+            if (!response.success) {
+                // The server refused; put the session key back so this browser
+                // still matches the stored rows.
+                await cryptoService.deriveKey(data.currentPassword, salt);
+                throw new Error(response.message || 'Password change was rejected.');
+            }
+
+            return { response, summary };
         },
-        onSuccess: (response) => {
+        onSuccess: ({ response, summary }) => {
             if (response.success) {
                 setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                setShowSuccessMessage('Password changed successfully!');
+                setShowSuccessMessage(
+                    `Password changed. ${summary.reencrypted} record${summary.reencrypted === 1 ? '' : 's'} re-encrypted.`
+                );
                 setTimeout(() => setShowSuccessMessage(null), 5000);
+                // Every open page is still decrypting with the old key.
+                setTimeout(() => window.location.reload(), 1500);
             }
         },
     });
