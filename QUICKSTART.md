@@ -17,11 +17,12 @@ git clone https://github.com/slimatic/zakapp.git && cd zakapp
 # 2. Run the deployment script
 ./deploy-easy.sh
 
-# 3. Open your browser to:
-http://localhost:3000
+# 3. Open the URL the script prints when it finishes
 ```
 
-That's it! 🎉
+That's it! 🎉 The script prints the exact URL at the end. If port 3000 is
+already taken on your machine it picks the next free port and updates the
+configuration to match, so follow what it prints rather than assuming 3000.
 
 ## What the Script Does
 
@@ -49,6 +50,12 @@ docker compose -f docker-compose.yml up -d
 
 # 4. Open http://localhost:3000
 ```
+
+> **Check the output.** If port 3000 is already in use, this command still exits
+> `0`, the backend and CouchDB start normally, and the frontend and proxy are left
+> unstarted — so `localhost:3000` then serves whatever else owns that port.
+> `docker compose ps` shows the truth; `deploy-easy.sh` avoids the problem by
+> picking a free port for you.
 
 ### Generating Secrets Manually
 
