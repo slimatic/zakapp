@@ -29,6 +29,27 @@ interface State {
   error: Error | null;
 }
 
+/**
+ * Does this error look like a lazily-loaded chunk that failed to fetch?
+ *
+ * Bundlers word this differently and the mismatch is silent, so match all of them:
+ * webpack throws "Loading chunk 123 failed" / a `ChunkLoadError`, while Vite (what this
+ * app is built with) surfaces "Failed to fetch dynamically imported module" in Chrome
+ * and Firefox, and "Importing a module script failed" in Safari.
+ */
+const CHUNK_ERROR_PATTERNS = [
+  'Loading chunk',
+  'ChunkLoadError',
+  'Failed to fetch dynamically imported module',
+  'Importing a module script failed',
+  'error loading dynamically imported module',
+];
+
+export const isChunkLoadError = (error: unknown): boolean => {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  return CHUNK_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
+};
+
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -42,20 +63,56 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
     toast.error('An unexpected error occurred');
 
-    // Check for chunk load errors (deployment updates)
-    if (error.message.includes('Loading chunk') || error.message.includes('ChunkLoadError')) {
+    // A lazily-loaded route (e.g. /admin, /assets) failing to fetch its chunk means the
+    // document's chunk names are older than what the server is serving - the normal
+    // aftermath of a deploy.
+    //
+    // Detection has to cover the bundler's actual wording. This only matched webpack's
+    // "Loading chunk" / "ChunkLoadError", but the client is built with Vite, whose
+    // browsers say "Failed to fetch dynamically imported module" (Safari: "Importing a
+    // module script failed"). So in production the recovery never ran at all - the user
+    // got the generic error page with no attempt made.
+    //
+    // A plain reload would not have fixed it either: the service worker answers
+    // navigation from its PRECACHED index.html, so a reload re-serves the same stale
+    // document with the same dead chunk names. The stale shell has to go first.
+    if (isChunkLoadError(error)) {
       const isReloading = sessionStorage.getItem('chunk_reload');
 
       if (!isReloading) {
         sessionStorage.setItem('chunk_reload', 'true');
-        window.location.reload();
+        void this.dropStaleShellAndReload();
       } else {
-        // If we already reloaded and still have error, clear flag to allow future reloads
-        // but don't loop infinitely right now
+        // Already reset once and still failing: stop, rather than loop.
         sessionStorage.removeItem('chunk_reload');
       }
     }
   }
+
+  /**
+   * Unregister the worker and clear its caches, then reload - so the next load fetches
+   * the current index.html from the network instead of the cached one.
+   *
+   * The reload runs even if the reset throws: a broken reset must not leave the user
+   * staring at an error page with no way forward.
+   */
+  private dropStaleShellAndReload = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      }
+      if (typeof caches !== 'undefined') {
+        const names = await caches.keys();
+        await Promise.all(names.map((name) => caches.delete(name)));
+      }
+    } catch (resetError) {
+      // Cleanup is best-effort; recovering the user matters more than a clean reset.
+      console.warn('Stale shell cleanup failed', resetError);
+    } finally {
+      window.location.reload();
+    }
+  };
 
   private handleReload = () => {
     window.location.reload();
