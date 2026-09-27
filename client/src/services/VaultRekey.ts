@@ -164,6 +164,30 @@ export const reencryptVault = async (
         );
     }
 
+    // The verifier is a hash of the vault key, and the key has just changed. Leaving it
+    // alone would make the NEXT login contradict it: the new password derives the new key,
+    // compare against the old verifier, and the user is told their data is unreachable when
+    // it is perfectly readable. Refresh it whenever the key moves.
+    //
+    // Best-effort: an unrefreshed verifier costs a false warning on the next login, which
+    // is bad but recoverable. Failing the password change here would not be.
+    try {
+        const sessionKey = await cryptoService.exportKeyString();
+        const derivedVerifier = await cryptoService.hash(sessionKey);
+        // One vault per device, so this is the device's own settings doc. Read rather than
+        // taking a userId parameter: the caller varies between the password change and the
+        // recovery path, and both mean "this device's vault".
+        const settingsDocs = await db.user_settings.find().exec();
+        for (const settings of settingsDocs) {
+            const salt = settings.get('securityProfile')?.salt;
+            await (settings as any).incrementalPatch({
+                securityProfile: { salt, verifier: derivedVerifier }
+            });
+        }
+    } catch (verifierError) {
+        logger.warn('Could not refresh the vault verifier after re-key', verifierError);
+    }
+
     logger.info(
         `Vault re-encrypt: ${result.reencrypted} rewritten, ${result.failed} failed, ` +
         `${result.unreadable} unreadable`,
@@ -184,4 +208,36 @@ export const resolveVaultSalt = async (
     const fromUser = user?.salt || user?.profile?.salt;
     if (fromUser) return fromUser;
     return localStorage.getItem(`zakapp_salt_${backendUserId}`);
+};
+
+/**
+ * Is this session's vault key the one this device's rows were written with?
+ *
+ * `securityProfile.verifier` is a SHA-256 of the derived key, stored beside the salt when
+ * the vault was created. Comparing it against the current session key detects the one
+ * failure that is otherwise completely silent: a password whose derived key does not match
+ * the stored rows. Every repository swallows its own decrypt failure, so the values stay
+ * `ZK1:...`, `parseFloat` turns them into NaN, and the user sees a broken app with nothing
+ * on the wire to explain it.
+ *
+ * THREE outcomes, and treating the third as a mismatch would be a bug:
+ *
+ *   'match'    the key is right; nothing to do.
+ *   'mismatch' a verifier exists and disagrees - the key really is wrong.
+ *   'unknown'  no verifier stored (vault predates them, or a recovery did not set one).
+ *              Unknown is NOT a mismatch. Callers backfill instead of warning, because
+ *              warning here would accuse a correct password of being wrong.
+ *
+ * This is a diagnostic only. It must never gate a login: refusing on 'mismatch' would lock
+ * out whoever actually holds the correct key whenever the stored verifier is stale, and the
+ * verifier is a value the client has not always kept current.
+ */
+export type VaultKeyStatus = 'match' | 'mismatch' | 'unknown';
+
+export const checkVaultKey = async (
+    storedVerifier: string | undefined | null,
+    derivedVerifier: string
+): Promise<VaultKeyStatus> => {
+    if (!storedVerifier) return 'unknown';
+    return storedVerifier === derivedVerifier ? 'match' : 'mismatch';
 };
