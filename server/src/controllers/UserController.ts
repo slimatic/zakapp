@@ -56,7 +56,7 @@ export class UserController {
 
   changePassword = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.userId!;
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword, reencrypted } = req.body;
 
     if (!currentPassword || !newPassword) {
       throw new AppError('Current and new passwords are required', 400, ErrorCode.VALIDATION_ERROR);
@@ -65,6 +65,22 @@ export class UserController {
     // FR-012: Enforce minimum password length of 8 characters
     if (newPassword.length < 8) {
       throw new AppError('New password must be at least 8 characters long', 400, ErrorCode.VALIDATION_ERROR);
+    }
+
+    // The vault key is PBKDF2(password, salt), so rotating the password without
+    // re-encrypting the vault locks the owner out of data that is still on disk.
+    // This server cannot perform that rewrite — the key is derived in the
+    // browser and never sent here — so it refuses the change unless the client
+    // reports it has already re-encrypted, or the caller explicitly accepts the
+    // risk for an empty vault.
+    if (reencrypted !== true && req.body.allowVaultLockout !== true) {
+      throw new AppError(
+        'Changing your password re-keys your encrypted vault. Sign out and sign back in to ' +
+          're-encrypt it before changing your password, or send allowVaultLockout to proceed ' +
+          'and lose access to existing encrypted data.',
+        409,
+        ErrorCode.VALIDATION_ERROR
+      );
     }
 
     await userService.changePassword(userId, { currentPassword, newPassword });

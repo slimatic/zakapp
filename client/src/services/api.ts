@@ -933,7 +933,7 @@ class ApiService {
   }
 
   // Password Management Methods
-  async changePassword(data: { currentPassword: string; newPassword: string }): Promise<ApiResponse> {
+  async changePassword(data: { currentPassword: string; newPassword: string; reencrypted?: boolean }): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE_URL}/user/change-password`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
