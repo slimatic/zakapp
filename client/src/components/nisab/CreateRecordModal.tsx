@@ -32,12 +32,6 @@ export interface CreateRecordModalProps {
   }) => Promise<void>;
   allAssets: any[];
   allLiabilities: any[];
-  /**
-   * @deprecated The basis is not chosen independently — each school carries its
-   * own `nisabSource` and the calculation follows it (`getNisabSource`). Kept
-   * only so callers compile; the value is ignored. See #521.
-   */
-  defaultNisabBasis: 'GOLD' | 'SILVER';
   /** The user's preferred methodology, which decides the basis. */
   methodology?: string;
   userCurrency: string;
@@ -49,7 +43,6 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
   onSubmit,
   allAssets,
   allLiabilities,
-  defaultNisabBasis,
   methodology,
   userCurrency,
 }) => {
@@ -106,7 +99,9 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
         setSelectedLiabilityIds([]);
       }
     }
-  }, [open, allAssets, allLiabilities, defaultNisabBasis]);
+    // `methodology` decides the basis and is read above, so it belongs here;
+    // it was missing while the unused `defaultNisabBasis` sat in its place.
+  }, [open, allAssets, allLiabilities, methodology]);
 
   const preview = React.useMemo(() => {
     const assets = allAssets.filter(a => selectedAssetIds.includes(a.id));

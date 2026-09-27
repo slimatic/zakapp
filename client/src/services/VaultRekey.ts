@@ -113,7 +113,7 @@ const IDENTITY_FIELDS: Record<string, string[]> = {
     liabilities: ['type', 'currency', 'dueDate'],
     nisab_year_records: ['nisabBasis', 'gregorianYear', 'calculationDate'],
     payment_records: ['paymentDate', 'recipientType', 'paymentMethod'],
-    user_settings: ['preferredMethodology', 'preferredNisabStandard'],
+    user_settings: ['preferredMethodology', 'baseCurrency'],
 };
 
 const IDENTITY_LABELS: Record<string, string> = {
@@ -128,7 +128,7 @@ const IDENTITY_LABELS: Record<string, string> = {
     recipientType: 'to',
     paymentMethod: 'method',
     preferredMethodology: 'methodology',
-    preferredNisabStandard: 'nisab standard',
+    baseCurrency: 'currency',
 };
 
 /**

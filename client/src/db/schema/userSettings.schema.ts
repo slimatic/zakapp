@@ -16,7 +16,7 @@
  */
 
 export const UserSettingsSchema = {
-    version: 6,
+    version: 7,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -53,10 +53,6 @@ export const UserSettingsSchema = {
         preferredMethodology: {
             type: 'string',
             default: 'standard' // 'standard', 'hanafi', 'shafii', 'custom'
-        },
-        preferredNisabStandard: {
-            type: 'string',
-            default: 'gold' // 'gold' or 'silver'
         },
         baseCurrency: {
             type: 'string',
