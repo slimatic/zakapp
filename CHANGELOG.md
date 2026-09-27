@@ -5,6 +5,65 @@
 _Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
 See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
+## [0.17.3] - 2026-09-27
+
+### 16 Rabi al-Thani 1448 — full moon, 99.7% lit
+
+Released under the cadence's data-safety exception: changing your password made your
+data unreadable, and the fix was verified. Holding it until 2026-10-12 would have left
+anyone who changed their password locked out of their own vault for another two weeks.
+
+**Data safety**
+
+- **Changing your password no longer orphans your vault.** The vault key is
+  `PBKDF2(password, salt)`, so changing the password changed the key that every
+  encrypted field was written with — and nothing re-encrypted the existing rows. The
+  password rotated, the ciphertext stayed, and the vault became unreadable by anything,
+  while the UI reported success. The data was never lost: the ciphertext was intact and
+  the salt is server-side. Re-encryption now happens in the browser **before** the API
+  call that retires the old password, because the old key is only derivable while the
+  old password is still valid. If it fails, the password is not changed — a failed
+  rotation leaves a working account rather than a locked one.
+
+  Encrypted field paths are read from each collection's own schema rather than a
+  hardcoded list, so a field added later cannot be silently skipped. Rows that cannot be
+  decrypted are **left untouched** rather than rewritten: a record under some third key
+  is still recoverable by whoever holds that key, and overwriting it destroys the only
+  copy.
+
+- **Recovery now covers every encrypted collection.** The old recovery loop covered
+  three of five collections and **skipped `liabilities` and `nisab_year_records`**, both
+  of which carry encrypted fields — so recovery appeared to succeed while leaving those
+  two locked.
+
+- **The server refuses a password change it cannot make safe.** It returns 409 unless
+  the client reports the vault was re-encrypted. The server cannot perform that rewrite
+  itself: the key is derived in the browser and never sent, which is exactly why the
+  guard belongs there.
+
+- **The re-key is all-or-nothing.** Nothing is written until every value has been read
+  successfully; otherwise the change is refused. A half-re-keyed vault reported as a
+  clean success is the same failure mode this release exists to fix.
+
+**Correctness**
+
+- **Asset creation was impossible.** The category check compared a lowercased value
+  against a list of `UPPERCASE` constants — it could never match, so every category was
+  rejected and `POST /api/assets` was unusable.
+
+- **The legacy-encryption migration never ran.** It forced pre-encryption (cleartext)
+  records through the encryption hook on every login, but wrote via a method RxDB does
+  not have, so every call threw and the loop aborted at the first cleartext record. It
+  was wrapped in a `try/catch` that logged and gave up, so plaintext-at-rest persisted
+  with only a debug line to show for it.
+
+**Testing**
+
+- Added a check that reads the write methods the client calls and asserts each one
+  exists in the installed RxDB. A mocked document can never catch this class of bug — it
+  defines whatever the test wishes existed, which is how a nonexistent method shipped in
+  two places.
+
 ## [0.17.2] - 2026-09-26
 
 ### 15 Rabi al-Thani 1448 — full moon, 99.8% lit
