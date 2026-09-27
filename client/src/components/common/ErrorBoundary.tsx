@@ -102,17 +102,17 @@ export class ErrorBoundary extends Component<Props, State> {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(registrations.map((registration) => registration.unregister()));
       }
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+      if (typeof caches !== 'undefined') {
+        const names = await caches.keys();
+        await Promise.all(names.map((name) => caches.delete(name)));
       }
-    } catch {
-      // Ignored on purpose - reload is the recovery, not the cleanup.
+    } catch (resetError) {
+      // Cleanup is best-effort; recovering the user matters more than a clean reset.
+      console.warn('Stale shell cleanup failed', resetError);
     } finally {
       window.location.reload();
     }
   };
-
 
   private handleReload = () => {
     window.location.reload();

@@ -229,7 +229,6 @@ export const SecuritySettings: React.FC = () => {
                     title="Failed to change password"
                 />
             )}
-
         </div>
     );
 };
