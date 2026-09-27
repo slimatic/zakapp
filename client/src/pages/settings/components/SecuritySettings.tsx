@@ -230,24 +230,6 @@ export const SecuritySettings: React.FC = () => {
                 />
             )}
 
-            {/* Two-Factor Authentication */}
-            <div className="border-t border-border pt-6">
-                <h3 className="text-lg font-medium text-foreground mb-4">
-                    Two-Factor Authentication
-                </h3>
-
-                <div className="bg-accent rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="font-medium text-foreground/80">Authenticator App</p>
-                            <p className="text-sm text-muted-foreground">Use an authenticator app for codes</p>
-                        </div>
-                        <Button variant="secondary" size="sm" disabled>
-                            Coming Soon
-                        </Button>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };
