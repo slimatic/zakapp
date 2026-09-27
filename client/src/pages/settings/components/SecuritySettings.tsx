@@ -24,7 +24,7 @@ import { Button } from '../../../components/ui/Button';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../../components/ui/ErrorMessage';
 import { cryptoService } from '../../../services/CryptoService';
-import { reencryptVault, resolveVaultSalt } from '../../../services/VaultRekey';
+import { reencryptVault, resolveVaultSalt, VaultBlockedError, describeBlockedRecords } from '../../../services/VaultRekey';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface PasswordChangeData {
@@ -36,6 +36,9 @@ interface PasswordChangeData {
 export const SecuritySettings: React.FC = () => {
     const { user } = useAuth();
     const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
+    // Held separately from `passwordMutation.error` so the records survive the
+    // mutation's own error handling — this is the actionable half of the failure.
+    const [blockedError, setBlockedError] = useState<VaultBlockedError | null>(null);
     const [passwordData, setPasswordData] = useState<PasswordChangeData>({
         currentPassword: '',
         newPassword: '',
@@ -77,6 +80,11 @@ export const SecuritySettings: React.FC = () => {
                 // Put the working key back so the user is not left holding a
                 // session that cannot read their own vault.
                 await cryptoService.deriveKey(data.currentPassword, salt);
+                // A VaultBlockedError carries WHICH records failed, so the user can
+                // be told what to fix instead of only that something went wrong.
+                if (err instanceof VaultBlockedError) {
+                    setBlockedError(err);
+                }
                 throw new Error(
                     'Your data could not be re-encrypted, so the password was NOT changed. ' +
                     (err instanceof Error ? err.message : String(err))
@@ -115,6 +123,10 @@ export const SecuritySettings: React.FC = () => {
 
     const handlePasswordSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // A new attempt supersedes the previous block; otherwise a fixed vault
+        // would still show a stale "how to clear this" panel.
+        setBlockedError(null);
 
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             toast.error('New passwords do not match');
@@ -228,6 +240,64 @@ export const SecuritySettings: React.FC = () => {
                     error={passwordMutation.error}
                     title="Failed to change password"
                 />
+            )}
+
+            {/*
+                A blocked password change is NOT a plain error: the user is refused
+                and must be told what to do about it. The count-only message this
+                replaced ("1 encrypted value could not be read") left them with no
+                move at all, and the reported workaround was to export the whole
+                vault to JSON, delete everything, and re-import.
+            */}
+            {blockedError && (
+                <div
+                    className="rounded-lg border border-amber-300 bg-amber-50 p-4"
+                    role="alert"
+                    data-testid="vault-blocked"
+                >
+                    <h3 className="font-medium text-amber-900">
+                        Your password was not changed
+                    </h3>
+                    <p className="mt-1 text-sm text-amber-800">
+                        {blockedError.unreadableCount === 1
+                            ? 'One value in your vault could not be read with your current password,'
+                            : `${blockedError.unreadableCount} values in your vault could not be read with your current password,`}{' '}
+                        so nothing was changed. Your data is safe and your current password still
+                        works. Fix the item{blockedError.blocked.length === 1 ? '' : 's'} below, then
+                        try again.
+                    </p>
+
+                    <ul className="mt-3 space-y-1.5" data-testid="vault-blocked-records">
+                        {describeBlockedRecords(blockedError.blocked).map((line, index) => (
+                            <li key={index} className="text-sm text-amber-900">
+                                <span className="mr-2" aria-hidden="true">•</span>
+                                {line}
+                            </li>
+                        ))}
+                    </ul>
+
+                    <div className="mt-4 border-t border-amber-200 pt-3">
+                        <h4 className="text-sm font-medium text-amber-900">How to clear this</h4>
+                        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-amber-800">
+                            <li>
+                                Open the item above and re-save it. Saving re-encrypts its value
+                                under your current password.
+                            </li>
+                            <li>
+                                If it will not open, export your data to a JSON file from Settings
+                                → Import/Export, delete the item, import the file, and confirm it
+                                comes back.
+                            </li>
+                            <li>
+                                Reload this page — the file is re-read — and change your password.
+                            </li>
+                        </ol>
+                        <p className="mt-2 text-xs text-amber-700">
+                            Nothing is deleted until you choose to. Step 2 is the only step that
+                            removes anything, and only the item you delete.
+                        </p>
+                    </div>
+                </div>
             )}
         </div>
     );
