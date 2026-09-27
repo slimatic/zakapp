@@ -208,9 +208,20 @@ export default defineConfig(({ mode }) => {
       allowedHosts: allowedHosts,
       proxy: {
         '/api': {
-          target: 'http://backend:3001',
+          // `backend` is the compose service name; outside Docker it does not
+          // resolve, so every API call through the dev server fails and the app
+          // looks like a login bug. Override with VITE_PROXY_TARGET when running
+          // the client against a host-run API.
+          target: env.VITE_PROXY_TARGET || 'http://backend:3001',
           changeOrigin: true,
           secure: false,
+        },
+        // CouchDB LiveSync — same host-vs-Docker split.
+        '/couchdb': {
+          target: env.VITE_COUCHDB_TARGET || 'http://couchdb:5984',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/couchdb/, ''),
         },
       },
       watch: {
