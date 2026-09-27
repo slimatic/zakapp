@@ -54,6 +54,163 @@ export interface ReencryptResult {
     unreadable: number;
     /** Per-collection counts, for diagnostics. */
     byCollection: Record<string, number>;
+    /** What could not be read, identified well enough to act on. */
+    blocked: BlockedRecord[];
+}
+
+/**
+ * One record holding a value that could not be read under the supplied key.
+ *
+ * WHY THIS IS NOT JUST A COUNT
+ *   A count tells the user they are blocked but not what to do about it. The
+ *   reported experience was exactly that: a password change refused with "1
+ *   encrypted value could not be read", no indication of WHICH record, and the
+ *   only route out was to export everything to JSON, delete it, and re-import.
+ *   A block the user cannot act on is a wall.
+ *
+ * HOW A RECORD IS IDENTIFIED WITHOUT THE KEY
+ *   Every collection carries cleartext fields chosen for indexing, and those
+ *   survive a key mismatch precisely because they were never encrypted. An asset
+ *   whose `name` is unreadable still reports its `type`, `currency` and
+ *   `acquisitionDate`; a liability reports `type` and `dueDate`; a payment
+ *   reports `paymentDate`, `recipientType` and `method`. The cleartext fields
+ *   are read from the schema, so a new one is picked up without a list to edit.
+ *
+ * `fields` names which values failed, because "the value is unreadable" and
+ * "the name is unreadable" lead to different next steps.
+ */
+export interface BlockedRecord {
+    /** Collection key, e.g. 'assets'. */
+    collection: string;
+    /** Plain-language collection name for the user. */
+    collectionLabel: string;
+    /** Row id — always cleartext, so always available. */
+    id: string;
+    /** Encrypted field paths that could not be read. */
+    fields: string[];
+    /** Cleartext fields, presented as the row's identity. */
+    identity: Array<{ label: string; value: string }>;
+}
+
+/** User-facing names. The collection keys are storage identifiers. */
+const COLLECTION_LABELS: Record<string, string> = {
+    assets: 'Asset',
+    liabilities: 'Liability',
+    nisab_year_records: 'Zakat year record',
+    payment_records: 'Payment',
+    user_settings: 'Vault settings',
+};
+
+/**
+ * Cleartext fields worth showing as a record's identity, in priority order.
+ *
+ * Read from the schema (anything NOT marked `encrypted`) and filtered to fields
+ * a person would recognise. `id` is always shown, so a collection with no
+ * useful cleartext still yields an identifiable row.
+ */
+const IDENTITY_FIELDS: Record<string, string[]> = {
+    assets: ['type', 'currency', 'acquisitionDate'],
+    liabilities: ['type', 'currency', 'dueDate'],
+    nisab_year_records: ['nisabBasis', 'gregorianYear', 'calculationDate'],
+    payment_records: ['paymentDate', 'recipientType', 'paymentMethod'],
+    user_settings: ['preferredMethodology', 'preferredNisabStandard'],
+};
+
+const IDENTITY_LABELS: Record<string, string> = {
+    type: 'type',
+    currency: 'currency',
+    acquisitionDate: 'acquired',
+    dueDate: 'due',
+    nisabBasis: 'nisab basis',
+    gregorianYear: 'year',
+    calculationDate: 'calculated',
+    paymentDate: 'paid',
+    recipientType: 'to',
+    paymentMethod: 'method',
+    preferredMethodology: 'methodology',
+    preferredNisabStandard: 'nisab standard',
+};
+
+/**
+ * Values are cleartext but not necessarily display-safe; a numeric field can be
+ * a float and a date arrives as an ISO string. Trim both so the row reads as
+ * something a person would recognise.
+ */
+const presentable = (value: unknown): string | null => {
+    if (value === undefined || value === null || value === '') return null;
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'string') {
+        // Date-only is plenty; the time component is noise in an error message.
+        const isoDate = /^(\d{4}-\d{2}-\d{2})T/.exec(value);
+        return isoDate ? isoDate[1] : value;
+    }
+    if (typeof value === 'boolean') return value ? 'yes' : 'no';
+    return null;
+};
+
+
+/**
+ * Build a record's identity from fields that were never encrypted.
+ *
+ * Falls back to `id` alone when a collection has no recognisable cleartext, so
+ * every blocked row is at least addressable even if it cannot be described.
+ */
+const identifyRecord = (collection: string, doc: any): Array<{ label: string; value: string }> => {
+    const identity: Array<{ label: string; value: string }> = [];
+    for (const field of IDENTITY_FIELDS[collection] ?? []) {
+        const value = presentable(doc.get(field));
+        if (value) identity.push({ label: IDENTITY_LABELS[field] ?? field, value });
+    }
+    return identity;
+};
+
+/**
+ * A human-readable list of what could not be read.
+ *
+ * Exported so the caller can show the same detail in a UI without re-deriving
+ * the wording, and so the one place that decides "how do we describe this row"
+ * stays in one place.
+ */
+export const describeBlockedRecords = (blocked: BlockedRecord[]): string[] =>
+    blocked.map((record) => {
+        const where = record.identity.map((i) => `${i.label}: ${i.value}`).join(', ');
+        const fields = record.fields.join(', ');
+        return where
+            ? `${record.collectionLabel} (${where}) — could not read: ${fields}`
+            : `${record.collectionLabel} ${record.id} — could not read: ${fields}`;
+    });
+
+
+/**
+ * Thrown when a password change cannot proceed because the vault holds values
+ * this key cannot read.
+ *
+ * It carries the records, not just a count, so the caller can show the user what
+ * is blocking them and offer a way through. A refusal that names nothing leaves
+ * the user with no moves — the failure this class exists to prevent.
+ *
+ * `blocked` is bounded by the number of affected rows, which is normally one or
+ * two; it is not a whole-vault dump.
+ */
+export class VaultBlockedError extends Error {
+    public readonly blocked: BlockedRecord[];
+    public readonly unreadableCount: number;
+
+    constructor(blocked: BlockedRecord[], unreadableCount: number) {
+        const lines = describeBlockedRecords(blocked);
+        const subject = unreadableCount === 1
+            ? '1 encrypted value'
+            : `${unreadableCount} encrypted values`;
+        super(
+            `${subject} could not be read with that password, so your password was NOT changed.` +
+            (lines.length ? `\n\nBlocked:\n${lines.map((l) => `  - ${l}`).join('\n')}` : '')
+        );
+        this.name = 'VaultBlockedError';
+        this.blocked = blocked;
+        this.unreadableCount = unreadableCount;
+        // Restores the prototype on transpiled targets, so `instanceof` works.
+        Object.setPrototypeOf(this, VaultBlockedError.prototype);
+    }
 }
 
 /**
@@ -83,7 +240,13 @@ export const reencryptVault = async (
     // salvaged and the caller is told the unreadable count.
     const strict = opts.strict ?? false;
     const db = await getDb();
-    const result: ReencryptResult = { reencrypted: 0, failed: 0, unreadable: 0, byCollection: {} };
+    const result: ReencryptResult = {
+        reencrypted: 0,
+        failed: 0,
+        unreadable: 0,
+        byCollection: {},
+        blocked: [],
+    };
 
     // Phase 1 — decrypt everything first, writing nothing.
     //
@@ -105,6 +268,7 @@ export const reencryptVault = async (
 
         for (const doc of docs) {
             const updates: Record<string, unknown> = {};
+            const unreadableFields: string[] = [];
 
             for (const path of paths) {
                 const raw = doc.get(path);
@@ -113,7 +277,11 @@ export const reencryptVault = async (
                 if (!cryptoService.isEncrypted(raw)) continue;
 
                 const packed = cryptoService.unpackEncrypted(raw);
-                if (!packed) { result.unreadable += 1; continue; }
+                if (!packed) {
+                    result.unreadable += 1;
+                    unreadableFields.push(path);
+                    continue;
+                }
 
                 try {
                     const plain = await cryptoService.decryptWithKey(
@@ -126,7 +294,21 @@ export const reencryptVault = async (
                     // Written under some third key. Rewriting it would destroy the
                     // only copy, so it is reported rather than touched.
                     result.unreadable += 1;
+                    unreadableFields.push(path);
                 }
+            }
+
+            // Report the row, not just the count. This is what turns "1 value could
+            // not be read" into something the user can act on before changing the
+            // password, instead of discovering the block with no way forward.
+            if (unreadableFields.length > 0) {
+                result.blocked.push({
+                    collection: name,
+                    collectionLabel: COLLECTION_LABELS[name] ?? name,
+                    id: String(doc.primary),
+                    fields: unreadableFields,
+                    identity: identifyRecord(name, doc),
+                });
             }
 
             if (Object.keys(updates).length > 0) pending.push({ name, doc, updates });
@@ -134,10 +316,7 @@ export const reencryptVault = async (
     }
 
     if (strict && result.unreadable > 0) {
-        throw new Error(
-            `${result.unreadable} encrypted value${result.unreadable === 1 ? '' : 's'} could not be ` +
-            `read with that password, so nothing was changed.`
-        );
+        throw new VaultBlockedError(result.blocked, result.unreadable);
     }
 
     // Phase 2 — write. `preSave` re-encrypts each field with the session key.
