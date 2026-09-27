@@ -20,6 +20,7 @@ import { AnalyticsMetricModel } from '../models/AnalyticsMetric';
 import { YearlySnapshotModel } from '../models/YearlySnapshot';
 import { PaymentRecordModel } from '../models/PaymentRecord';
 import { EncryptionService } from './EncryptionService';
+import { tryReadEncryptedAmount } from '../utils/encryptedNumbers';
 import {
   AnalyticsMetric,
   AnalyticsMetricType
@@ -337,28 +338,55 @@ export class AnalyticsService {
     });
 
     // Decrypt payment amounts
+    //
+    // This replaced a hand-rolled decrypt that could not detect failure.
+    // `EncryptionService.decrypt` FAILS OPEN — on a wrong key or a corrupted value it
+    // returns its input unchanged rather than throwing. So `parseFloat(decryptedAmount)`
+    // ran on CIPHERTEXT, and `parseFloat("8d3RTKu...")` returns 8: a plausible amount
+    // that is completely wrong. `|| 0` then swallowed every case that did produce NaN,
+    // and the `catch` fabricated a further 0. All three paths produced a number, so
+    // nothing ever looked broken.
+    //
+    // `tryReadEncryptedAmount` handles the fail-open trap via an identity check, and
+    // returns null — not 0 — for a value it cannot read. Zero is a real amount.
+    const unreadableIds: string[] = [];
     const decryptedPayments = await Promise.all(
       payments.data.map(async (p: any) => {
-        try {
-          const amountStr = String(p.amount || '0');
-          const decryptedAmount = amountStr.includes(':')
-            ? await EncryptionService.decrypt(amountStr, this.encryptionKey)
-            : amountStr;
-
-          return {
-            ...p,
-            amount: parseFloat(decryptedAmount) || 0
-          };
-        } catch (e) {
-          return { ...p, amount: 0 };
+        const amount = await tryReadEncryptedAmount(p.amount, this.encryptionKey);
+        if (amount === null) {
+          unreadableIds.push(String(p.id));
+          return null;
         }
+        return { ...p, amount };
       })
+    );
+
+    // Refuse rather than report a partial total.
+    //
+    // A sum over a subset of payments is not a smaller version of the right answer, it
+    // is a different and wrong one — and the distribution percentages below would be
+    // computed against it silently. The metric is then CACHED at line ~380, so a
+    // fabricated figure would be served for the whole TTL window and would survive the
+    // underlying data being fixed.
+    //
+    // Throwing leaves no cache entry, so the endpoint surfaces an error instead of a
+    // wrong number. That is the intended trade: a zakat figure cannot be quietly wrong.
+    if (unreadableIds.length > 0) {
+      throw new Error(
+        `Cannot compute payment distribution: ${unreadableIds.length} of ` +
+        `${payments.data.length} payment amount(s) could not be read with the current ` +
+        `encryption key.`
+      );
+    }
+
+    const readablePayments = decryptedPayments.filter(
+      (p): p is { amount: number } => p !== null
     );
 
     const categoryMap = new Map<string, { count: number; totalAmount: number }>();
     let totalAmount = 0;
 
-    for (const payment of decryptedPayments) {
+    for (const payment of readablePayments as any[]) {
       const amount = payment.amount;
       totalAmount += amount;
 
