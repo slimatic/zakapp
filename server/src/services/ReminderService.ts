@@ -17,6 +17,8 @@
 
 import { ReminderEventModel } from '../models/ReminderEvent';
 import { YearlySnapshotModel } from '../models/YearlySnapshot';
+import { tryReadEncryptedAmount } from '../utils/encryptedNumbers';
+import { Logger } from '../utils/logger';
 import {
   ReminderEvent,
   ReminderEventType,
@@ -29,6 +31,8 @@ import {
  * Handles reminder triggers, lifecycle management, and smart notifications
  */
 export class ReminderService {
+
+  private logger = new Logger('ReminderService');
 
   /**
    * Creates a new reminder event
@@ -253,8 +257,36 @@ export class ReminderService {
     if (primarySnapshot && primarySnapshot.status === 'finalized') {
       const PaymentRecordModel = (await import('../models/PaymentRecord')).PaymentRecordModel;
       const payments = await PaymentRecordModel.findBySnapshot(primarySnapshot.id, userId);
-      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-      const zakatAmount = primarySnapshot.zakatAmount;
+
+      // `findBySnapshot` returns raw Prisma rows, so `amount` and `zakatAmount` are
+      // still ciphertext — they are `String // Encrypted` columns, not numbers.
+      // Summing them was string concatenation and `totalPaid < zakatAmount` compared
+      // two ciphertext strings, so the percentage below was meaningless.
+      //
+      // `tryReadEncryptedAmount` returns null rather than 0 for a value that cannot
+      // be read. Zero is a real amount; substituting it here would tell a user with
+      // unreadable data that they still owe their whole obligation.
+      const encryptionKey = process.env.ENCRYPTION_KEY!;
+      const paidAmounts: number[] = [];
+      let unreadable = 0;
+      for (const payment of payments) {
+        const amount = await tryReadEncryptedAmount(payment.amount, encryptionKey);
+        if (amount === null) unreadable++;
+        else paidAmounts.push(amount);
+      }
+      const totalPaid = paidAmounts.reduce((sum, amount) => sum + amount, 0);
+      const zakatAmount = await tryReadEncryptedAmount(primarySnapshot.zakatAmount, encryptionKey);
+
+      // Silence beats a fabricated number: with anything unreadable we cannot say
+      // how much is outstanding, so this reminder is not raised at all.
+      if (unreadable > 0 || zakatAmount === null) {
+        this.logger.warn(
+          `Skipping incomplete-payment reminder for snapshot ${primarySnapshot.id}: ` +
+          `${unreadable} unreadable payment amount(s), zakatAmount ` +
+          `${zakatAmount === null ? 'unreadable' : 'read'}`
+        );
+        return createdReminders;
+      }
 
       if (totalPaid < zakatAmount) {
         const percentageRemaining = ((zakatAmount - totalPaid) / zakatAmount) * 100;
