@@ -2,6 +2,21 @@
 
 Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic Zakat calculator.
 
+## 🧭 Which guide do I want?
+
+Five documents describe deployment. Pick by what you are trying to do:
+
+| I want to… | Read |
+|---|---|
+| Get it running on my own machine, fastest path | [EASY-DEPLOY.md](../EASY-DEPLOY.md) — one script, auto-HTTPS |
+| The short version, 3 commands | [QUICKSTART.md](../QUICKSTART.md) |
+| Run it on a real server with a domain | [SELF-HOSTING.md](../SELF-HOSTING.md) |
+| Understand the production architecture | [DEPLOY.md](../DEPLOY.md) |
+| Full reference: env vars, backups, rollback | [deployment-guide.md](deployment-guide.md) |
+
+For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md) and
+[AGENTS.md](../AGENTS.md).
+
 ## 🗂️ Documentation Structure
 
 ### 📖 Getting Started
@@ -29,7 +44,6 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 
 - **[Deployment Guide](deployment-guide.md)** - General deployment instructions
 - **[Production Setup Guide](guides/PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Production deployment automation
-- **[Staging Deployment Guide](guides/STAGING_DEPLOYMENT_GUIDE.md)** - Staging environment setup
 - **[Docker Guide](reports/DOCKER.md)** - Container deployment instructions
 - **[CI/CD Setup](guides/CI-CD-SETUP.md)** - Continuous integration/deployment configuration
 - **[Cloudflare Tunnel Setup](guides/CLOUDFLARE_TUNNEL_SETUP.md)** - Secure tunnel configuration

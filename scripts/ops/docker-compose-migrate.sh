@@ -3,7 +3,7 @@
 # Usage:
 #   ./scripts/ops/docker-compose-migrate.sh            # dry-run migrations + data-migration
 #   ./scripts/ops/docker-compose-migrate.sh --apply   # apply migrations + data migration (destructive step)
-#   COMPOSE_FILE=docker-compose.staging.yml ./scripts/... --apply
+#   COMPOSE_FILE=docker-compose.yml ./scripts/... --apply
 #
 # Safety: The script creates on-host backups first. Data-migration helper is run in dry-run by default.
 set -euo pipefail

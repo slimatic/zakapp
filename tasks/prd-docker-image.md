@@ -1,7 +1,7 @@
 # PRD: Provide Prebuilt Docker Images with Unified Compose File
 
 ## Overview
-ZakApp currently requires users to build Docker images from source using multiple compose files (docker-compose.yml, docker-compose.prod.yml, etc.), which can lead to errors and complexity for new users. This PRD outlines the implementation of prebuilt Docker images hosted on a secure registry, along with a unified docker-compose file to simplify bootstrapping while maintaining security best practices.
+ZakApp currently requires users to build Docker images from source using multiple compose files (docker-compose.yml, docker-compose.yml, etc.), which can lead to errors and complexity for new users. This PRD outlines the implementation of prebuilt Docker images hosted on a secure registry, along with a unified docker-compose file to simplify bootstrapping while maintaining security best practices.
 
 ## Problem Statement
 - Multiple docker-compose files exist with different configurations

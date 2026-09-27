@@ -262,7 +262,7 @@ sudo journalctl -u cloudflared -f
 
 ### Option C: Docker Compose + Cloudflared
 
-Create `docker-compose.cloudflare.yml`:
+Create `docker-compose.yml`:
 
 ```yaml
 version: '3.8'
@@ -319,7 +319,7 @@ volumes:
 Start everything:
 
 ```bash
-docker-compose -f docker-compose.cloudflare.yml up -d
+docker-compose -f docker-compose.yml up -d
 ```
 
 ---

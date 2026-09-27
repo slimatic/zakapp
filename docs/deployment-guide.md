@@ -168,8 +168,6 @@ services:
 
    ```bash
    # Copy production compose file
-   cp docker-compose.prod.yml.example docker-compose.prod.yml
-
    # Create environment file
    cp .env.prod.example .env.prod
    ```
@@ -231,19 +229,19 @@ services:
 
    ```bash
    # Build production images
-   docker-compose -f docker-compose.prod.yml build
+   docker-compose -f docker-compose.yml build
 
    # Start production services
-   docker-compose -f docker-compose.prod.yml up -d
+   docker-compose -f docker-compose.yml up -d
 
    # Verify deployment
-   docker-compose -f docker-compose.prod.yml ps
-   docker-compose -f docker-compose.prod.yml logs
+   docker-compose -f docker-compose.yml ps
+   docker-compose -f docker-compose.yml logs
    ```
 
 ### Production Docker Compose Configuration
 
-**docker-compose.prod.yml:**
+**docker-compose.yml:**
 
 ```yaml
 version: '3.8'
@@ -502,15 +500,15 @@ BACKUP_NAME="zakapp_backup_$DATE"
 mkdir -p "$BACKUP_DIR/$BACKUP_NAME"
 
 # Stop application
-docker-compose -f docker-compose.prod.yml stop
+docker-compose -f docker-compose.yml stop
 
 # Create backup
 tar -czf "$BACKUP_DIR/$BACKUP_NAME/data.tar.gz" -C "$DATA_DIR" .
 cp .env.prod "$BACKUP_DIR/$BACKUP_NAME/"
-cp docker-compose.prod.yml "$BACKUP_DIR/$BACKUP_NAME/"
+cp docker-compose.yml "$BACKUP_DIR/$BACKUP_NAME/"
 
 # Start application
-docker-compose -f docker-compose.prod.yml start
+docker-compose -f docker-compose.yml start
 
 # Clean old backups (keep last 30 days)
 find "$BACKUP_DIR" -type d -name "zakapp_backup_*" -mtime +30 -exec rm -rf {} \;
@@ -536,7 +534,7 @@ crontab -e
 1. **Stop the application**
 
    ```bash
-   docker-compose -f docker-compose.prod.yml down
+   docker-compose -f docker-compose.yml down
    ```
 
 2. **Restore data**
@@ -548,12 +546,12 @@ crontab -e
 
    # Restore configuration
    cp backups/zakapp_backup_YYYYMMDD_HHMMSS/.env.prod .
-   cp backups/zakapp_backup_YYYYMMDD_HHMMSS/docker-compose.prod.yml .
+   cp backups/zakapp_backup_YYYYMMDD_HHMMSS/docker-compose.yml .
    ```
 
 3. **Restart the application**
    ```bash
-   docker-compose -f docker-compose.prod.yml up -d
+   docker-compose -f docker-compose.yml up -d
    ```
 
 ## Monitoring and Maintenance
@@ -566,7 +564,7 @@ crontab -e
 #!/bin/bash
 
 # Check if containers are running
-if ! docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+if ! docker-compose -f docker-compose.yml ps | grep -q "Up"; then
     echo "ERROR: Some containers are not running"
     exit 1
 fi
@@ -590,11 +588,11 @@ echo "All services are healthy"
 
 ```bash
 # View application logs
-docker-compose -f docker-compose.prod.yml logs -f
+docker-compose -f docker-compose.yml logs -f
 
 # View specific service logs
-docker-compose -f docker-compose.prod.yml logs -f backend
-docker-compose -f docker-compose.prod.yml logs -f frontend
+docker-compose -f docker-compose.yml logs -f backend
+docker-compose -f docker-compose.yml logs -f frontend
 
 # Set up log rotation
 sudo nano /etc/logrotate.d/zakapp
@@ -611,7 +609,7 @@ sudo nano /etc/logrotate.d/zakapp
     notifempty
     create 644 root root
     postrotate
-        docker-compose -f /opt/zakapp/docker-compose.prod.yml restart >> /var/log/zakapp/restart.log 2>&1 || true
+        docker-compose -f /opt/zakapp/docker-compose.yml restart >> /var/log/zakapp/restart.log 2>&1 || true
     endscript
 }
 ```
@@ -633,13 +631,13 @@ sudo nano /etc/logrotate.d/zakapp
 3. **Rebuild and deploy**
 
    ```bash
-   docker-compose -f docker-compose.prod.yml build
-   docker-compose -f docker-compose.prod.yml up -d
+   docker-compose -f docker-compose.yml build
+   docker-compose -f docker-compose.yml up -d
    ```
 
 4. **Verify deployment**
    ```bash
-   docker-compose -f docker-compose.prod.yml ps
+   docker-compose -f docker-compose.yml ps
    ./scripts/health-check.sh
    ```
 
@@ -782,7 +780,7 @@ cron.schedule('0 * * * *', async () => {
 
    ```bash
    # Docker environment
-   docker-compose -f docker-compose.prod.yml logs -f backend | grep "Hawl detection"
+   docker-compose -f docker-compose.yml logs -f backend | grep "Hawl detection"
    
    # PM2 environment
    pm2 logs zakapp-backend | grep "Hawl detection"
@@ -831,9 +829,9 @@ git log --oneline  # Find commit before Feature 008
 git revert <commit-hash>
 
 # Docker rollback
-docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.yml down
 git checkout <previous-version-tag>
-docker-compose -f docker-compose.prod.yml up -d --build
+docker-compose -f docker-compose.yml up -d --build
 
 # PM2 rollback
 pm2 stop zakapp-backend
@@ -850,7 +848,7 @@ pm2 restart zakapp-backend
 sed -i '/METALS_API_KEY/d' server/.env
 
 # Restart services
-docker-compose -f docker-compose.prod.yml restart backend
+docker-compose -f docker-compose.yml restart backend
 # OR
 pm2 restart zakapp-backend
 ```
@@ -884,7 +882,7 @@ curl -X GET http://localhost:3000/api/nisab-year-records \
 
 ```bash
 # Wait 5 minutes, then check logs
-docker-compose -f docker-compose.prod.yml logs -f backend | grep "Hawl detection"
+docker-compose -f docker-compose.yml logs -f backend | grep "Hawl detection"
 
 # Should see hourly execution logs
 ```
@@ -893,7 +891,7 @@ docker-compose -f docker-compose.prod.yml logs -f backend | grep "Hawl detection
 
 ```bash
 # Check API connectivity from backend
-docker-compose -f docker-compose.prod.yml exec backend \
+docker-compose -f docker-compose.yml exec backend \
   curl -X GET "https://metals-api.com/api/latest?access_key=${METALS_API_KEY}&base=USD&symbols=XAU,XAG"
 
 # Expected: JSON response with gold/silver rates
@@ -916,7 +914,7 @@ docker-compose -f docker-compose.prod.yml exec backend \
 
 ```bash
 # Docker
-docker-compose -f docker-compose.prod.yml logs -f --tail=100 backend
+docker-compose -f docker-compose.yml logs -f --tail=100 backend
 
 # PM2
 pm2 logs zakapp-backend --lines 100
@@ -992,7 +990,7 @@ rm /tmp/test-restore.db
 echo "METALS_API_KEY=your_actual_key_here" >> server/.env
 
 # Restart backend
-docker-compose -f docker-compose.prod.yml restart backend
+docker-compose -f docker-compose.yml restart backend
 # OR
 pm2 restart zakapp-backend
 ```
@@ -1019,7 +1017,7 @@ npx prisma migrate status
 
 ```bash
 # Check backend is running
-docker-compose -f docker-compose.prod.yml ps backend
+docker-compose -f docker-compose.yml ps backend
 # OR
 pm2 list
 
@@ -1027,7 +1025,7 @@ pm2 list
 node -e "require('./dist/jobs/hawlDetection').detectHawlThresholdCrossing()"
 
 # Check for errors in logs
-docker-compose -f docker-compose.prod.yml logs backend | grep -i error
+docker-compose -f docker-compose.yml logs backend | grep -i error
 ```
 
 #### Issue: API endpoints return 404
@@ -1045,7 +1043,7 @@ ls -la server/dist/routes/nisabYearRecords.js
 
 # Rebuild and restart
 npm run build
-docker-compose -f docker-compose.prod.yml restart backend
+docker-compose -f docker-compose.yml restart backend
 ```
 
 ### Performance Considerations
@@ -1146,13 +1144,13 @@ grep -r "354\|87\.48\|612\.36\|0\.025" server/src/services/nisabYearRecordServic
 
 ```bash
 # Check logs
-docker-compose -f docker-compose.prod.yml logs service-name
+docker-compose -f docker-compose.yml logs service-name
 
 # Check container status
-docker-compose -f docker-compose.prod.yml ps
+docker-compose -f docker-compose.yml ps
 
 # Restart specific service
-docker-compose -f docker-compose.prod.yml restart service-name
+docker-compose -f docker-compose.yml restart service-name
 ```
 
 **2. Permission issues with data directory**
@@ -1226,8 +1224,8 @@ sudo swapon /swapfile
    sudo apt update && sudo apt upgrade
 
    # Update Docker images
-   docker-compose -f docker-compose.prod.yml pull
-   docker-compose -f docker-compose.prod.yml up -d
+   docker-compose -f docker-compose.yml pull
+   docker-compose -f docker-compose.yml up -d
    ```
 
 2. **Firewall configuration**

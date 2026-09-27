@@ -159,7 +159,7 @@ zakapp/
 │       ├── build.yml               # Build automation
 │       └── security.yml            # Security scanning
 ├── docker-compose.yml              # Development environment
-├── docker-compose.prod.yml         # Production environment
+├── docker-compose.yml         # Production environment
 ├── .gitignore                      # Git ignore configuration
 ├── .dockerignore                   # Docker ignore configuration
 ├── package.json                    # Root package configuration
