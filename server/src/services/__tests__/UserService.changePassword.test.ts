@@ -110,7 +110,7 @@ describe('UserService.changePassword', () => {
     const service = new (UserService as any)();
     await expect(
       service.changePassword(userId, {
-        currentPassword: 'wrong',
+        currentPassword: 'not.a.real.password',
         newPassword: 'NewPassword123!',
       })
     ).rejects.toThrow('Current password is incorrect');
