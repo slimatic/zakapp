@@ -104,6 +104,8 @@ For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md) and
 
 ### 📦 Historical Documentation
 
+- **[Retired agent scaffolding](agent-scaffolding-retired.md)** - What the ralphy/ralph/sisyphus planning trees held, and the three conclusions worth keeping
+
 **Archive of completed work:**
 
 ### 🔍 Code Quality & Analysis
