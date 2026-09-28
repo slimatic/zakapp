@@ -117,6 +117,26 @@ describe('MigrationService Client-Side', () => {
     });
 
     describe('adaptUserSettings', () => {
+        // The display currency is a presentation choice. Changing it must not
+        // touch stored amounts, so the round trip has to carry both the code and
+        // the per-record rate rather than relabelling or flattening them.
+        it('preserves the record currency code rather than assuming one', () => {
+            const raw = [{ id: 'a9', name: 'Cash', type: 'CASH', value: 1000, currency: 'IDR' }];
+            expect(MigrationService.adaptAssets(raw, userId)[0].currency).toBe('IDR');
+        });
+
+        it('preserves a payment currency and the rate it was converted at', () => {
+            const raw = [{ id: 'p9', amount: 500, currency: 'IDR', exchangeRate: 0.000064, paymentDate: '2026-03-01T00:00:00.000Z' }];
+            const out = MigrationService.adaptPayments(raw, userId)[0];
+            expect(out.currency).toBe('IDR');
+            expect(out.exchangeRate).toBe(0.000064);
+        });
+
+        it('defaults a payment rate to 1.0 only when the backup has none', () => {
+            const raw = [{ id: 'p10', amount: 500, currency: 'USD', paymentDate: '2026-03-01T00:00:00.000Z' }];
+            expect(MigrationService.adaptPayments(raw, userId)[0].exchangeRate).toBe(1.0);
+        });
+
         // A non-zero adjustment shifts every Hijri date the app displays, so it
         // must survive the round trip rather than resetting to 0.
         it('preserves the hijri adjustment', () => {

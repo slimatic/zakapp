@@ -131,7 +131,11 @@ export class MigrationService {
                 recipientCategory: raw.recipientCategory || 'fakir',
                 paymentMethod: raw.paymentMethod || 'cash',
                 status: raw.status || 'recorded',
-                exchangeRate: 1.0,
+                // The rate the payment was actually converted at. It is per-record:
+                // two payments in the same currency can carry different rates, so it
+                // cannot be recovered from the currency pair later. Defaulting to 1.0
+                // asserted that every restored payment was one-for-one.
+                exchangeRate: Number(raw.exchangeRate ?? 1.0) || 1.0,
                 createdAt: raw.createdAt || new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
