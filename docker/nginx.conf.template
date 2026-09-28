@@ -30,6 +30,44 @@ http {
             try_files $uri $uri/ /index.html;
         }
 
+        # Service workers and the app shell must revalidate on every load.
+        #
+        # Both service workers are served from UNHASHED filenames, so a browser
+        # that holds a stale copy keeps running the old release: the worker serves
+        # its own precached shell and never sees the new one. That is not
+        # hypothetical -- after an upgrade, a phone that had the site open kept
+        # rendering the previous version's build string while the server was
+        # already serving the new assets.
+        #
+        # `index.html` is the shell and names the hashed bundle, so it must never
+        # be served stale either.
+        #
+        # These use `expires -1` (which emits `Cache-Control: no-cache`) rather
+        # than `add_header Cache-Control`. In nginx a nested `add_header`
+        # REPLACES the inherited set instead of adding to it, so an add_header
+        # here would silently drop the CSP and HSTS headers declared below --
+        # which is exactly what `location = /config.js` above already does.
+        # `expires` is independent of that rule and leaves them intact.
+        #
+        # ponytail: explicit paths, not a `~* (sw|service-worker)\.js$` regex.
+        # A regex would also match a future unhashed workbox runtime, and an
+        # exact path is unambiguous to the next reader. Add a block if a new
+        # unhashed worker appears.
+        location = /sw.js {
+            expires -1;
+            try_files $uri =404;
+        }
+
+        location = /push-sw.js {
+            expires -1;
+            try_files $uri =404;
+        }
+
+        location = /index.html {
+            expires -1;
+            try_files $uri =404;
+        }
+
         # API proxy (when backend is separate)
         location /api {
             proxy_pass http://backend:3001;
