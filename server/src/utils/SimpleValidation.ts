@@ -78,6 +78,10 @@ export class SimpleValidation {
     if (!isPartial || data.value !== undefined) {
       if (data.value === undefined || typeof data.value !== 'number') {
         errors.push('Value is required and must be a number');
+      } else if (data.value <= 0) {
+        errors.push('Value must be a positive number');
+      } else if (data.value > 1e12) {
+        errors.push('Value exceeds maximum allowed (1,000,000,000,000)');
       } else {
         validatedData.value = data.value;
       }

@@ -18,6 +18,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../types';
 import { PaymentRecordService, CreatePaymentDto, UpdatePaymentDto, PaymentFilters } from '../services/payment-record.service';
+import { redactErrorDetail } from '../utils/errorDetails';
 
 /**
  * Standard API Response Format
@@ -43,7 +44,13 @@ const createResponse = <T>(success: boolean, data?: T, error?: { code: string; m
   return {
     success,
     data,
-    error,
+    error: error && {
+      ...error,
+      // `details` carries `error.message`, which for a module-resolution failure
+      // includes a "Require stack" block of absolute paths. Redact it here so
+      // every call site inherits the behaviour.
+      details: error.details?.map((detail) => redactErrorDetail(detail)),
+    },
     metadata: {
       timestamp: new Date().toISOString(),
       version: '1.0.0'

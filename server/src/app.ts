@@ -163,6 +163,20 @@ app.use(compression({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// JSON parse error handler (malformed JSON -> 400 instead of 500)
+app.use((err: any, req: any, res: any, next: any) => {
+  if (err instanceof SyntaxError && (err as any).status === 400 && 'body' in err) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'MALFORMED_JSON',
+        message: 'Invalid JSON in request body'
+      }
+    });
+  }
+  next(err);
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/sync', syncRoutes);
