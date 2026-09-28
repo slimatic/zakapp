@@ -69,7 +69,7 @@ def main():
             pass  # already seeded, or a build without the seeder
 
         for route in ROUTES:
-            pg.goto(f"http://localhost:4173{route}", wait_until="networkidle")
+            pg.goto(f"{BASE}{route}", wait_until="networkidle")
             pg.wait_for_timeout(2200)
             items = pg.evaluate(FIND_AMOUNTS)
             if not items:
