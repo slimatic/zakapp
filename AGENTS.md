@@ -50,9 +50,10 @@ push a branch to this repository directly. Either way:
 git checkout -b <type>/<short-slug>      # feat/ fix/ docs/ chore/ refactor/
 ```
 
-`<type>` matches the commit type you expect. Production fixes use
-`hotfix/<name>` and branch **from `main`, never from `develop`** — the v1.0 line
-carries tokens `main` lacks, so a develop-based hotfix will not cherry-pick cleanly.
+`<type>` matches the commit type you expect. Production fixes use `hotfix/<name>`,
+cut **from `main`** — a hotfix ships alone, and a branch cut from the integration
+line will not cherry-pick cleanly, because that line carries changes `main` has
+not received yet.
 
 ### Commit messages
 
