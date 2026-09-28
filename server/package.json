@@ -4,7 +4,7 @@
   "description": "zakapp backend server",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && node -e \"const f='dist/server/src/app.js';require('fs').existsSync(f)||(console.error('BUILD BROKEN: '+f+' was not emitted, but `npm start` runs it. TypeScript derives the output path from rootDir, which must stay pinned to \\\"..\\\" -- unpinning it re-roots the emit to dist/src/app.js. Rebuild fails loudly here rather than producing an image that cannot boot.'),process.exit(1))\"",
+    "build": "tsc && node -e \"require('fs').existsSync('dist/server/src/app.js')||(console.error('BUILD BROKEN: dist/server/src/app.js was not emitted; rootDir must stay pinned to .. in server/tsconfig.json, since npm start runs that path'),process.exit(1))\"",
     "start": "node dist/server/src/app.js",
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/app.ts",
     "dev:old": "nodemon index.js",
