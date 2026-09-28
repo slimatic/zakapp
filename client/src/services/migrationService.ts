@@ -90,7 +90,12 @@ export class MigrationService {
                 isPassiveInvestment: false,
                 isRestrictedAccount: false,
                 calculationModifier: 1.0,
-                zakatEligible: raw.zakatEligible,
+                // `zakatEligible` must NOT be emitted here. It is absent from
+                // AssetSchema, which is additionalProperties:false, so Ajv rejects the
+                // doc — and because the key was assigned unconditionally it was
+                // present (as undefined) on EVERY asset, failing the whole restore.
+                // ALLOWED_SCHEMA_FIELDS in useAssetRepository lists it, which is how
+                // the two drifted. The legacy value still rides in metadata.
                 metadata: raw.metadata || (raw.zakatEligible !== undefined ? JSON.stringify({ legacyZakatEligible: raw.zakatEligible }) : undefined)
             } as Asset;
         });

@@ -189,14 +189,22 @@ export class UserController {
     const { format = 'json' } = req.body;
     const userId = req.userId!;
 
+    if (format !== 'json') {
+      throw new AppError(
+        `Export format '${format}' is not supported. Only 'json' is available.`,
+        400,
+        ErrorCode.VALIDATION_ERROR
+      );
+    }
+
+    // Get user profile
+    const profile = await userService.getProfile(userId);
+
+    // Get user's assets
+    // const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+
     try {
-      // Get user profile
-      const profile = await userService.getProfile(userId);
-
-      // Get user's assets
-      // const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
-
       const assets = await prisma.asset.findMany({
         where: { userId }
       });
@@ -213,9 +221,15 @@ export class UserController {
         orderBy: { paymentDate: 'desc' }
       });
 
-      await prisma.$disconnect();
-
-      // Build export data
+      // Build export data.
+      //
+      // These field names must be read from `server/prisma/schema.prisma`, never
+      // inferred from the client's types: the client calls an asset's category
+      // `type` and its value `currentValue`, but the Prisma model declares
+      // `category` and `value`. A key that does not exist is `undefined`, and
+      // `JSON.stringify` DROPS undefined keys — so the export stayed valid JSON,
+      // parsed fine, and silently omitted every asset's money. Same for
+      // `zakatAmount` (read as `zakatDue`) and `recipients` (read as `recipient`).
       const exportData = {
         exportDate: new Date().toISOString(),
         user: {
@@ -224,28 +238,37 @@ export class UserController {
           username: profile.username,
           createdAt: profile.createdAt
         },
-        assets: assets.map((a: any) => ({
+        assets: assets.map((a) => ({
           id: a.id,
           name: a.name,
-          type: a.type,
-          currentValue: a.currentValue,
+          category: a.category,
+          value: a.value,
           currency: a.currency,
+          isActive: a.isActive,
+          acquisitionDate: a.acquisitionDate,
           createdAt: a.createdAt
         })),
-        calculations: calculations.map((c: any) => ({
+        calculations: calculations.map((c) => ({
           id: c.id,
           totalAssets: c.totalAssets,
-          zakatableAmount: c.zakatableAmount,
-          zakatDue: c.zakatDue,
+          totalLiabilities: c.totalLiabilities,
+          netWorth: c.netWorth,
+          zakatAmount: c.zakatAmount,
           methodology: c.methodology,
+          calendarType: c.calendarType,
+          currency: c.currency,
+          calculationDate: c.calculationDate,
           createdAt: c.createdAt
         })),
-        payments: payments.map((p: any) => ({
+        payments: payments.map((p) => ({
           id: p.id,
           amount: p.amount,
           currency: p.currency,
           paymentDate: p.paymentDate,
-          recipient: p.recipient
+          recipients: p.recipients,
+          paymentMethod: p.paymentMethod,
+          islamicYear: p.islamicYear,
+          status: p.status
         }))
       };
 
@@ -255,16 +278,13 @@ export class UserController {
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
       res.status(200).send(JSON.stringify(exportData, null, 2));
-    } catch (error) {
-      // Fallback to simple response if export fails
-      const response: ApiResponse = {
-        success: true,
-        message: 'Export request submitted',
-        data: {
-          status: 'processing'
-        }
-      };
-      res.status(200).json(response);
+    } finally {
+      // Close the pooled client on EVERY path. This deliberately replaced a
+      // `catch` that answered `200 {success: true, status: 'processing'}` for any
+      // failure: a user whose export threw was told it was being prepared, and
+      // there is no polling endpoint for that status, so the file never arrived
+      // and nothing was ever logged. Let the error handler report it instead.
+      await prisma.$disconnect();
     }
   });
 

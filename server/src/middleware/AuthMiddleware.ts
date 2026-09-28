@@ -20,6 +20,7 @@ import { jwtService } from '../services/JWTService';
 import { AuthenticatedRequest } from '../types';
 import { prisma } from '../utils/prisma';
 import { logger } from '../utils/logger';
+import { isTokenRevoked } from '../routes/auth/_shared';
 
 /**
  * Authentication middleware for ZakApp API endpoints
@@ -100,6 +101,18 @@ export class AuthMiddleware {
 
       // Verify token using JWTService
       const decoded = jwtService.verifyAccessToken(token);
+
+      // Check if access token has been revoked (logout, password change, admin revocation)
+      if (isTokenRevoked(token)) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'TOKEN_REVOKED',
+            message: 'Access token has been revoked'
+          }
+        });
+        return;
+      }
 
       // Attach user information to request
       req.userId = decoded.userId;

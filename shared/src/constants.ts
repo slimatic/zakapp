@@ -525,20 +525,10 @@ export const METHODOLOGY_RESOURCES = {
 
 /**
  * Valid asset category types - simple array for validation
- * Single source of truth derived from AssetCategoryType
- * Use this for validation instead of hardcoding category lists
+ * Single source of truth: re-exported from islamicConstants.ts
  */
-export const VALID_ASSET_CATEGORY_VALUES = [
-  'cash',
-  'gold',
-  'silver',
-  'business',
-  'property',
-  'stocks',
-  'crypto',
-  'debts',
-  'expenses',
-] as const;
+import { VALID_ASSET_CATEGORY_VALUES } from './constants/islamicConstants.js';
+export { VALID_ASSET_CATEGORY_VALUES } from './constants/islamicConstants.js';
 
 /**
  * Helper function to check if a value is a valid asset category

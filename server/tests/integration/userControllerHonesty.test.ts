@@ -250,6 +250,56 @@ describe('privacy settings actually persist', () => {
   });
 });
 
+describe('export streams the real data, and does not fake success', () => {
+  /**
+   * The field names here are the ones `server/prisma/schema.prisma` declares.
+   * This assertion is deliberately on KEY PRESENCE rather than on the response
+   * being readable: `JSON.stringify` drops `undefined`, so the broken mapping
+   * produced valid JSON that parsed cleanly and simply had no money in it. A
+   * `expect(res.body).toBeDefined()` would have passed the whole time.
+   */
+  it('carries the asset value and category, not the client-side field names', async () => {
+    await request(app)
+      .post('/api/assets')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ name: 'Export Money Asset', category: 'cash', value: 4242.42, currency: 'USD' });
+
+    const res = await request(app)
+      .post('/api/user/export-request')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ format: 'json' });
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-disposition']).toMatch(/attachment/);
+
+    // An attachment arrives as text; a JSON error envelope arrives as an object.
+    const payload = typeof res.text === 'string' && res.text.length > 0
+      ? JSON.parse(res.text)
+      : res.body;
+
+    const asset = (payload.assets ?? []).find((a: Record<string, unknown>) => a.name === 'Export Money Asset');
+    expect(asset, 'the exported asset was not in the payload at all').toBeDefined();
+
+    // The money must survive. These are the three ways it previously did not.
+    expect('value' in asset!, 'asset value was omitted from the export').toBe(true);
+    expect(asset!.value).toBeCloseTo(4242.42, 2);
+    expect('category' in asset!, 'asset category was omitted from the export').toBe(true);
+    expect(asset!.category).toBe('cash');
+  });
+
+  it('does not answer success when the export could not be built', async () => {
+    // A format we cannot render is refused explicitly rather than silently
+    // returning JSON, and never as a fabricated "processing" success.
+    const res = await request(app)
+      .post('/api/user/export-request')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ format: 'csv' });
+
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(JSON.stringify(res.body)).not.toMatch(/processing/);
+  });
+});
+
 describe('export status does not offer a link to nothing', () => {
   it('does not return a downloadUrl under the unmounted /api/export/download route', async () => {
     const res = await request(app)
