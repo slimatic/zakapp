@@ -39,6 +39,7 @@ import { z } from 'zod';
 import * as jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
 import { getJwtSecret } from '../config/security';
+import { redactErrorDetail } from '../utils/errorDetails';
 
 async function getUserActiveLiabilities(userId: string) {
   const liabilities = await prisma.liability.findMany({
@@ -96,7 +97,13 @@ const createResponse = <T>(success: boolean, data?: T, error?: { code: string; m
   return {
     success,
     data,
-    error,
+    error: error && {
+      ...error,
+      // `details` carries `error.message`, which for a module-resolution failure
+      // includes a "Require stack" block of absolute paths. Redact it here so
+      // every call site inherits the behaviour.
+      details: error.details?.map((detail) => redactErrorDetail(detail)),
+    },
     metadata: {
       timestamp: new Date().toISOString(),
       version: '1.0.0'
@@ -539,7 +546,7 @@ router.get('/fx-rates', optionalAuthenticate, async (req: AuthenticatedRequest, 
  */
 router.get('/methodologies', async (req, res: Response) => {
   try {
-    const { ZAKAT_METHODS } = await import('../../../shared/src/constants');
+    const { ZAKAT_METHODS } = await import('@zakapp/shared');
 
     const methodologies = Object.values(ZAKAT_METHODS).map(method => ({
       id: method.id,
