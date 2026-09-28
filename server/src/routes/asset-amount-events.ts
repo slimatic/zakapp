@@ -71,10 +71,29 @@ router.get('/:assetId/amount-at', authenticate, async (req: AuthenticatedRequest
     }
 
     const eventService = new AssetAmountEventService();
+
+    // A date-only query means "as of the END of that day".
+    //
+    // `new Date('2026-09-28')` is midnight UTC, so a bare date would match only
+    // events stamped at exactly midnight and report null for a day that plainly
+    // has events. Measured before this fix: date=2026-09-28 -> null, while
+    // date=2026-09-28T23:59:59Z -> the value. Off by one day.
+    //
+    // Only date-only input is widened; a caller passing an explicit time keeps
+    // it exactly.
+    const dateParam = date as string;
+    const asOf = /^\d{4}-\d{2}-\d{2}$/.test(dateParam)
+      ? new Date(`${dateParam}T23:59:59.999Z`)
+      : new Date(dateParam);
+
+    if (isNaN(asOf.getTime())) {
+      throw new Error('Invalid date');
+    }
+
     const amount = await eventService.getAssetAmountAtDate(
       assetId,
       userId,
-      new Date(date as string)
+      asOf
     );
 
     res.json({
