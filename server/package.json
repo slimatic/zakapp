@@ -1,10 +1,10 @@
 {
   "name": "zakapp-server",
-  "version": "0.17.7",
+  "version": "0.17.8",
   "description": "zakapp backend server",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"require('fs').existsSync('dist/server/src/app.js')||(console.error('BUILD BROKEN: dist/server/src/app.js was not emitted; rootDir must stay pinned to .. in server/tsconfig.json, since npm start runs that path'),process.exit(1))\"",
     "start": "node dist/server/src/app.js",
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/app.ts",
     "dev:old": "nodemon index.js",
