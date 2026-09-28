@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.17.7] - 2026-09-28
+
+### A patch release, not a cycle — export, API validation, and session honesty
+
+**Data**
+
+- **Data export no longer drops every asset value.** `POST /api/user/export-request` read
+  field names that do not exist on the models, so `JSON.stringify` omitted each asset's
+  `value`, each calculation's `zakatAmount`, and each payment's `recipients`. The file was
+  valid JSON and parsed cleanly — the money was simply absent. Asset `value` was omitted for
+  every user, on every export, since the field was renamed. Exported fields are now read from
+  the schema.
+- **A failed export no longer reports success.** The handler answered
+  `200 {success: true, status: 'processing'}` in place of every error, including a real
+  database failure, and no endpoint serves that status — so a user whose export threw waited
+  for a file that was never coming. Failures now surface as errors.
+- **`format=csv` no longer silently returns JSON.** An unsupported format is refused with 400.
+
+**Calculation correctness**
+
+- **Negative and zero asset values are rejected.** `POST`/`PUT /api/assets` accepted
+  `value: -500` and `value: 0`, which persisted and silently reduced zakatable wealth for
+  every other consumer. Values must now be positive, with a sane upper bound.
+- **One asset-category vocabulary instead of two.** The shared constants carried a lowercase
+  list (`cash`, `gold`, ...) alongside the canonical fifteen UPPERCASE values, so a category
+  could pass one validation layer and be rejected by the next. Both layers now accept the same
+  values.
+
+**Sessions and errors**
+
+- **Logout now invalidates the access token.** Revocation was recorded but never read, so a
+  logged-out token stayed usable for its full 15-minute lifetime — on a shared device that is
+  the window that matters.
+- **`GET /api/zakat/methodologies` returns 200 instead of 500.** It imported a source path that
+  does not exist in the built image.
+- **Error responses no longer disclose server file paths.** A module-resolution failure
+  included a "Require stack" listing absolute paths, revealing the deployment's layout to any
+  caller.
+- **Malformed JSON returns 400, not 500.**
+
+**Restore**
+
+- **A restore no longer rejects the whole payload over one stray field.** `zakatEligible` is not
+  in `AssetSchema`, which is `additionalProperties: false`, and it was written on every asset —
+  so Ajv refused the entire restore. The legacy value is preserved in `metadata`.
+
 ## [Unreleased]
 
 _Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
