@@ -3,11 +3,13 @@ import { checkVaultKey } from '../VaultRekey';
 import { getDb, forceResetDatabase, closeDb } from '../../db';
 import { Logger } from '../../utils/logger';
 import { apiService as api } from '../api';
+import type { ApiResponse } from '../api';
 import type { User } from '../../types';
 import toast from 'react-hot-toast';
 import { setAuthToken } from '../../utils/auth';
 import { unsubscribeCurrentDevice } from '../pushService';
-import { withTimeout } from '../../utils/withTimeout';
+import { withTimeout, TIMED_OUT } from '../../utils/withTimeout';
+import type { TimedOut } from '../../utils/withTimeout';
 
 const logger = new Logger('AuthService');
 const SESSION_STORAGE_KEY = 'zakapp_session_v1';
@@ -29,6 +31,8 @@ const DB_CLOSE_TIMEOUT_MS = 3000;
  * unbounded and logout appears broken and the user stays signed in.
  */
 const PUSH_TEARDOWN_TIMEOUT_MS = 4000;
+/** Cap on the best-effort salt sync before sign-in proceeds. See the SALT HEALING branch. */
+const SALT_SYNC_TIMEOUT_MS = 5000;
 
 export interface SessionData {
     user: User;
@@ -181,10 +185,32 @@ export const authService = {
                 logger.warn('Salt missing from Server. Generating new salt.');
                 salt = CryptoService.generateSalt();
                 localStorage.setItem(localSaltKey, salt);
-                // Async update profile
-                api.updateProfile({ salt }).catch(err => {
-                    logger.warn('Could not sync new salt to server', err);
-                });
+
+                // Sync the new salt BEFORE this session writes anything with the key
+                // derived from it. Previously this was fire-and-forget, so a failed or
+                // slow request left the server holding the previous salt while this
+                // device wrote rows under the new one - two keys, no error, and every
+                // field encrypted under the old one unreadable with nothing on screen
+                // to explain why.
+                //
+                // Bounded, not blocking: refusing the login would lock out a user who
+                // holds the correct password, and the localStorage copy above already
+                // keeps this device self-consistent. A hang must not park sign-in
+                // either, so the attempt is capped like the other best-effort steps
+                // here; a non-null result is what marks "we cannot confirm the server
+                // took it".
+                const syncFailure = await this.syncHealedSalt(salt);
+                if (syncFailure) {
+                    logger.warn('Could not sync new salt to server', syncFailure);
+                    toast.error(
+                        'Your data key could not be saved to the server. This device ' +
+                        'still works, but data saved here may not be readable when you ' +
+                        'sign in somewhere else. Keep a recent backup export.',
+                        { duration: 10000 }
+                    );
+                } else {
+                    logger.info('Synced new salt to server');
+                }
             }
         }
 
@@ -305,6 +331,37 @@ export const authService = {
         this.runZeroKnowledgeMigration(encryptedDb);
 
         return user;
+    },
+
+    /**
+     * Push a locally generated salt to the server, bounded.
+     *
+     * Returns a reason string when the server cannot be confirmed to hold the
+     * salt, or null on success. Extracted from `login()` so the failure paths are
+     * testable without standing up a database, a vault and a session.
+     *
+     * Only ever called on the salt-healing path, where the server had no salt for
+     * this account. An un-confirmed sync there means this device writes rows under
+     * a key the server will not hand back on another device, so the caller is
+     * expected to tell the user rather than proceed silently.
+     */
+    async syncHealedSalt(salt: string): Promise<string | null> {
+        try {
+            const result = await withTimeout<ApiResponse<TimedOut>>(
+                api.updateProfile({ salt }).catch((err: unknown) => ({
+                    success: false as const,
+                    message: err instanceof Error ? err.message : 'request failed',
+                })),
+                SALT_SYNC_TIMEOUT_MS,
+                { success: false as const, data: TIMED_OUT as TimedOut }
+            );
+
+            if (result.data === TIMED_OUT) return 'timed out';
+            if (!result.success) return result.message || 'request failed';
+            return null;
+        } catch (err) {
+            return err instanceof Error ? err.message : 'unknown error';
+        }
     },
 
     /**
