@@ -29,6 +29,7 @@ import { LiabilitySchema } from './schema/liability.schema';
 import { NisabYearRecordSchema } from './schema/nisabYearRecord.schema';
 import { PaymentRecordSchema } from './schema/paymentRecord.schema';
 import { UserSettingsSchema } from './schema/userSettings.schema';
+import { AssetAmountEventSchema } from './schema/assetAmountEvent.schema';
 
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
@@ -48,11 +49,20 @@ export type ZakAppCollections = {
     nisab_year_records: RxCollection;
     payment_records: RxCollection;
     user_settings: RxCollection;
+    asset_amount_events: RxCollection;
 };
 
 export type ZakAppDatabase = RxDatabase<ZakAppCollections>;
 
 // Migration Strategies
+/**
+ * A brand-new collection at version 1 has nothing to migrate from, but RxDB
+ * requires the strategies object to be present when one is supplied.
+ */
+export const migrationStrategiesV1 = {
+    0: (doc: any) => doc
+};
+
 const migrationStrategiesV3 = {
     1: (doc: any) => doc,
     2: (doc: any) => doc,
@@ -160,7 +170,17 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
                 liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
                 nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
-                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV7 }
+                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV7 },
+                asset_amount_events: { schema: AssetAmountEventSchema, migrationStrategies: migrationStrategiesV1 }
+            });
+        } else if (!db.collections.asset_amount_events) {
+            // An existing database predates this collection, so the guard above
+            // skips the whole addCollections call — including the collection
+            // added since. Adding it on its own keeps an existing local database
+            // from silently lacking the collection the asset page now queries,
+            // which would surface as a permanent "history unavailable" state.
+            await db.addCollections({
+                asset_amount_events: { schema: AssetAmountEventSchema, migrationStrategies: migrationStrategiesV1 }
             });
         }
 

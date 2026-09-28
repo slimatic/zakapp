@@ -4,8 +4,9 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { getApiBaseUrl } from '../config';
 import { formatCurrency } from '../utils/formatters';
+import { useDb } from '../db';
+import { cryptoService } from '../services/CryptoService';
 
 interface AssetAmountEvent {
   id: string;
@@ -25,39 +26,65 @@ interface AssetAmountHistoryProps {
   apiBaseUrl?: string;
 }
 
-export function AssetAmountHistory({ assetId, apiBaseUrl = getApiBaseUrl() }: AssetAmountHistoryProps) {
+export function AssetAmountHistory({ assetId }: AssetAmountHistoryProps) {
   const [history, setHistory] = useState<AssetAmountEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const db = useDb();
 
   useEffect(() => {
+    if (!db) return;
+    // Capture the non-null reference: narrowing is lost inside the async closure.
+    const database = db;
+    let cancelled = false;
+
     async function loadHistory() {
       try {
-        const token = localStorage.getItem('accessToken');
-        const response = await fetch(`${apiBaseUrl}/assets/${assetId}/history`, {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-          }
-        });
-        const data = await response.json();
+        // Read locally, not from the API.
+        //
+        // Assets live in this browser and `Asset.value` is encrypted, so the
+        // server holds neither the asset nor a readable amount and can never
+        // answer this question — requesting it returned `Asset not found`
+        // forever, which is the error this component used to display.
+        const docs = await database.asset_amount_events
+          .find({ selector: { assetId: { $eq: assetId } } })
+          .exec();
 
-        if (data.success) {
-          setHistory(data.data);
-        } else {
-          setError(data.error?.message || 'Failed to load history');
+        const events = await Promise.all(docs.map(async (doc: any) => {
+          const data = { ...doc.toJSON() };
+
+          // `amount` is encrypted at rest (see the schema), so it must be
+          // decrypted the same way the asset repository decrypts a value.
+          if (cryptoService.isEncrypted(data.amount)) {
+            const p = cryptoService.unpackEncrypted(data.amount);
+            if (p) {
+              const valStr = await cryptoService.decrypt(p.ciphertext, p.iv);
+              data.amount = parseFloat(valStr);
+            }
+          }
+          return data as AssetAmountEvent;
+        }));
+
+        // Newest first: the most recent change is the one being asked about.
+        events.sort((a, b) =>
+          new Date(b.effectiveDate).getTime() - new Date(a.effectiveDate).getTime()
+        );
+
+        if (!cancelled) {
+          setHistory(events);
+          setError(null);
         }
       } catch (err) {
-        setError('Failed to load history');
+        console.error('[AssetAmountHistory] Failed to load local history', err);
+        if (!cancelled) setError('Could not read this asset\'s history on this device.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    if (assetId) {
-      loadHistory();
-    }
-  }, [assetId, apiBaseUrl]);
+    loadHistory();
+    return () => { cancelled = true; };
+  }, [assetId, db]);
 
   if (loading) {
     return (
