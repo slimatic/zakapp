@@ -82,6 +82,9 @@ export class MigrationService {
                 value: requireAmount(raw.value, "value", "Asset"),
                 currency: raw.currency || 'USD',
                 description: raw.description || '',
+                // Free-text the user wrote about the asset. Optional in the schema,
+                // so it is omitted entirely rather than written as an empty string.
+                ...(raw.notes ? { notes: raw.notes } : {}),
                 // Legacy imports often lack acquisitionDate, use createdAt or now
                 acquisitionDate: raw.acquisitionDate || raw.createdAt || new Date().toISOString(),
                 createdAt: raw.createdAt || new Date().toISOString(),
@@ -137,6 +140,10 @@ export class MigrationService {
             if (raw.calculationId) cleanRecord.calculationId = raw.calculationId;
             if (raw.receiptReference || raw.receiptNumber) cleanRecord.receiptReference = raw.receiptReference || raw.receiptNumber;
             if (raw.notes) cleanRecord.notes = raw.notes;
+            // The notes alias above uses `||`, so an empty string is skipped and
+            // the field is simply absent - correct, since the schema declares
+            // `notes` optional and an absent field is not an empty one. Nothing
+            // else on this record is dropped.
 
             return cleanRecord as PaymentRecord;
         });
@@ -187,7 +194,28 @@ export class MigrationService {
                 currency: raw.currency || 'USD',
                 status: raw.status || 'DRAFT',
                 createdAt: raw.createdAt || new Date().toISOString(),
-                updatedAt: raw.updatedAt || new Date().toISOString()
+                updatedAt: raw.updatedAt || new Date().toISOString(),
+                // Everything below is already declared by NisabYearRecordSchema
+                // and already written by the export - it was simply not copied on
+                // the way back in. The costly omission is assetBreakdown: the
+                // annual summary PDF's breakdown table and the year-over-year
+                // charts read it directly, so a restored record used to lose the
+                // entire per-year asset composition and fall back to a flat list.
+                nisabThresholdAtStart: raw.nisabThresholdAtStart ?? '',
+                methodologyUsed: raw.methodologyUsed ?? '',
+                calculationDate: raw.calculationDate ?? raw.hawlStartDate ?? new Date().toISOString(),
+                gregorianYear: raw.gregorianYear ?? 0,
+                totalLiabilities: requireAmount(raw.totalLiabilities, "totalLiabilities", "Nisab record"),
+                assetBreakdown: raw.assetBreakdown ?? '',
+                calculationDetails: raw.calculationDetails ?? '',
+                userNotes: raw.userNotes ?? '',
+                isPrimary: raw.isPrimary ?? false,
+                // The Hijri dates the assessment actually ran on. Recomputing them
+                // from the Gregorian pair would apply the current moon-sighting
+                // adjustment to a past year, which is how a Hijri year drifts by a
+                // day against the record it is meant to describe.
+                hawlStartDateHijri: raw.hawlStartDateHijri ?? '',
+                hawlCompletionDateHijri: raw.hawlCompletionDateHijri ?? ''
             };
         });
     }
@@ -206,6 +234,13 @@ export class MigrationService {
                 currency: raw.currency || 'USD',
                 description: raw.description || '',
                 metadata: raw.metadata || '',
+                // The deductible portion, not the whole balance. The schema declares
+                // it `required` with no default, and the wealth calculator deducts
+                // this figure rather than `amount` when it is set — so dropping it
+                // re-deducted a long-term balance in full, which understates the
+                // zakat due. Defaulting to the full amount preserves the only
+                // behaviour the field had before it existed.
+                deductibleAmount: Number(raw.deductibleAmount ?? raw.amount) || 0,
                 isActive: raw.isActive ?? true,
                 dueDate: raw.dueDate || new Date().toISOString(),
                 creditor: raw.creditor || '',
@@ -251,8 +286,14 @@ export class MigrationService {
         return {
             id: userId,
             profileName: settings.profileName || '',
+            firstName: settings.firstName || '',
+            lastName: settings.lastName || '',
             email: settings.email || '',
             preferredCalendar: settings.preferredCalendar || 'gregorian',
+            // The user's own moon-sighting adjustment, in days. It shifts every
+            // Hijri date the app shows, so re-importing at 0 silently moves the
+            // dates of a record the user had deliberately set.
+            hijriAdjustment: Number.isFinite(Number(settings.hijriAdjustment)) ? Number(settings.hijriAdjustment) : 0,
             preferredMethodology: settings.preferredMethodology || 'standard',
             baseCurrency: settings.baseCurrency || 'USD',
             language: settings.language || 'en',

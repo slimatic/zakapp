@@ -68,9 +68,30 @@ describe('MigrationService Client-Side', () => {
             const adapted = MigrationService.adaptAssets(raw, userId);
             expect(adapted[0].isActive).toBe(false);
         });
+
+        it('preserves asset notes', () => {
+            const raw = [{ id: 'a6', name: 'Land', type: 'REAL_ESTATE', value: 100, notes: 'bought with family' }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].notes).toBe('bought with family');
+        });
+
     });
 
     describe('adaptLiabilities', () => {
+        // The wealth calculator deducts `deductibleAmount`, not `amount`, so a
+        // dropped deductible re-deducts a long-term balance in full.
+        it('preserves the deductible amount', () => {
+            const raw = [{ id: 'l1', name: 'Loan', amount: 10000, deductibleAmount: 2500 }];
+            const adapted = MigrationService.adaptLiabilities(raw, userId);
+            expect(adapted[0].deductibleAmount).toBe(2500);
+        });
+
+        it('falls back to the full amount when no deductible is set', () => {
+            const raw = [{ id: 'l2', name: 'Card', amount: 400 }];
+            const adapted = MigrationService.adaptLiabilities(raw, userId);
+            expect(adapted[0].deductibleAmount).toBe(400);
+        });
+
         it('should adapt raw liabilities correctly', () => {
             const raw = [{ name: 'Mortgage', amount: 50000, type: 'loan' }];
             const adapted = MigrationService.adaptLiabilities(raw, userId);
@@ -96,6 +117,19 @@ describe('MigrationService Client-Side', () => {
     });
 
     describe('adaptUserSettings', () => {
+        // A non-zero adjustment shifts every Hijri date the app displays, so it
+        // must survive the round trip rather than resetting to 0.
+        it('preserves the hijri adjustment', () => {
+            const adapted = MigrationService.adaptUserSettings({ profileName: 'p', hijriAdjustment: 1 }, userId);
+            expect(adapted.hijriAdjustment).toBe(1);
+        });
+
+        it('preserves the name fields', () => {
+            const adapted = MigrationService.adaptUserSettings({ firstName: 'A', lastName: 'B' }, userId);
+            expect(adapted.firstName).toBe('A');
+            expect(adapted.lastName).toBe('B');
+        });
+
         it('should adapt user settings correctly', () => {
             const raw = {
                 preferredCalendar: 'hijri',

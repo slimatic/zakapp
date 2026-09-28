@@ -234,6 +234,25 @@ export function useAssetRepository() {
 
         const safePayload = sanitizeAssetPayload(asset);
 
+        // Restoring a backup must be idempotent. Assets keep a stable id on
+        // export (adaptAssets preserves it so re-import "prevents duplication"),
+        // but this path always called db.assets.insert(), which throws
+        // CONFLICT on an id that already exists - so a second import of the same
+        // file failed and the Smart Import reported "Asset Error" per row,
+        // leaving the user's balances at whatever the first import wrote.
+        //
+        // Update in place when the id is already present; insert otherwise.
+        if (safePayload.id) {
+            const existing = await db.assets.findOne(safePayload.id).exec();
+            if (existing) {
+                return existing.patch({
+                    ...safePayload,
+                    userId: user.id,
+                    updatedAt: new Date().toISOString(),
+                });
+            }
+        }
+
         // Ensure ID and timestamps
         const newAsset = {
             ...safePayload,

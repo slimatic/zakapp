@@ -40,10 +40,13 @@ const insert = vi.fn();
 
 // The repository also opens a live subscription (db.assets.find().$), so the mock
 // has to look like RxDB or the hook throws before it exposes addAsset.
+// findOne() models the duplicate-id guard addAsset now uses before inserting:
+// it resolves null here, so these cases still exercise the plain-insert path.
 vi.mock('../../db', () => ({
   useDb: () => ({
     assets: {
       insert,
+      findOne: () => ({ exec: async () => null }),
       find: () => ({
         exec: async () => [],
         $: { pipe: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }) },
