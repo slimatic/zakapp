@@ -46,7 +46,20 @@
   in `AssetSchema`, which is `additionalProperties: false`, and it was written on every asset —
   so Ajv refused the entire restore. The legacy value is preserved in `metadata`.
 
-## [Unreleased]
+## [0.17.8] - 2026-09-28
+
+### A backend image that could not start
+
+**v0.17.7's backend image failed at startup** — `Cannot find module '/app/server/dist/server/src/app.js'`. Production was rolled back to 0.17.6. If you pulled `slimatic/zakapp-backend:0.17.7`, it does not run; use `0.17.8`.
+
+The cause was not in the build configuration, which did not change. `server/tsconfig.json` leaves `rootDir` unset, so TypeScript derives the output layout from the longest common path of the compiled sources:
+
+- Through v0.17.6, `server/src/routes/zakat.ts` imported `../../../shared/src/constants`. A shared **directory** entered the program, making the repo root the common root, so output landed at `dist/server/src/app.js` and `dist/shared/src/...` — where `npm start` expects it.
+- The API-honesty fix pointed that import at the `@zakapp/shared` package instead. The shared directory left the program, the common root became `server/src`, and output silently moved to `dist/src/app.js`.
+
+A one-line import correction therefore relocated a build artifact. `rootDir: ".."` now pins what was emergent, reproducing the v0.17.6 layout. The build asserts the entry point was emitted, so a moved path fails the build instead of producing an image that cannot boot.
+
+The user-facing changes from 0.17.7 are unchanged and included in this release.
 
 _Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
 See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
