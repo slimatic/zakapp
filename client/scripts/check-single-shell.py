@@ -10,10 +10,7 @@ eyeballing screenshots for the two pages someone happened to open.
 """
 import sys
 from playwright.sync_api import sync_playwright
-from _login import open_session
-
-UID = "cmuerqpub000rpb3fulpxby7g"
-BASE = "http://localhost:4173"
+from _login import BASE, open_session
 
 ROUTES = [
     "/dashboard", "/assets", "/liabilities", "/nisab-records", "/payments",

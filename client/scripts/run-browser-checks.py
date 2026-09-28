@@ -24,7 +24,11 @@ import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DEFAULT_BASE = os.environ.get("ZAK_BASE_URL", "http://localhost:4173")
+# ZAK_BASE is the name `_login.py` actually reads; every check takes its base from
+# there. This used to set only ZAK_BASE_URL, which nothing reads, so passing a base
+# here — as an argument or an env var — had no effect and every check silently
+# measured :4173 instead. Kept as a fallback so an existing ZAK_BASE_URL keeps working.
+DEFAULT_BASE = os.environ.get("ZAK_BASE") or os.environ.get("ZAK_BASE_URL") or "http://localhost:4173"
 
 CHECKS = [
     "check-mobile-integrity.py",
@@ -61,7 +65,7 @@ def main() -> int:
             continue
         r = subprocess.run(
             [sys.executable, str(HERE / name), base],
-            capture_output=True, text=True, env={**os.environ, "ZAK_BASE_URL": base},
+            capture_output=True, text=True, env={**os.environ, "ZAK_BASE": base},
         )
         print(f"  {'ok  ' if r.returncode == 0 else 'FAIL'} {name}")
         if r.returncode != 0:

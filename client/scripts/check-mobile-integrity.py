@@ -11,10 +11,8 @@ Run at a real phone width (390px), because desktop widths hide both problems.
 """
 import sys
 from playwright.sync_api import sync_playwright
-from _login import open_session
+from _login import BASE, open_session
 
-UID = "cmuerqpub000rpb3fulpxby7g"
-BASE = "http://localhost:4173"
 ROUTES = ["/dashboard", "/assets", "/liabilities", "/nisab-records", "/payments",
           "/analytics", "/calculator", "/settings", "/learn",
           # the 404: it rendered outside the shell, so it had a skip link pointing at
