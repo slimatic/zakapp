@@ -34,6 +34,7 @@ export const UnifiedImportExport: React.FC = () => {
     const [importing, setImporting] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [exportedThisSession, setExportedThisSession] = useState(false);
     const { clearAllData, isClearing } = useDataCleanup();
 
     const [stats, setStats] = useState<{
@@ -101,6 +102,7 @@ export const UnifiedImportExport: React.FC = () => {
             link.download = `zakapp-backup-${new Date().toISOString().split('T')[0]}.json`;
             link.click();
             URL.revokeObjectURL(url);
+            setExportedThisSession(true);
             // Reinforce at the moment of download, not just on the card: this is the
             // last point where the user still has the file's contents in mind.
             toast.success(
@@ -366,16 +368,29 @@ export const UnifiedImportExport: React.FC = () => {
                 <div className="space-y-4">
                     <div className="bg-danger-soft p-4 rounded-lg flex items-start gap-3">
                         <AlertTriangle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
-                        <p className="text-sm text-danger">
-                            This action is <strong>irreversible</strong>. All your tracking data (Assets, Liabilities, Payments, History) will be wiped from the database.
-                        </p>
+                        <div className="text-sm text-danger">
+                            <p>
+                                This action is <strong>irreversible</strong>. All your tracking data (Assets, Liabilities, Payments, History) will be wiped from the database.
+                            </p>
+                            {/* A wipe here also leaves the vault key without a server-side
+                                record to check it against, so a later restore can come back
+                                with encrypted text still unreadable. The backup is the only
+                                way out, which is why it is a gate rather than a reminder. */}
+                            <p className="mt-2">
+                                Clearing also removes this device&apos;s record of your data key. Restoring a
+                                backup afterwards may leave encrypted fields such as payment recipient
+                                names unreadable, even though the amounts return correctly.
+                            </p>
+                        </div>
                     </div>
 
-                    <p className="text-sm text-muted-foreground">
-                        Please confirm you have downloaded a backup before proceeding.
-                    </p>
+                    {!exportedThisSession && (
+                        <p className="text-sm text-warn-strong">
+                            Download a backup before clearing, so you can restore the data afterwards.
+                        </p>
+                    )}
 
-                    <div className="flex justify-end gap-3 pt-2">
+                    <div className="flex flex-wrap justify-end gap-3 pt-2">
                         <Button
                             variant="outline"
                             onClick={() => setIsDeleteModalOpen(false)}
@@ -384,9 +399,22 @@ export const UnifiedImportExport: React.FC = () => {
                             Cancel
                         </Button>
                         <Button
+                            variant="secondary"
+                            onClick={handleExport}
+                            isLoading={exporting}
+                            disabled={isClearing}
+                        >
+                            {exportedThisSession ? 'Download again' : 'Download backup'}
+                        </Button>
+                        <Button
                             variant="destructive"
                             onClick={handleClearData}
                             isLoading={isClearing}
+                            // Gated on a backup taken in this session, not on a promise. The
+                            // key that decrypts what is being deleted is not recoverable
+                            // afterwards, so there is no second chance to ask.
+                            disabled={!exportedThisSession}
+                            title={!exportedThisSession ? 'Download a backup first' : undefined}
                         >
                             Yes, Clear Everything
                         </Button>
