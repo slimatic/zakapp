@@ -21,6 +21,7 @@ import { AuthenticatedRequest } from '../types';
 import { authenticate } from '../middleware/AuthMiddleware';
 import { SimpleValidation } from '../utils/SimpleValidation';
 import { AssetService, UpdateAssetDto } from '../services/AssetService';
+import { redactErrorDetail } from '../utils/errorDetails';
 
 // Simple UUID v4 implementation to avoid Jest ES module issues
 function generateUUID(): string {
@@ -87,7 +88,13 @@ const createResponse = <T>(success: boolean, data?: T, error?: { code: string; m
   return {
     success,
     data,
-    error,
+    error: error && {
+      ...error,
+      // `details` carries `error.message`, which for a module-resolution failure
+      // includes a "Require stack" block of absolute paths. Redact it here so
+      // every call site inherits the behaviour.
+      details: error.details?.map((detail) => redactErrorDetail(detail)),
+    },
     metadata: {
       timestamp: new Date().toISOString(),
       version: '1.0.0'
