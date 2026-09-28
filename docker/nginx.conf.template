@@ -68,9 +68,71 @@ http {
             try_files $uri =404;
         }
 
+        # Hashed build assets.
+        #
+        # These filenames contain a content hash, so the bytes at a given URL never
+        # change. They are the one thing here that is safe to cache hard, and they
+        # were previously served with no Cache-Control at all, which costs a
+        # revalidation request per asset on every page load.
+        #
+        # `try_files ... =404` is the important half. Without it a missing build
+        # file falls through to `location /` below, which answers any unknown path
+        # with the SPA shell and a 200. For a `.js` request that means HTML served
+        # as JavaScript: the browser throws "Unexpected token '<'" and renders a
+        # blank page. A service worker asking for the previous release's bundle is
+        # how that happens, and the result is indistinguishable from the server
+        # being down. This was live in production before this change --
+        # `/assets/<old-hash>.js` returned `200 text/html`.
+        #
+        # Matched by FILE EXTENSION, not by a `/assets/` prefix. The SPA also routes
+        # under `/assets/` -- `/assets/new`, and `/assets/<slug>` for an asset detail
+        # page -- and those must reach the shell rather than 404. Build output always
+        # carries an extension; a slug does not. Root-level artefacts such as
+        # `workbox-<hash>.js` are covered by the same rule.
+        #
+        # `expires 1y` alone, deliberately. It emits `Cache-Control: max-age=...`
+        # without joining the `add_header` set, so the CSP/HSTS headers declared
+        # below survive. An `add_header Cache-Control ...` here would replace the
+        # inherited set and silently drop them -- the same trap called out above.
+        # nginx omits Expires/Cache-Control on a 404, so the 404 is not stamped with
+        # a one-year lifetime.
+        #
+        # `.json` is deliberately excluded: a request under /api could end in .json
+        # and a regex location outranks a plain prefix one, so including it would
+        # send API calls to a 404 instead of the backend. The /api and /couchdb/
+        # blocks below are marked `^~` for the same reason.
+        location ~* \.(js|css|map|png|jpe?g|gif|svg|webp|ico|woff2?|ttf|eot)$ {
+            expires 1y;
+            try_files $uri =404;
+        }
+
+        # CouchDB proxy.
+        #
+        # The client is built with COUCHDB_URL=/couchdb and expects it same-origin.
+        # Without this location the generic block below answers with the SPA shell
+        # -- a 200 text/html that looks like success, so RxDB parses HTML as a
+        # CouchDB reply and sync never completes. The user-visible symptom is a
+        # login stuck on "Decrypting vault..." with nothing in the console.
+        #
+        # In production Caddy owns this path and nginx never sees it. This block
+        # makes the config complete on its own for a deployment where nginx is the
+        # only front door, which is what the dev preview is.
+        #
+        # `^~` so the regex above cannot outrank it.
+        location ^~ /couchdb/ {
+            proxy_pass ${COUCHDB_PROXY_TARGET}/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
         # API proxy (when backend is separate)
-        location /api {
-            proxy_pass http://backend:3001;
+        #
+        # `^~` so the build-asset regex cannot outrank this block for a request
+        # under /api that happens to end in an asset extension.
+        location ^~ /api {
+            proxy_pass ${API_PROXY_TARGET};
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
