@@ -34,6 +34,40 @@ describe('MigrationService Client-Side', () => {
             const adapted = MigrationService.adaptAssets(raw, userId);
             expect(adapted[0].type).toBe(AssetType.OTHER);
         });
+
+        // A backup carries the asset's own zakat treatment. Defaulting these on
+        // import silently restored every asset at the full rate, so a partial-rate
+        // holding came back worth more than the user had set it to.
+        it('preserves a partial calculationModifier', () => {
+            const raw = [{ id: 'a1', name: 'Brokerage', type: 'INVESTMENT_ACCOUNT', value: 1000, calculationModifier: 0.3 }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].calculationModifier).toBe(0.3);
+        });
+
+        it('preserves a zero modifier', () => {
+            const raw = [{ id: 'a2', name: 'Pension', type: 'RETIREMENT', value: 1000, calculationModifier: 0 }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].calculationModifier).toBe(0);
+        });
+
+        it('defaults calculationModifier to 1.0 only when absent', () => {
+            const raw = [{ id: 'a3', name: 'Cash', type: 'CASH', value: 100 }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].calculationModifier).toBe(1.0);
+        });
+
+        it('preserves the passive and restricted flags', () => {
+            const raw = [{ id: 'a4', name: 'Fund', type: 'INVESTMENT_ACCOUNT', value: 500, isPassiveInvestment: true, isRestrictedAccount: true }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].isPassiveInvestment).toBe(true);
+            expect(adapted[0].isRestrictedAccount).toBe(true);
+        });
+
+        it('preserves an inactive asset rather than reactivating it', () => {
+            const raw = [{ id: 'a5', name: 'Closed', type: 'CASH', value: 0, isActive: false }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].isActive).toBe(false);
+        });
     });
 
     describe('adaptLiabilities', () => {

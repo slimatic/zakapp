@@ -86,10 +86,20 @@ export class MigrationService {
                 acquisitionDate: raw.acquisitionDate || raw.createdAt || new Date().toISOString(),
                 createdAt: raw.createdAt || new Date().toISOString(),
                 updatedAt: raw.updatedAt || new Date().toISOString(),
-                isActive: true, // Default to active
-                isPassiveInvestment: false,
-                isRestrictedAccount: false,
-                calculationModifier: 1.0,
+                isActive: raw.isActive ?? true,
+                isPassiveInvestment: raw.isPassiveInvestment ?? false,
+                isRestrictedAccount: raw.isRestrictedAccount ?? false,
+                // Restore the asset's own zakat treatment. These three fields are
+                // part of the backup (the export writes the stored asset verbatim),
+                // and defaulting them here discarded the user's own settings: an
+                // asset held at a partial rate — a passive investment, a restricted
+                // account, a retirement pot the user chose to include only in part —
+                // came back at the full 100% and inflated the zakat due.
+                //
+                // A partial rate is the user's answer, not a derived value, so it
+                // cannot be recomputed later. Only a genuinely absent field falls
+                // back to the full rate.
+                calculationModifier: raw.calculationModifier ?? 1.0,
                 // `zakatEligible` must NOT be emitted here. It is absent from
                 // AssetSchema, which is additionalProperties:false, so Ajv rejects the
                 // doc — and because the key was assigned unconditionally it was
