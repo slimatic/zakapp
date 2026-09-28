@@ -245,11 +245,25 @@ export function useAssetRepository() {
         if (safePayload.id) {
             const existing = await db.assets.findOne(safePayload.id).exec();
             if (existing) {
-                return existing.patch({
+                const patched = await existing.patch({
                     ...safePayload,
                     userId: user.id,
                     updatedAt: new Date().toISOString(),
                 });
+                // Still a value change, so it belongs in the history. Returning
+                // early here would leave an overwritten asset with no record of
+                // having moved. Only an actual change is recorded, matching the
+                // update path's rule.
+                if (Number(existing.value) !== Number(safePayload.value)) {
+                    await recordAmountEvent(
+                        safePayload.id,
+                        safePayload.value,
+                        'UPDATED',
+                        'Asset restored from a backup',
+                        safePayload.currency || existing.currency || 'USD'
+                    );
+                }
+                return patched;
             }
         }
 
