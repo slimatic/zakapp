@@ -32,11 +32,11 @@
   "author": "zakapp contributors",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "@types/express": "5.0.3",
-    "@types/supertest": "6.0.3",
-    "concurrently": "^8.2.2",
+    "@types/express": "5.0.6",
+    "@types/supertest": "7.2.1",
+    "concurrently": "^10.0.5",
     "express-validator": "^7.3.1",
-    "supertest": "7.1.4",
+    "supertest": "7.3.0",
     "typescript": "^5.2.2"
   },
   "dependencies": {
