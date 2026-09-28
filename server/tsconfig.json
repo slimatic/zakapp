@@ -20,6 +20,7 @@
     "noUncheckedIndexedAccess": false,
     "skipLibCheck": true,
     "outDir": "./dist",
+    "rootDir": "..",
     "declaration": false,
     "declarationMap": false,
     "sourceMap": true,
