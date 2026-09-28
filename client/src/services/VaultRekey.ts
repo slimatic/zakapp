@@ -39,6 +39,7 @@ import { logger } from '../utils/logger';
 /** Collections that carry encrypted fields. Mirrors SYNC_COLLECTIONS. */
 const COLLECTIONS = [
     'assets',
+    'asset_amount_events',
     'liabilities',
     'nisab_year_records',
     'payment_records',
@@ -95,6 +96,7 @@ export interface BlockedRecord {
 /** User-facing names. The collection keys are storage identifiers. */
 const COLLECTION_LABELS: Record<string, string> = {
     assets: 'Asset',
+    asset_amount_events: 'Asset value change',
     liabilities: 'Liability',
     nisab_year_records: 'Zakat year record',
     payment_records: 'Payment',
@@ -110,6 +112,7 @@ const COLLECTION_LABELS: Record<string, string> = {
  */
 const IDENTITY_FIELDS: Record<string, string[]> = {
     assets: ['type', 'currency', 'acquisitionDate'],
+    asset_amount_events: ['eventType', 'currency', 'effectiveDate'],
     liabilities: ['type', 'currency', 'dueDate'],
     nisab_year_records: ['nisabBasis', 'gregorianYear', 'calculationDate'],
     payment_records: ['paymentDate', 'recipientType', 'paymentMethod'],
