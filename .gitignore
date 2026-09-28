@@ -31,6 +31,11 @@ yarn-error.log*
 dist/
 build/
 
+# Rendered preview config, written by .hermes/scripts/zakapp-preview-serve.sh.
+# Generated from docker/nginx.conf.template with the proxy targets substituted, so
+# it is machine-specific and must never be committed.
+.preview-web/
+
 # Logs
 logs/
 *.log
