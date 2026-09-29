@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.17.10] - 2026-09-29
+
+### A missing build file now returns 404 instead of a blank page
+
+**Frontend**
+
+- **A missing build asset was served as the application shell.** nginx answered any
+  unknown path with `index.html` and a `200`, which is right for a client-side route
+  and wrong for a build artefact. A request for a hashed bundle that no longer exists
+  therefore returned HTML where JavaScript was expected; the browser failed to parse
+  it and the page rendered **blank, with no error shown to the user**.
+
+  This is what a returning visitor sees after a release. The service worker still
+  holds the previous build's file list, asks for those filenames, and the server
+  answers with the shell. The whole app appears to be down while the server is
+  healthy and reports no error — the failure is visible only in the browser console.
+
+  Build files are now matched by extension and answered with a real `404`. Requests
+  that are not build files, including the app's own `/assets/<name>` pages, still
+  reach the shell as before.
+
+- **Hashed assets are now cached for a year** instead of being revalidated on every
+  load. Their filenames contain a content hash, so the bytes at a given URL never
+  change. This removes a round trip per asset on every page load.
+
+**Operations**
+
+- The reverse-proxy configuration no longer hardcodes its upstream addresses, so the
+  same file serves a compose deployment and a host running nginx directly. Defaults
+  are unchanged, so no deployment behaviour differs.
+
 ## [0.17.7] - 2026-09-28
 
 ### A patch release, not a cycle — export, API validation, and session honesty
