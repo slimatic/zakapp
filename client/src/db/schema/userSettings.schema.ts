@@ -16,7 +16,7 @@
  */
 
 export const UserSettingsSchema = {
-    version: 7,
+    version: 8,
     primaryKey: 'id',
     type: 'object',
     properties: {
@@ -57,6 +57,19 @@ export const UserSettingsSchema = {
         baseCurrency: {
             type: 'string',
             default: 'USD'
+        },
+        /**
+         * Which gram convention the user's nisab threshold is computed with:
+         * 'tola' (87.48 g gold / 612.36 g silver) or 'aaoifi' (85 g / 595 g).
+         *
+         * Distinct from nisab BASIS (gold vs silver), which is derived from the chosen
+         * school in `getNisabSource`. Both are legitimate scholarly positions, so this
+         * is a stored preference rather than a constant. Kept plaintext: it holds no
+         * personal data and must be readable without the vault key to compute offline.
+         */
+        nisabStandard: {
+            type: 'string',
+            default: 'tola'
         },
         language: {
             type: 'string',

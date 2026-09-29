@@ -25,27 +25,75 @@ export interface NisabData {
 }
 
 /**
- * One value, taken from the canonical source of truth.
- *
- * 87.48 g gold / 612.36 g silver — 7.5 tola / 52.5 tola — which the project's own
- * `shared/src/constants/islamicConstants.ts` documents as "scholarly consensus for
- * practical application", noting that 85 g is the variant held "in some madhabs".
- *
- * The alternative figures 85 g / 595 g are equally legitimate and in wide use: they
- * come from 20 dinars at 4.25 g and 200 dirhams at 2.975 g, which is what AAOIFI
- * adopts. The two differ only in which classical unit weight is applied — about
- * 2.8% — and this project uses the tola reading, consistently.
- *
  * History worth keeping: the client computed 87.48/612.36 while the server computed
  * 85/595 (the server resolves `@zakapp/shared` to `server/src/shared_local.ts`, which
  * carried the other pair), so the same user could be shown one threshold and
- * calculated against another. Both lists now carry this pair, and every user-facing
- * string quotes it.
- *
- * Do not "round" one to the other: they are different thresholds, and moving between
- * them changes when a user becomes liable. If the project ever switches standard, it
- * switches in `islamicConstants.ts`, `shared_local.ts` and here together.
+ * calculated against another. Both lists now carry the same pair, and the pair a user
+ * gets is the one they chose — see NISAB_STANDARDS below.
  */
+/**
+ * The two gram conventions in circulation, selectable by the user.
+ *
+ * They are the same classical obligation — 20 mithqal of gold, 200 dirhams of silver
+ * — converted with a different weight per unit, which is the whole of the
+ * disagreement:
+ *
+ *   tola   : 1 tola = 11.6638 g, so 7.5 tola gold / 52.5 tola silver
+ *   aaoifi : 20 mithqal at 4.25 g = 85 g, 200 dirhams at 2.975 g = 595 g
+ *
+ * Islamic Relief states both in one sentence and treats 85/595 as primary — "85 grams
+ * of gold and 595 grams of silver (or 87.48 grams of gold and 612.36 grams of silver
+ * according to another opinion)" — and advises the silver figure because it is the
+ * lower threshold and so brings more wealth into zakat.
+ *
+ * Neither is wrong, so this is a user preference rather than a project ruling. The
+ * default is unchanged from what the app has always computed (see
+ * DEFAULT_NISAB_STANDARD) so no existing user's obligation moves.
+ *
+ * The ~2.8% gap is not cosmetic: the lower figure makes zakat payable marginally
+ * earlier, so the choice is exposed in Settings and never applied silently.
+ */
+export type NisabStandardId = 'tola' | 'aaoifi';
+
+export interface NisabStandard {
+    id: NisabStandardId;
+    /** Short line for a selector. */
+    label: string;
+    /** Where the numbers come from, shown under the selector. */
+    derivation: string;
+    goldGrams: number;
+    silverGrams: number;
+}
+
+export const NISAB_STANDARDS: Record<NisabStandardId, NisabStandard> = {
+    tola: {
+        id: 'tola',
+        label: '87.48 g gold / 612.36 g silver',
+        derivation: '7.5 tola and 52.5 tola (1 tola = 11.6638 g).',
+        goldGrams: 87.48,
+        silverGrams: 612.36,
+    },
+    aaoifi: {
+        id: 'aaoifi',
+        label: '85 g gold / 595 g silver',
+        derivation: '20 mithqal at 4.25 g and 200 dirhams at 2.975 g. The lower threshold, so more wealth is zakatable.',
+        goldGrams: 85,
+        silverGrams: 595,
+    },
+};
+
+/**
+ * What the app computed before the preference existed, so existing users' thresholds
+ * do not move under them. Changing this changes whose zakat becomes due — not a
+ * casual edit.
+ */
+export const DEFAULT_NISAB_STANDARD: NisabStandardId = 'tola';
+
+/** The gram weights for a standard, tolerating a missing/unknown value. */
+export function getNisabStandard(id: string | null | undefined): NisabStandard {
+    return NISAB_STANDARDS[(id as NisabStandardId)] ?? NISAB_STANDARDS[DEFAULT_NISAB_STANDARD];
+}
+
 export const DEFAULT_NISAB_DATA: NisabData = {
     // ponytail: static fallback prices, and they WILL be arbitrary the day they are
     // used — a price is only a fallback because no live rate was available, so it
@@ -55,8 +103,8 @@ export const DEFAULT_NISAB_DATA: NisabData = {
     // `normalizeNisabPayload`.
     goldPrice: 65, // USD per gram — STALE FALLBACK, not a current price
     silverPrice: 0.8, // USD per gram — STALE FALLBACK, not a current price
-    goldNisabGrams: 87.48,
-    silverNisabGrams: 612.36
+    goldNisabGrams: NISAB_STANDARDS[DEFAULT_NISAB_STANDARD].goldGrams,
+    silverNisabGrams: NISAB_STANDARDS[DEFAULT_NISAB_STANDARD].silverGrams
 };
 
 /**
@@ -87,8 +135,10 @@ export function getNisabSource(methodology: MethodologyName | string): 'GOLD' | 
 }
 
 /** A price as the server sends it: `{ pricePerGram: 133.89, ... }`. */
-interface ServerPrice {
+export interface ServerPrice {
     pricePerGram?: number;
+    /** Pre-multiplied by the SERVER's gram convention — prefer `pricePerGram`. */
+    nisabValue?: number;
 }
 
 /** The payload shape of `GET /api/zakat/nisab`. */
@@ -110,7 +160,7 @@ export interface ServerNisabPayload {
  * nisab, with no error anywhere. This accepts either shape so a numeric field
  * keeps working if the API is ever flattened.
  */
-function readPricePerGram(value: number | ServerPrice | undefined): number | null {
+export function readPricePerGram(value: number | ServerPrice | undefined): number | null {
     if (typeof value === 'number') {
         return Number.isFinite(value) ? value : null;
     }
@@ -128,14 +178,18 @@ function readPricePerGram(value: number | ServerPrice | undefined): number | nul
  * previously left the other as NaN, which is enough to break the threshold for
  * whichever methodology reads it.
  */
-export function normalizeNisabPayload(payload: ServerNisabPayload | null | undefined): NisabData {
+export function normalizeNisabPayload(
+    payload: ServerNisabPayload | null | undefined,
+    nisabStandard: string = DEFAULT_NISAB_STANDARD
+): NisabData {
     const gold = readPricePerGram(payload?.goldPrice);
     const silver = readPricePerGram(payload?.silverPrice);
+    const grams = getNisabStandard(nisabStandard);
 
     return {
         goldPrice: gold ?? DEFAULT_NISAB_DATA.goldPrice,
         silverPrice: silver ?? DEFAULT_NISAB_DATA.silverPrice,
-        goldNisabGrams: DEFAULT_NISAB_DATA.goldNisabGrams,
-        silverNisabGrams: DEFAULT_NISAB_DATA.silverNisabGrams,
+        goldNisabGrams: grams.goldGrams,
+        silverNisabGrams: grams.silverGrams,
     };
 }

@@ -16,28 +16,34 @@
  */
 
 /**
- * The nisab gram weights must be one number everywhere.
+ * The nisab gram weights must agree wherever they are resolved from.
  *
- * There are three places the value legally lives, and they are three because the
- * server resolves `@zakapp/shared` to a local type shim rather than the package:
+ * There are two literal sources, and there are two because the server resolves
+ * `@zakapp/shared` to a local type shim rather than to the package:
  *
  *   shared/src/constants/islamicConstants.ts   the canonical constant
  *   server/src/shared_local.ts                 what the server actually executes
- *   client/src/core/calculations/nisab.ts      the client's engine
+ *
+ * The client no longer hardcodes a pair: it selects one of NISAB_STANDARDS, so its
+ * value is checked through the module rather than by reading the file's text.
  *
  * They DISAGREED: the canonical constant and the client said 87.48/612.36 while the
  * shim said 85/595, so a user could be shown one threshold and calculated against
  * another. Nothing failed — both are valid fiqh positions, so the bug was invisible
  * to every test that only checked "a threshold was produced".
  *
- * This test reads all three out of the source, so it holds across the resolution
- * split, and it fails loudly if they drift again.
- *
- * Why 87.48/612.36 and not 85/595 is recorded at each site. In short: the canonical
- * constant documents it as scholarly consensus with 85 g as the variant "in some
- * madhabs", and 85/595 is the AAOIFI reading. Both are sound; the project uses one.
+ * Both conventions are now offered to the user, and the default is the one the app
+ * has always computed. This test pins that: the two literal sources agree, the
+ * default equals the canonical pair, and an unrecognised preference falls back
+ * rather than producing the other convention or NaN.
  */
 import { describe, it, expect } from 'vitest';
+import {
+  NISAB_STANDARDS,
+  DEFAULT_NISAB_STANDARD,
+  getNisabStandard,
+  normalizeNisabPayload,
+} from '../nisab';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -53,7 +59,6 @@ function numberFor(rel: string, key: string): number {
 
 const CANONICAL = 'shared/src/constants/islamicConstants.ts';
 const SHIM = 'server/src/shared_local.ts';
-const CLIENT = 'client/src/core/calculations/nisab.ts';
 
 describe('nisab gram weights are consistent across every source', () => {
   it('all three sources are discoverable (guards against passing vacuously)', () => {
@@ -71,18 +76,49 @@ describe('nisab gram weights are consistent across every source', () => {
   });
 
   it('the client engine uses the same weights as the canonical constant', () => {
-    expect(numberFor(CLIENT, 'goldNisabGrams')).toBe(numberFor(CANONICAL, 'GOLD_GRAMS'));
-    expect(numberFor(CLIENT, 'silverNisabGrams')).toBe(numberFor(CANONICAL, 'SILVER_GRAMS'));
+    // The engine's DEFAULT must match the canonical constant and the shim, because
+    // that is what an existing user gets when they have chosen nothing. Read the
+    // client value through the module rather than by regex: the literals now live in
+    // NISAB_STANDARDS, so a source-text match would be checking the wrong line.
+    expect(NISAB_STANDARDS[DEFAULT_NISAB_STANDARD].goldGrams)
+      .toBe(numberFor(CANONICAL, 'GOLD_GRAMS'));
+    expect(NISAB_STANDARDS[DEFAULT_NISAB_STANDARD].silverGrams)
+      .toBe(numberFor(CANONICAL, 'SILVER_GRAMS'));
   });
 
-  it('the two weights are the tola reading, not the AAOIFI one', () => {
-    // Records WHICH standard is in force, so switching is a deliberate act that
-    // fails here first. 7.5 tola = 87.48 g, 52.5 tola = 612.36 g.
-    // The AAOIFI alternative (20 dinars at 4.25 g) is 85 g / 595 g.
-    const gold = numberFor(CANONICAL, 'GOLD_GRAMS');
-    const silver = numberFor(CANONICAL, 'SILVER_GRAMS');
-    expect(gold).toBeCloseTo(87.48, 2);
-    expect(silver).toBeCloseTo(612.36, 2);
+  it('offers both conventions, with the shipped default unchanged', () => {
+    // The user-selectable pair. Both are legitimate scholarly positions — the same
+    // classical obligation converted with a different unit weight — so both are
+    // offered and the default is the one the app has always computed, which keeps
+    // any existing user's threshold where it was.
+    expect(NISAB_STANDARDS.tola.goldGrams).toBe(87.48);
+    expect(NISAB_STANDARDS.tola.silverGrams).toBe(612.36);
+    expect(NISAB_STANDARDS.aaoifi.goldGrams).toBe(85);
+    expect(NISAB_STANDARDS.aaoifi.silverGrams).toBe(595);
+
+    // An id that is missing, unknown, or a typo must not silently produce the other
+    // convention — or a threshold of NaN.
+    expect(getNisabStandard(undefined).id).toBe(DEFAULT_NISAB_STANDARD);
+    expect(getNisabStandard(null).id).toBe(DEFAULT_NISAB_STANDARD);
+    expect(getNisabStandard('').id).toBe(DEFAULT_NISAB_STANDARD);
+    expect(getNisabStandard('nonsense').id).toBe(DEFAULT_NISAB_STANDARD);
+    expect(getNisabStandard('aaoifi').id).toBe('aaoifi');
+  });
+
+  it('the default matches the canonical constant, so nobody is migrated silently', () => {
+    const chosen = NISAB_STANDARDS[DEFAULT_NISAB_STANDARD];
+    expect(chosen.goldGrams).toBe(numberFor(CANONICAL, 'GOLD_GRAMS'));
+    expect(chosen.silverGrams).toBe(numberFor(CANONICAL, 'SILVER_GRAMS'));
+  });
+
+  it('normalizeNisabPayload applies the requested convention', () => {
+    const payload = { goldPrice: { pricePerGram: 100 }, silverPrice: { pricePerGram: 1 } };
+    expect(normalizeNisabPayload(payload, 'tola').goldNisabGrams).toBe(87.48);
+    expect(normalizeNisabPayload(payload, 'aaoifi').goldNisabGrams).toBe(85);
+    expect(normalizeNisabPayload(payload, 'aaoifi').silverNisabGrams).toBe(595);
+    // Defaulting must equal the default standard, not something else.
+    expect(normalizeNisabPayload(payload).goldNisabGrams)
+      .toBe(NISAB_STANDARDS[DEFAULT_NISAB_STANDARD].goldGrams);
   });
 
   it('no user-facing string still quotes the other threshold', () => {

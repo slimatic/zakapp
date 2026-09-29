@@ -29,11 +29,19 @@
 import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../services/api';
+import {
+  DEFAULT_NISAB_STANDARD,
+  getNisabStandard,
+  readPricePerGram,
+  type ServerPrice,
+} from '../core/calculations/nisab';
 
 export interface NisabThresholdData {
   nisabAmount: number;
   currency: string;
   nisabBasis: 'GOLD' | 'SILVER';
+  /** Which gram convention produced `nisabAmount` — see NISAB_STANDARDS. */
+  nisabStandard: string;
   goldPrice?: number;
   silverPrice?: number;
   metalType?: string;
@@ -48,7 +56,8 @@ export interface NisabThresholdData {
  */
 async function fetchNisabThreshold(
   currency: string = 'USD',
-  nisabBasis: 'GOLD' | 'SILVER' = 'GOLD'
+  nisabBasis: 'GOLD' | 'SILVER' = 'GOLD',
+  nisabStandard: string = DEFAULT_NISAB_STANDARD
 ): Promise<NisabThresholdData> {
   // Call the existing /api/zakat/nisab endpoint using full API_BASE_URL.
   // Issue #310 (user regression report, v0.15.2): the currency param was in
@@ -74,7 +83,28 @@ async function fetchNisabThreshold(
 
   // Extract data from the response
   const { goldPrice, silverPrice } = data.data;
-  const nisabAmount = nisabBasis === 'GOLD' ? goldPrice.nisabValue : silverPrice.nisabValue;
+  const selected = getNisabStandard(nisabStandard);
+
+  // Multiply here rather than reading the server's `nisabValue`.
+  //
+  // The endpoint returns BOTH a `pricePerGram` and a pre-multiplied `nisabValue`,
+  // and the multiplication is where the gram convention enters. The server bakes in
+  // its own (87.48/612.36), so reading `nisabValue` would make the user's choice of
+  // standard silently ineffective — the app would offer two thresholds and always
+  // produce the first. Price is convention-free; only the grams are not, so the
+  // client owns this step.
+  //
+  // Falls back to the server's figure only if no usable per-gram price came back,
+  // which keeps a flat/legacy payload working instead of producing NaN.
+  const goldPerGram = readPricePerGram(goldPrice);
+  const silverPerGram = readPricePerGram(silverPrice);
+  const goldNisabValue = goldPerGram !== null
+    ? goldPerGram * selected.goldGrams
+    : (goldPrice?.nisabValue ?? 0);
+  const silverNisabValue = silverPerGram !== null
+    ? silverPerGram * selected.silverGrams
+    : (silverPrice?.nisabValue ?? 0);
+  const nisabAmount = nisabBasis === 'GOLD' ? goldNisabValue : silverNisabValue;
   const fetchedAt = new Date(data.data.lastUpdated || data.data.effectiveDate);
 
   const now = new Date();
@@ -85,8 +115,9 @@ async function fetchNisabThreshold(
     nisabAmount,
     currency,
     nisabBasis,
-    goldPrice: goldPrice.pricePerGram,
-    silverPrice: silverPrice.pricePerGram,
+    nisabStandard: selected.id,
+    goldPrice: goldPerGram ?? undefined,
+    silverPrice: silverPerGram ?? undefined,
     metalType: nisabBasis === 'GOLD' ? 'gold' : 'silver',
     fetchedAt,
     isStale,
@@ -99,6 +130,8 @@ export interface UseNisabThresholdResult {
   nisabAmount: number | undefined;
   currency: string;
   nisabBasis: 'GOLD' | 'SILVER';
+  /** Which gram convention produced the threshold. */
+  nisabStandard: string;
   metalType?: string;
   goldPrice?: number;
   silverPrice?: number;
@@ -121,6 +154,8 @@ export interface UseNisabThresholdResult {
  * 
  * @param currency - Currency code (default: USD)
  * @param nisabBasis - Nisab basis GOLD or SILVER (default: GOLD)
+ * @param nisabStandard - Gram convention: 'tola' (87.48/612.36, default) or
+ *   'aaoifi' (85/595). See NISAB_STANDARDS.
  * @returns Nisab threshold data and status
  * 
  * @example
@@ -134,7 +169,8 @@ export interface UseNisabThresholdResult {
  */
 export function useNisabThreshold(
   currency: string = 'USD',
-  nisabBasis: 'GOLD' | 'SILVER' = 'GOLD'
+  nisabBasis: 'GOLD' | 'SILVER' = 'GOLD',
+  nisabStandard: string = DEFAULT_NISAB_STANDARD
 ): UseNisabThresholdResult {
   const {
     data,
@@ -142,8 +178,10 @@ export function useNisabThreshold(
     error,
     refetch: refetchQuery,
   } = useQuery({
-    queryKey: ['nisab-threshold', currency, nisabBasis],
-    queryFn: () => fetchNisabThreshold(currency, nisabBasis),
+    // `nisabStandard` is in the key: it changes `nisabAmount`, and a cached threshold
+    // for the other convention would otherwise be served after the user switches.
+    queryKey: ['nisab-threshold', currency, nisabBasis, nisabStandard],
+    queryFn: () => fetchNisabThreshold(currency, nisabBasis, nisabStandard),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 30 * 60 * 1000, // 30 minutes before garbage collection
     retry: 2,
@@ -160,6 +198,7 @@ export function useNisabThreshold(
       nisabAmount: data?.nisabAmount,
       currency: data?.currency || currency,
       nisabBasis: data?.nisabBasis || nisabBasis,
+      nisabStandard: data?.nisabStandard || nisabStandard,
       metalType: data?.metalType,
       goldPrice: data?.goldPrice,
       silverPrice: data?.silverPrice,
@@ -170,7 +209,7 @@ export function useNisabThreshold(
       error: error as Error | null,
       refetch,
     }),
-    [data, currency, nisabBasis, isLoading, error, refetch]
+    [data, currency, nisabBasis, nisabStandard, isLoading, error, refetch]
   );
 
   return result;

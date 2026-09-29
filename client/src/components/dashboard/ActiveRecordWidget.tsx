@@ -24,6 +24,7 @@ import { usePaymentRepository } from '../../hooks/usePaymentRepository';
 import { Decimal } from 'decimal.js';
 
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
+import { getNisabStandard } from '../../core/calculations/nisab';
 
 interface ActiveRecordWidgetProps {
   record: NisabYearRecord | null;
@@ -50,12 +51,13 @@ export const ActiveRecordWidget: React.FC<ActiveRecordWidgetProps> = ({ record }
   const { t } = useTranslation('dashboard');
   // Single source of truth for the display currency + masked formatting
   // (#310 / #341). Resolves local RxDB settings → auth settings → prefs → USD.
-  const { currency: userCurrency, formatCurrency } = useDisplayCurrency();
+  const { currency: userCurrency, nisabStandard: nisabStandardId, formatCurrency } = useDisplayCurrency();
+  const nisabStandard = getNisabStandard(nisabStandardId).id;
 
   // Get live Nisab threshold for consistency — in the USER's currency (#310),
   // not hardcoded USD: an IDR user's hawl progress must be measured against an IDR nisab.
   const nisabBasis = (record?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
-  const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
+  const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis, nisabStandard);
 
   // Hooks must be called unconditionally. Prepare memoized values and queries
   // using safe accessors so they can be evaluated even if `record` is null.

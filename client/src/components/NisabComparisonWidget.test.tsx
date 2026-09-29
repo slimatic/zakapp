@@ -44,6 +44,16 @@ vi.mock('../hooks/useNisabThreshold', () => ({
   })),
 }));
 
+// The widget now reads the user's gram convention from the same resolver the rest of
+// the app uses; without this it reaches for AuthProvider and throws before rendering.
+vi.mock('../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({
+    currency: 'USD',
+    nisabStandard: 'tola',
+    formatCurrency: (value: string) => value,
+  }),
+}));
+
 vi.mock('../hooks/useHawlStatus', () => ({
   useHawlStatus: () => ({ liveHawlData: undefined, isUpdating: false }),
 }));
