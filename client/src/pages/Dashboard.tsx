@@ -26,6 +26,7 @@ import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 import { useUserSettingsRepository } from '../hooks/useUserSettingsRepository';
 import { calculateZakat } from '../core/calculations/zakat';
+import { DEFAULT_NISAB_DATA } from '../core/calculations/nisab';
 import { DashboardHero, HawlCard, QuickActions, AssetRow } from '../components/dashboard/DashboardTop';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
@@ -131,7 +132,7 @@ const EducationalModule: React.FC = () => {
               <GlossaryTerm term="nisab" /> is the minimum threshold of wealth a Muslim
               must possess for one lunar year (<GlossaryTerm term="hawl" />) before{' '}
               <GlossaryTerm term="zakat" /> becomes obligatory. The <GlossaryTerm term="nisab" />{' '}
-              can be calculated based on the value of gold (85 grams) or silver (595 grams).
+              can be calculated based on the value of gold (87.48 grams) or silver (612.36 grams).
               ZakApp helps you track your wealth and determine when you've reached the{' '}
               <GlossaryTerm term="nisab" /> threshold.
             </p>
@@ -353,7 +354,10 @@ export const Dashboard: React.FC = () => {
   const nisabPrices = useMemo(
     () =>
       goldPrice !== undefined && silverPrice !== undefined
-        ? { gold: goldPrice * 87.48, silver: silverPrice * 612.36 }
+        ? {
+            gold: goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams,
+            silver: silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams
+          }
         : null,
     [goldPrice, silverPrice]
   );

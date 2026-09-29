@@ -28,6 +28,7 @@ import { ErrorMessage } from '../ui/ErrorMessage';
 import { gregorianToHijri } from '../../utils/calendarConverter';
 import { DualCalendarDatePicker } from '../common/DualCalendarDatePicker';
 import { toNumber, toDecimal, calculateZakat, calculateZakatableWealth } from '../../utils/precision';
+import { DEFAULT_NISAB_DATA } from '../../core/calculations/nisab';
 
 interface SnapshotFormProps {
   snapshot?: YearlySnapshot; // For editing existing snapshot
@@ -232,8 +233,8 @@ export const SnapshotForm: React.FC<SnapshotFormProps> = ({
                 onChange={(e) => handleInputChange('nisabType', e.target.value)}
                 className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               >
-                <option value="gold">Gold (87.48g)</option>
-                <option value="silver">Silver (612.36g)</option>
+                <option value="gold">Gold ({DEFAULT_NISAB_DATA.goldNisabGrams}g)</option>
+                <option value="silver">Silver ({DEFAULT_NISAB_DATA.silverNisabGrams}g)</option>
               </select>
             </div>
           </div>

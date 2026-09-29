@@ -24,9 +24,35 @@ export interface NisabData {
     silverNisabGrams: number;
 }
 
+/**
+ * Fallback nisab data, used only when the server's price payload is missing or
+ * incomplete.
+ *
+ * ⚠️ THE GRAM VALUES AND THE PROSE IN THE UI DISAGREE, AND THAT IS UNRESOLVED.
+ *
+ * The engine computes with 87.48 g gold / 612.36 g silver (7.5 tola / 52.5 tola,
+ * the Hanafi reading, cited to the Simple Zakat Guide). Several user-facing strings
+ * instead say 85 g / 595 g (the widely-quoted round figures) — see Dashboard,
+ * GettingStarted, AssetCategories and the glossary.
+ *
+ * 87.48/612.36 is LOWER than 85/595 for gold, so the app currently begins charging
+ * zakat slightly earlier than the prose tells the user it will.
+ *
+ * The choice between them is a fiqh decision, not an engineering one: it moves the
+ * threshold at which someone becomes liable, so it is not ours to make silently.
+ * These numbers are therefore left exactly as the engine has always used them, and
+ * the prose was changed to quote them rather than the other way round. Do not
+ * "tidy" one set to match the other without a scholar's ruling recorded in the PR.
+ */
 export const DEFAULT_NISAB_DATA: NisabData = {
-    goldPrice: 65, // USD per gram (fallback)
-    silverPrice: 0.8, // USD per gram (fallback)
+    // ponytail: static fallback prices, and they WILL be arbitrary the day they are
+    // used — a price is only a fallback because no live rate was available, so it
+    // is stale by construction. Kept in one place so at least the two values cannot
+    // drift apart (gold was 65 here while the server logged 0.75 for silver against
+    // 0.8 here). The real fix is to refuse to compute and say so; see the note on
+    // `normalizeNisabPayload`.
+    goldPrice: 65, // USD per gram — STALE FALLBACK, not a current price
+    silverPrice: 0.8, // USD per gram — STALE FALLBACK, not a current price
     goldNisabGrams: 87.48,
     silverNisabGrams: 612.36
 };

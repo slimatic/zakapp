@@ -113,7 +113,7 @@ export const GettingStarted: React.FC = () => {
             <h3 className="font-medium text-success mb-2">What is Nisab?</h3>
             <p className="text-success text-sm">
               Nisab is the minimum threshold of wealth that makes Zakat obligatory. It's equivalent 
-              to 85 grams of gold or 595 grams of silver.
+              to 87.48 grams of gold or 612.36 grams of silver.
             </p>
           </div>
           <div>
