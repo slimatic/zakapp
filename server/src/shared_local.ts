@@ -424,12 +424,24 @@ export interface PaginationResult<T> {
     };
 }
 
+// Must match shared/src/constants/islamicConstants.ts, which is the canonical
+// source. The server resolves `@zakapp/shared` to THIS file through tsconfig paths,
+// so these two lists are the client's and the server's thresholds respectively — and
+// they disagreed: the shim said 85/595 while the canonical constant said 87.48/612.36.
+// The server therefore computed its nisab from a different threshold than the client
+// displayed for the same user.
+//
+// 87.48/612.36 (7.5 / 52.5 tola) is this project's standard, per the canonical
+// constant's own note: "The 87.48g figure represents scholarly consensus for
+// practical application", with 85 g noted as the variant held "in some madhabs".
+// 85/595 is the AAOIFI-adopted reading (20 dinars at 4.25 g, 200 dirhams at 2.975 g).
+// Both are legitimate; the project uses one.
 export const NISAB_THRESHOLDS = {
-    GOLD: 85,
-    SILVER: 595,
+    GOLD: 87.48,
+    SILVER: 612.36,
     DATE: 653,
-    GOLD_GRAMS: 85,
-    SILVER_GRAMS: 595
+    GOLD_GRAMS: 87.48,
+    SILVER_GRAMS: 612.36
 };
 
 export const ZAKAT_METHODS = {

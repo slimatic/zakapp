@@ -19,7 +19,7 @@ export const FAQS_DATA: FAQItem[] = [
     {
         category: "General Principles",
         question: "What is the Nisab?",
-        answer: "The Nisab is the minimum wealth threshold for Zakat liability. Gold: 85g pure gold. Silver: 595g pure silver. The Silver Nisab is preferred as it limits poverty by allowing more people to contribute."
+        answer: "The Nisab is the minimum wealth threshold for Zakat liability. Gold: 87.48g pure gold. Silver: 612.36g pure silver. The Silver Nisab is preferred as it limits poverty by allowing more people to contribute."
     },
     {
         category: "General Principles",

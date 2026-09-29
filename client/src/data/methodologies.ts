@@ -76,7 +76,7 @@ export const methodologies: Record<string, Methodology> = {
     nisabCalculation: {
       description: 'Based on the gold standard',
       method: 'Gold-based nisab threshold',
-      threshold: '85 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
+      threshold: '87.48 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
     },
 
     assetTreatment: {
@@ -116,7 +116,7 @@ export const methodologies: Record<string, Methodology> = {
 
     characteristics: [
       '2.5% rate on all zakatable wealth',
-      'Gold-based nisab (85g of gold)',
+      'Gold-based nisab (87.48g of gold)',
       'Clear rules for modern financial instruments',
       'Most widely accepted by Islamic institutions'
     ],
@@ -142,7 +142,7 @@ export const methodologies: Record<string, Methodology> = {
     nisabCalculation: {
       description: 'Based on the silver standard OR gold standard, whichever is lower',
       method: 'Silver-based nisab threshold (typically lower)',
-      threshold: '595 grams of silver (approximately $350-500 USD) OR 85 grams of gold, whichever is LOWER'
+      threshold: '612.36 grams of silver (approximately $350-500 USD) OR 87.48 grams of gold, whichever is LOWER'
     },
 
     assetTreatment: {
@@ -181,7 +181,7 @@ export const methodologies: Record<string, Methodology> = {
     ],
 
     characteristics: [
-      'Silver-based nisab (595g silver)',
+      'Silver-based nisab (612.36g silver)',
       'Lower threshold benefits more recipients',
       'Zakat on jewelry (even personal use)',
       'Traditional approach from Hanafi madhab'
@@ -205,7 +205,7 @@ export const methodologies: Record<string, Methodology> = {
     nisabCalculation: {
       description: 'Based on the gold standard',
       method: 'Gold-based nisab threshold',
-      threshold: '85 grams of gold (same as standard method)'
+      threshold: '87.48 grams of gold (same as standard method)'
     },
 
     assetTreatment: {
@@ -338,7 +338,7 @@ export const methodologies: Record<string, Methodology> = {
     nisabCalculation: {
       description: 'Based on the gold standard',
       method: 'Gold-based nisab threshold (85g)',
-      threshold: '85 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
+      threshold: '87.48 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
     },
 
     assetTreatment: {
@@ -405,7 +405,7 @@ export const methodologies: Record<string, Methodology> = {
     nisabCalculation: {
       description: 'Based on the gold standard',
       method: 'Gold-based nisab threshold (85g)',
-      threshold: '85 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
+      threshold: '87.48 grams of gold (approximately $5,000-6,000 USD depending on current gold prices)'
     },
 
     assetTreatment: {
@@ -485,11 +485,11 @@ export interface MethodologyComparison {
 export const methodologyComparison: MethodologyComparison[] = [
   {
     feature: 'Nisab Threshold',
-    standard: '85g gold (~$5,500)',
-    hanafi: '595g silver OR 85g gold (lower value)',
-    shafii: '85g gold (~$5,500)',
-    maliki: '85g gold (~$5,500)',
-    hanbali: '85g gold (~$5,500)',
+    standard: '87.48g gold (~$5,500)',
+    hanafi: '612.36g silver OR 87.48g gold (lower value)',
+    shafii: '87.48g gold (~$5,500)',
+    maliki: '87.48g gold (~$5,500)',
+    hanbali: '87.48g gold (~$5,500)',
     custom: 'User-defined'
   },
   {

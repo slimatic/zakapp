@@ -26,6 +26,7 @@ import { usePaymentRepository } from '../hooks/usePaymentRepository';
 import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
 import { useUserSettingsRepository } from '../hooks/useUserSettingsRepository';
 import { calculateZakat } from '../core/calculations/zakat';
+import { DEFAULT_NISAB_DATA } from '../core/calculations/nisab';
 import { DashboardHero, HawlCard, QuickActions, AssetRow } from '../components/dashboard/DashboardTop';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
@@ -40,6 +41,7 @@ import { GlossaryTerm } from '../components/common/GlossaryTerm';
 import { MigrationWizard } from '../components/migration/MigrationWizard';
 import { useMigration } from '../hooks/useMigration';
 import { Button } from '../components/ui/Button';
+import { getNisabStandard } from '../core/calculations/nisab';
 
 /**
  * Educational Module Component
@@ -47,6 +49,9 @@ import { Button } from '../components/ui/Button';
  */
 const EducationalModule: React.FC = () => {
   const { t } = useTranslation('dashboard');
+  // This module is a separate component, so it resolves the pair itself rather than
+  // closing over the page's — otherwise the two can disagree again.
+  const nisabStandard = getNisabStandard(useDisplayCurrency().nisabStandard);
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
@@ -131,7 +136,7 @@ const EducationalModule: React.FC = () => {
               <GlossaryTerm term="nisab" /> is the minimum threshold of wealth a Muslim
               must possess for one lunar year (<GlossaryTerm term="hawl" />) before{' '}
               <GlossaryTerm term="zakat" /> becomes obligatory. The <GlossaryTerm term="nisab" />{' '}
-              can be calculated based on the value of gold (85 grams) or silver (595 grams).
+              can be calculated based on the value of gold ({nisabStandard.goldGrams} grams) or silver ({nisabStandard.silverGrams} grams).
               ZakApp helps you track your wealth and determine when you've reached the{' '}
               <GlossaryTerm term="nisab" /> threshold.
             </p>
@@ -305,13 +310,16 @@ export const Dashboard: React.FC = () => {
   // still say USD for users who set their currency locally.
   const display = useDisplayCurrency();
   const userCurrency = display.currency;
+  // The pair the user picked, for the prose and the threshold. Read from the same
+  // helper the engine uses, so the copy cannot drift from the arithmetic again.
+  const nisabStandard = getNisabStandard(display.nisabStandard);
   const {
     nisabAmount,
     goldPrice,
     silverPrice,
     isLoading: nisabLoading,
     error: nisabError,
-  } = useNisabThreshold(userCurrency, nisabBasis);
+  } = useNisabThreshold(userCurrency, nisabBasis, display.nisabStandard);
 
   /* ── Hero figures: canonical calculation, never a guess ───────────────────
    *
@@ -353,7 +361,10 @@ export const Dashboard: React.FC = () => {
   const nisabPrices = useMemo(
     () =>
       goldPrice !== undefined && silverPrice !== undefined
-        ? { gold: goldPrice * 87.48, silver: silverPrice * 612.36 }
+        ? {
+            gold: goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams,
+            silver: silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams
+          }
         : null,
     [goldPrice, silverPrice]
   );

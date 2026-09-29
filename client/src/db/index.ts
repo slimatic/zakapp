@@ -113,6 +113,27 @@ export const migrationStrategiesV7 = {
     }
 };
 
+export const migrationStrategiesV8 = {
+    ...migrationStrategiesV7,
+    /**
+     * Stamp the existing gram convention so no user's threshold moves.
+     *
+     * v7 deleted a field of a similar name for being a trap. This is deliberately not
+     * that: `preferredNisabStandard` recorded gold-vs-silver, which `getNisabSource`
+     * already derives from the chosen school, so it could only ever disagree with the
+     * real rule. This records which of two GRAM conventions to use — something nothing
+     * else in the code determines, and which the user genuinely chooses.
+     *
+     * The default is explicit rather than implicit so an upgraded database and a fresh
+     * one agree; relying on the schema default alone would leave pre-existing documents
+     * without the property until something rewrote them.
+     */
+    8: (doc: any) => {
+        if (!doc.nisabStandard) doc.nisabStandard = 'tola';
+        return doc;
+    }
+};
+
 if (process.env.NODE_ENV === 'development') {
     addRxPlugin(RxDBDevModePlugin);
 }
@@ -170,7 +191,7 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
                 liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
                 nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
-                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV7 },
+                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV8 },
                 asset_amount_events: { schema: AssetAmountEventSchema, migrationStrategies: migrationStrategiesV1 }
             });
         } else if (!db.collections.asset_amount_events) {

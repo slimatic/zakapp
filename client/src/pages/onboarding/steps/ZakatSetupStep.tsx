@@ -13,6 +13,7 @@ import { gregorianToHijri } from '../../../utils/calendarConverter';
 import { useOnboarding } from '../context/OnboardingContext';
 import { getCurrencySymbol, formatCurrency as formatCurrencyCanonical } from '../../../utils/formatters';
 import toast from 'react-hot-toast';
+import { useDisplayCurrency } from '../../../hooks/useDisplayCurrency';
 
 export const ZakatSetupStep: React.FC = () => {
   const { t } = useTranslation('onboarding');
@@ -26,7 +27,11 @@ export const ZakatSetupStep: React.FC = () => {
     // Use the user's chosen currency for nisab (#310) — onboarding saves asset
     // values in that currency, so the threshold must be in the same currency.
     const onboardingCurrency = data.settings?.currency || 'USD';
-    const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold(onboardingCurrency, nisabBasis);
+    const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold(
+    onboardingCurrency,
+    nisabBasis,
+    useDisplayCurrency().nisabStandard
+  );
     const navigate = useNavigate();
     const currencySymbol = getCurrencySymbol((data.settings?.currency || 'USD') as any);
 

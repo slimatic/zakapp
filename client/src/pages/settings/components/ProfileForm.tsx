@@ -16,7 +16,7 @@
  */
 
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../../contexts/AuthContext';
 import { apiService } from '../../../services/api';
@@ -26,6 +26,8 @@ import { ErrorMessage } from '../../../components/ui/ErrorMessage';
 import { useAssetRepository } from '../../../hooks/useAssetRepository';
 import { gregorianToHijri, formatHijriDate } from '../../../utils/calendarConverter';
 import { getSupportedCurrencies, getCurrencySymbol } from '../../../utils/formatters';
+import { useUserSettingsRepository } from '../../../hooks/useUserSettingsRepository';
+import { NISAB_STANDARDS, getNisabStandard, type NisabStandardId } from '../../../core/calculations/nisab';
 
 // Types extracted locally since they aren't exported from types/index
 interface ProfileFormData {
@@ -101,6 +103,44 @@ export const ProfileForm: React.FC = () => {
         { value: 'hanbali', name: 'Hanbali School' },
         { value: 'custom', name: 'Custom Method' },
     ];
+
+    /*
+     * Nisab weight standard.
+     *
+     * Read from the same local settings document the calculator reads, so the control
+     * and the arithmetic cannot disagree, and written to BOTH stores the way the
+     * currency control already has to be: the server resolves its own nisab figures
+     * from `settings`, so a local-only write would leave the server computing the
+     * other convention.
+     */
+    const { settings: localSettings } = useUserSettingsRepository();
+    const [nisabStandard, setNisabStandard] = useState<string>(
+        () => getNisabStandard(localSettings?.nisabStandard).id
+    );
+
+    const saveNisabStandard = async (next: NisabStandardId) => {
+        const previous = nisabStandard;
+        setNisabStandard(next); // optimistic; revert below if the write fails
+        try {
+            await updateLocalProfile({
+                settings: { ...user?.settings, nisabStandard: next }
+            } as any);
+            const currentSettings = await apiService.getSettings();
+            await apiService.updateSettings({
+                ...(currentSettings?.success && currentSettings.data ? currentSettings.data : {}),
+                nisabStandard: next
+            });
+        } catch (err) {
+            setNisabStandard(previous);
+            console.error('Failed to save nisab standard', err);
+        }
+    };
+
+    // Keep the control in step if settings load after first render.
+    useEffect(() => {
+        const stored = getNisabStandard(localSettings?.nisabStandard).id;
+        setNisabStandard((current) => (current === stored ? current : stored));
+    }, [localSettings?.nisabStandard]);
 
     // Update profile mutation
     const profileMutation = useMutation({
@@ -300,6 +340,34 @@ export const ProfileForm: React.FC = () => {
                                     </option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div>
+                            <label htmlFor="nisabStandard" className="block text-sm font-medium text-foreground mb-2">
+                                Nisab Weight Standard
+                            </label>
+                            <select
+                                id="nisabStandard"
+                                value={nisabStandard}
+                                onChange={(e) => void saveNisabStandard(e.target.value as NisabStandardId)}
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            >
+                                {Object.values(NISAB_STANDARDS).map((standard) => (
+                                    <option key={standard.id} value={standard.id}>
+                                        {standard.label}
+                                    </option>
+                                ))}
+                            </select>
+                            {/*
+                             * The derivation is shown, not just the label: the two options
+                             * differ by ~2.8% and the lower one makes zakat payable slightly
+                             * earlier, so a user choosing between them should see why they
+                             * differ rather than treat it as a display setting.
+                             */}
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                {getNisabStandard(nisabStandard).derivation}{' '}
+                                Both are accepted; the default is what this app has always used.
+                            </p>
                         </div>
 
                         <div>

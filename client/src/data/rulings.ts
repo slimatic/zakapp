@@ -114,7 +114,7 @@ const SCHOOL: Record<
 > = {
   STANDARD: {
     label: 'Standard (AAOIFI)',
-    nisab: 'gold-based nisab (85g of gold)',
+    nisab: 'gold-based nisab (87.48g of gold)',
     debts: 'basic debt deduction (loans and business debt)',
     notes: 'Modern AAOIFI-aligned standard for contemporary financial instruments.',
   },
@@ -216,7 +216,7 @@ export const RULINGS: Registry = {
   HANAFI: {
     [AssetType.CASH]: {
       ruling: 'Zakatable at 2.5% against the silver nisab.',
-      reasoning: z(SCHOOL.HANAFI.label, 'The Hanafi school prefers the silver nisab (595g), the lower precautionary threshold, so more wealth becomes zakatable earlier.'),
+      reasoning: z(SCHOOL.HANAFI.label, 'The Hanafi school prefers the silver nisab (612.36g), the lower precautionary threshold, so more wealth becomes zakatable earlier.'),
       citations: [CIT.bukhariSilver, CIT.seekersGuidanceZakat],
     },
     [AssetType.BANK_ACCOUNT]: {
