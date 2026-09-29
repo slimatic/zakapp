@@ -50,10 +50,10 @@ export const AssetCategories: React.FC = () => {
       id: 'gold',
       name: 'Gold',
       description: 'Gold jewelry, coins, bars, and ornaments',
-      zakatRule: 'Zakatable if total weight exceeds 85 grams (7.5 tola) of pure gold',
+      zakatRule: 'Zakatable if total weight exceeds 87.48 grams (7.5 tola) of pure gold',
       icon: '🥇',
       examples: ['Gold jewelry', 'Gold coins', 'Gold bars', 'Gold ornaments'],
-      nisabThreshold: 85, // grams
+      nisabThreshold: 87.48, // grams
       zakatRate: 2.5
     },
     {

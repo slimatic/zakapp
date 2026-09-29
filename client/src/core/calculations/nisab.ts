@@ -25,24 +25,26 @@ export interface NisabData {
 }
 
 /**
- * Fallback nisab data, used only when the server's price payload is missing or
- * incomplete.
+ * One value, taken from the canonical source of truth.
  *
- * ⚠️ THE GRAM VALUES AND THE PROSE IN THE UI DISAGREE, AND THAT IS UNRESOLVED.
+ * 87.48 g gold / 612.36 g silver — 7.5 tola / 52.5 tola — which the project's own
+ * `shared/src/constants/islamicConstants.ts` documents as "scholarly consensus for
+ * practical application", noting that 85 g is the variant held "in some madhabs".
  *
- * The engine computes with 87.48 g gold / 612.36 g silver (7.5 tola / 52.5 tola,
- * the Hanafi reading, cited to the Simple Zakat Guide). Several user-facing strings
- * instead say 85 g / 595 g (the widely-quoted round figures) — see Dashboard,
- * GettingStarted, AssetCategories and the glossary.
+ * The alternative figures 85 g / 595 g are equally legitimate and in wide use: they
+ * come from 20 dinars at 4.25 g and 200 dirhams at 2.975 g, which is what AAOIFI
+ * adopts. The two differ only in which classical unit weight is applied — about
+ * 2.8% — and this project uses the tola reading, consistently.
  *
- * 87.48/612.36 is LOWER than 85/595 for gold, so the app currently begins charging
- * zakat slightly earlier than the prose tells the user it will.
+ * History worth keeping: the client computed 87.48/612.36 while the server computed
+ * 85/595 (the server resolves `@zakapp/shared` to `server/src/shared_local.ts`, which
+ * carried the other pair), so the same user could be shown one threshold and
+ * calculated against another. Both lists now carry this pair, and every user-facing
+ * string quotes it.
  *
- * The choice between them is a fiqh decision, not an engineering one: it moves the
- * threshold at which someone becomes liable, so it is not ours to make silently.
- * These numbers are therefore left exactly as the engine has always used them, and
- * the prose was changed to quote them rather than the other way round. Do not
- * "tidy" one set to match the other without a scholar's ruling recorded in the PR.
+ * Do not "round" one to the other: they are different thresholds, and moving between
+ * them changes when a user becomes liable. If the project ever switches standard, it
+ * switches in `islamicConstants.ts`, `shared_local.ts` and here together.
  */
 export const DEFAULT_NISAB_DATA: NisabData = {
     // ponytail: static fallback prices, and they WILL be arbitrary the day they are
