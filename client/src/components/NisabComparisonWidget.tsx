@@ -33,6 +33,8 @@ import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { Tooltip } from './ui';
 import { formatCurrency as canonicalCurrency } from '../utils/formatters';
 import { toNumber } from '../utils/precision';
+import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
+import { getNisabStandard } from '../core/calculations/nisab';
 
 export interface NisabComparisonWidgetProps {
   /**
@@ -90,7 +92,14 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   const maskedCurrency = useMaskedCurrency();
   // Pass nisabBasis from record to hook to get correct Nisab threshold
   const nisabBasis = (record.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
-  const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold(record.currency, nisabBasis);
+  // This widget exists to compare gold against silver, so both sides must use the
+  // SAME gram convention — comparing one convention's gold against the other's
+  // silver would report the unit difference as a basis difference. The user's
+  // chosen convention drives both; `tola` and `aaoifi` keep React Query's cache
+  // keys distinct so switching cannot serve a stale threshold.
+  const nisabStandard = getNisabStandard(useDisplayCurrency().nisabStandard);
+  const { nisabAmount, goldPrice, silverPrice } =
+    useNisabThreshold(record.currency, nisabBasis, nisabStandard.id);
 
   // Only enable live tracking for DRAFT records, not FINALIZED or UNLOCKED
   const shouldEnableLiveTracking = record.status === 'DRAFT';
@@ -300,7 +309,9 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
               <div className="flex justify-between">
                 <span>Nisab Basis:</span>
                 <span className="font-medium text-foreground">
-                  {record.nisabBasis === 'GOLD' ? 'Gold (87.48g)' : 'Silver (612.36g)'}
+                  {record.nisabBasis === 'GOLD'
+                    ? `Gold (${nisabStandard.goldGrams}g)`
+                    : `Silver (${nisabStandard.silverGrams}g)`}
                 </span>
               </div>
 
