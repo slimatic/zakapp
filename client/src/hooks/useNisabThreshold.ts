@@ -30,6 +30,7 @@ import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../services/api';
 import {
+  DEFAULT_NISAB_DATA,
   DEFAULT_NISAB_STANDARD,
   getNisabStandard,
   readPricePerGram,
@@ -48,6 +49,49 @@ export interface NisabThresholdData {
   fetchedAt: Date;
   isStale: boolean;
   daysSinceUpdate: number;
+  /**
+   * True when the API could not be reached and the threshold came from the bundled
+   * fallback prices. Those are stale by construction, so this is ALWAYS true
+   * alongside `isStale` — callers must label such a figure rather than present it as
+   * a live rate. The app is local-first, so an unreachable server must still produce
+   * a usable threshold instead of an error state.
+   */
+  isFallback: boolean;
+}
+
+/**
+ * A threshold from the bundled fallback prices, for when the API cannot be reached.
+ *
+ * The prices are stale by construction (see DEFAULT_NISAB_DATA), so the result is
+ * marked `isFallback` and `isStale` and never presented as live. The grams still
+ * follow the user's chosen standard: being offline is no reason to silently apply a
+ * different convention than the one they selected.
+ */
+function buildFallbackThreshold(
+  currency: string,
+  nisabBasis: 'GOLD' | 'SILVER',
+  nisabStandard: string
+): NisabThresholdData {
+  const selected = getNisabStandard(nisabStandard);
+  const gold = DEFAULT_NISAB_DATA.goldPrice;
+  const silver = DEFAULT_NISAB_DATA.silverPrice;
+
+  return {
+    nisabAmount:
+      nisabBasis === 'GOLD'
+        ? gold * selected.goldGrams
+        : silver * selected.silverGrams,
+    currency,
+    nisabBasis,
+    nisabStandard: selected.id,
+    goldPrice: gold,
+    silverPrice: silver,
+    metalType: nisabBasis === 'GOLD' ? 'gold' : 'silver',
+    fetchedAt: new Date(),
+    isStale: true,
+    daysSinceUpdate: 0,
+    isFallback: true,
+  };
 }
 
 /**
@@ -122,6 +166,7 @@ async function fetchNisabThreshold(
     fetchedAt,
     isStale,
     daysSinceUpdate,
+    isFallback: false,
   };
 }
 
@@ -140,6 +185,12 @@ export interface UseNisabThresholdResult {
   fetchedAt: Date | undefined;
   daysSinceUpdate: number | undefined;
   isStale: boolean;
+  /**
+   * True when the figure came from the bundled fallback prices because the API could
+   * not be reached. `nisabAmount` is usable, but is NOT a live rate — label it as an
+   * estimate and offer a retry rather than presenting it as current.
+   */
+  isFallback: boolean;
 
   // State
   isLoading: boolean;
@@ -184,8 +235,12 @@ export function useNisabThreshold(
     queryFn: () => fetchNisabThreshold(currency, nisabBasis, nisabStandard),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 30 * 60 * 1000, // 30 minutes before garbage collection
+    // Retry for a momentary blip, not to wait out an outage. `retryDelay` was 5000,
+    // so a user who is simply offline waited 2 x 5 s before the fallback prices
+    // appeared — 10 s of a calculator that could not compute nisab. A transient
+    // failure recovers well inside this.
     retry: 2,
-    retryDelay: 5000,
+    retryDelay: 1500,
   });
 
   const refetch = useCallback(() => {
@@ -193,24 +248,33 @@ export function useNisabThreshold(
   }, [refetchQuery]);
 
   // Memoize result
-  const result = useMemo(
-    () => ({
-      nisabAmount: data?.nisabAmount,
-      currency: data?.currency || currency,
-      nisabBasis: data?.nisabBasis || nisabBasis,
-      nisabStandard: data?.nisabStandard || nisabStandard,
-      metalType: data?.metalType,
-      goldPrice: data?.goldPrice,
-      silverPrice: data?.silverPrice,
-      fetchedAt: data?.fetchedAt,
-      daysSinceUpdate: data?.daysSinceUpdate,
-      isStale: data?.isStale ?? false,
+  const result = useMemo(() => {
+    // An unreachable API must not leave the app unable to compute nisab: the app is
+    // local-first, and `DEFAULT_NISAB_DATA` exists for exactly this. Substituted here
+    // rather than via React Query's `placeholderData`, which would also apply while the
+    // request is in flight — during loading the UI should show its loading state, not
+    // stale prices.
+    const source = data ?? (error ? buildFallbackThreshold(currency, nisabBasis, nisabStandard) : null);
+
+    return {
+      nisabAmount: source?.nisabAmount,
+      currency: source?.currency || currency,
+      nisabBasis: source?.nisabBasis || nisabBasis,
+      nisabStandard: source?.nisabStandard || nisabStandard,
+      metalType: source?.metalType,
+      goldPrice: source?.goldPrice,
+      silverPrice: source?.silverPrice,
+      fetchedAt: source?.fetchedAt,
+      daysSinceUpdate: source?.daysSinceUpdate,
+      isStale: source?.isStale ?? false,
+      // Reported separately from `error`: the figure is usable, but it is not live and
+      // callers should say so rather than print it as a current rate.
+      isFallback: source?.isFallback ?? false,
       isLoading,
       error: error as Error | null,
       refetch,
-    }),
-    [data, currency, nisabBasis, nisabStandard, isLoading, error, refetch]
-  );
+    };
+  }, [data, currency, nisabBasis, nisabStandard, isLoading, error, refetch]);
 
   return result;
 }

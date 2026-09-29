@@ -196,3 +196,81 @@ describe('useNisabThreshold — nisab weight standard', () => {
     expect((await thresholdFor('aaoifi')).nisabAmount).toBeCloseTo(8748, 2);
   });
 });
+
+/**
+ * The app is local-first: an unreachable API must not leave it unable to compute nisab
+ * at all. Previously the hook threw and `DEFAULT_NISAB_DATA` sat unused, so offline the
+ * calculator had no threshold, contradicting the pillar the project leads with.
+ *
+ * The fallback prices ARE stale — a price only falls back because no live rate was
+ * available — so the result must be labelled `isFallback` rather than passed off as a
+ * current rate. These tests pin both halves: that a figure appears, and that it is
+ * honestly marked.
+ */
+describe('useNisabThreshold — offline fallback', () => {
+  let queryClient: QueryClient;
+
+  // The hook retries twice with a 1.5 s delay, so the error state is reached in ~3 s.
+  // This timeout reflects that rather than papering over it.
+  const RETRY_BUDGET_MS = 15_000;
+
+  beforeEach(() => {
+    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    fetchMock.mockReset();
+    // A rejected fetch, not a non-ok response: that is the offline case.
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+  });
+
+  afterEach(() => {
+    queryClient.clear();
+  });
+
+  async function offlineThresholdFor(standard?: string, basis: 'GOLD' | 'SILVER' = 'GOLD') {
+    const { result } = renderHook(() => useNisabThreshold('USD', basis, standard), {
+      wrapper: makeWrapper(queryClient),
+    });
+    await waitFor(() => expect(result.current.isFallback).toBe(true), {
+      timeout: RETRY_BUDGET_MS,
+    });
+    return result.current;
+  }
+
+  it('produces a usable, honestly-marked threshold instead of no threshold at all', async () => {
+    const r = await offlineThresholdFor('tola');
+
+    // DEFAULT_NISAB_DATA fallback prices: gold 65/g, silver 0.8/g.
+    expect(r.nisabAmount).toBeCloseTo(65 * 87.48, 2);
+    expect(r.isLoading).toBe(false);
+
+    // Marked as a fallback and stale, because the price is arbitrary precisely
+    // because nothing live came back — it must not be presented as a current rate.
+    expect(r.isFallback).toBe(true);
+    expect(r.isStale).toBe(true);
+
+    // The error is still reported, so the UI can offer a retry rather than hiding it.
+    expect(r.error).toBeTruthy();
+  });
+
+  it("still honours the user's gram convention while offline, for either basis", async () => {
+    // Being offline is no reason to silently apply a different convention than the one
+    // the user selected, so the grams must still follow the preference.
+    expect((await offlineThresholdFor('aaoifi')).nisabAmount).toBeCloseTo(65 * 85, 2);
+
+    queryClient.clear();
+    expect((await offlineThresholdFor('aaoifi', 'SILVER')).nisabAmount).toBeCloseTo(0.8 * 595, 2);
+  }, RETRY_BUDGET_MS); // two sequential retry budgets exceed the 5 s default
+
+  it('does not label a successful response as a fallback', async () => {
+    // The inverse case, so `isFallback` cannot be permanently true and still pass.
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue({ ok: true, json: async () => nisabResponse('USD') });
+
+    const { result } = renderHook(() => useNisabThreshold('USD', 'GOLD', 'tola'), {
+      wrapper: makeWrapper(queryClient),
+    });
+    await waitFor(() => expect(result.current.nisabAmount).toBeDefined());
+
+    expect(result.current.isFallback).toBe(false);
+    expect(result.current.nisabAmount).toBeCloseTo(8748, 2);
+  });
+});
