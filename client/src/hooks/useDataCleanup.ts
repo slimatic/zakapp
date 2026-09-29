@@ -24,7 +24,8 @@ export function useDataCleanup() {
     const db = useDb();
     const [isClearing, setIsClearing] = useState(false);
 
-    const clearAllData = async () => {
+    const clearAllData = async (opts: { reload?: boolean } = {}) => {
+        const { reload = true } = opts;
         if (!db) {
             toast.error('Database not initialized');
             return;
@@ -65,8 +66,12 @@ export function useDataCleanup() {
 
             toast.success('All financial data has been cleared from this device.', { id: toastId });
 
-            // Optional: Trigger a window reload or router push to refresh state visualizers
-            setTimeout(() => window.location.reload(), 1000);
+            // Refresh state visualizers. Skipped when the caller is going on to write
+            // immediately (a replace-import), because the reload would tear down the
+            // page mid-import and leave the restore half-applied.
+            if (reload) {
+                setTimeout(() => window.location.reload(), 1000);
+            }
         } catch (error: any) {
             console.error('Data cleanup failed:', error);
             toast.error('Failed to clear data: ' + error.message, { id: toastId });
