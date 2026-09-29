@@ -152,12 +152,12 @@ Browsers require a [secure context](https://developer.mozilla.org/en-US/docs/Web
 
 4. **Test the issue** with our diagnostic tool:
    ```bash
-   # Run headless browser test
+   # Run headless browser test (from a checkout of this repository)
    ./test-crypto.sh http://your-ip:3005
-   
-   # Or open the test page in your browser:
-   # http://your-ip:3005/crypto-test.html
    ```
+   The former in-browser page (`crypto-test.html`) was removed: it was served to
+   every visitor of the deployed site, and its "Test Registration Flow" button
+   created real accounts against whatever host served it.
 
 ### "CORS Error" or "Not allowed by CORS"
 

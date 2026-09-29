@@ -100,7 +100,7 @@ export default defineConfig(({ mode }) => {
           //   - `stats.html` (2.17 MB), the rollup-plugin-visualizer report. It is a
           //     build artefact containing the whole module graph, it was 34% of the
           //     entire precache, and no user ever requests it. It is also excluded
-          //     from the deployment below.
+          //     from the deployment — see the plugin configuration below.
           //   - every code-split route chunk, even though the router loads them
           //     lazily. ReportGenerator alone is 426 kB, the dashboard chart 329 kB
           //     and html2canvas 202 kB, and the majority of visitors open neither a
@@ -113,7 +113,7 @@ export default defineConfig(({ mode }) => {
           // it silently trades offline capability for a smaller manifest.
           globPatterns: ['**/*.{js,css,ico,svg,woff2,woff}', 'index.html'],
           globIgnores: [
-            // Dev artefact, not a user-facing page. Excluded from the image too.
+            // Dev artefact, not a user-facing page. Excluded from the deployment too.
             'stats.html',
             'crypto-test.html',
             // Code-split routes: loaded on demand, then cached by the runtime rule.
@@ -246,7 +246,13 @@ export default defineConfig(({ mode }) => {
         },
       }),
       visualizer({
-        filename: 'dist/stats.html',
+        // Written OUTSIDE `dist`. The Dockerfile copies all of `client/dist` to the
+        // web root, and nginx serves it with `try_files $uri /index.html` over a
+        // catch-all `location /` — so anything left in `dist` is publicly reachable at
+        // app.zakapp.org/<name>, whether or not a page links to it. This report
+        // contains the complete module graph, so it must not ship. Keeping it adjacent
+        // to `dist` preserves the artefact for local inspection.
+        filename: 'build-report/stats.html',
         open: false,
         gzipSize: true,
         brotliSize: true,
