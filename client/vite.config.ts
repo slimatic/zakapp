@@ -246,7 +246,13 @@ export default defineConfig(({ mode }) => {
         },
       }),
       visualizer({
-        filename: 'dist/stats.html',
+        // Written OUTSIDE `dist`. The Dockerfile copies all of `client/dist` to the
+        // web root, and nginx serves it with `try_files $uri /index.html` over a
+        // catch-all `location /` — so anything left in `dist` is publicly reachable at
+        // app.zakapp.org/<name>, whether or not a page links to it. This report
+        // contains the complete module graph, so it must not ship. Keeping it adjacent
+        // to `dist` preserves the artefact for local inspection.
+        filename: 'build-report/stats.html',
         open: false,
         gzipSize: true,
         brotliSize: true,
