@@ -24,6 +24,8 @@ export interface Asset {
   currency: string;
   description?: string;
   metadata?: string;
+  /** Free-text the user wrote about the asset. Encrypted at rest like `value`. */
+  notes?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

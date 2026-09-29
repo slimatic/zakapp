@@ -40,6 +40,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 const assetsInsert = vi.fn();
 const eventsInsert = vi.fn();
 const patch = vi.fn(async () => undefined);
+const assetsFindOne = vi.fn();
+const existingDoc = (value = 1000) => ({ value, currency: 'USD', metadata: '{}', patch });
 
 // The repository also opens a live subscription (db.assets.find().$), so the mock
 // has to look like RxDB or the hook throws before it exposes addAsset.
@@ -47,7 +49,7 @@ vi.mock('../../db', () => ({
   useDb: () => ({
     assets: {
       insert: assetsInsert,
-      findOne: () => ({ exec: async () => ({ value: 1000, currency: 'USD', metadata: '{}', patch }) }),
+      findOne: assetsFindOne,
       find: () => ({
         exec: async () => [],
         $: { pipe: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }) },
@@ -78,6 +80,8 @@ describe('asset amount history is recorded', () => {
     assetsInsert.mockReset().mockImplementation(async (doc: any) => doc);
     eventsInsert.mockReset().mockImplementation(async (doc: any) => doc);
     patch.mockClear();
+    // No doc yet: an id that is not present means a genuine create.
+    assetsFindOne.mockReset().mockImplementation(() => ({ exec: async () => null }));
   });
 
   it('records a CREATED event carrying the asset value', async () => {
@@ -116,6 +120,7 @@ describe('asset amount history is recorded', () => {
   });
 
   it('records an UPDATED event when the value actually changes', async () => {
+    assetsFindOne.mockImplementation(() => ({ exec: async () => existingDoc(1000) }));
     const { result } = renderHook(() => useAssetRepository());
     await waitFor(() => expect(result.current.updateAsset).toBeTruthy());
 
@@ -130,6 +135,7 @@ describe('asset amount history is recorded', () => {
   it('does NOT record when the value is unchanged', async () => {
     // The edit form submits the whole asset, so saving without touching the value
     // would otherwise append a duplicate on every visit and bury the real changes.
+    assetsFindOne.mockImplementation(() => ({ exec: async () => existingDoc(1000) }));
     const { result } = renderHook(() => useAssetRepository());
     await waitFor(() => expect(result.current.updateAsset).toBeTruthy());
 
@@ -138,6 +144,19 @@ describe('asset amount history is recorded', () => {
 
     expect(patch).toHaveBeenCalled();
     expect(eventsInsert).not.toHaveBeenCalled();
+  });
+
+  // Re-importing the same backup must overwrite in place, not insert a second
+  // copy: the id already exists, and insert would throw CONFLICT per row.
+  it('updates an existing asset in place instead of inserting a duplicate', async () => {
+    assetsFindOne.mockImplementation(() => ({ exec: async () => existingDoc(1000) }));
+    const { result } = renderHook(() => useAssetRepository());
+    await waitFor(() => expect(result.current.addAsset).toBeTruthy());
+
+    await result.current.addAsset(asset(1200));
+
+    expect(patch).toHaveBeenCalled();
+    expect(assetsInsert).not.toHaveBeenCalled();
   });
 
   it('does not fail the asset save when recording history throws', async () => {

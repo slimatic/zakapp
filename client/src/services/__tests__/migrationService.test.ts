@@ -34,9 +34,64 @@ describe('MigrationService Client-Side', () => {
             const adapted = MigrationService.adaptAssets(raw, userId);
             expect(adapted[0].type).toBe(AssetType.OTHER);
         });
+
+        // A backup carries the asset's own zakat treatment. Defaulting these on
+        // import silently restored every asset at the full rate, so a partial-rate
+        // holding came back worth more than the user had set it to.
+        it('preserves a partial calculationModifier', () => {
+            const raw = [{ id: 'a1', name: 'Brokerage', type: 'INVESTMENT_ACCOUNT', value: 1000, calculationModifier: 0.3 }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].calculationModifier).toBe(0.3);
+        });
+
+        it('preserves a zero modifier', () => {
+            const raw = [{ id: 'a2', name: 'Pension', type: 'RETIREMENT', value: 1000, calculationModifier: 0 }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].calculationModifier).toBe(0);
+        });
+
+        it('defaults calculationModifier to 1.0 only when absent', () => {
+            const raw = [{ id: 'a3', name: 'Cash', type: 'CASH', value: 100 }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].calculationModifier).toBe(1.0);
+        });
+
+        it('preserves the passive and restricted flags', () => {
+            const raw = [{ id: 'a4', name: 'Fund', type: 'INVESTMENT_ACCOUNT', value: 500, isPassiveInvestment: true, isRestrictedAccount: true }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].isPassiveInvestment).toBe(true);
+            expect(adapted[0].isRestrictedAccount).toBe(true);
+        });
+
+        it('preserves an inactive asset rather than reactivating it', () => {
+            const raw = [{ id: 'a5', name: 'Closed', type: 'CASH', value: 0, isActive: false }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].isActive).toBe(false);
+        });
+
+        it('preserves asset notes', () => {
+            const raw = [{ id: 'a6', name: 'Land', type: 'REAL_ESTATE', value: 100, notes: 'bought with family' }];
+            const adapted = MigrationService.adaptAssets(raw, userId);
+            expect(adapted[0].notes).toBe('bought with family');
+        });
+
     });
 
     describe('adaptLiabilities', () => {
+        // The wealth calculator deducts `deductibleAmount`, not `amount`, so a
+        // dropped deductible re-deducts a long-term balance in full.
+        it('preserves the deductible amount', () => {
+            const raw = [{ id: 'l1', name: 'Loan', amount: 10000, deductibleAmount: 2500 }];
+            const adapted = MigrationService.adaptLiabilities(raw, userId);
+            expect(adapted[0].deductibleAmount).toBe(2500);
+        });
+
+        it('falls back to the full amount when no deductible is set', () => {
+            const raw = [{ id: 'l2', name: 'Card', amount: 400 }];
+            const adapted = MigrationService.adaptLiabilities(raw, userId);
+            expect(adapted[0].deductibleAmount).toBe(400);
+        });
+
         it('should adapt raw liabilities correctly', () => {
             const raw = [{ name: 'Mortgage', amount: 50000, type: 'loan' }];
             const adapted = MigrationService.adaptLiabilities(raw, userId);
@@ -62,6 +117,39 @@ describe('MigrationService Client-Side', () => {
     });
 
     describe('adaptUserSettings', () => {
+        // The display currency is a presentation choice. Changing it must not
+        // touch stored amounts, so the round trip has to carry both the code and
+        // the per-record rate rather than relabelling or flattening them.
+        it('preserves the record currency code rather than assuming one', () => {
+            const raw = [{ id: 'a9', name: 'Cash', type: 'CASH', value: 1000, currency: 'IDR' }];
+            expect(MigrationService.adaptAssets(raw, userId)[0].currency).toBe('IDR');
+        });
+
+        it('preserves a payment currency and the rate it was converted at', () => {
+            const raw = [{ id: 'p9', amount: 500, currency: 'IDR', exchangeRate: 0.000064, paymentDate: '2026-03-01T00:00:00.000Z' }];
+            const out = MigrationService.adaptPayments(raw, userId)[0];
+            expect(out.currency).toBe('IDR');
+            expect(out.exchangeRate).toBe(0.000064);
+        });
+
+        it('defaults a payment rate to 1.0 only when the backup has none', () => {
+            const raw = [{ id: 'p10', amount: 500, currency: 'USD', paymentDate: '2026-03-01T00:00:00.000Z' }];
+            expect(MigrationService.adaptPayments(raw, userId)[0].exchangeRate).toBe(1.0);
+        });
+
+        // A non-zero adjustment shifts every Hijri date the app displays, so it
+        // must survive the round trip rather than resetting to 0.
+        it('preserves the hijri adjustment', () => {
+            const adapted = MigrationService.adaptUserSettings({ profileName: 'p', hijriAdjustment: 1 }, userId);
+            expect(adapted.hijriAdjustment).toBe(1);
+        });
+
+        it('preserves the name fields', () => {
+            const adapted = MigrationService.adaptUserSettings({ firstName: 'A', lastName: 'B' }, userId);
+            expect(adapted.firstName).toBe('A');
+            expect(adapted.lastName).toBe('B');
+        });
+
         it('should adapt user settings correctly', () => {
             const raw = {
                 preferredCalendar: 'hijri',
