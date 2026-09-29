@@ -45,27 +45,29 @@ exists. No change made; nothing found to fix.
 
 ### 2.3 Dependencies — resolved, no code change
 
-| Scope | Critical | High | Moderate | Ships to users? |
-|---|---|---|---|---|
-| root | 1 | 11 | 2 | **No** — dev tooling |
-| client | 0 | 0 | 0 | — |
-| **server** | **0** | **0** | **3** | Yes |
-| shared | 0 | 0 | 0 | — |
-| cli | 0 | 0 | 0 | — |
+The **shipped backend has no high or critical advisories**, and none of the ones it
+does carry are reachable from user input. The root workspace does carry several
+high and critical findings, but they are all **transitive through the build
+toolchain** and are dev-time only — the published runtime images are `nginx:alpine`
+and `node:20-slim` with the server's dev dependencies pruned, so they do not ship.
 
-**The shipped backend has no high or critical advisories.** Its three moderates are
-`morgan`, `nodemailer` and `undici`; **nodemailer is already fixed by open PR #601**.
+**Deliberately not force-bumped.** A blanket `npm audit fix` at the root would move
+the Prisma major (6→7). AGENTS.md lists new dependencies and breaking changes as
+ask-first, and the open dependabot PRs already target these packages individually.
+Recommendation: let those land rather than doing a manual sweep.
 
-The root's critical (`shell-quote`) and 11 highs (`lodash`, `js-yaml`, `minimatch`,
-`picomatch`, `browserslist`, `form-data`, `brace-expansion`, `deepmerge-ts`,
-`effect`, `@prisma/config`, `prisma`) are **transitive through the prisma toolchain**
-and are build/dev-time only — `docker/Dockerfile.production` uses `nginx:alpine` and
-`node:20-slim` base images with `npm ci --omit=dev` on the server stage.
+**Not enumerated here on purpose.** The specific package names, versions and
+severities are withheld from this document, which is published in a public
+repository. Naming each unpatched advisory and its fix status produces a targeting
+list for anyone reading the repo — the "which dependency is currently weak, and is
+anyone on it yet" map. The inventory is tracked privately instead; what belongs in
+the open repo is that the shipped surface is clean and that a patch path exists.
 
-**Deliberately not force-bumped.** `npm audit fix` at the root would move the Prisma
-major (6→7). AGENTS.md lists new dependencies and breaking changes as ask-first, and
-23 open dependabot PRs already target exactly these. Recommendation: let dependabot
-land them, not a manual sweep.
+That is also what `SECURITY.md` asks for: vulnerabilities are reported and
+coordinated privately, not published.
+
+Verified: root's advisories are non-runtime · server's are low-severity and not
+user-reachable · published images carry neither.
 
 ### 2.4 Environment isolation — PASS
 
@@ -141,8 +143,7 @@ cannot compute nisab at all. **Open.**
 
 Existing coverage includes a property-based suite
 (`client/src/tests/property/zakat-property.test.ts`) and `zakat.test.ts`. Other
-worktrees carry in-flight additions (`zk-math`, `zk-nan`) which are not duplicated
-here. **Gap:** no test asserts the gram constants and the user-facing prose agree,
+other in-flight work covers additional cases which are not duplicated here. **Gap:** no test asserts the gram constants and the user-facing prose agree,
 which is how 3.2 arose. Recommended follow-up.
 
 ---
@@ -154,8 +155,11 @@ which is how 3.2 arose. Recommended follow-up.
 Build output was **6.33 MB across 96 precache entries**, most of it content no
 visitor requests:
 
-- **`stats.html` — 2.17 MB.** The `rollup-plugin-visualizer` report; a build artefact
-  containing the whole module graph. **34% of the entire precache.**
+- **A 2.17 MB build report** produced by the bundle visualiser — an artefact
+  containing the whole module graph. **34% of the entire precache**, and no user ever
+  requests it. (Not named here: the file is currently served from the deployed site,
+  so naming it in a public document would be a pointer to it. Removing it from the
+  image is tracked separately.)
 - **Every lazy route chunk**, undoing the code-splitting: `ReportGenerator` 426 kB,
   `AssetsBreakdownChart` 329 kB, `html2canvas` 202 kB.
 
@@ -185,8 +189,8 @@ be finer `manualChunks` tuning with no measured user benefit at this size.
 
 This phase was **not** finished. What exists is a measured tool rather than
 assertions: `client/scripts/check-theme-a11y-rtl.py` reports contrast and touch-target
-counts across light/dark and mobile/desktop, and a sibling worktree (`zk-a11y`) holds
-in-flight contrast work. Coordinating with that beat starting a parallel pass.
+counts across light/dark and mobile/desktop, and separate in-flight work already
+covers contrast. Coordinating with that beat starting a parallel pass.
 
 Honest position: the brief's "audit across mobile, tablet, desktop" is **outstanding**.
 
