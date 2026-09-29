@@ -126,7 +126,7 @@ Unifying them is likewise a scholar decision, not a refactor.
 static, so they are stale by construction whenever used. Silver also disagreed with
 the server's own logged fallback (0.8 vs 0.75).
 
-The honest fix is to **refuse to calculate and say so** rather than silently using a
+The correct fix is to **refuse to calculate and say so** rather than silently using a
 years-old price. That is a product decision, so instead: the two values now live in
 one place with the staleness warned at the constant.
 
@@ -281,23 +281,25 @@ production build succeeds · precache manifest inspected directly · PR #602.
 
 ---
 
-## 7. Method note
+## 7. Traps encountered
 
-Every number above was measured in this session rather than carried forward, and
-several first drafts were wrong:
+Recorded because each one looks like the obvious move and is wrong:
 
-- A `***` in tool output that looked like a **hardcoded API key** was a redaction
-  artefact — it was the *type annotation* `apiKey: string`. No key is hardcoded.
-- A precache reduction that looked like a clean win **broke offline boot** until the
-  entry chunk was restored. The better number was the worse change.
-- Three claims about the Dockerfile were **all false** on first writing: "6-stage"
-  (there are 5 `FROM` stages), "non-root `USER`" (there is no `USER` directive —
-  privileges are dropped by `setpriv` in the entrypoint instead), and
-  "`npm ci --omit=dev`" (the build runs plain `npm install` with no pruning). Each
-  was corrected against the file rather than left standing.
-- The `prisma` prune looked like a straight win until grepping the entrypoint showed
-  `npx prisma migrate deploy` runs at container start — pruning first would have
-  broken migrations.
-
-The pattern worth keeping: **a plausible number is not a measured one**, and the
-instrument fails silently in the same direction every time.
+- **A `***` in a scan is not always a secret.** A dependency report rendered the
+  *type annotation* `apiKey: string` as `apiKey: ***`, which reads as a hardcoded
+  credential. It is a redaction artefact in the reporting tool, not a leak. Confirm
+  by reading the source line, not the scan output.
+- **A smaller precache is not automatically a safer one.** Excluding
+  `assets/index-*.js` removed the entry chunk and cut the manifest sharply — and left
+  no JavaScript precached at all, so the app could not boot offline. Check the
+  generated manifest for the entry chunk before accepting a size win.
+- **Read the Dockerfile before describing it.** Three properties that are easy to
+  assume from its shape are all false here: it has 5 `FROM` stages (not 6), there is
+  no `USER` directive (privileges are dropped by `setpriv` in `entrypoint.sh`, see
+  5.1), and the build runs plain `npm install` with no pruning.
+- **`npm prune` on the server tree breaks migrations unless `prisma` moves first.**
+  `prisma` is a devDependency, but `entrypoint.sh` runs `npx prisma migrate deploy`
+  at container start. Pruning before reclassifying it removes the CLI from the
+  runtime image, and the failure surfaces on the next deploy rather than in CI.
+- **A grep for a number is not a check of what computes it.** The nisab drift was
+  invisible to every test because each side produced a *valid* threshold — see §3.

@@ -100,8 +100,8 @@ RUN cd server && npm run build
 #     retained anyway: typescript — something in the production tree still pulls it,
 #                      so expect it to stay rather than assuming the prune is total
 #
-# The 129 MB is the honest figure, not the whole node_modules size: most of it is
-# runtime packages such as the better-sqlite3 native binary, which must stay.
+# The saving is 129 MB, not the whole node_modules size: the rest is runtime code
+# such as the better-sqlite3 native binary, which has to stay.
 RUN cd server && npm prune --omit=dev
 
 # ----------------------------------------
