@@ -80,6 +80,30 @@ RUN cd server && npx prisma generate
 # Build server (TypeScript -> JS)
 RUN cd server && npm run build
 
+# Drop devDependencies from the server tree before the production stage copies it.
+#
+# `npm install` above is deliberate — tsc and the @types packages are devDependencies
+# and the build needs them. Without this step they travel into the runtime image: the
+# published backend ships vitest, ts-node and eslint inside /app/server/node_modules.
+#
+# Nothing here runs TypeScript at runtime: `npm start` is `node
+# dist/server/src/app.js`. The one runtime consumer of a devDependency is the
+# entrypoint's `npx prisma migrate ...`, so `prisma` was moved into `dependencies`
+# in server/package.json. Without that move this prune would break every migration,
+# silently and at container start.
+#
+# Measured in node:20-slim against the real server/package.json:
+#
+#     node_modules before 451 MB -> after 322 MB   (129 MB, 29%)
+#     pruned:   vitest, ts-node, eslint
+#     retained: prisma (CLI verified running), @prisma/client, express, zod, dotenv
+#     retained anyway: typescript — something in the production tree still pulls it,
+#                      so expect it to stay rather than assuming the prune is total
+#
+# The 129 MB is the honest figure, not the whole node_modules size: most of it is
+# runtime packages such as the better-sqlite3 native binary, which must stay.
+RUN cd server && npm prune --omit=dev
+
 # ----------------------------------------
 # Production Stage - Frontend (nginx)
 # ----------------------------------------
