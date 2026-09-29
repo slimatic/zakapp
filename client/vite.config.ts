@@ -91,7 +91,40 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff}'],
+          // Precache the shell and its immediate dependencies, and nothing else
+          // large.
+          //
+          // The default here was '**/*.{js,css,html,...}', which pulled two things
+          // that have no business in a user's cache:
+          //
+          //   - `stats.html` (2.17 MB), the rollup-plugin-visualizer report. It is a
+          //     build artefact containing the whole module graph, it was 34% of the
+          //     entire precache, and no user ever requests it. It is also excluded
+          //     from the deployment below.
+          //   - every code-split route chunk, even though the router loads them
+          //     lazily. ReportGenerator alone is 426 kB, the dashboard chart 329 kB
+          //     and html2canvas 202 kB, and the majority of visitors open neither a
+          //     report nor a chart. Those are now fetched on first use and cached by
+          //     the hashed-JS runtime rule below.
+          //
+          // The entry chunk, the CSS and index.html STAY: without them the app
+          // cannot boot in airplane mode, which is the point of precaching at all.
+          // Excluding `assets/index-*` is the tempting way to shrink this number and
+          // it silently trades offline capability for a smaller manifest.
+          globPatterns: ['**/*.{js,css,ico,svg,woff2,woff}', 'index.html'],
+          globIgnores: [
+            // Dev artefact, not a user-facing page. Excluded from the image too.
+            'stats.html',
+            'crypto-test.html',
+            // Code-split routes: loaded on demand, then cached by the runtime rule.
+            'assets/ReportGenerator-*.js',
+            'assets/html2canvas*.js',
+            'assets/AssetsBreakdownChart-*.js',
+            'assets/AnalyticsPage-*.js',
+            'assets/PaymentCard-*.js',
+            'assets/NisabYearRecordsPage-*.js',
+            'assets/AdminDashboard-*.js',
+          ],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
           // Issue #383: web-push handlers live in public/push-sw.js and are
           // pulled into THIS generated worker. workbox stays in generateSW
@@ -174,6 +207,34 @@ export default defineConfig(({ mode }) => {
                 expiration: {
                   maxEntries: 10,
                   maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            // Hashed build chunks — cache-first.
+            //
+            // This is what makes it safe to keep code-split chunks OUT of the
+            // precache manifest: a route's chunk is fetched the first time that route
+            // is opened and cached here, so the second visit is served locally and
+            // offline still works for any page the user has actually visited.
+            //
+            // CacheFirst is correct only because these filenames contain a content
+            // hash — the same URL can never return different bytes, so a stale copy is
+            // impossible. Do NOT widen this pattern to unhashed files such as sw.js or
+            // index.html; see the note on the shell above.
+            //
+            // maxEntries is generous so a full session's route chunks stay resident,
+            // while still bounding the cache on a device that only ever visits a few.
+            {
+              urlPattern: /\/assets\/.*\.js$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'zakapp-chunks',
+                expiration: {
+                  maxEntries: 60,
+                  maxAgeSeconds: 60 * 60 * 24 * 90, // 90 days
                 },
                 cacheableResponse: {
                   statuses: [0, 200],
