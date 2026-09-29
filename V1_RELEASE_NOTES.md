@@ -251,16 +251,73 @@ win, and 129 MB is the figure that counts, not the whole 417 MB.
    and a clean baseline first — **deferred, not skipped.** Doing it blind would either
    fail CI on thousands of pre-existing issues or need rules disabled to pass, which
    is worse than no gate.
+
+   **Now measured, so the scope is a number rather than a worry.** A trial config was
+   run against `client/src` using only packages already in `client/devDependencies`
+   (`eslint` 9, `@typescript-eslint/*`, `eslint-plugin-react`, `eslint-plugin-react-hooks`,
+   `globals`) — no new dependency is needed for this:
+
+   - **2052 errors with a naive config**, which is the number that makes the task look
+     impossible. It is wrong: 1354 of them are `no-undef`.
+   - `no-undef` is the documented typescript-eslint false positive — it cannot see
+     type-only references (`NisabRecord`, `JsonWebKey`) or the vitest globals, so it
+     reports correct code as undefined. With it off (as typescript-eslint advises, since
+     `tsc` is authoritative) and browser/node/test globals declared:
+   - **698 errors across 168 files.** Of those, **497 are in source, 201 in tests.**
+   - The distribution is the important part: **503 are `no-explicit-any`** (352 source,
+     151 test) — a style rule, and turning it off is a legitimate config choice rather
+     than a silent weakening. The remainder is mostly mechanical: 73 unused vars, 61
+     `react/no-unescaped-entities`, 25 `ban-ts-comment`.
+   - **Only ~30 are bug-class**, and a spot check shows even those are not all defects:
+     the sole `use-isnan` is `expect(153950.33 >= NaN).toBe(false)` in
+     `nisabPayloadShape.test.ts` — a test that deliberately documents why the NaN bug
+     produced `$0.00` instead of an error. The genuine findings are 13
+     `set-state-in-effect`, 2 `no-case-declarations`, and one each of
+     `rules-of-hooks`, `no-empty`, `no-extra-boolean-cast`, `no-useless-escape`.
+
+   So the gate is tractable but is not a one-line CI addition: it needs a config, a
+   decision on `no-explicit-any`, and a burn-down of the mechanical remainder. The
+   ~30 bug-class findings are worth fixing on their own merits, independently of
+   whether the gate lands.
 2. **23 open dependabot PRs.** Triage and land them before the v1.0 tag.
 
 ### Remaining before v1.0
 
-- [ ] **Scholar ruling on the nisab grams question** (3.2) — the only blocker that is not engineering
-- [ ] Client lint gate + ESLint config (5.2)
-- [ ] Responsive / touch-target pass (4.3)
-- [ ] `useNisabThreshold` local fallback (3.3)
-- [ ] Land the 23 dependabot PRs
-- [ ] Decide the fate of the unused server calculation path (2.1)
+- [x] **`useNisabThreshold` local fallback** (3.3) — falls back to `DEFAULT_NISAB_DATA`
+      when the API cannot be reached, flagged by `isFallback` + `isStale` so the figure
+      is never presented as a live rate. `retryDelay` also drops 5000 → 1500 ms: an
+      offline user previously waited 2 x 5 s before the fallback appeared.
+- [x] **Bundle report and dev diagnostic pages removed from the deployment** — see 5.3.
+- [ ] **Responsive / touch-target pass** (4.3) — still the largest untested surface
+- [ ] **Land the 23 dependabot PRs**
+- [ ] **Decide the fate of the unused server calculation path** (2.1)
+- [ ] **Confirm the default nisab convention** (3.2) — no longer a blocker. Both
+      conventions ship and the default preserves existing behaviour, so this is now a
+      confirmation that `islamicConstants.ts` holds the intended standard, not a
+      precondition for the release. Still a scholar question, to put to the teachers
+      when convenient rather than before the tag.
+
+### 5.3 Deployment surface — FIXED
+
+The Dockerfile copies all of `client/dist` to the nginx web root, and nginx serves it
+with `try_files $uri /index.html` over a catch-all `location /`. Anything present in
+`dist` is therefore publicly fetchable at `app.zakapp.org/<name>`, whether or not a page
+links to it. Three such files were confirmed live (HTTP 200):
+
+| Path | Why it should not ship |
+|---|---|
+| `stats.html` | `rollup-plugin-visualizer` report, 2.11 MB, the complete module graph |
+| `crypto-test.html` | POSTs to `/api/auth/register` with a fixed password and prints the response; a public account-creation endpoint when served from production |
+| `clear-storage.html` | Decodes and displays the `localStorage` `accessToken` in plain text |
+
+All three are removed from the build: the report now writes to `client/build-report/`
+outside `dist`, and the two dev pages are deleted (the crypto diagnostic is covered by
+`test-crypto.sh` from a local checkout).
+
+Worth noting for anyone auditing this next: the comment above the workbox config
+claimed `stats.html` was "excluded from the deployment", but no such exclusion existed.
+`globIgnores` affects only the precache manifest, not what the Dockerfile copies. A
+comment asserting a control is not the control.
 
 ---
 
