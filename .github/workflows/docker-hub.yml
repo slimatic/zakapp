@@ -42,7 +42,7 @@ jobs:
 
       - name: Extract metadata for frontend
         id: meta-frontend
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE_NAME_FRONTEND }}
           tags: |
@@ -103,7 +103,7 @@ jobs:
 
       - name: Extract metadata for backend
         id: meta-backend
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE_NAME_BACKEND }}
           tags: |
