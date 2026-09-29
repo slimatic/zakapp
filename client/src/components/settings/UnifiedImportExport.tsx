@@ -28,6 +28,8 @@ import { MigrationService } from '../../services/migrationService';
 import { findEncryptedLeaks } from '../../utils/parseDecimal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDataCleanup } from '../../hooks/useDataCleanup';
+import { useDb } from '../../db';
+import { getQuota } from '../../hooks/useRepositoryLimits';
 import { Modal } from '../ui/Modal';
 
 export const UnifiedImportExport: React.FC = () => {
@@ -44,10 +46,13 @@ export const UnifiedImportExport: React.FC = () => {
         liabilities: number;
         calculations: number;
         settings: boolean;
-        errors: string[]
+        errors: string[];
+        /** Rows the file held that did not fit, named per category. */
+        skipped: string[];
     } | null>(null);
 
     const { user } = useAuth();
+    const db = useDb();
     const { assets, addAsset } = useAssetRepository();
     const { payments, bulkAddPayments } = usePaymentRepository();
     const { records: nisabRecords, bulkAddRecords } = useNisabRecordRepository();
@@ -135,13 +140,62 @@ export const UnifiedImportExport: React.FC = () => {
                 const errors: string[] = [];
                 let assetCount = 0;
                 let paymentCount = 0;
+                const skipped: string[] = [];
 
                 const targetUserId = user?.id || 'local-user';
+
+                // Assets are the one category that inserts rather than upserts: an id
+                // the account does not hold becomes a NEW row, so restoring a file
+                // whose ids do not match what is already stored ADDS a second set and
+                // roughly doubles net worth, with nothing on screen to explain it.
+                // Count the overlap first and say so before writing anything.
+                if (rawData.assets && Array.isArray(rawData.assets) && db) {
+                    const incomingIds = rawData.assets.map((a: any) => a.id).filter(Boolean);
+                    const stored = await db.assets
+                        .find({ selector: { userId: { $eq: targetUserId } } })
+                        .exec();
+                    const storedIds = new Set(stored.map((d: any) => d.get('id')));
+                    const overlap = incomingIds.filter((id: string) => storedIds.has(id)).length;
+
+                    // Only meaningful when the account already holds rows and none of
+                    // the incoming ids are among them: a re-import of the same file
+                    // updates in place, which is the case the ids exist to serve.
+                    if (storedIds.size > 0 && incomingIds.length > 0 && overlap === 0) {
+                        toast.error(
+                            `This backup does not match the ${storedIds.size} assets already here. ` +
+                            `Importing it would add a second set and about double your net worth. ` +
+                            `Clear your data first (Danger Zone below), then import.`,
+                            { duration: 15000 }
+                        );
+                        setStats(null);
+                        setImporting(false);
+                        e.target.value = '';
+                        return;
+                    }
+                }
 
                 // 1. Migrate Assets
                 if (rawData.assets && Array.isArray(rawData.assets)) {
                     const cleanAssets = MigrationService.adaptAssets(rawData.assets, targetUserId);
-                    const results = await Promise.allSettled(cleanAssets.map(a => addAsset(a)));
+
+                    // `addAsset` refuses per row once the limit is reached, so a
+                    // 25 asset file against a 20 asset limit imported 20 and reported
+                    // 5 errors. Take what fits and name what did not, rather than
+                    // letting the row-level refusal look like a failure.
+                    const quota = db
+                        ? await getQuota('assets', db.assets, user, targetUserId)
+                        : { max: undefined, used: 0, remaining: Infinity };
+                    const accepted = quota.remaining === Infinity
+                        ? cleanAssets
+                        : cleanAssets.slice(0, quota.remaining);
+                    if (accepted.length < cleanAssets.length) {
+                        skipped.push(
+                            `${cleanAssets.length - accepted.length} assets — your limit is ${quota.max} ` +
+                            `and you already hold ${quota.used}. Remove some, then import this file again.`
+                        );
+                    }
+
+                    const results = await Promise.allSettled(accepted.map(a => addAsset(a)));
 
                     results.forEach(res => {
                         if (res.status === 'fulfilled') assetCount++;
@@ -157,8 +211,11 @@ export const UnifiedImportExport: React.FC = () => {
                     const cleanPayments = MigrationService.adaptPayments(rawData.payments, targetUserId, defaultSnapshotId);
 
                     try {
-                        await bulkAddPayments(cleanPayments);
-                        paymentCount += cleanPayments.length;
+                        const outcome = await bulkAddPayments(cleanPayments);
+                        paymentCount += outcome.saved;
+                        if (outcome.skipped > 0) {
+                            skipped.push(`${outcome.skipped} payments — see the assets note above.`);
+                        }
                     } catch (err: any) {
                         errors.push(`Payment Batch Error: ${err.message}`);
                     }
@@ -169,8 +226,11 @@ export const UnifiedImportExport: React.FC = () => {
                 if (rawData.nisabRecords && Array.isArray(rawData.nisabRecords)) {
                     try {
                         const cleanRecords = MigrationService.adaptNisabRecords(rawData.nisabRecords, targetUserId);
-                        await bulkAddRecords(cleanRecords);
-                        nisabCount += cleanRecords.length;
+                        const outcome = await bulkAddRecords(cleanRecords);
+                        nisabCount += outcome.saved;
+                        if (outcome.skipped > 0) {
+                            skipped.push(`${outcome.skipped} annual records — see the assets note above.`);
+                        }
                     } catch (err: any) {
                         errors.push(`Nisab Record Batch Error: ${err.message}`);
                     }
@@ -181,8 +241,11 @@ export const UnifiedImportExport: React.FC = () => {
                 if (rawData.liabilities && Array.isArray(rawData.liabilities)) {
                     try {
                         const cleanLiabilities = MigrationService.adaptLiabilities(rawData.liabilities, targetUserId);
-                        await bulkAddLiabilities(cleanLiabilities);
-                        liabilityCount += cleanLiabilities.length;
+                        const outcome = await bulkAddLiabilities(cleanLiabilities);
+                        liabilityCount += outcome.saved;
+                        if (outcome.skipped > 0) {
+                            skipped.push(`${outcome.skipped} liabilities — see the assets note above.`);
+                        }
                     } catch (err: any) {
                         errors.push(`Liability Batch Error: ${err.message}`);
                     }
@@ -207,11 +270,20 @@ export const UnifiedImportExport: React.FC = () => {
                     liabilities: liabilityCount,
                     calculations: 0,
                     settings: settingsRestored,
-                    errors
+                    errors,
+                    skipped
                 });
 
-                if (errors.length === 0) {
+                if (skipped.length > 0) {
+                    toast(
+                        `Imported what fits. ${skipped.join(' ')}`,
+                        { icon: '⚠️', duration: 14000 }
+                    );
+                } else if (errors.length === 0) {
                     toast.success(`Successfully restored all data collections.`);
+                }
+
+                if (errors.length === 0) {
                     // The plaintext file on disk is now redundant, and it is the most
                     // exposed copy of this data that exists. Say so while the user is
                     // still in the flow.
@@ -226,7 +298,7 @@ export const UnifiedImportExport: React.FC = () => {
             } catch (err: any) {
                 console.error('Import parse error', err);
                 toast.error('Failed to parse backup file');
-                setStats({ assets: 0, payments: 0, nisabRecords: 0, liabilities: 0, calculations: 0, settings: false, errors: [err.message] });
+                setStats({ assets: 0, payments: 0, nisabRecords: 0, liabilities: 0, calculations: 0, settings: false, errors: [err.message], skipped: [] });
             } finally {
                 setImporting(false);
                 e.target.value = '';
@@ -325,6 +397,17 @@ export const UnifiedImportExport: React.FC = () => {
                                             <ul className="list-disc ps-4 space-y-1">
                                                 {stats.errors.map((e, i) => <li key={i}>{e}</li>)}
                                             </ul>
+                                        </div>
+                                    )}
+                                    {stats.skipped && stats.skipped.length > 0 && (
+                                        <div className="mt-2 text-xs text-warn-strong">
+                                            <p className="font-semibold mb-1">Not imported:</p>
+                                            <ul className="list-disc ps-4 space-y-1">
+                                                {stats.skipped.map((s, i) => <li key={i}>{s}</li>)}
+                                            </ul>
+                                            <p className="mt-1">
+                                                These rows are still in your file. Free the space, then import it again.
+                                            </p>
                                         </div>
                                     )}
                                 </div>

@@ -21,6 +21,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { switchMap } from 'rxjs/operators';
 import { cryptoService } from '../services/CryptoService';
 import { Liability } from '../types';
+import { getQuota, limitMessage } from './useRepositoryLimits';
 
 export function useLiabilityRepository() {
     const db = useDb();
@@ -94,8 +95,9 @@ export function useLiabilityRepository() {
         if (!db) throw new Error('Database not initialized');
         if (!user || !user.id) throw new Error('User not authenticated');
 
-        if (user.maxLiabilities !== undefined && liabilities.length >= user.maxLiabilities) {
-            throw new Error(`Liability limit of ${user.maxLiabilities} reached. Please delete some liabilities or upgrade your plan.`);
+        const quota = await getQuota('liabilities', db.liabilities, user, user.id);
+        if (quota.remaining <= 0 && quota.max !== undefined) {
+            throw new Error(limitMessage('liabilities', quota.max));
         }
 
         const newLiability = {
@@ -112,9 +114,20 @@ export function useLiabilityRepository() {
         return db.liabilities.insert(newLiability);
     };
 
+    /**
+     * Batch insert for migration/import. Takes only what the account has room
+     * for and reports the rest as skipped; see bulkAddPayments for the reasoning.
+     */
     const bulkAddLiabilities = async (liabilitiesToAdd: Partial<Liability>[]) => {
         if (!db) throw new Error('Database not initialized');
-        const refinedLiabilities = liabilitiesToAdd.map(l => ({
+        if (!user || !user.id) throw new Error('User not authenticated');
+
+        const quota = await getQuota('liabilities', db.liabilities, user, user.id);
+        const [accepted, skipped] = quota.remaining === Infinity
+            ? [liabilitiesToAdd, []]
+            : [liabilitiesToAdd.slice(0, quota.remaining), liabilitiesToAdd.slice(quota.remaining)];
+
+        const refinedLiabilities = accepted.map(l => ({
             ...l,
             id: l.id || crypto.randomUUID(),
             userId: l.userId || user?.id || 'local-user',
@@ -129,7 +142,7 @@ export function useLiabilityRepository() {
             console.error('Liability Import Errors:', result.error);
             throw new Error(`${result.error.length} liabilities failed validation`);
         }
-        return result;
+        return { saved: accepted.length, skipped: skipped.length, result };
     };
 
     const removeLiability = async (id: string) => {

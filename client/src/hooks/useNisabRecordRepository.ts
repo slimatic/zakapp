@@ -21,6 +21,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { switchMap } from 'rxjs/operators';
 import { NisabYearRecord } from '../types/nisabYearRecord';
 import { cryptoService } from '../services/CryptoService';
+import { getQuota, limitMessage } from './useRepositoryLimits';
 
 /**
  * Hook for managing Nisab Year Records in the local database.
@@ -106,15 +107,9 @@ export function useNisabRecordRepository() {
         if (!db) throw new Error('Database not initialized');
         if (!user || !user.id) throw new Error('User not authenticated');
 
-        // Check Resource Limits (Client-Side)
-        if (typeof user.maxNisabRecords === 'number') {
-            const currentCount = await db.nisab_year_records.find({
-                selector: { userId: { $eq: user.id } }
-            }).exec().then((docs: any[]) => docs.length);
-
-            if (currentCount >= user.maxNisabRecords) {
-                throw new Error(`Record limit reached. You can create a maximum of ${user.maxNisabRecords} annual records.`);
-            }
+        const quota = await getQuota('nisabRecords', db.nisab_year_records, user, user.id);
+        if (quota.remaining <= 0 && quota.max !== undefined) {
+            throw new Error(limitMessage('nisabRecords', quota.max));
         }
 
         const newRecord = {
@@ -148,9 +143,20 @@ export function useNisabRecordRepository() {
         }
     };
 
+    /**
+     * Batch insert for migration/import. Takes only what the account has room
+     * for and reports the rest as skipped; see bulkAddPayments for the reasoning.
+     */
     const bulkAddRecords = async (recordsToAdd: Partial<NisabYearRecord>[]) => {
         if (!db) throw new Error('Database not initialized');
-        const refinedRecords = recordsToAdd.map(r => ({
+        if (!user || !user.id) throw new Error('User not authenticated');
+
+        const quota = await getQuota('nisabRecords', db.nisab_year_records, user, user.id);
+        const [accepted, skipped] = quota.remaining === Infinity
+            ? [recordsToAdd, []]
+            : [recordsToAdd.slice(0, quota.remaining), recordsToAdd.slice(quota.remaining)];
+
+        const refinedRecords = accepted.map(r => ({
             ...r,
             id: r.id || crypto.randomUUID(),
             userId: r.userId || 'local-user'
@@ -160,7 +166,7 @@ export function useNisabRecordRepository() {
             console.error('Record Import Errors:', result.error);
             throw new Error(`${result.error.length} records failed validation: ${(result.error[0] as any).message}`);
         }
-        return result;
+        return { saved: accepted.length, skipped: skipped.length, result };
     };
 
     return {
