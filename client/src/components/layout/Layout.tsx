@@ -310,12 +310,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         >
           <div className="space-y-1">{renderNavList(MAIN_NAV)}</div>
 
-          <p className="px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="px-3 pb-1 pt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {tCommon('nav.learn')}
           </p>
           <div className="space-y-1">{renderNavList(LEARN_NAV)}</div>
 
-          <p className="px-3 pb-1 pt-5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="px-3 pb-1 pt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {tCommon('nav.you')}
           </p>
           <div className="space-y-1">{renderNavList(YOU_NAV)}</div>

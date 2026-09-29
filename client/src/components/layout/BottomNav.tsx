@@ -65,7 +65,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
                   {item.icon}
                 </span>
               )}
-              <span className={`text-[10px] font-medium mt-1 truncate max-w-[56px] ${active ? 'font-bold' : ''}`}>
+              <span className={`text-xs font-medium mt-1 truncate max-w-[56px] ${active ? 'font-bold' : ''}`}>
                 {item.name}
               </span>
             </>

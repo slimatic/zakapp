@@ -6,6 +6,8 @@ import { useOnboarding } from '../context/OnboardingContext';
 import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
 import { getMethodology } from '../../../core/calculations/methodology';
 import { getSupportedCurrencies, getCurrencySymbol, formatCurrency as formatCurrencyCanonical } from '../../../utils/formatters';
+import { useDisplayCurrency } from '../../../hooks/useDisplayCurrency';
+import { getNisabStandard } from '../../../core/calculations/nisab';
 
 
 export const IdentityStep: React.FC = () => {
@@ -14,7 +16,15 @@ export const IdentityStep: React.FC = () => {
     const selectedCurrency = data.settings?.currency || 'USD';
 
     // Always fetch Nisab prices in USD for consistent display during onboarding
-    const { goldPrice, silverPrice } = useNisabThreshold('USD', 'SILVER');
+    // Was ('USD', 'SILVER'): a hardcoded currency on a screen shown to every new
+    // user regardless of their locale, and a hardcoded basis.
+    const { currency: onboardingCurrency, nisabStandard: nisabStandardId } = useDisplayCurrency();
+    const nisabStandard = getNisabStandard(nisabStandardId);
+    const { goldPrice, silverPrice } = useNisabThreshold(
+      onboardingCurrency,
+      'SILVER',
+      nisabStandard.id
+    );
 
     const handleMadhabChange = (madhab: 'hanafi' | 'shafii' | 'standard') => {
         updateData('methodology', { madhab });
@@ -153,14 +163,14 @@ export const IdentityStep: React.FC = () => {
                             id: 'silver',
                             title: 'Silver Standard',
                             desc: 'More cautious, benefits the poor.',
-                            gramWeight: 612.36,
+                            gramWeight: nisabStandard.silverGrams,
                             price: silverPrice
                         },
                         {
                             id: 'gold',
                             title: 'Gold Standard',
                             desc: 'Higher threshold.',
-                            gramWeight: 87.48,
+                            gramWeight: nisabStandard.goldGrams,
                             price: goldPrice
                         }
                     ].map((option) => {

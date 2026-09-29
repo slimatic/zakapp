@@ -23,6 +23,7 @@ import { Logger } from '../utils/logger';
 import { getDb } from '../db';
 import { cryptoService } from '../services/CryptoService';
 import { reencryptVault, resolveVaultSalt } from '../services/VaultRekey';
+import { DEFAULT_NISAB_STANDARD } from '../core/calculations/nisab';
 
 
 const logger = new Logger('AuthContext');
@@ -238,6 +239,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   preferredMethodology: localMethodology || decryptedUser.settings?.preferredMethodology || 'standard',
                   preferredCalendar: userDoc.get('preferredCalendar') || decryptedUser.settings?.preferredCalendar || 'gregorian',
                   currency: userDoc.get('baseCurrency') || decryptedUser.settings?.currency || 'USD',
+                  nisabStandard: userDoc.get('nisabStandard') || decryptedUser.settings?.nisabStandard || DEFAULT_NISAB_STANDARD,
                   hijriAdjustment: userDoc.get('hijriAdjustment') ?? decryptedUser.settings?.hijriAdjustment ?? 0
                 },
               };
@@ -336,6 +338,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (updates.settings.preferredCalendar) patchData.preferredCalendar = updates.settings.preferredCalendar;
           if (updates.settings.currency) patchData.baseCurrency = updates.settings.currency;
           if (typeof updates.settings.hijriAdjustment === 'number') patchData.hijriAdjustment = updates.settings.hijriAdjustment;
+          // Nisab gram convention ('tola' | 'aaoifi'). Without this line the value is
+          // dropped by the flattening below and the preference silently never persists.
+          if ((updates.settings as { nisabStandard?: string }).nisabStandard) {
+            patchData.nisabStandard = (updates.settings as { nisabStandard?: string }).nisabStandard;
+          }
 
           // Remove the nested settings object as it violates RxDB schema (VD2 error)
           delete patchData.settings;

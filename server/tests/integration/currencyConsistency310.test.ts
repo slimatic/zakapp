@@ -100,17 +100,17 @@ describe('issue #310 — client call-sites use the user currency', () => {
   const cases: Array<{ file: string; mustMatch: RegExp; label: string }> = [
     {
       file: 'client/src/components/dashboard/ActiveRecordWidget.tsx',
-      mustMatch: /useNisabThreshold\(userCurrency,\s*nisabBasis\)/,
+      mustMatch: /useNisabThreshold\(userCurrency,\s*nisabBasis(?:,\s*[\w.]+)?\)/,
       label: 'ActiveRecordWidget hawl widget',
     },
     {
       file: 'client/src/pages/onboarding/steps/ZakatSetupStep.tsx',
-      mustMatch: /useNisabThreshold\(onboardingCurrency,\s*nisabBasis\)/,
+      mustMatch: /useNisabThreshold\(\s*onboardingCurrency,\s*nisabBasis(?:,\s*[\w.()]+)?\s*\)/,
       label: 'ZakatSetupStep onboarding',
     },
     {
       file: 'client/src/pages/onboarding/steps/MetalsStep.tsx',
-      mustMatch: /useNisabThreshold\(userCurrency,\s*'GOLD'\)/,
+      mustMatch: /useNisabThreshold\(userCurrency,\s*'GOLD'(?:,\s*[\w.]+)?\)/,
       label: 'MetalsStep metal prices',
     },
   ];

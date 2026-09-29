@@ -89,15 +89,23 @@ export const ZakatCalculator: React.FC = () => {
 
       const goldPrice = nisabInfo?.goldPrice || DEFAULT_NISAB_DATA.goldPrice;
       const silverPrice = nisabInfo?.silverPrice || DEFAULT_NISAB_DATA.silverPrice;
-      let nisabValue = calculateNisabThreshold({
+      // Read the gram weights from DEFAULT_NISAB_DATA rather than repeating them.
+      // This file used to carry its own `87.48`/`612.36` — twice, here and again on
+      // the `calculateZakat` call below — which is exactly the duplication nisab.ts
+      // removed a second switch to prevent. Two copies of a threshold is how one of
+      // them silently becomes the wrong number.
+      const nisabValue = calculateNisabThreshold({
         goldPrice,
         silverPrice,
-        goldNisabGrams: 87.48,
-        silverNisabGrams: 612.36
+        goldNisabGrams: DEFAULT_NISAB_DATA.goldNisabGrams,
+        silverNisabGrams: DEFAULT_NISAB_DATA.silverNisabGrams
       }, methodology);
 
       const assetsToCalc = assets.filter(a => selectedAssets.includes(a.id));
-      const result = calculateZakat(assetsToCalc, [], { gold: goldPrice * 87.48, silver: silverPrice * 612.36 }, methodology);
+      const result = calculateZakat(assetsToCalc, [], {
+        gold: goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams,
+        silver: silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams
+      }, methodology);
 
       // Per-asset madhab ruling explanations (transparency engine)
       const assetRulings: Array<{

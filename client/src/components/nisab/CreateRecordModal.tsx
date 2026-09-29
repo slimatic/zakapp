@@ -19,6 +19,8 @@ import { useNisabThreshold } from '../../hooks/useNisabThreshold';
 import { getNisabSource } from '../../core/calculations/nisab';
 import { parseDecimalNumber } from '../../utils/parseDecimal';
 import { formatCurrency } from '../../utils/formatters';
+import { getNisabStandard } from '../../core/calculations/nisab';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 
 export interface CreateRecordModalProps {
   open: boolean;
@@ -64,8 +66,9 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
     () => getNisabSource(methodology ?? 'standard')
   );
   const [creationDate, setCreationDate] = useState<Date>(new Date());
+  const nisabStandard = getNisabStandard(useDisplayCurrency().nisabStandard).id;
 
-  const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
+  const { nisabAmount, nisabStandard: activeStandard } = useNisabThreshold(userCurrency, nisabBasis, nisabStandard);
 
   // Default selection on open
   useEffect(() => {

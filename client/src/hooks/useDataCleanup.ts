@@ -40,6 +40,11 @@ export function useDataCleanup() {
 
             const collections = [
                 db.assets,
+                // History rows carry the asset's id, so leaving them behind after
+                // a wipe orphans them: the asset is gone but its value changes
+                // remain, and they would come back on the next sync as history for
+                // an asset that no longer exists.
+                db.asset_amount_events,
                 db.liabilities,
                 db.payment_records,
                 db.nisab_year_records

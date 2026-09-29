@@ -25,7 +25,7 @@ describe('SyncService', () => {
             mockedAxios.get.mockRejectedValueOnce({ response: { status: 404 } });
             // Mock user creation
             mockedAxios.put.mockResolvedValueOnce({ data: { ok: true } });
-            // Mock database check (404) for all 5 databases
+            // Mock database check (404) for all 6 databases
             mockedAxios.head.mockRejectedValue({ response: { status: 404 } });
             // Mock database creation and security
             mockedAxios.put.mockResolvedValue({ data: { ok: true } });
@@ -33,7 +33,7 @@ describe('SyncService', () => {
             const result = await syncService.ensureUserAndDatabases(userId);
 
             expect(result.username).toBe('user_test_user');
-            expect(result.databases).toHaveLength(5);
+            expect(result.databases).toHaveLength(6);
             expect(mockedAxios.get).toHaveBeenCalledTimes(1);
             expect(mockedAxios.put).toHaveBeenCalled(); // Many puts for DBs and security
         });
@@ -71,8 +71,8 @@ describe('SyncService', () => {
 
             await syncService.deleteUser(userId);
 
-            // 5 databases + 1 user deletion = 6 deletions
-            expect(mockedAxios.delete).toHaveBeenCalledTimes(6);
+            // 6 databases + 1 user deletion = 7 deletions
+            expect(mockedAxios.delete).toHaveBeenCalledTimes(7);
         });
 
         it('should handle already deleted databases gracefully', async () => {

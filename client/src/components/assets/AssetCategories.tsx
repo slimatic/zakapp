@@ -50,20 +50,20 @@ export const AssetCategories: React.FC = () => {
       id: 'gold',
       name: 'Gold',
       description: 'Gold jewelry, coins, bars, and ornaments',
-      zakatRule: 'Zakatable if total weight exceeds 85 grams (7.5 tola) of pure gold',
+      zakatRule: 'Zakatable if total weight exceeds 87.48 grams (7.5 tola) of pure gold',
       icon: '🥇',
       examples: ['Gold jewelry', 'Gold coins', 'Gold bars', 'Gold ornaments'],
-      nisabThreshold: 85, // grams
+      nisabThreshold: 87.48, // grams
       zakatRate: 2.5
     },
     {
       id: 'silver',
       name: 'Silver',
       description: 'Silver jewelry, coins, bars, ornaments, and utensils',
-      zakatRule: 'Zakatable if total weight exceeds 595 grams (52.5 tola) of pure silver',
+      zakatRule: 'Zakatable if total weight exceeds 612.36 grams (52.5 tola) of pure silver',
       icon: '🥈',
       examples: ['Silver jewelry', 'Silver coins', 'Silver bars', 'Silver utensils', 'Ornaments'],
-      nisabThreshold: 595, // grams
+      nisabThreshold: 612.36, // grams
       zakatRate: 2.5
     },
     {
@@ -223,9 +223,9 @@ export const AssetCategories: React.FC = () => {
                   {selectedCategoryData.id === 'cash' && 
                     "Cash and liquid assets are subject to Zakat if they meet the nisab threshold and have been held for one complete lunar year (hawl)."}
                   {selectedCategoryData.id === 'gold' && 
-                    "Gold is mentioned specifically in Islamic texts. The nisab for gold is 20 mithqals (approximately 85 grams of pure gold)."}
+                    "Gold is mentioned specifically in Islamic texts. The nisab for gold is 20 mithqals (approximately 87.48 grams of pure gold)."}
                   {selectedCategoryData.id === 'silver' && 
-                    "Silver nisab is 200 dirhams (approximately 595 grams of pure silver). This is often used as the lower nisab threshold."}
+                    "Silver nisab is 200 dirhams (approximately 612.36 grams of pure silver). This is often used as the lower nisab threshold."}
                   {selectedCategoryData.id === 'business' && 
                     "Business inventory and trade goods are zakatable based on their current market value, not the original purchase price."}
                   {selectedCategoryData.id === 'stocks' && 
