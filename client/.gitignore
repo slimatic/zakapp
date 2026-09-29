@@ -25,3 +25,7 @@ client_test_log.txt
 
 # Self-signed cert for the local TLS preview front (scripts/serve-preview-tls.py)
 .tls/
+
+# Bundle analysis report (rollup-plugin-visualizer). Written by `npm run build`.
+# Deliberately not inside dist/ so it is never deployed.
+build-report/
