@@ -66,6 +66,9 @@ describe('backup plaintext disclosure', () => {
   it('no longer claims to accept only up to v2.0 backups', () => {
     render(<UnifiedImportExport />);
     expect(screen.queryByText(/Accepts legacy v1\.0 and new v2\.0 backups/i)).toBeNull();
-    expect(screen.getByText(/1\.x, 2\.x, 3\.x/i)).toBeInTheDocument();
+    // The range must cover every version the app can write. Asserting the upper
+    // bound specifically, so a future export bump fails here rather than shipping
+    // copy that understates what the importer accepts.
+    expect(screen.getByText(/1\.x[–-]4\.x/i)).toBeInTheDocument();
   });
 });

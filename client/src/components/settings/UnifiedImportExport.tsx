@@ -30,6 +30,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useDataCleanup } from '../../hooks/useDataCleanup';
 import { useDb } from '../../db';
 import { getQuota } from '../../hooks/useRepositoryLimits';
+import { resolveVaultSalt } from '../../services/VaultRekey';
 import { Modal } from '../ui/Modal';
 
 export const UnifiedImportExport: React.FC = () => {
@@ -37,6 +38,19 @@ export const UnifiedImportExport: React.FC = () => {
     const [exporting, setExporting] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [exportedThisSession, setExportedThisSession] = useState(false);
+
+    /**
+     * A file whose asset ids do not match what is stored. Held here rather than
+     * imported, because only the user can say whether the existing rows should be
+     * kept: the file and the account hold the same accounts under different ids, and
+     * nothing in the payload can tell "a second copy" from "the same data, renamed".
+     */
+    const [pendingImport, setPendingImport] = useState<{
+        json: string;
+        fileName: string;
+        stored: number;
+        incoming: number;
+    } | null>(null);
     const { clearAllData, isClearing } = useDataCleanup();
 
     const [stats, setStats] = useState<{
@@ -59,23 +73,33 @@ export const UnifiedImportExport: React.FC = () => {
     const { liabilities, bulkAddLiabilities } = useLiabilityRepository();
     const { settings, updateSettings } = useUserSettingsRepository();
 
-    const handleExport = () => {
+    const handleExport = async () => {
         setExporting(true);
         try {
+            // The salt decides the vault key, and it lives only on the server and in
+            // this browser's localStorage. A backup that omits it cannot be restored
+            // on a new device, which is exactly when a backup is needed — the device
+            // has never seen the salt, so the importer has nothing to derive a key
+            // from and the restored rows stay unreadable. It is not a secret (the
+            // server already returns it in plaintext), so carrying it costs nothing.
+            const salt = await resolveVaultSalt(user?.id ?? '', user as any).catch(() => null);
+
             const data = {
-                // Bumped to 3.0 with the v1.0 release. The importer accepts 1.x,
-                // 2.x and 3.x, so a backup taken on v0.17.0 before upgrading still
-                // restores afterwards. Do not bump this without extending the
-                // importer in the same change.
-                version: "3.0",
+                // Bumped to 4.0 to carry `salt`. The importer reads fields and never
+                // gates on the version, so a 1.x–3.x file still restores; it simply
+                // has no salt, and the user must be on a device that already has one.
+                // Do not bump this without extending the importer in the same change.
+                version: '4.0',
                 exportDate: new Date().toISOString(),
+                salt: salt ?? null,
                 stats: {
                     assets: assets.length,
                     payments: payments.length,
                     nisabRecords: nisabRecords.length,
                     liabilities: liabilities.length,
                     calculations: 0,
-                    hasSettings: !!settings
+                    hasSettings: !!settings,
+                    hasSalt: !!salt
                 },
                 assets,
                 payments,
@@ -122,7 +146,7 @@ export const UnifiedImportExport: React.FC = () => {
         }
     };
 
-    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>, replaceRequested = false) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -144,12 +168,43 @@ export const UnifiedImportExport: React.FC = () => {
 
                 const targetUserId = user?.id || 'local-user';
 
-                // Assets are the one category that inserts rather than upserts: an id
-                // the account does not hold becomes a NEW row, so restoring a file
-                // whose ids do not match what is already stored ADDS a second set and
-                // roughly doubles net worth, with nothing on screen to explain it.
-                // Count the overlap first and say so before writing anything.
-                if (rawData.assets && Array.isArray(rawData.assets) && db) {
+                // Restore the backup's salt when this device does not already hold the
+                // same one. Without this a restore on a new device writes every row
+                // under a key derived from a salt the device invented, so the data it
+                // just imported is unreadable on the device that imported it. Written
+                // before the first row so nothing is encrypted under the wrong key.
+                //
+                // Never overwrites a salt already on the device: that key decrypts the
+                // rows here, and replacing it would strand them to fix a problem the
+                // user does not have. A file with no salt (1.x–3.x) still imports; it
+                // simply relies on the device already holding one.
+                const incomingSalt = typeof parsed.salt === 'string' ? parsed.salt : null;
+                if (incomingSalt) {
+                    const existing = await resolveVaultSalt(targetUserId, user as any).catch(() => null);
+                    if (!existing) {
+                        try {
+                            localStorage.setItem(`zakapp_salt_${targetUserId}`, incomingSalt);
+                            toast(
+                                'This backup carried your data key. It has been restored to this device, ' +
+                                'so the data is readable here. Sign out and back in to use it.',
+                                { icon: '🔑', duration: 12000 }
+                            );
+                        } catch {
+                            errors.push(
+                                'Could not save the data key from this backup (browser storage unavailable). ' +
+                                'The imported records may show as encrypted on this device.'
+                            );
+                        }
+                    }
+                }
+
+                // Assets insert rather than upsert, so a file whose ids do not match
+                // what is here would ADD a second set and roughly double net worth.
+                // The user decides: replace (clear this account's categories, then
+                // import) or merge (upsert by id, which does nothing for a file whose
+                // ids are all new). A restore where every id is new and nothing is
+                // stored is unambiguous and just imports.
+                if (rawData.assets && Array.isArray(rawData.assets) && db && !replaceRequested) {
                     const incomingIds = rawData.assets.map((a: any) => a.id).filter(Boolean);
                     const stored = await db.assets
                         .find({ selector: { userId: { $eq: targetUserId } } })
@@ -157,21 +212,23 @@ export const UnifiedImportExport: React.FC = () => {
                     const storedIds = new Set(stored.map((d: any) => d.get('id')));
                     const overlap = incomingIds.filter((id: string) => storedIds.has(id)).length;
 
-                    // Only meaningful when the account already holds rows and none of
-                    // the incoming ids are among them: a re-import of the same file
-                    // updates in place, which is the case the ids exist to serve.
                     if (storedIds.size > 0 && incomingIds.length > 0 && overlap === 0) {
-                        toast.error(
-                            `This backup does not match the ${storedIds.size} assets already here. ` +
-                            `Importing it would add a second set and about double your net worth. ` +
-                            `Clear your data first (Danger Zone below), then import.`,
-                            { duration: 15000 }
-                        );
-                        setStats(null);
+                        setPendingImport({
+                            json: event.target?.result as string,
+                            fileName: file.name,
+                            stored: storedIds.size,
+                            incoming: incomingIds.length
+                        });
                         setImporting(false);
                         e.target.value = '';
                         return;
                     }
+                }
+
+                if (replaceRequested) {
+                    // Cleared without the reload: the page must survive the write that
+                    // follows, or the restore is torn down half-applied.
+                    await clearAllData({ reload: false });
                 }
 
                 // 1. Migrate Assets
@@ -307,6 +364,29 @@ export const UnifiedImportExport: React.FC = () => {
         reader.readAsText(file);
     };
 
+    /**
+     * Resolve the held import. Both branches re-run `handleImport` on a File rebuilt
+     * from the held text, so the retry travels the identical path rather than a
+     * second, parallel implementation that would drift.
+     */
+    const resolvePendingImport = async (mode: 'replace' | 'merge') => {
+        const pending = pendingImport;
+        if (!pending) return;
+        setPendingImport(null);
+
+        const file = new File([pending.json], pending.fileName || 'backup.json', { type: 'application/json' });
+        // React's synthetic event is pooled, so build a minimal stand-in rather than
+        // retaining the original. Only `target.files[0]` and `target.value` are read.
+        const target = { files: [file], value: '' } as unknown as HTMLInputElement;
+        const synthetic = { target } as React.ChangeEvent<HTMLInputElement>;
+
+        if (mode === 'replace') {
+            await handleImport(synthetic, true);
+        } else {
+            await handleImport(synthetic, false);
+        }
+    };
+
     const handleClearData = async () => {
         await clearAllData();
         setIsDeleteModalOpen(false);
@@ -332,7 +412,8 @@ export const UnifiedImportExport: React.FC = () => {
                             <div className="text-center">
                                 <h3 className="font-medium text-card-foreground">Backup Vault</h3>
                                 <p className="text-xs text-muted-foreground mb-3">
-                                    Exports Assets, Liabilities, Payments, and Settings ({assets.length + liabilities.length + payments.length} records)
+                                    Exports Assets, Liabilities, Payments, Settings and your data key
+                                    ({assets.length + liabilities.length + payments.length} records)
                                 </p>
                                 <Button onClick={handleExport} disabled={exporting} variant="outline" className="w-full">
                                     {exporting ? <LoadingSpinner size="sm" /> : 'Download JSON Backup'}
@@ -361,7 +442,7 @@ export const UnifiedImportExport: React.FC = () => {
                             <div className="text-center">
                                 <h3 className="font-medium text-card-foreground">Restore / Import</h3>
                                 <p className="text-xs text-muted-foreground mb-3">
-                                    Accepts backups from any previous version (1.x, 2.x, 3.x)
+                                    Accepts backups from any previous version (1.x–4.x)
                                 </p>
                                 <div className="relative">
                                     <Button disabled={importing} variant="default" className="w-full">
@@ -440,6 +521,49 @@ export const UnifiedImportExport: React.FC = () => {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Import mode choice. Neither option is safe to default: merge leaves a
+                file whose ids are all new with nothing to attach to, and replace
+                discards rows the user may not have expected to lose. */}
+            <Modal
+                isOpen={!!pendingImport}
+                onClose={() => setPendingImport(null)}
+                title="Replace or merge?"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <p className="text-sm text-card-foreground">
+                        This backup holds <strong>{pendingImport?.incoming}</strong> assets, and none of
+                        their ids match the <strong>{pendingImport?.stored}</strong> assets already here.
+                        The same accounts are most likely stored under different ids, so importing as-is
+                        would keep both copies and roughly double your net worth.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                        <strong className="text-card-foreground">Replace</strong> clears your assets,
+                        liabilities, payments and annual records on this device, then imports this file.
+                        Correct if this backup is the complete picture.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                        <strong className="text-card-foreground">Merge</strong> adds the file alongside
+                        what is already here. Correct only if these really are additional accounts.
+                    </p>
+                    <p className="text-xs text-warn-strong">
+                        Neither option can be undone. Export a backup first if you are unsure.
+                    </p>
+
+                    <div className="flex flex-wrap justify-end gap-3 pt-2">
+                        <Button variant="outline" onClick={() => setPendingImport(null)}>
+                            Cancel
+                        </Button>
+                        <Button variant="secondary" onClick={() => resolvePendingImport('merge')}>
+                            Merge (add alongside)
+                        </Button>
+                        <Button variant="destructive" onClick={() => resolvePendingImport('replace')}>
+                            Replace (clear, then import)
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Confirmation Modal */}
             <Modal
