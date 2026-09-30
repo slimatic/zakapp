@@ -23,6 +23,7 @@ import { cryptoService } from '../services/CryptoService';
 import { PaymentEncryptionService } from '../services/PaymentEncryptionService';
 // Payment Record matches the shared type but lives locally in RxDB
 import { PaymentRecord } from '@zakapp/shared/types/tracking';
+import { getQuota, limitMessage } from './useRepositoryLimits';
 
 /**
  * Hook for managing Payment Records in the local RxDB database.
@@ -105,15 +106,9 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
         if (!db) throw new Error('Database not initialized');
         if (!user || !user.id) throw new Error('User not authenticated');
 
-        // Check Resource Limits (Client-Side)
-        if (typeof user.maxPayments === 'number') {
-            const currentCount = await db.payment_records.find({
-                selector: { userId: { $eq: user.id } }
-            }).exec().then((docs: any[]) => docs.length);
-
-            if (currentCount >= user.maxPayments) {
-                throw new Error(`Payment limit reached. You can create a maximum of ${user.maxPayments} payments.`);
-            }
+        const quota = await getQuota('payments', db.payment_records, user, user.id);
+        if (quota.remaining <= 0 && quota.max !== undefined) {
+            throw new Error(limitMessage('payments', quota.max));
         }
 
         const newPayment = {
@@ -155,12 +150,24 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
     };
 
     /**
-     * Batch insert for migration/import
+     * Batch insert for migration/import.
+     *
+     * Takes only what the account has room for and reports the rest as skipped,
+     * rather than either ignoring the limit (which let a restore write 124
+     * payments against a limit of 25) or refusing the whole file (which made a
+     * restore fail outright). The caller surfaces the count so the user knows
+     * their file was not fully read and can import again after freeing space.
      */
     const bulkAddPayments = async (paymentsToAdd: Partial<PaymentRecord>[]) => {
         if (!db) throw new Error('Database not initialized');
+        if (!user || !user.id) throw new Error('User not authenticated');
 
-        const refinedPayments = paymentsToAdd.map(p => ({
+        const quota = await getQuota('payments', db.payment_records, user, user.id);
+        const [accepted, skipped] = quota.remaining === Infinity
+            ? [paymentsToAdd, []]
+            : [paymentsToAdd.slice(0, quota.remaining), paymentsToAdd.slice(quota.remaining)];
+
+        const refinedPayments = accepted.map(p => ({
             ...p,
             id: p.id || crypto.randomUUID(),
             createdAt: p.createdAt || new Date().toISOString(),
@@ -183,7 +190,7 @@ export function usePaymentRepository(options: { snapshotId?: string } = {}) {
             const errorMsg = (firstError as any).message || JSON.stringify(firstError);
             throw new Error(`${result.error.length} payments failed validation: ${errorMsg}`);
         }
-        return result;
+        return { saved: accepted.length, skipped: skipped.length, result };
     };
 
     return {

@@ -22,6 +22,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Asset } from '../types';
 import { switchMap } from 'rxjs/operators';
 import { cryptoService } from '../services/CryptoService';
+import { getQuota, limitMessage } from './useRepositoryLimits';
 
 // Fields defined in asset.schema.ts
 const ALLOWED_SCHEMA_FIELDS = [
@@ -218,18 +219,9 @@ export function useAssetRepository() {
             throw new Error('User not authenticated');
         }
 
-        // Check Resource Limits (Client-Side)
-        if (typeof user.maxAssets === 'number') {
-            const currentCount = await db.assets.find({
-                selector: {
-                    isActive: { $eq: true },
-                    userId: { $eq: user.id }
-                }
-            }).exec().then((docs: any[]) => docs.length);
-
-            if (currentCount >= user.maxAssets) {
-                throw new Error(`Asset limit reached. You can create a maximum of ${user.maxAssets} assets.`);
-            }
+        const quota = await getQuota('assets', db.assets, user, user.id);
+        if (quota.remaining <= 0 && quota.max !== undefined) {
+            throw new Error(limitMessage('assets', quota.max));
         }
 
         const safePayload = sanitizeAssetPayload(asset);
