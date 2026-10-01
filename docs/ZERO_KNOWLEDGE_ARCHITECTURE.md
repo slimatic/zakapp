@@ -131,12 +131,12 @@ A: Financial privacy is a right. Payment recipients reveal your religious practi
 A: ZakApp is open-source (AGPLv3). You can audit the code yourself:
 - Client encryption: `client/src/services/CryptoService.ts`
 - Server storage: `server/src/services/EncryptionService.ts`
-- Format specification: `docs/ZK_API_SPECIFICATION.md`
+- Format specification: `docs/api/api-specification.md`
 
 ## Learn More
 
 - [Migration Guide](archive/superseded/MIGRATION_GUIDE.md) - How to upgrade from v0.9.x (archived)
-- [ZK API Specification](ZK_API_SPECIFICATION.md) - Technical implementation details
+- [ZK API Specification](api/api-specification.md) - Technical implementation details
 - [Security Policy](../SECURITY.md) - Complete security documentation
 
 ## Support
