@@ -92,7 +92,10 @@ beforeEach(async () => {
   fetchMock = vi.fn(async (url: string) => {
     if (String(url).includes('/sync/token')) {
       return jsonResponse({
-        credentials: { username: 'sync-user', password: 'sync-pass' },
+        // Placeholder values, not credentials - phrased with the `test-` idiom that
+        // `check-no-committed-credentials.py` recognises as a placeholder. The real
+        // leak this guard exists for was exactly this shape reaching the public repo.
+        credentials: { username: 'test-sync-user', password: 'test-sync-not-a-real' },
         expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
       });
     }
