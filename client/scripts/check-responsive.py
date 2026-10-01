@@ -38,15 +38,14 @@ import sys
 
 from playwright.sync_api import sync_playwright
 
-try:
-    from _login import open_session
-    # Importing always succeeds; _secret() raises only when a login is attempted. A
-    # session is therefore available only if credentials are actually present.
-    HAVE_LOGIN = bool(os.environ.get("ZAK_SMOKE_PASS"))
-except Exception:  # pragma: no cover - credentials absent: measure public routes only
-    HAVE_LOGIN = False
+# `BASE` comes from `_login`, which reads `ZAK_BASE`. A local default here would let
+# the check measure a different origin than the one it was pointed at and report the
+# result as this build's finding.
+from _login import BASE, open_session
 
-BASE = os.environ.get("ZAK_BASE", "http://localhost:4173")
+# Importing always succeeds; `_secret()` raises only when a login is attempted, so a
+# session is available only if credentials are actually present.
+HAVE_LOGIN = bool(os.environ.get("ZAK_SMOKE_PASS"))
 
 # Device classes, as (label, width, height, is_mobile).
 VIEWPORTS = [
