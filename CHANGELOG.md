@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.17.11] - 2026-10-01
+
+### Runtime dependency advisories cleared in the published backend image
+
+Three open advisories were in `server/package-lock.json` — the lockfile of the
+only artifact users run:
+
+- **`morgan` 1.12.0 -> 1.12.1** — log injection via an unescaped double quote in
+  a quoted log field.
+- **`nodemailer` 9.1.1 -> 10.0.13** — the process-global DNS cache reused the TLS
+  `servername` across transports, allowing cross-tenant SMTP credential
+  disclosure. This is a major bump; its only breaking requirement is
+  `engines.node >= 20`, and the published image runs 20.20.2. The single call
+  site is `EmailService.ts:124`.
+- **`undici` 7.29.0 -> 7.30.0** — transitive via `cheerio`. `cheerio` still
+  declares `undici: ^7.19.0`, so the fix is pinned through `overrides`.
+
+Also in this release: the lockfile advertised `version: 0.17.2` while the
+manifest said `0.17.10`, so it had drifted out of sync with
+`server/package.json`; regenerating reconciles it. That drift is why the
+vulnerability scan had been failing on dependency PRs.
+
+Verified: `tsc --noEmit` clean, server suite 768/768. The `morgan` fix was
+confirmed against the installed code — a URL containing `","` now logs escaped
+instead of breaking the field.
+
 ## [0.17.10] - 2026-09-29
 
 ### A missing build file now returns 404 instead of a blank page
