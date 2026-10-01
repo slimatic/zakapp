@@ -24,6 +24,39 @@ import {
   YearlySnapshotMethodology
 } from '@zakapp/shared';
 import { prisma } from '../utils/prisma';
+import { readEncryptedAmount } from '../utils/encryptedNumbers';
+import { EncryptionService } from '../services/EncryptionService';
+
+/**
+ * Read one money value that may still be ciphertext, refusing a missing one.
+ *
+ * `readEncryptedAmount` returns 0 for null/undefined — correct for a nullable
+ * amount, wrong for the NOT NULL money columns read here: an absent value there is
+ * corruption, and 0 would persist a fabricated total. It throws for a value that is
+ * neither a plain number nor decryptable, which is the outcome we want — the write
+ * is refused rather than filled in with a guess.
+ */
+async function readRequiredAmount(value: unknown, field: string): Promise<number> {
+  if (value === null || value === undefined) {
+    throw new Error(`${field} is missing`);
+  }
+  return readEncryptedAmount(value, process.env.ENCRYPTION_KEY || '');
+}
+
+/**
+ * Store a computed amount the way the other values in these columns are stored:
+ * encrypted, when a key is available.
+ *
+ * A value the model DERIVES from encrypted inputs never travels back through the
+ * service layer, so nothing else would encrypt it — writing it raw would put
+ * plaintext money in a column documented as encrypted.
+ */
+function encodeAmount(value: number): Promise<string> | string {
+  const encryptionKey = process.env.ENCRYPTION_KEY || '';
+  return encryptionKey
+    ? EncryptionService.encrypt(String(value), encryptionKey)
+    : String(value);
+}
 
 /**
  * YearlySnapshot Model - Manages historical Zakat calculation snapshots
@@ -160,8 +193,26 @@ export class YearlySnapshotModel {
         data.isPrimary ?? false
       );
 
-      // Calculate zakatable wealth if not provided
-      const zakatableWealth = data.zakatableWealth ?? (data.totalWealth - data.totalLiabilities);
+      // zakatableWealth arrives here in one of two forms, and they are not the same
+      // type:
+      //
+      //  · SUPPLIED — the service layer encrypts the DTO before calling this
+      //    (`YearlySnapshotService.createSnapshot`), so it is already ciphertext and
+      //    must be stored as-is. Encrypting it again would double-encrypt it.
+      //  · DERIVED — the DTO field is optional, so this branch runs whenever the
+      //    caller omits it. Both sides are then CIPHERTEXT, and
+      //    `ciphertext - ciphertext` is NaN — `String(NaN)` being the literal "NaN"
+      //    this model was persisting into the encrypted column. It cannot be fixed by
+      //    parsing differently: the values must be decrypted, hence the await. The
+      //    result is derived here rather than in the service, so nothing else would
+      //    encrypt it — it is encrypted on the way out below.
+      const zakatableWealth =
+        data.zakatableWealth !== undefined
+          ? String(data.zakatableWealth)
+          : await encodeAmount(
+              (await readRequiredAmount(data.totalWealth, 'totalWealth')) -
+                (await readRequiredAmount(data.totalLiabilities, 'totalLiabilities'))
+            );
 
       const snapshot = await prisma.yearlySnapshot.create({
         data: {
@@ -175,7 +226,7 @@ export class YearlySnapshotModel {
           hijriDay: data.hijriDay ?? 1,
           totalWealth: String(data.totalWealth), // Will be encrypted by service layer
           totalLiabilities: String(data.totalLiabilities),
-          zakatableWealth: String(zakatableWealth),
+          zakatableWealth,
           zakatAmount: String(data.zakatAmount),
           methodologyUsed: data.methodologyUsed,
           nisabThreshold: String(data.nisabThreshold),
@@ -332,9 +383,26 @@ export class YearlySnapshotModel {
 
       // Recalculate zakatable wealth if relevant fields changed
       if (data.totalWealth !== undefined || data.totalLiabilities !== undefined) {
-        const totalWealth = data.totalWealth ?? parseFloat(existing.totalWealth as unknown as string);
-        const totalLiabilities = data.totalLiabilities ?? parseFloat(existing.totalLiabilities as unknown as string);
-        updateData.zakatableWealth = String(totalWealth - totalLiabilities);
+        // BOTH sides may be ciphertext, and this is the path production actually
+        // takes: `YearlySnapshotService.updateSnapshot` encrypts the DTO before
+        // handing it here, and `findById` returns raw Prisma rows. So
+        // `data.totalWealth - data.totalLiabilities` was `ciphertext - ciphertext`
+        // === NaN, and `String(NaN)` is the literal "NaN" written to the database.
+        // `parseFloat(existing.totalWealth)` had the same result on the other
+        // branch. Subtracting two NaN-sources cannot be repaired by parsing
+        // differently — the values must be decrypted, which is why this is awaited.
+        const totalWealth =
+          data.totalWealth !== undefined
+            ? await readRequiredAmount(data.totalWealth, 'totalWealth')
+            : await readRequiredAmount(existing.totalWealth, 'existing totalWealth');
+        const totalLiabilities =
+          data.totalLiabilities !== undefined
+            ? await readRequiredAmount(data.totalLiabilities, 'totalLiabilities')
+            : await readRequiredAmount(existing.totalLiabilities, 'existing totalLiabilities');
+
+        // The derived value is written encrypted so it matches the ciphertext in the
+        // sibling columns above, and the column's documented contract.
+        updateData.zakatableWealth = await encodeAmount(totalWealth - totalLiabilities);
       }
 
       const snapshot = await prisma.yearlySnapshot.update({
