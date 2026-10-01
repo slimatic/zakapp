@@ -64,59 +64,45 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="border-b border-border overflow-x-auto">
-                {/*
-                    overflow-x-auto is load-bearing, not decoration: four tabs with
-                    `whitespace-nowrap` and `space-x-8` measure ~511px, which is wider
-                    than a 390px phone. Without it the strip pushed the whole document
-                    to 527px, so every admin page scrolled sideways on a phone. The
-                    strip scrolls within itself instead.
-                */}
-                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button
-                        onClick={() => setActiveTab('overview')}
-                        className={`
-                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                            ${activeTab === 'overview'
-                                ? 'border-secondary text-secondary'
-                                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'}
-                        `}
-                    >
-                        Overview
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('users')}
-                        className={`
-                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                            ${activeTab === 'users'
-                                ? 'border-secondary text-secondary'
-                                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'}
-                        `}
-                    >
-                        User Management
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('settings')}
-                        className={`
-                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                            ${activeTab === 'settings'
-                                ? 'border-secondary text-secondary'
-                                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'}
-                        `}
-                    >
-                        System Settings
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('health')}
-                        className={`
-                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                            ${activeTab === 'health'
-                                ? 'border-secondary text-secondary'
-                                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'}
-                        `}
-                    >
-                        System Health
-                    </button>
+            {/*
+                overflow-x-auto alone was not enough. The strip is wider than a
+                phone (four long labels, ~511px), and scrolling it to the active
+                tab left the FIRST label cut in half - "verview" - because a
+                scroll container's content starts flush at its edge. Scroll-padding
+                gives the leading tab its own breathing room so a partially
+                scrolled strip never renders a word trimmed mid-glyph.
+
+                -mx-4 px-4 lets the strip bleed to the screen edges while the text
+                stays inset, which is what reads as intentional rather than as a
+                clipped box.
+            */}
+            <div className="-mx-4 overflow-x-auto scroll-px-4 border-b border-border px-4 sm:mx-0 sm:px-0">
+                <nav className="-mb-px flex gap-2 sm:gap-8" aria-label="Tabs" role="tablist">
+                    {([
+                        ['overview', 'Overview'],
+                        ['users', 'User Management'],
+                        ['settings', 'System Settings'],
+                        ['health', 'System Health'],
+                    ] as const).map(([id, label]) => {
+                        const selected = activeTab === id;
+                        return (
+                            <button
+                                key={id}
+                                role="tab"
+                                aria-selected={selected}
+                                onClick={() => setActiveTab(id)}
+                                className={`
+                                    whitespace-nowrap py-3.5 px-1 border-b-2 font-medium text-sm
+                                    transition-colors
+                                    ${selected
+                                        ? 'border-secondary text-secondary'
+                                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'}
+                                `}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
                 </nav>
             </div>
 

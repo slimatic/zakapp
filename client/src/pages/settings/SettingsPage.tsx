@@ -58,78 +58,86 @@ export const SettingsPage: React.FC = () => {
     ];
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+        <div className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+            <div className="mb-6 sm:mb-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Settings</h1>
                 <p className="text-muted-foreground mt-2">
                     Manage your account preferences and data
                 </p>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-8">
-                {/* Sidebar Navigation */}
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+                {/* Sidebar Navigation.
+                    On a phone this is a horizontally scrolling strip rather than a
+                    stacked list: six full-width rows pushed the actual settings
+                    content below the fold, so opening Settings showed a menu and
+                    nothing else. A strip keeps the content visible and matches how
+                    the rest of the app navigates. */}
                 <div className="lg:w-64 flex-shrink-0">
-                    <nav className="space-y-1">
+                    <nav
+                        className="-mx-4 flex gap-1.5 overflow-x-auto scroll-px-4 px-4 pb-1 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0"
+                        aria-label="Settings sections"
+                    >
                         {navigation.map((item) => {
                             const Icon = item.icon;
+                            const selected = activeTab === item.id;
                             return (
                                 <button
                                     key={item.id}
                                     onClick={() => setActiveTab(item.id as SettingsTab)}
-                                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === item.id
+                                    className={`flex-shrink-0 flex items-center gap-2 whitespace-nowrap px-3 py-2.5 text-sm font-medium rounded-md transition-colors lg:w-full lg:whitespace-normal ${selected
                                         ? 'bg-accent text-secondary'
                                         : 'text-foreground hover:bg-muted hover:text-foreground'
                                         }`}
-                                    aria-current={activeTab === item.id ? 'page' : undefined}
+                                    aria-current={selected ? 'page' : undefined}
                                 >
                                     <Icon
-                                        className={`flex-shrink-0 [margin-inline-start:-0.25rem] me-3 h-5 w-5 ${activeTab === item.id ? 'text-secondary' : 'text-muted-foreground group-hover:text-muted-foreground'
-                                            }`}
+                                        className={`flex-shrink-0 h-5 w-5 ${selected ? 'text-secondary' : 'text-muted-foreground'}`}
                                         aria-hidden="true"
                                     />
-                                    <span className="truncate">{item.name}</span>
+                                    <span className="lg:truncate">{item.name}</span>
                                 </button>
                             );
                         })}
+                    </nav>
 
-                        {/* Language Selection (#338) */}
+                    {/* Language Selection (#338) */}
+                    <div className="mt-6 pt-6 border-t border-border">
+                        <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                            Language
+                        </h3>
+                        <div className="px-3">
+                            <LanguageSwitcher className="w-full" />
+                        </div>
+                    </div>
+
+                    {/* Admin Dashboard Link - Separated */}
+                    {user?.isAdmin && (
                         <div className="mt-6 pt-6 border-t border-border">
                             <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                                Language
+                                Administration
                             </h3>
-                            <div className="px-3">
-                                <LanguageSwitcher className="w-full" />
-                            </div>
+                            <button
+                                onClick={() => navigate('/admin')}
+                                className="w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-200
+                                bg-muted text-secondary
+                                hover:shadow-sm border border-border"
+                            >
+                                <LayoutDashboard
+                                    className="flex-shrink-0 me-3 h-5 w-5 text-secondary"
+                                    aria-hidden="true"
+                                />
+                                <span className="truncate font-bold text-secondary">
+                                    Admin Dashboard
+                                </span>
+                            </button>
                         </div>
-
-                        {/* Admin Dashboard Link - Separated */}
-                        {user?.isAdmin && (
-                            <div className="mt-6 pt-6 border-t border-border">
-                                <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                                    Administration
-                                </h3>
-                                <button
-                                    onClick={() => navigate('/admin')}
-                                    className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 
-                                    bg-muted text-secondary
-                                    hover:shadow-sm border border-border"
-                                >
-                                    <LayoutDashboard
-                                        className="flex-shrink-0 [margin-inline-start:-0.25rem] me-3 h-5 w-5 text-secondary"
-                                        aria-hidden="true"
-                                    />
-                                    <span className="truncate font-bold text-secondary">
-                                        Admin Dashboard
-                                    </span>
-                                </button>
-                            </div>
-                        )}
-                    </nav>
+                    )}
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 bg-surface rounded-lg shadow min-h-[500px]">
-                    <div className="p-6 md:p-8">
+                <div className="flex-1 min-w-0 bg-surface rounded-lg shadow min-h-[500px]">
+                    <div className="p-4 sm:p-6 md:p-8">
                         {activeTab === 'profile' && <ProfileForm />}
                         {activeTab === 'security' && <SecuritySettings />}
                         {activeTab === 'notifications' && <NotificationSettings />}
