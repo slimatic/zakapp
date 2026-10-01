@@ -14,10 +14,8 @@ Exit 1 = the defect is present (this is the expected result on the old build).
 """
 import sys
 from playwright.sync_api import sync_playwright
-from _login import open_session
+from _login import BASE, open_session
 
-UID = "cmuerqpub000rpb3fulpxby7g"
-BASE = "http://localhost:4173"
 VIEWPORT = {"width": 1280, "height": 900}
 
 MEASURE = """() => {
