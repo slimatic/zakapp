@@ -1,6 +1,6 @@
 {
   "name": "zakapp-server",
-  "version": "0.17.10",
+  "version": "1.0.0",
   "description": "zakapp backend server",
   "scripts": {
     "build": "tsc && node -e \"require('fs').existsSync('dist/server/src/app.js')||(console.error('BUILD BROKEN: dist/server/src/app.js was not emitted; rootDir must stay pinned to .. in server/tsconfig.json, since npm start runs that path'),process.exit(1))\"",
