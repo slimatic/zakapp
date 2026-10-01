@@ -17,6 +17,7 @@ CHECKS = [
     "check-dead-classes.py",
     "check-exit-codes.py",
     "check-i18n-keys.py",
+    "check-logical-inset-translate.py",
     "check-no-alerts.py",
     "check-no-committed-credentials.py",
     "check-no-credential-logging.py",

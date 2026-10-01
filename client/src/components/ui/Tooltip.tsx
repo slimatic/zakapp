@@ -121,15 +121,15 @@ export const Tooltip: React.FC<TooltipProps> = ({
   };
 
   const positionClasses = {
-    top: 'bottom-full start-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full start-1/2 -translate-x-1/2 mt-2',
+    top: 'bottom-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 mb-2',
+    bottom: 'top-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 mt-2',
     left: 'end-0 top-1/2 -translate-y-1/2 me-2',
     right: 'left-full top-1/2 -translate-y-1/2 ms-2'
   };
 
   const arrowPositionClasses = {
-    top: 'top-full start-1/2 -translate-x-1/2 border-t-secondary border-l-transparent border-r-transparent border-b-transparent',
-    bottom: 'bottom-full start-1/2 -translate-x-1/2 border-b-secondary border-l-transparent border-r-transparent border-t-transparent',
+    top: 'top-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 border-t-secondary border-l-transparent border-r-transparent border-b-transparent',
+    bottom: 'bottom-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 border-b-secondary border-l-transparent border-r-transparent border-t-transparent',
     left: 'left-full top-1/2 -translate-y-1/2 border-l-secondary border-t-transparent border-b-transparent border-r-transparent',
     right: 'end-0 top-1/2 -translate-y-1/2 border-r-secondary border-t-transparent border-b-transparent border-l-transparent'
   };
