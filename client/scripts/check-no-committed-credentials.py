@@ -2,12 +2,12 @@
 """Fail if a credential literal is committed into the source tree.
 
 WHY THIS EXISTS
-    A real password literal sat in three smoke-test scripts and reached the public
+    A credential literal once sat in three smoke-test scripts and reached the public
     remote. Neither the repo's `Secret Detection Scan` (GitGuardian) nor a full-history
     `gitleaks detect` flagged it: both match PROVIDER KEY FORMATS (AWS AKIA..., GitHub
-    ghp_..., PEM blocks) and a password typed into `pg.fill('#password', '...')` matches no
-    such format. The pattern is the point - credential-shaped VARIABLE NAMES with a literal
-    VALUE - so it is matched here on shape rather than on any provider's format.
+    ghp_..., PEM blocks), and a value passed to `pg.fill` matches no such format. The
+    shape is what matters here - a credential-shaped VARIABLE NAME with a literal VALUE -
+    so it is matched on shape rather than on any provider's format.
 
 WHAT IT ALLOWS
     Reading from the environment is the correct form and is never flagged:
