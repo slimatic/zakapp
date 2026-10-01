@@ -50,17 +50,17 @@
     "prebuild": "npm run clean"
   },
   "dependencies": {
-    "js-sha256": "^0.10.0",
-    "zod": "^3.22.4"
+    "js-sha256": "^1.0.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/node": "^20.8.7",
+    "@types/node": "^26.6.3",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
-    "eslint": "^8.52.0",
-    "jest": "^29.7.0",
+    "eslint": "^10.11.0",
+    "jest": "^30.5.2",
     "prettier": "^3.0.3",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   },
   "files": [
     "dist"
