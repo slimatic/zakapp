@@ -9,6 +9,12 @@
 > "remaining before v1.0" items below have since landed, and the checklist is annotated
 > with their outcomes. The findings themselves are left as written — the reasoning is the
 > useful part, and rewriting a record of what was believed at the time destroys it.
+>
+> **Further 2026-10-01 update.** #626 closed the RTL desktop overflow, which the #617
+> responsive pass did not cover. Two caveats on how that pass was reported: it did not
+> test RTL at all, and the a11y checker it relies on measures only 390 and 1280, so
+> tablet width (768–1024) remains unmeasured. Both are noted in 4.3 and the checklist.
+> The `space-x-*` mirroring gap on ~31 uses is tracked separately as cosmetic.
 
 > **On the branch name.** The brief referred to "the road branch". No branch by that
 > name exists on the remote. This audit ran against `develop`, which is where v1.0
@@ -23,7 +29,7 @@
 | **Strict data privacy** | ✅ Holds | Client reaches only its own API. No third-party endpoint, no analytics, no telemetry. |
 | **Financial precision** | ✅ Holds, with caveats | `decimal.js` used throughout `zakat.ts`. Sourcing defects found and fixed; one fiqh question open. |
 | **Lightweight container** | ⚠️ Improved | Multi-stage; privileges dropped via `setpriv`. Image shipped devDependencies — now pruned (129 MB), see 5.1. |
-| **Clean, fast UI** | ⚠️ Partly addressed | Precache and lazy-loading fixed; responsive/a11y pass **not** completed. |
+| **Clean, fast UI** | ✅ Holds, with a gap | Precache and lazy-loading fixed. Responsive pass landed (#617) and the RTL desktop overflow is fixed and guarded (#626). Tablet width (768–1024) remains unmeasured — see 4.3. |
 
 ---
 
@@ -190,14 +196,40 @@ chunk is 1.13 MB (364 kB gzip), containing app shell + vendor + `framer-motion`.
 Rollup warns that one chunk exceeds 500 kB. **Accepted, not silenced**: the fix would
 be finer `manualChunks` tuning with no measured user benefit at this size.
 
-### 4.3 Responsiveness, touch targets, visual cleanliness — NOT COMPLETED
+### 4.3 Responsiveness, touch targets, visual cleanliness — DONE, one gap
 
-This phase was **not** finished. What exists is a measured tool rather than
-assertions: `client/scripts/check-theme-a11y-rtl.py` reports contrast and touch-target
-counts across light/dark and mobile/desktop, and separate in-flight work already
-covers contrast. Coordinating with that beat starting a parallel pass.
+**Outcome (2026-10-01).** The pass landed in #617: the admin user table renders labelled
+cards below `md` with the table kept for desktop; the tab strip gets `scroll-px-4` so a
+partially scrolled strip no longer clips the leading label mid-glyph; the Settings nav is
+a horizontal strip on a phone. `check-responsive.py` also had `/admin` missing from its
+route list and an inline-target exemption keyed on the tag name rather than the spec's
+computed `display` — both fixed.
 
-Honest position: the brief's "audit across mobile, tablet, desktop" is **outstanding**.
+**The RTL half was not covered by that pass and is now closed in #626.** RTL is the
+primary-language case, not an edge: `i18n/index.ts` detection order is
+`['localStorage','navigator']` and both `ar` and `ur` are `dir:'rtl'`, so an
+Arabic-locale browser lands in RTL on first visit with no opt-in, and `ar` is a real
+bundle (265 keys), not a skeleton.
+
+Measured on a real build at 1280px, nine routes, both directions:
+
+```
+RTL  /dashboard /assets /liabilities /nisab-records /payments
+     /calculator /analytics /settings /learn        0px   (was up to 228px)
+LTR  same nine routes                               0px
+```
+
+Cause was a logical inset paired with a physical transform (`start-1/2` flips under
+`[dir=rtl]`, `-translate-x-1/2` does not). Fixed at six sites in three components; a
+static guard (`check-logical-inset-translate.py`) is wired into the source-check suite.
+
+**Still outstanding, and the reason this section is not simply "done":** the tooling only
+measures **390 and 1280**. Tablet width (768–1024) is unmeasured in both directions. Dark
+mode is now verified clean (0 contrast and 0 touch-target failures across 632 text nodes).
+
+**Deliberately out of scope, tracked separately:** `space-x-*` compiles to physical
+`margin-left`/`margin-right` with no `[dir=rtl]` rule, so ~31 uses do not mirror. The
+effect is a wrong-side gap — cosmetic, no overflow.
 
 ---
 
@@ -285,6 +317,10 @@ win, and 129 MB is the figure that counts, not the whole 417 MB.
    ~30 bug-class findings are worth fixing on their own merits, independently of
    whether the gate lands.
 2. **23 open dependabot PRs.** Triage and land them before the v1.0 tag.
+   **Resolved (#619, #623) — triaged to zero open.** Left standing rather than deleted
+   because the reason for the failing scan (a `server/package-lock.json` out of sync
+   with its manifest, which also suppressed alerts) is the reusable part. See the
+   checklist entry below.
 
 ### Remaining before v1.0
 
@@ -299,6 +335,12 @@ win, and 129 MB is the figure that counts, not the whole 417 MB.
       mid-glyph; the Settings nav is a horizontal strip on a phone. `check-responsive.py`
       also had `/admin` missing from its route list and an inline-target exemption keyed
       on the tag name rather than the spec's computed `display` — both fixed.
+      **Addendum (#626): this pass did not cover RTL, which #617 never tested.** Arabic
+      and Urdu desktop pages still scrolled horizontally by up to 228px, from a logical
+      inset paired with a physical transform; fixed and guarded. RTL matters here because
+      the language detector puts an Arabic-locale browser in RTL on first visit.
+      **Remaining gap:** the checker measures 390 and 1280 only, so tablet width
+      (768–1024) is still unmeasured. See 4.3.
 - [x] **Dependabot PRs** — **triaged to zero open** (#619, #623). 48 advisories were
       dev-toolchain transitive and never shipped; the three in the backend runtime tree
       are cleared. The root cause of the failing dependency scan was a
