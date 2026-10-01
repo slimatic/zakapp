@@ -24,6 +24,7 @@ CHECKS = [
     "check-pdf-theme.py",
     "check-runtime-config.py",
     "check-sender-domain-resolves.py",
+    "check-single-base.py",
     "check-snapshot-nisab.py",
 ]
 
