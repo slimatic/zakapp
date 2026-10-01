@@ -568,7 +568,7 @@ jobs:
     
     steps:
       - name: Download all scan results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: all-scan-results
 
@@ -685,7 +685,7 @@ jobs:
 
       - name: Comment PR with security summary (if PR)
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -702,7 +702,7 @@ jobs:
         if: |
           needs.dependency-scan.outputs.critical_vulns > 0 ||
           needs.container-scan.outputs.critical_vulns > 5
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const title = '🚨 Critical Security Vulnerabilities Detected';
