@@ -83,7 +83,12 @@ export const SyncIndicator: React.FC = () => {
                     `opacity-0` hides it but does not remove it from layout, so a hover-only
                     tooltip still overflows. Capped and allowed to wrap instead.
                 */}
-                <div className="absolute top-full mt-2 start-1/2 -translate-x-1/2 w-max max-w-[min(16rem,calc(100vw-2rem))] bg-secondary text-secondary-foreground text-xs p-2 rounded shadow-card opacity-0 group-hover:opacity-100 z-50 pointer-events-none">
+                {/* ponytail: keep the width cap. `opacity-0` hides the tooltip but it stays in
+                    layout, so a centred tooltip with unbounded text overflows the viewport on
+                    its own; the cap plus wrapping is what makes it fit, and dropping it for
+                    `whitespace-nowrap` reintroduces exactly that overflow. The `rtl:` variant
+                    is the separate fix for the physical translate. */}
+                <div className="absolute top-full mt-2 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 w-max max-w-[min(16rem,calc(100vw-2rem))] bg-secondary text-secondary-foreground text-xs p-2 rounded shadow-card opacity-0 group-hover:opacity-100 z-50 pointer-events-none">
                     Waiting for: {status.pending?.length ? status.pending.join(', ') : 'Server Response'}
                     <br />
                     (Click to Test Connection)
