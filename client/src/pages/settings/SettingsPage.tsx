@@ -119,7 +119,7 @@ export const SettingsPage: React.FC = () => {
                             </h3>
                             <button
                                 onClick={() => navigate('/admin')}
-                                className="w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-200 
+                                className="w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-200
                                 bg-muted text-secondary
                                 hover:shadow-sm border border-border"
                             >
