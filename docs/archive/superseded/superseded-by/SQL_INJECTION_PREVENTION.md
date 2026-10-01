@@ -242,7 +242,7 @@ npm test
 
 - [Prisma Raw Database Access](https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access)
 - [OWASP SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)
-- [Database Portability Guide](guides/DATABASE_PORTABILITY_GUIDE.md)
+- [Database Portability Guide](../../../guides/DATABASE_PORTABILITY_GUIDE.md)
 - Project Security Audit
 
 ## Summary Checklist

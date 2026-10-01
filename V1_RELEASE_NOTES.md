@@ -2,8 +2,13 @@
 
 **Audit date:** 2026-09-29
 **Base branch:** `develop` @ `7439d02d` (the v1.0 integration line)
-**Production reference:** `v0.17.10` (deployed and verified)
+**Production reference:** `v0.17.11` (deployed and verified)
 **Audit branch:** `audit/v1-release-readiness` → PR #602
+
+> **Status note (2026-10-01).** This is the audit as it stood on 2026-09-29. Four of the
+> "remaining before v1.0" items below have since landed, and the checklist is annotated
+> with their outcomes. The findings themselves are left as written — the reasoning is the
+> useful part, and rewriting a record of what was believed at the time destroys it.
 
 > **On the branch name.** The brief referred to "the road branch". No branch by that
 > name exists on the remote. This audit ran against `develop`, which is where v1.0
@@ -288,14 +293,30 @@ win, and 129 MB is the figure that counts, not the whole 417 MB.
       is never presented as a live rate. `retryDelay` also drops 5000 → 1500 ms: an
       offline user previously waited 2 x 5 s before the fallback appeared.
 - [x] **Bundle report and dev diagnostic pages removed from the deployment** — see 5.3.
-- [ ] **Responsive / touch-target pass** (4.3) — still the largest untested surface
-- [ ] **Land the 23 dependabot PRs**
-- [ ] **Decide the fate of the unused server calculation path** (2.1)
-- [ ] **Confirm the default nisab convention** (3.2) — no longer a blocker. Both
-      conventions ship and the default preserves existing behaviour, so this is now a
-      confirmation that `islamicConstants.ts` holds the intended standard, not a
-      precondition for the release. Still a scholar question, to put to the teachers
-      when convenient rather than before the tag.
+- [x] **Responsive / touch-target pass** (4.3) — **done** (#617). Admin user table
+      renders labelled cards below `md` with the table kept for desktop; the tab strip
+      gets `scroll-px-4` so a partially scrolled strip no longer clips the leading label
+      mid-glyph; the Settings nav is a horizontal strip on a phone. `check-responsive.py`
+      also had `/admin` missing from its route list and an inline-target exemption keyed
+      on the tag name rather than the spec's computed `display` — both fixed.
+- [x] **Dependabot PRs** — **triaged to zero open** (#619, #623). 48 advisories were
+      dev-toolchain transitive and never shipped; the three in the backend runtime tree
+      are cleared. The root cause of the failing dependency scan was a
+      `server/package-lock.json` that had drifted out of sync with its manifest
+      (it advertised `version: 0.17.2` while the manifest said `0.17.10`), which also
+      meant Dependabot could not parse the lockfile and was raising **no alerts** for
+      those packages.
+- [x] **Unused server calculation path** (2.1) — **resolved: not dead code, not removed.**
+      `POST /api/zakat/calculate` is a *documented public API* — it appears in
+      `docs/api/openapi.yaml` (a published contract), `docs/api/api-specification.md` and
+      `docs/api/zakat.md` with a worked `curl` example — it has its own suite at
+      `server/tests/unit/zakatEngine.test.ts`, and it carries the **only cited rule-set in
+      the repository** (`ZAKAT_METHODS` with `scholarlyBasis`). The accurate statement of
+      the finding is narrower: the *client* rule-set is the live one, so the two can
+      diverge on nisab basis and debt-deduction scope with no test comparing them.
+- [ ] **Confirm the default nisab convention** (3.2) — still open, and still a scholar
+      question. Both conventions ship and the default preserves existing behaviour, so it
+      is not a precondition for the tag. Put it to the teachers when convenient.
 
 ### 5.3 Deployment surface — FIXED
 

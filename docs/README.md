@@ -106,7 +106,8 @@ For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md) and
 
 - **[Retired agent scaffolding](agent-scaffolding-retired.md)** - What the ralphy/ralph/sisyphus planning trees held, and the three conclusions worth keeping
 
-**Archive of completed work:**
+**Archive of completed work:** [docs/archive/](archive/README.md) — superseded and
+completed-work documents, indexed by what replaced them.
 
 ### 🔍 Code Quality & Analysis
 
