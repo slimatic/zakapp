@@ -27,7 +27,7 @@
     "@zakapp/shared": "file:../shared",
     "axios": "^1.18.0",
     "bcryptjs": "^3.0.2",
-    "cheerio": "^1.0.0-rc.10",
+    "cheerio": "^1.2.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -42,10 +42,10 @@
     "hijri-converter": "^1.1.1",
     "jsonwebtoken": "^9.0.2",
     "moment-hijri": "^3.0.0",
-    "morgan": "^1.10.1",
+    "morgan": "^1.12.1",
     "node-cron": "^4.2.1",
     "node-fetch": "^2.7.0",
-    "nodemailer": "^9.1.1",
+    "nodemailer": "^10.0.13",
     "prisma": "^6.1.0",
     "redis": "^4.6.13",
     "resend": "^6.4.2",
@@ -93,6 +93,7 @@
   "license": "AGPL-3.0-or-later",
   "overrides": {
     "uuid": "^14.0.0",
-    "qs": "^6.16.0"
+    "qs": "^6.16.0",
+    "undici": "^7.29.1"
   }
 }
