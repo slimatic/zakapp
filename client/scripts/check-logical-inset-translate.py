@@ -20,7 +20,15 @@ import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "client/src")
+# Resolve the default root from THIS file's location, not the cwd. CI invokes
+# this from client/ (via run-source-checks.py), where a cwd-relative default of
+# "client/src" resolves to client/client/src, scans zero files, and reports a
+# clean pass - a check that cannot fail. A scan of nothing is a broken check,
+# not a passing one, so that is an error below.
+HERE = pathlib.Path(__file__).resolve().parent
+DEFAULT_ROOT = HERE.parent / "src"
+ROOT = pathlib.Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else DEFAULT_ROOT
+
 LOGICAL_X = re.compile(r"(?<![\w:.-])(start|end)-[\w./\[\]%-]+")
 TRANSLATE_X = re.compile(r"(?<![\w:.-])(-?translate-x)-[\w./\[\]%-]+")
 RTL_GUARD = re.compile(r"rtl:translate-x-[\w./\[\]%-]+")
@@ -43,10 +51,19 @@ def offenders(text):
 
 
 bad = 0
+files_scanned = 0
 for f in sorted(ROOT.rglob("*.tsx")):
+    files_scanned += 1
     for line, tok, cls in offenders(f.read_text(encoding="utf-8", errors="replace")):
         print(f"FAIL {f}:{line} logical inset + physical {tok}\n     {cls}")
         bad += 1
+
+# A scan that finds no files is a broken check, not a passing one. This is the
+# failure mode it already had once: run from the wrong directory it scanned
+# nothing and reported success.
+if files_scanned == 0:
+    print(f"FAIL: no .tsx files found under {ROOT} - check is not scanning anything")
+    sys.exit(1)
 
 # Regression guard: the three fixed sites must keep their rtl: override.
 for rel, needle in (
