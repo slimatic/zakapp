@@ -13,8 +13,8 @@ ways (Dashboard.test.tsx); what was missing was fixture data:
     if (user && user.isSetupCompleted === false && !hasSkipped
         && !hasAssets && !hasActiveRecord) navigate('/onboarding');
 
-`hasAssets` / `hasActiveRecord` are false for v1smoke, so every browser check was
-measuring the onboarding page instead of the page it named.
+`hasAssets` / `hasActiveRecord` are false for the fixture account, so every browser check
+was measuring the onboarding page instead of the page it named.
 
 Usage:  ZAK_SMOKE_PASS=... python3 seed-smoke-fixture.py
 """

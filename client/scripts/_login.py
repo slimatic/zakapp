@@ -73,7 +73,12 @@ def resolve_uid(pg):
 
 
 BASE = os.environ.get("ZAK_BASE", "http://localhost:4173")
-USER = os.environ.get("ZAK_SMOKE_USER", "v1smoke")
+# No default account name. A username is an account identifier, and baking a real one into
+# the repository is how it ends up in public - which is exactly what happened here. The
+# caller supplies the fixture account.
+USER = os.environ.get("ZAK_SMOKE_USER")
+if not USER:
+    raise SystemExit("FAIL: set ZAK_SMOKE_USER (fixture account) before running")
 
 # Same directory as this file. Not committed - the session carries a live token.
 CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".session-cache.json")
