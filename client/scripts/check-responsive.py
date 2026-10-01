@@ -79,6 +79,11 @@ AUTH_ROUTES = [
     "/analytics",
     "/calculator",
     "/settings",
+    # The admin dashboard was never measured. Its tab strip is the widest fixed
+    # row in the app (four long labels), and a strip wider than the viewport is
+    # exactly what this check exists to catch, so leaving it out meant the most
+    # at-risk page had no coverage at all.
+    "/admin",
 ]
 
 # Sub-pixel layout rounding means a literal 0 is not a safe threshold.
@@ -145,7 +150,12 @@ PROBE = """
     if (r.width === 0 || r.height === 0) continue;
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none') continue;
-    if (el.tagName === 'A' && cs.display === 'inline') continue;
+    // The inline exception is about the TARGET's display, not its tag name. It was
+    // applied to anchors only, so an inline `<span role="button">` in a sentence was
+    // judged by the 24px rule its size cannot satisfy. `GlossaryTerm` renders exactly
+    // that (a dotted-underline term inline in prose, e.g. "Hawl — definition" at
+    // 32x17), so a spec-compliant affordance failed the check.
+    if (cs.display === 'inline') continue;
     targets.push({
       el, w: Math.round(r.width), h: Math.round(r.height),
       cx: r.left + r.width / 2, cy: r.top + r.height / 2,

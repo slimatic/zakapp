@@ -71,7 +71,19 @@ export const SyncIndicator: React.FC = () => {
             >
                 <RefreshCcw className="w-4 h-4 animate-spin" />
                 <span className="hidden sm:inline">Syncing...</span>
-                <div className="absolute top-full mt-2 start-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-xs p-2 rounded shadow-card opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">
+                {/*
+                    This tooltip sits in the global header, and it was `whitespace-nowrap`
+                    with no width cap. The pending list is unbounded ("Waiting for:
+                    nisab_year_records, payment_records, ...") and the tooltip is centred
+                    on the button, so a long list grew past the viewport edge and pushed
+                    the whole document sideways — on EVERY page, because the header is
+                    global. It is only laid out while a sync is active, so the responsive
+                    check failed intermittently and on pages that render none of the
+                    components it edits, which reads as flaky rather than as this bug.
+                    `opacity-0` hides it but does not remove it from layout, so a hover-only
+                    tooltip still overflows. Capped and allowed to wrap instead.
+                */}
+                <div className="absolute top-full mt-2 start-1/2 -translate-x-1/2 w-max max-w-[min(16rem,calc(100vw-2rem))] bg-secondary text-secondary-foreground text-xs p-2 rounded shadow-card opacity-0 group-hover:opacity-100 z-50 pointer-events-none">
                     Waiting for: {status.pending?.length ? status.pending.join(', ') : 'Server Response'}
                     <br />
                     (Click to Test Connection)
