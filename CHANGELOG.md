@@ -1,5 +1,77 @@
 # Changelog
 
+## [1.0.0] - 2026-10-01
+
+*20 Rabi al-Thani 1448 — waning gibbous, 78% lit.*
+
+The first release of the fourth quarter, and the last of Rabi al-Thani. A quarter
+opens while the lunar month closes — which is the shape of this release: not a
+beginning, but a thing arriving where it was going.
+
+### The design has a name
+
+- **Nur** (light) and **Qamar** (dark) — a documented token set rather than ad-hoc
+  colour, with the switch now on the sign-in screen so a new user can pick a
+  comfortable mode before they have an account.
+- **The moon-arc** is the release's signature element. The *ḥawl* — the lunar year a
+  Muslim waits before zakat falls due — is drawn as an arc filled to the current day,
+  with the moon's phase reflecting the portion completed. It renders the app's
+  central metaphor literally instead of describing it in a progress bar.
+- **A real app shell:** a sidebar on desktop, a bottom tab bar on a phone, a drawer
+  between. The dashboard is built around the arc rather than accumulating cards.
+
+### The numbers come from one source
+
+- **The nisab basis is derived from the chosen school**, not held as a separate
+  preference that could disagree with it. Two settings that can drift apart is one
+  setting too many, so the redundant one is removed.
+- **An unanswered asset no longer overrides the school.** Silence is not a ruling.
+- **Analytics and payment reminders refuse to guess.** Where an amount cannot be read,
+  the app says so rather than substituting a number. An invented figure in a zakat
+  calculation is worse than a blank one.
+
+### Your data, in and out
+
+- **Import replaces or merges, and carries the encryption key with it.** Previously a
+  bulk import could add assets instead of replacing them, doubling net worth silently
+  (#610), and per-row limits were enforced on single adds but ignored on bulk paths
+  (#609). Importing after a clear could also leave payment recipients unreadable
+  (#611).
+- **Asset values have history.** An amount records the date it was true, so a portfolio
+  reflects what you held rather than only what you hold now.
+- **Clearing your data requires a backup first.**
+
+### Arabic and Urdu, properly
+
+RTL is not an edge case for this app, so it is not treated as one. Desktop pages in
+Arabic no longer scroll sideways — 228px of horizontal overflow is now 0 — and the
+source check that verifies it runs in the suite rather than being something someone
+remembered to do once (#626).
+
+### The onboarding prompt stops returning
+
+The dashboard decided "no assets" before RxDB's first pull had finished, which is
+indistinguishable from an empty account. A fully populated vault could therefore be
+bounced to the setup wizard on every login — and because the redirect tore down the
+repositories that would have loaded the data, the emptiness was self-confirming. The
+gate now waits for the repositories to settle (#627, #522).
+
+### Verified
+
+- RTL overflow: 228px → 0px across 9 routes, independently replicated, with a source
+  check wired into `run-source-checks.py` so it can fail.
+- Import behaviour (#609, #610, #611) covered by tests that fail if it regresses.
+- CI green at merge: `test (20.x)`, static analysis, secret detection, GitGuardian.
+
+### Known gaps, stated plainly
+
+- **Tablet widths (768–1024px) are not covered by the automated layout checks,** which
+  measure phone and desktop only.
+- **One fiqh question is open:** whether the default nisab convention should be the gold
+  or the silver basis. Both are available and the default preserves existing behaviour,
+  so nothing changes for users meanwhile. It is going to qualified teachers, not being
+  settled in a changelog.
+
 ## [0.17.11] - 2026-10-01
 
 ### Runtime dependency advisories cleared in the published backend image
@@ -57,6 +129,24 @@ instead of breaking the field.
   same file serves a compose deployment and a host running nginx directly. Defaults
   are unchanged, so no deployment behaviour differs.
 
+## [0.17.8] - 2026-09-28
+
+### A backend image that could not start
+
+**v0.17.7's backend image failed at startup** — `Cannot find module '/app/server/dist/server/src/app.js'`. Production was rolled back to 0.17.6. If you pulled `slimatic/zakapp-backend:0.17.7`, it does not run; use `0.17.8`.
+
+The cause was not in the build configuration, which did not change. `server/tsconfig.json` leaves `rootDir` unset, so TypeScript derives the output layout from the longest common path of the compiled sources:
+
+- Through v0.17.6, `server/src/routes/zakat.ts` imported `../../../shared/src/constants`. A shared **directory** entered the program, making the repo root the common root, so output landed at `dist/server/src/app.js` and `dist/shared/src/...` — where `npm start` expects it.
+- The API-honesty fix pointed that import at the `@zakapp/shared` package instead. The shared directory left the program, the common root became `server/src`, and output silently moved to `dist/src/app.js`.
+
+A one-line import correction therefore relocated a build artifact. `rootDir: ".."` now pins what was emergent, reproducing the v0.17.6 layout. The build asserts the entry point was emitted, so a moved path fails the build instead of producing an image that cannot boot.
+
+The user-facing changes from 0.17.7 are unchanged and included in this release.
+
+_Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
+See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
+
 ## [0.17.7] - 2026-09-28
 
 ### A patch release, not a cycle — export, API validation, and session honesty
@@ -102,24 +192,6 @@ instead of breaking the field.
 - **A restore no longer rejects the whole payload over one stray field.** `zakatEligible` is not
   in `AssetSchema`, which is `additionalProperties: false`, and it was written on every asset —
   so Ajv refused the entire restore. The legacy value is preserved in `metadata`.
-
-## [0.17.8] - 2026-09-28
-
-### A backend image that could not start
-
-**v0.17.7's backend image failed at startup** — `Cannot find module '/app/server/dist/server/src/app.js'`. Production was rolled back to 0.17.6. If you pulled `slimatic/zakapp-backend:0.17.7`, it does not run; use `0.17.8`.
-
-The cause was not in the build configuration, which did not change. `server/tsconfig.json` leaves `rootDir` unset, so TypeScript derives the output layout from the longest common path of the compiled sources:
-
-- Through v0.17.6, `server/src/routes/zakat.ts` imported `../../../shared/src/constants`. A shared **directory** entered the program, making the repo root the common root, so output landed at `dist/server/src/app.js` and `dist/shared/src/...` — where `npm start` expects it.
-- The API-honesty fix pointed that import at the `@zakapp/shared` package instead. The shared directory left the program, the common root became `server/src`, and output silently moved to `dist/src/app.js`.
-
-A one-line import correction therefore relocated a build artifact. `rootDir: ".."` now pins what was emergent, reproducing the v0.17.6 layout. The build asserts the entry point was emitted, so a moved path fails the build instead of producing an image that cannot boot.
-
-The user-facing changes from 0.17.7 are unchanged and included in this release.
-
-_Nothing yet. The next cycle is `v0.18.0`, aimed at **1 Jumada al-Thani 1448 (2026-11-11)**.
-See `docs/RELEASE-CADENCE.md` — the anchor is a preference, not a contract._
 
 ## [0.17.6] - 2026-09-27
 
