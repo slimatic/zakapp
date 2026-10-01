@@ -27,6 +27,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // These are build-time constants injected by vite.config.ts. Tests never run
+  // through that config, so any component that reads them throws
+  // "__APP_VERSION__ is not defined" the moment a test renders it for real.
+  // AuthLayout does exactly that, which silently made the whole Login screen
+  // untestable. Define them here too.
+  define: {
+    __APP_VERSION__: JSON.stringify('test'),
+    __COMMIT_HASH__: JSON.stringify('test'),
+  },
   test: {
     globals: true,
     environment: 'jsdom',

@@ -59,7 +59,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
               {/* Separator (not for first item) */}
               {index > 0 && (
                 <svg
-                  className="w-4 h-4 text-gray-400 mx-2"
+                  className="w-4 h-4 text-tertiary mx-2"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -79,7 +79,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
               {isLast ? (
                 // Last item (current page) - not a link
                 <span
-                  className="font-medium text-gray-900"
+                  className="font-medium text-foreground"
                   aria-current="page"
                 >
                   {item.label}
@@ -88,13 +88,13 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
                 // Intermediate item - link
                 <Link
                   to={item.href}
-                  className="text-gray-600 hover:text-gray-900 hover:underline focus:outline-none focus:ring-2 focus:ring-green-600 rounded px-1"
+                  className="text-muted-foreground hover:text-foreground hover:underline focus:outline-none focus:ring-2 focus:ring-ring rounded px-1"
                 >
                   {item.label}
                 </Link>
               ) : (
                 // Item without href - plain text
-                <span className="text-gray-600">{item.label}</span>
+                <span className="text-muted-foreground">{item.label}</span>
               )}
             </li>
           );

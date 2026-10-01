@@ -29,6 +29,7 @@ import { LiabilitySchema } from './schema/liability.schema';
 import { NisabYearRecordSchema } from './schema/nisabYearRecord.schema';
 import { PaymentRecordSchema } from './schema/paymentRecord.schema';
 import { UserSettingsSchema } from './schema/userSettings.schema';
+import { AssetAmountEventSchema } from './schema/assetAmountEvent.schema';
 
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
 import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
@@ -48,11 +49,20 @@ export type ZakAppCollections = {
     nisab_year_records: RxCollection;
     payment_records: RxCollection;
     user_settings: RxCollection;
+    asset_amount_events: RxCollection;
 };
 
 export type ZakAppDatabase = RxDatabase<ZakAppCollections>;
 
 // Migration Strategies
+/**
+ * A brand-new collection at version 1 has nothing to migrate from, but RxDB
+ * requires the strategies object to be present when one is supplied.
+ */
+export const migrationStrategiesV1 = {
+    0: (doc: any) => doc
+};
+
 const migrationStrategiesV3 = {
     1: (doc: any) => doc,
     2: (doc: any) => doc,
@@ -74,8 +84,52 @@ const migrationStrategiesV5 = {
 
 const migrationStrategiesV6 = {
     ...migrationStrategiesV5,
-    6: (doc: any) => {
-        doc.preferredNisabStandard = 'GOLD';
+    // v6 used to seed `preferredNisabStandard`, a preference the calculation never
+    // consulted — the basis follows the school (see #521). The field has since
+    // been removed entirely, so this step now only carries documents forward.
+    // It is kept as a no-op rather than deleted: the strategy chain is keyed by
+    // from-version, and removing a key breaks migration for anything still at v5.
+    6: (doc: any) => doc
+};
+
+export const migrationStrategiesV7 = {
+    ...migrationStrategiesV6,
+    /**
+     * Drop `preferredNisabStandard`, which no longer decides anything.
+     *
+     * It was written by the onboarding wizard, patched on profile update, and read
+     * only by code that passed it to a modal which ignored it. `getNisabSource`
+     * derives the basis from the chosen school, so a stored value could only ever
+     * disagree with the real rule — the trap #536 named: the next person adding
+     * nisab logic finds a field that looks authoritative and trusts it.
+     *
+     * The property is deleted rather than set to a default. A default keeps the
+     * trap. The schema no longer declares the field, so any value that survives
+     * here is dead weight on every document.
+     */
+    7: (doc: any) => {
+        delete doc.preferredNisabStandard;
+        return doc;
+    }
+};
+
+export const migrationStrategiesV8 = {
+    ...migrationStrategiesV7,
+    /**
+     * Stamp the existing gram convention so no user's threshold moves.
+     *
+     * v7 deleted a field of a similar name for being a trap. This is deliberately not
+     * that: `preferredNisabStandard` recorded gold-vs-silver, which `getNisabSource`
+     * already derives from the chosen school, so it could only ever disagree with the
+     * real rule. This records which of two GRAM conventions to use — something nothing
+     * else in the code determines, and which the user genuinely chooses.
+     *
+     * The default is explicit rather than implicit so an upgraded database and a fresh
+     * one agree; relying on the schema default alone would leave pre-existing documents
+     * without the property until something rewrote them.
+     */
+    8: (doc: any) => {
+        if (!doc.nisabStandard) doc.nisabStandard = 'tola';
         return doc;
     }
 };
@@ -137,7 +191,17 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
                 liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
                 nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
                 payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
-                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV6 }
+                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV8 },
+                asset_amount_events: { schema: AssetAmountEventSchema, migrationStrategies: migrationStrategiesV1 }
+            });
+        } else if (!db.collections.asset_amount_events) {
+            // An existing database predates this collection, so the guard above
+            // skips the whole addCollections call — including the collection
+            // added since. Adding it on its own keeps an existing local database
+            // from silently lacking the collection the asset page now queries,
+            // which would surface as a permanent "history unavailable" state.
+            await db.addCollections({
+                asset_amount_events: { schema: AssetAmountEventSchema, migrationStrategies: migrationStrategiesV1 }
             });
         }
 

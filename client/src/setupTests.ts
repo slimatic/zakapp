@@ -19,6 +19,15 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { MotionGlobalConfig } from 'framer-motion';
 
+// Initialise i18n for every test.
+//
+// Components now render through react-i18next. Without this, `t()` returns the
+// KEY, so a rendering test that asserts on visible copy fails with
+// "actions.paymentDueTitleactions.paymentDueBody" instead of the real sentence -
+// a confusing failure that looks like a component bug. Importing the app's own
+// i18n config keeps the tests reading the same bundles the app ships.
+import '../src/i18n';
+
 // Disable animations for tests
 MotionGlobalConfig.skipAnimations = true;
 

@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { NavigationItem } from './NavigationItem';
 
@@ -43,6 +44,7 @@ interface NavigationProps {
  * @param className - Optional additional CSS classes
  */
 export const Navigation: React.FC<NavigationProps> = ({ items, className = '' }) => {
+    const { t } = useTranslation('common');
   const location = useLocation();
 
   /**
@@ -67,7 +69,7 @@ export const Navigation: React.FC<NavigationProps> = ({ items, className = '' })
   return (
     <nav 
       className={`hidden md:flex items-center space-x-4 md:space-x-6 lg:space-x-8 ${className}`}
-      aria-label="Main navigation"
+      aria-label={t('a11y.mainNavigation')}
     >
       {items.map((item) => (
         <NavigationItem

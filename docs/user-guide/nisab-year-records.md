@@ -667,12 +667,12 @@ For power users:
 
 **Questions?** 
 - FAQ: Settings → Help → Frequently Asked Questions
-- Support: Contact support@zakapp.com
+- Support: Contact support@zakapp.org
 - Islamic Guidance: Consult a qualified scholar
 
 **Report an Issue**:
 - GitHub: [zakapp/issues](https://github.com/your-org/zakapp/issues)
-- Email: support@zakapp.com
+- Email: support@zakapp.org
 
 ---
 

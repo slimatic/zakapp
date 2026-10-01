@@ -71,7 +71,7 @@ export const Modal: React.FC<ModalProps> = ({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className={clsx(
-                'w-full transform overflow-hidden rounded-2xl bg-card border border-border p-6 text-left align-middle shadow-xl transition-all',
+                'w-full transform overflow-hidden rounded-2xl bg-card border border-border p-6 text-start align-middle shadow-xl transition-all',
                 sizeClasses[size]
               )}>
                 {(title || showCloseButton) && (
@@ -87,7 +87,7 @@ export const Modal: React.FC<ModalProps> = ({
                     {showCloseButton && (
                       <button
                         type="button"
-                        className="rounded-md bg-transparent text-muted-foreground hover:text-card-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="rounded-md bg-transparent text-muted-foreground hover:text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                         onClick={onClose}
                       >
                         <span className="sr-only">Close</span>

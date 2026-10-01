@@ -134,10 +134,10 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                     <Input
                         value={formData.name}
                         onChange={e => handleChange('name', e.target.value)}
-                        className={errors.name ? 'border-red-500' : ''}
+                        className={errors.name ? 'border-danger' : ''}
                         placeholder="e.g. Credit Card, Mortgage, Student Loan"
                     />
-                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                    {errors.name && <p className="text-danger text-xs mt-1">{errors.name}</p>}
                 </div>
 
                 {/* Type & Creditor */}
@@ -147,7 +147,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                         <select
                             value={formData.type}
                             onChange={e => handleChange('type', e.target.value)}
-                            className="w-full border-input rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full border-input rounded-md shadow-sm focus:border-primary-500 focus:ring-ring"
                         >
                             <option value="short_term">Short Term (Immediate)</option>
                             <option value="long_term">Long Term (Deferred)</option>
@@ -177,16 +177,16 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                             value={formData.amount}
                             onChange={e => handleChange('amount', parseFloat(e.target.value) || 0)}
                             onFocus={(e) => e.target.select()}
-                            className={errors.amount ? 'border-red-500' : ''}
+                            className={errors.amount ? 'border-danger' : ''}
                         />
-                        {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}
+                        {errors.amount && <p className="text-danger text-xs mt-1">{errors.amount}</p>}
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-foreground mb-1">Currency</label>
                         <select
                             value={formData.currency}
                             onChange={e => handleChange('currency', e.target.value)}
-                            className="w-full border-input rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            className="w-full border-input rounded-md shadow-sm focus:border-primary-500 focus:ring-ring"
                         >
                             {getSupportedCurrencies().map((code: CurrencyCode) => (
                                 <option key={code} value={code}>{code} - {getCurrencySymbol(code)}</option>
@@ -196,7 +196,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                 </div>
 
                 <div className="space-y-3">
-                    <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                    <div className="rounded-md border border-warn/30 bg-warn-soft p-3 text-xs text-warn-strong">
                         According to scholars, you cannot deduct your entire long-term debt. You may only deduct immediate upcoming payments (e.g., the next lunar month's installment).
                     </div>
                     <div>
@@ -222,13 +222,13 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                         type="date"
                         value={formData.dueDate}
                         onChange={e => handleChange('dueDate', e.target.value)}
-                        className={errors.dueDate ? 'border-red-500' : ''}
+                        className={errors.dueDate ? 'border-danger' : ''}
                     />
-                    {errors.dueDate && <p className="text-red-500 text-xs mt-1">{errors.dueDate}</p>}
+                    {errors.dueDate && <p className="text-danger text-xs mt-1">{errors.dueDate}</p>}
 
                     {/* Ductibility Preview */}
                     {formData.dueDate && !isNaN(new Date(formData.dueDate).getTime()) && (
-                        <div className={`mt-2 text-xs p-2 rounded ${isDeductiblePreview() ? 'bg-primary-50 text-primary-700' : 'bg-muted text-muted-foreground'}`}>
+                        <div className={`mt-2 text-xs p-2 rounded ${isDeductiblePreview() ? 'bg-accent text-secondary' : 'bg-muted text-muted-foreground'}`}>
                             {isDeductiblePreview()
                                 ? '✅ Eligible for Zakat Deduction (Due within ~1 lunar year)'
                                 : 'ℹ️ Not automatically deductible (Due later than 1 lunar year)'}
@@ -243,7 +243,7 @@ export const LiabilityForm: React.FC<LiabilityFormProps> = ({ liability, onSucce
                         value={formData.notes}
                         onChange={e => handleChange('notes', e.target.value)}
                         rows={3}
-                        className="w-full border-input rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                        className="w-full border-input rounded-md shadow-sm focus:border-primary-500 focus:ring-ring"
                     />
                 </div>
 

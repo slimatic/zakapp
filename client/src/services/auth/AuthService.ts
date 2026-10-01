@@ -167,6 +167,7 @@ export const authService = {
         // 2. Determine Salt
         let salt: string;
         const remoteUser = apiResult.user as any;
+        const localSaltKey = `zakapp_salt_${backendUserId}`;
 
         if (remoteUser.salt) {
             salt = remoteUser.salt;
@@ -176,7 +177,6 @@ export const authService = {
             logger.info('Retrieved salt from API profile object');
         } else {
             // SALT HEALING
-            const localSaltKey = `zakapp_salt_${backendUserId}`;
             const storedSalt = localStorage.getItem(localSaltKey);
             if (storedSalt) {
                 salt = storedSalt;
@@ -216,6 +216,18 @@ export const authService = {
 
         // 3. Derive Key
         await cryptoService.deriveKey(password, salt);
+
+        // Cache the salt on every successful login, not only when one had to be
+        // generated. Previously the write lived inside the "generate a new salt"
+        // branch, so a device that logged in normally never stored a local copy —
+        // and when the server later could not supply the salt, the code fell
+        // through to minting a fresh one, deriving a DIFFERENT key, and
+        // encrypting the next import under a key that cannot read the rows already
+        // on the device. Those rows keep their ZK1: prefix and the UI renders
+        // "Encrypted recipient". The salt is not a secret: the server already
+        // returns it in plaintext. This copy makes the device able to read its own
+        // data without a round trip.
+        this.cacheSalt(backendUserId, salt);
 
         // 4. Initialize DB
         const keyString = await cryptoService.exportKeyString();
@@ -331,6 +343,22 @@ export const authService = {
         this.runZeroKnowledgeMigration(encryptedDb);
 
         return user;
+    },
+
+    /**
+     * Remember this device's salt.
+     *
+     * The salt decides the vault key, so a device that cannot recall its own salt
+     * cannot read its own rows. Best effort: private mode or a full quota must not
+     * fail a login, because the key derived in memory is still correct for this
+     * session. Extracted so the caching rule is testable rather than asserted.
+     */
+    cacheSalt(backendUserId: string, salt: string): void {
+        try {
+            localStorage.setItem(`zakapp_salt_${backendUserId}`, salt);
+        } catch (e) {
+            logger.warn('Could not cache the salt on this device', e);
+        }
     },
 
     /**

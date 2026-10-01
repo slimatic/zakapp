@@ -113,3 +113,41 @@ This roadmap prioritizes the transformation of ZakApp into a pro-grade, privacy-
 - [ ] **Strict Financial Typing**: Enforce `Decimal` type across all shared interfaces to prevent `number` regression.
 - [ ] **CI/CD Reliability**: Resolve `npm run build` permission issues permanently in deployment scripts.
 
+## Phase 10: v1.0 Release Readiness (current — Sha'ban/Muharram 1448)
+
+*Goal: a release-mergeable line and honest calculation surfaces.*
+
+- [x] **Branch reconciliation**: `main` ↔ `develop` diverged by 0 conflicts; 19 Dependabot
+  majors triaged (safe: vite-plugin-pwa, Prisma 6→7; unsafe: Tailwind 4 breaks the build).
+- [x] **Dev deploy integrity**: `scripts/deploy-dev-site.sh` builds into `dist.next` and swaps
+  atomically — a straight-to-`dist` build served HTML-for-JS for ~9s on every rebuild (#537,
+  #538).
+- [x] **Runtime config**: `client/public/config.js` restores `window.APP_CONFIG`, which a
+  blanket `.gitignore` `*.js` rule had been excluding from the repo; login on any non-localhost
+  host was broken by the resulting `localhost:3001` fallback (#532).
+- [x] **Payments vocabulary**: client offered 8 non-canonical recipient categories, one of
+  which (`general`) the server rejects — silently losing payments. Now the 8 asnaf of
+  at-Tawbah 9:60, guarded by `check-payment-vocabulary.py` (#533).
+- [x] **Nisab basis**: the modal let users pick a basis the calculation ignored; now derived
+  from the school (#535).
+- [x] **Doc hygiene**: `docs/` markdown 522 → 90 files; superseded archive and duplicate
+  report layers purged; broken relative links 79 → 0 (#539, #540).
+
+### Open — needs a decision before v1.0
+
+- [ ] **Nisab grams, per madhab**: the code uses one global pair (87.48g/612.36g, the Hanafi
+  standard) for every school, but the majority standard is 85g/595g, and the UI's own
+  methodology data still says 85/595. Joe Bradford's *Simple Zakat Guide* — the source this
+  codebase already cites — distinguishes them as **Hanafi 87.48/612.36** vs **Jamhur
+  85/595** (adopted by AAOIFI and the Al-Azhar, Jordan, Malaysia, Morocco and KSA fatwa
+  bodies). The fix is to select the pair by madhab, not to pick one. Correctness of the
+  figures is a scholar question. See `docs/plans/methodology-audit-2026-09-25.md` §3.2.
+- [ ] **Two disagreeing madhhab rule-sets**: the client calculator and the server engine hold
+  independent per-madhhab rule-sets and can select a different nisab basis and debt-deduction
+  scope for the same user. Which is canonical is a product and fiqh decision.
+  (`methodology-audit-2026-09-25.md` §1)
+- [ ] **Invented threshold**: `server/src/services/snapshot.service.ts` uses a hardcoded
+  `nisabThreshold = 7500` that feeds a stored `zakatDue` — it must calculate or refuse.
+- [ ] **Contrast**: 7 nodes in `/nisab-records` and `/analytics` (#507).
+- [ ] **CI reliability**: `Secret Detection Scan` flakes on an unauthenticated gitleaks
+  version lookup (#534).

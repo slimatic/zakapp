@@ -15,17 +15,18 @@ Deploy ZakApp in 3 simple commands - no technical knowledge required!
 git clone https://github.com/slimatic/zakapp.git && cd zakapp
 
 # 2. Run the deployment script
-./deploy.sh
+./deploy-easy.sh
 
-# 3. Open your browser to:
-http://localhost:3000
+# 3. Open the URL the script prints when it finishes
 ```
 
-That's it! 🎉
+That's it! 🎉 The script prints the exact URL at the end. If port 3000 is
+already taken on your machine it picks the next free port and updates the
+configuration to match, so follow what it prints rather than assuming 3000.
 
 ## What the Script Does
 
-The `deploy.sh` script automatically:
+The `deploy-easy.sh` script automatically:
 1. ✅ Checks that Docker is installed
 2. ✅ Generates secure random secrets
 3. ✅ Creates the configuration file (.env)
@@ -45,10 +46,16 @@ cp .env.docker.example .env
 # Edit .env and replace all REPLACE_* values with generated secrets
 
 # 3. Deploy
-docker compose -f docker-compose.local.yml up -d
+docker compose -f docker-compose.yml up -d
 
 # 4. Open http://localhost:3000
 ```
+
+> **Check the output.** If port 3000 is already in use, this command still exits
+> `0`, the backend and CouchDB start normally, and the frontend and proxy are left
+> unstarted — so `localhost:3000` then serves whatever else owns that port.
+> `docker compose ps` shows the truth; `deploy-easy.sh` avoids the problem by
+> picking a free port for you.
 
 ### Generating Secrets Manually
 
@@ -68,26 +75,26 @@ openssl rand -hex 32
 
 ```bash
 # Start
-docker compose -f docker-compose.local.yml up -d
+docker compose -f docker-compose.yml up -d
 
 # Stop
-docker compose -f docker-compose.local.yml down
+docker compose -f docker-compose.yml down
 
 # Restart
-docker compose -f docker-compose.local.yml restart
+docker compose -f docker-compose.yml restart
 ```
 
 ### View Logs
 
 ```bash
 # All services
-docker compose -f docker-compose.local.yml logs -f
+docker compose -f docker-compose.yml logs -f
 
 # Just the backend
-docker compose -f docker-compose.local.yml logs -f backend
+docker compose -f docker-compose.yml logs -f backend
 
 # Just the frontend
-docker compose -f docker-compose.local.yml logs -f frontend
+docker compose -f docker-compose.yml logs -f frontend
 ```
 
 ### Update to Latest Version
@@ -97,8 +104,8 @@ docker compose -f docker-compose.local.yml logs -f frontend
 git pull
 
 # Rebuild and restart
-docker compose -f docker-compose.local.yml down
-docker compose -f docker-compose.local.yml up -d --build
+docker compose -f docker-compose.yml down
+docker compose -f docker-compose.yml up -d --build
 ```
 
 ## Troubleshooting
@@ -145,12 +152,12 @@ Browsers require a [secure context](https://developer.mozilla.org/en-US/docs/Web
 
 4. **Test the issue** with our diagnostic tool:
    ```bash
-   # Run headless browser test
+   # Run headless browser test (from a checkout of this repository)
    ./test-crypto.sh http://your-ip:3005
-   
-   # Or open the test page in your browser:
-   # http://your-ip:3005/crypto-test.html
    ```
+   The former in-browser page (`crypto-test.html`) was removed: it was served to
+   every visitor of the deployed site, and its "Test Registration Flow" button
+   created real accounts against whatever host served it.
 
 ### "CORS Error" or "Not allowed by CORS"
 
@@ -164,7 +171,7 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://192.168.1.100
 ALLOWED_HOSTS=localhost,192.168.1.100
 ```
 
-Then restart: `docker compose -f docker-compose.local.yml restart`
+Then restart: `docker compose -f docker-compose.yml restart`
 
 ### "Port already in use" Error
 
@@ -176,22 +183,22 @@ If you see an error like `port 3000 is already allocated`:
    FRONTEND_PORT=3010
    BACKEND_PORT=3011
    ```
-3. Restart: `docker compose -f docker-compose.local.yml up -d`
+3. Restart: `docker compose -f docker-compose.yml up -d`
 
-### "Permission denied" Error on deploy.sh
+### "Permission denied" Error on deploy-easy.sh
 
-Run: `chmod +x deploy.sh`
+Run: `chmod +x deploy-easy.sh`
 
 ### Can't Access the Website
 
 1. Check if containers are running:
    ```bash
-   docker compose -f docker-compose.local.yml ps
+   docker compose -f docker-compose.yml ps
    ```
 
 2. Check logs for errors:
    ```bash
-   docker compose -f docker-compose.local.yml logs
+   docker compose -f docker-compose.yml logs
    ```
 
 3. Make sure ports 3000, 3001, and 5984 are not blocked by your firewall
@@ -202,13 +209,13 @@ If you need to reset the admin password:
 
 ```bash
 # Access the backend container
-docker compose -f docker-compose.local.yml exec backend bash
+docker compose -f docker-compose.yml exec backend bash
 
 # Generate new password hash (replace 'newpassword' with your password)
 node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('newpassword', 12).then(h => console.log(h))"
 
 # Exit container and update database
-docker compose -f docker-compose.local.yml exec backend npx prisma db execute --stdin <<< "UPDATE users SET passwordHash='<hash>' WHERE email='admin@example.com';"
+docker compose -f docker-compose.yml exec backend npx prisma db execute --stdin <<< "UPDATE users SET passwordHash='<hash>' WHERE email='admin@example.com';"
 ```
 
 ## Next Steps

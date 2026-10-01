@@ -15,7 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 import { formatCurrency } from '../utils/formatters';
@@ -55,8 +55,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(
   if (!data) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 text-lg">No analytics data available</div>
-        <div className="text-gray-400 text-sm mt-2">
+        <div className="text-muted-foreground text-lg">No analytics data available</div>
+        <div className="text-muted-foreground text-sm mt-2">
           Start recording payments to see your giving patterns
         </div>
       </div>
@@ -113,9 +113,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(
             {data.yearlyComparison.map(comparison => (
               <li key={comparison.year} className="flex justify-between items-center">
                 <span className="font-medium">{comparison.year}</span>
-                <div className="text-right">
+                <div className="text-end">
                   <div className="font-bold">{formatCurrency(comparison.totalAmount)}</div>
-                  <div className="text-sm text-gray-500">{comparison.paymentCount} payments</div>
+                  <div className="text-sm text-muted-foreground">{comparison.paymentCount} payments</div>
                 </div>
               </li>
             ))}
@@ -133,9 +133,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = React.memo(
             {data.categoryBreakdown.map(category => (
               <li key={category.category} className="flex justify-between items-center">
                 <span className="capitalize">{category.category}</span>
-                <div className="text-right">
+                <div className="text-end">
                   <div className="font-bold">{formatCurrency(category.amount)}</div>
-                  <div className="text-sm text-gray-500">{category.percentage}%</div>
+                  <div className="text-sm text-muted-foreground">{category.percentage}%</div>
                 </div>
               </li>
             ))}

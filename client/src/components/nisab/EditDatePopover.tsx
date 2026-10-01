@@ -26,7 +26,7 @@ export const EditDatePopover: React.FC<EditDatePopoverProps> = ({
   const [date, setDate] = React.useState<Date | null>(value ? new Date(value) : null);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 space-y-3 w-64">
+    <div className="bg-card border border-border rounded-lg shadow-lg p-3 space-y-3 w-64">
       <DualCalendarDatePicker
         value={date || new Date()}
         onChange={(newDate) => {
@@ -38,14 +38,14 @@ export const EditDatePopover: React.FC<EditDatePopoverProps> = ({
       <div className="flex justify-end gap-2">
         <button
           onClick={onCancel}
-          className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+          className="px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent rounded-md transition-colors"
         >
           Cancel
         </button>
         <button
           onClick={onSave}
           disabled={!date}
-          className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="px-3 py-1.5 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors disabled:opacity-50"
         >
           Save
         </button>

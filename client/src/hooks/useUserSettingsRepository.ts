@@ -20,6 +20,7 @@ import { useDb } from '../db';
 import { useAuth } from '../contexts/AuthContext';
 import { switchMap } from 'rxjs/operators';
 import { cryptoService } from '../services/CryptoService';
+import { DEFAULT_NISAB_STANDARD } from '../core/calculations/nisab';
 
 /**
  * Fields the zero-knowledge plugin encrypts on write, so they must be decrypted on
@@ -40,6 +41,12 @@ export interface UserSettings {
     preferredCalendar: string;
     preferredMethodology: string;
     baseCurrency: string;
+    /**
+     * Gram convention for the nisab threshold: 'tola' (87.48/612.36 g) or
+     * 'aaoifi' (85/595 g). Optional because settings documents written before
+     * schema v8 have no such field; read via `getNisabStandard`, never directly.
+     */
+    nisabStandard?: string;
     language: string;
     theme: string;
     lastLoginAt?: string;
@@ -123,6 +130,7 @@ export function useUserSettingsRepository() {
                 preferredCalendar: updates.preferredCalendar || 'gregorian',
                 preferredMethodology: updates.preferredMethodology || 'standard',
                 baseCurrency: updates.baseCurrency || 'USD',
+                nisabStandard: updates.nisabStandard || DEFAULT_NISAB_STANDARD,
                 language: updates.language || 'en',
                 theme: updates.theme || 'system',
                 isSetupCompleted: updates.isSetupCompleted ?? false

@@ -45,8 +45,17 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
     };
 
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+    /**
+     * `dueDate` is declared required on Liability but is not enforced at write
+     * time (the seeder and older records can omit it). Returns null for a
+     * missing or unparseable date so the caller can omit the line entirely -
+     * rendering "Due: Invalid Date" on every record is worse than saying nothing.
+     */
+    const formatDueDate = (dateString?: string): string | null => {
+        if (!dateString) return null;
+        const d = new Date(dateString);
+        if (Number.isNaN(d.getTime())) return null;
+        return d.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -61,7 +70,7 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
 
     if (liabilities.length === 0) {
         return (
-            <div className="text-center py-12 bg-white rounded-lg shadow border border-border">
+            <div className="text-center py-12 bg-card rounded-lg shadow border border-border">
                 <div className="mx-auto h-12 w-12 text-muted-foreground mb-4">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -74,21 +83,25 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
     }
 
     return (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md border border-border">
+        <div className="bg-card shadow overflow-hidden sm:rounded-md border border-border">
             <ul className="divide-y divide-border">
-                {liabilities.map((liability) => (
+                {liabilities.map((liability) => {
+                    const dueLabel = formatDueDate(liability.dueDate);
+                    return (
                     <li key={liability.id}>
                         <div className="px-4 py-4 sm:px-6 hover:bg-muted transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="flex flex-col">
-                                    <p className="text-sm font-medium text-blue-600 truncate">{liability.name}</p>
+                                    <p className="text-sm font-medium text-secondary truncate">{liability.name}</p>
                                     <p className="text-xs text-muted-foreground">{liability.creditor ? `Creditor: ${liability.creditor}` : 'No creditor specified'}</p>
                                 </div>
-                                <div className="ml-2 flex-shrink-0 flex flex-col items-end">
-                                    <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                <div className="ms-2 flex-shrink-0 flex flex-col items-end">
+                                    <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success-soft text-success">
                                         {maskedCurrency(formatCurrency(liability.amount, liability.currency))}
                                     </p>
-                                    <p className="text-xs text-muted-foreground mt-1">Due: {formatDate(liability.dueDate)}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        {dueLabel ? `Due: ${dueLabel}` : 'No due date'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="mt-2 sm:flex sm:justify-between sm:items-center">
@@ -97,7 +110,7 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
                                         {liability.type.replace(/_/g, ' ')}
                                     </p>
                                     {isDeductible(liability) ? (
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-soft text-success">
                                             Zakat Deductible
                                         </span>
                                     ) : (
@@ -112,14 +125,14 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
                                     </Button>
                                     {deleteId === liability.id ? (
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs text-red-600">Sure?</span>
-                                            <button onClick={() => handleDelete(liability.id)} className="text-red-600 hover:text-red-800 text-xs font-medium underline">Yes</button>
+                                            <span className="text-xs text-danger">Sure?</span>
+                                            <button onClick={() => handleDelete(liability.id)} className="text-danger hover:text-danger/80 text-xs font-medium underline">Yes</button>
                                             <button onClick={() => setDeleteId(null)} className="text-muted-foreground hover:text-foreground text-xs font-medium underline">No</button>
                                         </div>
                                     ) : (
                                         <button
                                             onClick={() => setDeleteId(liability.id)}
-                                            className="text-muted-foreground hover:text-red-600 transition-colors ml-2"
+                                            className="text-muted-foreground hover:text-danger transition-colors ms-2"
                                             title="Delete"
                                         >
                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,7 +144,8 @@ export const LiabilityList: React.FC<LiabilityListProps> = ({ liabilities, onEdi
                             </div>
                         </div>
                     </li>
-                ))}
+                    );
+                })}
             </ul>
         </div>
     );

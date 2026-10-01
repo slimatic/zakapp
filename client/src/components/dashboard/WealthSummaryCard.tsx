@@ -16,12 +16,15 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
 import { formatCurrency, type CurrencyCode } from '../../utils/formatters';
 
 interface WealthSummaryCardProps {
   totalWealth: number;
-  nisabThreshold: number;
+  /** Nisab threshold in `currency`, or `null` while unknown (loading / no metal
+   *  prices). `null` renders an explicit unknown state, never a comparison. */
+  nisabThreshold: number | null;
   currency?: string;
 }
 
@@ -48,9 +51,17 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
   nisabThreshold,
   currency = 'USD',
 }) => {
-  const isAboveNisab = totalWealth >= nisabThreshold;
-  const difference = Math.abs(totalWealth - nisabThreshold);
-  const differencePercentage = ((totalWealth - nisabThreshold) / nisabThreshold) * 100;
+  const { t } = useTranslation('dashboard');
+  // Unknown threshold (loading, or metal prices unavailable) must not be treated
+  // as a comparison. Previously the caller substituted 5,000 and this card then
+  // printed a confident "Above Nisab" — a claim about the user's obligation
+  // derived from an arbitrary number.
+  const nisabKnown = nisabThreshold !== null && nisabThreshold > 0;
+  const isAboveNisab = nisabKnown && totalWealth >= nisabThreshold;
+  const difference = nisabKnown ? Math.abs(totalWealth - nisabThreshold) : 0;
+  const differencePercentage = nisabKnown
+    ? ((totalWealth - nisabThreshold) / nisabThreshold) * 100
+    : 0;
   const maskedCurrency = useMaskedCurrency();
 
   // Issue #310 (v0.15.2 regression): amounts were hardcoded to `$` while the
@@ -62,17 +73,17 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
   const fmt = (amount: number) => maskedCurrency(formatCurrency(amount, currency as CurrencyCode));
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border border-gray-200">
+    <div className="bg-card rounded-lg shadow-md p-4 sm:p-6 border border-border">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Wealth Summary</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t('widget.wealthSummary')}</h2>
 
         {/* Status Icon */}
-        <div className={`p-2 rounded-full ${isAboveNisab ? 'bg-green-100' : 'bg-red-100'}`}>
+        <div className={`p-2 rounded-full ${isAboveNisab ? 'bg-success-soft' : 'bg-danger-soft'}`}>
           {isAboveNisab ? (
             // Checkmark icon
             <svg
-              className="w-5 h-5 text-green-600"
+              className="w-5 h-5 text-success"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -88,7 +99,7 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
           ) : (
             // Info icon
             <svg
-              className="w-5 h-5 text-red-600"
+              className="w-5 h-5 text-danger"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -107,40 +118,52 @@ export const WealthSummaryCard: React.FC<WealthSummaryCardProps> = ({
 
       {/* Total Wealth - Large Display */}
       <div className="mb-4">
-        <p className="text-sm text-gray-600 mb-1">Total Wealth</p>
-        <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+        <p className="text-sm text-muted-foreground mb-1">{t('widget.totalWealth')}</p>
+        <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
           {fmt(totalWealth)}
         </p>
-        <p className="text-xs text-gray-500 mt-1">{currency}</p>
+        <p className="text-xs text-muted-foreground mt-1">{currency}</p>
       </div>
 
       {/* Nisab Threshold Comparison */}
-      <div className={`p-3 sm:p-4 rounded-md ${isAboveNisab ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+      <div className={`p-3 sm:p-4 rounded-md ${
+        !nisabKnown
+          ? 'bg-muted border border-border'
+          : isAboveNisab
+            ? 'bg-success-soft border border-success/30'
+            : 'bg-danger-soft border border-danger/30'
+      }`}>
         <div className="flex items-start justify-between mb-2">
           <div>
-            <p className={`text-sm font-medium ${isAboveNisab ? 'text-green-700' : 'text-red-700'}`}>
-              {isAboveNisab ? 'Above Nisab' : 'Below Nisab'}
+            <p className={`text-sm font-medium ${
+              !nisabKnown ? 'text-muted-foreground' : isAboveNisab ? 'text-success' : 'text-danger'
+            }`}>
+              {!nisabKnown ? 'Nisab unknown' : isAboveNisab ? 'Above Nisab' : 'Below Nisab'}
             </p>
-            <p className="text-xs text-gray-600 mt-1">
-              Nisab: {fmt(nisabThreshold)}
+            <p className="text-xs text-muted-foreground mt-1">
+              {nisabKnown ? `Nisab: ${fmt(nisabThreshold)}` : 'Nisab: not available'}
             </p>
           </div>
 
-          <div className="text-right">
-            <p className={`text-lg font-bold ${isAboveNisab ? 'text-green-700' : 'text-red-700'}`}>
-              {`${isAboveNisab ? '+' : '-'}${fmt(difference)}`}
-            </p>
-            <p className="text-xs text-gray-600">
-              {isAboveNisab ? '+' : ''}{differencePercentage.toFixed(1)}%
-            </p>
-          </div>
+          {nisabKnown && (
+            <div className="text-end">
+              <p className={`text-lg font-bold ${isAboveNisab ? 'text-success' : 'text-danger'}`}>
+                {`${isAboveNisab ? '+' : '-'}${fmt(difference)}`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {isAboveNisab ? '+' : ''}{differencePercentage.toFixed(1)}%
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Status Message */}
-        <p className="text-xs text-gray-700 mt-2">
-          {isAboveNisab
-            ? 'Your wealth meets the Nisab threshold. Zakat may be due after one lunar year (Hawl).'
-            : 'Your wealth is below the Nisab threshold. No Zakat obligation at this time.'}
+        <p className="text-xs text-foreground/80 mt-2">
+          {!nisabKnown
+            ? 'We could not load the current nisab threshold, so we cannot say whether zakat is due. Try again shortly.'
+            : isAboveNisab
+              ? 'Your wealth meets the Nisab threshold. Zakat may be due after one lunar year (Hawl).'
+              : t('widget.belowNisabNoObligation')}
         </p>
       </div>
     </div>

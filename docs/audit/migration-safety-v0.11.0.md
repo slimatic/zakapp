@@ -103,3 +103,37 @@ DATABASE_URL=file:./prisma/data/test-upgrade.db npx prisma migrate deploy
 **Risk Level**: 🟢 LOW — All migrations are non-destructive or use safe table-redefinition patterns. Data is preserved in all cases.
 
 **Confidence**: HIGH — Prisma's migrate deploy pattern is battle-tested; backup script provides additional safety net.
+
+---
+
+## Addendum — migrations added after this audit (2026-09-27)
+
+This document audited the **7** migrations that existed at v0.11.0. The repository now
+carries **12**. Five shipped afterwards, and `docs/UPGRADING.md` cites this file as blanket
+evidence that "all shipped migrations were audited as data-preserving" — so the five are
+recorded here to keep that sentence true. Each was read directly; the classification is
+mechanical (presence of a destructive statement), not a judgement call.
+
+| # | Migration | Operations | Data preserved | Risk |
+|---|---|---|---|---|
+| 8 | `20260109155002_add_max_liabilities` | `ADD COLUMN maxLiabilities` | N/A (additive) | ✅ None |
+| 9 | `20260518091255_add_asset_amount_history_prisma` | creates `asset_amount_events`, `asset_amount_snapshots`; `ADD COLUMN deductibleAmount` | Yes | ✅ None |
+| 10 | `20260912160000_add_push_subscriptions` | creates `push_subscriptions` | N/A (additive) | ✅ None |
+| 11 | `20260920230000_add_currency_to_calculations` | `ADD COLUMN currency` ×2 | N/A (additive) | ✅ None |
+| 12 | `20260921030000_add_fx_provenance_to_calculations` | `ADD COLUMN fxRateUsed`, `fxRateSource` | N/A (additive) | ✅ None |
+
+**#9 is the only one containing a `DROP TABLE`**, and it is the same safe pattern this audit
+already cleared for migrations 1-7: it rebuilds `audit_trail_entries` as
+`new_audit_trail_entries` with an `INSERT INTO ... SELECT ...` of every column before the
+drop, then renames. No row is discarded.
+
+**#12 is the one to watch on upgrade.** `20260920230000` and `20260921030000` add
+`currency` and FX-provenance columns to `zakat_calculations`. Historical rows receive the
+column default, which is not the currency those calculations were actually performed in —
+the figures stay correct, but their recorded currency is an assumption for pre-existing
+rows. This is a labelling limitation, not data loss, and it is why the audit's distinction
+between *data preservation* and *bookkeeping correctness* matters here.
+
+## Conclusion
+
+**Current totals**: 12 migrations on disk, 12 audited (7 here + 5 above). All data-preserving.

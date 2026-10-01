@@ -46,39 +46,39 @@ export const MetalsStep: React.FC = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.metals.title')}</h3>
-                <p className="text-sm text-gray-500 mb-6">
+                <h3 className="text-xl font-semibold text-foreground mb-2">{t('steps.metals.title')}</h3>
+                <p className="text-sm text-muted-foreground mb-6">
                     Gold & Silver. Enter the weight you own. You don't need to be exact right now—you can always update this later in your Assets Dashboard.
                 </p>
 
                 <div className="space-y-6">
                     {/* Gold Input */}
-                    <div className="bg-amber-50 rounded-xl p-5 border border-amber-200">
+                    <div className="bg-warn-soft rounded-xl p-5 border border-warn/30">
                         <div className="flex justify-between items-center mb-4">
-                            <label className="text-amber-900 font-medium flex items-center gap-2">
-                                <span className="bg-amber-200 p-1.5 rounded-lg text-amber-700">🏆</span>
+                            <label className="text-warn-strong font-medium flex items-center gap-2">
+                                <span className="bg-warn-soft p-1.5 rounded-lg text-warn-strong">🏆</span>
                                 Gold (24k)
                             </label>
-                            <span className="text-xs font-mono bg-amber-100 text-amber-800 px-2 py-1 rounded">
+                            <span className="text-xs font-mono bg-warn-soft text-warn-strong px-2 py-1 rounded">
                                 Live: {isLoading ? '...' : formatCurrency(goldPrice || 0)}/g · {userCurrency}
                             </span>
                         </div>
                         <div className="flex gap-4">
                             <div className="flex-1">
-                                <label className="block text-xs text-amber-700 mb-1">Weight (Grams)</label>
+                                <label className="block text-xs text-warn-strong mb-1">Weight (Grams)</label>
                                 <input
                                     type="number"
                                     min="0"
                                     step="0.01"
                                     placeholder="0 g"
-                                    className="w-full rounded-lg border-amber-300 focus:ring-amber-500 focus:border-amber-500"
+                                    className="w-full rounded-lg border-warn/40 focus:ring-warn focus:border-warn"
                                     value={data.assets.gold.grams || ''}
                                     onChange={(e) => handleGramsChange('gold', e.target.value)}
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-xs text-amber-700 mb-1">Value</label>
-                                <div className="w-full h-10 px-3 py-2 bg-amber-100/50 rounded-lg border border-amber-200 text-amber-900 font-medium flex items-center">
+                                <label className="block text-xs text-warn-strong mb-1">Value</label>
+                                <div className="w-full h-10 px-3 py-2 bg-warn-soft/50 rounded-lg border border-warn/30 text-warn-strong font-medium flex items-center">
                                     {maskedCurrency(formatCurrency(data.assets.gold.value || 0))}
                                 </div>
                             </div>
@@ -86,32 +86,32 @@ export const MetalsStep: React.FC = () => {
                     </div>
 
                     {/* Silver Input */}
-                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                    <div className="bg-surface-2 rounded-xl p-5 border border-border">
                         <div className="flex justify-between items-center mb-4">
-                            <label className="text-slate-900 font-medium flex items-center gap-2">
-                                <span className="bg-slate-200 p-1.5 rounded-lg text-slate-700">🥈</span>
+                            <label className="text-foreground font-medium flex items-center gap-2">
+                                <span className="bg-border-strong p-1.5 rounded-lg text-foreground">🥈</span>
                                 Silver
                             </label>
-                            <span className="text-xs font-mono bg-slate-200 text-slate-700 px-2 py-1 rounded">
+                            <span className="text-xs font-mono bg-border-strong text-foreground px-2 py-1 rounded">
                                 Live: {isLoading ? '...' : formatCurrency(silverPrice || 0)}/g
                             </span>
                         </div>
                         <div className="flex gap-4">
                             <div className="flex-1">
-                                <label className="block text-xs text-slate-600 mb-1">Weight (Grams)</label>
+                                <label className="block text-xs text-muted-foreground mb-1">Weight (Grams)</label>
                                 <input
                                     type="number"
                                     min="0"
                                     step="0.01"
                                     placeholder="0 g"
-                                    className="w-full rounded-lg border-slate-300 focus:ring-slate-500 focus:border-slate-500"
+                                    className="w-full rounded-lg border-border-strong focus:ring-ring focus:border-ring"
                                     value={data.assets.silver.grams || ''}
                                     onChange={(e) => handleGramsChange('silver', e.target.value)}
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-xs text-slate-600 mb-1">Value</label>
-                                <div className="w-full h-10 px-3 py-2 bg-slate-100 rounded-lg border border-slate-200 text-slate-900 font-medium flex items-center">
+                                <label className="block text-xs text-muted-foreground mb-1">Value</label>
+                                <div className="w-full h-10 px-3 py-2 bg-muted rounded-lg border border-border text-foreground font-medium flex items-center">
                                     {maskedCurrency(formatCurrency(data.assets.silver.value || 0))}
                                 </div>
                             </div>
@@ -123,13 +123,13 @@ export const MetalsStep: React.FC = () => {
             <div className="flex justify-between pt-8">
                 <button
                     onClick={prevStep}
-                    className="px-6 py-3 text-slate-600 font-medium hover:text-slate-800 transition-colors"
+                    className="px-6 py-3 text-muted-foreground font-medium hover:text-foreground transition-colors"
                 >
                     Back
                 </button>
                 <button
                     onClick={nextStep}
-                    className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                    className="px-8 py-3 bg-secondary text-secondary-foreground rounded-xl font-semibold shadow-elev-2 hover:bg-secondary/90 transition-all"
                 >
                     Next: Cash
                 </button>

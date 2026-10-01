@@ -1,4 +1,9 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-npx commitizen --hook || true
+# Commit message convention check.
+#
+# Replaces `npx commitizen --hook || true`, which could never fail (the `|| true`
+# swallowed its exit code) and which pulled commitizen from the npm registry on
+# every commit, because it was never a declared dependency.
+#
+# $1 is the path to the commit message file git is about to use.
+"$(git rev-parse --show-toplevel)/scripts/check-commit-msg.sh" "$1"

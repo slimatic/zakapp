@@ -233,7 +233,7 @@ export function formatErrorForDisplay(error: any): {
  * Get contact support message
  */
 export function getSupportMessage(): string {
-  return 'Need help? Contact us at support@zakapp.com or visit our help center.';
+  return 'Need help? Contact us at support@zakapp.org or visit our help center.';
 }
 
 export default {

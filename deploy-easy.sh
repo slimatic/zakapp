@@ -475,6 +475,10 @@ configure_ports() {
             print_success "Updated for domain: https://$domain"
         else
             # Localhost
+            # APP_URL must be updated too: EmailService builds verification and
+            # password-reset links from it, so leaving it on the pre-change port
+            # sends users to whatever else is listening there.
+            sed -i "s|^APP_URL=.*|APP_URL=http://localhost:$http_port|" "$ENV_FILE"
             sed -i "s|^CLIENT_URL=.*|CLIENT_URL=http://localhost:$http_port|" "$ENV_FILE"
             sed -i "s|^ALLOWED_ORIGINS=.*|ALLOWED_ORIGINS=http://localhost:$http_port|" "$ENV_FILE"
             print_success "Updated to http://localhost:$http_port"

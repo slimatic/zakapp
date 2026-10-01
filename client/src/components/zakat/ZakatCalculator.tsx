@@ -25,7 +25,7 @@ import { MethodologySelector } from './MethodologySelector';
 // Local-First Imports
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { calculateZakat } from '../../core/calculations/zakat';
-import { calculateNisabThreshold, DEFAULT_NISAB_DATA } from '../../core/calculations/nisab';
+import { calculateNisabThreshold, DEFAULT_NISAB_DATA, normalizeNisabPayload, type NisabData } from '../../core/calculations/nisab';
 import { getAssetRuling, type AssetRuling } from '../../data/rulings';
 import { AssetRulingExplanation } from './AssetRulingExplanation';
 
@@ -42,7 +42,7 @@ export const ZakatCalculator: React.FC = () => {
   const { user } = useAuth();
   const userCurrency = ((user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD').toUpperCase();
 
-  const [nisabInfo, setNisabInfo] = useState<NisabInfo | null>(null);
+  const [nisabInfo, setNisabInfo] = useState<NisabData | null>(null);
   const [selectedMethodology, setSelectedMethodology] = useState<string>('standard');
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [calculation, setCalculation] = useState<any | null>(null);
@@ -62,17 +62,23 @@ export const ZakatCalculator: React.FC = () => {
   }, [assets]);
 
   const loadNisabData = async () => {
+    // The server sends nested price objects (`goldPrice: { pricePerGram }`) while
+    // this component needs per-gram numbers. Reading the object as a number gave
+    // `object * grams` = NaN, and `total >= NaN` is false — so an above-nisab
+    // portfolio reported "$0.00 / Below Nisab Threshold ($NaN)" with no error.
+    // Normalise at the boundary so everything downstream has real numbers.
+    const fallback = normalizeNisabPayload(null);
     try {
       // Issue #310: pass the user's currency explicitly so the nisab comes
       // back in the currency this page displays.
       const nisabResponse = await apiService.getNisab(userCurrency);
       if (nisabResponse.success && nisabResponse.data) {
-        setNisabInfo(nisabResponse.data);
+        setNisabInfo(normalizeNisabPayload(nisabResponse.data as any));
       } else {
-        setNisabInfo({ ...DEFAULT_NISAB_DATA, goldNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, silverNisab: DEFAULT_NISAB_DATA.silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams, effectiveNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, currency: 'USD', lastUpdated: new Date().toISOString() });
+        setNisabInfo(fallback);
       }
     } catch (err) {
-      setNisabInfo({ ...DEFAULT_NISAB_DATA, goldNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, silverNisab: DEFAULT_NISAB_DATA.silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams, effectiveNisab: DEFAULT_NISAB_DATA.goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams, currency: 'USD', lastUpdated: new Date().toISOString() });
+      setNisabInfo(fallback);
     }
   };
 
@@ -83,16 +89,23 @@ export const ZakatCalculator: React.FC = () => {
 
       const goldPrice = nisabInfo?.goldPrice || DEFAULT_NISAB_DATA.goldPrice;
       const silverPrice = nisabInfo?.silverPrice || DEFAULT_NISAB_DATA.silverPrice;
-
-      let nisabValue = calculateNisabThreshold({
+      // Read the gram weights from DEFAULT_NISAB_DATA rather than repeating them.
+      // This file used to carry its own `87.48`/`612.36` — twice, here and again on
+      // the `calculateZakat` call below — which is exactly the duplication nisab.ts
+      // removed a second switch to prevent. Two copies of a threshold is how one of
+      // them silently becomes the wrong number.
+      const nisabValue = calculateNisabThreshold({
         goldPrice,
         silverPrice,
-        goldNisabGrams: 87.48,
-        silverNisabGrams: 612.36
+        goldNisabGrams: DEFAULT_NISAB_DATA.goldNisabGrams,
+        silverNisabGrams: DEFAULT_NISAB_DATA.silverNisabGrams
       }, methodology);
 
       const assetsToCalc = assets.filter(a => selectedAssets.includes(a.id));
-      const result = calculateZakat(assetsToCalc, [], { gold: goldPrice * 87.48, silver: silverPrice * 612.36 }, methodology);
+      const result = calculateZakat(assetsToCalc, [], {
+        gold: goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams,
+        silver: silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams
+      }, methodology);
 
       // Per-asset madhab ruling explanations (transparency engine)
       const assetRulings: Array<{
@@ -170,7 +183,7 @@ export const ZakatCalculator: React.FC = () => {
         </CardContent>
         <CardFooter className="flex justify-end">
           <Button onClick={() => setCurrentStep(1)} className="w-full sm:w-auto">
-            Next: Select Assets <ArrowRight className="ml-2 h-4 w-4" />
+            Next: Select Assets <ArrowRight className="ms-2 h-4 w-4" />
           </Button>
         </CardFooter>
       </Card>
@@ -186,29 +199,29 @@ export const ZakatCalculator: React.FC = () => {
         </CardHeader>
         <CardContent>
           {assets.length === 0 ? (
-            <div className="text-center py-12 bg-slate-50 rounded-lg border-dashed border-2 border-slate-200">
-              <Wallet className="mx-auto h-12 w-12 text-slate-300" />
-              <p className="mt-2 text-slate-500 text-sm">No assets found in your local vault.</p>
+            <div className="text-center py-12 bg-surface-2 rounded-lg border-dashed border-2 border-border">
+              <Wallet className="mx-auto h-12 w-12 text-tertiary" />
+              <p className="mt-2 text-muted-foreground text-sm">No assets found in your local vault.</p>
               <Button variant="link" onClick={() => window.location.href = '/assets'}>Add Assets Now</Button>
             </div>
           ) : (
             <div className="grid gap-4">
               {assets.map((asset) => (
                 <div key={asset.id}
-                  className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${selectedAssets.includes(asset.id) ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500' : 'border-slate-200 hover:border-slate-300'}`}
+                  className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${selectedAssets.includes(asset.id) ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border hover:border-border-strong'}`}
                   onClick={() => handleAssetSelection(asset.id, !selectedAssets.includes(asset.id))}
                 >
                   <div className="flex items-center space-x-4">
-                    <div className={`p-2 rounded-full ${selectedAssets.includes(asset.id) ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'}`}>
+                    <div className={`p-2 rounded-full ${selectedAssets.includes(asset.id) ? 'bg-accent text-secondary' : 'bg-muted text-muted-foreground'}`}>
                       <TrendingUp className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-slate-900">{asset.name}</h4>
-                      <p className="text-xs text-slate-500 uppercase tracking-wide">{asset.type.replace('_', ' ')}</p>
+                      <h4 className="font-semibold text-foreground">{asset.name}</h4>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">{asset.type.replace('_', ' ')}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-slate-900">{formatCurrency(asset.value, asset.currency)}</p>
+                  <div className="text-end">
+                    <p className="font-bold text-foreground">{formatCurrency(asset.value, asset.currency)}</p>
                     {asset.type === 'RETIREMENT' && <Badge variant="secondary" className="mt-1">401k/IRA</Badge>}
                   </div>
                 </div>
@@ -231,14 +244,14 @@ export const ZakatCalculator: React.FC = () => {
     return (
       <div className="space-y-6 animate-fade-in">
         {/* Highlight Result */}
-        <Card className="border-primary-100 bg-gradient-to-br from-white to-primary-50/30 overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Calculator className="h-48 w-48 text-primary-900" />
+        <Card className="border-border bg-card overflow-hidden relative">
+          <div className="absolute top-0 end-0 p-4 opacity-10">
+            <Calculator className="h-48 w-48 text-secondary" />
           </div>
           <CardContent className="pt-8 pb-8 text-center relative z-10">
-            <p className="text-sm font-medium text-primary-600 uppercase tracking-wider mb-2">Zakat Obligation</p>
-            <h2 className="text-5xl font-bold text-slate-900 mb-2">{formatCurrency(calculation.zakatDue)}</h2>
-            <p className="text-slate-500 text-sm">
+            <p className="text-sm font-medium text-secondary uppercase tracking-wider mb-2">Zakat Obligation</p>
+            <h2 className="text-5xl font-bold text-foreground mb-2">{formatCurrency(calculation.zakatDue)}</h2>
+            <p className="text-muted-foreground text-sm">
               {calculation.isAboveNisab
                 ? `Nisab Threshold: ${formatCurrency(calculation.nisabThreshold)} (Exceeded)`
                 : `Below Nisab Threshold (${formatCurrency(calculation.nisabThreshold)})`}
@@ -252,21 +265,21 @@ export const ZakatCalculator: React.FC = () => {
             <CardTitle>Wealth Breakdown</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center py-2 border-b border-slate-100">
-              <span className="text-slate-600">Total Assets</span>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-muted-foreground">Total Assets</span>
               <span className="font-semibold">{formatCurrency(calculation.totalAssets)}</span>
             </div>
             {calculation.assetBreakdown.map((item: any, i: number) => (
               <div key={i} className="flex justify-between items-center py-2 text-sm">
-                <span className="text-slate-500 pl-4 border-l-2 border-slate-200">{item.type.replace(/_/g, ' ')}</span>
-                <span className="font-medium text-slate-700">{formatCurrency(item.zakatableAmount)} (Zakatable)</span>
+                <span className="text-muted-foreground ps-4 border-s-2 border-border">{item.type.replace(/_/g, ' ')}</span>
+                <span className="font-medium text-foreground">{formatCurrency(item.zakatableAmount)} (Zakatable)</span>
               </div>
             ))}
 
             {/* Per-asset madhab rulings — why each asset is zakatable/exempt */}
             {calculation.assetRulings && calculation.assetRulings.length > 0 && (
-              <div className="pt-3 space-y-2 border-t border-slate-100">
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+              <div className="pt-3 space-y-2 border-t border-border">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Why each asset counts the way it does
                 </p>
                 {calculation.assetRulings.map((item: any) => (
@@ -295,33 +308,37 @@ export const ZakatCalculator: React.FC = () => {
       {/* Header with Privacy Badge */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Zakat Calculator</h1>
-          <p className="text-slate-500 mt-1">Calculate your obligation locally & privately.</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Zakat Calculator</h1>
+          <p className="text-muted-foreground mt-1">Calculate your obligation locally & privately.</p>
         </div>
-        <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
-          <ShieldCheck className="h-4 w-4 text-emerald-500" />
-          <span className="text-xs font-medium text-emerald-700">Local-First Architecture</span>
-          <Badge variant="privacy" className="ml-2">
-            <Lock className="h-3 w-3 mr-1" /> Encrypted
+        <div className="flex items-center space-x-2 bg-card px-3 py-1.5 rounded-full border border-border shadow-sm">
+          <ShieldCheck className="h-4 w-4 text-success" />
+          <span className="text-xs font-medium text-secondary">Local-First Architecture</span>
+          <Badge variant="privacy" className="ms-2">
+            <Lock className="h-3 w-3 me-1" /> Encrypted
           </Badge>
         </div>
       </div>
 
-      {/* Steps Indicator */}
-      <div className="flex items-center justify-center space-x-4 mb-8">
+      {/* Steps Indicator. Wraps and centres: three steps plus two 48px
+          connectors exceed a 390px phone, and `space-x-4` does not wrap. */}
+      <div className="mb-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-3 sm:space-x-4">
         {steps.map((step) => (
           <div key={step.id} className="flex items-center">
             <div className={`
                        h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors
-                       ${currentStep === step.id ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' :
-                currentStep > step.id ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-400'}
+                       ${currentStep === step.id ? 'bg-primary text-primary-foreground shadow-elev-2' :
+                currentStep > step.id ? 'bg-accent text-secondary' : 'bg-muted text-tertiary'}
                    `}>
               {currentStep > step.id ? <ShieldCheck className="h-4 w-4" /> : step.id + 1}
             </div>
-            <span className={`ml-2 text-sm font-medium ${currentStep === step.id ? 'text-slate-900' : 'text-slate-500'}`}>
+            <span className={`ms-2 text-sm font-medium ${currentStep === step.id ? 'text-foreground' : 'text-muted-foreground'}`}>
               {step.title}
             </span>
-            {step.id !== steps.length - 1 && <div className="w-12 h-px bg-slate-200 mx-4" />}
+            {/* Connector: decorative, and the first thing to go on a narrow screen */}
+            {step.id !== steps.length - 1 && (
+              <div className="mx-4 hidden h-px w-12 bg-border-strong sm:block" />
+            )}
           </div>
         ))}
       </div>

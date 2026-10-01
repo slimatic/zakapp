@@ -10,6 +10,12 @@ export interface AssetData {
     isPassive?: boolean; // 30% rule
     isRestricted?: boolean; // 401k/penalties
     retirementTreatment?: 'full' | 'net_value' | 'deferred' | 'passive';
+    /**
+     * The user's answer to "is this zakatable?".
+     * `undefined` = never asked → defer to the selected methodology.
+     * `true`/`false` = a deliberate choice that takes precedence.
+     */
+    zakatEligible?: boolean | null;
 }
 
 export interface OnboardingData {

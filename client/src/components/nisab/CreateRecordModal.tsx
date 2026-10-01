@@ -16,8 +16,11 @@ import { Modal } from '../ui/Modal';
 import { DualCalendarDatePicker } from '../common/DualCalendarDatePicker';
 import { calculateWealth } from '../../core/calculations/wealthCalculator';
 import { useNisabThreshold } from '../../hooks/useNisabThreshold';
+import { getNisabSource } from '../../core/calculations/nisab';
 import { parseDecimalNumber } from '../../utils/parseDecimal';
 import { formatCurrency } from '../../utils/formatters';
+import { getNisabStandard } from '../../core/calculations/nisab';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 
 export interface CreateRecordModalProps {
   open: boolean;
@@ -31,7 +34,8 @@ export interface CreateRecordModalProps {
   }) => Promise<void>;
   allAssets: any[];
   allLiabilities: any[];
-  defaultNisabBasis: 'GOLD' | 'SILVER';
+  /** The user's preferred methodology, which decides the basis. */
+  methodology?: string;
   userCurrency: string;
 }
 
@@ -41,22 +45,37 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
   onSubmit,
   allAssets,
   allLiabilities,
-  defaultNisabBasis,
+  methodology,
   userCurrency,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [selectedLiabilityIds, setSelectedLiabilityIds] = useState<string[]>([]);
-  const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>(defaultNisabBasis);
-  const [creationDate, setCreationDate] = useState<Date>(new Date());
 
-  const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
+  /**
+   * The nisab basis follows the chosen school, which is the recorded decision
+   * on #521: Hanafi uses the silver threshold, the other three use gold.
+   *
+   * The modal used to offer a Gold/Silver radio that the calculator IGNORED —
+   * `calculateNisabThreshold` derives the basis from the methodology
+   * (`getNisabSource`), so a user picking Silver under a school that uses gold
+   * saw one threshold on this screen and a different one was applied. The two
+   * now read from the same place, so they cannot disagree.
+   */
+  const [nisabBasis, setNisabBasis] = useState<'GOLD' | 'SILVER'>(
+    () => getNisabSource(methodology ?? 'standard')
+  );
+  const [creationDate, setCreationDate] = useState<Date>(new Date());
+  const nisabStandard = getNisabStandard(useDisplayCurrency().nisabStandard).id;
+
+  const { nisabAmount, nisabStandard: activeStandard } = useNisabThreshold(userCurrency, nisabBasis, nisabStandard);
 
   // Default selection on open
   useEffect(() => {
     if (open) {
       setStep(1);
-      setNisabBasis(defaultNisabBasis);
+      // Follow the school, not a separate preference — see the note above.
+      setNisabBasis(getNisabSource(methodology ?? 'standard'));
       setCreationDate(new Date());
       if (allAssets.length > 0) {
         const potentialZakatableTypes = ['CASH', 'GOLD', 'SILVER', 'CRYPTOCURRENCY', 'BUSINESS_ASSETS', 'INVESTMENT_ACCOUNT', 'STOCKS'];
@@ -83,7 +102,9 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
         setSelectedLiabilityIds([]);
       }
     }
-  }, [open, allAssets, allLiabilities, defaultNisabBasis]);
+    // `methodology` decides the basis and is read above, so it belongs here;
+    // it was missing while the unused `defaultNisabBasis` sat in its place.
+  }, [open, allAssets, allLiabilities, methodology]);
 
   const preview = React.useMemo(() => {
     const assets = allAssets.filter(a => selectedAssetIds.includes(a.id));
@@ -131,7 +152,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
           {step === 3 && "Review your configuration and set the Nisab Standard."}
         </div>
         <div className="w-full bg-muted rounded-full h-2">
-          <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
+          <div className="bg-secondary h-2 rounded-full transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }}></div>
         </div>
       </div>
 
@@ -148,7 +169,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
               onSelectionChange={setSelectedAssetIds}
               currency={userCurrency}
             />
-            <div className="bg-blue-50 p-3 rounded text-xs text-blue-700">
+            <div className="bg-accent p-3 rounded text-xs text-secondary">
               💰 Estimated Wealth: {formatCurrency(
                 allAssets.filter(a => selectedAssetIds.includes(a.id)).reduce((sum, a) => sum + (Number(a.value) || 0), 0),
                 userCurrency
@@ -168,7 +189,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
               selectedLiabilityIds={selectedLiabilityIds}
               onSelectionChange={setSelectedLiabilityIds}
             />
-            <div className="bg-amber-50 p-3 rounded text-xs text-amber-800 flex items-center gap-2">
+            <div className="bg-warn-soft p-3 rounded text-xs text-warn-strong flex items-center gap-2">
               <span className="text-xl">📉</span>
               <div>
                 <strong>Deductible Liabilities:</strong> {formatCurrency(
@@ -189,9 +210,9 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
                 <span className="block text-xs text-muted-foreground uppercase">Total Assets</span>
                 <span className="block text-xl font-bold text-card-foreground">{formatCurrency(preview.totalWealth, userCurrency)}</span>
               </div>
-              <div className="bg-muted p-4 rounded text-center border border-green-100 bg-green-50">
-                <span className="block text-xs text-green-700 uppercase font-medium">Net Zakatable</span>
-                <span className="block text-xl font-bold text-green-700">{formatCurrency(preview.netZakatableWealth, userCurrency)}</span>
+              <div className="bg-muted p-4 rounded text-center border border-success/20 bg-success-soft">
+                <span className="block text-xs text-success uppercase font-medium">Net Zakatable</span>
+                <span className="block text-xl font-bold text-success">{formatCurrency(preview.netZakatableWealth, userCurrency)}</span>
               </div>
             </div>
 
@@ -200,39 +221,55 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
                 label="Hawl Start Date"
                 value={creationDate}
                 onChange={setCreationDate}
-                className="border-blue-100 bg-blue-50/50"
+                className="border-border bg-accent/50"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-card-foreground">Select Nisab Standard</label>
+              {/*
+                Shown, not chosen. The basis comes from the selected school
+                (Hanafi silver, the others gold) and the calculation reads the
+                same source, so a radio here would offer a choice that does not
+                change the number. Previously it did exactly that: picking Silver
+                under a gold-based school displayed one threshold and applied
+                another. See #521.
+              */}
+              <label className="block text-sm font-medium text-card-foreground">Nisab Standard</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'GOLD' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-border'}`}>
+                <div className={`flex items-center justify-between p-4 rounded border ${nisabBasis === 'GOLD' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border opacity-60'}`}>
                   <div className="flex items-center">
-                    <input type="radio" name="nisab" checked={nisabBasis === 'GOLD'} onChange={() => setNisabBasis('GOLD')} className="mr-3 h-4 w-4 text-blue-600" />
+                    <div className="me-3">
+                      {nisabBasis === 'GOLD'
+                        ? <span aria-hidden="true" className="block h-4 w-4 rounded-full border-4 border-secondary bg-card" />
+                        : <span aria-hidden="true" className="block h-4 w-4 rounded-full border border-border" />}
+                    </div>
                     <div>
                       <span className="block font-medium text-card-foreground">Gold Standard</span>
-                      <span className="text-xs text-muted-foreground">For Wealthy/Safer</span>
+                      <span className="text-xs text-muted-foreground">Used by Shafi'i, Maliki and Hanbali</span>
                     </div>
                   </div>
-                  <span className="text-xs font-mono bg-yellow-100 text-yellow-800 px-2 py-1 rounded">87.48g</span>
-                </label>
-                <label className={`flex items-center justify-between p-4 rounded border cursor-pointer hover:bg-accent transition-colors ${nisabBasis === 'SILVER' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-border'}`}>
+                  <span className="text-xs font-mono bg-warn-soft text-warn-strong px-2 py-1 rounded">87.48g</span>
+                </div>
+                <div className={`flex items-center justify-between p-4 rounded border ${nisabBasis === 'SILVER' ? 'border-primary bg-accent ring-1 ring-ring' : 'border-border opacity-60'}`}>
                   <div className="flex items-center">
-                    <input type="radio" name="nisab" checked={nisabBasis === 'SILVER'} onChange={() => setNisabBasis('SILVER')} className="mr-3 h-4 w-4 text-blue-600" />
+                    <div className="me-3">
+                      {nisabBasis === 'SILVER'
+                        ? <span aria-hidden="true" className="block h-4 w-4 rounded-full border-4 border-secondary bg-card" />
+                        : <span aria-hidden="true" className="block h-4 w-4 rounded-full border border-border" />}
+                    </div>
                     <div>
                       <span className="block font-medium text-card-foreground">Silver Standard</span>
-                      <span className="text-xs text-muted-foreground">For Low Income</span>
+                      <span className="text-xs text-muted-foreground">Used by Hanafi</span>
                     </div>
                   </div>
                   <span className="text-xs font-mono bg-muted text-muted-foreground px-2 py-1 rounded">612.36g</span>
-                </label>
+                </div>
               </div>
             </div>
 
-            <div className="bg-muted p-4 rounded text-center border border-blue-100 bg-blue-50">
-              <span className="block text-xs text-blue-700 uppercase font-medium">Zakat Amount ({nisabBasis === 'GOLD' ? 'Gold' : 'Silver'})</span>
-              <span className="block text-xl font-bold text-blue-700">
+            <div className="bg-muted p-4 rounded text-center border border-border bg-accent">
+              <span className="block text-xs text-secondary uppercase font-medium">Zakat Amount ({nisabBasis === 'GOLD' ? 'Gold' : 'Silver'})</span>
+              <span className="block text-xl font-bold text-secondary">
                 {formatCurrency(zakatAmount, userCurrency)}
               </span>
             </div>
@@ -252,7 +289,7 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
             Next Step →
           </Button>
         ) : (
-          <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700 text-white">
+          <Button onClick={handleSubmit} className="bg-success hover:bg-success/90 text-success-foreground">
             Start Hawl Tracking
           </Button>
         )}

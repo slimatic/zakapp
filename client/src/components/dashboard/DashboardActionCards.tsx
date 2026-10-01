@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { Asset, ZakatPayment } from '../../types';
 import type { NisabYearRecord } from '../../types/nisabYearRecord';
@@ -45,6 +46,7 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
   activeNisabRecord,
   payments,
 }) => {
+  const { t } = useTranslation('dashboard');
   const { formatCurrency } = useDisplayCurrency();
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeNisabRecord !== null;
@@ -76,15 +78,15 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
       return (
         <ActionCard
           variant="primary"
-          title="Add Your First Asset"
-          description="Begin your Zakat journey by adding cash, gold, investments, or other assets to track your wealth."
+          title={t('actions.addFirstAssetTitle')}
+          description={t('actions.addFirstAssetBody')}
           icon={
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
           }
           href="/assets/new"
-          label="Add Asset"
+          label={t('actions.addAssetLabel')}
         />
       );
     }
@@ -94,15 +96,15 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
       return (
         <ActionCard
           variant="warning"
-          title="Start Nisab Year Tracking"
-          description="Create a Nisab Year Record to begin tracking your Hawl period (354 days) for Zakat calculations."
+          title={t('actions.startTrackingTitle')}
+          description={t('actions.startTrackingBody')}
           icon={
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           }
           href="/nisab-records"
-          label="Create Nisab Record"
+          label={t('actions.createRecordLabel')}
         />
       );
     }
@@ -114,67 +116,67 @@ export const DashboardActionCards: React.FC<DashboardActionCardsProps> = ({
       return (
         <ActionCard
           variant="urgent"
-          title="Zakat Payment Due"
-          description={`You have Zakat owed: ${remainingText} remaining to complete your obligation.`}
+          title={t('actions.paymentDueTitle')}
+          description={t('actions.paymentDueBody', { amount: remainingText })}
           icon={
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2.5S10.343 13 12 13s3 .895 3 2.5S13.657 18 12 18s-3-.895-3-2.5S10.343 13 12 13zm0-6a1 1 0 110 2 1 1 0 010-2z" />
             </svg>
           }
           href="/payments"
-          label="Make Payment"
+          label={t('actions.makePaymentLabel')}
         />
       );
     }
     
     // Default: Show summary/analytics card
     return (
-      <div className="bg-gradient-to-r from-green-50 to-cyan-50 rounded-lg border-2 border-green-200 p-6">
+      <div className="bg-success-soft rounded-lg border border-success/30 p-6">
         <div className="flex items-start gap-4">
-          <div className="p-3 bg-green-100 rounded-lg text-green-600">
+          <div className="p-3 bg-success-soft rounded-lg text-success">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
-              Your Wealth at a Glance
+            <h3 className="text-lg font-bold text-foreground mb-2">
+              {t('actions.wealthAtGlance')}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
               <StatItem
-                label="Total Assets"
+                label={t('actions.statTotalAssets')}
                 value={assets.length.toString()}
               />
               <StatItem
-                label="Active Record"
+                label={t('actions.statActiveRecord')}
                 value={activeNisabRecord?.year || 'N/A'}
               />
               <StatItem
-                label="Payments Made"
+                label={t('actions.statPaymentsMade')}
                 value={payments.length.toString()}
               />
               <StatItem
-                label="Tracking Status"
-                value="Active"
-                className="text-green-600 font-semibold"
+                label={t('actions.statTrackingStatus')}
+                value={t('actions.statusActive')}
+                className="text-success font-semibold"
               />
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 to="/assets"
-                className="inline-flex items-center text-sm font-medium text-green-700 hover:text-green-800 hover:underline"
+                className="inline-flex items-center text-sm font-medium text-success hover:text-success/80 hover:underline"
               >
-                View All Assets
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {t('viewAllAssets')}
+                <svg className="w-4 h-4 ms-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </Link>
               <Link
                 to="/payments"
-                className="inline-flex items-center text-sm font-medium text-green-700 hover:text-green-800 hover:underline"
+                className="inline-flex items-center text-sm font-medium text-success hover:text-success/80 hover:underline"
               >
-                Payment History
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {t('actions.paymentHistory')}
+                <svg className="w-4 h-4 ms-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </Link>
@@ -216,40 +218,40 @@ const ActionCard: React.FC<ActionCardProps> = ({
 }) => {
   const variantStyles = {
     primary: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
-      iconBg: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      titleColor: 'text-blue-900',
-      descColor: 'text-blue-800',
-      buttonBg: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+      bg: 'bg-accent',
+      border: 'border-border',
+      iconBg: 'bg-accent',
+      iconColor: 'text-secondary',
+      titleColor: 'text-secondary',
+      descColor: 'text-secondary',
+      buttonBg: 'bg-secondary hover:bg-secondary/90 focus:ring-ring', buttonFg: 'text-secondary-foreground',
     },
     warning: {
-      bg: 'bg-amber-50',
-      border: 'border-amber-200',
-      iconBg: 'bg-amber-100',
-      iconColor: 'text-amber-600',
-      titleColor: 'text-amber-900',
-      descColor: 'text-amber-800',
-      buttonBg: 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500',
+      bg: 'bg-warn-soft',
+      border: 'border-warn/30',
+      iconBg: 'bg-warn-soft',
+      iconColor: 'text-warn-strong',
+      titleColor: 'text-warn-strong',
+      descColor: 'text-warn-strong',
+      buttonBg: 'bg-warn hover:bg-warn-strong focus:ring-warn', buttonFg: 'text-primary-foreground',
     },
     urgent: {
-      bg: 'bg-red-50',
-      border: 'border-red-200',
-      iconBg: 'bg-red-100',
-      iconColor: 'text-red-600',
-      titleColor: 'text-red-900',
-      descColor: 'text-red-800',
-      buttonBg: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
+      bg: 'bg-danger-soft',
+      border: 'border-danger/30',
+      iconBg: 'bg-danger-soft',
+      iconColor: 'text-danger',
+      titleColor: 'text-danger',
+      descColor: 'text-danger',
+      buttonBg: 'bg-danger hover:bg-danger/90 focus:ring-danger', buttonFg: 'text-danger-foreground',
     },
     success: {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
-      iconBg: 'bg-green-100',
-      iconColor: 'text-green-600',
-      titleColor: 'text-green-900',
-      descColor: 'text-green-800',
-      buttonBg: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
+      bg: 'bg-success-soft',
+      border: 'border-success/30',
+      iconBg: 'bg-success-soft',
+      iconColor: 'text-success',
+      titleColor: 'text-success',
+      descColor: 'text-success',
+      buttonBg: 'bg-success hover:bg-success/90 focus:ring-success', buttonFg: 'text-success-foreground',
     },
   };
   
@@ -275,11 +277,11 @@ const ActionCard: React.FC<ActionCardProps> = ({
           {/* Action Button */}
           <Link
             to={href}
-            className={`${styles.buttonBg} inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px]`}
+            className={`${styles.buttonBg} inline-flex items-center justify-center px-4 py-2 text-sm font-medium ${styles.buttonFg} rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[44px]`}
             data-testid={`action-card-${variant}`}
           >
             {label}
-            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="ms-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </Link>
@@ -297,9 +299,9 @@ const StatItem: React.FC<{
   value: string;
   className?: string;
 }> = ({ label, value, className }) => (
-  <div className="text-center sm:text-left">
-    <dt className="text-xs text-gray-600 uppercase tracking-wide">{label}</dt>
-    <dd className={`mt-1 text-lg font-semibold text-gray-900 ${className || ''}`}>
+  <div className="text-center sm:text-start">
+    <dt className="text-xs text-muted-foreground uppercase tracking-wide">{label}</dt>
+    <dd className={`mt-1 text-lg font-semibold text-foreground ${className || ''}`}>
       {value}
     </dd>
   </div>

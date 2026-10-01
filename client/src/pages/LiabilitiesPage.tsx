@@ -62,9 +62,9 @@ export const LiabilitiesPage: React.FC = () => {
         return (
             <div className="space-y-6">
                 <h1 className="text-3xl font-heading font-bold text-foreground leading-tight">Liabilities</h1>
-                <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center" role="alert">
-                    <p className="text-red-800 font-medium">We couldn't load your liabilities.</p>
-                    <p className="text-sm text-red-700 mt-1">{error.message || 'An unexpected database error occurred.'} Your data stays safely on this device — try reloading the page.</p>
+                <div className="rounded-lg border border-danger/30 bg-danger-soft p-6 text-center" role="alert">
+                    <p className="text-danger font-medium">We couldn't load your liabilities.</p>
+                    <p className="text-sm text-danger/90 mt-1">{error.message || 'An unexpected database error occurred.'} Your data stays safely on this device — try reloading the page.</p>
                 </div>
             </div>
         );
@@ -73,7 +73,7 @@ export const LiabilitiesPage: React.FC = () => {
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
         );
     }
@@ -105,9 +105,9 @@ export const LiabilitiesPage: React.FC = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="bg-white/80 backdrop-blur-sm shadow-sm rounded-xl border border-primary-100/50 p-6 transition-all hover:shadow-md">
+                <div className="bg-card shadow-sm rounded-xl border border-border p-6 transition-all hover:shadow-md">
                     <dt className="text-sm font-medium text-muted-foreground truncate mb-1">Total Liabilities</dt>
-                    <dd className="text-4xl font-heading font-bold text-primary-700">
+                    <dd className="text-4xl font-heading font-bold text-secondary">
                         {liabilityTotal.converted
                             ? maskedCurrency(formatInCurrency(liabilityTotal.total, userCurrency as never))
                             : '—'}

@@ -161,7 +161,7 @@ All 7 quickstart scenarios executed successfully:
 ### Environment Variables Required
 - ✅ `ENCRYPTION_KEY` - For sensitive wealth data encryption (AES-256-CBC)
 - ⚠️ `METALS_API_KEY` - Optional, falls back to hardcoded prices ($65/g gold, $0.75/g silver)
-- ✅ `API_BASE_URL` - Must point to production backend (e.g., https://api.zakapp.com/api)
+- ✅ `API_BASE_URL` - Must point to production backend (e.g., https://api.zakapp.org/api)
 - ✅ `JWT_SECRET` - For authentication token signing
 - ✅ `JWT_REFRESH_SECRET` - For refresh token signing
 

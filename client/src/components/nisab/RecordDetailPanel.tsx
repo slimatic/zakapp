@@ -33,6 +33,8 @@ export interface DetailAssetLike {
   category?: string;
   type?: string;
   zakatEligible?: boolean | null;
+  /** True only when the user set zakatEligible themselves. Absent on legacy rows. */
+  isEligibilityManual?: boolean;
   isActive?: boolean;
   [key: string]: unknown;
 }
@@ -77,6 +79,9 @@ export const RecordDetailPanel: React.FC<RecordDetailPanelProps> = ({
           category: a.category,
           type: a.type,
           zakatEligible: a.zakatEligible,
+          // Without this the panel cannot tell a user's override from the flag
+          // the onboarding wizard wrote on the user's behalf (#517).
+          isEligibilityManual: a.isEligibilityManual,
         }))}
         methodologyName={methodologyName}
       />
@@ -98,7 +103,7 @@ export const RecordDetailPanel: React.FC<RecordDetailPanelProps> = ({
 
       <button
         onClick={onRefreshCalculations}
-        className="w-full py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+        className="w-full py-2.5 text-sm font-medium text-secondary-foreground bg-secondary hover:bg-secondary/90 rounded-lg transition-colors"
       >
         🔄 Refresh Calculations
       </button>

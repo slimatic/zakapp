@@ -100,17 +100,17 @@ describe('issue #310 — client call-sites use the user currency', () => {
   const cases: Array<{ file: string; mustMatch: RegExp; label: string }> = [
     {
       file: 'client/src/components/dashboard/ActiveRecordWidget.tsx',
-      mustMatch: /useNisabThreshold\(userCurrency,\s*nisabBasis\)/,
+      mustMatch: /useNisabThreshold\(userCurrency,\s*nisabBasis(?:,\s*[\w.]+)?\)/,
       label: 'ActiveRecordWidget hawl widget',
     },
     {
       file: 'client/src/pages/onboarding/steps/ZakatSetupStep.tsx',
-      mustMatch: /useNisabThreshold\(onboardingCurrency,\s*nisabBasis\)/,
+      mustMatch: /useNisabThreshold\(\s*onboardingCurrency,\s*nisabBasis(?:,\s*[\w.()]+)?\s*\)/,
       label: 'ZakatSetupStep onboarding',
     },
     {
       file: 'client/src/pages/onboarding/steps/MetalsStep.tsx',
-      mustMatch: /useNisabThreshold\(userCurrency,\s*'GOLD'\)/,
+      mustMatch: /useNisabThreshold\(userCurrency,\s*'GOLD'(?:,\s*[\w.]+)?\)/,
       label: 'MetalsStep metal prices',
     },
   ];
@@ -125,13 +125,18 @@ describe('issue #310 — client call-sites use the user currency', () => {
     });
   }
 
-  it('AssetList formatCurrency falls back to userCurrency, not USD', () => {
+  it('AssetList derives its currency from user display settings, never USD', () => {
     const src = fs.readFileSync(
       path.join(clientRoot, 'client/src/components/assets/AssetList.tsx'),
       'utf-8'
     );
-    expect(src).toMatch(/currency:\s*currency \|\| userCurrency/);
-    expect(src).not.toMatch(/formatCurrency = \(value: number,\s*currency = 'USD'/);
+    // Assert the invariant, not one implementation shape: currency is sourced
+    // from the user's display settings, money is normalised/rendered with it,
+    // and no USD fallback survives anywhere in the file.
+    expect(src).toMatch(/useDisplayCurrency\(\)/);
+    expect(src).toMatch(/normalizeAssetsToCurrency\(assets,\s*userCurrency/);
+    expect(src).toMatch(/currency=\{userCurrency\}/);
+    expect(src).not.toMatch(/'USD'/);
   });
 });
 

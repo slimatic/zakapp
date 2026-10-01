@@ -24,43 +24,43 @@ import { Link } from 'react-router-dom';
  * rendered — see issue #377).
  */
 export function NotFoundPage() {
-  return (
-    <div
-      className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center"
-      data-testid="not-found-page"
-    >
-      <h1 className="text-6xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-        404
-      </h1>
-      <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-        Page not found
-      </h2>
-      <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
-        The page you're looking for doesn't exist or may have moved. Your
-        saved data is safe — use the links below to get back on track.
-      </p>
-      <nav className="flex flex-wrap gap-3 justify-center" aria-label="Helpful links">
-        <Link
-          to="/dashboard"
-          className="px-4 py-2 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
-        >
-          Go to Dashboard
-        </Link>
-        <Link
-          to="/nisab-records"
-          className="px-4 py-2 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
-        >
-          Nisab Records
-        </Link>
-        <Link
-          to="/calculator"
-          className="px-4 py-2 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
-        >
-          Quick Calculator
-        </Link>
-      </nav>
-    </div>
-  );
+ return (
+ <div
+ className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center"
+ data-testid="not-found-page"
+ >
+ <h1 className="text-6xl font-bold text-foreground mb-4">
+ 404
+ </h1>
+ <h2 className="text-xl font-semibold text-foreground/80 mb-2">
+ Page not found
+ </h2>
+ <p className="text-muted-foreground mb-6 max-w-md">
+ The page you're looking for doesn't exist or may have moved. Your
+ saved data is safe — use the links below to get back on track.
+ </p>
+ <nav className="flex flex-wrap gap-3 justify-center" aria-label="Helpful links">
+ <Link
+ to="/dashboard"
+ className="inline-flex min-h-[44px] items-center rounded bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+ >
+ Go to Dashboard
+ </Link>
+ <Link
+ to="/nisab-records"
+ className="inline-flex min-h-[44px] items-center rounded border border-border-strong px-4 text-sm font-medium text-foreground/80 hover:bg-muted"
+ >
+ Nisab Records
+ </Link>
+ <Link
+ to="/calculator"
+ className="inline-flex min-h-[44px] items-center rounded border border-border-strong px-4 text-sm font-medium text-foreground/80 hover:bg-muted"
+ >
+ Quick Calculator
+ </Link>
+ </nav>
+ </div>
+ );
 }
 
 export default NotFoundPage;

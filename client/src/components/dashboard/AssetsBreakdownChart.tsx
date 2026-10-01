@@ -16,9 +16,11 @@
  */
 
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Asset } from '../../types';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
+import { CHART_COLORS } from '../../utils/chartPalette';
 
 interface AssetsBreakdownChartProps {
     assets: Asset[];
@@ -41,19 +43,11 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
     assets,
     currency = 'USD'
 }) => {
+  const { t } = useTranslation('dashboard');
     const maskedCurrency = useMaskedCurrency();
 
     // Color palette for chart segments - optimized for "Islamic Fintech" aesthetic
-    const COLORS = [
-        '#0d9488', // Teal 600
-        '#0891b2', // Cyan 600
-        '#4f46e5', // Indigo 600
-        '#059669', // Emerald 600
-        '#7c3aed', // Violet 600
-        '#db2777', // Pink 600
-        '#d97706', // Amber 600 (use sparingly)
-        '#475569', // Slate 600
-    ];
+    const COLORS = CHART_COLORS;;
 
     // Process data for the chart
     const chartData = useMemo(() => {
@@ -79,9 +73,9 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
     if (chartData.length === 0) {
         return (
             <div className="h-[320px] w-full">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Asset Composition</h3>
-                <div className="h-[280px] flex items-center justify-center text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                    No zakatable assets found. Add assets to see breakdown.
+                <h3 className="text-lg font-semibold text-foreground mb-4">{t('charts.assetComposition')}</h3>
+                <div className="h-[280px] flex items-center justify-center text-muted-foreground bg-muted rounded-lg border border-dashed border-border">
+                    {t('charts.noZakatableAssets')}
                 </div>
             </div>
         );
@@ -97,9 +91,9 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
             const percentage = ((data.value / totalValue) * 100).toFixed(1);
 
             return (
-                <div className="bg-white p-3 border border-gray-200 shadow-md rounded-md">
-                    <p className="font-semibold text-gray-900">{data.name}</p>
-                    <p className="text-gray-700">
+                <div className="bg-card p-3 border border-border shadow-md rounded-md">
+                    <p className="font-semibold text-foreground">{data.name}</p>
+                    <p className="text-foreground/80">
                         {maskedCurrency(new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: currency,
@@ -107,7 +101,7 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
                             maximumFractionDigits: 0,
                         }).format(data.value))}
                     </p>
-                    <p className="text-xs text-gray-500">{percentage}% of Portfolio</p>
+                    <p className="text-xs text-muted-foreground">{percentage}% of Portfolio</p>
                 </div>
             );
         }
@@ -116,7 +110,7 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
 
     return (
         <div className="h-[320px] w-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Asset Composition</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">{t('charts.assetComposition')}</h3>
             <div className="h-[280px] sm:h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -148,7 +142,7 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
                             formatter={(value, _entry: any) => {
                                 const item = chartData.find(d => d.name === value);
                                 const percent = item ? ((item.value / totalValue) * 100).toFixed(0) : 0;
-                                return <span className="text-xs sm:text-sm text-gray-600">{value} ({percent}%)</span>;
+                                return <span className="text-xs sm:text-sm text-muted-foreground">{value} ({percent}%)</span>;
                             }}
                         />
                     </PieChart>
@@ -158,12 +152,12 @@ export const AssetsBreakdownChart: React.FC<AssetsBreakdownChartProps> = ({
             {/* Screen Reader Table Summary (Hidden visually but accessible) */}
             <div className="sr-only">
                 <table>
-                    <caption>Portfolio Breakdown by Asset Category</caption>
+                    <caption>{t('charts.assetCompositionSubtitle')}</caption>
                     <thead>
                         <tr>
-                            <th scope="col">Category</th>
-                            <th scope="col">Value</th>
-                            <th scope="col">Percentage</th>
+                            <th scope="col">{t('charts.category')}</th>
+                            <th scope="col">{t('charts.value')}</th>
+                            <th scope="col">{t('charts.percentage')}</th>
                         </tr>
                     </thead>
                     <tbody>

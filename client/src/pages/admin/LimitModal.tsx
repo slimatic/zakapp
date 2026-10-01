@@ -1,4 +1,5 @@
 
+import toast from 'react-hot-toast';
 import React, { useState, useEffect } from 'react';
 import { User, adminService } from '../../services/adminService';
 import { DEFAULT_LIMITS } from '../../constants/limits';
@@ -44,10 +45,10 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
                 onSave(user.id, limits);
                 onClose();
             } else {
-                alert(res.message || 'Failed to update limits');
+                toast.error(res.message || 'Failed to update limits');
             }
         } catch (error) {
-            alert('Error updating limits');
+            toast.error('Could not update limits. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -55,12 +56,12 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-                <h3 className="text-xl font-bold mb-4 text-gray-900">Manage Limits for {user.username}</h3>
+            <div className="bg-card rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+                <h3 className="text-xl font-bold mb-4 text-foreground">Manage Limits for {user.username}</h3>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="maxAssets" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="maxAssets" className="block text-sm font-medium text-foreground/80 mb-1">
                             Max Assets (Default: {DEFAULT_LIMITS.MAX_ASSETS})
                         </label>
                         <input
@@ -69,12 +70,12 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
                             value={maxAssets}
                             onChange={(e) => setMaxAssets(e.target.value)}
                             placeholder="Leave empty for default"
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-ring outline-none"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="maxNisabRecords" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="maxNisabRecords" className="block text-sm font-medium text-foreground/80 mb-1">
                             Max Nisab Records (Default: {DEFAULT_LIMITS.MAX_NISAB_RECORDS})
                         </label>
                         <input
@@ -83,12 +84,12 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
                             value={maxNisabRecords}
                             onChange={(e) => setMaxNisabRecords(e.target.value)}
                             placeholder="Leave empty for default"
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-ring outline-none"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="maxPayments" className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="maxPayments" className="block text-sm font-medium text-foreground/80 mb-1">
                             Max Payments (Default: {DEFAULT_LIMITS.MAX_PAYMENTS})
                         </label>
                         <input
@@ -97,7 +98,7 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
                             value={maxPayments}
                             onChange={(e) => setMaxPayments(e.target.value)}
                             placeholder="Leave empty for default"
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-ring outline-none"
                         />
                     </div>
 
@@ -106,14 +107,14 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="px-4 py-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors disabled:opacity-50"
                         >
                             {loading ? 'Saving...' : 'Save Changes'}
                         </button>

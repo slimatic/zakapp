@@ -119,7 +119,7 @@ Safari doesn't support PWA installation on Mac, but you can:
 - ✅ Background sync when reconnected
 - ✅ Push notifications (when enabled)
 - ✅ Appears in app drawer and home screen
-- ✅ Can be set as default handler for zakapp.com links
+- ✅ Can be set as default handler for zakapp.org links
 
 ---
 
@@ -292,7 +292,7 @@ If data conflicts (rare):
 **Problem**: Install button doesn't appear
 
 **Solutions**:
-- Ensure you're using HTTPS (https://zakapp.com)
+- Ensure you're using HTTPS (https://zakapp.org)
 - Try a different browser (Chrome recommended)
 - Clear browser cache and reload
 - Check if already installed (look in apps list)
@@ -474,7 +474,7 @@ If data conflicts (rare):
 
 - **Email**: support@zakapp.example.com
 - **GitHub Issues**: [github.com/your-org/zakapp/issues](https://github.com/your-org/zakapp/issues)
-- **Documentation**: [docs.zakapp.com](https://docs.zakapp.com)
+- **Documentation**: [docs.zakapp.org](https://docs.zakapp.org)
 
 ### Reporting PWA Issues
 

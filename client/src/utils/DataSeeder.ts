@@ -10,7 +10,7 @@
 import { logger } from './logger';
 import { getDb } from '../db';
 import { v4 as uuidv4 } from 'uuid';
-import { AssetCategoryType } from '@zakapp/shared';
+import { AssetType } from '../types';
 
 // Helper to get random item from array
 const random = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
@@ -18,17 +18,37 @@ const random = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 const randomFloat = (min: number, max: number) => parseFloat((Math.random() * (max - min) + min).toFixed(2));
 
-// Helper to get current user ID strictly for seeding purposes
+/**
+ * Resolve the id to stamp on seeded rows.
+ *
+ * This previously read `localStorage['auth-storage']`, a key nothing in the app
+ * writes — auth lives in sessionStorage under `zakapp_session_v1`. So the lookup
+ * always missed and every seeded row was stamped with the literal
+ * `test_user_id`, an owner no real account matches. The seed then looked
+ * successful (documents really were inserted and replicated) while every query
+ * filtered them straight back out.
+ *
+ * Kept as a session read rather than a parameter so existing callers are
+ * unchanged; the fallback is kept only so seeding still works on a page with no
+ * session at all, and it now warns, because a silent dummy owner is what made
+ * this hard to see in the first place.
+ */
 const getSeedUserId = (): string => {
     try {
-        const storage = localStorage.getItem('auth-storage');
-        if (storage) {
-            const parsed = JSON.parse(storage);
-            if (parsed?.state?.user?.id) return parsed.state.user.id;
+        const raw = sessionStorage.getItem('zakapp_session_v1');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            // Shape written by AuthService.login(): { user: {...}, jwk: {...} }
+            const id = parsed?.user?.id ?? parsed?.state?.user?.id;
+            if (id) return id;
         }
     } catch (e) {
-        console.warn('Could not read auth storage', e);
+        console.warn('DataSeeder: could not read session', e);
     }
+    console.warn(
+        'DataSeeder: no signed-in user; stamping rows with the placeholder owner. ' +
+        'Seeded data will not be visible to any real account.'
+    );
     return 'test_user_id';
 };
 
@@ -60,15 +80,30 @@ export class DataSeeder {
         logger.info(`🌱 Seeding ${count} assets for user ${userId}...`);
 
         const assets = [];
-        // Asset types matching enum, cast as strings if needed to match shared type exactly in runtime
-        const assetTypes: AssetCategoryType[] = ['cash', 'gold', 'silver', 'crypto', 'stocks', 'property', 'business'];
+        // The zakat engine matches asset.type against the AssetType enum, whose
+        // values are UPPERCASE ('CASH', 'GOLD', ...). Seeding lowercase strings
+        // ('cash') meant isAssetZakatable's `zakatableAssets.includes(type)`
+        // never matched, so every seeded asset silently reported "Not zakatable"
+        // and $0.00. Match the enum.
+        const assetTypes: AssetType[] = [
+            AssetType.CASH,
+            AssetType.GOLD,
+            AssetType.SILVER,
+            AssetType.CRYPTOCURRENCY,
+            AssetType.INVESTMENT_ACCOUNT,
+            AssetType.REAL_ESTATE,
+            AssetType.BUSINESS_ASSETS
+        ];
 
         for (let i = 0; i < count; i++) {
             const type = random(assetTypes);
             assets.push({
                 id: uuidv4(),
                 userId: userId,
-                name: `${type.charAt(0).toUpperCase() + type.slice(1)} Asset ${i + 1}`,
+                name: `${type
+                    .split('_')
+                    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+                    .join(' ')} Asset ${i + 1}`,
                 type: type,
                 value: randomFloat(100, 50000), // Converted from 'amount' to 'value' per schema
                 currency: 'USD',
@@ -192,5 +227,131 @@ export class DataSeeder {
             console.error(`❌ Seeding Nisab threw exception:`, JSON.stringify(e, null, 2));
             throw e;
         }
+    }
+
+    /**
+     * Seed an ACTIVE (DRAFT) hawl record - the in-progress zakat year.
+     *
+     * seedNisabHistory only writes FINALIZED records, so the dashboard's hawl
+     * card and its moon arc had nothing to render: `activeRecord` is defined as
+     * status === 'DRAFT', so a history-only database shows no hawl at all. This
+     * is the record that makes the signature component visible.
+     *
+     * Start date is backdated to `daysElapsed` ago so the arc lands mid-year
+     * (the design was drawn at ~58% of a 354-day lunar year).
+     */
+    static async seedActiveHawl(daysElapsed: number = 207) {
+        const db = await getDb();
+        if (!db) throw new Error('DB not initialized');
+
+        const userId = getSeedUserId();
+        const TOTAL_DAYS = 354; // lunar year
+
+        const start = new Date();
+        start.setDate(start.getDate() - daysElapsed);
+        const completion = new Date(start);
+        completion.setDate(completion.getDate() + TOTAL_DAYS);
+
+        const totalWealth = randomFloat(60000, 140000);
+        const zakatableWealth = totalWealth * 0.92;
+
+        const record = {
+            id: uuidv4(),
+            userId,
+            hijriYear: 1448,
+            gregorianYear: start.getFullYear(),
+            hawlStartDate: start.toISOString(),
+            hawlCompletionDate: completion.toISOString(),
+            nisabBasis: 'GOLD' as const,
+            nisabThresholdAtStart: 6145.30,
+            totalWealth,
+            zakatableWealth,
+            zakatAmount: zakatableWealth * 0.025,
+            status: 'DRAFT' as const,
+            assetBreakdown: JSON.stringify({
+                cash: totalWealth * 0.42,
+                gold: totalWealth * 0.3,
+                stock: totalWealth * 0.28
+            }),
+            calculationDetails: JSON.stringify({ method: 'standard', notes: 'seeded active hawl' }),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        const result = await db.nisab_year_records.insert(record);
+        if (result.error) {
+            console.error('❌ Active hawl seed failed:', JSON.stringify(result.error, null, 2));
+            throw new Error('Failed to insert active hawl record.');
+        }
+        logger.info(`✅ Active hawl created: day ${daysElapsed} of ${TOTAL_DAYS}`);
+    }
+
+    /**
+     * Seed liabilities.
+     *
+     * There was no liability seeder at all, so the Liabilities page could only
+     * ever be reviewed as an empty state.
+     *
+     * Deliberately includes both kinds, because they are treated differently:
+     * a long-term mortgage is excluded from net wealth under most positions,
+     * a credit card due this month is deducted.
+     */
+    static async seedLiabilities() {
+        const db = await getDb();
+        if (!db) throw new Error('DB not initialized');
+
+        const userId = getSeedUserId();
+
+        const dueSoon = new Date();
+        dueSoon.setDate(dueSoon.getDate() + 12);
+
+        const liabilities = [
+            {
+                id: uuidv4(),
+                userId,
+                name: 'Mortgage - primary residence',
+                type: 'long_term',
+                amount: 18400,
+                currency: 'USD',
+                dueDate: new Date(new Date().setFullYear(new Date().getFullYear() + 23)).toISOString(),
+                description: 'Balance due 2049. Excluded from net wealth as a long-term obligation.',
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: uuidv4(),
+                userId,
+                name: 'Credit card',
+                type: 'short_term',
+                amount: 640.20,
+                currency: 'USD',
+                dueDate: dueSoon.toISOString(),
+                description: `Statement balance, due ${dueSoon.toISOString().slice(0, 10)}. Deducted from net wealth.`,
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: uuidv4(),
+                userId,
+                name: 'Business payable - supplier invoice',
+                type: 'business_payable',
+                amount: 1285.50,
+                currency: 'USD',
+                dueDate: dueSoon.toISOString(),
+                description: 'Owed to supplier, netted against business inventory.',
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }
+        ];
+
+        const result = await db.liabilities.bulkInsert(liabilities);
+        if (result.error && result.error.length > 0) {
+            console.error('❌ Liability seed failed:', JSON.stringify(result.error[0], null, 2));
+            throw new Error(`Failed to insert ${result.error.length} liabilities.`);
+        }
+        logger.info(`✅ ${result.success.length} liabilities created`);
     }
 }

@@ -51,11 +51,25 @@ export class SyncService {
     }
 
     /**
-     * Get list of database names for a user
+     * Get list of database names for a user.
+     *
+     * Must list every collection the client replicates. The two lists are separate
+     * because this project resolves `@zakapp/shared` to a local type shim
+     * (server/src/shared_local.ts) rather than to the package, so a constant cannot
+     * be shared between them.
+     *
+     * When they disagree the failure is quiet: the client opens a replication to a
+     * database that was never created, CouchDB answers 404, and RxDB reports it as
+     * an `RC_PULL` sync error. Nothing fails to start, so the only symptom is a
+     * console line and a collection that silently never syncs. That is what happened
+     * when `asset_amount_events` was added to the client and not here.
+     * `client/src/services/__tests__/syncCollectionsParity.test.ts` fails if the two
+     * lists diverge again.
      */
     private getUserDatabaseNames(safeUserId: string): string[] {
         return [
             `zakapp_${safeUserId}_assets`,
+            `zakapp_${safeUserId}_asset_amount_events`,
             `zakapp_${safeUserId}_liabilities`,
             `zakapp_${safeUserId}_nisab_year_records`,
             `zakapp_${safeUserId}_payment_records`,

@@ -16,7 +16,7 @@ export const GLOSSARY: Record<string, GlossaryTerm> = {
         term: 'nisab',
         display: 'Nisab',
         definition: 'The minimum amount of wealth a Muslim must possess for a whole lunar year to be liable for Zakat.',
-        longDefinition: 'Nisab is the threshold of wealth that makes one liable to pay Zakat. There are two standards: Gold (85g) and Silver (595g). You pay Zakat only if your net assets exceed this threshold.',
+        longDefinition: 'Nisab is the threshold of wealth that makes one liable to pay Zakat. There are two standards: Gold (87.48g) and Silver (612.36g). You pay Zakat only if your net assets exceed this threshold.',
     },
     'hawl': {
         term: 'hawl',

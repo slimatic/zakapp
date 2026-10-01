@@ -125,6 +125,24 @@ describe('PushNotificationService (#313)', () => {
       expect(prisma.pushSubscription.delete).not.toHaveBeenCalledWith({ where: { id: 's1' } });
     });
 
+    it('keeps the subscription when the send fails for a reason that is not 410', async () => {
+      // The data-loss bug: the caller used to delete on ANY falsy result, so a
+      // misconfiguration (VAPID_PRIVATE_KEY unset in production) destroyed
+      // every subscription row on the first reminder run. web-push rejects that
+      // case with no statusCode — our failure, not the subscription's.
+      (prisma.pushSubscription.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { id: 's1', endpoint: 'https://push.example.com/live', p256dh: 'k1', auth: 'a1' }
+      ]);
+      const err: any = new Error('Public key is not valid for specified curve');
+      mockSendNotification.mockRejectedValue(err);
+
+      await sendPushToUser('user1', { title: 'T', body: 'B' });
+
+      expect(mockSendNotification).toHaveBeenCalledTimes(1);
+      // The device is still subscribed and must stay that way.
+      expect(prisma.pushSubscription.delete).not.toHaveBeenCalled();
+    });
+
     it('succeeds silently when the user has no subscriptions', async () => {
       (prisma.pushSubscription.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
       await expect(sendPushToUser('user1', { title: 'T', body: 'B' })).resolves.toBeUndefined();

@@ -307,7 +307,7 @@ A: When self-hosted, all data stays on your server. The hosted version encrypts 
 1. **Documentation**: Check this troubleshooting guide first
 2. **Community Forum**: Join our community discussions
 3. **GitHub Issues**: Report bugs and request features
-4. **Email Support**: support@zakapp.com for account issues
+4. **Email Support**: support@zakapp.org for account issues
 
 ### Before Contacting Support
 
@@ -321,11 +321,11 @@ Please provide:
 ### Emergency Contacts
 
 For urgent security issues:
-- Email: security@zakapp.com
+- Email: security@zakapp.org
 - Response time: Within 24 hours
 
 For data loss emergencies:
-- Email: support@zakapp.com
+- Email: support@zakapp.org
 - Include "URGENT" in subject line
 
 ---

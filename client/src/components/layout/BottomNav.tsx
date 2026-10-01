@@ -16,6 +16,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 import { NavigationItemType } from './Navigation';
 
@@ -25,6 +26,7 @@ interface BottomNavProps {
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
+    const { t } = useTranslation('common');
   const location = useLocation();
 
   const isActive = (item: NavigationItemType): boolean => {
@@ -47,9 +49,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 shadow-lg z-40 block md:hidden"
+      className="fixed bottom-0 inset-x-0 bg-card border-t border-border z-40 block md:hidden [box-shadow:var(--elev-2)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      aria-label="Bottom navigation"
+      aria-label={t('a11y.bottomNavigation')}
     >
       <div className="flex justify-around items-center h-16 px-2">
         {items.map((item) => {
@@ -63,7 +65,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
                   {item.icon}
                 </span>
               )}
-              <span className={`text-[10px] font-medium mt-1 truncate max-w-[56px] ${active ? 'font-bold' : ''}`}>
+              <span className={`text-xs font-medium mt-1 truncate max-w-[56px] ${active ? 'font-bold' : ''}`}>
                 {item.name}
               </span>
             </>
@@ -74,8 +76,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
               <button
                 key="more-button"
                 onClick={onMoreClick}
-                className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition-all active:scale-95"
-                aria-label="Open more menu"
+                className="flex flex-col items-center justify-center min-w-[60px] h-12 px-1 py-1 rounded-lg text-muted-foreground hover:text-foreground transition-all active:scale-95"
+                aria-label={t('a11y.openMoreMenu')}
               >
                 {content}
               </button>
@@ -93,10 +95,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ items, onMoreClick }) => {
                 rounded-lg
                 transition-all duration-200
                 ${navActive || active
-                  ? 'text-primary-600 bg-primary-50/50'
-                  : 'text-gray-500 hover:text-gray-900'
+                  ? 'text-secondary font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
                 }
-                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
               `.trim()}
               aria-label={item.name}
               aria-current={active ? 'page' : undefined}

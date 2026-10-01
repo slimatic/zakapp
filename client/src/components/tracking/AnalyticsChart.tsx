@@ -44,6 +44,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { formatCurrency, formatPercentage, formatCompactNumber } from '../../utils/formatters';
 import { formatChartData } from '../../utils/chartFormatters';
 import type { AnalyticsMetricType, VisualizationType } from '@zakapp/shared/types/tracking';
+import { CHART_COLORS, CHART_GRID_COLOR } from '../../utils/chartPalette';
 
 interface AnalyticsChartProps {
   metricType: AnalyticsMetricType;
@@ -55,22 +56,9 @@ interface AnalyticsChartProps {
 }
 
 // Chart color scheme
-const CHART_COLORS = [
-  '#10B981', // Green primary
-  '#3B82F6', // Blue
-  '#8B5CF6', // Purple
-  '#F59E0B', // Amber
-  '#EF4444', // Red
-  '#06B6D4', // Cyan
-  '#84CC16', // Lime
-  '#F97316'  // Orange
-];
 
-const PIE_COLORS = [
-  '#10B981', '#059669', '#047857', '#065F46',
-  '#3B82F6', '#2563EB', '#1D4ED8', '#1E40AF',
-  '#8B5CF6', '#7C3AED', '#6D28D9', '#5B21B6'
-];
+
+const PIE_COLORS = CHART_COLORS;
 
 export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
   metricType,
@@ -155,23 +143,23 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
 
   if (error) {
     return (
-      <div className={`border rounded-lg p-6 ${is429Error ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'}`} style={{ minHeight: compact ? 200 : height }}>
+      <div className={`border rounded-lg p-6 ${is429Error ? 'bg-warn-soft border-warn/30' : 'bg-danger-soft border-danger/30'}`} style={{ minHeight: compact ? 200 : height }}>
         <div className="flex items-start">
-          <svg className={`h-6 w-6 mr-3 flex-shrink-0 ${is429Error ? 'text-yellow-600' : 'text-red-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className={`h-6 w-6 me-3 flex-shrink-0 ${is429Error ? 'text-warn-strong' : 'text-danger'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <h3 className={`text-sm font-medium ${is429Error ? 'text-yellow-800' : 'text-red-800'}`}>
+            <h3 className={`text-sm font-medium ${is429Error ? 'text-warn-strong' : 'text-danger'}`}>
               {is429Error ? 'Too many requests' : 'Failed to load analytics'}
             </h3>
-            <p className={`text-sm mt-1 ${is429Error ? 'text-yellow-700' : 'text-red-700'}`}>
+            <p className={`text-sm mt-1 ${is429Error ? 'text-warn-strong' : 'text-danger'}`}>
               {is429Error 
                 ? 'Please wait a moment and refresh the page to try again.' 
                 : error.message || 'Unable to fetch analytics data. Please try again later.'}
             </p>
             <button
               onClick={() => window.location.reload()}
-              className={`text-sm underline mt-2 ${is429Error ? 'text-yellow-800 hover:text-yellow-900' : 'text-red-800 hover:text-red-900'}`}
+              className={`text-sm underline mt-2 ${is429Error ? 'text-warn-strong hover:text-warn' : 'text-danger hover:text-danger/90'}`}
             >
               Refresh page
             </button>
@@ -201,14 +189,14 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
     }
     
     return (
-      <div className="flex flex-col items-center justify-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200" style={{ height: compact ? 200 : height }}>
-        <svg className="h-16 w-16 mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="flex flex-col items-center justify-center text-muted-foreground bg-muted rounded-lg border border-border" style={{ height: compact ? 200 : height }}>
+        <svg className="h-16 w-16 mb-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 00-2 2h-2a2 2 0 00-2-2z" />
         </svg>
-        <p className="text-center font-medium text-gray-700">
+        <p className="text-center font-medium text-foreground/80">
           {emptyMessage}
         </p>
-        <p className="text-sm text-gray-500 mt-1 max-w-xs text-center">
+        <p className="text-sm text-muted-foreground mt-1 max-w-xs text-center">
           {emptyHint}
         </p>
       </div>
@@ -228,7 +216,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
         return (
           <ResponsiveContainer {...commonProps}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
               <XAxis 
                 dataKey="period" 
                 tickFormatter={formatXAxisLabel}
@@ -258,7 +246,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
         return (
           <ResponsiveContainer {...commonProps}>
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
               <XAxis 
                 dataKey="period" 
                 tickFormatter={formatXAxisLabel}
@@ -286,7 +274,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
         return (
           <ResponsiveContainer {...commonProps}>
             <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
               <XAxis 
                 dataKey="period" 
                 tickFormatter={formatXAxisLabel}
@@ -348,7 +336,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
                   return `${entry.name}: ${formatPercentage(value / total, 1, true)}`;
                 }}
                 outerRadius={compact ? 80 : 100}
-                fill="#8884d8"
+                fill={CHART_COLORS[3]}
                 dataKey="value"
               >
                 {pieData.map((entry, index) => (
@@ -368,18 +356,18 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
 
   return (
     <div 
-      className={`bg-white rounded-lg border border-gray-200 ${compact ? 'p-4' : 'p-6'}`}
+      className={`bg-card rounded-lg border border-border ${compact ? 'p-4' : 'p-6'}`}
       role="region"
       aria-label={`${title || metricType.replace(/_/g, ' ')} chart`}
     >
       {/* Header */}
       {!compact && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900" id={`chart-title-${metricType}`}>
+          <h3 className="text-lg font-semibold text-foreground" id={`chart-title-${metricType}`}>
             {title || metricType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
           </h3>
           {analytics?.metadata && (
-            <p className="text-sm text-gray-600 mt-1" id={`chart-desc-${metricType}`}>
+            <p className="text-sm text-muted-foreground mt-1" id={`chart-desc-${metricType}`}>
               {String(analytics.metadata.period || '').replace(/_/g, ' ')}
               {analytics.summary && typeof analytics.summary.cached !== 'undefined' && analytics.summary.cached ? ` • Cached` : ''}
               {analytics.metadata.lastUpdated ? ` • Last updated: ${new Date(String(analytics.metadata.lastUpdated)).toLocaleDateString()}` : ''}
@@ -400,16 +388,16 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
 
       {/* Summary Stats */}
       {analytics?.summary && !compact && (
-        <div className="mt-6 pt-4 border-t border-gray-200">
+        <div className="mt-6 pt-4 border-t border-border">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {Object.entries(analytics.summary)
               .filter(([key]) => key !== 'metricType' && key !== 'cached')
               .map(([key, value]: [string, any]) => (
                 <div key={key} className="text-center">
-                  <div className="text-sm font-medium text-gray-700 capitalize">
+                  <div className="text-sm font-medium text-foreground/80 capitalize">
                     {key.replace(/_/g, ' ')}
                   </div>
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-lg font-bold text-foreground">
                     {typeof value === 'number' ? formatCurrency(value) : String(value)}
                   </div>
                 </div>
@@ -420,8 +408,8 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
 
       {/* Chart Controls */}
       {!compact && (
-        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-          <div className="text-xs text-gray-500">
+        <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
+          <div className="text-xs text-muted-foreground">
             Chart Type: {chartType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
           </div>
           <div className="flex space-x-2">
@@ -430,13 +418,13 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
                 // Export chart functionality would go here
                 logger.debug('Export chart functionality not implemented yet');
               }}
-              className="text-xs text-blue-600 hover:text-blue-700"
+              className="text-xs text-secondary hover:text-secondary/80"
             >
               Export Chart
             </button>
             <button
               onClick={() => window.print()}
-              className="text-xs text-gray-600 hover:text-gray-700"
+              className="text-xs text-muted-foreground hover:text-foreground"
             >
               Print
             </button>

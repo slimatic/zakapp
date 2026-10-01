@@ -8,12 +8,19 @@
 /* Skip Link - Visually hidden but focusable */
 .skip-link {
   position: absolute;
-  top: -40px;
+  top: -44px;
   left: 0;
   z-index: 9999;
+  /* 44px so it is a real target the moment it becomes visible */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 8px 16px;
-  background-color: #4f46e5;
-  color: #ffffff;
+  /* Was hardcoded indigo #4f46e5 / amber #fbbf24 - both off-palette, and the
+     only place in the app still using the old teal era colours. Tokenised so it
+     themes with Nur/Qamar like everything else. */
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
   text-decoration: none;
   font-weight: 600;
   border-radius: 0 0 4px 0;
@@ -22,7 +29,7 @@
 
 .skip-link:focus {
   top: 0;
-  outline: 3px solid #fbbf24;
+  outline: 3px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 
@@ -170,20 +177,60 @@ select:focus-visible,
   }
 }
 
+/* Reduced motion, applied to the motion actually in use.
+   The blocks above only covered .skip-link, focus transitions and
+   .loading-spinner. Everything else still moved: Tailwind's animate-pulse (29
+   call sites, skeleton loaders) and animate-spin (17), the custom fadeIn (11),
+   and the animate-in / fade-in / slide entrances.
+   Kept, deliberately: opacity fades stay (they aid comprehension and are not
+   vestibular triggers), and loaders freeze mid-state instead of vanishing so a
+   spinner does not read as "nothing happened". */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-spin,
+  .loading-spinner {
+    animation: none !important;
+    /* freeze the ring rather than removing the element */
+    opacity: 1;
+  }
+
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  .animate-fadeIn,
+  .animate-slide {
+    animation: none !important;
+  }
+}
+
 /* Keyboard-only focus (hide focus ring for mouse users) */
 .js-focus-visible :focus:not(.focus-visible) {
   outline: none;
   box-shadow: none;
 }
 
-/* Ensure minimum touch target size (44x44px for mobile) */
+/* Ensure minimum touch target size (44x44px for mobile).
+   :not(.inline-affordance) — a term like "Zakat" inside a sentence is an inline
+   text affordance, and WCAG 2.5.8 explicitly exempts targets "in a sentence or
+   block of text". Applying the 44px box to it turned the word into an
+   inline-flex block and grew the paragraph from 137px to 179px on touch devices. */
 @media (pointer: coarse) {
-  a,
-  button,
+  a:not(.inline-affordance),
+  button:not(.inline-affordance),
+  select,
   input[type="checkbox"],
   input[type="radio"],
-  [role="button"],
-  [role="link"] {
+  [role="button"]:not(.inline-affordance),
+  [role="link"]:not(.inline-affordance) {
     min-width: 44px;
     min-height: 44px;
     display: inline-flex;

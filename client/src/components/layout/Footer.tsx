@@ -1,87 +1,78 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { DonationCTA } from '../donation/DonationCTA';
 
+/**
+ * Two groups, not three stacked sections.
+ *
+ * Previously: CTA / links / credits as three full-width sections separated by
+ * rules, each with its own py-8, and the links centred one-per-line. On a phone
+ * that was ~350px of mostly empty space under every page and the links read as
+ * a menu.
+ *
+ * Now: one row on desktop, two on mobile (links, then a single meta line),
+ * separated by middle dots instead of borders. The mockup has no footer at all
+ * - it ends with one muted caption - so the aim is to stay close to that:
+ * present, useful, never competing with the page.
+ */
 export const Footer: React.FC = () => {
-    return (
-        <footer className="mt-auto border-t border-gray-100 bg-gray-50">
-            {/* Top Section: CTA */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex justify-center">
-                    <DonationCTA variant="footer" />
-                </div>
-            </div>
+    const { t } = useTranslation('common');
+    const linkClass = 'transition-colors hover:text-secondary';
+    const dot = <span className="text-foreground/70" aria-hidden="true">·</span>;
 
-            {/* Middle Section: Links */}
-            <div className="border-t border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 text-sm text-gray-500">
-                        <Link to="/privacy-policy" className="hover:text-emerald-600 transition-colors">
-                            Privacy Policy
-                        </Link>
-                        {/* Placeholder for future links
-                        <Link to="/terms" className="hover:text-emerald-600 transition-colors">
-                            Terms of Service
-                        </Link>
-                        <Link to="/support" className="hover:text-emerald-600 transition-colors">
-                            Support
-                        </Link> 
-                        */}
-                        <a
-                            href="https://github.com/slimatic/zakapp"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:text-emerald-600 transition-colors"
-                        >
-                            Open Source
+    return (
+        <footer className="mt-auto border-t border-border bg-muted">
+            <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+                <div className="flex flex-col items-center gap-2.5 text-xs text-foreground/80 sm:flex-row sm:justify-between sm:gap-6">
+
+                    {/* Links. Wraps and stays on one or two lines rather than
+                        stacking one link per row. */}
+                    <nav aria-label={t('a11y.footer')} className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
+                        <DonationCTA variant="footer" />
+                        <span className="text-foreground/70" aria-hidden="true">·</span>
+                        <Link to="/privacy-policy" className={linkClass}>{t('footer.privacy')}</Link>
+                        <span className="text-foreground/70" aria-hidden="true">·</span>
+                        <a href="https://github.com/slimatic/zakapp" target="_blank" rel="noopener noreferrer" className={linkClass}>
+                            {t('footer.source')}
                         </a>
+                        <span className="text-foreground/70" aria-hidden="true">·</span>
                         <a
                             href="https://github.com/slimatic/zakapp/issues"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:text-emerald-600 transition-colors"
+                            className={linkClass}
+                            title={t('footer.reportIssue')}
                         >
-                            Report an Issue
+                            {t('footer.issues')}
                         </a>
-                    </div>
-                </div>
-            </div>
+                    </nav>
 
-            {/* Bottom Section: Copyright & Credits */}
-            <div className="bg-gray-100 border-t border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-400">
-                        <div className="flex items-center gap-1">
-                            <span>© {new Date().getFullYear()} ZakApp.</span>
-                            <span className="hidden md:inline">All rights reserved.</span>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <a
-                                href="https://rstlabs.io"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 hover:text-gray-600 transition-colors group"
-                            >
-                                <span>Made with</span>
-                                <span
-                                    className="text-red-400 group-hover:text-red-500 animate-pulse"
-                                    onAnimationEnd={(e) => e.stopPropagation()}
-                                >❤️</span>
-                                <span>by</span>
-                                <span className="font-semibold text-gray-500 group-hover:text-gray-700">RST Labs</span>
-                            </a>
-                            <div className="w-px h-3 bg-gray-300 hidden md:block"></div>
-                            <a
-                                href="https://github.com/slimatic/zakapp/releases"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-mono opacity-70 hover:opacity-100 hover:text-emerald-600 transition-all"
-                                title="Build Version"
-                            >
-                                v{__APP_VERSION__} ({__COMMIT_HASH__})
-                            </a>
-                        </div>
+                    {/* One meta line: brand, year, credit, build. "Made with" and
+                        the commit hash are desktop-only so this stays a single
+                        line on a phone. */}
+                    <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                        <span className="font-semibold text-foreground/80">ZakApp</span>
+                        {dot}
+                        <span>© {new Date().getFullYear()}</span>
+                        {dot}
+                        <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className={`${linkClass} group flex items-center gap-1`}>
+                            <span className="hidden sm:inline">{t('footer.madeWith')}</span>
+                            <span aria-hidden="true">❤️</span>
+                            <span className="hidden sm:inline">{t('footer.by')}</span>
+                            <span className="font-semibold text-foreground/80 group-hover:text-foreground">RST Labs</span>
+                        </a>
+                        {dot}
+                        <a
+                            href="https://github.com/slimatic/zakapp/releases"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-foreground/70 transition-colors hover:text-secondary"
+                            title={t('footer.build', { hash: __COMMIT_HASH__ })}
+                        >
+                            v{__APP_VERSION__}
+                            <span className="hidden sm:inline"> ({__COMMIT_HASH__})</span>
+                        </a>
                     </div>
                 </div>
             </div>

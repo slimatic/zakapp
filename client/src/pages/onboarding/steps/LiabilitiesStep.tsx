@@ -23,24 +23,24 @@ export const LiabilitiesStep: React.FC = () => {
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('steps.liabilities.title')}</h3>
-                <p className="text-sm text-gray-500 mb-6">
-                    Deductible debts can lower your Zakat. <Link to="/learn" target="_blank" rel="noopener" className="text-emerald-600 underline">{t('steps.liabilities.learnMore')}</Link>.
+                <h3 className="text-xl font-semibold text-foreground mb-2">{t('steps.liabilities.title')}</h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                    Deductible debts can lower your Zakat. <Link to="/learn" target="_blank" rel="noopener" className="text-secondary underline">{t('steps.liabilities.learnMore')}</Link>.
                 </p>
 
                 <div className="space-y-6">
                     {/* Immediate Debts */}
-                    <div className="bg-red-50 rounded-xl p-5 border border-red-200">
-                        <label className="text-red-900 font-medium flex items-center gap-2 mb-2">
-                            <span className="p-1.5 bg-red-200 rounded text-red-800">📉</span>
+                    <div className="bg-danger-soft rounded-xl p-5 border border-danger/30">
+                        <label className="text-danger font-medium flex items-center gap-2 mb-2">
+                            <span className="p-1.5 bg-danger-soft rounded text-danger">📉</span>
                             Immediate / Short-term Debts
                         </label>
-                        <p className="text-xs text-red-700 mb-4">
+                        <p className="text-xs text-danger mb-4">
                             Debts due now or within the next month (e.g., credit card bills, utility bills due).
                         </p>
                         <input
                             type="number"
-                            className="block w-full rounded-lg border-red-300 focus:border-red-500 focus:ring-red-500 py-3"
+                            className="block w-full rounded-lg border-danger/40 focus:border-danger focus:ring-danger py-3"
                             placeholder={`Amount (${currencySymbol})`}
                             value={data.liabilities?.immediate || ''}
                             onChange={(e) => handleValueChange('immediate', e.target.value)}
@@ -48,17 +48,17 @@ export const LiabilitiesStep: React.FC = () => {
                     </div>
 
                     {/* Living Expenses */}
-                    <div className="bg-orange-50 rounded-xl p-5 border border-orange-200">
-                        <label className="text-orange-900 font-medium flex items-center gap-2 mb-2">
-                            <span className="p-1.5 bg-orange-200 rounded text-orange-800">🏠</span>
+                    <div className="bg-warn-soft rounded-xl p-5 border border-warn/30">
+                        <label className="text-warn-strong font-medium flex items-center gap-2 mb-2">
+                            <span className="p-1.5 bg-warn-soft rounded text-warn-strong">🏠</span>
                             Next Month's Living Expenses
                         </label>
-                        <p className="text-xs text-orange-700 mb-4">
+                        <p className="text-xs text-warn-strong mb-4">
                             Some scholars allow deducting one month of living expenses (rent, food, etc.).
                         </p>
                         <input
                             type="number"
-                            className="block w-full rounded-lg border-orange-300 focus:border-orange-500 focus:ring-orange-500 py-3"
+                            className="block w-full rounded-lg border-border-strong focus:border-warn focus:ring-warn py-3"
                             placeholder={`Amount (${currencySymbol})`}
                             value={data.liabilities?.expenses || ''}
                             onChange={(e) => handleValueChange('expenses', e.target.value)}
@@ -70,13 +70,13 @@ export const LiabilitiesStep: React.FC = () => {
             <div className="flex justify-between pt-8">
                 <button
                     onClick={prevStep}
-                    className="px-6 py-3 text-slate-600 font-medium hover:text-slate-800 transition-colors"
+                    className="px-6 py-3 text-muted-foreground font-medium hover:text-foreground transition-colors"
                 >
                     Back
                 </button>
                 <button
                     onClick={nextStep}
-                    className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                    className="px-8 py-3 bg-secondary text-secondary-foreground rounded-xl font-semibold shadow-elev-2 hover:bg-secondary/90 hover:shadow-xl transition-all transform hover:-translate-y-0.5"
                 >
                     Next: Review
                 </button>

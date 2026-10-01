@@ -23,8 +23,8 @@ import { getAssetRuling } from '../../../data/rulings';
 
 describe('RecordRulingsPanel', () => {
   const assets = [
-    { id: '1', name: 'Main Bank Account', category: 'cash', zakatEligible: true },
-    { id: '2', name: 'Gold Necklace', category: 'gold', zakatEligible: false },
+    { id: '1', name: 'Main Bank Account', category: 'cash', zakatEligible: true, isEligibilityManual: true },
+    { id: '2', name: 'Gold Necklace', category: 'gold', zakatEligible: false, isEligibilityManual: true },
   ];
 
   it('renders a ruling for each asset under the user methodology', () => {
@@ -34,6 +34,27 @@ describe('RecordRulingsPanel', () => {
     expect(statuses).toHaveLength(2);
     expect(statuses[0].textContent).toBe('Zakatable (your override)');
     expect(statuses[1].textContent).toBe('Exempt (your override)');
+  });
+
+  it('labels an asset the user never classified as an app default, not an override', () => {
+    // The onboarding wizard writes null for assets the user was not asked about.
+    // Those must read as the app's default so the user is not credited with a
+    // decision they never made (#517).
+    const unclassified = [
+      { id: '1', name: 'Main Bank Account', category: 'cash', zakatEligible: null },
+      { id: '2', name: 'Gold Necklace', category: 'gold', zakatEligible: null },
+    ];
+    render(<RecordRulingsPanel assets={unclassified} methodologyName="HANAFI" />);
+    const statuses = screen.getAllByTestId('ruling-status');
+    expect(statuses[0].textContent).toBe('Zakatable (app default)');
+    expect(statuses[1].textContent).toBe('Zakatable (app default)');
+    expect(statuses.map(s => s.textContent).join(' ')).not.toContain('your override');
+  });
+
+  it('lets the school decide jewelry when the user left it to the methodology', () => {
+    const jewelry = [{ id: '1', name: 'Gold Necklace', category: 'gold', zakatEligible: null }];
+    render(<RecordRulingsPanel assets={jewelry} methodologyName="SHAFII" />);
+    expect(screen.getAllByTestId('ruling-status')[0].textContent).toBe('Exempt');
   });
 
   it('expands a ruling to reveal reasoning and citations', () => {

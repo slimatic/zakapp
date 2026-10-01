@@ -32,13 +32,13 @@ This guide explains how to deploy ZakApp in a production environment using Docke
 2.  **Start Production Stack**
     Use the production compose file which builds optimized images:
     ```bash
-    docker-compose -f docker-compose.prod.yml up -d --build
+    docker-compose -f docker-compose.yml up -d --build
     ```
 
 3.  **Run Database Migrations**
     The production backend does not auto-migrate on start (to prevent race conditions in scale-out scenarios). Run this once after deployment:
     ```bash
-    docker-compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
+    docker-compose -f docker-compose.yml exec backend npx prisma migrate deploy
     ```
 
 4.  **Verify Deployment**
@@ -49,7 +49,7 @@ This guide explains how to deploy ZakApp in a production environment using Docke
 ## Architecture Notes
 
 - **Frontend**: Served by Nginx. Static files are built with `npm run build` in a separate stage.
-    - **Runtime Config**: `config.js` is generated at startup by `nginx-entrypoint.sh`. This allows you to change `REACT_APP_...` environment variables in `docker-compose.prod.yml` *without* rebuilding the image.
+    - **Runtime Config**: the frontend image replaces nginx's entrypoint with `docker/nginx-entrypoint.sh`, which writes `/usr/share/nginx/html/config.js` at container start from `REACT_APP_*` env vars. That is why `docker-compose.yml` can set `REACT_APP_API_BASE_URL=/api` and change it without a rebuild. The checked-in `client/public/config.js` is the *build-time* config for the local/dev path, and `client/scripts/check-runtime-config.py` guards it; under Docker the entrypoint file wins.
 - **Backend**: Node.js app using `better-sqlite3` (default) or configured database.
     - **Persistence**: Data is stored in the `backend_data` volume (SQLite) and `couchdb_data` volume (CouchDB).
 - **CouchDB**: Used for syncing user data across devices.
@@ -58,11 +58,11 @@ This guide explains how to deploy ZakApp in a production environment using Docke
 
 - **Logs**:
     ```bash
-    docker-compose -f docker-compose.prod.yml logs -f
+    docker-compose -f docker-compose.yml logs -f
     ```
 - **Updates**:
     ```bash
     git pull
-    docker-compose -f docker-compose.prod.yml up -d --build
-    docker-compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
+    docker-compose -f docker-compose.yml up -d --build
+    docker-compose -f docker-compose.yml exec backend npx prisma migrate deploy
     ```

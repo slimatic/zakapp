@@ -24,7 +24,8 @@ export function useDataCleanup() {
     const db = useDb();
     const [isClearing, setIsClearing] = useState(false);
 
-    const clearAllData = async () => {
+    const clearAllData = async (opts: { reload?: boolean } = {}) => {
+        const { reload = true } = opts;
         if (!db) {
             toast.error('Database not initialized');
             return;
@@ -40,6 +41,11 @@ export function useDataCleanup() {
 
             const collections = [
                 db.assets,
+                // History rows carry the asset's id, so leaving them behind after
+                // a wipe orphans them: the asset is gone but its value changes
+                // remain, and they would come back on the next sync as history for
+                // an asset that no longer exists.
+                db.asset_amount_events,
                 db.liabilities,
                 db.payment_records,
                 db.nisab_year_records
@@ -60,8 +66,12 @@ export function useDataCleanup() {
 
             toast.success('All financial data has been cleared from this device.', { id: toastId });
 
-            // Optional: Trigger a window reload or router push to refresh state visualizers
-            setTimeout(() => window.location.reload(), 1000);
+            // Refresh state visualizers. Skipped when the caller is going on to write
+            // immediately (a replace-import), because the reload would tear down the
+            // page mid-import and leave the restore half-applied.
+            if (reload) {
+                setTimeout(() => window.location.reload(), 1000);
+            }
         } catch (error: any) {
             console.error('Data cleanup failed:', error);
             toast.error('Failed to clear data: ' + error.message, { id: toastId });

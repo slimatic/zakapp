@@ -16,24 +16,13 @@
  */
 
 import { Asset, Liability } from '../../types';
-import { getAssetZakatableValue, ZakatMethodology } from './zakat';
+import { getAssetZakatableValue, isAssetZakatable, ZakatMethodology } from './zakat';
 import { Decimal } from 'decimal.js';
 
 /**
  * Zakat Calculation Logic extracted from UI components.
  * Pure function for testability.
  */
-
-// List of asset types that are potentially zakatable
-export const POTENTIAL_ZAKATABLE_TYPES = [
-    'CASH',
-    'GOLD',
-    'SILVER',
-    'CRYPTOCURRENCY',
-    'BUSINESS_ASSETS',
-    'INVESTMENT_ACCOUNT',
-    'STOCKS'
-];
 
 interface WealthCalculationResult {
     totalWealth: number;
@@ -67,23 +56,10 @@ export const calculateWealth = (
         // 1. Always add to Total Wealth (Net Worth calculation)
         totalWealth = totalWealth.plus(value);
 
-        // 2. Check Zakat Eligibility
-        const isPotentialType = POTENTIAL_ZAKATABLE_TYPES.includes(asset.type);
-        const explicitEligibility = asset.zakatEligible;
-
-        // Determine strict eligibility - PURELY based on Asset flag
-        let isEligible = false;
-
-        if (explicitEligibility === true) {
-            isEligible = true;
-        } else if (explicitEligibility === false) {
-            isEligible = false;
-        } else {
-            // undefined: Fallback to potential list check
-            isEligible = isPotentialType;
-        }
-
-        if (isEligible) {
+        // 2. Check Zakat Eligibility — the shared rule in ./zakat is the single
+        // source of truth. It honours a genuine user answer (zakatEligible set
+        // with isEligibilityManual) and otherwise defers to the selected school.
+        if (isAssetZakatable(asset, methodology)) {
             // Use core zakat calculation for accurate zakatable value
             zakatableWealth = zakatableWealth.plus(new Decimal(getAssetZakatableValue(asset, methodology)));
         }

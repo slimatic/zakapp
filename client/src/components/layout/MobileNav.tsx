@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { NavigationItem } from './NavigationItem';
 import { NavigationItemType } from './Navigation';
@@ -27,6 +28,7 @@ interface MobileNavProps {
 }
 
 export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledIsOpen, onOpenChange }) => {
+    const { t } = useTranslation('common');
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
@@ -109,10 +111,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
       {/* Hamburger Menu Button */}
       <button
         onClick={toggleMenu}
-        className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-600 w-12 h-12"
+        className="inline-flex items-center justify-center p-2 rounded-md text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring w-12 h-12"
         aria-expanded={isOpen}
         aria-controls="mobile-menu"
-        aria-label="Toggle navigation menu"
+        aria-label={t('a11y.toggleNavMenu')}
       >
         {/* Hamburger icon (3 horizontal lines) */}
         <svg
@@ -158,19 +160,19 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
           <div
             ref={menuRef}
             id="mobile-menu"
-            className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-[60] transform transition-transform duration-300 ease-in-out"
+            className="fixed inset-y-0 start-0 w-64 bg-card shadow-elev-3 z-[60] transform transition-transform duration-300 ease-in-out"
             role="dialog"
             aria-modal="true"
-            aria-label="Mobile navigation"
+            aria-label={t('a11y.mobileNavigation')}
           >
             <div className="h-full flex flex-col">
               {/* Menu Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-secondary">{t('nav.menu')}</h2>
                 <button
                   onClick={closeMenu}
-                  className="p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-600"
-                  aria-label="Close menu"
+                  className="p-2 rounded-md text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+                  aria-label={t('a11y.closeMenu')}
                 >
                   <svg
                     className="h-6 w-6"
@@ -190,7 +192,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ items, isOpen: controlledI
               </div>
 
               {/* Navigation Items */}
-              <nav className="flex-1 overflow-y-auto p-4" aria-label="Mobile navigation menu">
+              <nav className="flex-1 overflow-y-auto p-4" aria-label={t('a11y.mobileNavMenu')}>
                 <ul className="space-y-2">
                   {items.map((item) => (
                     <li key={item.href}>

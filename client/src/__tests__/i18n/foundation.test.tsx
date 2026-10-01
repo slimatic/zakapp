@@ -16,7 +16,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import i18n from '../../i18n';
 import { getLanguageDir, SUPPORTED_LANGUAGES } from '../../i18n';
 

@@ -1,7 +1,10 @@
+import toast from 'react-hot-toast';
 import React, { useState, useEffect } from 'react';
 import { adminService, User } from '../../services/adminService';
 import { LimitModal } from '../../pages/admin/LimitModal';
 import { DEFAULT_LIMITS } from '../../constants/limits';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 
 export const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
@@ -52,10 +55,10 @@ export const UserManagement: React.FC = () => {
             if (res.success) {
                 setUsers(users.filter(u => u.id !== userId));
             } else {
-                alert(res.message || 'Failed to delete user');
+                toast.error(res.message || 'Failed to delete user');
             }
         } catch (err) {
-            alert('Error deleting user');
+            toast.error('Could not delete the user. Please try again.');
         }
     };
 
@@ -68,10 +71,10 @@ export const UserManagement: React.FC = () => {
             if (res.success) {
                 setUsers(users.map(u => u.id === userId ? { ...u, userType: newRole } : u));
             } else {
-                alert(res.message || 'Failed to update user role');
+                toast.error(res.message || 'Failed to update the user role');
             }
         } catch (err) {
-            alert('Error updating user role');
+            toast.error('Could not update the user role. Please try again.');
         }
     };
 
@@ -82,10 +85,10 @@ export const UserManagement: React.FC = () => {
             if (res.success) {
                 setUsers(users.map(u => u.id === userId ? { ...u, isVerified: true } : u));
             } else {
-                alert(res.message || 'Failed to verify user');
+                toast.error(res.message || 'Failed to verify the user');
             }
         } catch (err) {
-            alert('Error verifying user');
+            toast.error('Could not verify the user. Please try again.');
         }
     };
 
@@ -96,104 +99,196 @@ export const UserManagement: React.FC = () => {
     if (loading && users.length === 0) return <div className="p-8 text-center">Loading users...</div>;
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between gap-4">
-                <h2 className="text-xl font-semibold text-gray-800">User Management</h2>
-                <div className="flex gap-2">
+        <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-border flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
+                <h2 className="text-xl font-semibold text-foreground">User Management</h2>
+                {/* The input is full-width on a phone rather than fixed: a 240px
+                    input plus a refresh button overflows a 360px card, and it
+                    pushed the card wide enough to shift the page. */}
+                <div className="flex gap-2 w-full sm:w-auto">
                     <button
                         onClick={loadUsers}
-                        className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                        className="p-2.5 shrink-0 text-muted-foreground hover:text-secondary hover:bg-accent rounded-lg transition-colors"
                         title="Refresh Data"
+                        aria-label="Refresh user list"
                         disabled={loading}
                     >
-                        <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                     </button>
-                    <input
+                    <Input
                         type="text"
                         placeholder="Search users..."
-                        className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                        aria-label="Search users"
+                        className="flex-1 sm:w-64 sm:flex-none"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
+            {/*
+                Six columns cannot fit a phone. The old table kept them and let the
+                wrapper scroll sideways, so on mobile the user saw a fragment of
+                "USER" and "STATUS" and had to drag horizontally to read a single
+                row - the data was technically present and practically unusable.
+
+                Cards below `md`. The table is kept for desktop, where six columns
+                genuinely fit and the density is an advantage. Same data, same
+                handlers; only the layout changes.
+            */}
+            <ul className="divide-y divide-border md:hidden">
+                {users.map(user => (
+                    <li key={user.id} className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <p className="font-medium text-foreground break-words">{user.username || 'No Username'}</p>
+                                <p className="text-sm text-muted-foreground break-words">{user.email}</p>
+                            </div>
+                            <button
+                                onClick={() => setEditingLimitUser(user)}
+                                className="shrink-0 p-2 -m-2 text-muted-foreground hover:text-secondary rounded-lg"
+                                aria-label={`Edit limits for ${user.username || user.email}`}
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.isActive ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'}`}>
+                                {user.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.isVerified ? 'bg-accent text-secondary' : 'bg-warn-soft text-warn-strong'}`}>
+                                {user.isVerified ? 'Verified' : 'Unverified'}
+                            </span>
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                                {user.userType}
+                            </span>
+                        </div>
+
+                        {/*
+                            Label/value rows, not a grid. A grid here would put three
+                            money counts side by side in a ~300px card and they would
+                            fuse into one unreadable string.
+                        */}
+                        <dl className="text-xs space-y-1">
+                            <div className="flex justify-between gap-4">
+                                <dt className="text-muted-foreground">Assets</dt>
+                                <dd className="tabular-nums">{user._count?.assets ?? 0} / {user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS}</dd>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                                <dt className="text-muted-foreground">Nisab records</dt>
+                                <dd className="tabular-nums">{user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS}</dd>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                                <dt className="text-muted-foreground">Payments</dt>
+                                <dd className="tabular-nums">{user._count?.payments ?? 0} / {user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS}</dd>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                                <dt className="text-muted-foreground">Last login</dt>
+                                <dd>{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}</dd>
+                            </div>
+                        </dl>
+
+                        {/*
+                            Wraps rather than scrolls: four actions at ~64px plus gaps
+                            exceed a 360px card, and a horizontally scrolling action
+                            row hides the destructive one off-screen.
+                        */}
+                        <div className="flex flex-wrap gap-2 pt-1">
+                            {!user.isVerified && (
+                                <Button variant="outline" size="sm" onClick={() => handleVerify(user.id)}>Verify</Button>
+                            )}
+                            <Button variant="outline" size="sm" onClick={() => setEditingLimitUser(user)}>Limits</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleRoleUpdate(user.id, user.userType === 'ADMIN_USER' ? 'USER' : 'ADMIN_USER')}>
+                                {user.userType === 'ADMIN_USER' ? 'Demote' : 'Promote'}
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-danger" onClick={() => handleDelete(user.id)}>Delete</Button>
+                        </div>
+                    </li>
+                ))}
+                {users.length === 0 && (
+                    <li className="p-8 text-center text-muted-foreground">No users found matching your search.</li>
+                )}
+            </ul>
+
+            <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-start">
+                    <thead className="bg-muted text-muted-foreground text-sm uppercase">
                         <tr>
                             <th className="px-6 py-3 font-medium">User</th>
                             <th className="px-6 py-3 font-medium">Status</th>
                             <th className="px-6 py-3 font-medium">Type</th>
                             <th className="px-6 py-3 font-medium">Limits</th>
                             <th className="px-6 py-3 font-medium">Last Login</th>
-                            <th className="px-6 py-3 font-medium text-right">Actions</th>
+                            <th className="px-6 py-3 font-medium text-end">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-border">
                         {users.map(user => (
-                            <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                            <tr key={user.id} className="hover:bg-muted transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-gray-900">{user.username || 'No Username'}</span>
-                                        <span className="text-sm text-gray-500">{user.email}</span>
+                                        <span className="font-medium text-foreground">{user.username || 'No Username'}</span>
+                                        <span className="text-sm text-muted-foreground">{user.email}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex flex-col gap-1">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${user.isActive ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'}`}>
                                             {user.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                         {user.isVerified ? (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit">Verified</span>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent text-secondary w-fit">Verified</span>
                                         ) : (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 w-fit">Unverified</span>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warn-soft text-warn-strong w-fit">Unverified</span>
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
+                                <td className="px-6 py-4 text-sm text-muted-foreground">
                                     {user.userType}
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-500">
+                                <td className="px-6 py-4 text-sm text-muted-foreground">
                                     <div className="flex flex-col gap-0.5 text-xs">
                                         <span title="Assets Usage / Limit">Assets: {user._count?.assets ?? 0} / {user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS}</span>
                                         <span title="Nisab Usage / Limit">Nisab: {user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS}</span>
                                         <span title="Payments Usage / Limit">Payments: {user._count?.payments ?? 0} / {user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS}</span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-600">
+                                <td className="px-6 py-4 text-sm text-muted-foreground">
                                     {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
                                 </td>
-                                <td className="px-6 py-4 text-right">
+                                <td className="px-6 py-4 text-end">
                                     <div className="flex justify-end gap-2 flex-wrap">
                                         {!user.isVerified && (
                                             <button
                                                 onClick={() => handleVerify(user.id)}
-                                                className="text-blue-600 hover:text-blue-900 hover:bg-blue-50 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                                                className="text-secondary hover:text-secondary/80 hover:bg-accent px-3 py-1 rounded-md text-sm font-medium transition-colors"
                                             >
                                                 Verify
                                             </button>
                                         )}
                                         <button
                                             onClick={() => setEditingLimitUser(user)}
-                                            className="text-emerald-600 hover:text-emerald-900 hover:bg-emerald-50 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                                            className="text-secondary hover:text-secondary/80 hover:bg-accent px-3 py-1 rounded-md text-sm font-medium transition-colors"
                                         >
                                             Limits
                                         </button>
                                         <button
                                             onClick={() => handleRoleUpdate(user.id, user.userType === 'ADMIN_USER' ? 'USER' : 'ADMIN_USER')}
                                             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${user.userType === 'ADMIN_USER'
-                                                ? 'text-amber-600 hover:text-amber-900 hover:bg-amber-50'
-                                                : 'text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50'
+                                                ? 'text-warn-strong hover:text-warn-strong hover:bg-warn-soft'
+                                                : 'text-secondary hover:text-secondary hover:bg-accent'
                                                 }`}
                                         >
                                             {user.userType === 'ADMIN_USER' ? 'Demote' : 'Promote'}
                                         </button>
                                         <button
                                             onClick={() => handleDelete(user.id)}
-                                            className="text-red-600 hover:text-red-900 hover:bg-red-50 px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                                            className="text-danger hover:text-danger hover:bg-danger-soft px-3 py-1 rounded-md text-sm font-medium transition-colors"
                                         >
                                             Delete
                                         </button>
@@ -203,7 +298,7 @@ export const UserManagement: React.FC = () => {
                         ))}
                         {users.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                                     No users found matching your search.
                                 </td>
                             </tr>
@@ -213,21 +308,21 @@ export const UserManagement: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            <div className="p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
+            <div className="p-4 border-t border-border flex justify-between items-center bg-muted">
                 <button
                     disabled={page === 1}
                     onClick={() => setPage(p => Math.max(1, p - 1))}
-                    className="px-4 py-2 border bg-white rounded-md disabled:opacity-50 hover:bg-gray-100"
+                    className="px-4 py-2 border bg-card rounded-md disabled:opacity-50 hover:bg-muted"
                 >
                     Previous
                 </button>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                     Page {page} of {totalPages}
                 </span>
                 <button
                     disabled={page === totalPages}
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    className="px-4 py-2 border bg-white rounded-md disabled:opacity-50 hover:bg-gray-100"
+                    className="px-4 py-2 border bg-card rounded-md disabled:opacity-50 hover:bg-muted"
                 >
                     Next
                 </button>

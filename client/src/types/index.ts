@@ -24,12 +24,19 @@ export interface Asset {
   currency: string;
   description?: string;
   metadata?: string;
+  /** Free-text the user wrote about the asset. Encrypted at rest like `value`. */
+  notes?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
   acquisitionDate?: string;
   subCategory?: string;
-  zakatEligible?: boolean;
+  /**
+   * The user's answer to "is this zakatable?", or null when they chose to leave
+   * it to the selected methodology. `undefined` = never asked (same effect).
+   * Only `true`/`false` override the madhab's ruling.
+   */
+  zakatEligible?: boolean | null;
   // New fields for Zakat Calculation
   isPassiveInvestment?: boolean;
   isRestrictedAccount?: boolean;
@@ -78,7 +85,6 @@ export interface User {
   settings?: {
     preferredCalendar?: 'gregorian' | 'hijri';
     preferredMethodology?: 'standard' | 'hanafi' | 'shafii' | 'maliki' | 'hanbali' | 'custom';
-    preferredNisabStandard?: 'GOLD' | 'SILVER';
     hijriAdjustment?: number;
     currency?: string;
   };

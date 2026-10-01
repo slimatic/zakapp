@@ -97,7 +97,7 @@ docker run -p 80:80 zakapp:latest
 
 ### Production Compose
 
-Create `docker-compose.prod.yml`:
+Create `docker-compose.yml`:
 
 ```yaml
 version: '3.8'

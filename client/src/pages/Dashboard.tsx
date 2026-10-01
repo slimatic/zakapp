@@ -23,15 +23,17 @@ import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { useAssetRepository } from '../hooks/useAssetRepository';
 import { useNisabRecordRepository } from '../hooks/useNisabRecordRepository';
 import { usePaymentRepository } from '../hooks/usePaymentRepository';
-import { DashboardHeader } from '../components/dashboard/DashboardHeader';
-import { ActiveRecordWidget } from '../components/dashboard/ActiveRecordWidget';
+import { useLiabilityRepository } from '../hooks/useLiabilityRepository';
+import { useUserSettingsRepository } from '../hooks/useUserSettingsRepository';
+import { calculateZakat } from '../core/calculations/zakat';
+import { DEFAULT_NISAB_DATA } from '../core/calculations/nisab';
+import { DashboardHero, HawlCard, QuickActions, AssetRow } from '../components/dashboard/DashboardTop';
 import { WealthSummaryCard } from '../components/dashboard/WealthSummaryCard';
 import { OnboardingGuide } from '../components/dashboard/OnboardingGuide';
 import { DashboardActionCards } from '../components/dashboard/DashboardActionCards';
 import { SkeletonCard } from '../components/common/SkeletonLoader';
 import { AssetsBreakdownChart } from '../components/dashboard/AssetsBreakdownChart';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
-import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
 import type { Asset } from '../types';
 import { useBestAction } from '../hooks/useBestAction';
@@ -39,6 +41,7 @@ import { GlossaryTerm } from '../components/common/GlossaryTerm';
 import { MigrationWizard } from '../components/migration/MigrationWizard';
 import { useMigration } from '../hooks/useMigration';
 import { Button } from '../components/ui/Button';
+import { getNisabStandard } from '../core/calculations/nisab';
 
 /**
  * Educational Module Component
@@ -46,6 +49,9 @@ import { Button } from '../components/ui/Button';
  */
 const EducationalModule: React.FC = () => {
   const { t } = useTranslation('dashboard');
+  // This module is a separate component, so it resolves the pair itself rather than
+  // closing over the page's — otherwise the two can disagree again.
+  const nisabStandard = getNisabStandard(useDisplayCurrency().nisabStandard);
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
@@ -62,12 +68,12 @@ const EducationalModule: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-2 border-teal-200 p-4 sm:p-6">
+    <div className="bg-muted rounded-lg border border-border p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-teal-100 rounded-lg">
+          <div className="p-2 bg-accent rounded-lg">
             <svg
-              className="w-6 h-6 text-teal-600"
+              className="w-6 h-6 text-accent-foreground"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -81,12 +87,12 @@ const EducationalModule: React.FC = () => {
               />
             </svg>
           </div>
-          <h2 className="text-lg font-bold text-gray-900">{t('education.understandingZakat')}</h2>
+          <h2 className="text-lg font-bold text-secondary">{t('education.understandingZakat')}</h2>
         </div>
 
         <button
           onClick={toggleExpanded}
-          className="p-2 rounded-md text-gray-600 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-teal-600 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="p-2 rounded-md text-muted-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label={isExpanded ? 'Collapse educational content' : 'Expand educational content'}
           aria-expanded={isExpanded}
         >
@@ -110,46 +116,53 @@ const EducationalModule: React.FC = () => {
       {isExpanded && (
         <div className="space-y-4">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">
-              <Trans i18nKey="education.whatIsZakat" components={{ glossary: <GlossaryTerm term="zakat" /> }} />
+            <h3 className="font-semibold text-secondary mb-2">
+              <Trans ns="dashboard" i18nKey="education.whatIsZakat" components={{ glossary: <GlossaryTerm term="zakat" /> }} />
             </h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              <GlossaryTerm term="zakat" /> is one of the Five Pillars of Islam and is an obligatory act of charity. It requires Muslims
-              who meet specific wealth criteria to donate 2.5% of their qualifying wealth annually to those in need.
-              <GlossaryTerm term="zakat" /> purifies wealth and helps create a more equitable society.
+            <p className="text-sm text-foreground leading-relaxed">
+              <GlossaryTerm term="zakat" /> is one of the Five Pillars of Islam and is an
+              obligatory act of charity. It requires Muslims who meet specific wealth criteria
+              to donate 2.5% of their qualifying wealth annually to those in need.{' '}
+              <GlossaryTerm term="zakat" /> purifies wealth and helps create a more equitable
+              society.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">
-              <Trans i18nKey="education.whatIsNisab" components={{ glossary: <GlossaryTerm term="nisab" /> }} />
+            <h3 className="font-semibold text-secondary mb-2">
+              <Trans ns="dashboard" i18nKey="education.whatIsNisab" components={{ glossary: <GlossaryTerm term="nisab" /> }} />
             </h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              <GlossaryTerm term="nisab" /> is the minimum threshold of wealth a Muslim must possess for one lunar year (<GlossaryTerm term="hawl" />) before
-              <GlossaryTerm term="zakat" /> becomes obligatory. The <GlossaryTerm term="nisab" /> can be calculated based on the value of gold (85 grams) or
-              silver (595 grams). ZakApp helps you track your wealth and determine when you've reached the <GlossaryTerm term="nisab" /> threshold.
+            <p className="text-sm text-foreground leading-relaxed">
+              <GlossaryTerm term="nisab" /> is the minimum threshold of wealth a Muslim
+              must possess for one lunar year (<GlossaryTerm term="hawl" />) before{' '}
+              <GlossaryTerm term="zakat" /> becomes obligatory. The <GlossaryTerm term="nisab" />{' '}
+              can be calculated based on the value of gold ({nisabStandard.goldGrams} grams) or silver ({nisabStandard.silverGrams} grams).
+              ZakApp helps you track your wealth and determine when you've reached the{' '}
+              <GlossaryTerm term="nisab" /> threshold.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">
-              <Trans i18nKey="education.hawlPeriod" components={{ glossary: <GlossaryTerm term="hawl" /> }} />
+            <h3 className="font-semibold text-secondary mb-2">
+              <Trans ns="dashboard" i18nKey="education.hawlPeriod" components={{ glossary: <GlossaryTerm term="hawl" /> }} />
             </h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              The <GlossaryTerm term="hawl" /> is the Islamic lunar year period (354 days) during which your wealth must remain above
-              the <GlossaryTerm term="nisab" /> threshold for <GlossaryTerm term="zakat" /> to be due. ZakApp's Nisab Year Record feature helps you track this
-              period automatically and alerts you when <GlossaryTerm term="zakat" /> payment is due.
+            <p className="text-sm text-foreground leading-relaxed">
+              The <GlossaryTerm term="hawl" /> is the Islamic lunar year period (354 days)
+              during which your wealth must remain above the{' '}
+              <GlossaryTerm term="nisab" /> threshold for <GlossaryTerm term="zakat" /> to be
+              due. ZakApp's Nisab Year Record feature helps you track this period
+              automatically and alerts you when <GlossaryTerm term="zakat" /> payment is due.
             </p>
           </div>
 
-          <div className="pt-4 border-t border-teal-200">
-            <h3 className="font-semibold text-gray-900 mb-3">Learn More</h3>
+          <div className="pt-4 border-t border-border">
+            <h3 className="font-semibold text-secondary mb-3">{t('education.learnMore')}</h3>
             <div className="space-y-2">
               <Link
                 to="/learn"
-                className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
+                className="flex items-center text-sm text-secondary hover:text-secondary/80 hover:underline"
               >
-                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 me-2" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                 </svg>
                 Visit Learning Center
@@ -158,9 +171,9 @@ const EducationalModule: React.FC = () => {
                 href="https://youtube.com/playlist?list=PLXguldgkbZPffh6p4efOetXkTeJATAbcS&si=CoJ4JB5dLrJDgNS7"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center text-sm text-teal-700 hover:text-teal-800 hover:underline"
+                className="flex items-center text-sm text-secondary hover:text-secondary/80 hover:underline"
               >
-                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 me-2" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                   <path
                     fillRule="evenodd"
@@ -176,7 +189,7 @@ const EducationalModule: React.FC = () => {
       )}
 
       {!isExpanded && (
-        <span className="text-sm text-gray-600 block">
+        <span className="text-sm text-foreground/80 block">
           Learn about <GlossaryTerm term="zakat" /> obligations, <GlossaryTerm term="nisab" /> threshold, and the <GlossaryTerm term="hawl" /> period. Click to expand.
         </span>
       )}
@@ -197,7 +210,6 @@ export const Dashboard: React.FC = () => {
   const { t } = useTranslation('dashboard');
   const { user } = useAuth();
   const navigate = useNavigate();
-  const maskedCurrency = useMaskedCurrency();
   
   // Migration wizard state
   const { needsMigration } = useMigration();
@@ -207,12 +219,23 @@ export const Dashboard: React.FC = () => {
   const { assets, isLoading: assetsLoading, error: assetsError } = useAssetRepository();
   const { activeRecord, isLoading: recordsLoading, error: recordsError } = useNisabRecordRepository();
   const { payments, isLoading: paymentsLoading } = usePaymentRepository();
+  const { liabilities, isLoading: liabilitiesLoading } = useLiabilityRepository();
+  const { settings } = useUserSettingsRepository();
 
   const hasAssets = assets.length > 0;
   const hasActiveRecord = activeRecord !== null;
   const hasPayments = payments.length > 0;
 
-  // Redirect to onboarding if setup is incomplete
+  // Is the local database still loading its first pull?
+  //
+  // The redirect below reads "no assets" as "nothing set up". Before RxDB has
+  // finished its initial replication that is indistinguishable from an empty
+  // database: assets is [] and isLoading is true. Deciding during that window
+  // bounces a fully populated account to /onboarding on every cold load — and
+  // because the redirect unmounts the dashboard, the repositories that would
+  // have loaded the data are torn down, so the emptiness is self-confirming.
+  const reposLoading = assetsLoading || recordsLoading;
+
   // Redirect to onboarding if setup is incomplete
   useEffect(() => {
     // Check if user explicitly skipped via local prefs (fallback for robust UX)
@@ -227,12 +250,18 @@ export const Dashboard: React.FC = () => {
       }
     }
 
-    // Only redirect if NOT complete AND NOT skipped AND NO ASSETS/RECORDS
+    // Only redirect if NOT complete AND NOT skipped AND NO ASSETS/RECORDS.
     // (Legacy users or partially synced users might have assets but isSetupCompleted=false)
+    //
+    // Never decide while a repository is still loading: an unfinished initial
+    // pull looks exactly like an empty account, and redirecting on it tears the
+    // page down before the data can arrive.
+    if (reposLoading) return;
+
     if (user && user.isSetupCompleted === false && !hasSkipped && !hasAssets && !hasActiveRecord) {
       navigate('/onboarding');
     }
-  }, [user, navigate, hasAssets, hasActiveRecord]);
+  }, [user, navigate, hasAssets, hasActiveRecord, reposLoading]);
 
   // Calculate total wealth
   const totalWealth = assets.reduce((sum: number, asset: Asset) => {
@@ -276,22 +305,157 @@ export const Dashboard: React.FC = () => {
 
   // Get Nisab threshold (use live value for consistency with other pages)
   const nisabBasis = (activeRecord?.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
-
   // Issue #310 (v0.15.2 regression): resolve currency from the local RxDB
   // settings store FIRST (baseCurrency) — the auth-context blob may lag or
   // still say USD for users who set their currency locally.
   const display = useDisplayCurrency();
   const userCurrency = display.currency;
-  const { nisabAmount } = useNisabThreshold(userCurrency, nisabBasis);
-  const nisabThreshold = nisabAmount || 5000; // Default fallback
+  // The pair the user picked, for the prose and the threshold. Read from the same
+  // helper the engine uses, so the copy cannot drift from the arithmetic again.
+  const nisabStandard = getNisabStandard(display.nisabStandard);
+  const {
+    nisabAmount,
+    goldPrice,
+    silverPrice,
+    isLoading: nisabLoading,
+    error: nisabError,
+  } = useNisabThreshold(userCurrency, nisabBasis, display.nisabStandard);
+
+  /* ── Hero figures: canonical calculation, never a guess ───────────────────
+   *
+   * The nisab threshold and the zakat figure are the two numbers on this page a
+   * user may act on financially, so both come from the canonical engine or from
+   * an explicit unknown state. Nothing here fabricates a plausible number.
+   *
+   * Previously this page did two things that produced confident untruths:
+   *   nisabThreshold = nisabAmount || 5000   -> an arbitrary USD threshold used
+   *       to print "Above nisab" while loading, on error, and for users whose
+   *       real nisab is nothing like 5,000 (e.g. an IDR account).
+   *   zakatDue = totalWealth * 0.025         -> 2.5% of EVERY asset, including
+   *       exempt ones, ignoring liabilities and the user's madhab, and replacing
+   *       a legitimate zero with an invented positive.
+   *
+   * `calculateZakat` is the canonical engine (client/src/core/calculations/
+   * zakat.ts). The record's own zakatAmount is used only when the record can be
+   * trusted to be that same calculation: it carries a nisabBasis and a positive
+   * figure. A zero is a real result, not an absence, so it is never replaced.
+   */
+
+  // The canonical basis: methodology decides nisab source, jewelry exemption and
+  // which liabilities are deductible. Read from the same store the rest of the
+  // app uses, defaulting to STANDARD only when the user has never chosen.
+  const methodology = ((settings?.preferredMethodology || 'STANDARD').toUpperCase()) as
+    | 'STANDARD'
+    | 'HANAFI'
+    | 'SHAFII'
+    | 'MALIKI'
+    | 'HANBALI';
+
+  const toNum = (v: unknown): number => {
+    const n = typeof v === 'string' ? parseFloat(v) : (v as number);
+    return Number.isFinite(n) ? (n as number) : 0;
+  };
+
+  // Real metal prices -> the nisab pair the engine expects. Undefined prices must
+  // NOT become zero: a zero nisab would mark every user as "Above nisab".
+  const nisabPrices = useMemo(
+    () =>
+      goldPrice !== undefined && silverPrice !== undefined
+        ? {
+            gold: goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams,
+            silver: silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams
+          }
+        : null,
+    [goldPrice, silverPrice]
+  );
+
+  const calculation = useMemo(() => {
+    if (!nisabPrices) return null;
+    return calculateZakat(assets, liabilities, nisabPrices, methodology);
+  }, [assets, liabilities, nisabPrices, methodology]);
+
+  /**
+   * Unknown / not-yet-calculated state. Distinguishes "still loading" from
+   * "cannot be determined", because the UI must say different things.
+   */
+  const heroState: 'loading' | 'ready' | 'unavailable' =
+    assetsLoading || recordsLoading || liabilitiesLoading || nisabLoading
+      ? 'loading'
+      : !nisabPrices || nisabError || !calculation
+        ? 'unavailable'
+        : 'ready';
+
+  // A record's own figure is authoritative for the running hawl, but only once we
+  // have a real basis. Zero is honoured; the record must also carry a nisabBasis
+  // so we can tell which threshold produced it.
+  const recordedZakat = useMemo(() => {
+    if (!activeRecord?.nisabBasis) return null;
+    const raw = activeRecord.zakatAmount;
+    if (raw === null || raw === undefined || raw === '') return null;
+    const n = toNum(raw);
+    return Number.isFinite(n) ? n : null;
+  }, [activeRecord]);
+
+  const zakatDue: number | null =
+    heroState !== 'ready'
+      ? null
+      : recordedZakat !== null
+        ? recordedZakat
+        : (calculation?.zakatDue ?? null);
+
+  // Total paid against the current obligation. Extracted from an inline
+  // `payments.reduce(...)` that each render re-computed.
+  const paymentsTotal = useMemo(
+    () => payments.reduce((sum, p) => sum + (p.amount || 0), 0),
+    [payments]
+  );
+
+  // Hijri year for the hero note, when the record carries one.
+  const hijriYear = useMemo(() => {
+    const raw = (activeRecord as { hijriYear?: string | number } | null)?.hijriYear;
+    return raw ? String(raw) : undefined;
+  }, [activeRecord]);
+
+  /* ── Hawl progress ─────────────────────────────────────────────────────── */
+
+  const TOTAL_HAWL_DAYS = 354; // lunar year
+
+  const hawl = useMemo(() => {
+    const startStr = activeRecord?.hawlStartDate || activeRecord?.startDate;
+    let elapsed = toNum(activeRecord?.daysElapsed);
+    let remaining = toNum(activeRecord?.daysRemaining);
+
+    if (startStr) {
+      const start = new Date(startStr);
+      if (!Number.isNaN(start.getTime())) {
+        const diffDays = Math.floor((Date.now() - start.getTime()) / 86_400_000);
+        elapsed = Math.max(0, diffDays);
+        remaining = Math.max(0, TOTAL_HAWL_DAYS - elapsed);
+      }
+    }
+
+    const progress = Math.min(Math.max(elapsed / TOTAL_HAWL_DAYS, 0), 1);
+    const due = activeRecord?.hawlCompletionDate;
+    const dueDate = due
+      ? new Date(due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : undefined;
+
+    return { elapsed, remaining, progress, dueDate };
+  }, [activeRecord]);
+
+  // Undefined until the threshold is known — the UI renders "nisab unknown"
+  // rather than guessing a comparison against a fabricated 5,000.
+  const nisabThreshold: number | null = nisabAmount ?? null;
+  const aboveNisab: boolean | null =
+    nisabThreshold === null || heroState !== 'ready' ? null : totalWealth >= nisabThreshold;
 
   // Loading state
   if (assetsLoading || recordsLoading || paymentsLoading) {
     return (
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="space-y-6">
         <div className="mb-6">
-          <div className="h-8 bg-gray-200 rounded animate-pulse w-1/3 mb-2" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+          <div className="h-8 bg-muted rounded animate-pulse w-1/3 mb-2" />
+          <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <SkeletonCard />
@@ -305,7 +469,7 @@ export const Dashboard: React.FC = () => {
   // Error state
   if (assetsError || recordsError) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div>
         <ErrorMessage
           error={assetsError || recordsError}
           title="Failed to load dashboard"
@@ -315,26 +479,27 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6" id="main-content">
-      {/* Dashboard Header */}
-      <DashboardHeader
-        userName={user?.username}
-        hasAssets={hasAssets}
-        hasActiveRecord={hasActiveRecord}
+    <div className="space-y-4 sm:space-y-6">
+      {/* Hero: greeting + estimated zakat due (the page's focal figure) */}
+      <DashboardHero
+        userName={user?.firstName || user?.username}
+        zakatDue={zakatDue}
+        currency={userCurrency}
+        hijriYear={hijriYear}
       />
-      
+
       {/* Migration Banner */}
       {needsMigration && !showMigration && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-2 border-blue-200 flex items-center justify-between gap-4 shadow-sm">
+        <div className="bg-accent p-4 rounded-lg border border-border flex items-center justify-between gap-4 shadow-card">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 bg-card rounded-lg flex-shrink-0">
+              <svg className="w-6 h-6 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-gray-900">{t('privacy.upgradeAvailable')}</p>
-              <p className="text-sm text-gray-700">{t('privacy.upgradeHint')}</p>
+              <p className="font-semibold text-secondary">{t('privacy.upgradeAvailable')}</p>
+              <p className="text-sm text-foreground">{t('privacy.upgradeHint')}</p>
             </div>
           </div>
           <Button onClick={() => setShowMigration(true)} size="sm" className="flex-shrink-0">
@@ -351,7 +516,15 @@ export const Dashboard: React.FC = () => {
 
       {/* Dashboard Action Cards - Show when dashboard is empty or needs action */}
       {/* Replaces OnboardingGuide for simple "Next Best Action" prompts */}
-      {(!hasAssets || !hasActiveRecord || (activeRecord && payments.reduce((sum, p) => sum + (p.amount || 0), 0) < (assets.reduce((sum, a) => sum + (a.value || 0), 0) * 0.025))) ? (
+      {/* Was `assets.reduce(...) * 0.025` — the same 2.5%-of-every-asset
+          fabrication the hero used, inlined into a render condition. It decided
+          whether to nudge the user to pay using an invented obligation, and
+          summed assets twice (line 486 and again at line 411). Now the nudge is
+          driven by the canonical figure; when it is unknown, we show the action
+          cards, because prompting the user to check is the safe direction. */}
+      {(!hasAssets ||
+        !hasActiveRecord ||
+        (activeRecord && paymentsTotal < (zakatDue ?? Number.POSITIVE_INFINITY))) ? (
         <DashboardActionCards
           assets={assets}
           activeNisabRecord={activeRecord}
@@ -366,14 +539,24 @@ export const Dashboard: React.FC = () => {
         />
       )}
 
+      {/* Hawl card - the moon arc is the signature component */}
+      {hasActiveRecord && activeRecord && (
+        <HawlCard
+          progress={hawl.progress}
+          daysElapsed={hawl.elapsed}
+          totalDays={354}
+          daysRemaining={hawl.remaining}
+          dueDate={hawl.dueDate}
+          aboveNisab={aboveNisab}
+        />
+      )}
+
+      {/* Quick actions */}
+      <QuickActions />
+
       {/* Main Content Area */}
       {hasAssets && (
         <div className="space-y-6">
-
-          {/* T023: Active Record Widget */}
-          {hasActiveRecord && activeRecord && (
-            <ActiveRecordWidget record={activeRecord} />
-          )}
 
           {/* Wealth and Breakdown Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -383,7 +566,7 @@ export const Dashboard: React.FC = () => {
               currency={userCurrency}
             />
 
-            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <div className="bg-card rounded-lg shadow-card p-6 border border-border">
               <AssetsBreakdownChart
                 assets={assets}
                 currency={userCurrency}
@@ -392,53 +575,32 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Recent Assets Summary */}
-          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <div className="bg-card rounded-lg shadow-card p-6 border border-border">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">{t('assets.yourAssets')}</h2>
+              <h2 className="text-xl font-semibold text-secondary">{t('assets.yourAssets')}</h2>
               <Link
                 to="/assets"
-                className="text-sm font-medium text-green-600 hover:text-green-700 hover:underline"
+                className="text-sm font-medium text-success hover:underline"
               >
                 View All →
               </Link>
             </div>
 
-            <div className="space-y-3">
+            <div>
               {assets.slice(0, 5).map((asset: Asset) => (
-                <div
+                <AssetRow
                   key={asset.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                        <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{asset.name}</p>
-                      <p className="text-sm text-gray-600 capitalize">
-                        {asset.type.replace('_', ' ')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">
-                      {maskedCurrency(new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: asset.currency || 'USD',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format(asset.value || 0))}
-                    </p>
-                    <span className="text-xs text-green-600 font-medium">{t('assets.zakatable')}</span>
-                  </div>
-                </div>
+                  name={asset.name}
+                  type={asset.type || 'other'}
+                  value={asset.value || 0}
+                  currency={asset.currency}
+                  detail={asset.type ? asset.type.replace(/_/g, ' ') : undefined}
+                  zakatable={asset.zakatEligible !== false}
+                />
               ))}
 
               {assets.length === 0 && (
-                <div className="text-center py-6 text-gray-500">
+                <div className="text-center py-6 text-muted-foreground">
                   No assets added yet.
                 </div>
               )}

@@ -1,0 +1,75 @@
+"""Assert each page renders exactly ONE app shell (sidebar + top bar + footer).
+
+The defect: /diagnostics and /seeder were wrapped in <Layout> by App.tsx AND
+again inside the page component, so they rendered a second sidebar, a second top
+bar and a doubled footer nested inside the real shell - visible as a duplicated
+topbar mid-page and two footers.
+
+Counting shells catches this class of bug for every route at once, instead of
+eyeballing screenshots for the two pages someone happened to open.
+"""
+import sys
+from playwright.sync_api import sync_playwright
+from _login import BASE, open_session
+
+ROUTES = [
+    "/dashboard", "/assets", "/liabilities", "/nisab-records", "/payments",
+    "/analytics", "/calculator", "/settings", "/learn", "/diagnostics", "/seeder",
+    # The catch-all. It was the ONE route drawn outside the shell, which is how it
+    # escaped this check for its whole life: every URL tested here was a real route.
+    # Any bogus path reaches the 404, and it must render the shell like everything else.
+    "/this-route-does-not-exist",
+]
+
+# A shell is recognisable by its chrome. Count navigations, headers and footers.
+COUNT = """() => ({
+  navs: document.querySelectorAll('nav').length,
+  headers: document.querySelectorAll('header, [role="banner"]').length,
+  footers: document.querySelectorAll('footer, [role="contentinfo"]').length,
+  sidebars: document.querySelectorAll('aside').length,
+  copyright: (document.body.innerText.match(/All rights reserved/g) || []).length,
+})"""
+
+with sync_playwright() as p:
+    b = p.chromium.launch(headless=True)
+    ctx, pg = open_session(b, {"width": 1280, "height": 900})
+
+    bad = []
+    for route in ROUTES:
+        pg.goto(f"{BASE}{route}", wait_until="networkidle")
+        pg.wait_for_timeout(2500)
+        c = pg.evaluate(COUNT)
+        # One shell. The reliable signature of a nested shell is duplicated
+        # CHROME - a second header, footer, or copyright line. Counting `nav`
+        # alone is not enough: pages legitimately add their own tab navs
+        # (Knowledge Hub's FAQs/Guides/Glossary, Settings' section nav), so a
+        # higher nav count is normal and must not fail this check.
+        problems = []
+        if c["copyright"] > 1:
+            problems.append(f'{c["copyright"]}x "All rights reserved"')
+        if c["headers"] > 1:
+            problems.append(f'{c["headers"]}x header')
+        if c["footers"] > 1:
+            problems.append(f'{c["footers"]}x footer')
+        # ZERO chrome is the opposite failure: the page was drawn OUTSIDE the shell
+        # entirely. This check originally only looked for duplicated chrome, so a page
+        # with header=0 footer=0 reported "ok" - which is exactly how the 404 route sat
+        # outside the shell unnoticed, with a skip link pointing at a #main-content
+        # that was never rendered. A shell can be missing, not just doubled.
+        if c["headers"] == 0:
+            problems.append("no header - page rendered outside the shell")
+        if c["footers"] == 0:
+            problems.append("no footer - page rendered outside the shell")
+        status = "FAIL" if problems else "ok"
+        print(f"  {status:4} {route:16} nav={c['navs']} header={c['headers']} "
+              f"footer={c['footers']} aside={c['sidebars']} copyright={c['copyright']}")
+        if problems:
+            bad.append((route, problems))
+    b.close()
+
+print()
+if bad:
+    for route, problems in bad:
+        print(f"FAIL {route}: {', '.join(problems)}")
+    sys.exit(1)
+print("PASS: every route renders a single app shell.")

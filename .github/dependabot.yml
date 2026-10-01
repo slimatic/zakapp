@@ -2,6 +2,13 @@ version: 2
 updates:
   # One entry per workspace — this is a multi-workspace repo, and a single
   # root-level entry does not cover the sub-package.json files.
+  #
+  # Each npm directory splits updates into two groups by update type. Majors are a
+  # deliberate, scheduled upgrade rather than a drive-by merge: 21 of the 22 open
+  # Dependabot PRs were major bumps, and the ones that DO run CI fail it (tailwind 4
+  # breaks `test (20.x)`, prisma 7 fails the vulnerability scan). Grouping keeps them
+  # visible as one reviewable PR per directory instead of ~5 open PRs each, so the
+  # signal survives without the noise.
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -9,27 +16,66 @@ updates:
       day: monday
     open-pull-requests-limit: 5
     groups:
-      dev-dependencies:
+      minor-and-patch:
         patterns: ["*"]
-        dependency-type: development
+        update-types: ["minor", "patch"]
+      major:
+        patterns: ["*"]
+        update-types: ["major"]
     labels: ["dependencies"]
 
   - package-ecosystem: npm
     directory: /client
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      major:
+        patterns: ["*"]
+        update-types: ["major"]
     labels: ["dependencies"]
 
   - package-ecosystem: npm
     directory: /server
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      major:
+        patterns: ["*"]
+        update-types: ["major"]
     labels: ["dependencies"]
 
   - package-ecosystem: npm
     directory: /shared
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      major:
+        patterns: ["*"]
+        update-types: ["major"]
+    labels: ["dependencies"]
+
+  # /cli was missing entirely, so its advisories were never raised as PRs at all —
+  # it holds the vitest/vite chain that appears in neither the client nor server entries.
+  - package-ecosystem: npm
+    directory: /cli
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      major:
+        patterns: ["*"]
+        update-types: ["major"]
     labels: ["dependencies"]
 
   - package-ecosystem: docker

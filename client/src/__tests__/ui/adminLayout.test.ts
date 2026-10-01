@@ -38,17 +38,25 @@ const src = readFileSync(
 
 describe('admin tab strip is mobile-safe', () => {
   it('wraps the tab nav in an overflow-x-auto container', () => {
-    // Without this the ~511px strip widens the document. Assert the wrapper div
-    // immediately around the nav, not a loose span - a span test passed while the
-    // class sat in a comment 3 lines away.
-    expect(src).toContain('overflow-x-auto');
+    // Without this the ~511px strip widens the document. Assert the classes on the
+    // wrapper div rather than a loose span - a span test passed while the class sat
+    // in a comment 3 lines away. Order-independent so a class added for the
+    // scroll-affordance work does not fail a test about overflow.
+    const wrapper = src.match(/<div className="([^"]*)"[^>]*>\s*\{?[\s\S]{0,400}?aria-label="Tabs"/);
+    expect(wrapper, 'no wrapper div found around the nav').toBeTruthy();
+    expect(wrapper![1]).toContain('overflow-x-auto');
+    expect(wrapper![1]).toContain('border-b');
   });
 
   it('keeps the tab labels on one line so the strip scrolls, not the page', () => {
-    // `whitespace-nowrap` on each tab is what makes the nav ~511px wide and forces
-    // the strip to scroll. It must stay on all four labels.
-    const nowrap = src.match(/whitespace-nowrap/g) || [];
-    expect(nowrap.length).toBeGreaterThanOrEqual(4);
+    // `whitespace-nowrap` is what makes the nav wider than a phone and forces the
+    // strip to scroll instead of the document. The four labels render from one
+    // template now, so assert BOTH: the class is applied, and all four labels are
+    // still present (a template that lost a label would otherwise pass).
+    expect(src).toContain('whitespace-nowrap');
+    for (const label of ['Overview', 'User Management', 'System Settings', 'System Health']) {
+      expect(src).toContain(label);
+    }
   });
 
   it('uses no class that generates zero CSS', () => {

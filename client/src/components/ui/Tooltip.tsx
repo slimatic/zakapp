@@ -22,7 +22,7 @@
  * throughout the application with keyboard accessibility.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 
 export interface TooltipProps {
   content: string | React.ReactNode;
@@ -31,6 +31,12 @@ export interface TooltipProps {
   maxWidth?: string;
   className?: string;
   trigger?: 'hover' | 'click' | 'both';
+  /**
+   * Override the accessible name of the trigger. Omit it and the trigger's own
+   * text is the name, which is what you want for a glossary term ("Zakat") -
+   * the definition then rides along as a description, not a replacement.
+   */
+  ariaLabel?: string;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -39,12 +45,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
   position = 'top',
   maxWidth = '300px',
   className = '',
-  trigger = 'hover'
+  trigger = 'hover',
+  ariaLabel
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  const tooltipId = useId();
 
   // Handle click outside to close tooltip
   useEffect(() => {
@@ -113,21 +121,21 @@ export const Tooltip: React.FC<TooltipProps> = ({
   };
 
   const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2'
+    top: 'bottom-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 mb-2',
+    bottom: 'top-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 mt-2',
+    left: 'end-0 top-1/2 -translate-y-1/2 me-2',
+    right: 'left-full top-1/2 -translate-y-1/2 ms-2'
   };
 
   const arrowPositionClasses = {
-    top: 'top-full left-1/2 -translate-x-1/2 border-t-gray-900 border-l-transparent border-r-transparent border-b-transparent',
-    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-gray-900 border-l-transparent border-r-transparent border-t-transparent',
-    left: 'left-full top-1/2 -translate-y-1/2 border-l-gray-900 border-t-transparent border-b-transparent border-r-transparent',
-    right: 'right-full top-1/2 -translate-y-1/2 border-r-gray-900 border-t-transparent border-b-transparent border-l-transparent'
+    top: 'top-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 border-t-secondary border-l-transparent border-r-transparent border-b-transparent',
+    bottom: 'bottom-full start-1/2 -translate-x-1/2 rtl:translate-x-1/2 border-b-secondary border-l-transparent border-r-transparent border-t-transparent',
+    left: 'left-full top-1/2 -translate-y-1/2 border-l-secondary border-t-transparent border-b-transparent border-r-transparent',
+    right: 'end-0 top-1/2 -translate-y-1/2 border-r-secondary border-t-transparent border-b-transparent border-l-transparent'
   };
 
   return (
-    <span className={`relative inline-block ${className}`}>
+    <span className="relative inline-block">
       <span
         ref={triggerRef}
         onMouseEnter={handleMouseEnter}
@@ -138,8 +146,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="button"
-        aria-label="Show tooltip"
-        className="cursor-help inline"
+        // No aria-label here. A label REPLACES the element's accessible name, so
+        // aria-label="Show tooltip" made every glossary term announce as "Show
+        // tooltip, button" and the word itself (Zakat, Nisab, Hawl) was never
+        // read. The visible word is the name; aria-describedby carries the
+        // definition. GlossaryTerm overrides this via ariaLabel.
+        aria-label={ariaLabel}
+        aria-describedby={isVisible ? tooltipId : undefined}
+        className={`cursor-help inline ${className}`}
       >
         {children}
       </span>
@@ -147,12 +161,13 @@ export const Tooltip: React.FC<TooltipProps> = ({
       {isVisible && (
         <div
           ref={tooltipRef}
+          id={tooltipId}
           className={`absolute z-50 ${positionClasses[position]} animate-fadeIn`}
           style={{ maxWidth }}
           role="tooltip"
         >
           {/* Added w-64 to force rectangular box shape instead of narrow column */}
-          <div className="bg-gray-900 text-white text-sm rounded-lg p-3 shadow-lg w-64">
+          <div className="bg-secondary text-secondary-foreground text-sm rounded-lg p-3 shadow-elev-2 w-64">
             {typeof content === 'string' ? (
               <p className="leading-relaxed">{content}</p>
             ) : (
@@ -177,7 +192,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 export const InfoIcon: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (
     <span
-      className={`inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-100 text-blue-600 text-xs font-bold ${className}`}
+      className={`inline-flex items-center justify-center w-4 h-4 rounded-full bg-accent text-accent-foreground text-xs font-bold ${className}`}
       aria-hidden="true"
     >
       ?

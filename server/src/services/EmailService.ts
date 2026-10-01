@@ -5,6 +5,19 @@ import { Logger } from '../utils/logger';
 
 const logger = new Logger('EmailService');
 
+/**
+ * Fallback sender when nothing is configured (DB setting, SMTP_FROM, RESEND_API_KEY).
+ *
+ * Was hardcoded 4x as 'noreply@zakapp.io' - a domain that is NOT REGISTERED and does not
+ * resolve, while the app itself lives on zakapp.org. Mail sent with an unresolvable domain
+ * in From: fails SPF alignment and reads as a spoofed sender. zakapp.org has working
+ * sending infrastructure (Resend DKIM at resend._domainkey, SPF on send.zakapp.org), so
+ * that is the correct domain.
+ *
+ * Overridable by config; this is only the last-resort default.
+ */
+const DEFAULT_FROM = process.env.SMTP_FROM || 'noreply@zakapp.org';
+
 
 export class EmailService {
     private static instance: EmailService;
@@ -30,7 +43,7 @@ export class EmailService {
                 return {
                     provider: 'resend',
                     apiKey: dbSettings.resendApiKey,
-                    from: dbSettings.smtpFromEmail || process.env.SMTP_FROM || 'noreply@zakapp.io',
+                    from: dbSettings.smtpFromEmail || DEFAULT_FROM,
                     name: dbSettings.smtpFromName || 'ZakApp'
                 };
             }
@@ -43,7 +56,7 @@ export class EmailService {
                     secure: dbSettings.smtpSecure,
                     user: dbSettings.smtpUser,
                     pass: dbSettings.smtpPass,
-                    from: dbSettings.smtpFromEmail || process.env.SMTP_FROM || 'noreply@zakapp.io',
+                    from: dbSettings.smtpFromEmail || DEFAULT_FROM,
                     name: dbSettings.smtpFromName || 'ZakApp'
                 };
             }
@@ -54,7 +67,7 @@ export class EmailService {
             return {
                 provider: 'resend',
                 apiKey: process.env.RESEND_API_KEY,
-                from: process.env.SMTP_FROM || 'noreply@zakapp.io',
+                from: DEFAULT_FROM,
                 name: process.env.SMTP_FROM_NAME || 'ZakApp'
             };
         }
@@ -67,7 +80,7 @@ export class EmailService {
                 secure: process.env.SMTP_SECURE === 'true',
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
-                from: process.env.SMTP_FROM || 'noreply@zakapp.io',
+                from: DEFAULT_FROM,
                 name: process.env.SMTP_FROM_NAME || 'ZakApp'
             };
         }

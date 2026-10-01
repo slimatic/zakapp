@@ -43,8 +43,15 @@ const logger = new Logger('SyncService');
 
 
 // Collections to sync - only core user data that needs multi-device sync
+//
+// `asset_amount_events` belongs here so history follows the asset it describes.
+// Syncing `assets` without its history means the two diverge across devices: an
+// asset appears with no record of what it was worth or when, and the nisab
+// back-dating this history exists for silently depends on which device is
+// looking. It carries ciphertext like the rest, so syncing it adds no exposure.
 const SYNC_COLLECTIONS: (keyof ZakAppCollections)[] = [
     'assets',
+    'asset_amount_events',
     'liabilities',
     'nisab_year_records',
     'payment_records',

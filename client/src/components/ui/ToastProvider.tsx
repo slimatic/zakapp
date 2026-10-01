@@ -30,22 +30,26 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
         position="top-right"
         toastOptions={{
           duration: 4000,
+          // Tokenised: was hardcoded #363636 on #fff, which ignored the theme
+          // entirely and was the last colour outside the design system here.
           style: {
-            background: '#363636',
-            color: '#fff',
+            background: 'hsl(var(--card))',
+            color: 'hsl(var(--foreground))',
+            border: '1px solid hsl(var(--border))',
+            boxShadow: 'var(--shadow-elev-2, 0 4px 12px rgb(0 0 0 / 0.12))',
           },
           success: {
             duration: 3000,
             iconTheme: {
-              primary: '#10b981',
-              secondary: '#fff',
+              primary: 'hsl(var(--success))',
+              secondary: 'hsl(var(--card))',
             },
           },
           error: {
             duration: 5000,
             iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
+              primary: 'hsl(var(--danger))',
+              secondary: 'hsl(var(--card))',
             },
           },
         }}

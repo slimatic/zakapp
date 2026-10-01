@@ -26,13 +26,15 @@
  * - Difference amount display
  */
 
-import { logger } from '../utils/logger';
 import React, { useMemo } from 'react';
 import { useNisabThreshold } from '../hooks/useNisabThreshold';
 import { useHawlStatus } from '../hooks/useHawlStatus';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { Tooltip } from './ui';
 import { formatCurrency as canonicalCurrency } from '../utils/formatters';
+import { toNumber } from '../utils/precision';
+import { useDisplayCurrency } from '../hooks/useDisplayCurrency';
+import { getNisabStandard } from '../core/calculations/nisab';
 
 export interface NisabComparisonWidgetProps {
   /**
@@ -90,7 +92,14 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   const maskedCurrency = useMaskedCurrency();
   // Pass nisabBasis from record to hook to get correct Nisab threshold
   const nisabBasis = (record.nisabBasis || 'GOLD') as 'GOLD' | 'SILVER';
-  const { nisabAmount, goldPrice, silverPrice } = useNisabThreshold(record.currency, nisabBasis);
+  // This widget exists to compare gold against silver, so both sides must use the
+  // SAME gram convention — comparing one convention's gold against the other's
+  // silver would report the unit difference as a basis difference. The user's
+  // chosen convention drives both; `tola` and `aaoifi` keep React Query's cache
+  // keys distinct so switching cannot serve a stale threshold.
+  const nisabStandard = getNisabStandard(useDisplayCurrency().nisabStandard);
+  const { nisabAmount, goldPrice, silverPrice } =
+    useNisabThreshold(record.currency, nisabBasis, nisabStandard.id);
 
   // Only enable live tracking for DRAFT records, not FINALIZED or UNLOCKED
   const shouldEnableLiveTracking = record.status === 'DRAFT';
@@ -103,42 +112,67 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
   // Calculate wealth and comparison
   const {
     displayWealth,
+    totalWealthDisplay,
     displayNisab,
     percentage,
     isAbove,
     differenceAmount,
+    differencePercent,
+    canCompare,
+    hasWealth,
   } = useMemo(() => {
     // For FINALIZED/UNLOCKED records, use stored wealth (already decrypted by backend)
     // For DRAFT records, use live data if available
-    // Prefer Zakatable wealth for the comparison display; fall back to totals if missing
-    // Safe wealth calculation with fallback chain
-    const liveZakatable = liveHawlData?.currentZakatableWealth;
-    const liveTotal = liveHawlData?.currentTotalWealth;
-    const recZakatable = Number(record.zakatableWealth);
-    const recTotal = Number(record.totalWealth);
+    // Prefer Zakatable wealth for the comparison display; fall back to totals if missing.
+    //
+    // Presence, not truthiness. `totalWealth`/`zakatableWealth` are NOT in the
+    // record schema's `required` list, so a real record can lack them. The old
+    // code said `Number(record.zakatableWealth) ?? 0` - but Number(undefined)
+    // is NaN and NaN is not nullish, so that fallback never ran; the widget
+    // printed "$NaN" and (since `NaN >= nisab` is false) reported "Below Nisab"
+    // for a record that is above it. toNumber() is the repo's precision helper
+    // and maps absent/invalid to 0, but "0" and "not on file" are different
+    // claims on a Nisab verdict, so an absent source stays null here and the
+    // verdict is withheld instead of defaulted to "below".
+    const num = (v: string | number | null | undefined): number | null =>
+      v === null || v === undefined || v === '' ? null : toNumber(v);
 
-    // Determine base wealth values
-    const effectiveZakatable = liveZakatable ?? currentWealth ?? recZakatable ?? 0;
-    const effectiveTotal = liveTotal ?? recTotal ?? 0;
+    const liveZakatable = num(liveHawlData?.currentZakatableWealth);
+    const liveTotal = num(liveHawlData?.currentTotalWealth);
+    const recZakatable = num(record.zakatableWealth);
+    const recTotal = num(record.totalWealth);
+    const propWealth = num(currentWealth);
 
+    // `??`, not `||`: a computed 0 is an answer, not a missing value.
     const wealth = shouldEnableLiveTracking
-      ? (effectiveZakatable || effectiveTotal)
-      : ((currentWealth ?? recZakatable) || recTotal || 0);
+      ? (liveZakatable ?? propWealth ?? recZakatable ?? liveTotal ?? recTotal)
+      : (propWealth ?? recZakatable ?? recTotal ?? liveTotal);
+    const totalWealth = shouldEnableLiveTracking
+      ? (liveTotal ?? recTotal)
+      : (recTotal ?? liveTotal);
 
     // Use nisabAmount from hook (freshly fetched based on nisabBasis)
     // Note: nisabThresholdAtStart in record is encrypted, so we can't parse it directly
-    const nisab = nisabAmount || 0;
+    const nisab = nisabAmount ?? 0;
+    // nisabAmount is undefined until the price fetch lands; a 0 threshold must
+    // not be read as "everything is above Nisab".
+    const hasNisab = nisab > 0;
+    const comparable = wealth !== null && hasNisab;
 
-    const isWealthAbove = wealth >= nisab;
-    const diff = isWealthAbove ? wealth - nisab : nisab - wealth;
-    const percent = nisab > 0 ? (wealth / nisab) * 100 : 0;
+    const isWealthAbove = comparable && wealth >= nisab;
+    const diff = comparable ? (isWealthAbove ? wealth - nisab : nisab - wealth) : 0;
+    const percent = comparable ? (wealth / nisab) * 100 : 0;
 
     return {
       displayWealth: wealth,
-      displayNisab: nisab,
+      totalWealthDisplay: totalWealth,
+      displayNisab: hasNisab ? nisab : null,
       percentage: Math.min(percent, 200), // Cap visual at 200%
       isAbove: isWealthAbove,
       differenceAmount: diff,
+      differencePercent: comparable ? (diff / nisab) * 100 : 0,
+      canCompare: comparable,
+      hasWealth: wealth !== null,
     };
   }, [liveHawlData, currentWealth, record, nisabAmount, shouldEnableLiveTracking]);
 
@@ -149,27 +183,51 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
 
   const formatMaskedCurrency = (amount: number) => maskedCurrency(formatCurrency(amount));
 
-  // Notify on status change
+  // Notify on status change only when a verdict actually exists. Reporting
+  // `false` for "unknown" would push the same wrong "Below Nisab" downstream.
   React.useEffect(() => {
-    if (onStatusChange) {
+    if (onStatusChange && canCompare) {
       onStatusChange(isAbove);
     }
-  }, [isAbove, onStatusChange]);
+  }, [isAbove, canCompare, onStatusChange]);
 
-  const statusLabel = isAbove ? 'Above Nisab' : 'Below Nisab';
-  const statusBg = isAbove ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
-  const statusBadge = isAbove ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-  const statusIcon = isAbove ? '✓' : '⚠';
+  const statusLabel = !canCompare ? 'Not enough data' : isAbove ? 'Above Nisab' : 'Below Nisab';
+  const statusBg = !canCompare
+    ? 'bg-muted border-border'
+    : isAbove
+      ? 'bg-success-soft border-success/30'
+      : 'bg-danger-soft border-danger/30';
+  const statusBadge = !canCompare
+    ? 'bg-muted text-muted-foreground'
+    : isAbove
+      ? 'bg-success-soft text-success'
+      : 'bg-danger-soft text-danger';
+  const statusIcon = !canCompare ? '–' : isAbove ? '✓' : '⚠';
+
+  // Label/value rows, matching the detail-panel vocabulary in the design.
+  // These were three fixed columns, which does not work: this card renders in
+  // the ~350px detail rail, and `lg:grid-cols-3` keys off the VIEWPORT, not the
+  // container - so on a desktop width three columns each got ~110px and the
+  // money strings ($153,561.38 / $91,920.60 / $11,985.63) ran into each other.
+  // A null value means "not on file", rendered as a dash rather than $0.00.
+  const comparisonRows: Array<{ label: string; value: number | null; emphasis: boolean }> = [
+    { label: 'Zakatable Wealth', value: displayWealth, emphasis: true },
+    { label: 'Total Wealth', value: totalWealthDisplay, emphasis: false },
+    { label: 'Nisab Threshold', value: displayNisab, emphasis: false },
+  ];
+
+  const renderMoney = (amount: number | null) =>
+    amount === null ? '—' : formatMaskedCurrency(amount);
 
   return (
     <div className={`nisab-comparison-widget ${className}`}>
       <div className={`rounded-lg border p-4 ${statusBg}`}>
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">Wealth vs Nisab</h3>
+          <h3 className="text-sm font-semibold text-foreground">Wealth vs Nisab</h3>
           {isUpdating && (
-            <span className="inline-flex items-center gap-1 text-xs text-gray-600">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-600"></span>
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-secondary"></span>
               Updating...
             </span>
           )}
@@ -178,95 +236,88 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
           </span>
         </div>
 
-        {/* Main comparison */}
-        <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-3 sm:gap-4">
-          {/* Zakatable Wealth */}
-          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
-            <div className="text-xs font-medium text-gray-500 mb-1 truncate">Zakatable Wealth</div>
-            <Tooltip content={formatMaskedCurrency(displayWealth)}>
-              <div className="text-base sm:text-lg font-bold text-gray-900 tracking-tight truncate block">
-                {formatMaskedCurrency(displayWealth)}
-              </div>
-            </Tooltip>
-          </div>
-
-          {/* Total Wealth */}
-          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
-            <div className="text-xs font-medium text-gray-500 mb-1 truncate">Total Wealth</div>
-            <Tooltip content={formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}>
-              <div className="text-base sm:text-lg font-bold text-gray-900 tracking-tight truncate block">
-                {formatMaskedCurrency(record.totalWealth ? Number(record.totalWealth) : (liveHawlData?.currentTotalWealth ?? 0))}
-              </div>
-            </Tooltip>
-          </div>
-
-          {/* Nisab Threshold */}
-          <div className="rounded-lg bg-white p-3 shadow-sm border border-gray-100 min-w-0">
-            <div className="text-xs font-medium text-gray-500 mb-1 truncate">Nisab Threshold</div>
-            <Tooltip content={formatMaskedCurrency(displayNisab)}>
-              <div className="text-base sm:text-lg font-bold text-gray-700 tracking-tight truncate block">
-                {formatMaskedCurrency(displayNisab)}
-              </div>
-            </Tooltip>
-          </div>
+        {/* Main comparison - label/value rows, not fixed columns */}
+        <div className="mb-4 flex flex-col gap-1">
+          {comparisonRows.map((row) => (
+            <div
+              key={row.label}
+              className="flex items-baseline justify-between gap-3 py-1.5"
+            >
+              <span className="text-xs font-medium text-muted-foreground">
+                {row.label}
+              </span>
+              <Tooltip content={renderMoney(row.value)}>
+                <span
+                  className={`shrink-0 text-sm font-bold tabular-nums tracking-tight ${
+                    row.emphasis ? 'text-foreground' : 'text-foreground/80'
+                  }`}
+                >
+                  {renderMoney(row.value)}
+                </span>
+              </Tooltip>
+            </div>
+          ))}
         </div>
 
         {/* Visual bar chart */}
         <div className="mb-4">
-          <div className="mb-2 flex justify-between text-xs text-gray-600">
+          <div className="mb-2 flex justify-between text-xs text-muted-foreground">
             <span>Nisab</span>
             <span>100%</span>
             {percentage > 100 && <span>Current</span>}
           </div>
-          <div className="relative h-8 overflow-hidden rounded-lg bg-gray-200">
+          <div className="relative h-8 overflow-hidden rounded-lg bg-muted">
             {/* Nisab baseline (100%) */}
-            <div className="absolute left-0 top-0 h-full w-1/4 bg-gray-400"></div>
+            <div className="absolute start-0 top-0 h-full w-1/4 bg-border-strong"></div>
 
             {/* Current wealth bar */}
             <div
-              className={`absolute left-0 top-0 h-full transition-all duration-500 ${isAbove ? 'bg-green-500' : 'bg-red-500'
-                }`}
+              className={`absolute start-0 top-0 h-full transition-all duration-500 ${
+                !canCompare ? 'bg-border-strong' : isAbove ? 'bg-success' : 'bg-danger'
+              }`}
               style={{ width: `${Math.min(percentage / 2, 100)}%` }}
             ></div>
 
             {/* Percentage label */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-sm font-bold text-white drop-shadow-sm">
-                {percentage.toFixed(0)}%
+              <span className="text-sm font-bold text-success-foreground">
+                {canCompare ? `${percentage.toFixed(0)}%` : '—'}
               </span>
             </div>
           </div>
         </div>
 
         {/* Difference indicator */}
-        <div className={`rounded-lg bg-white p-3 text-center`}>
-          <div className="text-xs text-gray-600">
-            {isAbove ? 'Above' : 'Below'} Nisab by
+        <div className={`rounded-lg bg-card p-3 text-center`}>
+          <div className="text-xs text-muted-foreground">
+            {!canCompare ? 'Comparison unavailable' : `${isAbove ? 'Above' : 'Below'} Nisab by`}
           </div>
-          <div className={`text-lg font-bold ${isAbove ? 'text-green-600' : 'text-red-600'}`}>
-            {isAbove ? '+' : '-'} {formatMaskedCurrency(differenceAmount)}
+          <div className={`text-lg font-bold ${!canCompare ? 'text-muted-foreground' : isAbove ? 'text-success' : 'text-danger'}`}>
+            {canCompare ? `${isAbove ? '+' : '-'} ${formatMaskedCurrency(differenceAmount)}` : '—'}
           </div>
-          <div className="text-xs text-gray-500">
-            ({((differenceAmount / displayNisab) * 100).toFixed(1)}%)
+          <div className="text-xs text-muted-foreground">
+            {canCompare ? `(${differencePercent.toFixed(1)}%)` : '(wealth not on file)'}
           </div>
         </div>
 
         {/* Details section */}
         {showDetails && (
-          <div className="mt-4 border-t border-gray-200 pt-4">
-            <div className="text-xs font-medium text-gray-700">Details</div>
+          <div className="mt-4 border-t border-border pt-4">
+            <div className="text-xs font-medium text-foreground/80">Details</div>
 
-            <div className="mt-2 space-y-2 text-xs text-gray-600">
+            <div className="mt-2 space-y-2 text-xs text-muted-foreground">
               <div className="flex justify-between">
                 <span>Nisab Basis:</span>
-                <span className="font-medium text-gray-900">
-                  {record.nisabBasis === 'GOLD' ? 'Gold (87.48g)' : 'Silver (612.36g)'}
+                <span className="font-medium text-foreground">
+                  {record.nisabBasis === 'GOLD'
+                    ? `Gold (${nisabStandard.goldGrams}g)`
+                    : `Silver (${nisabStandard.silverGrams}g)`}
                 </span>
               </div>
 
               {/* Live Price Display by Antigravity */}
               {(record.nisabBasis === 'GOLD' ? goldPrice : silverPrice) && (
-                <div className="flex justify-between text-gray-500">
+                <div className="flex justify-between text-muted-foreground">
                   <span>Current Price:</span>
                   <span className="font-medium">
                     {formatMaskedCurrency(Number(record.nisabBasis === 'GOLD' ? goldPrice : silverPrice))}/g
@@ -276,12 +327,12 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
 
               <div className="flex justify-between">
                 <span>Status:</span>
-                <span className="font-medium text-gray-900">{record.status}</span>
+                <span className="font-medium text-foreground">{record.status}</span>
               </div>
               {record.startDate && (
                 <div className="flex justify-between">
                   <span>Record Started:</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-foreground">
                     {new Date(record.startDate).toLocaleDateString()}
                   </span>
                 </div>
@@ -290,19 +341,30 @@ export const NisabComparisonWidget: React.FC<NisabComparisonWidgetProps> = ({
           </div>
         )}
 
-        {/* Status-specific messages */}
-        {!isAbove && record.status === 'DRAFT' && (
-          <div className="mt-4 rounded-lg bg-red-100 p-3">
-            <p className="text-sm text-red-700">
+        {/* Status-specific messages - both gated on canCompare, so an unknown
+            wealth value never produces a "below Nisab" ruling. */}
+        {canCompare && !isAbove && record.status === 'DRAFT' && (
+          <div className="mt-4 rounded-lg bg-danger-soft p-3">
+            <p className="text-sm text-danger">
               Wealth is below Nisab threshold. Zakat is not due until wealth reaches or exceeds the threshold.
             </p>
           </div>
         )}
 
-        {isAbove && record.status === 'DRAFT' && (
-          <div className="mt-4 rounded-lg bg-green-100 p-3">
-            <p className="text-sm text-green-700">
+        {canCompare && isAbove && record.status === 'DRAFT' && (
+          <div className="mt-4 rounded-lg bg-success-soft p-3">
+            <p className="text-sm text-success">
               Wealth is above Nisab. Hawl period is tracking. Once 354 lunar days pass, you can finalize and calculate Zakat.
+            </p>
+          </div>
+        )}
+
+        {!canCompare && (
+          <div className="mt-4 rounded-lg bg-muted p-3">
+            <p className="text-sm text-muted-foreground">
+              {hasWealth
+                ? 'Nisab threshold unavailable — cannot compare wealth right now.'
+                : 'No wealth figure is recorded for this year yet, so a Nisab comparison cannot be made.'}
             </p>
           </div>
         )}

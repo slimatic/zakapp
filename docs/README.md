@@ -2,6 +2,21 @@
 
 Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic Zakat calculator.
 
+## 🧭 Which guide do I want?
+
+Five documents describe deployment. Pick by what you are trying to do:
+
+| I want to… | Read |
+|---|---|
+| Get it running on my own machine, fastest path | [EASY-DEPLOY.md](../EASY-DEPLOY.md) — one script, auto-HTTPS |
+| The short version, 3 commands | [QUICKSTART.md](../QUICKSTART.md) |
+| Run it on a real server with a domain | [SELF-HOSTING.md](../SELF-HOSTING.md) |
+| Understand the production architecture | [DEPLOY.md](../DEPLOY.md) |
+| Full reference: env vars, backups, rollback | [deployment-guide.md](deployment-guide.md) |
+
+For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md) and
+[AGENTS.md](../AGENTS.md).
+
 ## 🗂️ Documentation Structure
 
 ### 📖 Getting Started
@@ -29,7 +44,6 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 
 - **[Deployment Guide](deployment-guide.md)** - General deployment instructions
 - **[Production Setup Guide](guides/PHASE2_PRODUCTION_SETUP_GUIDE.md)** - Production deployment automation
-- **[Staging Deployment Guide](guides/STAGING_DEPLOYMENT_GUIDE.md)** - Staging environment setup
 - **[Docker Guide](reports/DOCKER.md)** - Container deployment instructions
 - **[CI/CD Setup](guides/CI-CD-SETUP.md)** - Continuous integration/deployment configuration
 - **[Cloudflare Tunnel Setup](guides/CLOUDFLARE_TUNNEL_SETUP.md)** - Secure tunnel configuration
@@ -90,23 +104,18 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 
 ### 📦 Historical Documentation
 
-**Archive of completed work:**
+- **[Retired agent scaffolding](agent-scaffolding-retired.md)** - What the ralphy/ralph/sisyphus planning trees held, and the three conclusions worth keeping
 
-- **[Documentation Archive Index](archive/ARCHIVE_INDEX.md)** - Comprehensive index of archived documentation
-- **[Completion Reports](archive/completion-reports/)** - Feature and phase completion reports
-- **[Fix Reports](archive/fix-reports/)** - Bug fixes and issue resolutions
-- **[Phase Reports](archive/phase-reports/)** - Development phase tracking
-- **[Task Reports](archive/task-reports/)** - T-numbered task completion reports
-- **[Technical Reports](archive/technical-reports/)** - TypeScript migration, Docker, database reports
-- **[Session Reports](archive/session-reports/)** - Development session summaries
+**Archive of completed work:** [docs/archive/](archive/README.md) — superseded and
+completed-work documents, indexed by what replaced them.
 
 ### 🔍 Code Quality & Analysis
 
 **Repository maintenance:**
 
-- **[Code Analysis Findings](../CODE_ANALYSIS_FINDINGS.md)** - Comprehensive code analysis
-- **[Cleanup Summary](../CLEANUP_SUMMARY.md)** - Documentation cleanup tracking
-- **[Before/After Visualization](../BEFORE_AFTER_VISUALIZATION.md)** - Visual impact of cleanup
+- **[Code Analysis Findings](reports/CODE_ANALYSIS_FINDINGS.md)** - Comprehensive code analysis
+- **[Cleanup Summary](reports/CLEANUP_SUMMARY.md)** - Documentation cleanup tracking
+- **[Before/After Visualization](reports/BEFORE_AFTER_VISUALIZATION.md)** - Visual impact of cleanup
 
 ---
 
@@ -114,36 +123,36 @@ Welcome to the comprehensive documentation for ZakApp - a privacy-first Islamic 
 
 ### For New Contributors
 1. Start with [Main README](../README.md)
-2. Follow [Developer Onboarding](../DEVELOPER_ONBOARDING.md)
-3. Set up environment: [Development Setup](../DEVELOPMENT_SETUP.md)
-4. Learn workflow: [Development Guide](../DEVELOPMENT.md)
-5. Understand structure: [Project Structure](../project-structure.md)
+2. Follow [Developer Onboarding](reports/DEVELOPER_ONBOARDING.md)
+3. Set up environment: [Development Setup](reports/DEVELOPMENT_SETUP.md)
+4. Learn workflow: [Development Guide](reports/DEVELOPMENT.md)
+5. Understand structure: [Project Structure](project-structure.md)
 
 ### For Backend Developers
-1. Review [API Specification](../api-specification.md)
+1. Review [API Specification](api/api-specification.md)
 2. Study [Database Schema](../server/prisma/schema.prisma)
-3. Check [Security Guide](../security.md)
+3. Check [Security Guide](security.md)
 4. Understand [Islamic Zakat methodologies](methodology-guide.md)
 5. Run [Tests](../server/tests/)
 
 ### For Frontend Developers
 1. See [Component Library](../client/src/components/)
-2. Review [API Specification](../api-specification.md)
-3. Check [User Stories](../user-stories.md)
-4. Study Islamic UI requirements in [Principles](../principles.md)
+2. Review [API Specification](api/api-specification.md)
+3. Check [User Stories](user-stories.md)
+4. Study Islamic UI requirements in [Principles](principles.md)
 
 ### For DevOps/SRE
-1. Read [Deployment Guide](../deployment-guide.md)
+1. Read [Deployment Guide](deployment-guide.md)
 2. Review [Production Setup](guides/PHASE2_PRODUCTION_SETUP_GUIDE.md)
 3. Configure [CI/CD](guides/CI-CD-SETUP.md)
 4. Set up [Cloudflare Tunnels](guides/CLOUDFLARE_TUNNEL_SETUP.md)
-5. Learn [Database Management](../DATABASE_MANAGEMENT.md)
+5. Learn [Database Management](reports/DATABASE_MANAGEMENT.md)
 
 ### For QA/Testing
 1. Follow [Manual Testing Guide](guides/MANUAL_TESTING_GUIDE.md)
 2. Run automated [Test Suite](../server/tests/)
 3. Review [Performance Tests](../performance-tests/)
-4. Check [User Stories](../user-stories.md) for acceptance criteria
+4. Check [User Stories](user-stories.md) for acceptance criteria
 
 ---
 
@@ -154,7 +163,7 @@ When adding or updating documentation:
 1. **Keep it organized** - Use the structure above
 2. **Link related docs** - Add navigation between related documents
 3. **Update this index** - Add new docs to the appropriate section
-4. **Archive old docs** - Move historical docs to [archive/](archive/)
+4. **Archive old docs** - Historical docs are recorded in git history rather than kept as live files
 5. **Use clear titles** - Make it easy to find information
 6. **Add examples** - Include code samples and use cases
 
@@ -164,7 +173,7 @@ When adding or updating documentation:
 
 - **Issues**: [GitHub Issues](https://github.com/slimatic/zakapp/issues)
 - **Questions**: Review [FAQ sections](../README.md#-troubleshooting) in main README
-- **Security**: See [Security Policy](../security.md)
+- **Security**: See [Security Policy](security.md)
 
 ---
 

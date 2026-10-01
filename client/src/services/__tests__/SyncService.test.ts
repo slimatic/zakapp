@@ -15,88 +15,239 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * The replication modifiers, exercised directly.
+ *
+ * This replaces a `describe.skip` integration test that could not fail. That test
+ * asserted against a live CouchDB when one was reachable, and otherwise logged
+ * `CouchDB fetch failed` and completed — so on every run it either tested nothing
+ * or passed regardless. Its security assertion was the load-bearing part: a
+ * replication push that carried plaintext would be caught by
+ * `throw new Error('SECURITY ALERT: Data is STILL PLAINTEXT in CouchDB!')`, and
+ * that error was raised inside a `try` whose `catch` only called `console.error`.
+ *
+ * For a zero-knowledge application the push modifier is the one place that decides
+ * whether user data leaves the device encrypted. `replicateCouchDB` is mocked to
+ * capture the config; the modifiers themselves are the real implementation.
+ */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { getDb, resetDb } from '../../db';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+const capture: { configs: any[] } = { configs: [] };
+
+vi.mock('rxdb/plugins/replication-couchdb', () => ({
+  replicateCouchDB: vi.fn(async (config: any) => {
+    capture.configs.push(config);
+    return {
+      error$: { subscribe: () => ({ unsubscribe() {} }) },
+      active$: { subscribe: () => ({ unsubscribe() {} }) },
+      awaitInSync: async () => {},
+      cancel: async () => {},
+    };
+  }),
+}));
+
+vi.mock('../../utils/logger', () => ({
+  Logger: class {
+    info() {} warn() {} error() {} debug() {}
+  },
+}));
+
+import { replicateCouchDB } from 'rxdb/plugins/replication-couchdb';
 import { syncService } from '../SyncService';
-import { AssetType } from '../../types';
+import { cryptoService } from '../CryptoService';
 
-// Mock fetch for the sync service if needed, but we want REAL sync to local couchdb
-// So we do NOT mock fetch globally for this test if possible.
-// However, vitest environment might mock it?
-// We will try running against real CouchDB (Integration Test).
-//
-// SKIPPED (documented, not silent — Muharram 1448 audit, test/skip-triage):
-// These are true integration tests that require a live CouchDB instance with the
-// test user/database provisioned; the unit suite has no CouchDB service available.
-// Follow-up: run behind a CI service container (couchdb:3.5.1) or rewrite against
-// an in-memory RxDB adapter. See docs/plans/2026-09-11-muharram-1448-audit-v0160-plan.md (Stream D).
+const USER = 'user-abc-123';
 
-describe.skip('SyncService Integration', () => {
-    beforeEach(async () => {
-        await resetDb();
+/** The six collections the client replicates. Kept as a literal, not imported, so a
+ *  change to the list is visible here rather than silently followed. */
+const COLLECTIONS = [
+  'assets', 'asset_amount_events', 'liabilities',
+  'nisab_year_records', 'payment_records', 'user_settings',
+];
+
+function fakeDb() {
+  const mk = () => ({
+    insert: vi.fn(), find: vi.fn(), findOne: vi.fn(), bulkInsert: vi.fn(),
+  });
+  return Object.fromEntries(COLLECTIONS.map(c => [c, mk()]));
+}
+
+/** Minimal Response-shaped object for the token fetch and the db-exists check. */
+function jsonResponse(body: unknown, status = 200) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  } as unknown as Response;
+}
+
+let fetchMock: ReturnType<typeof vi.fn>;
+
+beforeEach(async () => {
+  capture.configs.length = 0;
+  vi.clearAllMocks();
+  localStorage.setItem('accessToken', 'test-access-token');
+  fetchMock = vi.fn(async (url: string) => {
+    if (String(url).includes('/sync/token')) {
+      return jsonResponse({
+        // Placeholder values, not credentials - phrased with the `test-` idiom that
+        // `check-no-committed-credentials.py` recognises as a placeholder. The real
+        // leak this guard exists for was exactly this shape reaching the public repo.
+        credentials: { username: 'test-sync-user', password: 'test-sync-not-a-real' },
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      });
+    }
+    // ensureUserDatabase's existence probe
+    return jsonResponse({ db_name: 'ok' });
+  });
+  vi.stubGlobal('fetch', fetchMock);
+  await cryptoService.deriveKey('test-password', 'test-salt');
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  localStorage.clear();
+});
+
+async function startAndCapture() {
+  await syncService.startSync(fakeDb() as any, USER);
+  // One replicateCouchDB call per collection.
+  expect(replicateCouchDB).toHaveBeenCalledTimes(COLLECTIONS.length);
+  const byUrl = new Map<string, any>();
+  for (const c of capture.configs) byUrl.set(c.url as string, c);
+  return byUrl;
+}
+
+describe('SyncService replication config', () => {
+  it('replicates every collection in the sync list, and only those', async () => {
+    const byUrl = await startAndCapture();
+    const dbs = [...byUrl.keys()].map(u => u.replace(/\/$/, '').split('/').pop()).sort();
+    const safe = USER.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    expect(dbs).toEqual(COLLECTIONS.map(c => `zakapp_${safe}_${c}`).sort());
+  });
+
+  it('runs live, and identifies each replication distinctly', async () => {
+    const byUrl = await startAndCapture();
+    for (const c of capture.configs) {
+      expect(c.live).toBe(true);
+      expect(c.autoStart).toBe(true);
+      expect(typeof c.replicationIdentifier).toBe('string');
+    }
+    const ids = capture.configs.map(c => c.replicationIdentifier);
+    expect(new Set(ids).size).toBe(COLLECTIONS.length);
+  });
+
+  it('authenticates every request through the fetch wrapper', async () => {
+    const byUrl = await startAndCapture();
+    const auth = [...byUrl.values()][0];
+    await auth.fetch('http://localhost:5984/some-db/', { method: 'GET' });
+    const call = fetchMock.mock.calls.find(c => String(c[0]).includes('some-db'));
+    expect(call).toBeTruthy();
+    const headers = (call![1] as any)?.headers ?? {};
+    expect(headers.Authorization).toMatch(/^Basic /);
+  });
+
+  it('requests credentials from the backend rather than embedding them', async () => {
+    await startAndCapture();
+    const tokenCall = fetchMock.mock.calls.find(c => String(c[0]).includes('/sync/token'));
+    expect(tokenCall).toBeTruthy();
+    expect((tokenCall![1] as any)?.headers?.Authorization).toBe('Bearer test-access-token');
+  });
+});
+
+describe('the push modifier is what keeps user data encrypted at rest', () => {
+  it('replaces every user field with ciphertext, iv and tag', async () => {
+    const byUrl = await startAndCapture();
+    const { push } = [...byUrl.values()][0];
+    // `_id` matters: the guard returns any document without a string `_id` untouched,
+    // so a fixture missing it would bypass encryption and pass vacuously.
+    const doc = {
+      _id: 'asset-1',
+      name: 'Secret Gold Holdings',
+      type: 'gold',
+      value: 999.99,
+      currency: 'USD',
+      isActive: true,
+    };
+
+    const out = await push.modifier(doc);
+
+    // The whole point: no user field survives in the pushed document.
+    // `_id` is excluded from the loop deliberately - it is the document key, the
+    // remote needs it in clear, and it is not user data. Everything else must go.
+    const serialized = JSON.stringify(out);
+    for (const [k, v] of Object.entries(doc)) {
+      if (k === '_id') continue;
+      expect(serialized, `field ${k} leaked`).not.toContain(JSON.stringify(v));
+    }
+    // `_rev` is always destructured onto the output; it is undefined for a doc that
+    // has never synced, which is why the serialized form above does not show it.
+    expect(Object.keys(out).sort()).toEqual(['_id', '_rev', 'encrypted', 'iv', 'tag'].sort());
+    expect(typeof out.encrypted).toBe('string');
+    expect(out.encrypted.length).toBeGreaterThan(0);
+    expect(out.iv).toBeTruthy();
+    expect(out.tag).toBeTruthy();
+    expect(out._id).toBe('asset-1');
+  });
+
+  it('the emitted ciphertext round-trips back to the original document', async () => {
+    const byUrl = await startAndCapture();
+    const { push, pull } = [...byUrl.values()][0];
+    const doc = { _id: 'asset-2', name: 'Silver', value: 42.5 };
+
+    const pushed = await push.modifier(doc);
+    const pulled = await pull.modifier({
+      _id: pushed._id, _rev: '1-abc',
+      encrypted: pushed.encrypted, iv: pushed.iv, tag: pushed.tag,
     });
 
-    it('should sync an asset to CouchDB', async () => {
-        // 1. Init DB with password
-        const db = await getDb('test-password-123');
+    expect(pulled.name).toBe('Silver');
+    expect(pulled.value).toBe(42.5);
+    expect(pulled._id).toBe('asset-2');
+  });
 
-        // 2. Insert Asset
-        const assetId = `sync-test-${Date.now()}`;
-        await db.assets.insert({
-            id: assetId,
-            name: 'Secret Gold',
-            type: AssetType.GOLD,
-            value: 999.99,
-            currency: 'USD',
-            isActive: true,
-            createdAt: new Date().toISOString(),
-            acquisitionDate: new Date().toISOString()
-        });
+  it('passes design documents through untouched', async () => {
+    const byUrl = await startAndCapture();
+    const { push, pull } = [...byUrl.values()][0];
+    const design = { _id: '_design/filters', language: 'javascript' };
+    await expect(push.modifier(design)).resolves.toEqual(design);
+    await expect(pull.modifier(design)).resolves.toEqual(design);
+  });
 
-        // 3. Start Sync
-        await syncService.startSync(db);
+  it('preserves _rev and _deleted without leaving them inside the ciphertext', async () => {
+    const byUrl = await startAndCapture();
+    const { push } = [...byUrl.values()][0];
+    const out = await push.modifier({ _id: 'asset-3', name: 'Gone', _rev: '2-b', _deleted: true });
+    expect(out._rev).toBe('2-b');
+    expect(out._deleted).toBe(true);
+    expect(out.encrypted).toBeTruthy();
+  });
 
-        // 4. Wait for Sync (RxDB sync is async)
-        await new Promise(resolve => setTimeout(resolve, 3000));
+  it('FALSIFICATION: the assertion catches a modifier that stops encrypting', async () => {
+    const byUrl = await startAndCapture();
+    const realPush = [...byUrl.values()][0].push;
+    // A plausible regression: someone returns the document unchanged to "fix" a bug.
+    const brokenPush = { ...realPush, modifier: async (doc: any) => doc };
 
-        // 5. Check CouchDB directly
-        const couchUrl = process.env.REACT_APP_COUCHDB_URL || 'http://localhost:5984';
-        const updatedUrl = `${couchUrl}/zakapp_assets/${assetId}`;
-        const auth = 'Basic ' + Buffer.from('admin:password').toString('base64');
+    const doc = { _id: 'asset-4', name: 'Secret Gold Holdings', value: 999.99 };
+    const out = await brokenPush.modifier(doc);
 
-        try {
-            const res = await fetch(updatedUrl, {
-                headers: { 'Authorization': auth }
-            });
+    // A passthrough modifier leaks every field...
+    expect(JSON.stringify(out)).toContain('Secret Gold Holdings');
+    expect(JSON.stringify(out)).toContain('999.99');
 
-            if (res.status === 200) {
-                const doc = await res.json();
-                console.log('CouchDB Document:', JSON.stringify(doc, null, 2));
-
-                // Check if 'name' is visible (PLAINTEXT)
-                // With encryption plugin enabled, 'name' should be encrypted string or part of encrypted blob
-                // RxDB 15+ encryption plugin usually keeps field structure but value is encrypted string?
-                // Or if it's top level encryption, the whole doc might be different.
-                // Let's inspect.
-
-                if (doc.name === 'Secret Gold') {
-                    throw new Error('❌ SECURITY ALERT: Data is STILL PLAINTEXT in CouchDB!');
-                } else {
-                    console.log('✅ Data is encrypted! (Name does not match "Secret Gold")');
-                }
-
-                expect(doc._id).toBe(assetId);
-            } else {
-                console.error('CouchDB fetch failed:', res.status, await res.text());
-                // Fail test if sync didn't happen
-                // expect(res.status).toBe(200); 
-                // We allow failure if CouchDB isn't running in CI, but here it should be running
-            }
-        } catch (e) {
-            console.error('Fetch error:', e);
+    // ...and the exact assertion used above detects it. This is the check that
+    // would have failed on the old `describe.skip`, which never ran at all.
+    await expect(
+      (async () => {
+        const serialized = JSON.stringify(out);
+        for (const [k, v] of Object.entries(doc)) {
+          if (k === '_id') continue;
+          expect(serialized).not.toContain(JSON.stringify(v));
         }
-
-        await syncService.stopSync();
-    });
+      })()
+    ).rejects.toThrow();
+  });
 });

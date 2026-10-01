@@ -73,7 +73,7 @@ describe('RecordListPanel (#341 slice 3)', () => {
     it('marks the active tab and fires the filter callback', () => {
         renderPanel();
         const activeTab = screen.getByRole('button', { name: 'All' });
-        expect(activeTab.className).toContain('border-blue-600');
+        expect(activeTab.className).toContain('border-secondary');
         fireEvent.click(screen.getByRole('button', { name: 'Finalized' }));
         expect(baseProps.onStatusFilterChange).toHaveBeenCalledWith('FINALIZED');
     });

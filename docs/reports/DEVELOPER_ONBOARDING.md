@@ -248,9 +248,9 @@ npm run docker:dev
 ## 📚 Learning Resources
 
 ### Project Documentation
-- [Project Status Report](PROJECT_STATUS_REPORT.md) - Current progress
-- [Development Plan](development-plan.md) - Detailed roadmap
-- [API Specification](api-specification.md) - Backend API docs
+- Project Status Report - Current progress
+- [Development Plan](../development-plan.md) - Detailed roadmap
+- [API Specification](../api/api-specification.md) - Backend API docs
 
 ### Technology Learning
 - **TypeScript**: [TypeScript Handbook](https://www.typescriptlang.org/docs/)

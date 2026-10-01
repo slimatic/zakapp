@@ -34,6 +34,13 @@ export const DualCalendarDatePicker: React.FC<DualCalendarDatePickerProps> = ({
     // Parse initial value to Date object safely
     const parseDateValue = (v: Date | string) => {
         if (typeof v === 'string') {
+            // An EMPTY string takes the string branch below and yields an Invalid Date
+            // (`new Date('T00:00:00')`), and every consumer here - gregorianToHijri at
+            // init, formatDualCalendar at render - THROWS on an invalid date. So does a
+            // non-empty unparseable string. Fall back to today rather than throw.
+            if (!v || Number.isNaN(new Date(v.includes('T') ? v : `${v}T00:00:00`).getTime())) {
+                return new Date();
+            }
             // If it's just a date string date-only (YYYY-MM-DD), force it to local midnight
             // to prevent "UTC Midnight" being interpreted as "Previous Day" in Western timezones.
             if (!v.includes('T')) {
@@ -41,7 +48,8 @@ export const DualCalendarDatePicker: React.FC<DualCalendarDatePickerProps> = ({
             }
             return new Date(v);
         }
-        return v;
+        // A Date argument can still be Invalid (e.g. new Date('nonsense') upstream).
+        return v instanceof Date && !Number.isNaN(v.getTime()) ? v : new Date();
     };
 
     const dateValue = parseDateValue(value);
@@ -156,16 +164,16 @@ export const DualCalendarDatePicker: React.FC<DualCalendarDatePickerProps> = ({
     };
 
     return (
-        <div className={cn("bg-gray-50 p-4 rounded-lg border border-gray-200", className)}>
+        <div className={cn("bg-muted p-4 rounded-lg border border-border", className)}>
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-gray-900">{label}</h3>
-                <div className="flex bg-white rounded-md border border-gray-200 p-1">
+                <h3 className="text-sm font-medium text-foreground">{label}</h3>
+                <div className="flex bg-card rounded-md border border-border p-1">
                     <button
                         type="button"
                         onClick={() => setMode('gregorian')}
                         className={cn(
                             "px-3 py-1 text-xs font-medium rounded transition-colors",
-                            mode === 'gregorian' ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-50"
+                            mode === 'gregorian' ? "bg-accent text-secondary" : "text-muted-foreground hover:bg-muted"
                         )}
                     >
                         Gregorian
@@ -175,12 +183,12 @@ export const DualCalendarDatePicker: React.FC<DualCalendarDatePickerProps> = ({
                         onClick={() => setMode('hijri')}
                         className={cn(
                             "px-3 py-1 text-xs font-medium rounded transition-colors",
-                            mode === 'hijri' ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-50"
+                            mode === 'hijri' ? "bg-accent text-secondary" : "text-muted-foreground hover:bg-muted"
                         )}
                     >
                         Hijri
                         {hijriAdjustment !== 0 && (
-                            <span className="ml-1 text-[10px] text-blue-600 bg-blue-50 px-1 rounded">
+                            <span className="ms-1 text-[10px] text-secondary bg-accent px-1 rounded">
                                 {hijriAdjustment > 0 ? `+${hijriAdjustment}` : hijriAdjustment}
                             </span>
                         )}
@@ -252,8 +260,8 @@ export const DualCalendarDatePicker: React.FC<DualCalendarDatePickerProps> = ({
                 )}
             </div>
 
-            <div className="mt-3 text-xs text-gray-500 flex items-center gap-2">
-                <span className="font-medium text-gray-700">Converted:</span>
+            <div className="mt-3 text-xs text-muted-foreground flex items-center gap-2">
+                <span className="font-medium text-foreground/80">Converted:</span>
                 {formatDualCalendar(dateValue, hijriAdjustment)}
             </div>
         </div>

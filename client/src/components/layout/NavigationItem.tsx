@@ -59,11 +59,11 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({
         text-sm md:text-base font-medium
         transition-colors duration-150
         min-h-[44px] md:min-h-[48px] min-w-[44px]
-        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring
         ${
           isActive
-            ? 'bg-green-100 text-green-700'
-            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+            ? 'bg-accent text-accent-foreground'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
         }
         ${className}
       `}

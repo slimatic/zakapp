@@ -31,7 +31,7 @@ export const NotificationSettings: React.FC = () => {
 
   if (!supported) {
     return (
-      <div className="bg-accent border border-default rounded-lg p-4">
+      <div className="bg-accent border border-border rounded-lg p-4">
         <div className="flex items-center gap-2 text-primary">
           <AlertCircle className="w-5 h-5" />
           <p className="text-sm">
@@ -53,7 +53,7 @@ export const NotificationSettings: React.FC = () => {
             <BellOff className="w-5 h-5 text-muted-foreground" />
           )}
           <div>
-            <h3 className="text-sm font-medium text-primary">Push Notifications</h3>
+            <h3 className="text-sm font-medium text-foreground">Push Notifications</h3>
             <p className="text-sm text-muted-foreground">
               {subscribed
                 ? 'You will receive Zakat reminders 30, 7, and 1 day before due dates.'
@@ -67,10 +67,10 @@ export const NotificationSettings: React.FC = () => {
           disabled={loading || permission === 'denied'}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             loading
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              ? 'bg-muted text-muted-foreground cursor-not-allowed'
               : subscribed
-              ? 'bg-red-100 text-red-700 hover:bg-red-200'
-              : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              ? 'bg-danger-soft text-danger hover:bg-danger/20'
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'
           }`}
         >
           {loading ? (
@@ -87,8 +87,8 @@ export const NotificationSettings: React.FC = () => {
       </div>
 
       {permission === 'denied' && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-sm text-red-700">
+        <div className="bg-danger-soft border border-danger/30 rounded-lg p-3">
+          <p className="text-sm text-danger">
             Notification permission was denied. Please enable it in your browser settings to
             receive reminders.
           </p>
@@ -96,14 +96,14 @@ export const NotificationSettings: React.FC = () => {
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="bg-danger-soft border border-danger/30 rounded-lg p-3">
+          <p className="text-sm text-danger">{error}</p>
         </div>
       )}
 
       {subscribed && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="flex items-center gap-2 text-sm text-green-700">
+        <div className="bg-success-soft border border-success/30 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-sm text-success">
             <CheckCircle2 className="w-4 h-4" />
             Push notifications are active on this device.
           </div>

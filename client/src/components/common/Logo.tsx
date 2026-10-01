@@ -52,7 +52,7 @@ export const Logo: React.FC<LogoProps> = ({ className = "w-8 h-8", showText = fa
             </svg>
 
             {showText && (
-                <span className="text-xl font-bold text-gray-900">ZakApp</span>
+                <span className="text-xl font-bold text-secondary">ZakApp</span>
             )}
         </div>
     );

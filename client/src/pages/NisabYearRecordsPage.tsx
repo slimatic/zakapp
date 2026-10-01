@@ -48,7 +48,17 @@ export const NisabYearRecordsPage: React.FC = () => {
 
   const { user } = useAuth();
   const { currency: userCurrency, formatCurrency } = useDisplayCurrency();
-  const defaultNisabBasis = (user?.settings?.preferredNisabStandard as 'GOLD' | 'SILVER') || 'GOLD';
+
+  /**
+   * The nisab basis is NOT an independent preference — it follows the school
+   * (Hanafi silver, the others gold), which is the recorded decision on #521.
+   * `calculateNisabThreshold` already derives it from the methodology, so the
+   * modal is given the methodology rather than a stored basis; keeping both is
+   * how the displayed threshold and the applied one were able to disagree.
+   *
+   * `defaultNisabBasis` is still passed for backwards compatibility, but the
+   * modal ignores it.
+   */
 
   // Issue #310 (round 4): assets may be stored in mixed currencies (e.g. USD
   // seed data + an IDR car). Normalize everything into the user's display
@@ -147,21 +157,21 @@ export const NisabYearRecordsPage: React.FC = () => {
   const isFullyPaid = totalObligation > 0 && remainingBalance === 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8" id="main-content">
+    <div className="min-h-screen bg-background pb-20 md:pb-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Nisab Year Records</h1>
-              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
+              <h1 className="text-2xl sm:text-3xl font-bold text-secondary">Nisab Year Records</h1>
+              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-muted-foreground">
                 Track Hawl periods, Nisab thresholds, and Zakat calculations
               </p>
             </div>
             <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base bg-primary text-primary-foreground rounded-md hover:bg-warn-strong transition-colors shadow-elev-2"
               >
                 + New Record
               </button>
@@ -196,7 +206,12 @@ export const NisabYearRecordsPage: React.FC = () => {
                 const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
                 import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
                   const generator = new ReportGenerator(userCurrency);
-                  generator.generateHawlStatement(record as any, allAssets, 'User', totalLiabilities);
+                  // Same identity fallback the rest of the app uses (Layout, Dashboard).
+                  // Was a hardcoded 'User', so every shared statement named the
+                  // recipient 'User'.
+                  const owner =
+                    user?.firstName || user?.username || user?.email?.split('@')[0] || 'User';
+                  generator.generateHawlStatement(record as any, allAssets, owner, totalLiabilities);
                 });
               }}
               onCreateRecord={() => setShowCreateModal(true)}
@@ -225,7 +240,7 @@ export const NisabYearRecordsPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="hidden lg:flex flex-col items-center justify-center h-full text-center text-gray-400">
+              <div className="hidden lg:flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                 <p className="max-w-xs mx-auto">
                   Click on any Nisab Year card from the list on the left to view its full wealth breakdown and Zakat obligations.
                 </p>
@@ -241,7 +256,7 @@ export const NisabYearRecordsPage: React.FC = () => {
         onSubmit={handleCreateSubmit}
         allAssets={allAssets}
         allLiabilities={allLiabilities}
-        defaultNisabBasis={defaultNisabBasis}
+        methodology={userMethodology}
         userCurrency={userCurrency}
       />
 

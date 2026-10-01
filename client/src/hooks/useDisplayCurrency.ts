@@ -30,10 +30,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { useMaskedCurrency } from '../contexts/PrivacyContext';
 import { useUserSettingsRepository } from './useUserSettingsRepository';
 import { formatCurrency as formatCanonical } from '../utils/formatters';
+import { getNisabStandard } from '../core/calculations/nisab';
 
 export interface DisplayCurrency {
   /** Resolved ISO-4217 currency code, e.g. 'USD', 'IDR'. */
   currency: string;
+  /**
+   * Resolved nisab gram convention: 'tola' (87.48/612.36 g, default) or 'aaoifi'
+   * (85/595 g). Lives here because this hook is already the single reader of the
+   * local settings document, and every nisab call site needs both values — passing a
+   * second hook around would just be another way for the two to disagree.
+   */
+  nisabStandard: string;
   /**
    * Format an amount in the display currency with privacy masking applied.
    * Pass an explicit currency to format in a different code (e.g. a record
@@ -46,6 +54,10 @@ export function useDisplayCurrency(): DisplayCurrency {
   const { settings } = useUserSettingsRepository();
   const { user } = useAuth();
   const maskedCurrency = useMaskedCurrency();
+
+  // A settings document written before schema v8 has no such field, and an unknown
+  // value must not disable the threshold — getNisabStandard falls back for both.
+  const nisabStandard = getNisabStandard(settings?.nisabStandard).id;
 
   const currency =
     settings?.baseCurrency ||
@@ -61,5 +73,5 @@ export function useDisplayCurrency(): DisplayCurrency {
     [currency, maskedCurrency]
   );
 
-  return { currency, formatCurrency };
+  return { currency, nisabStandard, formatCurrency };
 }

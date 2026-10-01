@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AssetSelectionTable } from '../../src/components/tracking/AssetSelectionTable';
 
@@ -20,6 +20,7 @@ const mockAssets = [
     value: 5000,
     currency: 'USD',
     zakatEligible: true,
+    isEligibilityManual: true,
     addedAt: '2025-01-15T10:00:00Z',
   },
   {
@@ -30,6 +31,7 @@ const mockAssets = [
     value: 3000,
     currency: 'USD',
     zakatEligible: true,
+    isEligibilityManual: true,
     addedAt: '2025-02-01T14:30:00Z',
   },
   {
@@ -50,6 +52,7 @@ const mockAssets = [
     value: 2500,
     currency: 'USD',
     zakatEligible: true,
+    isEligibilityManual: true,
     addedAt: '2025-03-20T16:45:00Z',
   },
 ];
@@ -220,7 +223,7 @@ describe('AssetSelectionTable', () => {
       const onSelectionChange = jest.fn();
       const assetsWithModifier = [
         ...mockAssets,
-        { id: 'asset-5', name: 'Passive Fund', type: 'STOCKS', category: 'stocks', value: 6000, currency: 'USD', zakatEligible: true, addedAt: '2025-04-01T00:00:00Z', calculationModifier: 0.3, zakatableValue: 1800 },
+        { id: 'asset-5', name: 'Passive Fund', type: 'STOCKS', category: 'stocks', value: 6000, currency: 'USD', zakatEligible: true, isEligibilityManual: true, addedAt: '2025-04-01T00:00:00Z', calculationModifier: 0.3, zakatableValue: 1800 },
       ];
 
       render(
@@ -412,23 +415,19 @@ describe('AssetSelectionTable', () => {
         />
       );
 
-      // Verify zakatable indicators have color classes (checked in integration)
-      const zakatableYes = container.querySelectorAll('.text-green-600');
-      const zakatableNo = container.querySelectorAll('.text-gray-600');
+      // Verify zakatable indicators use success token
+      const zakatableYes = container.querySelectorAll('.text-success');
+      // Non-zakatable uses muted foreground
+      const zakatableNo = container.querySelectorAll('.text-muted-foreground');
 
-      // Note: Component uses bg-green-100 text-green-800, so checking class contents logic might fail if classes changed
-      // Updating to match component classes: text-green-800
-      const zakatableYesActual = container.querySelectorAll('.text-green-800');
-      const zakatableNoActual = container.querySelectorAll('.text-gray-800');
-
-      expect(zakatableYesActual.length).toBeGreaterThan(0);
-      expect(zakatableNoActual.length).toBeGreaterThan(0);
+      expect(zakatableYes.length).toBeGreaterThan(0);
+      expect(zakatableNo.length).toBeGreaterThan(0);
     });
 
     it('should provide clear focus indicators', () => {
       const onSelectionChange = jest.fn();
 
-      const { container } = render(
+      render(
         <AssetSelectionTable
           assets={mockAssets}
           onSelectionChange={onSelectionChange}
@@ -439,7 +438,7 @@ describe('AssetSelectionTable', () => {
       firstCheckbox.focus();
 
       // Verify focus ring is visible (Tailwind focus classes)
-      expect(firstCheckbox).toHaveClass('focus:ring-blue-500');
+      expect(firstCheckbox).toHaveClass('focus:ring-ring');
     });
   });
 
@@ -466,6 +465,7 @@ describe('AssetSelectionTable', () => {
         value: 0,
         currency: 'USD',
         zakatEligible: true,
+        isEligibilityManual: true,
         addedAt: '2025-04-01T10:00:00Z',
       };
 
@@ -491,6 +491,7 @@ describe('AssetSelectionTable', () => {
         value: 9999999.99,
         currency: 'USD',
         zakatEligible: true,
+        isEligibilityManual: true,
         addedAt: '2025-01-01T00:00:00Z',
       };
 

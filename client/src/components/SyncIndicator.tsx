@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from 'react';
 import { syncService } from '../services/SyncService';
 import { CheckCircle, RefreshCcw, AlertCircle } from 'lucide-react';
@@ -35,7 +36,7 @@ export const SyncIndicator: React.FC = () => {
 
     if (status.errors.length > 0) {
         return (
-            <div className="flex items-center gap-2 text-red-500 text-sm px-3 py-1 bg-red-50 rounded-full" title="Sync Error">
+            <div className="flex items-center gap-2 text-danger text-sm px-3 py-1 bg-danger-soft rounded-full" title="Sync Error">
                 <AlertCircle className="w-4 h-4" />
                 <span className="hidden sm:inline">Sync Error</span>
             </div>
@@ -52,12 +53,12 @@ export const SyncIndicator: React.FC = () => {
             const ms = Date.now() - start;
             if (res.ok) {
                 const info = await res.json();
-                alert(`✅ CONNECTION SUCCESS\nTime: ${ms}ms\nURL: ${url}\nCouchDB Version: ${info.version}\n\nSync Status: ${status.active ? 'Active' : 'Idle'}\nPending: ${status.pending?.length || 0}`);
+                toast.success(`Connected in ${ms}ms - CouchDB ${info.version}`);
             } else {
-                alert(`⚠️ CONNECTION ERROR\nStatus: ${res.status}\nURL: ${url}\n(Note: Some endpoints are restricted to admins)`);
+                toast.error(`CouchDB returned ${res.status}. Some endpoints are admin-only.`);
             }
         } catch (err: any) {
-            alert(`❌ CONNECTION FAILED\nURL: ${url}\nError: ${err.message}\n\nEnsure CouchDB is running and accessible or check CORS settings.`);
+            toast.error(`Cannot reach CouchDB at ${url}: ${err.message}`);
         }
     };
 
@@ -65,12 +66,29 @@ export const SyncIndicator: React.FC = () => {
         return (
             <button
                 onClick={runDiagnostic}
-                className="flex items-center gap-2 text-blue-600 text-sm px-3 py-1 bg-blue-50 rounded-full animate-pulse group relative cursor-help hover:bg-blue-100 transition-colors"
+                className="flex items-center gap-2 text-secondary text-sm px-3 py-1 bg-accent rounded-full animate-pulse group relative cursor-help hover:bg-accent transition-colors"
                 title="Click to run connection test"
             >
                 <RefreshCcw className="w-4 h-4 animate-spin" />
                 <span className="hidden sm:inline">Syncing...</span>
-                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">
+                {/*
+                    This tooltip sits in the global header, and it was `whitespace-nowrap`
+                    with no width cap. The pending list is unbounded ("Waiting for:
+                    nisab_year_records, payment_records, ...") and the tooltip is centred
+                    on the button, so a long list grew past the viewport edge and pushed
+                    the whole document sideways — on EVERY page, because the header is
+                    global. It is only laid out while a sync is active, so the responsive
+                    check failed intermittently and on pages that render none of the
+                    components it edits, which reads as flaky rather than as this bug.
+                    `opacity-0` hides it but does not remove it from layout, so a hover-only
+                    tooltip still overflows. Capped and allowed to wrap instead.
+                */}
+                {/* ponytail: keep the width cap. `opacity-0` hides the tooltip but it stays in
+                    layout, so a centred tooltip with unbounded text overflows the viewport on
+                    its own; the cap plus wrapping is what makes it fit, and dropping it for
+                    `whitespace-nowrap` reintroduces exactly that overflow. The `rtl:` variant
+                    is the separate fix for the physical translate. */}
+                <div className="absolute top-full mt-2 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 w-max max-w-[min(16rem,calc(100vw-2rem))] bg-secondary text-secondary-foreground text-xs p-2 rounded shadow-card opacity-0 group-hover:opacity-100 z-50 pointer-events-none">
                     Waiting for: {status.pending?.length ? status.pending.join(', ') : 'Server Response'}
                     <br />
                     (Click to Test Connection)
@@ -80,7 +98,7 @@ export const SyncIndicator: React.FC = () => {
     }
 
     return (
-        <div className="flex items-center gap-2 text-green-600 text-sm px-3 py-1 bg-green-50 rounded-full transition-colors duration-500">
+        <div className="flex items-center gap-2 text-success text-sm px-3 py-1 bg-success-soft rounded-full transition-colors duration-500">
             <CheckCircle className="w-4 h-4" />
             <span className="hidden sm:inline">Synced</span>
         </div>

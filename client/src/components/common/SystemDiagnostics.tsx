@@ -50,7 +50,7 @@ export const SystemDiagnostics: React.FC = () => {
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold tracking-tight">System Diagnostics</h2>
                 <Button onClick={runDiagnostics} disabled={loading} variant="outline" size="sm">
-                    {loading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                    {loading ? <RefreshCw className="me-2 h-4 w-4 animate-spin" /> : <RefreshCw className="me-2 h-4 w-4" />}
                     Run Diagnostics
                 </Button>
             </div>
@@ -76,9 +76,9 @@ export const SystemDiagnostics: React.FC = () => {
                             {browserChecks.map((check, index) => (
                                 <div key={index} className="flex items-start space-x-3 p-3 border rounded-lg bg-card">
                                     {check.supported ? (
-                                        <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+                                        <CheckCircle2 className="h-5 w-5 text-success mt-0.5" />
                                     ) : (
-                                        <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                                        <XCircle className="h-5 w-5 text-danger mt-0.5" />
                                     )}
                                     <div className="flex-1">
                                         <div className="font-medium flex items-center gap-2">
@@ -101,7 +101,7 @@ export const SystemDiagnostics: React.FC = () => {
                     <CardContent>
                         <div className="space-y-4">
                             <div className="flex items-center space-x-3 p-4 border rounded-lg bg-card">
-                                <div className={`p-2 rounded-full ${serverStatus === 'online' ? 'bg-green-100 text-green-600' : serverStatus === 'checking' ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'}`}>
+                                <div className={`p-2 rounded-full ${serverStatus === 'online' ? 'bg-success-soft text-success' : serverStatus === 'checking' ? 'bg-accent text-secondary' : 'bg-danger-soft text-danger'}`}>
                                     <Server className="h-6 w-6" />
                                 </div>
                                 <div>
@@ -117,7 +117,7 @@ export const SystemDiagnostics: React.FC = () => {
                             {serverStatus === 'offline' && (
                                 <div className="space-y-3 pt-2">
                                     <h4 className="text-sm font-semibold">Troubleshooting Steps:</h4>
-                                    <ul className="text-sm text-muted-foreground space-y-2 list-disc pl-4">
+                                    <ul className="text-sm text-muted-foreground space-y-2 list-disc ps-4">
                                         <li>Check your internet connection.</li>
                                         <li>If you are self-hosting, ensure the Docker container is running.</li>
                                         <li>Reload the page to try reconnecting.</li>

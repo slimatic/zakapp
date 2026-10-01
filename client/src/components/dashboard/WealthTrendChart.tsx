@@ -17,6 +17,7 @@
 
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     AreaChart,
     Area,
@@ -28,6 +29,7 @@ import {
 } from 'recharts';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { NisabYearRecord } from '../../types/nisabYearRecord';
+import { CHART_COLORS, CHART_AXIS_COLOR } from '../../utils/chartPalette';
 
 interface WealthTrendChartProps {
     records: NisabYearRecord[];
@@ -35,6 +37,7 @@ interface WealthTrendChartProps {
 }
 
 export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, currency = 'USD' }) => {
+  const { t } = useTranslation('dashboard');
     const { privacyMode } = usePrivacy();
     const [calendarFormat, setCalendarFormat] = React.useState<'hijri' | 'gregorian'>('hijri');
 
@@ -88,8 +91,8 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
 
     if (data.length === 0) {
         return (
-            <div className="h-[300px] flex items-center justify-center text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                No historical data available. Finalize a Nisab Year to see trends.
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground bg-muted rounded-lg border border-dashed border-border">
+                {t('charts.noHistoricalData')}
             </div>
         );
     }
@@ -97,25 +100,25 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
     return (
         <div className="h-[320px] w-full">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Wealth Trend</h3>
-                <div className="flex bg-gray-100 p-0.5 rounded-lg">
+                <h3 className="text-lg font-semibold text-foreground">{t('charts.wealthTrend')}</h3>
+                <div className="flex bg-muted p-0.5 rounded-lg">
                     <button
                         onClick={() => setCalendarFormat('hijri')}
                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${calendarFormat === 'hijri'
-                                ? 'bg-white text-primary-700 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-card text-secondary shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        Hijri
+                        {t('charts.hijri')}
                     </button>
                     <button
                         onClick={() => setCalendarFormat('gregorian')}
                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${calendarFormat === 'gregorian'
-                                ? 'bg-white text-primary-700 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-card text-secondary shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        Gregorian
+                        {t('charts.gregorian')}
                     </button>
                 </div>
             </div>
@@ -132,33 +135,33 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
                 >
                     <defs>
                         <linearGradient id="colorWealth" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#0f766e" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#0f766e" stopOpacity={0} />
+                            <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={CHART_COLORS[0]} stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="colorZakat" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#fbbf24" stopOpacity={0} />
+                            <stop offset="5%" stopColor={CHART_COLORS[1]} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={CHART_COLORS[1]} stopOpacity={0} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
                         dataKey="name"
-                        stroke="#94a3b8"
+                        stroke={CHART_AXIS_COLOR}
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
                         dy={10} // Push labels down slightly
                     />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
+                    <YAxis stroke={CHART_AXIS_COLOR} fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
                     <Tooltip
                         formatter={(value: any) => [formatTooltip(Number(value) || 0)]}
-                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                        contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
                     />
                     <Area
                         type="monotone"
                         dataKey="totalWealth"
                         name="Total Wealth"
-                        stroke="#0f766e"
+                        stroke={CHART_COLORS[0]}
                         fillOpacity={1}
                         fill="url(#colorWealth)"
                     />
@@ -166,7 +169,7 @@ export const WealthTrendChart: React.FC<WealthTrendChartProps> = ({ records, cur
                         type="monotone"
                         dataKey="zakatDue"
                         name="Zakat Due"
-                        stroke="#fbbf24"
+                        stroke={CHART_COLORS[1]}
                         fillOpacity={1}
                         fill="url(#colorZakat)"
                     />

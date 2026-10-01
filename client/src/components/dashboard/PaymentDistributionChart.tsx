@@ -17,6 +17,7 @@
 
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     PieChart,
     Pie,
@@ -26,22 +27,15 @@ import {
     Legend
 } from 'recharts';
 import { usePrivacy } from '../../contexts/PrivacyContext';
+import { CHART_COLORS } from '../../utils/chartPalette';
 
 interface PaymentDistributionChartProps {
     payments: any[];
     currency?: string;
 }
 
-const COLORS = [
-    '#0f766e', // Primary Teal
-    '#fbbf24', // Secondary Gold
-    '#3b82f6', // Blue
-    '#8b5cf6', // Violet
-    '#ec4899', // Pink
-    '#f97316', // Orange
-    '#22c55e', // Green
-    '#64748b', // Slate
-];
+// Shared categorical ramp (theme-aware); see utils/chartPalette.ts
+const COLORS = CHART_COLORS;
 
 const RECIPIENT_LABELS: { [key: string]: string } = {
     'poor': 'Fakir (Poor)',
@@ -56,6 +50,7 @@ const RECIPIENT_LABELS: { [key: string]: string } = {
 };
 
 export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> = ({ payments, currency = 'USD' }) => {
+  const { t } = useTranslation('dashboard');
     const { privacyMode } = usePrivacy();
 
     // Group payments by category
@@ -92,15 +87,15 @@ export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> =
 
     if (data.length === 0) {
         return (
-            <div className="h-[300px] flex items-center justify-center text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                No payment data available
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground bg-muted rounded-lg border border-dashed border-border">
+                {t('charts.noPaymentData')}
             </div>
         );
     }
 
     return (
         <div className="h-[320px] w-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Distribution</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">{t('charts.paymentDistribution')}</h3>
             <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie
@@ -118,7 +113,7 @@ export const PaymentDistributionChart: React.FC<PaymentDistributionChartProps> =
                     </Pie>
                     <Tooltip
                         formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Amount']}
-                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                        contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
                     />
                     <Legend
                         layout="vertical"

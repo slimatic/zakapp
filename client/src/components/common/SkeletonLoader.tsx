@@ -69,23 +69,23 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
  */
 export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (
-    <div className={`bg-white rounded-lg shadow-md p-6 border border-gray-200 ${className}`}>
+    <div className={`bg-card rounded-lg shadow-md p-6 border border-border ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="h-6 bg-gray-200 rounded animate-pulse w-1/3" />
-        <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse" />
+        <div className="h-6 bg-muted rounded animate-pulse w-1/3" />
+        <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
       </div>
 
       {/* Content Lines */}
       <div className="space-y-3">
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-full" />
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-5/6" />
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-4/6" />
+        <div className="h-4 bg-muted rounded animate-pulse w-full" />
+        <div className="h-4 bg-muted rounded animate-pulse w-5/6" />
+        <div className="h-4 bg-muted rounded animate-pulse w-4/6" />
       </div>
 
       {/* Footer */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="h-10 bg-gray-200 rounded animate-pulse w-full" />
+      <div className="mt-4 pt-4 border-t border-border">
+        <div className="h-10 bg-muted rounded animate-pulse w-full" />
       </div>
     </div>
   );
@@ -99,7 +99,7 @@ export const SkeletonText: React.FC<{ width?: string; className?: string }> = ({
   className = '',
 }) => {
   return (
-    <div className={`h-4 bg-gray-200 rounded animate-pulse ${width} ${className}`} />
+    <div className={`h-4 bg-muted rounded animate-pulse ${width} ${className}`} />
   );
 };
 
@@ -111,7 +111,7 @@ export const SkeletonCircle: React.FC<{ size?: string; className?: string }> = (
   className = '',
 }) => {
   return (
-    <div className={`bg-gray-200 rounded-full animate-pulse ${size} ${className}`} />
+    <div className={`bg-muted rounded-full animate-pulse ${size} ${className}`} />
   );
 };
 
@@ -124,7 +124,7 @@ export const SkeletonLine: React.FC<{ width?: string; height?: string; className
   className = '',
 }) => {
   return (
-    <div className={`bg-gray-200 rounded animate-pulse ${width} ${height} ${className}`} />
+    <div className={`bg-muted rounded animate-pulse ${width} ${height} ${className}`} />
   );
 };
 
@@ -133,7 +133,7 @@ export const SkeletonLine: React.FC<{ width?: string; height?: string; className
  */
 export const SkeletonButton: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (
-    <div className={`h-10 bg-gray-200 rounded-md animate-pulse w-32 ${className}`} />
+    <div className={`h-10 bg-muted rounded-md animate-pulse w-32 ${className}`} />
   );
 };
 
@@ -148,19 +148,19 @@ export const SkeletonTable: React.FC<{ rows?: number; className?: string }> = ({
     <div className={`space-y-3 ${className}`}>
       {/* Table Header */}
       <div className="flex gap-4">
-        <div className="h-4 bg-gray-300 rounded animate-pulse w-1/4" />
-        <div className="h-4 bg-gray-300 rounded animate-pulse w-1/4" />
-        <div className="h-4 bg-gray-300 rounded animate-pulse w-1/4" />
-        <div className="h-4 bg-gray-300 rounded animate-pulse w-1/4" />
+        <div className="h-4 bg-border-strong rounded animate-pulse w-1/4" />
+        <div className="h-4 bg-border-strong rounded animate-pulse w-1/4" />
+        <div className="h-4 bg-border-strong rounded animate-pulse w-1/4" />
+        <div className="h-4 bg-border-strong rounded animate-pulse w-1/4" />
       </div>
 
       {/* Table Rows */}
       {Array.from({ length: rows }, (_, index) => (
         <div key={index} className="flex gap-4">
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4" />
+          <div className="h-4 bg-muted rounded animate-pulse w-1/4" />
+          <div className="h-4 bg-muted rounded animate-pulse w-1/4" />
+          <div className="h-4 bg-muted rounded animate-pulse w-1/4" />
+          <div className="h-4 bg-muted rounded animate-pulse w-1/4" />
         </div>
       ))}
     </div>

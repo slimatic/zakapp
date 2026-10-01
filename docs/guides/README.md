@@ -14,7 +14,6 @@ This directory contains specialized setup, configuration, and deployment guides 
   - Monitoring and logging setup
   
 #### Staging & Testing
-- **[Staging Deployment Guide (STAGING_DEPLOYMENT_GUIDE.md)](STAGING_DEPLOYMENT_GUIDE.md)**
   - Staging environment setup
   - Testing procedures
   - Pre-production validation
@@ -73,19 +72,19 @@ This directory contains specialized setup, configuration, and deployment guides 
 
 ### General Setup
 - **[Main README](../../README.md)** - Project overview and quick start
-- **[Development Setup](../../DEVELOPMENT_SETUP.md)** - Detailed development environment setup
-- **[Development Guide](../../DEVELOPMENT.md)** - Development workflow
-- **[Docker Guide](../../DOCKER.md)** - Container deployment
+- **[Development Setup](../reports/DEVELOPMENT_SETUP.md)** - Detailed development environment setup
+- **[Development Guide](../reports/DEVELOPMENT.md)** - Development workflow
+- **[Docker Guide](../reports/DOCKER.md)** - Container deployment
 
 ### Operations
-- **[Database Management](../../DATABASE_MANAGEMENT.md)** - Database operations and troubleshooting
-- **[Deployment Guide](../../deployment-guide.md)** - General deployment instructions
-- **[Security Guide](../../security.md)** - Security best practices
+- **[Database Management](../reports/DATABASE_MANAGEMENT.md)** - Database operations and troubleshooting
+- **[Deployment Guide](../deployment-guide.md)** - General deployment instructions
+- **[Security Guide](../security.md)** - Security best practices
 
 ### Reference
 - **[Documentation Hub](../README.md)** - Complete documentation index
-- **[API Specification](../../api-specification.md)** - REST API documentation
-- **[Project Structure](../../project-structure.md)** - Repository organization
+- **[API Specification](../api/api-specification.md)** - REST API documentation
+- **[Project Structure](../project-structure.md)** - Repository organization
 
 ---
 
@@ -95,7 +94,7 @@ This directory contains specialized setup, configuration, and deployment guides 
 1. Review [Production Setup Guide](PHASE2_PRODUCTION_SETUP_GUIDE.md)
 2. Set up [CI/CD](CI-CD-SETUP.md) for automated deployments
 3. Configure [Cloudflare Tunnel](CLOUDFLARE_TUNNEL_SETUP.md) for secure access
-4. Follow [Security Guide](../../security.md) best practices
+4. Follow [Security Guide](../security.md) best practices
 
 ### "I'm getting 'Failed to fetch' errors"
 1. Check [Port Configuration Guide](PORT_CONFIGURATION_GUIDE.md)
@@ -108,13 +107,13 @@ This directory contains specialized setup, configuration, and deployment guides 
 3. Use an HTTPS tunnel for phones — `chrome://flags` is desktop-only
 
 ### "I need to set up a staging environment"
-1. Follow [Staging Deployment Guide](STAGING_DEPLOYMENT_GUIDE.md)
+1. Deploy with `./deploy-easy.sh` (see [EASY-DEPLOY.md](../../EASY-DEPLOY.md))
 2. Review [Manual Testing Guide](MANUAL_TESTING_GUIDE.md) for validation
 3. Set up [CI/CD](CI-CD-SETUP.md) for automated deployments
 
 ### "I need to migrate the database"
 1. Review [Database Portability Guide](DATABASE_PORTABILITY_GUIDE.md)
-2. Check [Database Management](../../DATABASE_MANAGEMENT.md) for operations
+2. Check [Database Management](../reports/DATABASE_MANAGEMENT.md) for operations
 3. Backup data before migration
 
 ### "I want to run automated tests"

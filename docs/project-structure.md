@@ -149,8 +149,6 @@ zakapp/
 │   ├── setup.sh                    # Development environment setup
 │   ├── build.sh                    # Build script
 │   ├── test.sh                     # Test execution script
-│   ├── deploy.sh                   # Deployment script
-│   └── backup.sh                   # Data backup script
 ├── tests/                          # Test files
 │   ├── e2e/                        # End-to-end tests
 │   ├── integration/                # Integration tests
@@ -161,7 +159,7 @@ zakapp/
 │       ├── build.yml               # Build automation
 │       └── security.yml            # Security scanning
 ├── docker-compose.yml              # Development environment
-├── docker-compose.prod.yml         # Production environment
+├── docker-compose.yml         # Production environment
 ├── .gitignore                      # Git ignore configuration
 ├── .dockerignore                   # Docker ignore configuration
 ├── package.json                    # Root package configuration

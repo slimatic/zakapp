@@ -42,6 +42,30 @@ const currencySchema = z.string().length(3, 'Currency must be 3 characters (ISO 
 const positiveNumberSchema = z.number().positive('Value must be positive');
 const uuidSchema = z.string().uuid('Invalid UUID format');
 
+/** Field names whose value must never be echoed back in an error response. */
+const CREDENTIAL_FIELDS = new Set([
+  'password', 'confirmpassword', 'currentpassword', 'newpassword',
+  'passwordconfirmation', 'token', 'accesstoken', 'refreshtoken',
+  'secret', 'apikey', 'api_key', 'privatekey', 'mnemonic', 'recoveryphrase',
+]);
+
+/**
+ * A submitted value, safe to include in an error response.
+ *
+ * The `value` field exists to make validation errors debuggable, which is fine
+ * for `firstName` or `amount`. For a credential it meant the plaintext password
+ * travelled back over the wire and landed wherever responses are retained —
+ * browser devtools, error reporting, reverse-proxy or access logs that capture
+ * bodies. See #511.
+ *
+ * Redacting at the point of construction covers both call sites and every route,
+ * which is the only way this cannot be forgotten again.
+ */
+function redactIfCredential(field: unknown, value: unknown): unknown {
+  const name = Array.isArray(field) ? field.join('.') : String(field ?? '');
+  return CREDENTIAL_FIELDS.has(name.trim().toLowerCase()) ? '[redacted]' : value;
+}
+
 /**
  * Handles validation errors and returns standardized error response
  */
@@ -53,11 +77,14 @@ export const handleValidationErrors = (
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    const validationErrors = errors.array().map(error => ({
-      field: error.type === 'field' ? (error as any).path : error.type,
-      message: error.msg,
-      value: error.type === 'field' ? (error as any).value : undefined
-    }));
+    const validationErrors = errors.array().map(error => {
+      const field = error.type === 'field' ? (error as any).path : error.type;
+      return {
+        field,
+        message: error.msg,
+        value: error.type === 'field' ? redactIfCredential(field, (error as any).value) : undefined
+      };
+    });
 
     return res.status(400).json({
       success: false,
@@ -88,7 +115,12 @@ export const validateSchema = (schema: z.ZodSchema) => {
         const validationErrors = issues.map((err: any) => ({
           field: err.path.join('.'),
           message: err.message,
-          value: (err as any).received
+          // No `value`: zod v3 does not attach the received input to an issue, so
+          // `err.received` was always `undefined`. Removed rather than left as a
+          // field that silently never populates — it read as if values were being
+          // echoed here when they never were, and hid the real leak in
+          // handleValidationErrors, which express-validator does populate (#511).
+          value: undefined
         }));
 
         return res.status(400).json({

@@ -17,12 +17,14 @@
 
 import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Logo } from '../common/Logo';
+import { AuthLayout } from './AuthLayout';
 
 export const Register: React.FC = () => {
+  const { t } = useTranslation('common');
   const [formData, setFormData] = useState({
     username: '',
     firstName: '',
@@ -137,197 +139,152 @@ export const Register: React.FC = () => {
     // The backend validation errors are already handled by the error state
   };
 
+  const strengthRows: Array<[keyof typeof passwordStrength, string]> = [
+    ['length', 'At least 8 characters'],
+    ['uppercase', 'One uppercase letter (A-Z)'],
+    ['lowercase', 'One lowercase letter (a-z)'],
+    ['number', 'One number (0-9)'],
+    ['special', 'One special character (!@#$%^&*)']
+  ];
+
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/40">
-        <div>
-          <div className="mx-auto flex justify-center">
-            <Logo className="h-16 w-16" />
-          </div>
-          <h1 className="mt-6 text-center text-4xl font-heading font-extrabold text-gray-900 tracking-tight">
-            Create your account
-          </h1>
-          <p className="mt-2 text-center text-lg text-gray-600">
-            Join ZakApp to calculate and track your Zakat
-          </p>
+    <AuthLayout
+      title={t('auth.registerTitle')}
+      subtitle={t('auth.registerSubtitle')}
+      footer={
+        <>
+          {t('auth.alreadyHaveVault')}{' '}
+          <Link
+            to="/login"
+            className="font-medium text-primary hover:underline underline-offset-2"
+          >
+            {t('auth.signIn')}
+          </Link>
+        </>
+      }
+    >
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <Input
+          id="username"
+          name="username"
+          type="text"
+          placeholder={t('auth.username')}
+          value={formData.username}
+          onChange={handleChange}
+          error={formErrors.username}
+          label={t('auth.username')}
+        />
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            id="firstName"
+            name="firstName"
+            type="text"
+            required
+            placeholder={t('auth.firstName')}
+            value={formData.firstName}
+            onChange={handleChange}
+            data-testid="first-name-input"
+            error={formErrors.firstName}
+            label={t('auth.firstName')}
+          />
+
+          <Input
+            id="lastName"
+            name="lastName"
+            type="text"
+            required
+            placeholder={t('auth.lastName')}
+            value={formData.lastName}
+            onChange={handleChange}
+            data-testid="last-name-input"
+            error={formErrors.lastName}
+            label={t('auth.lastName')}
+          />
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <Input
-              id="username"
-              name="username"
-              type="text"
-              required
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleChange}
-              error={formErrors.username}
-              label="Username"
-              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
-            />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          placeholder={t('auth.emailPlaceholder')}
+          value={formData.email}
+          onChange={handleChange}
+          data-testid="email-input"
+          error={formErrors.email}
+          label={t('auth.emailAddress')}
+        />
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                id="firstName"
-                name="firstName"
-                type="text"
-                required
-                placeholder="First name"
-                value={formData.firstName}
-                onChange={handleChange}
-                data-testid="first-name-input"
-                error={formErrors.firstName}
-                label="First Name"
-                className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
-              />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          placeholder={t('auth.choosePassword')}
+          value={formData.password}
+          onChange={handleChange}
+          onFocus={() => setShowPasswordHints(true)}
+          error={formErrors.password}
+          label={t('auth.password')}
+        />
 
-              <Input
-                id="lastName"
-                name="lastName"
-                type="text"
-                required
-                placeholder="Last name"
-                value={formData.lastName}
-                onChange={handleChange}
-                data-testid="last-name-input"
-                error={formErrors.lastName}
-                label="Last Name"
-                className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
-              />
-            </div>
-
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              placeholder="Email address"
-              value={formData.email}
-              onChange={handleChange}
-              data-testid="email-input"
-              error={formErrors.email}
-              label="Email Address"
-              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
-            />
-
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              onFocus={() => setShowPasswordHints(true)}
-              error={formErrors.password}
-              label="Password"
-              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
-            />
-
-            {/* Password requirements with live validation */}
-            {showPasswordHints && (
-              <div
-                className="text-xs space-y-1 mt-1 -mt-3 px-3 py-3 bg-blue-50/80 backdrop-blur-sm rounded-lg border border-blue-100 shadow-sm animate-fade-in"
-                onAnimationEnd={(e) => e.stopPropagation()}
-              >
-                <p className="font-semibold text-blue-900 mb-2">Password must include:</p>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.length ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
-                  <span>{passwordStrength.length ? '✓' : '○'}</span>
-                  <span>At least 8 characters</span>
-                </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.uppercase ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
-                  <span>{passwordStrength.uppercase ? '✓' : '○'}</span>
-                  <span>One uppercase letter (A-Z)</span>
-                </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.lowercase ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
-                  <span>{passwordStrength.lowercase ? '✓' : '○'}</span>
-                  <span>One lowercase letter (a-z)</span>
-                </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.number ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
-                  <span>{passwordStrength.number ? '✓' : '○'}</span>
-                  <span>One number (0-9)</span>
-                </div>
-                <div className={`flex items-center gap-2 transition-colors duration-200 ${passwordStrength.special ? 'text-primary-700 font-medium' : 'text-gray-500'}`}>
-                  <span>{passwordStrength.special ? '✓' : '○'}</span>
-                  <span>One special character (!@#$%^&*)</span>
-                </div>
-              </div>
-            )}
-
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              placeholder="Confirm password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              data-testid="confirm-password-input"
-              error={formErrors.confirmPassword}
-              label="Confirm Password"
-              className="bg-white/50 backdrop-blur-sm focus:ring-primary-500 border-gray-300"
-            />
+        {/* Live requirements — quiet list, not a shouting checklist */}
+        {showPasswordHints && (
+          <div className="rounded-md border border-border bg-surface-2 px-3 py-2.5 text-xs">
+            <p className="mb-1.5 font-medium text-foreground">{t('auth.passwordMustInclude')}</p>
+            <ul className="space-y-1">
+              {strengthRows.map(([key, text]) => {
+                const met = passwordStrength[key];
+                return (
+                  <li
+                    key={key}
+                    className={`flex items-center gap-2 ${met ? 'text-success' : 'text-muted-foreground'}`}
+                  >
+                    <span aria-hidden="true">{met ? '✓' : '○'}</span>
+                    <span>{text}</span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
+        )}
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-4 border border-red-100">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    {error || 'Registration failed. Please try again.'}
-                  </h3>
-                </div>
-              </div>
-            </div>
-          )}
+        <Input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          required
+          placeholder={t('auth.confirmPassword')}
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          data-testid="confirm-password-input"
+          error={formErrors.confirmPassword}
+          label={t('auth.confirmPassword')}
+        />
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            isLoading={isLoading}
-            data-testid="register-button"
-            className="w-full bg-primary-700 hover:bg-primary-800 text-white shadow-lg shadow-primary-700/20 transition-all hover:scale-[1.02]"
-          >
-            Create account
-          </Button>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-700">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="font-medium text-primary-700 hover:text-primary-800 hover:underline transition-colors"
-              >
-                Sign in instead
-              </Link>
+        {error && (
+          <div className="rounded-md border border-danger/30 bg-danger-soft p-3 text-sm" role="alert">
+            <p className="font-medium text-danger">
+              {error || 'Registration failed. Please try again.'}
             </p>
-
-            <div className="mt-8 pt-6 border-t border-gray-100/50 flex flex-col items-center gap-2">
-              <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1 opacity-70 hover:opacity-100">
-                <span>Made with ❤️ by</span>
-                <span className="font-semibold">RST Labs</span>
-              </a>
-              <a
-                href="https://github.com/slimatic/zakapp/releases"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] text-gray-300 hover:text-primary-600 font-mono transition-colors"
-              >
-                {__APP_VERSION__} ({__COMMIT_HASH__})
-              </a>
-            </div>
           </div>
-        </form>
-      </div>
-    </main>
+        )}
+
+        <Button
+          type="submit"
+          size="lg"
+          disabled={isLoading}
+          isLoading={isLoading}
+          data-testid="register-button"
+          className="w-full"
+        >
+          {t('auth.createVaultButton')}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 };

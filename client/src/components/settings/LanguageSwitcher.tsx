@@ -36,7 +36,7 @@ export const LanguageSwitcher: React.FC<{ className?: string }> = ({ className =
       onChange={handleChange}
       aria-label="Language"
       data-testid="language-switcher"
-      className={`rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 px-2 py-1.5 ${className}`}
+      className={`rounded border border-border-strong bg-card text-sm text-foreground px-2 py-1.5 ${className}`}
     >
       {SUPPORTED_LANGUAGES.map((lang) => (
         <option key={lang.code} value={lang.code}>

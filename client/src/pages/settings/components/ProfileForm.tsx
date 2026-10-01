@@ -16,7 +16,7 @@
  */
 
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../../contexts/AuthContext';
 import { apiService } from '../../../services/api';
@@ -26,6 +26,8 @@ import { ErrorMessage } from '../../../components/ui/ErrorMessage';
 import { useAssetRepository } from '../../../hooks/useAssetRepository';
 import { gregorianToHijri, formatHijriDate } from '../../../utils/calendarConverter';
 import { getSupportedCurrencies, getCurrencySymbol } from '../../../utils/formatters';
+import { useUserSettingsRepository } from '../../../hooks/useUserSettingsRepository';
+import { NISAB_STANDARDS, getNisabStandard, type NisabStandardId } from '../../../core/calculations/nisab';
 
 // Types extracted locally since they aren't exported from types/index
 interface ProfileFormData {
@@ -86,9 +88,11 @@ export const ProfileForm: React.FC = () => {
     // adding a currency anywhere else in the app would have silently omitted it
     // from the only place a user can set their display currency. Same pattern as
     // IdentityStep, AssetForm and LiabilityForm.
+    // `code` only, because the option template renders `{code} - ...` itself; naming
+    // this `${code} (${symbol})` made the option read "USD - USD ($)".
     const currencies = getSupportedCurrencies().map((code) => ({
         code,
-        name: `${code} (${getCurrencySymbol(code)})`,
+        name: getCurrencySymbol(code),
     }));
 
     const zakatMethods = [
@@ -99,6 +103,44 @@ export const ProfileForm: React.FC = () => {
         { value: 'hanbali', name: 'Hanbali School' },
         { value: 'custom', name: 'Custom Method' },
     ];
+
+    /*
+     * Nisab weight standard.
+     *
+     * Read from the same local settings document the calculator reads, so the control
+     * and the arithmetic cannot disagree, and written to BOTH stores the way the
+     * currency control already has to be: the server resolves its own nisab figures
+     * from `settings`, so a local-only write would leave the server computing the
+     * other convention.
+     */
+    const { settings: localSettings } = useUserSettingsRepository();
+    const [nisabStandard, setNisabStandard] = useState<string>(
+        () => getNisabStandard(localSettings?.nisabStandard).id
+    );
+
+    const saveNisabStandard = async (next: NisabStandardId) => {
+        const previous = nisabStandard;
+        setNisabStandard(next); // optimistic; revert below if the write fails
+        try {
+            await updateLocalProfile({
+                settings: { ...user?.settings, nisabStandard: next }
+            } as any);
+            const currentSettings = await apiService.getSettings();
+            await apiService.updateSettings({
+                ...(currentSettings?.success && currentSettings.data ? currentSettings.data : {}),
+                nisabStandard: next
+            });
+        } catch (err) {
+            setNisabStandard(previous);
+            console.error('Failed to save nisab standard', err);
+        }
+    };
+
+    // Keep the control in step if settings load after first render.
+    useEffect(() => {
+        const stored = getNisabStandard(localSettings?.nisabStandard).id;
+        setNisabStandard((current) => (current === stored ? current : stored));
+    }, [localSettings?.nisabStandard]);
 
     // Update profile mutation
     const profileMutation = useMutation({
@@ -171,7 +213,7 @@ export const ProfileForm: React.FC = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-primary mb-4">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
                     Profile Information
                 </h2>
                 <p className="text-muted-foreground mb-6">
@@ -180,10 +222,10 @@ export const ProfileForm: React.FC = () => {
             </div>
 
             {showSuccessMessage && (
-                <div className="bg-accent border border-default rounded-lg p-4 mb-6">
+                <div className="bg-accent border border-border rounded-lg p-4 mb-6">
                     <div className="flex items-center">
-                        <span className="text-primary text-xl mr-3" aria-hidden="true">✅</span>
-                        <p className="text-primary font-medium">{showSuccessMessage}</p>
+                        <span className="text-foreground/80 text-xl me-3" aria-hidden="true">✅</span>
+                        <p className="text-foreground/80 font-medium">{showSuccessMessage}</p>
                     </div>
                 </div>
             )}
@@ -191,7 +233,7 @@ export const ProfileForm: React.FC = () => {
             <form onSubmit={handleProfileSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label htmlFor="firstName" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="firstName" className="block text-sm font-medium text-foreground mb-2">
                             First Name
                         </label>
                         <input
@@ -202,13 +244,13 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 firstName: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="lastName" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="lastName" className="block text-sm font-medium text-foreground mb-2">
                             Last Name
                         </label>
                         <input
@@ -219,12 +261,12 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 lastName: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
                     <div>
-                        <label htmlFor="username" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="username" className="block text-sm font-medium text-foreground mb-2">
                             Username
                         </label>
                         <input
@@ -235,13 +277,13 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 username: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-primary mb-2">
+                        <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
                             Email Address
                         </label>
                         <input
@@ -252,16 +294,16 @@ export const ProfileForm: React.FC = () => {
                                 ...profileData,
                                 email: e.target.value
                             })}
-                            className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             required
                         />
                         <div className="mt-1">
                             {user?.isVerified ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-primary">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-foreground/80">
                                     ✅ Verified
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-primary">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-foreground/80">
                                     ⚠️ Unverified - Please check your email
                                 </span>
                             )}
@@ -270,14 +312,14 @@ export const ProfileForm: React.FC = () => {
                 </div>
 
                 {/* Preferences Section */}
-                <div className="border-t border-default pt-6">
-                    <h3 className="text-lg font-medium text-primary mb-4">
+                <div className="border-t border-border pt-6">
+                    <h3 className="text-lg font-medium text-foreground mb-4">
                         Islamic Calculation Preferences
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label htmlFor="currency" className="block text-sm font-medium text-primary mb-2">
+                            <label htmlFor="currency" className="block text-sm font-medium text-foreground mb-2">
                                 Default Currency
                             </label>
                             <select
@@ -290,7 +332,7 @@ export const ProfileForm: React.FC = () => {
                                         currency: e.target.value
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 {currencies.map((currency) => (
                                     <option key={currency.code} value={currency.code}>
@@ -301,7 +343,35 @@ export const ProfileForm: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="zakatMethod" className="block text-sm font-medium text-primary mb-2">
+                            <label htmlFor="nisabStandard" className="block text-sm font-medium text-foreground mb-2">
+                                Nisab Weight Standard
+                            </label>
+                            <select
+                                id="nisabStandard"
+                                value={nisabStandard}
+                                onChange={(e) => void saveNisabStandard(e.target.value as NisabStandardId)}
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            >
+                                {Object.values(NISAB_STANDARDS).map((standard) => (
+                                    <option key={standard.id} value={standard.id}>
+                                        {standard.label}
+                                    </option>
+                                ))}
+                            </select>
+                            {/*
+                             * The derivation is shown, not just the label: the two options
+                             * differ by ~2.8% and the lower one makes zakat payable slightly
+                             * earlier, so a user choosing between them should see why they
+                             * differ rather than treat it as a display setting.
+                             */}
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                {getNisabStandard(nisabStandard).derivation}{' '}
+                                Both are accepted; the default is what this app has always used.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label htmlFor="zakatMethod" className="block text-sm font-medium text-foreground mb-2">
                                 Preferred Zakat Methodology
                             </label>
                             <select
@@ -314,7 +384,7 @@ export const ProfileForm: React.FC = () => {
                                         zakatMethod: e.target.value
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 {zakatMethods.map((method) => (
                                     <option key={method.value} value={method.value}>
@@ -325,9 +395,9 @@ export const ProfileForm: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="calendarType" className="block text-sm font-medium text-primary mb-2">
+                            <label htmlFor="calendarType" className="block text-sm font-medium text-foreground mb-2">
                                 Calendar System
-                                <span className="ml-2 text-xs text-muted-foreground">
+                                <span className="ms-2 text-xs text-muted-foreground">
                                     (for Zakat calculation dates)
                                 </span>
                             </label>
@@ -341,7 +411,7 @@ export const ProfileForm: React.FC = () => {
                                         calendarType: e.target.value as 'lunar' | 'solar'
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 <option value="lunar">Hijri (Islamic Lunar Calendar - 354 days/year)</option>
                                 <option value="solar">Gregorian (Solar Calendar - 365 days/year)</option>
@@ -354,7 +424,7 @@ export const ProfileForm: React.FC = () => {
 
                         {/* Hijri Adjustment Slider */}
                         <div>
-                            <label className="block text-sm font-medium text-primary mb-2">
+                            <label className="block text-sm font-medium text-foreground mb-2">
                                 Hijri Date Adjustment (Moon Sighting)
                             </label>
                             <div className="flex items-center gap-4">
@@ -367,18 +437,18 @@ export const ProfileForm: React.FC = () => {
                                     onChange={(e) => setHijriAdjustment(parseInt(e.target.value))}
                                     className="w-full h-2 bg-accent rounded-lg appearance-none cursor-pointer"
                                 />
-                                <span className="text-sm font-medium text-primary w-16 text-right">
+                                <span className="text-sm font-medium text-foreground/80 w-16 text-end">
                                     {hijriAdjustment > 0 ? `+${hijriAdjustment}` : hijriAdjustment} Days
                                 </span>
                             </div>
                             {/* Live Date Preview */}
-                            <div className="mt-3 p-3 bg-accent rounded-lg border border-default">
+                            <div className="mt-3 p-3 bg-accent rounded-lg border border-border">
                                 <p className="text-xs text-muted-foreground mb-1">Today's Date Preview:</p>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-sm text-primary">
+                                    <span className="text-sm text-foreground/80">
                                         📅 {new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                     </span>
-                                    <span className="text-sm font-medium text-primary">
+                                    <span className="text-sm font-medium text-foreground/80">
                                         🌙 {formatHijriDate(gregorianToHijri(new Date(), hijriAdjustment))}
                                     </span>
                                 </div>
@@ -389,7 +459,7 @@ export const ProfileForm: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="language" className="block text-sm font-medium text-primary mb-2">
+                            <label htmlFor="language" className="block text-sm font-medium text-foreground mb-2">
                                 Language
                             </label>
                             <select
@@ -402,7 +472,7 @@ export const ProfileForm: React.FC = () => {
                                         language: e.target.value
                                     }
                                 })}
-                                className="w-full px-3 py-2 border border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                             >
                                 <option value="en">English (US)</option>
                                 <option value="ar" disabled>العربية (Arabic) - Coming Soon</option>
@@ -420,7 +490,7 @@ export const ProfileForm: React.FC = () => {
                         variant="default"
                         disabled={profileMutation.isPending}
                     >
-                        {profileMutation.isPending && <LoadingSpinner size="sm" className="mr-2" />}
+                        {profileMutation.isPending && <LoadingSpinner size="sm" className="me-2" />}
                         Save Changes
                     </Button>
                 </div>

@@ -84,11 +84,15 @@ describe('Ruling Registry — coverage (CI-enforced sync with METHODOLOGIES)', (
 });
 
 describe('Ruling Registry — parity with isAssetZakatable (no overrides)', () => {
+  // "zakatable" now means "the app's default for this type", so the parity check
+  // accepts either flavour of zakatable and either flavour of exempt.
+  const isZakatableStatus = (s: string) => s.endsWith('zakatable');
+
   it('GOLD type-default status matches isAssetZakatable for all madhabs', () => {
     for (const madhab of METHODOLOGY_NAMES) {
       const calcSaysZakatable = isAssetZakatable(makeAsset({ type: AssetType.GOLD }), madhab);
       const ruling = getAssetRuling(makeAsset({ type: AssetType.GOLD }), madhab);
-      expect(ruling.status === 'zakatable').toBe(calcSaysZakatable);
+      expect(isZakatableStatus(ruling.status)).toBe(calcSaysZakatable);
     }
   });
 
@@ -98,7 +102,17 @@ describe('Ruling Registry — parity with isAssetZakatable (no overrides)', () =
         const asset = makeAsset({ type: assetType });
         const calcSaysZakatable = isAssetZakatable(asset, madhab);
         const ruling = getAssetRuling(asset, madhab);
-        expect(ruling.status === 'zakatable').toBe(calcSaysZakatable);
+        expect(isZakatableStatus(ruling.status)).toBe(calcSaysZakatable);
+      }
+    }
+  });
+
+  it('a type default is never reported as a user override', () => {
+    for (const madhab of METHODOLOGY_NAMES) {
+      for (const assetType of ALL_ASSET_TYPES) {
+        const ruling = getAssetRuling(makeAsset({ type: assetType }), madhab);
+        expect(ruling.status.startsWith('override-')).toBe(false);
+        expect(ruling.override).toBeUndefined();
       }
     }
   });
@@ -106,12 +120,23 @@ describe('Ruling Registry — parity with isAssetZakatable (no overrides)', () =
 
 describe('Ruling Registry — override handling', () => {
   it('override-zakatable: explains both the user override and the madhab default', () => {
-    // Shafi'i defaults personal jewelry (GOLD) to exempt; forcing zakatEligible=true is an override
-    const asset = makeAsset({ type: AssetType.GOLD, zakatEligible: true });
+    // Shafi'i defaults personal jewelry (GOLD) to exempt; the user marking it
+    // zakatable is an override. isEligibilityManual is what records that the
+    // user made the call rather than the onboarding wizard (#521).
+    const asset = makeAsset({ type: AssetType.GOLD, zakatEligible: true, isEligibilityManual: true });
     const ruling = getAssetRuling(asset, 'SHAFII');
     expect(ruling.status).toBe('override-zakatable');
     expect(ruling.override).toBeDefined();
     expect(ruling.madhabDefault.ruling.length).toBeGreaterThan(0);
+  });
+
+  it('a zakatEligible=true the user never set is not an override', () => {
+    // The onboarding case: flag written for the user, marker absent. The school
+    // must still rule, and no override may be attributed to the user.
+    const gold = makeAsset({ type: AssetType.GOLD, zakatEligible: true });
+    const ruling = getAssetRuling(gold, 'SHAFII');
+    expect(ruling.status).toBe('exempt');
+    expect(ruling.override).toBeUndefined();
   });
 
   it('override-exempt: explains both the user override and the madhab default', () => {
@@ -121,6 +146,14 @@ describe('Ruling Registry — override handling', () => {
     expect(ruling.status).toBe('override-exempt');
     expect(ruling.override).toBeDefined();
     expect(ruling.madhabDefault.ruling.length).toBeGreaterThan(0);
+  });
+
+  it('zakatEligible=null defers to the methodology rather than overriding it', () => {
+    // The onboarding wizard writes null for anything the user was not asked
+    // about. That must NOT read as an override, and the school must still rule.
+    const gold = makeAsset({ type: AssetType.GOLD, zakatEligible: null });
+    expect(getAssetRuling(gold, 'SHAFII').status).toBe('exempt');
+    expect(getAssetRuling(gold, 'HANAFI').status).toBe('default-zakatable');
   });
 });
 
@@ -132,7 +165,7 @@ describe('Ruling Registry — jewelry exemption parity', () => {
       if (config.jewelryExempt) {
         expect(ruling.status).toBe('exempt');
       } else {
-        expect(ruling.status).toBe('zakatable');
+        expect(ruling.status).toBe('default-zakatable');
       }
     }
   });

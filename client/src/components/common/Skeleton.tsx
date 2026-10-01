@@ -60,7 +60,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   if (count === 1) {
     return (
       <div
-        className={`animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] ${className}`}
+        className={`animate-pulse bg-gradient-to-r from-muted via-border-strong to-muted bg-[length:200%_100%] ${className}`}
         style={style}
         aria-hidden="true"
       />
@@ -72,7 +72,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
       {Array.from({ length: count }).map((_, index) => (
         <div
           key={index}
-          className={`animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] ${className}`}
+          className={`animate-pulse bg-gradient-to-r from-muted via-border-strong to-muted bg-[length:200%_100%] ${className}`}
           style={{ ...style, marginBottom: index < count - 1 ? spacing : 0 }}
           aria-hidden="true"
         />
@@ -135,7 +135,7 @@ export const SkeletonCard: React.FC<SkeletonCardProps> = ({
   lines = 3,
 }) => {
   return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+    <div className="border border-border rounded-lg p-4 bg-card shadow-sm">
       {hasImage && (
         <Skeleton height={imageHeight} className="mb-4" borderRadius="8px" />
       )}

@@ -22,12 +22,17 @@ import { useAuth } from '../contexts/AuthContext';
 import { Asset } from '../types';
 import { switchMap } from 'rxjs/operators';
 import { cryptoService } from '../services/CryptoService';
+import { getQuota, limitMessage } from './useRepositoryLimits';
 
 // Fields defined in asset.schema.ts
 const ALLOWED_SCHEMA_FIELDS = [
     'id', 'userId', 'name', 'type', 'value', 'currency', 'description',
     'metadata', 'isActive', 'createdAt', 'updatedAt', 'acquisitionDate',
-    'notes', 'calculationModifier', 'isPassiveInvestment', 'isRestrictedAccount'
+    'notes', 'calculationModifier', 'isPassiveInvestment', 'isRestrictedAccount',
+    // The user's own zakatability answer, and the marker saying they gave it.
+    // Both must survive a save: without the marker the next read cannot tell a
+    // real override from the flag the onboarding wizard wrote on their behalf.
+    'zakatEligible', 'isEligibilityManual'
 ];
 
 export function useAssetRepository() {
@@ -157,6 +162,52 @@ export function useAssetRepository() {
         return clean;
     };
 
+    /**
+     * Record what an asset was worth, and when.
+     *
+     * One helper so every write path routes through it rather than each caller
+     * remembering to record. Best-effort on purpose: a history write must never
+     * fail an asset save, because losing the edit is worse than losing its log
+     * line. A failure is logged, not thrown.
+     *
+     * `value` arrives as a number or a numeric string depending on the caller;
+     * anything unparseable is skipped rather than stored as NaN, which would
+     * poison every later comparison.
+     */
+    const recordAmountEvent = async (
+        assetId: string,
+        rawAmount: unknown,
+        eventType: 'CREATED' | 'UPDATED',
+        description: string,
+        currency = 'USD'
+    ) => {
+        if (!db) return;
+        const amount = typeof rawAmount === 'string' ? parseFloat(rawAmount) : rawAmount;
+        if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+            console.warn(`[useAssetRepository] Not recording ${eventType} for ${assetId}: amount is not a finite number`, rawAmount);
+            return;
+        }
+        try {
+            const now = new Date().toISOString();
+            await db.asset_amount_events.insert({
+                id: crypto.randomUUID(),
+                assetId,
+                userId: user?.id || '',
+                eventType,
+                amount,
+                currency,
+                effectiveDate: now,
+                recordedAt: now,
+                description,
+                source: 'local'
+            });
+        } catch (e) {
+            // ponytail: history is best-effort, an asset save must not fail on it.
+            // Upgrade path: queue and retry if history loss ever matters more than availability.
+            console.error('[useAssetRepository] Failed to record amount event', e);
+        }
+    };
+
     const addAsset = async (asset: Partial<Asset>) => {
         if (!db) throw new Error('Database not initialized');
         // Ensure user is authenticated to get the ID
@@ -168,21 +219,45 @@ export function useAssetRepository() {
             throw new Error('User not authenticated');
         }
 
-        // Check Resource Limits (Client-Side)
-        if (typeof user.maxAssets === 'number') {
-            const currentCount = await db.assets.find({
-                selector: {
-                    isActive: { $eq: true },
-                    userId: { $eq: user.id }
-                }
-            }).exec().then((docs: any[]) => docs.length);
-
-            if (currentCount >= user.maxAssets) {
-                throw new Error(`Asset limit reached. You can create a maximum of ${user.maxAssets} assets.`);
-            }
+        const quota = await getQuota('assets', db.assets, user, user.id);
+        if (quota.remaining <= 0 && quota.max !== undefined) {
+            throw new Error(limitMessage('assets', quota.max));
         }
 
         const safePayload = sanitizeAssetPayload(asset);
+
+        // Restoring a backup must be idempotent. Assets keep a stable id on
+        // export (adaptAssets preserves it so re-import "prevents duplication"),
+        // but this path always called db.assets.insert(), which throws
+        // CONFLICT on an id that already exists - so a second import of the same
+        // file failed and the Smart Import reported "Asset Error" per row,
+        // leaving the user's balances at whatever the first import wrote.
+        //
+        // Update in place when the id is already present; insert otherwise.
+        if (safePayload.id) {
+            const existing = await db.assets.findOne(safePayload.id).exec();
+            if (existing) {
+                const patched = await existing.patch({
+                    ...safePayload,
+                    userId: user.id,
+                    updatedAt: new Date().toISOString(),
+                });
+                // Still a value change, so it belongs in the history. Returning
+                // early here would leave an overwritten asset with no record of
+                // having moved. Only an actual change is recorded, matching the
+                // update path's rule.
+                if (Number(existing.value) !== Number(safePayload.value)) {
+                    await recordAmountEvent(
+                        safePayload.id,
+                        safePayload.value,
+                        'UPDATED',
+                        'Asset restored from a backup',
+                        safePayload.currency || existing.currency || 'USD'
+                    );
+                }
+                return patched;
+            }
+        }
 
         // Ensure ID and timestamps
         const newAsset = {
@@ -200,7 +275,17 @@ export function useAssetRepository() {
             calculationModifier: safePayload.calculationModifier ?? 1.0
         };
 
-        return db.assets.insert(newAsset);
+        const inserted = await db.assets.insert(newAsset);
+
+        await recordAmountEvent(
+            inserted.id,
+            newAsset.value,
+            'CREATED',
+            'Asset created',
+            newAsset.currency
+        );
+
+        return inserted;
     };
 
     const removeAsset = async (id: string) => {
@@ -254,7 +339,39 @@ export function useAssetRepository() {
             safeUpdates.metadata = JSON.stringify(mergedMeta);
             safeUpdates.updatedAt = new Date().toISOString();
 
-            return doc.patch(safeUpdates);
+            // Record before patching, while the previous value is still readable.
+            //
+            // Only a genuine change is recorded. The edit form submits the whole
+            // asset, so saving without touching the value would otherwise append
+            // an identical entry on every visit and bury the real changes — the
+            // history is only useful if each row means something happened.
+            //
+            // doc.value may be the ZK1 ciphertext rather than a number, so it is
+            // compared numerically only when it parses; an unreadable previous
+            // value is treated as changed rather than silently skipped, because
+            // dropping a real edit is worse than one duplicate row.
+            const nextValue = updates.value;
+            const prevValue = doc.value;
+            const prevNum = typeof prevValue === 'string' ? parseFloat(prevValue) : prevValue;
+            const nextNum = typeof nextValue === 'string' ? parseFloat(nextValue) : nextValue;
+            const comparable =
+                typeof prevNum === 'number' && Number.isFinite(prevNum) &&
+                typeof nextNum === 'number' && Number.isFinite(nextNum);
+            const changed = nextValue !== undefined && (!comparable || prevNum !== nextNum);
+
+            const result = await doc.patch(safeUpdates);
+
+            if (changed) {
+                await recordAmountEvent(
+                    id,
+                    nextValue,
+                    'UPDATED',
+                    'Value updated',
+                    (updates.currency ?? doc.currency) || 'USD'
+                );
+            }
+
+            return result;
         } else {
             console.error('[useAssetRepository] Asset document not found for ID:', id);
         }

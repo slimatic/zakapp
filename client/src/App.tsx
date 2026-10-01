@@ -41,6 +41,7 @@ import { SkipLink } from './components/common/SkipLink';
 import { useSyncManager } from './hooks/useSyncManager';
 import { useMaintenanceMode } from './hooks/useMaintenanceMode';
 import { ToastProvider } from './components/ui/ToastProvider';
+import { MotionConfig } from 'framer-motion';
 import { MaintenancePage } from './pages/MaintenancePage';
 
 /**
@@ -125,6 +126,7 @@ function App() {
 
   // Normal app flow
   return (
+    <MotionConfig reducedMotion="user">
     <ToastProvider>
       <QueryProvider>
         <AuthProvider>
@@ -439,12 +441,16 @@ function App() {
                       }
                     />
 
-                    {/* Privacy Policy - Publicly accessible */}
+                    {/* Privacy Policy - public, but inside the shell so it reads
+                        as part of the app rather than a detached document.
+                        /help, /learn and /diagnostics are public + Layout too. */}
                     <Route
                       path="/privacy-policy"
                       element={
                         <Suspense fallback={<PageLoadingFallback />}>
-                          <PrivacyPolicyPage />
+                          <Layout>
+                            <PrivacyPolicyPage />
+                          </Layout>
                         </Suspense>
                       }
                     />
@@ -452,13 +458,18 @@ function App() {
 
 
 
-                    {/* 404 catch-all — must stay last */}
+                    {/* 404 catch-all — must stay last. Wrapped in <Layout> like
+                        every other page: drawn outside the shell it rendered no
+                        header, footer or #main-content, so the skip link pointed
+                        at a target that did not exist. */}
                     <Route
                       path="*"
                       element={
-                        <Suspense fallback={<PageLoadingFallback />}>
-                          <NotFoundPage />
-                        </Suspense>
+                        <Layout>
+                          <Suspense fallback={<PageLoadingFallback />}>
+                            <NotFoundPage />
+                          </Suspense>
+                        </Layout>
                       }
                     />
 
@@ -477,6 +488,7 @@ function App() {
         </AuthProvider>
       </QueryProvider>
     </ToastProvider>
+    </MotionConfig>
   );
 }
 
