@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "js-sha256": "^0.10.0",
-    "zod": "^3.22.4"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^20.8.7",
