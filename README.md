@@ -8,11 +8,14 @@
   </p>
 </div>
 
+![Version](https://img.shields.io/badge/release-1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-AGPLv3-blue.svg)
 ![Status](https://img.shields.io/badge/status-stable-green.svg)
 ![Compliance](https://img.shields.io/badge/compliance-shariah--compliant-green.svg)
 
 ZakApp re-imagines the wealth purification experience by prioritizing user privacy, Fiqh precision, and modern design. Unlike other tools that send your Net Worth to a cloud server, ZakApp performs all calculations locally.
+
+> **v1.0.0 — Nur and Qamar.** The first stable release: the *ḥawl* is drawn as a moon-arc whose phase tracks the lunar year, the niṣāb basis is derived from your chosen school instead of held as a separate setting, asset values carry the date they were true, and the interface is properly right-to-left for Arabic. [Release notes](docs/release-notes/v1.0.md) · [Changelog](CHANGELOG.md)
 
 [![Sustain ZakApp](https://img.shields.io/badge/Sustain-ZakApp-teal?style=for-the-badge&logo=kofi)](client/public/donate.html)
 
@@ -115,6 +118,12 @@ Detailed technical details can be found in our [Architecture Guide](docs/ARCHITE
 ## 🤝 Contributing
 
 We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+### Known limitations, stated plainly
+
+- **Tablet widths (768–1024px) are not covered by the automated layout checks**, which measure phone and desktop only.
+- **One fiqh question is open:** whether the default niṣāb convention should be the gold or the silver basis. Both are available and the default preserves existing behaviour, so nothing changes for existing users. It is with qualified teachers rather than being settled here.
+- **The hosted instance is a convenience, not a trust requirement.** Self-hosting is the only way to be certain of your own data, and that is the point of the licence.
 
 ## 📄 License
 
