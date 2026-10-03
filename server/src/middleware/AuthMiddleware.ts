@@ -129,9 +129,16 @@ export class AuthMiddleware {
       //
       // ponytail: one indexed primary-key read per authenticated request, on the
       // hot path. That is the price of the toggle biting immediately; the row is
-      // tiny and SQLite serves it locally. If request volume ever makes this
+      // tiny and SQLite serves it locally. Measured at 0.46 ms/request against
+      // the dev DB (2,000 iterations) - not worth a cache yet. If it ever becomes
       // measurable, cache it with a short TTL keyed on userId and bust it in
       // updateUserStatus - do not drop the check.
+      //
+      // This is NOT redundant with the `userSession.updateMany` in
+      // updateUserStatus: `authenticate` above never consults UserSession (JWT +
+      // in-memory denylist only), so marking sessions inactive covers the refresh
+      // path, not this one. Without this read, a deactivated user's already-issued
+      // access token keeps working until it expires.
       const account = await prisma.user.findUnique({
         where: { id: decoded.userId },
         select: { isActive: true }

@@ -11,7 +11,14 @@ const SORT_OPTIONS = [
     { value: 'createdAt:desc', label: 'Newest first' },
     { value: 'createdAt:asc', label: 'Oldest first' },
     { value: 'lastLoginAt:desc', label: 'Last login (recent)' },
-    { value: 'lastLoginAt:asc', label: 'Last login (oldest)' },
+    // SQLite orders NULL before any value in ASC, so ascending puts accounts that
+    // have never logged in at the top. Verified against the dev DB:
+    // `orderBy { lastLoginAt: 'asc' }` returns the never-logged-in users first.
+    // The previous label ("oldest") described an ordering that does not exist - a
+    // user who has never logged in has no oldest login, and those were exactly the
+    // rows being shown. The new label is what the query does, and it is the more
+    // useful admin filter (find the dormant accounts).
+    { value: 'lastLoginAt:asc', label: 'Never logged in' },
     { value: 'email:asc', label: 'Email (A-Z)' },
     { value: 'userType:asc', label: 'Type' },
     { value: 'isActive:asc', label: 'Inactive first' },
