@@ -113,8 +113,8 @@ export const AdminDashboard: React.FC = () => {
                         {/* Stats Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                             <StatCard title="Total Users" value={stats?.totalUsers || 0} icon={Users} color="bg-accent text-secondary" />
-                            <StatCard title="Active Users (30d)" value={stats?.activeUsers || 0} icon={UserCheck} color="bg-accent text-secondary" />
-                            <StatCard title="Dormant Users" value={stats?.dormantUsers || 0} icon={UserMinus} color="bg-warn-soft text-warn-strong" />
+                            <StatCard title="Active" value={stats?.activeUsers || 0} icon={UserCheck} color="bg-accent text-secondary" />
+                            <StatCard title="Deactivated" value={stats?.dormantUsers || 0} icon={UserMinus} color="bg-warn-soft text-warn-strong" />
                             <StatCard title="Storage Used" value={stats?.storageUsed || 'N/A'} icon={HardDrive} color="bg-accent text-secondary" />
                         </div>
 

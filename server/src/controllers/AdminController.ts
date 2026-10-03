@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { Prisma } from '@prisma/client';
+import { DEFAULT_LIMITS } from '../config/limits';
+import { revokeToken } from '../routes/auth/_shared';
+import { syncService } from '../services/SyncService';
+import { logger } from '../utils/logger';
 
 interface AuthenticatedRequest extends Request {
     userId?: string;
@@ -10,25 +14,17 @@ export const getStats = async (req: Request, res: Response) => {
     try {
         const totalUsers = await prisma.user.count();
 
-        // Active users: logged in within last 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
+        // `isActive` is the account state an admin actually toggles, so the tiles
+        // count it. They previously counted login recency inside 30 days, which is
+        // a different question ("has logged in recently") and left the two tiles
+        // unrelated to the Active/Inactive badges in the user list right beside
+        // them. Recency is still visible per user as Last Login.
         const activeUsers = await prisma.user.count({
-            where: {
-                lastLoginAt: {
-                    gte: thirtyDaysAgo
-                }
-            }
+            where: { isActive: true }
         });
 
         const dormantUsers = await prisma.user.count({
-            where: {
-                OR: [
-                    { lastLoginAt: null },
-                    { lastLoginAt: { lt: thirtyDaysAgo } }
-                ]
-            }
+            where: { isActive: false }
         });
 
         // Storage stats would require querying CouchDB or disk
@@ -67,6 +63,23 @@ export const getUsers = async (req: Request, res: Response) => {
 
         const skip = (page - 1) * limit;
 
+        // Sorting is server-side on purpose: the list is paginated, so sorting the
+        // 10 rows already on screen would reorder one page and leave the rest
+        // unreachable. The fields are an allow-list because Prisma rejects an
+        // unknown orderBy with a 500 rather than falling back to the default.
+        const sortable = {
+            createdAt: 'createdAt',
+            lastLoginAt: 'lastLoginAt',
+            email: 'email',
+            username: 'username',
+            userType: 'userType',
+            isActive: 'isActive'
+        } as const;
+        const sortBy = sortable[req.query.sortBy as keyof typeof sortable] || 'createdAt';
+        const orderBy: Prisma.UserOrderByWithRelationInput = {
+            [sortBy]: req.query.sortDir === 'asc' ? 'asc' : 'desc'
+        };
+
         const whereClause: Prisma.UserWhereInput = {};
         if (search) {
             whereClause.OR = [
@@ -80,7 +93,7 @@ export const getUsers = async (req: Request, res: Response) => {
                 where: whereClause,
                 skip,
                 take: limit,
-                orderBy: { createdAt: 'desc' },
+                orderBy,
                 select: {
                     id: true,
                     email: true,
@@ -129,7 +142,7 @@ export const getUsers = async (req: Request, res: Response) => {
     }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
 
@@ -139,12 +152,31 @@ export const deleteUser = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
 
-        // Prevent deleting self (if needed) but admin might want to.
+        // Self-deletion guard. Mirrors the self-deactivation guard on the status
+        // route: an admin address in ADMIN_EMAILS keeps admin access after the row
+        // is gone, so a self-delete strands an admin account that has no route
+        // back through the UI, and takes the user's own data with it. Deleting
+        // another admin is still allowed - that is a deliberate act, not a slip.
+        if (id === req.userId) {
+            return res.status(400).json({ success: false, error: 'Cannot delete your own account' });
+        }
 
-        // Delete user
+        // Delete the user's CouchDB databases and sync user FIRST, while the userId
+        // is still known. The Prisma delete below cascades the Postgres rows away,
+        // so doing it in the other order loses the only handle on the CouchDB side
+        // and orphans the account's assets, payments and snapshots in the cloud
+        // forever. SyncService.deleteUser already existed for the user-initiated
+        // purge; the admin path simply never called it (was: a TODO comment).
+        try {
+            await syncService.deleteUser(id as string);
+        } catch (error) {
+            // Log and continue: a CouchDB outage must not make an admin unable to
+            // remove a user. The row delete is the authoritative action, and the
+            // stale CouchDB data is recoverable by rerunning the purge server-side.
+            logger.error(`CouchDB cleanup failed for user ${id} during admin delete:`, error);
+        }
+
         await prisma.user.delete({ where: { id: id as string } });
-
-        // TODO: Trigger cleanup of CouchDB user database if applicable
 
         res.json({ success: true, message: 'User deleted successfully' });
     } catch (error) {
@@ -211,6 +243,114 @@ export const updateUserLimits = async (req: Request, res: Response) => {
         res.json({ success: true, message: 'User limits updated successfully' });
     } catch (error) {
         console.error('Error updating user limits:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+};
+
+export const updateUserStatus = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { isActive } = req.body;
+
+        if (typeof isActive !== 'boolean') {
+            return res.status(400).json({ success: false, error: 'isActive must be a boolean' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: id as string } });
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        // Self-lockout guard. An admin whose address is in ADMIN_EMAILS holds admin
+        // access independently of the DB row, but deactivating the account still
+        // blocks their own login, and there is no route back through the UI.
+        // Mirrors the self-demotion guard on the role route.
+        if (id === req.userId && isActive === false) {
+            return res.status(400).json({ success: false, error: 'Cannot deactivate your own account' });
+        }
+
+        await prisma.user.update({
+            where: { id: id as string },
+            data: { isActive }
+        });
+
+        // Deactivation must END the sessions that are already open, or a live tab
+        // keeps working for the life of its access token and the toggle is display
+        // -only. The token denylist is in-memory (see routes/auth/_shared), so this
+        // only reaches sessions revoked after the process started; it is the same
+        // durability the existing logout path has.
+        if (isActive === false) {
+            const sessions = await prisma.userSession.findMany({
+                where: { userId: id as string, isActive: true },
+                select: { accessToken: true }
+            });
+            for (const session of sessions) {
+                if (session.accessToken) revokeToken(session.accessToken);
+            }
+            await prisma.userSession.updateMany({
+                where: { userId: id as string, isActive: true },
+                data: { isActive: false }
+            });
+        }
+
+        res.json({ success: true, message: `User ${isActive ? 'activated' : 'deactivated'} successfully` });
+    } catch (error) {
+        console.error('Error updating user status:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+};
+
+/** The effective defaults, so the admin UI never has to hardcode a second copy. */
+export const getUserLimitDefaults = async (_req: Request, res: Response) => {
+    res.json({
+        success: true,
+        data: {
+            maxAssets: DEFAULT_LIMITS.MAX_ASSETS,
+            maxNisabRecords: DEFAULT_LIMITS.MAX_NISAB_RECORDS,
+            maxPayments: DEFAULT_LIMITS.MAX_PAYMENTS,
+            maxLiabilities: DEFAULT_LIMITS.MAX_LIABILITIES,
+        },
+    });
+};
+
+export const updateAllUserLimits = async (req: Request, res: Response) => {
+    try {
+        const body = req.body as Record<string, unknown>;
+
+        // Raise the stored default for every user who has never been given an
+        // individual override, including null (no value set) so it self-heals.
+        //
+        // Deliberately a FLOOR, never a clamp: `lt` is strictly-less-than, so a
+        // user already above the new value is left alone. Raising the account-wide
+        // default must not take capacity away from anyone who already had more.
+        const targets: Array<[string, number]> = [];
+        const field = (name: keyof typeof DEFAULT_LIMITS, incoming: unknown) =>
+            typeof incoming === 'number' && Number.isInteger(incoming) && incoming >= 0
+                ? targets.push([name as string, incoming])
+                : null;
+
+        field('MAX_ASSETS', body.maxAssets);
+        field('MAX_NISAB_RECORDS', body.maxNisabRecords);
+        field('MAX_PAYMENTS', body.maxPayments);
+        field('MAX_LIABILITIES', body.maxLiabilities);
+
+        if (targets.length === 0) {
+            return res.status(400).json({ success: false, error: 'No valid limit values provided' });
+        }
+
+        for (const [name, value] of targets) {
+            const column = name === 'MAX_ASSETS' ? 'maxAssets'
+                : name === 'MAX_NISAB_RECORDS' ? 'maxNisabRecords'
+                : name === 'MAX_PAYMENTS' ? 'maxPayments' : 'maxLiabilities';
+            await prisma.user.updateMany({
+                where: { OR: [{ [column]: null }, { [column]: { lt: value } }] },
+                data: { [column]: value }
+            });
+        }
+
+        res.json({ success: true, message: `Default limits raised for all users (${targets.map(([n]) => n).join(', ')})` });
+    } catch (error) {
+        console.error('Error updating all user limits:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 };
