@@ -3,6 +3,8 @@ import { prisma } from '../utils/prisma';
 import { Prisma } from '@prisma/client';
 import { DEFAULT_LIMITS } from '../config/limits';
 import { revokeToken } from '../routes/auth/_shared';
+import { syncService } from '../services/SyncService';
+import { logger } from '../utils/logger';
 
 interface AuthenticatedRequest extends Request {
     userId?: string;
@@ -140,7 +142,7 @@ export const getUsers = async (req: Request, res: Response) => {
     }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
 
@@ -150,12 +152,31 @@ export const deleteUser = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
 
-        // Prevent deleting self (if needed) but admin might want to.
+        // Self-deletion guard. Mirrors the self-deactivation guard on the status
+        // route: an admin address in ADMIN_EMAILS keeps admin access after the row
+        // is gone, so a self-delete strands an admin account that has no route
+        // back through the UI, and takes the user's own data with it. Deleting
+        // another admin is still allowed - that is a deliberate act, not a slip.
+        if (id === req.userId) {
+            return res.status(400).json({ success: false, error: 'Cannot delete your own account' });
+        }
 
-        // Delete user
+        // Delete the user's CouchDB databases and sync user FIRST, while the userId
+        // is still known. The Prisma delete below cascades the Postgres rows away,
+        // so doing it in the other order loses the only handle on the CouchDB side
+        // and orphans the account's assets, payments and snapshots in the cloud
+        // forever. SyncService.deleteUser already existed for the user-initiated
+        // purge; the admin path simply never called it (was: a TODO comment).
+        try {
+            await syncService.deleteUser(id as string);
+        } catch (error) {
+            // Log and continue: a CouchDB outage must not make an admin unable to
+            // remove a user. The row delete is the authoritative action, and the
+            // stale CouchDB data is recoverable by rerunning the purge server-side.
+            logger.error(`CouchDB cleanup failed for user ${id} during admin delete:`, error);
+        }
+
         await prisma.user.delete({ where: { id: id as string } });
-
-        // TODO: Trigger cleanup of CouchDB user database if applicable
 
         res.json({ success: true, message: 'User deleted successfully' });
     } catch (error) {

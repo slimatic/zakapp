@@ -32,14 +32,19 @@ const prismaMock = {
     findUnique: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn(),
+    delete: vi.fn(),
   },
   userSession: { findMany: vi.fn(), updateMany: vi.fn() },
   $transaction: vi.fn(),
 };
 
 const revokeTokenMock = vi.fn();
+const mockSyncDelete = vi.fn();
 
 vi.mock('../../utils/prisma', () => ({ prisma: prismaMock }));
+vi.mock('../../services/SyncService', () => ({
+  syncService: { deleteUser: mockSyncDelete },
+}));
 vi.mock('../../utils/couchStats', () => ({
   getUserCouchDBStats: vi.fn().mockResolvedValue({
     assets: 1, liabilities: 0, nisabRecords: 0, payments: 0,
@@ -60,7 +65,7 @@ vi.mock('../../utils/logger', () => {
   };
 });
 
-const { getUsers, updateUserStatus, updateAllUserLimits, getUserLimitDefaults } = await import('../AdminController');
+const { getUsers, deleteUser, updateUserStatus, updateAllUserLimits, getUserLimitDefaults } = await import('../AdminController');
 const { DEFAULT_LIMITS } = await import('../../config/limits');
 
 const mockRes = () => {
@@ -173,6 +178,70 @@ describe('AdminController.updateAllUserLimits', () => {
     await updateAllUserLimits({ body: { maxAssets: 'lots', maxPayments: -3 } } as any, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(prismaMock.user.updateMany).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * The destructive path. Two things have to hold, and both were absent:
+ *
+ * - An admin must not be able to delete their own account. The guard on the
+ *   status route existed; on this one the check was a comment.
+ * - The user's CouchDB data must be purged, and it must happen BEFORE the row
+ *   delete. Prisma cascades the Postgres rows away, so deleting first loses the
+ *   only handle on the CouchDB side and orphans the data permanently.
+ */
+describe('AdminController.deleteUser', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSyncDelete.mockResolvedValue(undefined);
+  });
+
+  it('refuses to delete the requesting admin', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: 'admin-1' });
+    const res = mockRes();
+    await deleteUser({ params: { id: 'admin-1' }, userId: 'admin-1' } as any, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(prismaMock.user.delete).not.toHaveBeenCalled();
+    // The guard must fire before the purge too - a refused delete must not wipe
+    // cloud data as a side effect.
+    expect(mockSyncDelete).not.toHaveBeenCalled();
+  });
+
+  it('purges the CouchDB data before the row delete', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: 'user-2' });
+    prismaMock.user.delete.mockResolvedValue({ id: 'user-2' });
+    const res = mockRes();
+    await deleteUser({ params: { id: 'user-2' }, userId: 'admin-1' } as any, res);
+
+    expect(body(res).success).toBe(true);
+    expect(mockSyncDelete).toHaveBeenCalledWith('user-2');
+    const purgeOrder = mockSyncDelete.mock.invocationCallOrder[0];
+    const deleteOrder = prismaMock.user.delete.mock.invocationCallOrder[0];
+    expect(purgeOrder).toBeLessThan(deleteOrder);
+  });
+
+  it('still deletes the row when the CouchDB purge fails', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: 'user-3' });
+    prismaMock.user.delete.mockResolvedValue({ id: 'user-3' });
+    mockSyncDelete.mockRejectedValue(new Error('couch down'));
+
+    const res = mockRes();
+    await deleteUser({ params: { id: 'user-3' }, userId: 'admin-1' } as any, res);
+
+    // A CouchDB outage must not make an admin unable to remove a user.
+    expect(body(res).success).toBe(true);
+    expect(prismaMock.user.delete).toHaveBeenCalledWith({ where: { id: 'user-3' } });
+  });
+
+  it('404s for an unknown user without deleting anything', async () => {
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    const res = mockRes();
+    await deleteUser({ params: { id: 'nope' }, userId: 'admin-1' } as any, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(prismaMock.user.delete).not.toHaveBeenCalled();
+    expect(mockSyncDelete).not.toHaveBeenCalled();
   });
 });
 
