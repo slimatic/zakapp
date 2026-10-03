@@ -12,11 +12,11 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach, Mock } from 'vitest';
 import { UserManagement } from '../UserManagement';
 import { adminService } from '../../../services/adminService';
-import { DEFAULT_LIMITS } from '../../../constants/limits';
 
 vi.mock('../../../services/adminService', () => ({
     adminService: {
         getUsers: vi.fn(),
+        getDefaultLimits: vi.fn(),
         setUserActive: vi.fn(),
         raiseAllUserLimits: vi.fn(),
         updateUserRole: vi.fn(),
@@ -56,9 +56,24 @@ const listResponse = (users: any[]) => ({
 
 const service = adminService as unknown as { [k: string]: Mock };
 
+/**
+ * The limits the SERVER reports as the effective defaults. Deliberately not the
+ * client's `constants/limits` copy: that copy read 20/3/25 while the server
+ * enforced 30/5/50, and asserting against it is what let the bulk-raise ship
+ * computing its targets from stale numbers. This value is the fixture, so the
+ * test now fails if the component goes back to a hardcoded default.
+ */
+const SERVER_DEFAULTS = {
+    maxAssets: 30,
+    maxNisabRecords: 5,
+    maxPayments: 50,
+    maxLiabilities: 15,
+};
+
 beforeEach(() => {
     vi.clearAllMocks();
     service.getUsers.mockResolvedValue(listResponse([makeUser()]));
+    service.getDefaultLimits.mockResolvedValue({ success: true, data: SERVER_DEFAULTS });
     service.setUserActive.mockResolvedValue({ success: true });
     service.raiseAllUserLimits.mockResolvedValue({ success: true });
 });
@@ -111,10 +126,13 @@ describe('UserManagement', () => {
         confirmSpy.mockRestore();
     });
 
-    it('raises the defaults for everyone, above the built-in values', async () => {
+    it('raises the defaults for everyone, above the server-reported values', async () => {
         const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
         render(<UserManagement />);
         await waitFor(() => expect(screen.getByText('Raise all defaults')).toBeInTheDocument());
+        // The raise is computed from the fetched defaults, so it must not fire
+        // before they arrive - otherwise there is nothing to raise from.
+        await waitFor(() => expect(service.getDefaultLimits).toHaveBeenCalled());
 
         fireEvent.click(screen.getByText('Raise all defaults'));
 
@@ -122,10 +140,19 @@ describe('UserManagement', () => {
         const sent = service.raiseAllUserLimits.mock.calls[0][0];
         // A raise, not an arbitrary number: every value is above the default it
         // replaces. A "raise" that lowers a limit is the bug this asserts against.
-        expect(sent.maxAssets).toBeGreaterThan(DEFAULT_LIMITS.MAX_ASSETS);
-        expect(sent.maxNisabRecords).toBeGreaterThan(DEFAULT_LIMITS.MAX_NISAB_RECORDS);
-        expect(sent.maxPayments).toBeGreaterThan(DEFAULT_LIMITS.MAX_PAYMENTS);
-        expect(sent.maxLiabilities).toBeGreaterThan(DEFAULT_LIMITS.MAX_LIABILITIES);
+        expect(sent.maxAssets).toBeGreaterThan(SERVER_DEFAULTS.maxAssets);
+        expect(sent.maxNisabRecords).toBeGreaterThan(SERVER_DEFAULTS.maxNisabRecords);
+        expect(sent.maxPayments).toBeGreaterThan(SERVER_DEFAULTS.maxPayments);
+        expect(sent.maxLiabilities).toBeGreaterThan(SERVER_DEFAULTS.maxLiabilities);
         confirmSpy.mockRestore();
+    });
+
+    it('shows the server defaults, not a hardcoded copy, in the usage column', async () => {
+        render(<UserManagement />);
+        // maxAssets is null on this fixture, so the denominator is the effective
+        // default. If the component reads a local constant it renders 20 here.
+        await waitFor(() =>
+            expect(screen.getAllByText(`1 / ${SERVER_DEFAULTS.maxAssets}`).length).toBeGreaterThan(0)
+        );
     });
 });

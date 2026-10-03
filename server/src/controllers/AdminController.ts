@@ -279,6 +279,19 @@ export const updateUserStatus = async (req: AuthenticatedRequest, res: Response)
     }
 };
 
+/** The effective defaults, so the admin UI never has to hardcode a second copy. */
+export const getUserLimitDefaults = async (_req: Request, res: Response) => {
+    res.json({
+        success: true,
+        data: {
+            maxAssets: DEFAULT_LIMITS.MAX_ASSETS,
+            maxNisabRecords: DEFAULT_LIMITS.MAX_NISAB_RECORDS,
+            maxPayments: DEFAULT_LIMITS.MAX_PAYMENTS,
+            maxLiabilities: DEFAULT_LIMITS.MAX_LIABILITIES,
+        },
+    });
+};
+
 export const updateAllUserLimits = async (req: Request, res: Response) => {
     try {
         const body = req.body as Record<string, unknown>;

@@ -43,6 +43,13 @@ export interface User {
     };
 }
 
+export interface DefaultLimits {
+    maxAssets: number;
+    maxNisabRecords: number;
+    maxPayments: number;
+    maxLiabilities: number;
+}
+
 export interface UserListResponse {
     data: User[];
     pagination: {
@@ -125,6 +132,15 @@ export const adminService = {
     /** Raise the stored default for every user below the given values. */
     raiseAllUserLimits: async (limits: { maxAssets?: number, maxNisabRecords?: number, maxPayments?: number, maxLiabilities?: number }): Promise<ApiResponse> => {
         return apiService.put('/admin/users/limits/all', limits);
+    },
+
+    /**
+     * The effective defaults a user falls back to when they carry no override.
+     * Fetched rather than hardcoded so the admin UI can never disagree with the
+     * caps the server actually enforces.
+     */
+    getDefaultLimits: async (): Promise<ApiResponse<DefaultLimits>> => {
+        return apiService.get('/admin/users/limits/defaults');
     },
 
     getSettings: async (): Promise<ApiResponse<SystemSettings>> => {

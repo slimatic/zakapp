@@ -60,7 +60,8 @@ vi.mock('../../utils/logger', () => {
   };
 });
 
-const { getUsers, updateUserStatus, updateAllUserLimits } = await import('../AdminController');
+const { getUsers, updateUserStatus, updateAllUserLimits, getUserLimitDefaults } = await import('../AdminController');
+const { DEFAULT_LIMITS } = await import('../../config/limits');
 
 const mockRes = () => {
   const res: any = {};
@@ -172,5 +173,39 @@ describe('AdminController.updateAllUserLimits', () => {
     await updateAllUserLimits({ body: { maxAssets: 'lots', maxPayments: -3 } } as any, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(prismaMock.user.updateMany).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * The endpoint that ends the client's second copy of the defaults.
+ *
+ * The admin UI used to render a hardcoded 20/3/25 while this module enforced
+ * 30/5/50, so the usage denominators were wrong and the bulk-raise computed its
+ * targets from numbers that were no longer real. Anything the UI shows must
+ * come from here.
+ */
+describe('AdminController.getUserLimitDefaults', () => {
+  it('reports the effective defaults the server actually enforces', async () => {
+    const res = mockRes();
+    await getUserLimitDefaults({} as any, res);
+
+    const payload = body(res);
+    expect(payload.success).toBe(true);
+    expect(payload.data).toEqual({
+      maxAssets: DEFAULT_LIMITS.MAX_ASSETS,
+      maxNisabRecords: DEFAULT_LIMITS.MAX_NISAB_RECORDS,
+      maxPayments: DEFAULT_LIMITS.MAX_PAYMENTS,
+      maxLiabilities: DEFAULT_LIMITS.MAX_LIABILITIES,
+    });
+  });
+
+  it('serves the same numbers the enforcement path resolves against', async () => {
+    // A default that is reported here but not resolved in `?? DEFAULT_LIMITS.maxX`
+    // would reintroduce the drift, so the two are pinned to one another.
+    const res = mockRes();
+    await getUserLimitDefaults({} as any, res);
+
+    expect(body(res).data.maxAssets).toBe(DEFAULT_LIMITS.MAX_ASSETS);
+    expect(DEFAULT_LIMITS.MAX_ASSETS).toBe(Number(process.env.DEFAULT_MAX_ASSETS) || 30);
   });
 });

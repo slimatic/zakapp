@@ -1,8 +1,7 @@
 import toast from 'react-hot-toast';
 import React, { useState, useEffect } from 'react';
-import { adminService, User } from '../../services/adminService';
+import { adminService, User, DefaultLimits } from '../../services/adminService';
 import { LimitModal } from '../../pages/admin/LimitModal';
-import { DEFAULT_LIMITS } from '../../constants/limits';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
@@ -27,6 +26,15 @@ export const UserManagement: React.FC = () => {
     const [editingLimitUser, setEditingLimitUser] = useState<User | null>(null);
     const [sort, setSort] = useState<string>('createdAt:desc');
     const [raisingAll, setRaisingAll] = useState(false);
+    /**
+     * The effective defaults, fetched from the server. Held in state rather than
+     * read from a client constant because the caps a user actually falls back to
+     * live on the server (`maxAssets ?? DEFAULT_LIMITS.maxAssets`), and a second
+     * local copy drifts: the admin list showed 20/3/25 where the server enforced
+     * 30/5/50, so every usage bar was wrong and the bulk raise computed its
+     * targets from numbers that were no longer real.
+     */
+    const [limits, setLimits] = useState<DefaultLimits | null>(null);
 
     const loadUsers = async () => {
         setLoading(true);
@@ -61,6 +69,15 @@ export const UserManagement: React.FC = () => {
 
         return () => clearInterval(interval);
     }, [page, searchTerm, sort]);
+
+    // Fetched once: the defaults only change when an admin raises the floor, and
+    // the raise handler refetches. A failure here leaves `limits` null, and the
+    // render falls back to "not set" rather than inventing a number.
+    useEffect(() => {
+        adminService.getDefaultLimits().then(res => {
+            if (res.success && res.data) setLimits(res.data);
+        });
+    }, []);
 
     const handleDelete = async (userId: string) => {
         if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
@@ -133,19 +150,23 @@ export const UserManagement: React.FC = () => {
      * Raise the account-wide default for every user who has not been given an
      * individual override. The per-user Limits modal is the precise tool; this is
      * the "everyone needs a bit more headroom" case, so the values are a small
-     * step up from the built-in defaults rather than an arbitrary number.
+     * step up from the CURRENT defaults rather than from a hardcoded guess.
+     *
+     * Steps are fixed amounts, not percentages: the counts are small (tens), so a
+     * "+10 assets" step is legible to an operator in a way that "+50%" is not.
      */
     const handleRaiseAll = async () => {
+        if (!limits) return;
         const target = {
-            maxAssets: DEFAULT_LIMITS.MAX_ASSETS + 10,
-            maxNisabRecords: DEFAULT_LIMITS.MAX_NISAB_RECORDS + 7,
-            maxPayments: DEFAULT_LIMITS.MAX_PAYMENTS + 25,
-            maxLiabilities: DEFAULT_LIMITS.MAX_LIABILITIES + 13
+            maxAssets: limits.maxAssets + 10,
+            maxNisabRecords: limits.maxNisabRecords + 3,
+            maxPayments: limits.maxPayments + 25,
+            maxLiabilities: limits.maxLiabilities + 5
         };
         if (!window.confirm(
             'Raise the default limits for ALL users, only where the new value is higher?\n\n' +
-            `Assets ${DEFAULT_LIMITS.MAX_ASSETS} → ${target.maxAssets}   Nisab ${DEFAULT_LIMITS.MAX_NISAB_RECORDS} → ${target.maxNisabRecords}\n` +
-            `Payments ${DEFAULT_LIMITS.MAX_PAYMENTS} → ${target.maxPayments}   Liabilities ${DEFAULT_LIMITS.MAX_LIABILITIES} → ${target.maxLiabilities}\n\n` +
+            `Assets ${limits.maxAssets} → ${target.maxAssets}   Nisab ${limits.maxNisabRecords} → ${target.maxNisabRecords}\n` +
+            `Payments ${limits.maxPayments} → ${target.maxPayments}   Liabilities ${limits.maxLiabilities} → ${target.maxLiabilities}\n\n` +
             'Users who already have more than these values are left unchanged.'
         )) return;
 
@@ -268,15 +289,15 @@ export const UserManagement: React.FC = () => {
                         <dl className="text-xs space-y-1">
                             <div className="flex justify-between gap-4">
                                 <dt className="text-muted-foreground">Assets</dt>
-                                <dd className="tabular-nums">{user._count?.assets ?? 0} / {user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS}</dd>
+                                <dd className="tabular-nums">{user._count?.assets ?? 0} / {user.maxAssets ?? limits?.maxAssets ?? '—'}</dd>
                             </div>
                             <div className="flex justify-between gap-4">
                                 <dt className="text-muted-foreground">Nisab records</dt>
-                                <dd className="tabular-nums">{user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS}</dd>
+                                <dd className="tabular-nums">{user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? limits?.maxNisabRecords ?? '—'}</dd>
                             </div>
                             <div className="flex justify-between gap-4">
                                 <dt className="text-muted-foreground">Payments</dt>
-                                <dd className="tabular-nums">{user._count?.payments ?? 0} / {user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS}</dd>
+                                <dd className="tabular-nums">{user._count?.payments ?? 0} / {user.maxPayments ?? limits?.maxPayments ?? '—'}</dd>
                             </div>
                             <div className="flex justify-between gap-4">
                                 <dt className="text-muted-foreground">Last login</dt>
@@ -352,9 +373,9 @@ export const UserManagement: React.FC = () => {
                                 </td>
                                 <td className="px-6 py-4 text-sm text-muted-foreground">
                                     <div className="flex flex-col gap-0.5 text-xs">
-                                        <span title="Assets Usage / Limit">Assets: {user._count?.assets ?? 0} / {user.maxAssets ?? DEFAULT_LIMITS.MAX_ASSETS}</span>
-                                        <span title="Nisab Usage / Limit">Nisab: {user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? DEFAULT_LIMITS.MAX_NISAB_RECORDS}</span>
-                                        <span title="Payments Usage / Limit">Payments: {user._count?.payments ?? 0} / {user.maxPayments ?? DEFAULT_LIMITS.MAX_PAYMENTS}</span>
+                                        <span title="Assets Usage / Limit">Assets: {user._count?.assets ?? 0} / {user.maxAssets ?? limits?.maxAssets ?? '—'}</span>
+                                        <span title="Nisab Usage / Limit">Nisab: {user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? limits?.maxNisabRecords ?? '—'}</span>
+                                        <span title="Payments Usage / Limit">Payments: {user._count?.payments ?? 0} / {user.maxPayments ?? limits?.maxPayments ?? '—'}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-muted-foreground">
@@ -439,6 +460,7 @@ export const UserManagement: React.FC = () => {
             {editingLimitUser && (
                 <LimitModal
                     user={editingLimitUser}
+                    defaults={limits}
                     onClose={() => setEditingLimitUser(null)}
                     onSave={handleLimitSave}
                 />
