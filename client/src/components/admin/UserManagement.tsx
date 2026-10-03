@@ -380,9 +380,13 @@ export const UserManagement: React.FC = () => {
                                 </td>
                                 <td className="px-6 py-4 text-sm text-muted-foreground">
                                     <div className="flex flex-col gap-0.5 text-xs">
-                                        <span title="Assets Usage / Limit">Assets: {user._count?.assets ?? 0} / {user.maxAssets ?? limits?.maxAssets ?? '—'}</span>
-                                        <span title="Nisab Usage / Limit">Nisab: {user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? limits?.maxNisabRecords ?? '—'}</span>
-                                        <span title="Payments Usage / Limit">Payments: {user._count?.payments ?? 0} / {user.maxPayments ?? limits?.maxPayments ?? '—'}</span>
+                                        {/* nowrap: the column is narrow enough that
+                                            "Assets: 0 / 20" wrapped to two lines
+                                            ("0 /" then "20"), which reads as four
+                                            stacked fragments instead of three limits. */}
+                                        <span className="whitespace-nowrap" title="Assets Usage / Limit">Assets: {user._count?.assets ?? 0} / {user.maxAssets ?? limits?.maxAssets ?? '—'}</span>
+                                        <span className="whitespace-nowrap" title="Nisab Usage / Limit">Nisab: {user._count?.yearlySnapshots ?? 0} / {user.maxNisabRecords ?? limits?.maxNisabRecords ?? '—'}</span>
+                                        <span className="whitespace-nowrap" title="Payments Usage / Limit">Payments: {user._count?.payments ?? 0} / {user.maxPayments ?? limits?.maxPayments ?? '—'}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-muted-foreground">
