@@ -58,11 +58,19 @@ export const adminService = {
         return apiService.get('/admin/stats');
     },
 
-    getUsers: async (page = 1, limit = 10, search = ''): Promise<ApiResponse<UserListResponse>> => {
+    getUsers: async (
+        page = 1,
+        limit = 10,
+        search = '',
+        sortBy = 'createdAt',
+        sortDir: 'asc' | 'desc' = 'desc'
+    ): Promise<ApiResponse<UserListResponse>> => {
         const params = new URLSearchParams({
             page: page.toString(),
             limit: limit.toString(),
-            search
+            search,
+            sortBy,
+            sortDir
         });
         return apiService.get(`/admin/users?${params.toString()}`);
     },
@@ -107,23 +115,16 @@ export const adminService = {
     },
 
     updateUserLimits: async (id: string, limits: { maxAssets?: number | null, maxNisabRecords?: number | null, maxPayments?: number | null, maxLiabilities?: number | null }): Promise<ApiResponse> => {
-        const token = localStorage.getItem('accessToken');
-        const headers = {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-        };
+        return apiService.patch(`/admin/users/${id}/limits`, limits);
+    },
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/admin/users/${id}/limits`, {
-                method: 'PATCH',
-                headers,
-                body: JSON.stringify(limits)
-            });
-            const result = await response.json();
-            return result;
-        } catch (e) {
-            return { success: false, message: e instanceof Error ? e.message : 'Network error' };
-        }
+    setUserActive: async (id: string, isActive: boolean): Promise<ApiResponse> => {
+        return apiService.patch(`/admin/users/${id}/status`, { isActive });
+    },
+
+    /** Raise the stored default for every user below the given values. */
+    raiseAllUserLimits: async (limits: { maxAssets?: number, maxNisabRecords?: number, maxPayments?: number, maxLiabilities?: number }): Promise<ApiResponse> => {
+        return apiService.put('/admin/users/limits/all', limits);
     },
 
     getSettings: async (): Promise<ApiResponse<SystemSettings>> => {

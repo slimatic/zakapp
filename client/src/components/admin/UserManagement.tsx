@@ -5,6 +5,18 @@ import { LimitModal } from '../../pages/admin/LimitModal';
 import { DEFAULT_LIMITS } from '../../constants/limits';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
+
+/** Server-side sort fields, allow-listed to match the admin route's `sortable`. */
+const SORT_OPTIONS = [
+    { value: 'createdAt:desc', label: 'Newest first' },
+    { value: 'createdAt:asc', label: 'Oldest first' },
+    { value: 'lastLoginAt:desc', label: 'Last login (recent)' },
+    { value: 'lastLoginAt:asc', label: 'Last login (oldest)' },
+    { value: 'email:asc', label: 'Email (A-Z)' },
+    { value: 'userType:asc', label: 'Type' },
+    { value: 'isActive:asc', label: 'Inactive first' },
+] as const;
 
 export const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
@@ -13,11 +25,14 @@ export const UserManagement: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [editingLimitUser, setEditingLimitUser] = useState<User | null>(null);
+    const [sort, setSort] = useState<string>('createdAt:desc');
+    const [raisingAll, setRaisingAll] = useState(false);
 
     const loadUsers = async () => {
         setLoading(true);
         try {
-            const usersRes = await adminService.getUsers(page, 10, searchTerm);
+            const [sortBy, sortDir] = sort.split(':') as [string, 'asc' | 'desc'];
+            const usersRes = await adminService.getUsers(page, 10, searchTerm, sortBy, sortDir);
             if (usersRes.success && usersRes.data) {
                 if (Array.isArray(usersRes.data)) {
                     setUsers(usersRes.data);
@@ -45,7 +60,7 @@ export const UserManagement: React.FC = () => {
         }, 10000);
 
         return () => clearInterval(interval);
-    }, [page, searchTerm]);
+    }, [page, searchTerm, sort]);
 
     const handleDelete = async (userId: string) => {
         if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
@@ -96,6 +111,60 @@ export const UserManagement: React.FC = () => {
         setUsers(users.map(u => u.id === userId ? { ...u, ...limits } : u));
     };
 
+    const handleActiveToggle = async (user: User) => {
+        const next = !user.isActive;
+        const verb = next ? 'activate' : 'deactivate';
+        if (!window.confirm(`Are you sure you want to ${verb} ${user.username || user.email}?`)) return;
+
+        try {
+            const res = await adminService.setUserActive(user.id, next);
+            if (res.success) {
+                setUsers(users.map(u => u.id === user.id ? { ...u, isActive: next } : u));
+                toast.success(`User ${next ? 'activated' : 'deactivated'}`);
+            } else {
+                toast.error(res.message || `Failed to ${verb} the user`);
+            }
+        } catch (err) {
+            toast.error(`Could not ${verb} the user. Please try again.`);
+        }
+    };
+
+    /**
+     * Raise the account-wide default for every user who has not been given an
+     * individual override. The per-user Limits modal is the precise tool; this is
+     * the "everyone needs a bit more headroom" case, so the values are a small
+     * step up from the built-in defaults rather than an arbitrary number.
+     */
+    const handleRaiseAll = async () => {
+        const target = {
+            maxAssets: DEFAULT_LIMITS.MAX_ASSETS + 10,
+            maxNisabRecords: DEFAULT_LIMITS.MAX_NISAB_RECORDS + 7,
+            maxPayments: DEFAULT_LIMITS.MAX_PAYMENTS + 25,
+            maxLiabilities: DEFAULT_LIMITS.MAX_LIABILITIES + 13
+        };
+        if (!window.confirm(
+            'Raise the default limits for ALL users, only where the new value is higher?\n\n' +
+            `Assets ${DEFAULT_LIMITS.MAX_ASSETS} → ${target.maxAssets}   Nisab ${DEFAULT_LIMITS.MAX_NISAB_RECORDS} → ${target.maxNisabRecords}\n` +
+            `Payments ${DEFAULT_LIMITS.MAX_PAYMENTS} → ${target.maxPayments}   Liabilities ${DEFAULT_LIMITS.MAX_LIABILITIES} → ${target.maxLiabilities}\n\n` +
+            'Users who already have more than these values are left unchanged.'
+        )) return;
+
+        setRaisingAll(true);
+        try {
+            const res = await adminService.raiseAllUserLimits(target);
+            if (res.success) {
+                toast.success('Default limits raised for all eligible users');
+                loadUsers();
+            } else {
+                toast.error(res.message || 'Failed to raise default limits');
+            }
+        } catch (err) {
+            toast.error('Could not raise default limits. Please try again.');
+        } finally {
+            setRaisingAll(false);
+        }
+    };
+
     if (loading && users.length === 0) return <div className="p-8 text-center">Loading users...</div>;
 
     return (
@@ -105,26 +174,48 @@ export const UserManagement: React.FC = () => {
                 {/* The input is full-width on a phone rather than fixed: a 240px
                     input plus a refresh button overflows a 360px card, and it
                     pushed the card wide enough to shift the page. */}
-                <div className="flex gap-2 w-full sm:w-auto">
-                    <button
-                        onClick={loadUsers}
-                        className="p-2.5 shrink-0 text-muted-foreground hover:text-secondary hover:bg-accent rounded-lg transition-colors"
-                        title="Refresh Data"
-                        aria-label="Refresh user list"
-                        disabled={loading}
-                    >
-                        <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                    </button>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <div className="flex gap-2">
+                        <Select
+                            aria-label="Sort users"
+                            className="flex-1 sm:w-52 sm:flex-none"
+                            value={sort}
+                            onChange={(e) => { setPage(1); setSort(e.target.value); }}
+                        >
+                            {SORT_OPTIONS.map(o => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                        </Select>
+                        <button
+                            onClick={loadUsers}
+                            className="p-2.5 shrink-0 text-muted-foreground hover:text-secondary hover:bg-accent rounded-lg transition-colors"
+                            title="Refresh Data"
+                            aria-label="Refresh user list"
+                            disabled={loading}
+                        >
+                            <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                    </div>
                     <Input
                         type="text"
                         placeholder="Search users..."
                         aria-label="Search users"
-                        className="flex-1 sm:w-64 sm:flex-none"
+                        className="flex-1 sm:w-56 sm:flex-none"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => { setPage(1); setSearchTerm(e.target.value); }}
                     />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-11 sm:h-9 shrink-0"
+                        isLoading={raisingAll}
+                        onClick={handleRaiseAll}
+                        title="Raise the stored default limits for every user below the new values"
+                    >
+                        Raise all defaults
+                    </Button>
                 </div>
             </div>
 
@@ -202,6 +293,14 @@ export const UserManagement: React.FC = () => {
                             {!user.isVerified && (
                                 <Button variant="outline" size="sm" onClick={() => handleVerify(user.id)}>Verify</Button>
                             )}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className={user.isActive ? 'text-danger' : 'text-success'}
+                                onClick={() => handleActiveToggle(user)}
+                            >
+                                {user.isActive ? 'Deactivate' : 'Activate'}
+                            </Button>
                             <Button variant="outline" size="sm" onClick={() => setEditingLimitUser(user)}>Limits</Button>
                             <Button variant="outline" size="sm" onClick={() => handleRoleUpdate(user.id, user.userType === 'ADMIN_USER' ? 'USER' : 'ADMIN_USER')}>
                                 {user.userType === 'ADMIN_USER' ? 'Demote' : 'Promote'}
@@ -276,6 +375,15 @@ export const UserManagement: React.FC = () => {
                                             className="text-secondary hover:text-secondary/80 hover:bg-accent px-3 py-1 rounded-md text-sm font-medium transition-colors"
                                         >
                                             Limits
+                                        </button>
+                                        <button
+                                            onClick={() => handleActiveToggle(user)}
+                                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${user.isActive
+                                                ? 'text-danger hover:text-danger hover:bg-danger-soft'
+                                                : 'text-success hover:text-success hover:bg-success-soft'
+                                                }`}
+                                        >
+                                            {user.isActive ? 'Deactivate' : 'Activate'}
                                         </button>
                                         <button
                                             onClick={() => handleRoleUpdate(user.id, user.userType === 'ADMIN_USER' ? 'USER' : 'ADMIN_USER')}
