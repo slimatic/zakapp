@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.0.1] - 2026-10-04
+
+*22 Rabi al-Thani 1448 — waning crescent closing the month.*
+
+A correctness release. Four of these were not new features but things that were
+claimed to work and did not — including an account control that had no effect.
+
+### Deactivating an account now actually deactivates it
+
+- **The switch existed and did nothing.** `isActive` was written to the database and
+  read by nobody: a deactivated user kept signing in and their existing token kept
+  working. It is now enforced at sign-in and on every authenticated request, and the
+  revocation survives a restart because it is read from the database rather than
+  remembered in memory.
+- **Deleting a user no longer orphans their data.** The purge of their CouchDB
+  documents was a `// TODO`; it now runs.
+- **An admin cannot deactivate their own account**, which previously locked them out.
+
+### The preview server refuses to point at production
+
+Bare `vite preview` defaulted its `/api` proxy to the production backend and forged an
+`Origin: app.zakapp.org` header, so a local registration created a real user on
+production — twice. It now refuses to start without an explicit target and prints the
+command to run.
+
+### The user list is sortable, and the limit tools work
+
+- **Sort by last login, never-logged-in, email, type, inactive-first**, applied
+  server-side against an allow-list.
+- **Raise every user's limit at once**, sourced from the server's live defaults rather
+  than a stale client copy — two of the three fields were previously no-ops.
+- Users already above the default are left alone rather than clamped down.
+
+### One tab treatment, not three
+
+The admin dashboard and the Learning Hub still used underline tabs with cramped
+padding; on a phone the labels ran together mid-word. Both now use the pill pattern
+from Settings, with the ARIA wiring (`role="tablist"`, `aria-selected`) the Learning
+Hub had been missing entirely.
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v1.0.0...v1.0.1
+
 ## [1.0.0] - 2026-10-01
 
 *20 Rabi al-Thani 1448 — waning gibbous, 78% lit.*
