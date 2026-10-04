@@ -198,6 +198,23 @@ class ApiService {
     }
   }
 
+  // `getAuthHeaders()` attaches the bearer token (and JSON content-type), which is
+  // why the admin callers that grew a bespoke `fetch` + `localStorage.getItem`
+  // wrapper did not need to hand-roll auth at all - they only needed this verb.
+  async patch(path: string, body?: any): Promise<ApiResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : '/' + path}`, {
+        method: 'PATCH',
+        headers: this.getAuthHeaders(),
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const result = await response.json();
+      return result as ApiResponse;
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : 'Network error' };
+    }
+  }
+
   // Authentication endpoints
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {

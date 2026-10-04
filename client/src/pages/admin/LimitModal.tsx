@@ -1,16 +1,21 @@
 
 import toast from 'react-hot-toast';
 import React, { useState, useEffect } from 'react';
-import { User, adminService } from '../../services/adminService';
-import { DEFAULT_LIMITS } from '../../constants/limits';
+import { User, DefaultLimits, adminService } from '../../services/adminService';
 
 interface LimitModalProps {
     user: User | null;
+    /**
+     * The effective defaults, passed down from the list that already fetched them.
+     * A second hardcoded copy is exactly how these labels came to read 20/3/25
+     * while the server enforced 30/5/50.
+     */
+    defaults: DefaultLimits | null;
     onClose: () => void;
     onSave: (userId: string, limits: { maxAssets: number | null, maxNisabRecords: number | null, maxPayments: number | null, maxLiabilities: number | null }) => void;
 }
 
-export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave }) => {
+export const LimitModal: React.FC<LimitModalProps> = ({ user, defaults, onClose, onSave }) => {
     const [maxAssets, setMaxAssets] = useState<string>('');
     const [maxNisabRecords, setMaxNisabRecords] = useState<string>('');
     const [maxPayments, setMaxPayments] = useState<string>('');
@@ -62,7 +67,7 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label htmlFor="maxAssets" className="block text-sm font-medium text-foreground/80 mb-1">
-                            Max Assets (Default: {DEFAULT_LIMITS.MAX_ASSETS})
+                            Max Assets (Default: {defaults?.maxAssets ?? '—'})
                         </label>
                         <input
                             id="maxAssets"
@@ -76,7 +81,7 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
 
                     <div>
                         <label htmlFor="maxNisabRecords" className="block text-sm font-medium text-foreground/80 mb-1">
-                            Max Nisab Records (Default: {DEFAULT_LIMITS.MAX_NISAB_RECORDS})
+                            Max Nisab Records (Default: {defaults?.maxNisabRecords ?? '—'})
                         </label>
                         <input
                             id="maxNisabRecords"
@@ -90,7 +95,7 @@ export const LimitModal: React.FC<LimitModalProps> = ({ user, onClose, onSave })
 
                     <div>
                         <label htmlFor="maxPayments" className="block text-sm font-medium text-foreground/80 mb-1">
-                            Max Payments (Default: {DEFAULT_LIMITS.MAX_PAYMENTS})
+                            Max Payments (Default: {defaults?.maxPayments ?? '—'})
                         </label>
                         <input
                             id="maxPayments"
