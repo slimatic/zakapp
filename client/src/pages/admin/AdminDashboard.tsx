@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserCheck, UserMinus, HardDrive } from 'lucide-react';
+import { Users, UserCheck, UserMinus, HardDrive, LayoutDashboard, Settings, Activity } from 'lucide-react';
 import { adminService, AdminStats } from '../../services/adminService';
 import { PageLoadingFallback } from '../../components/common/LoadingFallback';
 import { ErrorDisplay } from '../../components/common/ErrorDisplay';
@@ -65,25 +65,31 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Navigation Tabs */}
             {/*
-                overflow-x-auto alone was not enough. The strip is wider than a
-                phone (four long labels, ~511px), and scrolling it to the active
-                tab left the FIRST label cut in half - "verview" - because a
-                scroll container's content starts flush at its edge. Scroll-padding
-                gives the leading tab its own breathing room so a partially
-                scrolled strip never renders a word trimmed mid-glyph.
+                These were underline tabs with `px-1` and `gap-2`, which on a phone
+                packed the four labels into an illegible run - "OverviewUser
+                ManagemenSystem SettingsSystem Health", clipped mid-word - while the
+                Settings page next to them rendered tidy pills. Same app, two tab
+                treatments. This now reuses Settings' pill pattern (rounded-md,
+                gap-1.5, active `bg-accent text-secondary`) so the two agree.
 
-                -mx-4 px-4 lets the strip bleed to the screen edges while the text
-                stays inset, which is what reads as intentional rather than as a
-                clipped box.
+                overflow-x-auto + scroll-px-4 still matter: four pills exceed a
+                360px screen, and a scroll container's content starts flush at its
+                edge, so without scroll padding the first pill renders clipped.
+                -mx-4 px-4 lets the strip bleed to the screen edges while the pills
+                stay inset.
             */}
-            <div className="-mx-4 overflow-x-auto scroll-px-4 border-b border-border px-4 sm:mx-0 sm:px-0">
-                <nav className="-mb-px flex gap-2 sm:gap-8" aria-label="Tabs" role="tablist">
+            <div className="-mx-4 overflow-x-auto scroll-px-4 px-4 sm:mx-0 sm:px-0">
+                <nav
+                    className="flex gap-1.5 pb-1 sm:gap-2"
+                    aria-label="Tabs"
+                    role="tablist"
+                >
                     {([
-                        ['overview', 'Overview'],
-                        ['users', 'User Management'],
-                        ['settings', 'System Settings'],
-                        ['health', 'System Health'],
-                    ] as const).map(([id, label]) => {
+                        ['overview', 'Overview', LayoutDashboard],
+                        ['users', 'User Management', Users],
+                        ['settings', 'System Settings', Settings],
+                        ['health', 'System Health', Activity],
+                    ] as const).map(([id, label, Icon]) => {
                         const selected = activeTab === id;
                         return (
                             <button
@@ -91,14 +97,18 @@ export const AdminDashboard: React.FC = () => {
                                 role="tab"
                                 aria-selected={selected}
                                 onClick={() => setActiveTab(id)}
-                                className={`
-                                    whitespace-nowrap py-3.5 px-1 border-b-2 font-medium text-sm
-                                    transition-colors
-                                    ${selected
-                                        ? 'border-secondary text-secondary'
-                                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'}
-                                `}
+                                className={`flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+                                    selected
+                                        ? 'bg-accent text-secondary'
+                                        : 'text-foreground hover:bg-muted hover:text-foreground'
+                                }`}
                             >
+                                <Icon
+                                    className={`h-5 w-5 flex-shrink-0 ${
+                                        selected ? 'text-secondary' : 'text-muted-foreground'
+                                    }`}
+                                    aria-hidden="true"
+                                />
                                 {label}
                             </button>
                         );
