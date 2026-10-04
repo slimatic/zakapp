@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, isPreview }) => {
   // Load env file based on `mode` in the parent directory (project root).
   const envDir = path.resolve(process.cwd(), '..');
   const env = loadEnv(mode, envDir, '');
@@ -33,6 +33,48 @@ export default defineConfig(({ mode }) => {
   }
 
   const pkg = require('./package.json');
+
+  // ── `vite preview` must never fall back to a shared backend ───────────────
+  //
+  // These env vars used to default to the production API and CouchDB hosts, and
+  // the API proxy additionally forged `Origin: https://app.zakapp.org`. A bare
+  // `vite preview` therefore looked like a normal browser from production and
+  // wrote to the production database — registering there created a real account,
+  // this has already happened twice. It also fails confusingly rather than
+  // obviously: the forged origin makes the backend answer with
+  // `Access-Control-Allow-Origin: https://app.zakapp.org`, which the browser
+  // rejects against the preview's own origin, so login dies with "Failed to
+  // fetch" and reads as *the backend is down*.
+  //
+  // A defaulted shared backend is the wrong default for a tool whose whole job is
+  // measuring a LOCAL build. `vite dev` is unaffected — it has no default either.
+  //
+  // Scoped to `isPreview`. This config callback also runs for `vite build` and
+  // `vite dev`, and throwing there breaks the build that CI and
+  // scripts/deploy-dev-site.sh depend on — the guard must catch the preview
+  // command, not every command that loads this file. (vite 6 exposes isPreview on
+  // ConfigEnv; it is undefined for build/dev.)
+  //
+  // ponytail: throws rather than warns. A preview with no backend is useless, so
+  // there is no useful "continue with a warning" branch; the message names the
+  // exact command to run instead. The throw is deferred into the `preview` block
+  // below, which vite only evaluates when it actually starts a preview server.
+  const PROD_API = 'http://192.168.86.242:3001';
+  const PROD_COUCHDB = 'http://192.168.86.242:5984';
+  const requireProxyTarget = (name: string, prodDefault: string): string => {
+    if (!isPreview) return prodDefault;
+    const value = process.env[name];
+    if (value) return value;
+    throw new Error(
+      `\n\n  ${name} is not set, so \`vite preview\` refuses to start.\n` +
+      `\n  Without it the proxy would default to ${prodDefault}\n` +
+      `  (the SHARED backend) and write real data there.\n` +
+      `\n  Point it at a local stack:\n` +
+      `\n    VITE_PROXY_TARGET=http://127.0.0.1:3002 \\\n` +
+      `    VITE_COUCHDB_TARGET=http://127.0.0.1:5984 \\\n` +
+      `      npm run preview\n\n`
+    );
+  };
 
   return {
     envDir,
@@ -304,12 +346,9 @@ export default defineConfig(({ mode }) => {
       allowedHosts: allowedHosts,
       proxy: {
         '/api': {
-          target: process.env.VITE_PROXY_TARGET || 'http://192.168.86.242:3001',
+          target: requireProxyTarget('VITE_PROXY_TARGET', PROD_API),
           changeOrigin: true,
           secure: false,
-          ...(process.env.VITE_PROXY_TARGET
-            ? {}
-            : { headers: { Origin: 'https://app.zakapp.org' } }),
         },
         // CouchDB MUST be proxied too. APP_CONFIG advertises COUCHDB_URL=/couchdb,
         // and without this rule vite serves the SPA's own index.html for that path
@@ -318,7 +357,7 @@ export default defineConfig(({ mode }) => {
         // "Decrypting vault..." with no error in the console. Same-origin proxy also
         // sidesteps CORS, which the :5984 backend does not allow from this origin.
         '/couchdb': {
-          target: process.env.VITE_COUCHDB_TARGET || 'http://192.168.86.242:5984',
+          target: requireProxyTarget('VITE_COUCHDB_TARGET', PROD_COUCHDB),
           changeOrigin: true,
           secure: false,
           rewrite: (path: string) => path.replace(/^\/couchdb/, ''),

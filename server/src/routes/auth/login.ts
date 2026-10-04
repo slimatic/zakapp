@@ -89,6 +89,22 @@ router.post('/login',
         return;
       }
 
+      // Check account status. `isActive` is the admin toggle, and without this
+      // branch a deactivated account authenticated normally — the "Inactive"
+      // badge in the user list changed nothing. Checked after the password so an
+      // unauthenticated caller cannot use this endpoint to enumerate which
+      // accounts are deactivated.
+      if (user.isActive === false) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCOUNT_DEACTIVATED',
+            message: 'This account has been deactivated. Contact an administrator if you believe this is in error.'
+          }
+        });
+        return;
+      }
+
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.passwordHash);
       if (!isValidPassword) {

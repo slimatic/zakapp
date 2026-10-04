@@ -1,6 +1,0 @@
-export const DEFAULT_LIMITS = {
-    MAX_ASSETS: 20,
-    MAX_NISAB_RECORDS: 3,
-    MAX_PAYMENTS: 25,
-    MAX_LIABILITIES: 2
-} as const;
