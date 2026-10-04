@@ -74,42 +74,45 @@ export const KnowledgeHub: React.FC = () => {
                 </p>
             </div>
 
-            {/* Navigation Tabs. Scrolls horizontally on a narrow screen rather
-                than widening the page - four tabs with icons and `space-x-8`
-                exceed a 390px phone. */}
-            <div className="-mx-4 mb-8 flex justify-start border-b border-border px-4 sm:mx-0 sm:justify-center sm:px-0">
+            {/* Navigation Tabs. Reuses the pill pattern used by Settings and the
+                admin dashboard, so the app has one tab treatment instead of three.
+                Previously this was underline tabs with `px-1` and `gap-6`, which on a
+                narrow screen produced the same jammed run the admin page had. The
+                icons and labels are unchanged - only the container style and the ARIA
+                wiring (role/aria-selected, which was missing entirely). */}
+            <div className="-mx-4 mb-8 overflow-x-auto scroll-px-4 px-4 sm:mx-0 sm:px-0">
                 <nav
-                    className="flex gap-6 overflow-x-auto sm:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    className="flex justify-start gap-1.5 pb-1 sm:justify-center sm:gap-2"
                     aria-label="Tabs"
+                    role="tablist"
                 >
-                    <button
-                        onClick={() => setActiveTab('faqs')}
-                        className={`${activeTab === 'faqs' ? 'border-secondary text-secondary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
-                    >
-                        <HelpCircle size={18} />
-                        FAQs
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('videos')}
-                        className={`${activeTab === 'videos' ? 'border-secondary text-secondary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
-                    >
-                        <Video size={18} />
-                        Video Library
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('guides')}
-                        className={`${activeTab === 'guides' ? 'border-secondary text-secondary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
-                    >
-                        <BookOpen size={18} />
-                        Guides
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('glossary')}
-                        className={`${activeTab === 'glossary' ? 'border-secondary text-secondary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border-strong'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
-                    >
-                        <BookOpen size={18} />
-                        Glossary
-                    </button>
+                    {([
+                        ['faqs', 'FAQs', HelpCircle],
+                        ['videos', 'Video Library', Video],
+                        ['guides', 'Guides', BookOpen],
+                        ['glossary', 'Glossary', BookOpen],
+                    ] as const).map(([id, label, Icon]) => {
+                        const selected = activeTab === id;
+                        return (
+                            <button
+                                key={id}
+                                role="tab"
+                                aria-selected={selected}
+                                onClick={() => setActiveTab(id)}
+                                className={`flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${selected
+                                    ? 'bg-accent text-secondary'
+                                    : 'text-foreground hover:bg-muted hover:text-foreground'
+                                    }`}
+                            >
+                                <Icon
+                                    size={18}
+                                    className={`flex-shrink-0 ${selected ? 'text-secondary' : 'text-muted-foreground'}`}
+                                    aria-hidden="true"
+                                />
+                                {label}
+                            </button>
+                        );
+                    })}
                 </nav>
             </div>
 
