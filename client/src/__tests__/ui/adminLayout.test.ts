@@ -18,13 +18,12 @@
 /**
  * The admin tab strip must not scroll the page sideways on a phone.
  *
- * Measured, not assumed: four tabs with `whitespace-nowrap` and `space-x-8` come to
- * ~511px, and the container is 358px wide at a 390px viewport. Without an
- * overflow wrapper the strip pushed the document to 527px, giving 137px of
- * page-level horizontal scroll on every admin page.
+ * Measured, not assumed: the strip of four tabs with `whitespace-nowrap` is wider
+ * than a 390px viewport, and without an overflow wrapper it pushed the document
+ * sideways, giving page-level horizontal scroll on every admin page.
  *
- * A real browser measurement needs a browser, so this asserts the two classes that
- * produce the behaviour instead - if either is removed the regression returns.
+ * A real browser measurement needs a browser, so this asserts the classes that
+ * produce the behaviour instead - if a class is removed the regression returns.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -38,14 +37,19 @@ const src = readFileSync(
 
 describe('admin tab strip is mobile-safe', () => {
   it('wraps the tab nav in an overflow-x-auto container', () => {
-    // Without this the ~511px strip widens the document. Assert the classes on the
+    // Without this the strip widens the document. Assert the classes on the
     // wrapper div rather than a loose span - a span test passed while the class sat
     // in a comment 3 lines away. Order-independent so a class added for the
     // scroll-affordance work does not fail a test about overflow.
+    //
+    // `border-b` used to be asserted here too: it was the underline rail under the
+    // old underline-style tabs. The tabs became pills to match the Settings page,
+    // and a rail under pills is not part of that design - so it is no longer
+    // required. What must remain is the thing this test exists for: the overflow
+    // wrapper, without which the page-level sideways scroll comes back.
     const wrapper = src.match(/<div className="([^"]*)"[^>]*>\s*\{?[\s\S]{0,400}?aria-label="Tabs"/);
     expect(wrapper, 'no wrapper div found around the nav').toBeTruthy();
     expect(wrapper![1]).toContain('overflow-x-auto');
-    expect(wrapper![1]).toContain('border-b');
   });
 
   it('keeps the tab labels on one line so the strip scrolls, not the page', () => {
