@@ -45,7 +45,6 @@
     "alreadyHaveVault": "لديك خزنة بالفعل؟",
     "signIn": "تسجيل الدخول",
     "encryptedOnDevice": "تشفير طرفي على جهازك",
-    "madeBy": "من إعداد",
     "username": "اسم المستخدم",
     "usernameOrEmail": "اسم المستخدم أو البريد الإلكتروني",
     "firstName": "الاسم الأول",
@@ -75,9 +74,8 @@
     "source": "الكود المصدري",
     "issues": "المشكلات",
     "reportIssue": "الإبلاغ عن مشكلة على GitHub",
-    "madeWith": "صُنع بـ",
-    "by": "بواسطة",
-    "build": "الإصدار {{hash}}"
+    "build": "الإصدار {{hash}}",
+    "collaboration": "بالتعاون مع"
   },
   "loading": "جارٍ التحميل...",
   "recovery": {

@@ -15,6 +15,11 @@ const logger = new Logger('EmailService');
  * that is the correct domain.
  *
  * Overridable by config; this is only the last-resort default.
+ *
+ * `noreply@` is OUTBOUND ONLY and deliberately has no Cloudflare Email Routing rule of
+ * its own. Nothing needs to arrive here, so an address-specific routing rule would be
+ * busywork — do not add one. This is a sender, not a mailbox; inbound mail is handled by
+ * the domain's catch-all.
  */
 const DEFAULT_FROM = process.env.SMTP_FROM || 'noreply@zakapp.org';
 

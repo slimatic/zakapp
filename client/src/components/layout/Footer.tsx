@@ -57,9 +57,7 @@ export const Footer: React.FC = () => {
                         <span>© {new Date().getFullYear()}</span>
                         {dot}
                         <a href="https://rstlabs.io" target="_blank" rel="noopener noreferrer" className={`${linkClass} group flex items-center gap-1`}>
-                            <span className="hidden sm:inline">{t('footer.madeWith')}</span>
-                            <span aria-hidden="true">❤️</span>
-                            <span className="hidden sm:inline">{t('footer.by')}</span>
+                            <span className="hidden sm:inline">{t('footer.collaboration')}</span>
                             <span className="font-semibold text-foreground/80 group-hover:text-foreground">RST Labs</span>
                         </a>
                         {dot}

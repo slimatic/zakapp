@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.0.2] - 2026-10-05
+
+*23 Rabi al-Thani 1448.*
+
+A short release carrying two fixes and one copy change, all of which were already on
+`develop` — nothing new was written for it.
+
+### Contrast on the Unlock button, and on every chart legend
+
+Two elements failed WCAG AA, from two different causes.
+
+- The `/nisab-records` **Unlock** button paired `bg-warn-strong` with
+  `text-card-foreground`: **2.04:1** in light and **1.60:1** in dark, against a 4.5:1
+  minimum. The token was not the problem — the five other call sites use
+  `text-primary-foreground` (7.18:1 / 10.04:1). This one was the outlier.
+- **Chart legend labels** were painted in each series' own colour, so "Fakir (Poor)"
+  inherited its slice fill — chart-3 sage, **3.46:1**. Legend text is now a single rule
+  in `index.css`, covering every chart rather than nine `formatter` props across six
+  files.
+
+### Attribution reads as collaboration
+
+"Made by RST Labs" and "Made with by RST Labs" are now "in collaboration with RST Labs".
+ZakApp is an independent project; the previous wording claimed more than the relationship.
+Both surfaces (the auth screens and the dashboard footer) carry the new phrase, in English
+and Arabic.
+
+### `noreply@` is documented as outbound-only
+
+The address deliberately has no Email Routing rule. A comment now records that, so the
+next reader does not read the absence as an oversight and add one.
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v1.0.1...v1.0.2
+
 ## [1.0.1] - 2026-10-04
 
 *22 Rabi al-Thani 1448 — waning crescent closing the month.*
