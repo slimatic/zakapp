@@ -45,7 +45,6 @@
     "alreadyHaveVault": "Already have a vault?",
     "signIn": "Sign in",
     "encryptedOnDevice": "End-to-end encrypted on your device",
-    "madeBy": "Made by",
     "username": "Username",
     "usernameOrEmail": "Username or email",
     "firstName": "First name",
@@ -75,9 +74,8 @@
     "source": "Source",
     "issues": "Issues",
     "reportIssue": "Report an issue on GitHub",
-    "madeWith": "Made with",
-    "by": "by",
-    "build": "Build {{hash}}"
+    "build": "Build {{hash}}",
+    "collaboration": "in collaboration with"
   },
   "loading": "Loading...",
   "recovery": {
