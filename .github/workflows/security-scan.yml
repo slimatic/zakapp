@@ -34,7 +34,7 @@ on:
           - container
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
   SCAN_RESULTS_PATH: 'security-reports'
 
 jobs:
@@ -133,6 +133,13 @@ jobs:
     name: Dependency Vulnerability Scan
     runs-on: ubuntu-latest
     needs: changes
+    outputs:
+      # A step output is discarded at the job boundary, so without this block
+      # needs.dependency-scan.outputs.critical_vulns is always an empty string
+      # and the auto-issue step could never fire.
+      total_vulns: ${{ steps.analyze-deps.outputs.total_vulns }}
+      critical_vulns: ${{ steps.analyze-deps.outputs.critical_vulns }}
+      high_vulns: ${{ steps.analyze-deps.outputs.high_vulns }}
     if: |
       always() &&
       (
@@ -157,10 +164,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
-          cd server && npm install
-          cd ../client && npm install --legacy-peer-deps
-          cd ../shared && npm install
+          # npm ci, not install: the scan must audit the tree that ships. `npm install`
+          # can resolve versions newer than the lockfile pins, so it could audit a
+          # different tree than CI builds and prod runs.
+          npm ci --no-audit --no-fund
+          cd server && npm ci --no-audit --no-fund
+          cd ../client && npm ci --no-audit --no-fund --legacy-peer-deps
+          cd ../shared && npm ci --no-audit --no-fund
 
       - name: Run npm audit (Server)
         id: audit-server
@@ -191,14 +201,14 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
         run: |
-          npm install -g snyk
-          mkdir -p ${{ env.SCAN_RESULTS_PATH }}
-          
           if [ -z "$SNYK_TOKEN" ]; then
             echo "⚠️ SNYK_TOKEN not configured. Skipping Snyk scan."
+            mkdir -p ${{ env.SCAN_RESULTS_PATH }}
             echo '{"ok": false, "error": "SNYK_TOKEN not configured"}' > ${{ env.SCAN_RESULTS_PATH }}/snyk-test.json
             exit 0
           fi
+          npm install -g snyk
+          mkdir -p ${{ env.SCAN_RESULTS_PATH }}
           
           # Test for vulnerabilities
           snyk test --json > ${{ env.SCAN_RESULTS_PATH }}/snyk-test.json || true
@@ -258,10 +268,10 @@ jobs:
           console.log(report);
           
           // Set outputs for next steps
-          console.log(\`::set-output name=total_vulns::\${totalVulns}\`);
-          console.log(\`::set-output name=critical_vulns::\${criticalVulns}\`);
-          console.log(\`::set-output name=high_vulns::\${highVulns}\`);
-          console.log(\`::set-output name=report::\${encodeURIComponent(report)}\`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'total_vulns=' + totalVulns + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'critical_vulns=' + criticalVulns + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'high_vulns=' + highVulns + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'report=' + encodeURIComponent(report) + '\n');
           "
 
       - name: Upload dependency scan results
@@ -272,7 +282,12 @@ jobs:
           retention-days: 30
 
       - name: Fail on critical vulnerabilities
-        if: steps.analyze-deps.outputs.critical_vulns > 0
+        # An empty output means the analyzer produced nothing: the count is
+        # UNKNOWN, not zero. Fail closed rather than let an unreadable scan
+        # read as a pass.
+        if: |
+          steps.analyze-deps.outputs.critical_vulns == '' ||
+          steps.analyze-deps.outputs.critical_vulns > 0
         run: |
           echo "❌ Critical vulnerabilities found: ${{ steps.analyze-deps.outputs.critical_vulns }}"
           echo "Please review and fix critical vulnerabilities before proceeding."
@@ -303,9 +318,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
-          cd server && npm install
-          cd ../client && npm install --legacy-peer-deps
+          npm ci --no-audit --no-fund
+          cd server && npm ci --no-audit --no-fund
+          cd ../client && npm ci --no-audit --no-fund --legacy-peer-deps
 
       - name: Install CodeQL CLI
         run: |
@@ -427,9 +442,9 @@ jobs:
           
           console.log(report);
           
-          console.log(\`::set-output name=total_issues::\${totalIssues}\`);
-          console.log(\`::set-output name=security_issues::\${securityIssues}\`);
-          console.log(\`::set-output name=report::\${encodeURIComponent(report)}\`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'total_issues=' + totalIssues + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'security_issues=' + securityIssues + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'report=' + encodeURIComponent(report) + '\n');
           "
 
       - name: Upload code analysis results
@@ -443,6 +458,10 @@ jobs:
     name: Container Security Scan
     runs-on: ubuntu-latest
     needs: changes
+    outputs:
+      total_vulns: ${{ steps.analyze-containers.outputs.total_vulns }}
+      critical_vulns: ${{ steps.analyze-containers.outputs.critical_vulns }}
+      high_vulns: ${{ steps.analyze-containers.outputs.high_vulns }}
     if: |
       always() &&
       (
@@ -540,10 +559,10 @@ jobs:
           
           console.log(report);
           
-          console.log(\`::set-output name=total_vulns::\${totalVulns}\`);
-          console.log(\`::set-output name=critical_vulns::\${criticalVulns}\`);
-          console.log(\`::set-output name=high_vulns::\${highVulns}\`);
-          console.log(\`::set-output name=report::\${encodeURIComponent(report)}\`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'total_vulns=' + totalVulns + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'critical_vulns=' + criticalVulns + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'high_vulns=' + highVulns + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'report=' + encodeURIComponent(report) + '\n');
           "
 
       - name: Upload container scan results
@@ -554,7 +573,9 @@ jobs:
           retention-days: 30
 
       - name: Fail on critical container vulnerabilities
-        if: steps.analyze-containers.outputs.critical_vulns > 5
+        if: |
+          steps.analyze-containers.outputs.critical_vulns == '' ||
+          steps.analyze-containers.outputs.critical_vulns > 5
         run: |
           echo "❌ Too many critical container vulnerabilities found: ${{ steps.analyze-containers.outputs.critical_vulns }}"
           echo "Please review and fix critical vulnerabilities before proceeding."
@@ -744,4 +765,5 @@ jobs:
       - name: Clean up temporary files
         run: |
           echo "Security scan completed. Artifacts uploaded for review."
-          echo "Next security scan scheduled for tomorrow at 2 AM UTC."
+          echo "No scheduled scan: the schedule trigger in this workflow is commented out,"
+          echo "so scans run only on push, pull request, or manual dispatch."
