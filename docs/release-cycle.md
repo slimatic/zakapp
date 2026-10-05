@@ -36,6 +36,13 @@ Tabular Islamic calendar (hijridate Umm al-Qura approximation); actual dates may
 3. **Day of release (1st of Hijri month)**:
    - Merge release PR (CI green gate).
    - Tag: `git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z`
+   - **Create the GitHub Release object** — the tag alone is NOT a release:
+     `gh release create vX.Y.Z --title "vX.Y.Z — <Hijri month> <year>" --notes-file <file>`,
+     using the CHANGELOG section and ending with the compare link
+     `compare/v<previous>...vX.Y.Z`. Skipping this is invisible: the tag pushes and
+     Docker still builds, but the Releases page shows the version with no notes, and
+     nobody notices until someone goes looking for them. v1.0.1 shipped this way and
+     the release had to be created retroactively.
    - Docker Hub workflow builds + pushes on tag.
    - Deploy: `scripts/ops/upgrade.sh` (runs `backup-before-upgrade.sh` first) — see `docs/UPGRADING.md`.
    - Verify: 200 on `<YOUR_APP_HOST>`, `<YOUR_API_HOST>/health`, `<YOUR_SYNC_HOST>`; migrations container ran `prisma migrate deploy` cleanly.
