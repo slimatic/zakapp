@@ -442,3 +442,14 @@ h6 {
 .secure-input-indicator {
   @apply absolute right-3 top-1/2 -translate-y-1/2 text-green-600 opacity-50 transition-opacity hover:opacity-100;
 }
+
+/* Recharts paints legend text in the series colour, so a legend label inherits the fill of
+   its own slice and fails contrast: "Fakir (Poor)" rendered in chart-3 sage at 3.46:1 on the
+   card surface, and the lightest ramp entries are worse (issue #507). A legend label is
+   text, not a swatch - the swatch beside it already carries the series colour. One rule
+   covers every chart, including ones added later. */
+@layer components {
+  .recharts-legend-item-text {
+    color: hsl(var(--foreground)) !important;
+  }
+}

@@ -143,7 +143,7 @@ export const NisabRecordCard: React.FC<NisabRecordCardProps> = React.memo(({
           )}
           {record.status === 'FINALIZED' && (
             <>
-              <button onClick={onUnlock} className="px-2 py-1 bg-warn-strong text-card-foreground rounded text-xs">Unlock</button>
+              <button onClick={onUnlock} className="px-2 py-1 bg-warn-strong text-primary-foreground rounded text-xs">Unlock</button>
               <button onClick={onGeneratePdf} className="px-2 py-1 bg-muted text-muted-foreground border border-border rounded text-xs hover:bg-accent flex items-center gap-1">📄 PDF</button>
             </>
           )}
