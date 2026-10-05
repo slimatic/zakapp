@@ -15,6 +15,10 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    # Keep package-lock.json in sync with package.json. Without this, Dependabot
+    # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
+    # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
+    versioning-strategy: increase
     groups:
       minor-and-patch:
         patterns: ["*"]
@@ -28,6 +32,10 @@ updates:
     directory: /client
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 5
+    # Keep package-lock.json in sync with package.json. Without this, Dependabot
+    # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
+    # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
+    versioning-strategy: increase
     groups:
       minor-and-patch:
         patterns: ["*"]
@@ -41,6 +49,10 @@ updates:
     directory: /server
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 5
+    # Keep package-lock.json in sync with package.json. Without this, Dependabot
+    # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
+    # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
+    versioning-strategy: increase
     groups:
       minor-and-patch:
         patterns: ["*"]
@@ -54,6 +66,10 @@ updates:
     directory: /shared
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
+    # Keep package-lock.json in sync with package.json. Without this, Dependabot
+    # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
+    # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
+    versioning-strategy: increase
     groups:
       minor-and-patch:
         patterns: ["*"]
@@ -69,6 +85,10 @@ updates:
     directory: /cli
     schedule: { interval: weekly, day: monday }
     open-pull-requests-limit: 3
+    # Keep package-lock.json in sync with package.json. Without this, Dependabot
+    # bumps package.json and leaves the lockfile stale, so `npm ci` aborts with
+    # EUSAGE and CI fails before a single test runs (that is how #635-#641 arrived).
+    versioning-strategy: increase
     groups:
       minor-and-patch:
         patterns: ["*"]
