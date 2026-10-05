@@ -93,7 +93,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           <span aria-hidden="true">🔒</span> {t('auth.encryptedOnDevice')}
         </p>
         <p className="mt-1.5 text-[11px] text-muted-foreground/70">
-          {t('auth.madeBy')}{' '}
+          {t('footer.collaboration')}{' '}
           <a
             href="https://rstlabs.io"
             target="_blank"
