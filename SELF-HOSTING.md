@@ -84,6 +84,28 @@ MANUAL_GOLD_PRICE_USD=65.00
 MANUAL_SILVER_PRICE_USD=0.80
 ```
 
+### Optional: Push Notifications (VAPID)
+
+Web-push reminders (Zakat due dates) need a VAPID keypair on the server. Without them the
+Notifications toggle reports *"Push notifications are not configured on this server."*
+
+```bash
+# Generate once, keep the pair together:
+npx web-push generate-vapid-keys
+
+VAPID_PUBLIC_KEY=<public key>
+VAPID_PRIVATE_KEY=<private key>
+VAPID_SUBJECT=mailto:you@yourdomain.com
+```
+
+After adding them, recreate the backend (`docker compose up -d --force-recreate backend`)
+and verify:
+
+```bash
+curl https://zakapp.example.org/api/push/vapid-key
+# Expect: {"publicKey":"<key>","configured":true}
+```
+
 ---
 
 ## 🌐 Production Deployment

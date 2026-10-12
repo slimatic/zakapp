@@ -32,6 +32,7 @@ docker run -p 3001:3001 \
 - `DATABASE_URL`: SQLite database path
 - `GOLD_API_KEY`: Gold price API key
 - `SMTP_*`: Email configuration
+- `VAPID_*`: Web-push keys for notifications (see SELF-HOSTING.md)
 
 ## Links
 

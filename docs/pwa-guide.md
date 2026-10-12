@@ -219,7 +219,12 @@ ZakApp updates automatically:
 
 ---
 
-## Push Notifications (Coming Soon)
+## Push Notifications
+
+**Self-hosted server setup:** push needs a VAPID keypair on the server. See
+[SELF-HOSTING.md](../SELF-HOSTING.md) → *Optional: Push Notifications (VAPID)*.
+Without the keys, the Enable toggle reports *"Push notifications are not
+configured on this server."*
 
 ### What You Can Be Notified About
 
