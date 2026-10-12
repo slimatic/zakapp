@@ -88,6 +88,7 @@ export function usePush(): PushState & { enable: () => Promise<void>; disable: (
       setSubscribed(true);
       setPermission(Notification.permission);
     } catch (err) {
+      console.error('Enable notifications failed', err);
       setError(err instanceof Error ? err.message : 'Failed to enable notifications');
       setSubscribed(false);
     } finally {

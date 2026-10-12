@@ -53,6 +53,7 @@ For developers rather than operators: [CONTRIBUTING.md](../CONTRIBUTING.md) and
 
 **Configuration and problem-solving:**
 
+- **[PWA Guide](pwa-guide.md)** - Installable app, offline support, push notifications, and self-host VAPID setup
 - **[Port Configuration Guide](guides/PORT_CONFIGURATION.md)** - Configure custom ports, resolve port conflicts, network access
 - **[Local Network Access](guides/DEVELOPMENT-NETWORK-ACCESS.md)** - Access your dev server from another device; fixes the Web Crypto `importKey` crash on HTTP/IP origins
 - **[Port Configuration Guide (Legacy)](guides/PORT_CONFIGURATION_GUIDE.md)** - Configure custom ports, fix "Failed to fetch" errors
