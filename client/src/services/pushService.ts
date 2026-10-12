@@ -42,6 +42,11 @@ export async function getVapidPublicKey(): Promise<string> {
   const res = await fetch(VAPID_KEY_URL);
   if (!res.ok) throw new Error(`VAPID key fetch failed: ${res.status}`);
   const json = await res.json();
+  if (json.configured === false) {
+    throw new Error(
+      'Push notifications are not configured on this server. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY in the server environment (see the self-hosting guide).'
+    );
+  }
   if (!json.publicKey) throw new Error('No publicKey in response');
   return json.publicKey;
 }

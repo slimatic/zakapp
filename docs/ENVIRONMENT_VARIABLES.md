@@ -73,6 +73,22 @@ JWT_REFRESH_TOKEN_EXPIRY=7d
 - **Generate**: `openssl rand -hex 16`
 - **Example**: `ENCRYPTION_KEY=8ec73ff457ed03b49e4a047ac0633492`
 
+## Push Notification Variables (Optional)
+
+Web-push reminders (Zakat due dates) require a VAPID keypair on the server. Without
+`VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`, the Notifications toggle reports
+*"Push notifications are not configured on this server."* Generate the pair with
+`npx web-push generate-vapid-keys`; full setup in
+[SELF-HOSTING.md](../SELF-HOSTING.md) → *Optional: Push Notifications (VAPID)*.
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `VAPID_PUBLIC_KEY` | For push | Public half of the VAPID keypair, sent to browsers |
+| `VAPID_PRIVATE_KEY` | For push | Private half used to sign push requests |
+| `VAPID_SUBJECT` | No | Contact URI (`mailto:`) attached to push requests; defaults to `mailto:admin@zakapp.org` |
+
+Set them in the backend environment, then recreate the backend container.
+
 ## Quick Setup Guide
 
 ### 1. Generate Secrets

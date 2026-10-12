@@ -26,12 +26,44 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
+  getVapidPublicKey,
   persistUnsubscribe,
   unsubscribeCurrentDevice,
   pushSupported,
 } from '../pushService';
 
 const ENDPOINT = 'https://push.example.com/abc123';
+
+/**
+ * #665: a self-hosted server without VAPID keys must say so, instead of
+ * surfacing the raw 'No publicKey in response' internals. The server marks
+ * this case with configured:false; the client now honours it.
+ */
+describe('getVapidPublicKey', () => {
+  it('reports the server fix when push is unconfigured', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ publicKey: '', configured: false }) })
+    );
+    await expect(getVapidPublicKey()).rejects.toThrow('not configured on this server');
+  });
+
+  it('keeps the legacy message when configured is true but the key is empty', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ publicKey: '', configured: true }) })
+    );
+    await expect(getVapidPublicKey()).rejects.toThrow('No publicKey in response');
+  });
+
+  it('keeps transport failures distinct', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 500, json: async () => ({}) })
+    );
+    await expect(getVapidPublicKey()).rejects.toThrow('VAPID key fetch failed: 500');
+  });
+});
 
 function makeSubscription() {
   return {
