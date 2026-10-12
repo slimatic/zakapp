@@ -71,7 +71,7 @@ export const FAQS_DATA: FAQItem[] = [
     {
         category: "Assets & Calculation",
         question: "What debts can I deduct from my Zakat calculation?",
-        answer: "According to scholarly guidelines, you can only deduct immediate upcoming debt payments, not the full balance of long-term debts. For example, on a $300,000 mortgage, you may only deduct the next monthly payment. This prevents individuals from being falsely exempt from Zakat for decades. ZakApp allows you to specify a 'deductible amount' for each liability."
+        answer: "According to scholarly guidelines, you can only deduct immediate upcoming debt payments, not the full balance of long-term debts. For example, on a mortgage of 300,000 (illustrative units of currency), you may only deduct the next monthly payment. This prevents individuals from being falsely exempt from Zakat for decades. ZakApp allows you to specify a 'deductible amount' for each liability."
     },
     {
         category: "Assets & Calculation",
