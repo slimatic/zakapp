@@ -47,6 +47,7 @@
     "node-fetch": "^2.7.0",
     "nodemailer": "^10.0.13",
     "prisma": "^6.1.0",
+    "proxy-addr": "^2.0.8",
     "redis": "^4.6.13",
     "resend": "^6.4.2",
     "tsconfig-paths": "^4.2.0",
