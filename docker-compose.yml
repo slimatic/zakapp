@@ -40,6 +40,7 @@ services:
     environment:
       - REACT_APP_API_BASE_URL=/api
       - REACT_APP_COUCHDB_URL=/db
+      - REACT_APP_RECONCILE_ENABLED=${REACT_APP_RECONCILE_ENABLED:-false}
       - NODE_ENV=production
     networks:
       - zakapp-network
