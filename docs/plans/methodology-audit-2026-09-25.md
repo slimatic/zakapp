@@ -1,13 +1,14 @@
 # Methodology Audit — what the app asserts, and what it cites
 
 **Opened:** 2026-09-25 (14 Rabi' al-Thani 1448 AH). **Line:** `develop`.
-**Method:** mechanical extraction, then parent verification against source. Every location
+**Method:** mechanical extraction, then independent verification against source. Every location
 below was read directly; the extraction run is recorded but not trusted.
 
 > **This document does not rule on fiqh.** It records what the code asserts, what it cites,
 > and where those disagree. Any question of religious obligation routes to a named human
-> scholar — Ustadh Ali Hazratji, Sheikh Abdellah El-Khalti, or Suhba Seminary faculty under
-> Shaykh Mokhtar Maghraoui. Nothing here is a fatwa, and nothing here should be read as one.
+> scholar of the owner's own choosing — the app records questions rather than answering
+> them and carries no scholarly endorsement of its own. Nothing here is a fatwa, and
+> nothing here should be read as one.
 
 ---
 
@@ -30,9 +31,9 @@ important correctness issue in the audit, and it is **structural, not a typo** �
 means deciding which rule-set is canonical, which is a product and fiqh decision, not a
 refactor.
 
-**Not verified by me:** whether any runtime path *actually* hits both systems for one
-calculation. I confirmed both are wired and reachable; I did not trace an end-to-end request
-that exercises both. Treat the divergence as a live risk, not a proven user-visible bug.
+**Not independently verified:** whether any runtime path *actually* hits both systems for one
+calculation. Both are wired and reachable; no end-to-end request
+that exercises both was traced. Treat the divergence as a live risk, not a proven user-visible bug.
 
 ## 2. Rules the app enforces, and their citations
 
@@ -159,18 +160,19 @@ know which rule-set it is running, and does not cite the rules it does enforce.
   whether naming Dr. Salah Al-Sawy without a reference is acceptable.
 - Whether `dual_minimum` ("lower of gold or silver") is the right default for STANDARD.
 
-**Every item in the second list is out of scope for this agent** and routes to the teachers.
+**Every item in the second list is out of scope for the automated extraction** and routes to a
+named human scholar, per the routing note at the top of this document.
 
 ---
 
 ## Appendix — provenance
 
-Extraction was performed by a read-only subagent instructed to reproduce citations verbatim
+Extraction was performed by an automated read-only pass instructed to reproduce citations verbatim
 and to mark anything uncited rather than reconstruct it. **Its output was treated as a
-lead, not as evidence:** every location in this document was re-read by the parent before
-being recorded. Items I did not personally confirm are marked as such inline.
+lead, not as evidence:** every location in this document was independently re-read before
+being recorded. Items not independently verified are marked as such inline.
 
-Three claims from the extraction that I checked and confirmed:
+Three claims from the extraction, independently checked and confirmed:
 - `zircon*` field names in `ZakatDisplayCard.tsx` (12 occurrences, introduced by `da726d46`)
 - `snapshot.service.ts:95` hardcoded 7500
 - `INTERRUPTION_GRACE_PERIOD_HOURS` defined but never consumed

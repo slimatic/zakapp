@@ -53,7 +53,7 @@ const plaintextBackup = {
     paymentDate: '2026-09-01T00:00:00.000Z',
   }],
   settings: {
-    id: 'u1', profileName: 'Salim', firstName: 'Salim', lastName: 'A',
+    id: 'u1', profileName: 'Test User', firstName: 'Test', lastName: 'User',
     email: 'user@example.com', preferredCalendar: 'gregorian',
     preferredMethodology: 'standard', baseCurrency: 'USD', language: 'en', theme: 'system',
   },
@@ -95,7 +95,7 @@ describe('backup is plaintext and key-independent', () => {
 
     // Settings carry readable profile values, not blobs.
     const st = MigrationService.adaptUserSettings(plaintextBackup.settings, 'new-user');
-    expect(st.profileName).toBe('Salim');
+    expect(st.profileName).toBe('Test User');
     expect(st.email).toBe('user@example.com');
     expect(looksEncrypted(st.profileName)).toBe(false);
   });

@@ -23,6 +23,7 @@ CHECKS = [
     "check-no-credential-logging.py",
     "check-payment-vocabulary.py",
     "check-pdf-theme.py",
+    "check-public-strings.py",
     "check-runtime-config.py",
     "check-sender-domain-resolves.py",
     "check-single-base.py",

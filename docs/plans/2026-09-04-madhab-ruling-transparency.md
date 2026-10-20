@@ -1,6 +1,6 @@
 # Multi-Madhab Ruling Transparency Engine — Implementation Plan
 
-> **For Hermes:** Execute task-by-task with TDD. Feature branch: `feature/madhab-ruling-transparency`.
+> Feature branch: `feature/madhab-ruling-transparency`.
 
 **Goal:** Every asset in the Zakat calculator shows WHY it's zakatable/exempt under the chosen madhab, with inline scholarly citations (static dataset + source URLs).
 

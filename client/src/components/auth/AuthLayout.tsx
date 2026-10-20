@@ -48,7 +48,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   const { t } = useTranslation('common');
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Slim brand bar - matches the mockup's topbar, minus app navigation */}
+      {/* Brand bar - matches the mockup's topbar, minus app navigation */}
       <header className="flex items-center justify-between px-5 py-4 sm:px-8">
         <div className="flex items-center gap-2.5">
           <Logo className="h-9 w-9" />
