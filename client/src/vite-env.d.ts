@@ -6,6 +6,7 @@ interface ImportMetaEnv {
     readonly VITE_ALLOWED_HOSTS: string;
     readonly NODE_ENV: 'development' | 'production' | 'test';
     readonly VITE_FEEDBACK_ENABLED: string;
+    readonly VITE_RECONCILE_ENABLED: string;
     readonly VITE_FEEDBACK_WEBHOOK_URL: string;
     readonly VITE_COUCHDB_URL: string;
     readonly VITE_COUCHDB_USER: string;

@@ -35,6 +35,21 @@ export const getFeedbackEnabled = (): boolean => {
   return import.meta.env.VITE_FEEDBACK_ENABLED === 'true';
 };
 
+/**
+ * Reconciliation feature flag.
+ * Default OFF. An instance opts in at runtime (REACT_APP_RECONCILE_ENABLED);
+ * local development can set the build-time variable (VITE_RECONCILE_ENABLED).
+ */
+export const getReconcileEnabled = (): boolean => {
+  // Runtime config first (production/Cloudflare Tunnel)
+  if (typeof window !== 'undefined' && window.APP_CONFIG?.RECONCILE_ENABLED) {
+    return window.APP_CONFIG.RECONCILE_ENABLED === 'true';
+  }
+
+  // Fallback to build-time environment variable (local dev)
+  return import.meta.env.VITE_RECONCILE_ENABLED === 'true';
+};
+
 export const getFeedbackWebhookUrl = (): string => {
   // Check for runtime configuration
   if (typeof window !== 'undefined' && window.APP_CONFIG?.FEEDBACK_WEBHOOK_URL) {
@@ -108,6 +123,7 @@ declare global {
       FEEDBACK_ENABLED?: string;
       FEEDBACK_WEBHOOK_URL?: string;
       FEEDBACK_EMAIL?: string;
+      RECONCILE_ENABLED?: string;
       COUCHDB_URL?: string;
       COUCHDB_USER?: string;      // @deprecated - remove after JWT
       COUCHDB_PASSWORD?: string;  // @deprecated - remove after JWT
