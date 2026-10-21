@@ -17,6 +17,7 @@
 
 import { Asset, AssetType } from '../../types/index';
 import { MethodologyName, getMethodology } from './methodology';
+import { activeAssets } from './activeAssets';
 import type { RetirementConfig } from '../../types/asset.types';
 
 import { Decimal } from 'decimal.js';
@@ -193,7 +194,7 @@ export function calculateZakat(
     let totalAssets = new Decimal(0);
     let zakatableAssets = new Decimal(0);
 
-    for (const asset of assets) {
+    for (const asset of activeAssets(assets)) {
         const assetValue = new Decimal(asset.value || 0);
         totalAssets = totalAssets.plus(assetValue);
 

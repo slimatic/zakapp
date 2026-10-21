@@ -27,6 +27,7 @@ import type { NisabYearRecordWithLiveTracking, LiveTrackingData } from '../types
 import { useNisabRecordRepository } from './useNisabRecordRepository';
 import { useAssetRepository } from './useAssetRepository';
 import { useNisabThreshold } from './useNisabThreshold';
+import { activeAssets } from '../core/calculations/activeAssets';
 
 export interface UseHawlStatusResult {
   // Data
@@ -69,7 +70,7 @@ export const useHawlStatus = (
     if (!record) return undefined;
 
     // A. Calculate Total Zakatable Assets
-    const totalAssets = assets.reduce((sum, asset) => {
+    const totalAssets = activeAssets(assets).reduce((sum, asset) => {
       // Respect Zakat Eligibility flag
       const isEligible = asset.zakatEligible !== false;
       // Apply calculation modifier (default 1.0)

@@ -297,3 +297,41 @@ describe('wealthCalculator', () => {
         });
     });
 });
+
+describe('wealthCalculator: inactive assets (closed accounts)', () => {
+    it('counts no inactive asset in either total', () => {
+        // Synthetic values. An account the user marked inactive holds no money
+        // the calculator may count today — it must not inflate either total.
+        const assets: Asset[] = [
+            {
+                id: 'a1',
+                name: 'Active cash',
+                type: AssetType.CASH,
+                value: 1000,
+                currency: 'USD',
+                isActive: true,
+                createdAt: '',
+                updatedAt: '',
+                zakatEligible: true,
+                calculationModifier: 1.0
+            },
+            {
+                id: 'a2',
+                name: 'Closed account',
+                type: AssetType.CASH,
+                value: 5000,
+                currency: 'USD',
+                isActive: false,
+                createdAt: '',
+                updatedAt: '',
+                zakatEligible: true,
+                calculationModifier: 1.0
+            }
+        ];
+
+        const result = calculateWealth(assets, [], new Date('2026-10-21T00:00:00.000Z'));
+        expect(result.totalWealth).toBe(1000);
+        expect(result.zakatableWealth).toBe(1000);
+        expect(result.netZakatableWealth).toBe(1000);
+    });
+});

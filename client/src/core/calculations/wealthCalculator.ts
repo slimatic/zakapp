@@ -17,6 +17,7 @@
 
 import { Asset, Liability } from '../../types';
 import { getAssetZakatableValue, isAssetZakatable, ZakatMethodology } from './zakat';
+import { activeAssets } from './activeAssets';
 import { Decimal } from 'decimal.js';
 
 /**
@@ -50,7 +51,7 @@ export const calculateWealth = (
     let totalWealth = new Decimal(0);
     let zakatableWealth = new Decimal(0);
 
-    assets.forEach(asset => {
+    activeAssets(assets).forEach(asset => {
         const value = new Decimal(asset.value || 0);
 
         // 1. Always add to Total Wealth (Net Worth calculation)
