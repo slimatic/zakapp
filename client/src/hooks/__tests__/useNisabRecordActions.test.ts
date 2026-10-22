@@ -83,14 +83,65 @@ describe('useNisabRecordActions (#341 slice 4)', () => {
         expect(opts.addRecord.mock.calls[0][0].zakatAmount).toBe(0);
     });
 
-    it('refreshCalculations recalculates and updates the record', async () => {
+    it('refreshCalculations recalculates and updates the record from the stored nisab basis', async () => {
         const opts = baseOptions();
+        opts.normalizedAssets = [{ id: 'a1', value: 10000, type: 'CASH' }] as never;
         const { result } = renderHook(() => useNisabRecordActions(opts));
-        await act(() => result.current.refreshCalculations('r1'));
-        expect(opts.updateRecord).toHaveBeenCalledWith('r1', expect.objectContaining({
-            zakatAmount: expect.any(Number),
-        }));
+        await act(() => result.current.refreshCalculations({
+            id: 'r1', nisabThresholdAtStart: '6000',
+        } as never));
+        expect(opts.updateRecord).toHaveBeenCalledTimes(1);
+        const patch = opts.updateRecord.mock.calls[0][1];
+        expect(patch.totalWealth).toBe(10000);
+        expect(patch.zakatableWealth).toBe(10000);
+        expect(patch.zakatAmount).toBe(250);
         expect(toast.success).toHaveBeenCalledWith('Assets refreshed and calculations updated');
+    });
+
+    it('refreshCalculations gives zero zakat below the stored nisab threshold — the create-path rule', async () => {
+        const opts = baseOptions();
+        opts.normalizedAssets = [{ id: 'a1', value: 1000, type: 'CASH' }] as never;
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+        await act(() => result.current.refreshCalculations({
+            id: 'r1', nisabThresholdAtStart: '6000',
+        } as never));
+        expect(opts.updateRecord).toHaveBeenCalledTimes(1);
+        const patch = opts.updateRecord.mock.calls[0][1];
+        // The create path (nisabAmount >= threshold) must hold on refresh too:
+        // 1,000 zakatable below a 6,000 threshold owes nothing.
+        expect(patch.zakatAmount).toBe(0);
+    });
+
+    it('refreshCalculations refuses a FINALIZED record', async () => {
+        const opts = baseOptions();
+        opts.normalizedAssets = [{ id: 'a1', value: 10000, type: 'CASH' }] as never;
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+        await act(() => result.current.refreshCalculations({
+            id: 'r-fin', status: 'FINALIZED', nisabThresholdAtStart: '6000',
+        } as never));
+        expect(opts.updateRecord).not.toHaveBeenCalled();
+        expect(toast.error).toHaveBeenCalled();
+        expect(toast.success).not.toHaveBeenCalled();
+    });
+
+    it('refreshCalculations still updates a normally stored record when above the threshold', async () => {
+        const opts = baseOptions();
+        opts.normalizedAssets = [{ id: 'a1', value: 10000, type: 'CASH' }] as never;
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+        await act(() => result.current.refreshCalculations({
+            id: 'r1', nisabThresholdAtStart: 6000, // numeric stored form (seeded records)
+        } as never));
+        expect(opts.updateRecord).toHaveBeenCalledTimes(1);
+        expect(opts.updateRecord.mock.calls[0][1].zakatAmount).toBe(250);
+    });
+
+    it('refreshCalculations refuses a record without a stored nisab threshold', async () => {
+        const opts = baseOptions();
+        opts.normalizedAssets = [{ id: 'a1', value: 10000, type: 'CASH' }] as never;
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+        await act(() => result.current.refreshCalculations({ id: 'r1' } as never));
+        expect(opts.updateRecord).not.toHaveBeenCalled();
+        expect(toast.error).toHaveBeenCalled();
     });
 
     it('finalizeRecord confirms, then updates status to FINALIZED', async () => {
