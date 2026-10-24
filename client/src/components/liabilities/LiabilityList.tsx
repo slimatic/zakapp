@@ -18,7 +18,7 @@
 import React, { useState } from 'react';
 import { Liability } from '../../types';
 import { Button } from '../ui';
-import { calculateDeductibleLiabilities } from '../../core/calculations/wealthCalculator';
+import { calculateDeductibleLiabilities } from '../../core/calculations/liabilityRules';
 import toast from 'react-hot-toast';
 import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
 import { useMaskedCurrency } from '../../contexts/PrivacyContext';
