@@ -24,6 +24,10 @@ export interface MethodologyConfig {
     name: MethodologyName;
     nisabSource: NisabSource;
     zakatableAssets: AssetType[];
+    // Retained as the rule-set's stated scope: which debts each school would
+    // additionally make deductible is an open question left to a qualified
+    // scholar. The calculators apply one shared liability rule
+    // (./liabilityRules) and do not consult these lists.
     deductibleLiabilities: string[]; // Using string for Liability type keys for now
     jewelryExempt?: boolean;
     description: string;

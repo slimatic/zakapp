@@ -33,7 +33,14 @@ const asset = (type: AssetType, value: number, extra: Partial<Asset> = {}): Asse
     ...extra,
   }) as Asset;
 
-const liability = (type: string, amount: number) => ({ type, amount });
+const liability = (type: string, amount: number, extra: Record<string, unknown> = {}) => ({
+  type,
+  amount,
+  // Due within the window of the reference date the tests pass, unless a case
+  // states otherwise.
+  dueDate: '2024-06-01T00:00:00Z',
+  ...extra,
+});
 
 describe('zakat math — nisab threshold selection', () => {
   it('STANDARD uses the GOLD nisab, so 5,000 is below it and nothing is due', () => {
@@ -77,8 +84,9 @@ describe('zakat math — rate and negative net worth', () => {
   });
 
   it('deducting liabilities cannot produce NEGATIVE zakat', () => {
-    // Assets 1,000, deductible loan 5,000 -> net worth negative. Zakat is never negative.
+    // Rule: assets 1,000, deductible debt 5,000 -> net worth negative. Zakat is never negative.
     // This is the one case where a sign error would silently CREATE wealth for the user.
+    // The debt deducts under the shared liability rule (it is past-due), not via a type list.
     const r = calculateZakat(
       [asset(AssetType.CASH, 1000)],
       [liability('LOAN', 5000)],
@@ -91,44 +99,41 @@ describe('zakat math — rate and negative net worth', () => {
   });
 });
 
-describe('zakat math — debt deduction scope differs by school', () => {
-  it("SHAFII deducts LOAN and BUSINESS_DEBT but NOT a credit card", () => {
-    // Rule: the four schools differ on what clears a debt before zakat. Shafi'i is the
-    // narrower list in this app. 20000 - 5000 = 15000 ; card's 1000 stays in.
-    const r = calculateZakat(
-      [asset(AssetType.CASH, 20000)],
-      [liability('LOAN', 5000), liability('CREDIT_CARD', 1000)],
-      NISAB,
-      'SHAFII'
-    );
-    expect(r.deductibleLiabilities).toBeCloseTo(5000, 6);
-    expect(r.netWorth).toBeCloseTo(15000, 6);
-    expect(r.zakatDue).toBeCloseTo(375, 6); // 15000 * 0.025
+describe('zakat math — the one debt-deduction rule, same for every school', () => {
+  const ref = new Date('2024-01-01T00:00:00Z');
+
+  it('the same debts deduct the same set under every methodology', () => {
+    // Rule: the engine applies one stated deduction rule consistently — a
+    // user-confirmed amount moves verbatim, else a debt due within the coming
+    // lunar year deducts. Which debts each school would additionally count is a
+    // question left to a qualified scholar, so the school never changes this set.
+    const debts = [liability('LOAN', 5000), liability('CREDIT_CARD', 1000)];
+    for (const methodology of ['STANDARD', 'SHAFII', 'HANAFI', 'MALIKI', 'HANBALI'] as const) {
+      const r = calculateZakat([asset(AssetType.CASH, 20000)], debts, NISAB, methodology, ref);
+      expect(r.deductibleLiabilities, methodology).toBeCloseTo(6000, 6);
+    }
+    // The school still moves money where it belongs: the nisab source. Hanafi
+    // uses the silver threshold, so the same 20,000 - 6,000 is fully zakatable
+    // there: 14000 * 0.025 = 350.
+    const hanafi = calculateZakat([asset(AssetType.CASH, 20000)], debts, NISAB, 'HANAFI', ref);
+    expect(hanafi.zakatDue).toBeCloseTo(350, 6);
   });
 
-  it('HANAFI additionally deducts MORTGAGE and CREDIT_CARD', () => {
-    // Same inputs, Hanafi's broader list -> 20000 - 6000 = 14000.
+  it('a debt due beyond the year with no confirmed portion shows in totals but never deducts', () => {
+    // Rule: a balance alone cannot yield an amortization schedule, so only the
+    // user's confirmed portion (none here) is deductible for a debt due later
+    // than the window. It remains owed in the totals.
     const r = calculateZakat(
       [asset(AssetType.CASH, 20000)],
-      [liability('LOAN', 5000), liability('CREDIT_CARD', 1000)],
+      [liability('LOAN', 5000), liability('OTHER', 9999, { dueDate: '2030-01-01T00:00:00Z' })],
       NISAB,
-      'HANAFI'
-    );
-    expect(r.deductibleLiabilities).toBeCloseTo(6000, 6);
-    expect(r.netWorth).toBeCloseTo(14000, 6);
-    expect(r.zakatDue).toBeCloseTo(350, 6);
-  });
-
-  it('a NON-deductible liability still shows in totals but never reduces net worth', () => {
-    const r = calculateZakat(
-      [asset(AssetType.CASH, 20000)],
-      [liability('LOAN', 5000), liability('OTHER', 9999)],
-      NISAB,
-      'SHAFII'
+      'SHAFII',
+      ref
     );
     expect(r.totalLiabilities).toBeCloseTo(14999, 6);
     expect(r.deductibleLiabilities).toBeCloseTo(5000, 6);
     expect(r.netWorth).toBeCloseTo(15000, 6);
+    expect(r.zakatDue).toBeCloseTo(375, 6);
   });
 });
 

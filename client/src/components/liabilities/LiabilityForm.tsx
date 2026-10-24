@@ -21,7 +21,7 @@ import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
 import { Liability } from '../../types';
 import { Button, Input } from '../ui';
 import { EncryptedBadge } from '../ui/EncryptedBadge';
-import { calculateDeductibleLiabilities } from '../../core/calculations/wealthCalculator';
+import { calculateDeductibleLiabilities } from '../../core/calculations/liabilityRules';
 import { getSupportedCurrencies, getCurrencySymbol, type CurrencyCode } from '../../utils/formatters';
 
 interface LiabilityFormProps {

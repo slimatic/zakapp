@@ -24,6 +24,7 @@ import { PaymentModal } from './PaymentModal';
 import { MethodologySelector } from './MethodologySelector';
 // Local-First Imports
 import { useAssetRepository } from '../../hooks/useAssetRepository';
+import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
 import { calculateZakat } from '../../core/calculations/zakat';
 import { calculateNisabThreshold, DEFAULT_NISAB_DATA, normalizeNisabPayload, type NisabData } from '../../core/calculations/nisab';
 import { getAssetRuling, type AssetRuling } from '../../data/rulings';
@@ -39,6 +40,7 @@ import { formatCurrency } from '../../utils/formatters';
 export const ZakatCalculator: React.FC = () => {
   // Local DB Hooks
   const { assets } = useAssetRepository();
+  const { liabilities } = useLiabilityRepository();
   const { user } = useAuth();
   const userCurrency = ((user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD').toUpperCase();
 
@@ -102,7 +104,10 @@ export const ZakatCalculator: React.FC = () => {
       }, methodology);
 
       const assetsToCalc = assets.filter(a => selectedAssets.includes(a.id));
-      const result = calculateZakat(assetsToCalc, [], {
+      // The user's real liabilities pass through; the shared rule
+      // (./liabilityRules) deducts a debt the user confirmed or one due within
+      // the year, so this screen states the same set the record flow does.
+      const result = calculateZakat(assetsToCalc, liabilities, {
         gold: goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams,
         silver: silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams
       }, methodology);
@@ -126,6 +131,7 @@ export const ZakatCalculator: React.FC = () => {
         id: 'local-calc',
         methodology: { name: selectedMethodology },
         totalAssets: result.totalAssets,
+        deductibleLiabilities: result.deductibleLiabilities,
         nisabThreshold: nisabValue,
         isAboveNisab: result.isZakatObligatory,
         zakatDue: result.zakatDue,
@@ -269,6 +275,14 @@ export const ZakatCalculator: React.FC = () => {
               <span className="text-muted-foreground">Total Assets</span>
               <span className="font-semibold">{formatCurrency(calculation.totalAssets)}</span>
             </div>
+            {/* The restored liability deduction is stated where the figure is
+                shown, so a changed obligation is never silent. */}
+            {calculation.deductibleLiabilities > 0 && (
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="text-muted-foreground">Liabilities Deducted</span>
+                <span className="font-semibold">{formatCurrency(calculation.deductibleLiabilities)}</span>
+              </div>
+            )}
             {calculation.assetBreakdown.map((item: any, i: number) => (
               <div key={i} className="flex justify-between items-center py-2 text-sm">
                 <span className="text-muted-foreground ps-4 border-s-2 border-border">{item.type.replace(/_/g, ' ')}</span>
