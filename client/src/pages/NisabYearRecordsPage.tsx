@@ -203,7 +203,6 @@ export const NisabYearRecordsPage: React.FC = () => {
               onCancelDate={() => setEditingStartDateRecordId(null)}
               onDateChange={setNewStartDate}
               onGeneratePdf={(record) => {
-                const totalLiabilities = allLiabilities.reduce((sum, l) => sum + Number(l.amount || 0), 0);
                 import('../utils/ReportGenerator').then(({ ReportGenerator }) => {
                   const generator = new ReportGenerator(userCurrency);
                   // Same identity fallback the rest of the app uses (Layout, Dashboard).
@@ -211,7 +210,10 @@ export const NisabYearRecordsPage: React.FC = () => {
                   // recipient 'User'.
                   const owner =
                     user?.firstName || user?.username || user?.email?.split('@')[0] || 'User';
-                  generator.generateHawlStatement(record as any, allAssets, owner, totalLiabilities);
+                  // The statement reads the record's stored figures — passing the
+                  // raw asset/liability lists recomputed a second recipe that
+                  // contradicted the engine's own rows on the same page.
+                  generator.generateHawlStatement(record as any, owner);
                 });
               }}
               onCreateRecord={() => setShowCreateModal(true)}
