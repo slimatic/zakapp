@@ -90,7 +90,10 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
       const selectedLiabilities = normalizedLiabilities.filter(l => liabilityIds.includes(l.id));
 
       const { totalWealth, netZakatableWealth } = calculateWealth(
-        selectedAssets as never, selectedLiabilities as never, new Date(), userMethodology as never
+        // Compute over the hawl year the user previewed (the modal's picker
+        // date), the same inputs the review step shows — not a "now" that
+        // slides the liability window and stores figures nobody approved.
+        selectedAssets as never, selectedLiabilities as never, date, userMethodology as never
       );
       const zakatAmount = netZakatableWealth >= threshold ? netZakatableWealth * 0.025 : 0;
 

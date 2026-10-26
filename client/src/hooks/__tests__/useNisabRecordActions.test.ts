@@ -83,6 +83,26 @@ describe('useNisabRecordActions (#341 slice 4)', () => {
         expect(opts.addRecord.mock.calls[0][0].zakatAmount).toBe(0);
     });
 
+    it('createRecord stores the figures over the hawl year the user picked, not "now"', async () => {
+        const opts = baseOptions();
+        // The hawl year begins 30 days ago. A debt falling due 340 days from
+        // now lands 370 days after that start — beyond the recorded year's
+        // lunar window — so the stored record must not deduct it. An anchored
+        // "now" would slide the window 30 days further out and deduct it,
+        // storing a figure the review step never showed.
+        const start = new Date(Date.now() - 30 * 86400000);
+        opts.normalizedLiabilities = [{
+            id: 'l2', amount: 400,
+            dueDate: new Date(start.getTime() + 370 * 86400000).toISOString(),
+        }] as never;
+        opts.normalizedAssets = [{ id: 'a1', value: 1000, type: 'CASH' }] as never;
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+        await act(() => result.current.createRecord({ ...payload, date: start, liabilityIds: ['l2'] }));
+        const arg = opts.addRecord.mock.calls[0][0];
+        // 1,000 zakatable with nothing deductible inside the started hawl year.
+        expect(arg.zakatableWealth).toBe(1000);
+    });
+
     it('refreshCalculations recalculates and updates the record from the stored nisab basis', async () => {
         const opts = baseOptions();
         opts.normalizedAssets = [{ id: 'a1', value: 10000, type: 'CASH' }] as never;

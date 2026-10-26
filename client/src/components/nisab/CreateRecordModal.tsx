@@ -109,8 +109,11 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
   const preview = React.useMemo(() => {
     const assets = allAssets.filter(a => selectedAssetIds.includes(a.id));
     const liabilities = allLiabilities.filter(l => selectedLiabilityIds.includes(l.id));
-    return calculateWealth(assets, liabilities);
-  }, [selectedAssetIds, selectedLiabilityIds, allAssets, allLiabilities]);
+    // The preview must be the record: the user's methodology and the hawl
+    // year the user picked — the same inputs the create path stores — so the
+    // number approved on this screen is the number the record carries.
+    return calculateWealth(assets, liabilities, creationDate, methodology as never);
+  }, [selectedAssetIds, selectedLiabilityIds, allAssets, allLiabilities, creationDate, methodology]);
 
   const threshold = nisabAmount || 0;
   const { netZakatableWealth } = preview;
