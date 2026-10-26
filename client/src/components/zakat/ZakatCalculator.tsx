@@ -26,7 +26,8 @@ import { MethodologySelector } from './MethodologySelector';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
 import { calculateZakat } from '../../core/calculations/zakat';
-import { calculateNisabThreshold, DEFAULT_NISAB_DATA, normalizeNisabPayload, type NisabData } from '../../core/calculations/nisab';
+import { calculateNisabThreshold, DEFAULT_NISAB_DATA, getNisabStandard, normalizeNisabPayload, type NisabData } from '../../core/calculations/nisab';
+import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 import { getAssetRuling, type AssetRuling } from '../../data/rulings';
 import { AssetRulingExplanation } from './AssetRulingExplanation';
 
@@ -43,6 +44,10 @@ export const ZakatCalculator: React.FC = () => {
   const { liabilities } = useLiabilityRepository();
   const { user } = useAuth();
   const userCurrency = ((user as any)?.settings?.currency || (user as any)?.preferences?.currency || 'USD').toUpperCase();
+  // The gram convention the user picked, from the same single reader
+  // (useDisplayCurrency) the Dashboard and the threshold chip use — the
+  // Calculator never resolves it separately.
+  const { nisabStandard: userNisabStandard } = useDisplayCurrency();
 
   const [nisabInfo, setNisabInfo] = useState<NisabData | null>(null);
   const [selectedMethodology, setSelectedMethodology] = useState<string>('standard');
@@ -91,25 +96,26 @@ export const ZakatCalculator: React.FC = () => {
 
       const goldPrice = nisabInfo?.goldPrice || DEFAULT_NISAB_DATA.goldPrice;
       const silverPrice = nisabInfo?.silverPrice || DEFAULT_NISAB_DATA.silverPrice;
-      // Read the gram weights from DEFAULT_NISAB_DATA rather than repeating them.
-      // This file used to carry its own `87.48`/`612.36` — twice, here and again on
-      // the `calculateZakat` call below — which is exactly the duplication nisab.ts
-      // removed a second switch to prevent. Two copies of a threshold is how one of
-      // them silently becomes the wrong number.
+      // The gram convention is the user's choice (Settings), not a constant: a
+      // user on the 85 g reading must get a threshold computed from those grams,
+      // on this screen the same as everywhere else. Unset/unknown resolves to
+      // the convention the app has always computed (getNisabStandard).
+      const grams = getNisabStandard(userNisabStandard);
       const nisabValue = calculateNisabThreshold({
         goldPrice,
         silverPrice,
-        goldNisabGrams: DEFAULT_NISAB_DATA.goldNisabGrams,
-        silverNisabGrams: DEFAULT_NISAB_DATA.silverNisabGrams
+        goldNisabGrams: grams.goldGrams,
+        silverNisabGrams: grams.silverGrams
       }, methodology);
 
       const assetsToCalc = assets.filter(a => selectedAssets.includes(a.id));
       // The user's real liabilities pass through; the shared rule
       // (./liabilityRules) deducts a debt the user confirmed or one due within
       // the year, so this screen states the same set the record flow does.
+      // The nisab pair multiplies the same grams as the threshold above.
       const result = calculateZakat(assetsToCalc, liabilities, {
-        gold: goldPrice * DEFAULT_NISAB_DATA.goldNisabGrams,
-        silver: silverPrice * DEFAULT_NISAB_DATA.silverNisabGrams
+        gold: goldPrice * grams.goldGrams,
+        silver: silverPrice * grams.silverGrams
       }, methodology);
 
       // Per-asset madhab ruling explanations (transparency engine)

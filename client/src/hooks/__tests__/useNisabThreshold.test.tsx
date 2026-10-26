@@ -142,6 +142,21 @@ describe('useNisabThreshold — nisab weight standard', () => {
     expect((await thresholdFor('aaoifi')).nisabAmount).toBeCloseTo(8500, 2);
   });
 
+  it('reports both conventions-applied thresholds for pair-consuming engines', async () => {
+    // The pair must carry the user's convention on BOTH metals, whatever the
+    // record's basis selected: 100/g means 85/595 g -> 8,500 / 595.00 for aaoifi
+    // and 87.48/612.36 g -> 8,748 / 612.36 for tola. A pair built from the
+    // bundled default grams on either side can never appear here.
+    const aaoifi = await thresholdFor('aaoifi');
+    expect(aaoifi.nisabPair).toBeDefined();
+    expect(aaoifi.nisabPair!.gold).toBeCloseTo(8500, 2);
+    expect(aaoifi.nisabPair!.silver).toBeCloseTo(595, 2);
+
+    const tola = await thresholdFor('tola');
+    expect(tola.nisabPair!.gold).toBeCloseTo(8748, 2);
+    expect(tola.nisabPair!.silver).toBeCloseTo(612.36, 2);
+  });
+
   it('applies the convention to the silver basis too', async () => {
     // 1/g: tola = 612.36, aaoifi = 595.
     expect((await thresholdFor('tola', 'SILVER')).nisabAmount).toBeCloseTo(612.36, 2);
@@ -193,7 +208,12 @@ describe('useNisabThreshold — nisab weight standard', () => {
       }),
     });
 
-    expect((await thresholdFor('aaoifi')).nisabAmount).toBeCloseTo(8748, 2);
+    const r = await thresholdFor('aaoifi');
+    // The basis figure may lean on the server's pre-multiplied value (tola, so
+    // 8748), but the pair the engines run on must NOT: it exists only when both
+    // per-gram prices came back, so a half-known pair can never reach an engine.
+    expect(r.nisabAmount).toBeCloseTo(8748, 2);
+    expect(r.nisabPair).toBeUndefined();
   });
 });
 
