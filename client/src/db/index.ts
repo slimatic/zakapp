@@ -138,6 +138,33 @@ if (process.env.NODE_ENV === 'development') {
     addRxPlugin(RxDBDevModePlugin);
 }
 
+/**
+ * Every collection the database should have, with its creator, in one map.
+ * This is what addCollections actually creates: the collectionLists guard
+ * parses these `key: { schema: ... }` lines against the sync/rekey/cleanup
+ * lists, so the lines must keep that shape.
+ */
+export const COLLECTION_CREATORS = {
+    assets: { schema: AssetSchema, migrationStrategies: migrationStrategiesV4 },
+    liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
+    nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
+    payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
+    user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV8 },
+    asset_amount_events: { schema: AssetAmountEventSchema, migrationStrategies: migrationStrategiesV1 }
+} as const;
+
+/**
+ * A database opened before a later collection existed is missing just that
+ * one. The old per-collection branch shape only ever filled the newest gap,
+ * so adding the next collection needed a new hand-written branch and an old
+ * database missing two collections got one of them back. Compute every gap
+ * instead; the caller requests them all in one addCollections call.
+ */
+export const missingCollections = (
+    existing: { [key: string]: unknown } | undefined
+): string[] =>
+    Object.keys(COLLECTION_CREATORS).filter(key => !existing || !existing[key]);
+
 // Global window augmentation for HMR safety
 declare global {
     interface Window {
@@ -184,25 +211,18 @@ const _createDb = async (password?: string): Promise<ZakAppDatabase> => {
             ...(isDev ? { ignoreDuplicate: true } : {})
         });
 
-        // Always check if collections are already there
-        if (!db.collections.assets) {
-            await db.addCollections({
-                assets: { schema: AssetSchema, migrationStrategies: migrationStrategiesV4 },
-                liabilities: { schema: LiabilitySchema, migrationStrategies: migrationStrategiesV3 },
-                nisab_year_records: { schema: NisabYearRecordSchema, migrationStrategies: migrationStrategiesV4 },
-                payment_records: { schema: PaymentRecordSchema, migrationStrategies: migrationStrategiesV4 },
-                user_settings: { schema: UserSettingsSchema, migrationStrategies: migrationStrategiesV8 },
-                asset_amount_events: { schema: AssetAmountEventSchema, migrationStrategies: migrationStrategiesV1 }
-            });
-        } else if (!db.collections.asset_amount_events) {
-            // An existing database predates this collection, so the guard above
-            // skips the whole addCollections call — including the collection
-            // added since. Adding it on its own keeps an existing local database
-            // from silently lacking the collection the asset page now queries,
-            // which would surface as a permanent "history unavailable" state.
-            await db.addCollections({
-                asset_amount_events: { schema: AssetAmountEventSchema, migrationStrategies: migrationStrategiesV1 }
-            });
+        // A database opened before a later collection existed is missing just
+        // that one — asset_amount_events predating a second gap is the exact
+        // shape that forced one hand-written branch per collection. Request
+        // every missing collection in one pass instead.
+        const missing = missingCollections(db.collections as { [key: string]: unknown });
+        if (missing.length > 0) {
+            const creators = Object.fromEntries(
+                missing.map(name => [name, COLLECTION_CREATORS[name as keyof typeof COLLECTION_CREATORS]])
+            );
+            // A subset is a valid addCollections payload; the cast only drops
+            // the full-set expectation, not the shape.
+            await db.addCollections(creators as Parameters<typeof db.addCollections>[0]);
         }
 
         return db;
