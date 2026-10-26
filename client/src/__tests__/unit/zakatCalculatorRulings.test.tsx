@@ -79,6 +79,23 @@ vi.mock('../../contexts/AuthContext', () => ({
   }),
 }));
 
+// The calculator reads the user's currency and nisab gram convention from the
+// single preference reader (useDisplayCurrency, which would otherwise require
+// the privacy provider). 'tola' is the default convention this test's fixtures
+// were written for, so the asserted figures are unchanged.
+vi.mock('../../hooks/useDisplayCurrency', () => ({
+  useDisplayCurrency: () => ({
+    currency: 'USD',
+    nisabStandard: 'tola',
+    formatCurrency: (amount: number) =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 2,
+      }).format(amount),
+  }),
+}));
+
 // Mock react-router navigation if the component uses it
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
