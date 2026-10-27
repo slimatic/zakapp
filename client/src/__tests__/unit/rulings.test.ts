@@ -170,3 +170,32 @@ describe('Ruling Registry — jewelry exemption parity', () => {
     }
   });
 });
+
+describe('Ruling Registry — debts owed to you (app default vs quoted rule)', () => {
+  // Every school's quoted rule makes this type conditional on the claim being
+  // collectible, and no engine includes it unless the user answers. The
+  // explanation therefore has to state the app's own default and how to
+  // include the asset, or the panel reads "Zakatable if collectible" under an
+  // "Exempt (app default)" badge.
+  it('is excluded by the engine for every school', () => {
+    for (const madhab of METHODOLOGY_NAMES) {
+      const asset = makeAsset({ type: AssetType.DEBTS_OWED_TO_YOU });
+      expect(isAssetZakatable(asset, madhab)).toBe(false);
+      expect(getAssetRuling(asset, madhab).status).toBe('default-exempt');
+    }
+  });
+
+  it('names the app default and the way to include the asset, for every school', () => {
+    for (const madhab of METHODOLOGY_NAMES) {
+      const entry = getRulingForType(madhab, AssetType.DEBTS_OWED_TO_YOU)!;
+      const shown = `${entry.ruling} ${entry.reasoning}`;
+      expect(shown, `${madhab}: the school rule is quoted without the app default`).toMatch(
+        /\bapp\b/i
+      );
+      expect(shown, `${madhab}: the default is not stated as a default`).toMatch(/by default/i);
+      expect(shown, `${madhab}: the explanation does not say how to include the asset`).toMatch(
+        /mark (?:the asset|it) zakatable/i
+      );
+    }
+  });
+});
