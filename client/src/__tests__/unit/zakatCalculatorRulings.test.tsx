@@ -96,6 +96,29 @@ vi.mock('../../hooks/useDisplayCurrency', () => ({
   }),
 }));
 
+// The calculator takes its nisab threshold from the shared hook (one cache, one
+// retry policy, one labelled fallback for the whole app). Mocked here so this
+// test stays on the ruling wiring; the price-provenance behaviour has its own
+// test file.
+vi.mock('../../hooks/useNisabThreshold', () => ({
+  useNisabThreshold: () => ({
+    nisabAmount: 8748,
+    nisabPair: { gold: 8748, silver: 612.36 },
+    currency: 'USD',
+    nisabBasis: 'GOLD',
+    nisabStandard: 'tola',
+    goldPrice: 100,
+    silverPrice: 1,
+    fetchedAt: new Date(),
+    daysSinceUpdate: 0,
+    isStale: false,
+    isFallback: false,
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}));
+
 // Mock react-router navigation if the component uses it
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
