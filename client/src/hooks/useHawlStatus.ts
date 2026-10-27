@@ -27,7 +27,13 @@ import type { NisabYearRecordWithLiveTracking, LiveTrackingData } from '../types
 import { useNisabRecordRepository } from './useNisabRecordRepository';
 import { useAssetRepository } from './useAssetRepository';
 import { useNisabThreshold } from './useNisabThreshold';
+import { useUserSettingsRepository } from './useUserSettingsRepository';
+import { useDisplayCurrency } from './useDisplayCurrency';
 import { activeAssets } from '../core/calculations/activeAssets';
+import {
+  getAssetZakatableValue,
+  type ZakatMethodology,
+} from '../core/calculations/zakat';
 
 export interface UseHawlStatusResult {
   // Data
@@ -58,25 +64,48 @@ export const useHawlStatus = (
   // 1. Get Data from Local Repositories
   const { records, isLoading: isRecordsLoading } = useNisabRecordRepository();
   const { assets, isLoading: isAssetsLoading } = useAssetRepository();
-  const { nisabAmount, isLoading: isNisabLoading, refetch: refetchNisab } = useNisabThreshold();
-
-  const isLoading = isRecordsLoading || isAssetsLoading || isNisabLoading;
+  const { settings } = useUserSettingsRepository();
+  const display = useDisplayCurrency();
 
   // 2. Find Specific Record
   const record = useMemo(() => records.find(r => r.id === recordId), [records, recordId]);
+
+  // The record's stored basis is what its own figures were computed on. Asking
+  // for the GOLD default regardless left the tracker and the Dashboard
+  // comparing one portfolio against two different thresholds.
+  const nisabBasis: 'GOLD' | 'SILVER' =
+    String(record?.nisabBasis ?? 'GOLD').toUpperCase() === 'SILVER' ? 'SILVER' : 'GOLD';
+
+  // A record that stamps its methodology keeps it (imported and legacy records
+  // carry one, sometimes as an empty string meaning "not recorded"); otherwise
+  // the user's chosen school — the same source the Dashboard and the record
+  // creator use.
+  const methodology = String(
+    record?.methodologyUsed || settings?.preferredMethodology || 'STANDARD'
+  ).toUpperCase() as ZakatMethodology;
+
+  const {
+    nisabAmount,
+    isLoading: isNisabLoading,
+    refetch: refetchNisab,
+  } = useNisabThreshold(display.currency, nisabBasis, display.nisabStandard);
+
+  const isLoading = isRecordsLoading || isAssetsLoading || isNisabLoading;
 
   // 3. Calculate Live Stats (The Core Logic)
   const liveHawlData = useMemo((): LiveTrackingData | undefined => {
     if (!record) return undefined;
 
-    // A. Calculate Total Zakatable Assets
-    const totalAssets = activeAssets(assets).reduce((sum, asset) => {
-      // Respect Zakat Eligibility flag
-      const isEligible = asset.zakatEligible !== false;
-      // Apply calculation modifier (default 1.0)
-      const modifier = isEligible ? ((asset as any)?.calculationModifier ?? 1.0) : 0;
-      return sum + (asset.value * modifier);
-    }, 0);
+    // A. Live wealth, on the rules the stored record was computed with. Net
+    // worth counts every active asset; the zakat base counts only what the
+    // user's answer or the selected school makes zakatable, at its zakatable
+    // value — the same eligibility and value rules the calculators apply.
+    let totalAssets = 0;
+    let zakatableAssets = 0;
+    for (const asset of activeAssets(assets)) {
+      totalAssets += Number(asset.value) || 0;
+      zakatableAssets += getAssetZakatableValue(asset, methodology);
+    }
 
     // B. Calculate Date Metrics (Lunar Hawl = 354 days)
     const startDate = new Date(record?.hawlStartDate || new Date());
@@ -90,20 +119,24 @@ export const useHawlStatus = (
     const daysRemaining = Math.max(0, targetDays - daysPassed);
     const progressPercent = Math.min(100, Math.max(0, (daysPassed / targetDays) * 100));
 
-    // C. Calculate Liability
-    const isAboveNisab = totalAssets >= (nisabAmount || 0);
-    const zakatDue = isAboveNisab ? totalAssets * 0.025 : 0;
+    // C. Nisab verdict. An absent or zero threshold is UNKNOWN, not a zero
+    // bar every portfolio clears — withhold the verdict rather than invent a
+    // "due" figure from it.
+    const hasThreshold =
+      typeof nisabAmount === 'number' && Number.isFinite(nisabAmount) && nisabAmount > 0;
+    const isAboveNisab = hasThreshold ? zakatableAssets >= nisabAmount : undefined;
+    const zakatDue = isAboveNisab ? zakatableAssets * 0.025 : 0;
 
     return {
       daysRemaining,
       hawlProgress: progressPercent,
       canFinalize: daysRemaining === 0,
       currentTotalWealth: totalAssets,
-      currentZakatableWealth: totalAssets, // Simplified, same as total for now
+      currentZakatableWealth: zakatableAssets,
       zakatDue,
       isAboveNisab
     };
-  }, [record, assets, nisabAmount]);
+  }, [record, assets, nisabAmount, methodology]);
 
   // 4. Enrich Record with Live Data
   const enrichedRecord = useMemo(() => {
