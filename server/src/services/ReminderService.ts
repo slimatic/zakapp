@@ -23,7 +23,8 @@ import {
   ReminderEvent,
   ReminderEventType,
   ReminderPriority,
-  ReminderStatus
+  ReminderStatus,
+  calculateHawlCompletionDate
 } from '@zakapp/shared';
 
 /**
@@ -187,9 +188,9 @@ export class ReminderService {
     const primarySnapshot = await YearlySnapshotModel.findPrimaryByYear(userId, currentYear);
 
     if (primarySnapshot) {
-      const calcDate = new Date(primarySnapshot.calculationDate);
-      const nextAnniversary = new Date(calcDate);
-      nextAnniversary.setFullYear(currentYear + 1);
+      // The anniversary of a calculation is one Hawl, not one Gregorian year:
+      // the same rule the record's stored completion date is produced with.
+      const nextAnniversary = calculateHawlCompletionDate(new Date(primarySnapshot.calculationDate));
 
       const daysUntilAnniversary = Math.floor(
         (nextAnniversary.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
@@ -389,9 +390,9 @@ export class ReminderService {
     });
 
     for (const snapshot of snapshots.data) {
-      // Check if it's time for anniversary reminder (1 year after calculation)
-      const anniversaryDate = new Date(snapshot.createdAt);
-      anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
+      // One Hawl is a lunar year — the same rule the record's stored completion
+      // date is produced with, so the reminder agrees with what the screen shows.
+      const anniversaryDate = calculateHawlCompletionDate(new Date(snapshot.createdAt));
       
       // If anniversary is within 7 days
       const daysUntilAnniversary = Math.ceil((anniversaryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));

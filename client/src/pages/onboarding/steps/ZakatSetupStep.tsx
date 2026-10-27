@@ -9,7 +9,7 @@ import { useLiabilityRepository } from '../../../hooks/useLiabilityRepository';
 import { usePaymentRepository } from '../../../hooks/usePaymentRepository';
 import { useNisabThreshold } from '../../../hooks/useNisabThreshold';
 import { calculateWealth } from '../../../core/calculations/wealthCalculator';
-import { gregorianToHijri } from '../../../utils/calendarConverter';
+import { hawlDates } from '../../../core/calculations/hawl';
 import { useOnboarding } from '../context/OnboardingContext';
 import { getCurrencySymbol, formatCurrency as formatCurrencyCanonical } from '../../../utils/formatters';
 import toast from 'react-hot-toast';
@@ -87,9 +87,7 @@ export const ZakatSetupStep: React.FC = () => {
         try {
             // 1. Create Nisab Record
             const hawlStartDate = new Date();
-            const hawlEndDate = new Date();
-            hawlEndDate.setDate(hawlStartDate.getDate() + 354);
-            const startHijri = gregorianToHijri(hawlStartDate);
+            const hawl = hawlDates(hawlStartDate);
 
             // Double check validation
             if (!estimates) throw new Error("Please wait for calculations to finish");
@@ -98,10 +96,8 @@ export const ZakatSetupStep: React.FC = () => {
             logger.debug('[ZakatSetupStep] Creating record with basis:', basis, 'from:', data.nisab);
 
             const record = await addRecord({
-                hawlStartDate: hawlStartDate.toISOString(),
-                hawlCompletionDate: hawlEndDate.toISOString(),
+                ...hawl,
                 status: 'DRAFT',
-                hijriYear: startHijri.hy,
                 nisabBasis: basis,
                 totalWealth: estimates.totalWealth,
                 zakatableWealth: estimates.netZakatable,

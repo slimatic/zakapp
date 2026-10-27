@@ -41,6 +41,7 @@ import { MigrationWizard } from '../components/migration/MigrationWizard';
 import { useMigration } from '../hooks/useMigration';
 import { Button } from '../components/ui/Button';
 import { getNisabStandard } from '../core/calculations/nisab';
+import { HAWL_DAYS } from '../core/calculations/hawl';
 
 /**
  * Educational Module Component
@@ -411,8 +412,6 @@ export const Dashboard: React.FC = () => {
 
   /* ── Hawl progress ─────────────────────────────────────────────────────── */
 
-  const TOTAL_HAWL_DAYS = 354; // lunar year
-
   const hawl = useMemo(() => {
     const startStr = activeRecord?.hawlStartDate || activeRecord?.startDate;
     let elapsed = toNum(activeRecord?.daysElapsed);
@@ -423,11 +422,11 @@ export const Dashboard: React.FC = () => {
       if (!Number.isNaN(start.getTime())) {
         const diffDays = Math.floor((Date.now() - start.getTime()) / 86_400_000);
         elapsed = Math.max(0, diffDays);
-        remaining = Math.max(0, TOTAL_HAWL_DAYS - elapsed);
+        remaining = Math.max(0, HAWL_DAYS - elapsed);
       }
     }
 
-    const progress = Math.min(Math.max(elapsed / TOTAL_HAWL_DAYS, 0), 1);
+    const progress = Math.min(Math.max(elapsed / HAWL_DAYS, 0), 1);
     const due = activeRecord?.hawlCompletionDate;
     const dueDate = due
       ? new Date(due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -537,7 +536,7 @@ export const Dashboard: React.FC = () => {
         <HawlCard
           progress={hawl.progress}
           daysElapsed={hawl.elapsed}
-          totalDays={354}
+          totalDays={HAWL_DAYS}
           daysRemaining={hawl.remaining}
           dueDate={hawl.dueDate}
           aboveNisab={aboveNisab}

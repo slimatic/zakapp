@@ -436,6 +436,79 @@ describe('ReminderService', () => {
       // Should check but not create duplicate
       expect(ReminderEventModel.findByUser).toHaveBeenCalled();
     });
+
+    it('triggers on the lunar anniversary, a Hawl after the calculation', async () => {
+      const createdAt = new Date(Date.now() - 352 * 86_400_000);
+
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue({
+        data: [{ ...mockSnapshots[0], createdAt }],
+        total: 1
+      });
+
+      await service.triggerZakatAnniversaryReminders(mockUserId);
+
+      expect(ReminderEventModel.create).toHaveBeenCalledTimes(1);
+      const [, payload] = (ReminderEventModel.create as Mock).mock.calls[0];
+
+      const expected = new Date(createdAt);
+      expected.setDate(expected.getDate() + 354);
+      expect(new Date(payload.triggerDate).getTime()).toBe(expected.getTime());
+    });
+
+    it('does not trigger on what would only be a Gregorian anniversary', async () => {
+      const createdAt = new Date(Date.now() - 363 * 86_400_000);
+
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue({
+        data: [{ ...mockSnapshots[0], createdAt }],
+        total: 1
+      });
+
+      await service.triggerZakatAnniversaryReminders(mockUserId);
+
+      expect(ReminderEventModel.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('triggerAutomaticReminders', () => {
+    // The anniversary of a calculation is one Hawl (354 days), not one
+    // Gregorian year; the two dates differ by 11 days for the same snapshot.
+    const snapshotAt = (daysAgo: number) => ({
+      id: 'snap-auto',
+      userId: mockUserId,
+      status: 'draft',
+      calculationDate: new Date(Date.now() - daysAgo * 86_400_000).toISOString(),
+      gregorianYear: new Date().getFullYear()
+    });
+
+    beforeEach(() => {
+      (YearlySnapshotModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
+      (ReminderEventModel.findByUser as Mock).mockResolvedValue({ data: [], total: 0 });
+      (ReminderEventModel.create as Mock).mockImplementation(async (userId, data) => ({
+        id: 'reminder-auto',
+        userId,
+        ...data
+      }));
+    });
+
+    it('announces the anniversary one hawl after the calculation', async () => {
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(snapshotAt(334));
+
+      await service.triggerAutomaticReminders(mockUserId);
+
+      expect(ReminderEventModel.create).toHaveBeenCalledTimes(1);
+      const [, payload] = (ReminderEventModel.create as Mock).mock.calls[0];
+      expect(payload.eventType).toBe('zakat_anniversary_approaching');
+      expect(payload.metadata.daysRemaining).toBeGreaterThan(0);
+      expect(payload.metadata.daysRemaining).toBeLessThanOrEqual(30);
+    });
+
+    it('stays silent once the hawl has passed', async () => {
+      (YearlySnapshotModel.findPrimaryByYear as Mock).mockResolvedValue(snapshotAt(355));
+
+      await service.triggerAutomaticReminders(mockUserId);
+
+      expect(ReminderEventModel.create).not.toHaveBeenCalled();
+    });
   });
 
   describe('priority handling', () => {

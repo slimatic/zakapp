@@ -39,6 +39,30 @@ export const RESTRICTED_ACCOUNT_TYPES = [
     'ROTH_IRA',
 ] as const;
 
+/**
+ * Hawl (lunar year) constants.
+ *
+ * Mirrors `HAWL_CONSTANTS` in `shared/src/constants/islamicConstants.ts`. The
+ * server resolves `@zakapp/shared` to this file at runtime, so a constant the
+ * server actually computes with has to exist here as well; the source guard in
+ * `client/src/core/calculations/__tests__/hawlSingleSource.test.ts` fails when
+ * the two disagree.
+ */
+export const HAWL_CONSTANTS = {
+    DAYS_LUNAR: 354,
+} as const;
+
+/**
+ * The date one Hawl completes: the start date plus one lunar year.
+ *
+ * Mirrors `calculateHawlCompletionDate` in the shared package.
+ */
+export function calculateHawlCompletionDate(hawlStartDate: Date): Date {
+    const completion = new Date(hawlStartDate);
+    completion.setDate(completion.getDate() + HAWL_CONSTANTS.DAYS_LUNAR);
+    return completion;
+}
+
 export const ASSET_CATEGORIES = {
     ZAKATABLE: [
         'CASH',

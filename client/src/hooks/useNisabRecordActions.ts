@@ -19,7 +19,7 @@
 import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { calculateWealth } from '../core/calculations/wealthCalculator';
-import { gregorianToHijri } from '../utils/calendarConverter';
+import { hawlDates } from '../core/calculations/hawl';
 
 export interface CreateRecordPayload {
   assetIds: string[];
@@ -46,8 +46,6 @@ export interface UseNisabRecordActionsOptions {
   onDeleted?: (recordId: string) => void;
   onDateSaved?: () => void;
 }
-
-const HAWL_MS = 354 * 24 * 60 * 60 * 1000;
 
 /** The parts of a record a refresh needs: identity, lock state, stored nisab. */
 export interface RefreshRecordTarget {
@@ -97,13 +95,10 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
       );
       const zakatAmount = netZakatableWealth >= threshold ? netZakatableWealth * 0.025 : 0;
 
-      const completionDate = new Date(date.getTime() + HAWL_MS);
-      const startHijri = gregorianToHijri(date);
+      const hawl = hawlDates(date);
 
       await addRecord({
-        hawlStartDate: date.toISOString(),
-        hawlCompletionDate: completionDate.toISOString(),
-        hijriYear: startHijri.hy,
+        ...hawl,
         nisabBasis: basis,
         totalWealth,
         zakatableWealth: netZakatableWealth,
@@ -181,14 +176,8 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
   const saveStartDate = useCallback(async (recordId: string, startDateIso: string): Promise<void> => {
     if (!startDateIso) return;
     const start = new Date(startDateIso);
-    const completion = new Date(start.getTime() + HAWL_MS);
-    const startHijri = gregorianToHijri(start);
 
-    await updateRecord(recordId, {
-      hawlStartDate: start.toISOString(),
-      hawlCompletionDate: completion.toISOString(),
-      hijriYear: startHijri.hy,
-    });
+    await updateRecord(recordId, hawlDates(start));
     onDateSaved?.();
     toast.success('Date updated');
   }, [updateRecord, onDateSaved]);
