@@ -61,6 +61,11 @@ describe('useNisabRecordActions (#341 slice 4)', () => {
         expect(arg.nisabThresholdAtStart).toBe('6000');
         expect(new Date(arg.hawlCompletionDate).getTime() - new Date(arg.hawlStartDate).getTime())
             .toBe(354 * 24 * 60 * 60 * 1000);
+        // The record carries both calendars, so a Hijri reader and a Gregorian
+        // reader agree on when the year began and ended.
+        expect(arg.hawlStartDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        expect(arg.hawlCompletionDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        expect(arg.hawlCompletionDateHijri).not.toBe(arg.hawlStartDateHijri);
         expect(opts.onCreated).toHaveBeenCalledTimes(1);
         expect(toast.success).toHaveBeenCalledWith('Nisab Year Record created');
     });
@@ -199,6 +204,8 @@ describe('useNisabRecordActions (#341 slice 4)', () => {
         const patch = opts.updateRecord.mock.calls[0][1];
         expect(new Date(patch.hawlCompletionDate).getTime() - new Date(patch.hawlStartDate).getTime())
             .toBe(354 * 24 * 60 * 60 * 1000);
+        expect(patch.hawlStartDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        expect(patch.hawlCompletionDateHijri).toMatch(/^\d{4}-\d{2}-\d{2}$/);
         expect(patch.hijriYear).toBeTypeOf('number');
         expect(opts.onDateSaved).toHaveBeenCalledTimes(1);
         expect(toast.success).toHaveBeenCalledWith('Date updated');

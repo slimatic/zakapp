@@ -30,6 +30,7 @@ import { useNisabThreshold } from './useNisabThreshold';
 import { useUserSettingsRepository } from './useUserSettingsRepository';
 import { useDisplayCurrency } from './useDisplayCurrency';
 import { activeAssets } from '../core/calculations/activeAssets';
+import { HAWL_DAYS } from '../core/calculations/hawl';
 import {
   getAssetZakatableValue,
   type ZakatMethodology,
@@ -107,14 +108,14 @@ export const useHawlStatus = (
       zakatableAssets += getAssetZakatableValue(asset, methodology);
     }
 
-    // B. Calculate Date Metrics (Lunar Hawl = 354 days)
+    // B. Calculate Date Metrics (one lunar-year rule, from `hawl.ts`)
     const startDate = new Date(record?.hawlStartDate || new Date());
     const now = new Date();
 
     // Calculate difference in days
     const diffTime = now.getTime() - startDate.getTime();
     const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const targetDays = 354;
+    const targetDays = HAWL_DAYS;
 
     const daysRemaining = Math.max(0, targetDays - daysPassed);
     const progressPercent = Math.min(100, Math.max(0, (daysPassed / targetDays) * 100));
@@ -165,7 +166,7 @@ export const useHawlStatus = (
     error: null,
     daysRemaining: liveHawlData?.daysRemaining ?? null,
     isHawlComplete: liveHawlData?.canFinalize ?? false,
-    daysElapsed: liveHawlData ? (354 - (liveHawlData.daysRemaining || 0)) : null,
+    daysElapsed: liveHawlData ? (HAWL_DAYS - (liveHawlData.daysRemaining || 0)) : null,
     progressPercent: liveHawlData?.hawlProgress ?? null,
     refetch,
     dismiss,
