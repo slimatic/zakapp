@@ -35,7 +35,14 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+
+// The nisab threshold now comes from the shared hook, which runs its own query.
+// Unreachable prices are simulated at the transport so this test keeps
+// exercising the real fallback path.
+const fetchMock = vi.fn();
+vi.stubGlobal('fetch', fetchMock);
 
 // Mutable fixture state, hoisted so the module factories created below read
 // the same object each test mutates.
@@ -80,6 +87,7 @@ vi.mock('../../hooks/useLiabilityRepository', () => ({
 // are what the surface computes from — stale by construction, which keeps the
 // gram convention the only moving part.
 vi.mock('../../services/api', () => ({
+  API_BASE_URL: '/api',
   apiService: {
     getNisab: vi.fn().mockResolvedValue({ success: false, data: null }),
     getFxRates: vi.fn().mockResolvedValue({ success: false, data: null }),
@@ -115,16 +123,29 @@ import { ZakatCalculator } from '../../components/zakat/ZakatCalculator';
 describe('the nisab gram convention reaches the Calculator', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
     fixture.standard = 'aaoifi';
     fixture.assets = [];
   });
 
   const runToReview = async () => {
-    render(<ZakatCalculator />);
-    fireEvent.click(screen.getByRole('button', { name: /next: select assets/i }));
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /calculate zakat/i })).not.toBeDisabled();
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
     });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ZakatCalculator />
+      </QueryClientProvider>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /next: select assets/i }));
+    // The hook retries a failed price fetch twice before substituting the
+    // bundled fallback, so the threshold arrives a few seconds in.
+    await waitFor(
+      () => {
+        expect(screen.getByRole('button', { name: /calculate zakat/i })).not.toBeDisabled();
+      },
+      { timeout: 15_000 }
+    );
     fireEvent.click(screen.getByRole('button', { name: /calculate zakat/i }));
     await waitFor(() => {
       expect(screen.getByText(/wealth breakdown/i)).toBeInTheDocument();
@@ -140,7 +161,7 @@ describe('the nisab gram convention reaches the Calculator', () => {
     // The engine's own threshold, printed on the review card.
     expect(screen.getByText(/nisab threshold: \$5,525\.00 \(exceeded\)/i)).toBeInTheDocument();
     expect(screen.getByText('$140.00')).toBeInTheDocument();
-  });
+  }, 30_000);
 
   it('a user who never picked a convention keeps the 5,686.20 default threshold', async () => {
     fixture.standard = 'tola';
@@ -152,5 +173,5 @@ describe('the nisab gram convention reaches the Calculator', () => {
     // always computed, so no un-selecting user's obligation moves.
     expect(screen.getByText(/5,686\.20/)).toBeInTheDocument();
     expect(screen.getByText('$155.00')).toBeInTheDocument();
-  });
+  }, 30_000);
 });

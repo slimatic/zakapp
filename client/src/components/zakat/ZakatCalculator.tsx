@@ -18,7 +18,6 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { AssetType, NisabInfo } from '../../types';
-import { apiService } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { PaymentModal } from './PaymentModal';
 import { MethodologySelector } from './MethodologySelector';
@@ -26,7 +25,8 @@ import { MethodologySelector } from './MethodologySelector';
 import { useAssetRepository } from '../../hooks/useAssetRepository';
 import { useLiabilityRepository } from '../../hooks/useLiabilityRepository';
 import { calculateZakat } from '../../core/calculations/zakat';
-import { calculateNisabThreshold, DEFAULT_NISAB_DATA, getNisabStandard, normalizeNisabPayload, type NisabData } from '../../core/calculations/nisab';
+import { getNisabSource } from '../../core/calculations/nisab';
+import { useNisabThreshold } from '../../hooks/useNisabThreshold';
 import { useDisplayCurrency } from '../../hooks/useDisplayCurrency';
 import { getAssetRuling, type AssetRuling } from '../../data/rulings';
 import { AssetRulingExplanation } from './AssetRulingExplanation';
@@ -49,7 +49,6 @@ export const ZakatCalculator: React.FC = () => {
   // Calculator never resolves it separately.
   const { nisabStandard: userNisabStandard } = useDisplayCurrency();
 
-  const [nisabInfo, setNisabInfo] = useState<NisabData | null>(null);
   const [selectedMethodology, setSelectedMethodology] = useState<string>('standard');
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [calculation, setCalculation] = useState<any | null>(null);
@@ -57,9 +56,32 @@ export const ZakatCalculator: React.FC = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [currentStep, setCurrentStep] = useState(0); // 0: Intro, 1: Assets, 2: Review
 
-  useEffect(() => {
-    loadNisabData();
-  }, [userCurrency]);
+  // The threshold is owned by one hook for the whole app: it caches, retries, and
+  // substitutes bundled prices when the feed is unreachable. This screen used to
+  // fetch its own copy and fall back silently, which printed a stale bundled price
+  // exactly like a live one. The basis follows the selected school (each school's
+  // nisabSource), so the figure and the rule-set applied are the same choice.
+  const nisabBasis = getNisabSource(selectedMethodology);
+  const {
+    nisabAmount,
+    nisabPair,
+    isFallback,
+    isStale,
+    daysSinceUpdate,
+    isLoading: isNisabLoading,
+    refetch: refetchPrices,
+  } = useNisabThreshold(userCurrency, nisabBasis, userNisabStandard);
+
+  // Stated wherever the figure appears. An estimate must not be presented as a
+  // current rate: the bundled prices are stale by construction, so a threshold
+  // computed from them carries a real uncertainty about who is liable.
+  const priceNotice = isFallback
+    ? 'Live prices are unavailable — this threshold is calculated from the bundled fallback prices, so it is an estimate rather than a current rate.'
+    : !nisabPair && !isNisabLoading
+      ? 'Nisab prices are unavailable. Retry prices and try again.'
+      : isStale && daysSinceUpdate !== undefined
+        ? `Pricing data is ${daysSinceUpdate} days old.`
+        : null;
 
   // Auto-select new assets when they load
   useEffect(() => {
@@ -68,55 +90,27 @@ export const ZakatCalculator: React.FC = () => {
     }
   }, [assets]);
 
-  const loadNisabData = async () => {
-    // The server sends nested price objects (`goldPrice: { pricePerGram }`) while
-    // this component needs per-gram numbers. Reading the object as a number gave
-    // `object * grams` = NaN, and `total >= NaN` is false — so an above-nisab
-    // portfolio reported "$0.00 / Below Nisab Threshold ($NaN)" with no error.
-    // Normalise at the boundary so everything downstream has real numbers.
-    const fallback = normalizeNisabPayload(null);
-    try {
-      // Issue #310: pass the user's currency explicitly so the nisab comes
-      // back in the currency this page displays.
-      const nisabResponse = await apiService.getNisab(userCurrency);
-      if (nisabResponse.success && nisabResponse.data) {
-        setNisabInfo(normalizeNisabPayload(nisabResponse.data as any));
-      } else {
-        setNisabInfo(fallback);
-      }
-    } catch (err) {
-      setNisabInfo(fallback);
-    }
-  };
-
   const handleCalculateZakat = async () => {
+    // Without both per-gram prices there is no honest threshold to compare against.
+    // The hook provides a pair only when it has real numbers for both metals.
+    if (!nisabPair) {
+      toast.error('Nisab prices are unavailable. Retry prices and try again.');
+      return;
+    }
     setIsLoading(true);
     try {
       const methodology = (selectedMethodology.toUpperCase() as any) || 'STANDARD';
-
-      const goldPrice = nisabInfo?.goldPrice || DEFAULT_NISAB_DATA.goldPrice;
-      const silverPrice = nisabInfo?.silverPrice || DEFAULT_NISAB_DATA.silverPrice;
-      // The gram convention is the user's choice (Settings), not a constant: a
-      // user on the 85 g reading must get a threshold computed from those grams,
-      // on this screen the same as everywhere else. Unset/unknown resolves to
-      // the convention the app has always computed (getNisabStandard).
-      const grams = getNisabStandard(userNisabStandard);
-      const nisabValue = calculateNisabThreshold({
-        goldPrice,
-        silverPrice,
-        goldNisabGrams: grams.goldGrams,
-        silverNisabGrams: grams.silverGrams
-      }, methodology);
 
       const assetsToCalc = assets.filter(a => selectedAssets.includes(a.id));
       // The user's real liabilities pass through; the shared rule
       // (./liabilityRules) deducts a debt the user confirmed or one due within
       // the year, so this screen states the same set the record flow does.
-      // The nisab pair multiplies the same grams as the threshold above.
-      const result = calculateZakat(assetsToCalc, liabilities, {
-        gold: goldPrice * grams.goldGrams,
-        silver: silverPrice * grams.silverGrams
-      }, methodology);
+      // The nisab pair already carries the user's gram convention on both metals.
+      const result = calculateZakat(assetsToCalc, liabilities, nisabPair, methodology);
+
+      // The threshold shown is the hook's own figure for this basis — not a
+      // second multiplication here, which could drift from it.
+      const nisabThreshold = nisabAmount ?? (nisabBasis === 'GOLD' ? nisabPair.gold : nisabPair.silver);
 
       // Per-asset madhab ruling explanations (transparency engine)
       const assetRulings: Array<{
@@ -138,11 +132,14 @@ export const ZakatCalculator: React.FC = () => {
         methodology: { name: selectedMethodology },
         totalAssets: result.totalAssets,
         deductibleLiabilities: result.deductibleLiabilities,
-        nisabThreshold: nisabValue,
+        nisabThreshold,
         isAboveNisab: result.isZakatObligatory,
         zakatDue: result.zakatDue,
         zakatRate: 0.025,
-        currency: 'USD',
+        currency: userCurrency,
+        // Stamped with the calculation, so the review states the provenance of
+        // the figure it shows even if prices are refetched afterwards.
+        priceNotice,
         calculatedAt: new Date().toISOString(),
         assetBreakdown: Object.entries(result.breakdown.assets).map(([type, data]) => ({
           type: type as AssetType,
@@ -240,10 +237,29 @@ export const ZakatCalculator: React.FC = () => {
               ))}
             </div>
           )}
+          {priceNotice && (
+            <div
+              role="status"
+              data-testid="nisab-price-notice"
+              className="mt-4 rounded-lg border border-border bg-warn-soft p-3 text-sm text-warn-strong"
+            >
+              <p>{priceNotice}</p>
+              <Button
+                variant="link"
+                className="mt-1 h-auto p-0 text-sm"
+                onClick={() => refetchPrices()}
+              >
+                Retry prices
+              </Button>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="ghost" onClick={() => setCurrentStep(0)}>Back</Button>
-          <Button onClick={handleCalculateZakat} disabled={assets.length === 0 || isLoading}>
+          <Button
+            onClick={handleCalculateZakat}
+            disabled={assets.length === 0 || isLoading || isNisabLoading || !nisabPair}
+          >
             {isLoading ? 'Calculating...' : 'Calculate Zakat'}
           </Button>
         </CardFooter>
@@ -268,6 +284,11 @@ export const ZakatCalculator: React.FC = () => {
                 ? `Nisab Threshold: ${formatCurrency(calculation.nisabThreshold)} (Exceeded)`
                 : `Below Nisab Threshold (${formatCurrency(calculation.nisabThreshold)})`}
             </p>
+            {calculation.priceNotice && (
+              <p className="mt-1 text-xs text-warn-strong" data-testid="nisab-price-used">
+                {calculation.priceNotice}
+              </p>
+            )}
           </CardContent>
         </Card>
 
