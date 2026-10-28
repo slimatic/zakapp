@@ -308,6 +308,13 @@ export interface ZakatCalculation {
   /** Calendar-specific information for lunar/solar calculations */
   calendarInfo?: CalendarCalculation;
   
+  /**
+   * The calendar factor this calculation applied to the amount due, and the rate it
+   * produced. Present on every result the calculation engine returns so a reader can
+   * reconcile a rule-set rate with the amount it produced.
+   */
+  calendarAdjustment?: CalendarRateAdjustment;
+
   /** Regional adjustments if applicable */
   regionalAdjustment?: RegionalAdjustment;
   
@@ -411,6 +418,11 @@ export interface CalculationBreakdown {
     zakatableAmount: number;
     /** Final zakat amount due (typically 2.5% of zakatable amount) */
     zakatDue: number;
+    /**
+     * The calendar factor this figure carries, so `zakatDue` and the per-asset
+     * `zakatDue` lines can be reconciled with the rule-set's own rate.
+     */
+    calendarAdjustment?: CalendarRateAdjustment;
   };
   
   /** Educational and scholarly sources supporting the calculation methodology */
@@ -694,6 +706,43 @@ export interface CalendarCalculation {
   
   /** Adjustment factor applied for calendar conversion */
   adjustmentFactor: number;
+}
+
+/**
+ * The calendar factor a calculation applied to the amount due, with the rate it
+ * produced.
+ *
+ * A lunar (Hijri) year is shorter than a Gregorian one, and a calculation that runs on
+ * it can scale the amount due by a factor. Stating the factor, the rule-set's own
+ * rate, and the rate actually applied is what makes the amount reconcilable: without
+ * it one payload can carry a 2.5% rate beside an amount computed at 2.426% with
+ * nothing to explain the difference.
+ *
+ * Whether a lunar year should carry a rate adjustment at all, and on what basis, is a
+ * question for a qualified scholar. This object reports the arithmetic a calculation
+ * ran; it does not decide that question.
+ *
+ * @interface CalendarRateAdjustment
+ * @since Phase 1
+ */
+export interface CalendarRateAdjustment {
+  /** Calendar system the calculation ran on */
+  calendarType: 'lunar' | 'solar';
+
+  /** Multiplier applied to the amount due (1 when no adjustment was applied) */
+  factor: number;
+
+  /** The rule-set's own zakat rate, in percent */
+  nominalRatePercent: number;
+
+  /** The rate actually applied, in percent: `nominalRatePercent * factor` */
+  effectiveRatePercent: number;
+
+  /** The amount due at the nominal rate, before the factor was applied */
+  zakatDueBeforeAdjustment: number;
+
+  /** Human-readable statement of what was applied, for display beside the figures */
+  note: string;
 }
 
 /**

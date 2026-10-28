@@ -388,6 +388,12 @@ router.post('/calculate',
           isZakatObligatory: result.result.meetsNisab,
           zakatDue: presentation.totalZakatDue,
           zakatRate: result.methodology.zakatRate,
+          // The rule-set rate above is the school's own rate. When the calculation
+          // scaled the amount due by the calendar factor, the rate actually applied is
+          // this one; a client that multiplies by `zakatRate` alone would restate the
+          // amount wrong by the factor. `calendarAdjustment.note` says why.
+          effectiveZakatRate: result.result.calendarAdjustment?.effectiveRatePercent ?? null,
+          calendarAdjustmentFactor: result.result.calendarAdjustment?.factor ?? null,
           currency: displayCurrency,
           fxRateFromUSD: fxRate
           },
@@ -395,6 +401,7 @@ router.post('/calculate',
           educationalContent: {
             nisabExplanation: `Nisab threshold of ${presentation.nisabThreshold} based on ${result.result.nisab.nisabBasis}`,
             methodologyExplanation: result.methodology.explanation,
+            rateExplanation: result.result.calendarAdjustment?.note ?? null,
             scholarlyReferences: result.methodology.scholarlyBasis
           }
         }

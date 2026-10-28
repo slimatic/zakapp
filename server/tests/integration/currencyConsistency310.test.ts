@@ -45,6 +45,19 @@ describe('issue #310 — server currency resolution', () => {
     zakatRoutes = readRepo('../../src/routes/zakat.ts');
   });
 
+  /**
+   * The body of one route handler: from its `router.<method>('<path>'` declaration to
+   * the next route declaration. A fixed character window was the previous bound, and an
+   * unrelated comment added inside the handler pushed a later assertion out of it — the
+   * check then read a slice that no longer contained the line it asserted on.
+   */
+  const routeBlock = (method: string, routePath: string): string => {
+    const start = zakatRoutes.indexOf(`router.${method}('${routePath}'`);
+    expect(start, `${method.toUpperCase()} ${routePath} is declared`).toBeGreaterThanOrEqual(0);
+    const next = zakatRoutes.indexOf('router.', start + 10);
+    return zakatRoutes.slice(start, next === -1 ? undefined : next);
+  };
+
   it('/nisab endpoint no longer hardcodes USD in calculateNisab call', () => {
     const nisabBlock = zakatRoutes.slice(
       zakatRoutes.indexOf("router.get('/nisab'"),
@@ -76,19 +89,13 @@ describe('issue #310 — server currency resolution', () => {
   });
 
   it('/calculate converts the summary into the display currency', () => {
-    const calcBlock = zakatRoutes.slice(
-      zakatRoutes.indexOf("router.post('/calculate'"),
-      zakatRoutes.indexOf("router.post('/calculate'") + 12000
-    );
+    const calcBlock = routeBlock('post', '/calculate');
     expect(calcBlock).toMatch(/getExchangeRate\('USD',\s*displayCurrency\)/);
     expect(calcBlock).toMatch(/currency:\s*displayCurrency/);
   });
 
   it('exchange-rate failure falls back to USD, never a silent 1.0 mislabel', () => {
-    const calcBlock = zakatRoutes.slice(
-      zakatRoutes.indexOf("router.post('/calculate'"),
-      zakatRoutes.indexOf("router.post('/calculate'") + 14000
-    );
+    const calcBlock = routeBlock('post', '/calculate');
     // On conversion failure the response must NOT claim the target currency
     expect(calcBlock).toMatch(/displayCurrency = 'USD'/);
   });

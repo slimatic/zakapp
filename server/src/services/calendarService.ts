@@ -21,6 +21,20 @@
 
 import * as hijriConverter from 'hijri-converter';
 
+/**
+ * The lunar-year adjustment factor this server applies to an amount due on the lunar
+ * calendar.
+ *
+ * This is a stated constant, not a value recomputed from day counts: the ratio of the mean
+ * lunar year to the mean solar year (354.367 / 365.25) is 0.97020, while the applied factor
+ * is 0.9704 — close, but not identical. Calculations state the factor they applied, so the
+ * two numbers a reader can compare are both visible rather than assumed equal.
+ *
+ * Whether a lunar year should carry a rate adjustment at all, and on what basis, is a
+ * question for a qualified scholar. This constant is the arithmetic the server applies.
+ */
+export const LUNAR_YEAR_ADJUSTMENT_FACTOR = 0.9704;
+
 export interface DateComponents {
   year: number;
   month: number;
@@ -163,7 +177,7 @@ export class CalendarService {
       calendarType,
       daysInYear,
       periodDays: calendarType === 'HIJRI' ? 354.367 : 365.25,
-      adjustmentFactor: calendarType === 'HIJRI' ? 0.9704 : 1.0,
+      adjustmentFactor: calendarType === 'HIJRI' ? LUNAR_YEAR_ADJUSTMENT_FACTOR : 1.0,
       hijriStart,
       hijriEnd
     };
@@ -211,7 +225,7 @@ export class CalendarService {
     ];
 
     // Adjustment factor: 354.367 / 365.25 ≈ 0.9704
-    const adjustmentFactor = 0.9704;
+    const adjustmentFactor = LUNAR_YEAR_ADJUSTMENT_FACTOR;
 
     return {
       hijriDate: {
@@ -269,7 +283,7 @@ export class CalendarService {
    * Get lunar year adjustment factor
    */
   getLunarYearAdjustment(): number {
-    return 0.9704;
+    return LUNAR_YEAR_ADJUSTMENT_FACTOR;
   }
 
   /**
