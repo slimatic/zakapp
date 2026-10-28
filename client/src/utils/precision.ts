@@ -27,7 +27,7 @@
  * against nisab and applies the selected methodology's rules; a rate helper
  * that skips that comparison would report an obligation on wealth below
  * nisab, so none lives here.
- * 
+ *
  * @faqih-mandate: Use for ALL financial calculations
  */
 

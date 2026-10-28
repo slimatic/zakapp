@@ -151,4 +151,3 @@ export function getPropertyGuidance(subCategory: string): string | null {
       return null;
   }
 }
-
