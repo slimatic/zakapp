@@ -320,3 +320,103 @@ describe('all three methodologies produce a usable answer', () => {
     ).rejects.toThrow(/unknown methodology/i);
   });
 });
+
+/**
+ * The route names the school in `methodology`; the engine must not drop it.
+ *
+ * `POST /api/zakat/calculate` maps the requested school to an engine value and
+ * passes it as `methodology` (routes/zakat.ts:159-172). A request that asks for
+ * one school and silently calculates with another reports the wrong figure and
+ * stamps the wrong school on the saved record and on the response
+ * (routes/zakat.ts:258,309), which is a governance defect rather than a
+ * rounding one.
+ *
+ * The nisab fake below varies by school the way NisabService does (Hanafi =
+ * silver, Hanbali = gold, others = the lower of the two), so the fixture shows
+ * a difference in money, not only in a label.
+ */
+describe('the requested school is the one that runs', () => {
+  const GOLD = 3_000;
+  const SILVER = 5_000;
+
+  function schoolAwareNisab() {
+    const calculateNisab = vi.fn(async (methodology: string) => {
+      const basis =
+        methodology === 'hanafi' ? 'silver' : methodology === 'hanbali' ? 'gold' : 'dual_minimum';
+      const effectiveNisab =
+        basis === 'silver' ? SILVER : basis === 'gold' ? GOLD : Math.min(GOLD, SILVER);
+      return {
+        goldNisab: GOLD,
+        silverNisab: SILVER,
+        effectiveNisab,
+        nisabBasis: basis,
+        calculationMethod: methodology,
+      };
+    });
+    return { calculateNisab, getCurrentNisab: calculateNisab };
+  }
+
+  // 4,000 sits above the gold threshold (3,000) and below the silver one
+  // (5,000), so the two conventions disagree about whether zakat is due.
+  const betweenThresholds = () => [asset({ value: 4_000, currency: 'USD' })];
+
+  it('calculates with the school the route passes, and says so', async () => {
+    const nisab = schoolAwareNisab();
+    const e = new ZakatEngine(fakeCurrencyService(), fakeCalendarService(), nisab as never);
+
+    const res = await e.calculateZakat(
+      // Exactly what the route builds for a user who chose the Hanafi school.
+      request({ method: undefined, methodology: 'HANAFI', assets: betweenThresholds() })
+    );
+
+    expect(res.methodology.id).toBe('hanafi');
+    expect(nisab.calculateNisab.mock.calls[0][0]).toBe('hanafi');
+    // Hanafi's silver threshold is 5,000, above the 4,000 portfolio: no zakat due.
+    expect(res.result.nisab.effectiveNisab).toBe(SILVER);
+    expect(res.result.meetsNisab).toBe(false);
+    expect(res.result.totals.totalZakatDue).toBe(0);
+  });
+
+  it('a standard request keeps the dual-minimum threshold', async () => {
+    // Protection pin: the same fixture under the default school is above nisab,
+    // so the test above is discriminating the school rather than the portfolio.
+    const nisab = schoolAwareNisab();
+    const e = new ZakatEngine(fakeCurrencyService(), fakeCalendarService(), nisab as never);
+    const res = await e.calculateZakat(
+      request({ method: undefined, methodology: 'STANDARD', assets: betweenThresholds() })
+    );
+    expect(res.methodology.id).toBe('standard');
+    expect(res.result.nisab.effectiveNisab).toBe(GOLD);
+    expect(res.result.totals.totalZakatDue).toBeCloseTo(100, 6); // 4,000 x 2.5%
+  });
+
+  it('keeps the lowercase `method` field working for internal callers', async () => {
+    // Protection pin: `method` is part of the request type for internal callers.
+    const e = engine();
+    const res = await e.calculateZakat(
+      request({ method: 'hanafi', methodology: undefined, assets: [asset({ value: 10_000, currency: 'USD' })] })
+    );
+    expect(res.methodology.id).toBe('hanafi');
+  });
+
+  it('rejects an unknown school passed in the request field', async () => {
+    // The widened field must not become a silent fallback: a caller that names a
+    // school the registry does not carry gets an error, not the default one.
+    const e = engine();
+    await expect(
+      e.calculateZakat(
+        request({ method: undefined, methodology: 'not-a-methodology', assets: [asset({ value: 10_000, currency: 'USD' })] })
+      )
+    ).rejects.toThrow(/unknown methodology/i);
+  });
+
+  it('offers the other schools as alternatives, not the one that ran', async () => {
+    const e = new ZakatEngine(fakeCurrencyService(), fakeCalendarService(), schoolAwareNisab() as never);
+    const res = await e.calculateZakat(
+      request({ method: undefined, methodology: 'HANAFI', assets: betweenThresholds() })
+    );
+    const offered = res.alternatives.map((a) => a.methodId);
+    expect(offered).not.toContain('hanafi');
+    expect(offered).toContain('standard');
+  });
+});

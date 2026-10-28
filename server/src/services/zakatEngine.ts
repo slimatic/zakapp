@@ -79,9 +79,9 @@ export class ZakatEngine {
    */
   async calculateZakat(request: ZakatCalculationRequest & { assets?: Asset[]; userId?: string }): Promise<ZakatCalculationResult> {
     try {
-    // Get methodology information (method may be optional in request types)
-    const methodId = (request.method as string) || 'standard';
-    const methodology = this.getMethodologyInfo(methodId);
+      // Get methodology information from the school the request names
+      const methodId = this.resolveMethodologyId(request);
+      const methodology = this.getMethodologyInfo(methodId);
       
       // Get current nisab values
       const nisabInfo = await this.calculateNisabThreshold(methodology, request.customNisab);
@@ -199,6 +199,26 @@ export class ZakatEngine {
     } catch (error) {
       throw new Error(`Methodology comparison failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * The methodology id a request asks for.
+   *
+   * `POST /api/zakat/calculate` passes the user's school as `methodology`
+   * (upper-case, after its own mapping); internal callers use `method`. Reading
+   * only one of the two silently calculates with the default school while the
+   * response and the saved record still carry the requested one's name.
+   *
+   * Case is normalised because `ZAKAT_METHODS` keys its entries by lower-case id
+   * while the request type spells the union in upper case. An absent or blank
+   * field means the default school; any other unrecognised value still throws in
+   * `getMethodologyInfo` rather than quietly substituting one.
+   */
+  private resolveMethodologyId(request: ZakatCalculationRequest): string {
+    const requested = request.methodology ?? request.method;
+    return typeof requested === 'string' && requested.trim()
+      ? requested.trim().toLowerCase()
+      : 'standard';
   }
 
   private getMethodologyInfo(methodId: string): MethodologyInfo {
@@ -693,7 +713,7 @@ export class ZakatEngine {
     primaryCalculation: ZakatCalculation
   ): Promise<AlternativeCalculation[]> {
     const alternatives: AlternativeCalculation[] = [];
-    const otherMethods = Object.values(ZAKAT_METHODS).filter(m => m.id !== request.method);
+    const otherMethods = Object.values(ZAKAT_METHODS).filter(m => m.id !== this.resolveMethodologyId(request));
 
     // Calculate up to 3 alternative methodologies
     for (const method of otherMethods.slice(0, 3)) {
