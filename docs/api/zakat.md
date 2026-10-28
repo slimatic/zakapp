@@ -112,6 +112,29 @@ Calculate Zakat based on encrypted user assets using specified methodology.
 }
 ```
 
+#### Calendar adjustment and the effective rate
+
+A calculation that runs on the lunar (Hijri) calendar scales the amount due by a
+calendar factor: a stated constant of `0.9704`, close to but not identical to the
+mean-year ratio `354.367 / 365.25` (`0.97020`). The response reports both rates rather
+than only the rule-set's own:
+
+- `data.calculation.summary.zakatRate` — the rule-set's rate, in percent (`2.5`).
+- `data.calculation.summary.effectiveZakatRate` — the rate actually applied, in percent
+  (`2.426` on the lunar calendar: `2.5 x 0.9704`; `2.5` on the solar one). Multiplying
+  the zakatable amount by `zakatRate` restates the amount wrong by the factor;
+  `effectiveZakatRate` is the rate the returned `zakatDue` reflects.
+- `data.calculation.summary.calendarAdjustmentFactor` — the multiplier itself (`0.9704`,
+  or `1` when no adjustment applied).
+- `data.calculation.educationalContent.rateExplanation` — a statement of what was
+  applied, and `breakdown.finalCalculation.calendarAdjustment`, which carries the same
+  factor, both rates and the amount before the factor (`0` when zakatable wealth does not
+  reach nisab, since nothing is due) so `zakatDue` reconciles with the per-asset lines.
+
+Whether a lunar year should carry a rate adjustment at all, and on what basis, is a
+question for a qualified scholar. The API reports the arithmetic it ran; it does not
+decide the question.
+
 #### Error Responses
 
 **Validation Error (400)**

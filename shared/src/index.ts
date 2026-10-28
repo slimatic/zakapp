@@ -85,6 +85,7 @@ export type {
 	CalendarCalculation,
 	CalculationBreakdown,
 	AlternativeCalculation,
+	CalendarRateAdjustment,
 } from './coreTypes.js';
 // Import-export utilities added in improve-import-export
 export * from './schemas.js';

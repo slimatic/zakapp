@@ -141,6 +141,20 @@ export interface CalendarCalculation {
     adjustmentFactor?: number;
 }
 
+/**
+ * The calendar factor a calculation applied, with the rate it produced.
+ * Mirrors the same interface in the shared package; the engine imports it from
+ * `@zakapp/shared`, which this file answers at compile time and at runtime.
+ */
+export interface CalendarRateAdjustment {
+    calendarType: "lunar" | "solar";
+    factor: number;
+    nominalRatePercent: number;
+    effectiveRatePercent: number;
+    zakatDueBeforeAdjustment: number;
+    note: string;
+}
+
 export interface CalculationBreakdown {
     assets?: any[];
     liabilities?: any[];
