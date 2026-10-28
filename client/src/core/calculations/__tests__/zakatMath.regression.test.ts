@@ -15,6 +15,8 @@
  * Zakat rate 2.5% (1/40) - agreed across all four schools.
  */
 import { describe, it, expect } from 'vitest';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 import { calculateZakat, isAssetZakatable, getAssetZakatableValue } from '../zakat';
 import { Asset, AssetType } from '../../../types';
 
@@ -200,5 +202,70 @@ describe('zakat math — decimal precision', () => {
     const r = calculateZakat(broken, [], NISAB, 'STANDARD');
     expect(Number.isNaN(r.zakatDue)).toBe(false);
     expect(r.zakatDue).toBe(0);
+  });
+});
+
+/**
+ * The flat-rate calculator is retired, and stays retired.
+ *
+ * Two modules exported a rate calculator that multiplied by 2.5% without ever comparing the
+ * wealth against nisab — `utils/precision.ts` (`calculateZakat(wealth)`, plus a
+ * `calculateZakatableWealth` shortcut that also skipped the threshold) and
+ * `utils/assetModifiers.ts` (`calculateZakat(value, modifier, rate)`). Their only consumers were
+ * `SnapshotForm`, a yearly-snapshot form that no page or route rendered, and nothing at all,
+ * respectively: unreachable, yet still importable, so a future caller would have reported zakat
+ * due on wealth below nisab and nothing would have failed.
+ *
+ * One rate path may exist — the canonical engine in `../zakat`, which compares against nisab
+ * and applies the methodology's rules. These assertions read source rather than importing the
+ * helpers, so the guard still runs and still names the offending file when they are absent.
+ */
+const CLIENT_SRC = resolve(__dirname, '../../../../..', 'client/src');
+const CANONICAL_ENGINE = 'core/calculations/zakat.ts';
+
+function walkSource(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      if (entry === '__tests__' || entry === 'node_modules') continue;
+      walkSource(full, out);
+    } else if (/\.(ts|tsx)$/.test(entry) && !/\.(test|spec)\.(ts|tsx)$/.test(entry)) {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
+/** An exported rate calculator, in any declaration shape. */
+const RATE_EXPORT = /export\s+(?:async\s+)?(?:function|const|let|var)\s+calculateZakat\b/;
+
+describe('the flat rate calculator is retired', () => {
+  it('leaves only the precision primitives in the helper module', () => {
+    const source = readFileSync(resolve(CLIENT_SRC, 'utils/precision.ts'), 'utf8');
+
+    // The survivors the live widgets use.
+    expect(source).toMatch(/export\s+function\s+toDecimal\b/);
+    expect(source).toMatch(/export\s+function\s+toNumber\b/);
+
+    // No threshold-blind rate path may be exportable from here again.
+    expect(source).not.toMatch(RATE_EXPORT);
+    expect(source).not.toMatch(/export\s+(?:function|const)\s+calculateZakatableWealth\b/);
+  });
+
+  it('has exactly one rate calculator in the client tree, the canonical engine', () => {
+    const files = walkSource(CLIENT_SRC);
+    // A scan that examined nothing cannot fail; fail before claiming a pass.
+    expect(files.length).toBeGreaterThan(100);
+
+    const exporters = files
+      .filter((file) => RATE_EXPORT.test(readFileSync(file, 'utf8')))
+      .map((file) => relative(CLIENT_SRC, file).split('\\').join('/'));
+
+    expect(exporters).toEqual([CANONICAL_ENGINE]);
+  });
+
+  it('has removed the form that imported the flat helpers', () => {
+    // `SnapshotForm` was their only importer and nothing rendered it.
+    expect(existsSync(resolve(CLIENT_SRC, 'components/tracking/SnapshotForm.tsx'))).toBe(false);
   });
 });

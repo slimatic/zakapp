@@ -22,6 +22,12 @@
  * This is CRITICAL for Zakat calculations where floating-point
  * errors violate Islamic finance principles.
  * 
+ * Parsing and formatting primitives only. A zakat figure is computed by the
+ * canonical engine in `core/calculations/zakat.ts`, which compares wealth
+ * against nisab and applies the selected methodology's rules; a rate helper
+ * that skips that comparison would report an obligation on wealth below
+ * nisab, so none lives here.
+ *
  * @faqih-mandate: Use for ALL financial calculations
  */
 
@@ -67,59 +73,6 @@ export function toNumber(value: Decimal | string | number | null | undefined): n
         return value.toNumber();
     }
     return toDecimal(value).toNumber();
-}
-
-/**
- * Calculate Zakat at 2.5% (1/40) with precision.
- * 
- * @faqih-rule: Zakat is exactly 2.5% of zakatable wealth
- */
-export function calculateZakat(zakatableWealth: string | number | Decimal): Decimal {
-    const wealth = zakatableWealth instanceof Decimal
-        ? zakatableWealth
-        : toDecimal(zakatableWealth);
-
-    // 2.5% = 0.025 = 1/40
-    return wealth.times(new Decimal('0.025'));
-}
-
-/**
- * Calculate zakatable wealth (assets minus liabilities).
- * Returns 0 if result would be negative.
- */
-export function calculateZakatableWealth(
-    totalAssets: string | number | Decimal,
-    totalLiabilities: string | number | Decimal
-): Decimal {
-    const assets = totalAssets instanceof Decimal ? totalAssets : toDecimal(totalAssets);
-    const liabilities = totalLiabilities instanceof Decimal ? totalLiabilities : toDecimal(totalLiabilities);
-
-    const result = assets.minus(liabilities);
-    return result.isNegative() ? new Decimal(0) : result;
-}
-
-/**
- * Check if wealth meets Nisab threshold.
- */
-export function meetsNisab(
-    zakatableWealth: string | number | Decimal,
-    nisabThreshold: string | number | Decimal
-): boolean {
-    const wealth = zakatableWealth instanceof Decimal ? zakatableWealth : toDecimal(zakatableWealth);
-    const nisab = nisabThreshold instanceof Decimal ? nisabThreshold : toDecimal(nisabThreshold);
-
-    return wealth.gte(nisab);
-}
-
-/**
- * Format a Decimal value for display with specified precision.
- */
-export function formatDecimal(
-    value: Decimal | string | number,
-    decimalPlaces: number = 2
-): string {
-    const decimal = value instanceof Decimal ? value : toDecimal(value);
-    return decimal.toFixed(decimalPlaces);
 }
 
 // Re-export Decimal for direct use when needed
