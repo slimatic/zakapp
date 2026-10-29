@@ -1,5 +1,56 @@
 # Changelog
 
+## [1.1.0] - 2026-10-29
+
+*18 Jumada al-Awwal 1448.*
+
+A calculation-integrity release: one rule per question, stated on the surface that shows it. No new
+feature surface; the numbers the app already displayed now agree with each other and with the rule
+the user selected.
+
+### One rule per calculation
+
+- Closed assets no longer count toward wealth or zakat on any surface; the same activity rule now
+  backs every calculator, the live tracker and the year records.
+- Both calculators deduct liabilities under one shared rule, and the Calculator now deducts the
+  liabilities the user actually entered instead of none.
+- The nisab gram convention the user selects is honoured wherever a threshold is computed, and the
+  threshold's price source is stated beside it — including when the price is the bundled fallback.
+- Retirement preview shows the engine's own arithmetic (the preserved-growth case read 0.5% where
+  the engine applied 2.5%).
+
+### One date rule
+
+- Hawl completion resolves from a single rule across the client and the server; both the lunar and
+  Hijri dates are stored; the live tracker, the set-up step, the dashboard and the reminder service
+  agree on the completion date.
+- Record refresh refuses a finalized record and refuses to invent a missing nisab threshold; it
+  reports what is missing instead of writing a figure.
+
+### The record is the source
+
+- The hawl statement reads the record's stored figures rather than recomputing a liability total;
+  recorded liabilities appear as their own line.
+- The create-record preview uses the selected school and the record's hawl year, so the number
+  approved is the number stored.
+
+### Stated, not silent
+
+- The server's lunar-calendar adjustment is reported as a figure — nominal rate, applied factor,
+  effective rate and the due amount before adjustment — instead of a silent multiplication.
+- The server runs the school the request names; the response reports the school that actually ran.
+- Debt rulings state the app's default exclusion alongside each school's rule, so the text no longer
+  contradicts the calculation.
+
+### Under the surface
+
+- The threshold-blind flat-rate helpers and their unused form are retired; one rate path remains,
+  guarded by a test.
+- Push notifications report a missing VAPID configuration with an actionable message instead of a
+  generic failure.
+
+**Full Changelog**: https://github.com/slimatic/zakapp/compare/v1.0.2...v1.1.0
+
 ## [1.0.2] - 2026-10-05
 
 *23 Rabi al-Thani 1448.*
