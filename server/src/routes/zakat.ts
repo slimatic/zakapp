@@ -38,18 +38,30 @@ import * as jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
 import { getJwtSecret } from '../config/security';
 import { redactErrorDetail } from '../utils/errorDetails';
+import { activeLiabilities, calculateDeductibleLiabilities } from '../services/liabilityDeduction';
 
-async function getUserActiveLiabilities(userId: string) {
+async function getUserActiveLiabilities(userId: string, referenceDate: Date) {
   const liabilities = await prisma.liability.findMany({
-    where: { userId, isActive: true },
-    select: { type: true, amount: true, name: true },
+    where: { userId },
+    select: {
+      type: true,
+      amount: true,
+      name: true,
+      dueDate: true,
+      isActive: true,
+      deductibleAmount: true,
+    },
   });
-  
-  const total = liabilities.reduce((sum, l) => sum + l.amount, 0);
-  
+
+  // One rule, shared with the client (../services/liabilityDeduction.ts):
+  // `total` is what the user says they owe, `deductible` is what the rule
+  // actually lets us subtract. The engine is given the second.
+  const active = activeLiabilities(liabilities);
+
   return {
-    total,
-    liabilities: liabilities.map(l => ({ type: l.type, amount: l.amount, name: l.name })),
+    total: active.reduce((sum, l) => sum + l.amount, 0),
+    deductible: calculateDeductibleLiabilities(active, referenceDate),
+    liabilities: active.map(l => ({ type: l.type, amount: l.amount, name: l.name })),
   };
 }
 
@@ -176,14 +188,20 @@ router.post('/calculate',
         customNisab
       };
 
-      const liabilityData = await getUserActiveLiabilities(req.userId!);
+      const liabilityData = await getUserActiveLiabilities(
+        req.userId!,
+        new Date(calcRequest.calculationDate)
+      );
 
       const result = await zakatEngine.calculateZakat({
         ...calcRequest,
-        userId: req.userId
+        userId: req.userId,
+        deductibleLiabilities: liabilityData.deductible
       });
 
-      const netWorth = result.result.totals.totalAssets - liabilityData.total;
+      // Net worth is what the rule lets us deduct, not what the user owes: the
+      // summary's own zakat figure is computed on the same basis.
+      const netWorth = result.result.totals.totalAssets - liabilityData.deductible;
 
       // Issue #310: present results in the USER's currency. The engine computes
       // in USD internally; convert the OUTPUT numbers so an IDR user sees IDR
@@ -204,6 +222,7 @@ router.post('/calculate',
       let presentation = {
         totalAssets: result.result.totals.totalAssets,
         totalLiabilities: liabilityData.total,
+        deductibleLiabilities: liabilityData.deductible,
         totalZakatDue: result.result.totals.totalZakatDue,
         netWorth,
         nisabThreshold: result.result.nisab.effectiveNisab
@@ -239,6 +258,7 @@ router.post('/calculate',
           presentation = {
             totalAssets: presentation.totalAssets * fxRate,
             totalLiabilities: presentation.totalLiabilities * fxRate,
+            deductibleLiabilities: presentation.deductibleLiabilities * fxRate,
             totalZakatDue: presentation.totalZakatDue * fxRate,
             netWorth: presentation.netWorth * fxRate,
             nisabThreshold: presentation.nisabThreshold * fxRate
@@ -318,7 +338,8 @@ router.post('/calculate',
             calculationId: savedCalculation.id,
             meetsNisab: result.result.meetsNisab,
             nisabBasis: result.result.nisab.nisabBasis,
-            totalLiabilities: liabilityData.total
+            totalLiabilities: liabilityData.total,
+            liabilitiesDeducted: liabilityData.deductible
           },
           zakatYearStart: zakatYear.startDate,
           zakatYearEnd: zakatYear.endDate,
