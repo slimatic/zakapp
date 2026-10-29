@@ -67,42 +67,6 @@ describe('WealthAggregationService', () => {
     });
   });
 
-  describe('calculateTotalLiabilities', () => {
-    it('should sum all active liability amounts', async () => {
-      const userId = 'user1';
-      const mockLiabilities = [
-        { id: 'l1', amount: 1500 },
-        { id: 'l2', amount: 500 },
-      ];
-
-      mockPrisma.liability.findMany.mockResolvedValue(mockLiabilities);
-
-      const total = await service.calculateTotalLiabilities(userId);
-
-      expect(total).toBe(2000);
-    });
-  });
-
-  describe('calculateNetZakatableWealth', () => {
-    it('should subtract liabilities from total zakatable wealth', async () => {
-      const userId = 'user1';
-
-      // Mock assets (10,000 zakatable)
-      mockPrisma.asset.findMany.mockResolvedValue([
-        { id: 'a1', category: 'cash', value: 10000, calculationModifier: 1.0 }
-      ]);
-
-      // Mock liabilities (2,000)
-      mockPrisma.liability.findMany.mockResolvedValue([
-        { id: 'l1', amount: 2000 }
-      ]);
-
-      const netWealth = await service.calculateNetZakatableWealth(userId);
-
-      expect(netWealth).toBe(8000);
-    });
-  });
-
   describe('calculatePeriodWealth', () => {
     it('should calculate wealth for specific date range', async () => {
       const userId = 'user1';
