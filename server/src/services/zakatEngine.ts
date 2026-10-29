@@ -78,7 +78,7 @@ export class ZakatEngine {
    * @param request - Calculation parameters including method, assets, calendar type
    * @returns Complete calculation result with methodology details and alternatives
    */
-  async calculateZakat(request: ZakatCalculationRequest & { assets?: Asset[]; userId?: string }): Promise<ZakatCalculationResult> {
+  async calculateZakat(request: ZakatCalculationRequest & { assets?: Asset[]; userId?: string; deductibleLiabilities?: number }): Promise<ZakatCalculationResult> {
     try {
       // Get methodology information from the school the request names
       const methodId = this.resolveMethodologyId(request);
@@ -106,7 +106,13 @@ export class ZakatEngine {
       );
 
       // Generate detailed breakdown
-      const breakdown = this.generateBreakdown(calculation, methodology, nisabInfo, validatedAssets);
+      const breakdown = this.generateBreakdown(
+        calculation,
+        methodology,
+        nisabInfo,
+        validatedAssets,
+        request.deductibleLiabilities ?? 0
+      );
 
       // Calculate alternatives for comparison
       const alternatives = await this.calculateAlternatives(validatedAssets, request, calculation);
@@ -374,7 +380,7 @@ export class ZakatEngine {
     assets: Asset[],
     methodology: MethodologyInfo,
     nisabInfo: NisabInfo,
-    request: ZakatCalculationRequest,
+    request: ZakatCalculationRequest & { deductibleLiabilities?: number },
     calendarInfo?: CalendarCalculation
   ): Promise<ZakatCalculation> {
     const calculationId = randomUUID();
@@ -394,8 +400,20 @@ export class ZakatEngine {
     const totalZakatableAssets = zakatAssets.reduce((sum, asset) => sum + asset.zakatableAmount, 0);
     const totalZakatDue = zakatAssets.reduce((sum, asset) => sum + asset.zakatDue, 0);
 
-    // Check nisab eligibility
-    const meetsNisab = totalZakatableAssets >= nisabInfo.effectiveNisab;
+    // Liabilities — the route passes the amount the ONE shared rule makes
+    // deductible (server/src/services/liabilityDeduction.ts, the server's copy of
+    // client/src/core/calculations/liabilityRules.ts). Deducted from the
+    // zakatable total before the nisab test, exactly as the client engine does:
+    // a debt you owe is not wealth you purify.
+    const deductions = Math.max(0, Number(request.deductibleLiabilities ?? 0));
+    const netZakatableAssets = Math.max(0, totalZakatableAssets - deductions);
+    // Per-asset lines stay gross; the deduction is a portfolio-level line. This
+    // share keeps the total proportional to those lines, so the figures still
+    // reconcile (and the arithmetic is unchanged when there is nothing to deduct).
+    const zakatableShare = totalZakatableAssets > 0 ? netZakatableAssets / totalZakatableAssets : 0;
+
+    // Check nisab eligibility — on what is actually zakatable, not on the gross.
+    const meetsNisab = netZakatableAssets >= nisabInfo.effectiveNisab;
 
     // Calendar adjustment, applied to the total AND to every per-asset line so the
     // reported figures add up, and stated on the result (see `calendarAdjustment`).
@@ -403,7 +421,7 @@ export class ZakatEngine {
     const calendarAdjustment = this.calendarAdjustment(
       methodology,
       calendarInfo,
-      meetsNisab ? totalZakatDue : 0
+      meetsNisab ? totalZakatDue * zakatableShare : 0
     );
     const adjustedAssets = zakatAssets.map(asset => ({
       ...asset,
@@ -413,6 +431,8 @@ export class ZakatEngine {
     const totals = {
       totalAssets,
       totalZakatableAssets,
+      netZakatableAssets,
+      totalExpenses: deductions,
       totalZakatDue:
         calendarAdjustment.zakatDueBeforeAdjustment * calendarAdjustment.factor
     };
@@ -691,7 +711,8 @@ export class ZakatEngine {
     calculation: ZakatCalculation,
     methodology: MethodologyInfo,
     nisabInfo: NisabInfo,
-    assets: Asset[]
+    assets: Asset[],
+    deductions = 0
   ): CalculationBreakdown {
     const assetCalculations: AssetCalculation[] = assets.map(asset => {
       const zakatAsset = calculation.assets.find(za => za.assetId === asset.assetId);
@@ -717,8 +738,8 @@ export class ZakatEngine {
       assetCalculations,
       finalCalculation: {
         totalAssets: calculation.totals.totalAssets,
-        totalDeductions: 0, // Would include debt deductions
-        zakatableAmount: calculation.totals.totalZakatableAssets,
+        totalDeductions: deductions,
+        zakatableAmount: calculation.totals.netZakatableAssets ?? calculation.totals.totalZakatableAssets,
         zakatDue: calculation.totals.totalZakatDue,
         // Carried here as well as on the result: a reader of the breakdown sees
         // `zakatDue` beside per-asset lines that carry the same factor, and the
