@@ -92,6 +92,15 @@ export const ZakatSetupStep: React.FC = () => {
             // Double check validation
             if (!estimates) throw new Error("Please wait for calculations to finish");
 
+            // A missing threshold is unknown, not zero: stamped as '0' the
+            // record claims every portfolio is above nisab, and the refresh
+            // path later refuses to touch it. Wait for the price fetch.
+            if (!Number.isFinite(nisabAmount) || Number(nisabAmount) <= 0) {
+                toast.error('Nisab threshold is not available yet — wait for prices to load, then try again', { id: toastId });
+                setIsSubmitting(false);
+                return;
+            }
+
             const basis = (data.nisab.standard || 'GOLD').toUpperCase() as 'GOLD' | 'SILVER';
             logger.debug('[ZakatSetupStep] Creating record with basis:', basis, 'from:', data.nisab);
 

@@ -88,6 +88,19 @@ describe('useNisabRecordActions (#341 slice 4)', () => {
         expect(opts.addRecord.mock.calls[0][0].zakatAmount).toBe(0);
     });
 
+    it('createRecord refuses a missing nisab threshold instead of charging on zero', async () => {
+        const opts = baseOptions();
+        // Prices have not landed; the wizard used to pass `nisabAmount || 0`,
+        // and `net >= 0` then charged 2.5% of everything and stamped '0'.
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+
+        const ok = await act(() => result.current.createRecord({ ...payload, nisabAmount: 0 }));
+
+        expect(ok).toBe(false);
+        expect(opts.addRecord).not.toHaveBeenCalled();
+        expect(toast.error).toHaveBeenCalled();
+    });
+
     it('createRecord stores the figures over the hawl year the user picked, not "now"', async () => {
         const opts = baseOptions();
         // The hawl year begins 30 days ago. A debt falling due 340 days from
@@ -216,5 +229,33 @@ describe('useNisabRecordActions (#341 slice 4)', () => {
         const { result } = renderHook(() => useNisabRecordActions(opts));
         await act(() => result.current.saveStartDate('r1', ''));
         expect(opts.updateRecord).not.toHaveBeenCalled();
+    });
+
+    it('createRecord stamps the school its own figures were computed under', async () => {
+        const opts = baseOptions();
+        opts.userMethodology = 'SHAFII';
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+
+        await act(() => result.current.createRecord(payload));
+
+        expect(opts.addRecord.mock.calls[0][0].methodologyUsed).toBe('SHAFII');
+    });
+
+    it("refreshCalculations continues the record's own school, not the user's new one", async () => {
+        const opts = baseOptions();
+        // The user has since switched to Hanafi; the record was built under
+        // Shafi'i, which exempts jewelry.
+        opts.userMethodology = 'HANAFI';
+        opts.normalizedAssets = [{ id: 'a1', value: 1000, type: 'GOLD' }] as never;
+
+        const { result } = renderHook(() => useNisabRecordActions(opts));
+        await act(() => result.current.refreshCalculations({
+            id: 'r1', nisabThresholdAtStart: '100', methodologyUsed: 'SHAFII',
+        } as never));
+
+        const patch = opts.updateRecord.mock.calls[0][1];
+        // Shafi'i: the ring is not zakatable, so there is nothing to charge.
+        expect(patch.zakatableWealth).toBe(0);
+        expect(patch.zakatAmount).toBe(0);
     });
 });

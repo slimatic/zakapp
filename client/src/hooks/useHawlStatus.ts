@@ -26,10 +26,12 @@ import { useCallback, useMemo } from 'react';
 import type { NisabYearRecordWithLiveTracking, LiveTrackingData } from '../types/nisabYearRecord';
 import { useNisabRecordRepository } from './useNisabRecordRepository';
 import { useAssetRepository } from './useAssetRepository';
+import { useLiabilityRepository } from './useLiabilityRepository';
 import { useNisabThreshold } from './useNisabThreshold';
 import { useUserSettingsRepository } from './useUserSettingsRepository';
 import { useDisplayCurrency } from './useDisplayCurrency';
 import { activeAssets } from '../core/calculations/activeAssets';
+import { calculateDeductibleLiabilities } from '../core/calculations/liabilityRules';
 import { HAWL_DAYS } from '../core/calculations/hawl';
 import {
   getAssetZakatableValue,
@@ -65,6 +67,7 @@ export const useHawlStatus = (
   // 1. Get Data from Local Repositories
   const { records, isLoading: isRecordsLoading } = useNisabRecordRepository();
   const { assets, isLoading: isAssetsLoading } = useAssetRepository();
+  const { liabilities, isLoading: isLiabilitiesLoading } = useLiabilityRepository();
   const { settings } = useUserSettingsRepository();
   const display = useDisplayCurrency();
 
@@ -91,7 +94,7 @@ export const useHawlStatus = (
     refetch: refetchNisab,
   } = useNisabThreshold(display.currency, nisabBasis, display.nisabStandard);
 
-  const isLoading = isRecordsLoading || isAssetsLoading || isNisabLoading;
+  const isLoading = isRecordsLoading || isAssetsLoading || isLiabilitiesLoading || isNisabLoading;
 
   // 3. Calculate Live Stats (The Core Logic)
   const liveHawlData = useMemo((): LiveTrackingData | undefined => {
@@ -108,7 +111,15 @@ export const useHawlStatus = (
       zakatableAssets += getAssetZakatableValue(asset, methodology);
     }
 
-    // B. Calculate Date Metrics (one lunar-year rule, from `hawl.ts`)
+    // B. Liabilities — the same rule and the same order the two calculators
+    // use (core/calculations/liabilityRules). Reporting gross zakatable wealth
+    // here made the tracker answer a different question from the calculator:
+    // it said "above nisab, X due" while the engines charged on wealth net of
+    // the debts the user had entered.
+    const deductibleLiabilities = calculateDeductibleLiabilities(liabilities, new Date());
+    const netZakatableAssets = Math.max(0, zakatableAssets - deductibleLiabilities);
+
+    // C. Calculate Date Metrics (one lunar-year rule, from `hawl.ts`)
     const startDate = new Date(record?.hawlStartDate || new Date());
     const now = new Date();
 
@@ -125,19 +136,19 @@ export const useHawlStatus = (
     // "due" figure from it.
     const hasThreshold =
       typeof nisabAmount === 'number' && Number.isFinite(nisabAmount) && nisabAmount > 0;
-    const isAboveNisab = hasThreshold ? zakatableAssets >= nisabAmount : undefined;
-    const zakatDue = isAboveNisab ? zakatableAssets * 0.025 : 0;
+    const isAboveNisab = hasThreshold ? netZakatableAssets >= nisabAmount : undefined;
+    const zakatDue = isAboveNisab ? netZakatableAssets * 0.025 : 0;
 
     return {
       daysRemaining,
       hawlProgress: progressPercent,
       canFinalize: daysRemaining === 0,
       currentTotalWealth: totalAssets,
-      currentZakatableWealth: zakatableAssets,
+      currentZakatableWealth: netZakatableAssets,
       zakatDue,
       isAboveNisab
     };
-  }, [record, assets, nisabAmount, methodology]);
+  }, [record, assets, liabilities, nisabAmount, methodology]);
 
   // 4. Enrich Record with Live Data
   const enrichedRecord = useMemo(() => {

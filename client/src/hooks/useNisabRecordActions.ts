@@ -52,6 +52,8 @@ export interface RefreshRecordTarget {
   id: string;
   status?: string;
   nisabThresholdAtStart?: string | number | null;
+  /** The school this record's stored figures were computed under. */
+  methodologyUsed?: string;
 }
 
 /** The create-path nisab rule, shared with refresh (same rule, same operator). */
@@ -84,6 +86,15 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
   const createRecord = useCallback(async (payload: CreateRecordPayload): Promise<boolean> => {
     const { assetIds, liabilityIds, basis, date, nisabAmount: threshold } = payload;
     try {
+      // No threshold is UNKNOWN, not zero. `nisabAmount || 0` used to travel
+      // straight into the comparison below, where `net >= 0` is always true —
+      // so a record created before the price fetch landed charged 2.5% of
+      // everything and stamped '0', which the refresh path then refuses to use.
+      // Refuse here instead, as refresh already does.
+      if (!Number.isFinite(threshold) || threshold <= 0) {
+        toast.error('Nisab threshold is not available yet — wait for prices to load, then try again');
+        return false;
+      }
       const selectedAssets = normalizedAssets.filter(a => assetIds.includes(a.id));
       const selectedLiabilities = normalizedLiabilities.filter(l => liabilityIds.includes(l.id));
 
@@ -105,6 +116,10 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
         zakatAmount,
         nisabThresholdAtStart: threshold.toString(),
         currency: userCurrency,
+        // The school these figures were computed with. Without the stamp a
+        // record has no memory of its own rule: the tracker and a later refresh
+        // would both silently follow whatever school the user picks next.
+        methodologyUsed: userMethodology,
         status: 'DRAFT',
       });
 
@@ -137,7 +152,11 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
         return;
       }
       const { totalWealth, netZakatableWealth } = calculateWealth(
-        normalizedAssets as never, normalizedLiabilities as never, new Date(), userMethodology as never
+        normalizedAssets as never, normalizedLiabilities as never, new Date(),
+        // A refresh continues the record's own rule. Recomputing under the
+        // user's current school would rewrite the figures while the record
+        // still says it was computed under another one.
+        (record.methodologyUsed || userMethodology) as never
       );
       const zakatAmount = zakatDueAboveThreshold(netZakatableWealth, threshold);
       await updateRecord(record.id, {

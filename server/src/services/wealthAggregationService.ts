@@ -273,35 +273,6 @@ export class WealthAggregationService {
   }
 
   /**
-   * Calculate liabilities/debts to deduct from wealth
-   * 
-   * @param userId - User ID
-   * @returns Total liabilities
-   */
-  async calculateTotalLiabilities(userId: string): Promise<number> {
-    const liabilities = await this.prisma.liability.findMany({
-      where: {
-        userId,
-        isActive: true,
-      },
-    });
-
-    return liabilities.reduce((sum, liability) => sum + liability.amount, 0);
-  }
-
-  /**
-   * Calculate net zakatable wealth (gross - liabilities)
-   * 
-   * @param userId - User ID
-   * @returns Net zakatable wealth
-   */
-  async calculateNetZakatableWealth(userId: string): Promise<number> {
-    const wealth = await this.calculateTotalZakatableWealth(userId);
-    const liabilities = await this.calculateTotalLiabilities(userId);
-    return Math.max(0, wealth.totalZakatableWealth - liabilities);
-  }
-
-  /**
    * Get wealth comparison between two periods
    * Used for showing year-over-year changes
    * 
