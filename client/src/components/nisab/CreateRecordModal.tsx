@@ -117,7 +117,10 @@ export const CreateRecordModal: React.FC<CreateRecordModalProps> = ({
 
   const threshold = nisabAmount || 0;
   const { netZakatableWealth } = preview;
-  const zakatAmount = netZakatableWealth >= threshold
+  // An absent threshold is unknown, not zero. With `>= 0` the review screen
+  // showed a charge for a portfolio that may be below nisab; the create path
+  // now refuses rather than storing that figure.
+  const zakatAmount = threshold > 0 && netZakatableWealth >= threshold
     ? parseDecimalNumber((netZakatableWealth * 0.025).toString())
     : 0;
 

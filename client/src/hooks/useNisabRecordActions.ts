@@ -86,6 +86,15 @@ export function useNisabRecordActions(options: UseNisabRecordActionsOptions) {
   const createRecord = useCallback(async (payload: CreateRecordPayload): Promise<boolean> => {
     const { assetIds, liabilityIds, basis, date, nisabAmount: threshold } = payload;
     try {
+      // No threshold is UNKNOWN, not zero. `nisabAmount || 0` used to travel
+      // straight into the comparison below, where `net >= 0` is always true —
+      // so a record created before the price fetch landed charged 2.5% of
+      // everything and stamped '0', which the refresh path then refuses to use.
+      // Refuse here instead, as refresh already does.
+      if (!Number.isFinite(threshold) || threshold <= 0) {
+        toast.error('Nisab threshold is not available yet — wait for prices to load, then try again');
+        return false;
+      }
       const selectedAssets = normalizedAssets.filter(a => assetIds.includes(a.id));
       const selectedLiabilities = normalizedLiabilities.filter(l => liabilityIds.includes(l.id));
 
