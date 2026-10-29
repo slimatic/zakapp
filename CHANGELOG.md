@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.1.1] - 2026-10-29
+
+*18 Jumada al-Awwal 1448.*
+
+A patch on 1.1.0. The release before this one set out to make the numbers agree; this one fixes the
+places where they still did not, all of them on the surfaces 1.1.0 named but did not reach.
+
+### One liability rule, now on the server too
+
+- The server engine deducts the user's deductible liabilities before the nisab test, and its
+  breakdown reports them instead of a literal `totalDeductions: 0`. A portfolio of 10,000 with a
+  5,000 debt returned `netWorth: 5,000` beside a charge computed on the full 10,000; it now charges
+  on 5,000.
+- The live tracker applies the same shared rule, so the widget and the calculators give one answer
+  for one portfolio. Total wealth stays gross; the zakatable figure is net.
+- The wealth-aggregation service's second liability rule is removed. It summed every active debt
+  with no window and no confirmed portion, contradicting the rule every other surface applies, and
+  nothing outside itself called it.
+- A record now stamps the school it was computed with, and refresh continues that record's school
+  instead of the user's current preference. Switching school no longer silently rewrites an old
+  record under a rule it was never computed with.
+
+### Dates and thresholds
+
+- A Hijri calculation snapshot covers 354 days, not 365, and keeps the reference date's time of
+  day instead of rounding the boundary to midnight.
+- Creating a record refuses a missing or zero nisab threshold rather than charging on zero, which
+  `nisabAmount || 0` had made always-true. The set-up step guards before it writes, and the record
+  modal no longer previews a charge against a zero threshold.
+
+### Dependencies
+
+- `dompurify` 3.4.17. 1.1.0 shipped on 3.4.16, which carried a critical advisory with no published
+  fix at the time; 3.4.17 is that fix. The package still has no call site in the client.
+
 ## [1.1.0] - 2026-10-29
 
 *18 Jumada al-Awwal 1448.*
